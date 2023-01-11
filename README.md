@@ -8,7 +8,7 @@ Boilerplate for SST serverless APIs
 ```
 aws sts get-caller-identity
 ```
-** Note: ** If token expired then again need to be export the credentials on the terminal.
+**Note:** If token expired then again need to be export the credentials on the terminal.
 
 ## Implement JWT Authorization with Auth0
   - Create an account on Auth0 and create a single page application. 
