@@ -1,0 +1,32 @@
+{
+  "name": "rest-api-ts",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "sst start",
+    "build": "sst build",
+    "deploy": "sst deploy",
+    "remove": "sst remove",
+    "console": "sst console",
+    "typecheck": "tsc --noEmit",
+    "test": "sst bind -- vitest run"
+  },
+  "devDependencies": {
+    "@serverless-stack/cli": "^1.18.4",
+    "@serverless-stack/resources": "^1.18.4",
+    "@tsconfig/node16": "^1.0.3",
+    "aws-cdk-lib": "2.50.0",
+    "typescript": "^4.9.4",
+    "vitest": "^0.25.8"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cloudwatch": "^3.241.0",
+    "@serverless-stack/node": "^1.18.4",
+    "ts-node": "^10.9.1",
+    "winston": "^3.8.2",
+    "winston-cloudwatch": "^6.1.1"
+  },
+  "workspaces": [
+    "services"
+  ]
+}
