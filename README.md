@@ -19,6 +19,8 @@ aws sts get-caller-identity
 AUTH0_DOMAIN=https://your-domain
 AUTH0_CLIENT_ID=client-id
 ```
+Now Run `npm start` command on terminal. It will deploy your stack changes and start Live Lambda Dev.
+
 ## How to create an api 
   - We need to define endpoint inside the object of the routes key in MyStack.ts file.
     For eg `routes: {"PUT /notes/{id}": ""}`
