@@ -4,7 +4,8 @@ Boilerplate for SST serverless APIs
 ## To setup SST project in local 
   - Install node 16.* and npm 8.*
   - Setup aws credentials by exporting the credentials on terminal.
-** Check by command if token is expired **
+  
+**Check by command if token is expired**
 ```
 aws sts get-caller-identity
 ```
