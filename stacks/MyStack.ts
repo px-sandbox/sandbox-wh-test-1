@@ -4,20 +4,38 @@ export default class MyStack extends sst.Stack {
   constructor(scope: sst.App, id: string, props?: sst.StackProps) {
     super(scope, id, props);
 
+    // Create User Pool
+    const auth = new sst.Cognito(this, "Auth", {
+      login: ["email"],
+    });
+
     // Create the HTTP API
 
     const api = new sst.Api(this, "Api", {
+      // authorizers: {
+      //   auth0: {
+      //     type: "jwt",
+      //     jwt: {
+      //       issuer: process.env.AUTH0_DOMAIN + "/",
+      //       audience: [process.env.AUTH0_DOMAIN + "/api/v2/"],
+      //     },
+      //   },
+      // },
+      // defaults: {
+      //   authorizer: "auth0",
+      // },
+
       authorizers: {
-        auth0: {
-          type: "jwt",
-          jwt: {
-            issuer: process.env.AUTH0_DOMAIN + "/",
-            audience: [process.env.AUTH0_DOMAIN + "/api/v2/"],
+        jwt: {
+          type: "user_pool",
+          userPool: {
+            id: auth.userPoolId,
+            clientIds: [auth.userPoolClientId],
           },
         },
       },
       defaults: {
-        authorizer: "auth0",
+        authorizer: "jwt",
       },
       routes: {
         "GET /notes": {
@@ -32,9 +50,14 @@ export default class MyStack extends sst.Stack {
       },
     });
 
-    // Show the API endpoint in the output
+    // allowing authenticated users to access API
+    auth.attachPermissionsForAuthUsers(this, [api]);
+
+    // Show the API endpoint and other info in the output
     this.addOutputs({
       ApiEndpoint: api.url,
+      UserPoolId: auth.userPoolId,
+      UserPoolClientId: auth.userPoolClientId,
     });
   }
 }
