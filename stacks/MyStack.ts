@@ -61,6 +61,11 @@ export default class MyStack extends sst.Stack {
       },
     });
 
+    api.addRoutes(this, {
+      "GET /auth-token": "github/jwtToken.handler",
+      "GET /app": "github/app.handler",
+    });
+
     // auth.attach(this, {
     //   api,
     // });
