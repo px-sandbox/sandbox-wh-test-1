@@ -1,9 +1,17 @@
 import * as sst from "@serverless-stack/resources";
+import { config } from "winston";
 
 export default class MyStack extends sst.Stack {
   constructor(scope: sst.App, id: string, props?: sst.StackProps) {
     super(scope, id, props);
 
+    //Set config params
+    // const githubAppId = new sst.Topic(this, "GithubAppId");
+    const GITHUB_APP_ID = new sst.Config.Secret(this, "GITHUB_APP_ID");
+    const GITHUB_APP_PRIVATE_KEY_PEM = new sst.Config.Secret(
+      this,
+      "GITHUB_APP_PRIVATE_KEY_PEM"
+    );
     // Create User Pool
     // const auth = new sst.Cognito(this, "Auth", {
     //   login: ["email"],
@@ -62,7 +70,12 @@ export default class MyStack extends sst.Stack {
     });
 
     api.addRoutes(this, {
-      "GET /auth-token": "github/jwtToken.handler",
+      "GET /auth-token": {
+        function: {
+          handler: "github/jwtToken.handler",
+          bind: [GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY_PEM],
+        },
+      },
       "GET /app": "github/app.handler",
     });
 
