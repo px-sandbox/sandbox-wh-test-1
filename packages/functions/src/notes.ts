@@ -1,11 +1,5 @@
-interface Note {
-  noteId: string;
-  userId: string;
-  createdAt: number;
-  content: string;
-}
-
-const notes: { [key: string]: Note } = {
+import { Note } from "abstraction";
+export const notes: Record<string, Note> = {
   id1: {
     noteId: "id1",
     userId: "user1",
@@ -19,5 +13,3 @@ const notes: { [key: string]: Note } = {
     content: "Hello Old World! Old note.",
   },
 };
-
-export default notes;

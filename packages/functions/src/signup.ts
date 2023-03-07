@@ -1,4 +1,4 @@
-import logger from "./../../utils/logger";
+import logger from "@rest-api-ts/utils/src/logger";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import fs from "fs";
 import jwt from "jsonwebtoken";

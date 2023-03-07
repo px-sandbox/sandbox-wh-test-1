@@ -1,19 +1,16 @@
-import logger from "./../../utils/logger";
-import {
-  // APIGatewayProxyEvent,
-  // APIGatewayProxyResult,
-  APIGatewayProxyHandlerV2,
-  // APIGatewayProxyHandlerV2WithJWTAuthorizer,
-} from "aws-lambda";
+import logger from "@rest-api-ts/utils/src/logger";
+import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import jwt from "jsonwebtoken";
-import notes from "./notes";
+import { notes } from "./notes";
 
 export const handler: APIGatewayProxyHandlerV2 = async function main(event) {
-  let username: string;
   const token: string = event.headers["authorization"]?.split(" ")[1] || "";
-  console.log(token);
-  if (token) {
-    console.log(jwt.verify(token, "secret"));
+
+  if (jwt.verify(token, "secret")) {
+    logger.log({
+      level: "info",
+      message: "successfully verified token",
+    });
   } else {
     return {
       statusCode: 404,
@@ -21,10 +18,7 @@ export const handler: APIGatewayProxyHandlerV2 = async function main(event) {
     };
   }
 
-  const note =
-    event.pathParameters && event.pathParameters.id
-      ? notes[event.pathParameters.id]
-      : null;
+  const note = notes[event.pathParameters?.id!];
 
   if (!note) {
     return {
@@ -38,8 +32,13 @@ export const handler: APIGatewayProxyHandlerV2 = async function main(event) {
     note.content = data.content || note.content;
   }
 
+  logger.log({
+    level: "info",
+    message: "Successfully updated note",
+  });
+
   return {
     statusCode: 200,
-    body: JSON.stringify(note, null, " "),
+    body: JSON.stringify(note),
   };
 };

@@ -1,24 +1,21 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import notes from "./notes";
-import logger from "./../../utils/logger";
+import { notes } from "./notes";
+import logger from "@rest-api-ts/utils/src/logger";
 
-export const main = async function (
+export const handler = async function main(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  const note =
-    event.pathParameters && event.pathParameters.id
-      ? notes[event.pathParameters.id]
-      : null;
+  const noteInfo = notes[event.pathParameters?.id!];
 
   logger.log({
-    level: "error",
+    level: "info",
     message: "successfull notes api",
   });
-  console.log("123");
-  return note
+
+  return notes
     ? {
         statusCode: 200,
-        body: JSON.stringify(note, null, " "),
+        body: JSON.stringify(noteInfo),
       }
     : {
         statusCode: 404,
