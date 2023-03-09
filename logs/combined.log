@@ -1,9 +1,0 @@
-{"level":"error","message":"Public error to share","service":"user-service"}
-{"level":"info","message":"Public info to share","service":"user-service"}
-{
-  level: 'info',
-  message: 'Public info to share',
-  service: 'user-service',
-  label: 'right meow!',
-  timestamp: '2023-01-03T05:48:48.565Z'
-}

@@ -1,4 +1,0 @@
-{
-"email":"meeta@studiographene.com",
-"password":"123456"
-}

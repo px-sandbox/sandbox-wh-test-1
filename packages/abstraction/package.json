@@ -1,0 +1,16 @@
+{
+  "name": "abstraction",
+  "version": "1.0.0",
+  "description": "Define types and enums",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "types",
+    "enums"
+  ],
+  "private": "true",
+  "author": "meeta",
+  "license": "ISC"
+}

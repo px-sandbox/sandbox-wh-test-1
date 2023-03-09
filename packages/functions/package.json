@@ -1,0 +1,19 @@
+{
+  "name": "@rest-api-ts/functions",
+  "version": "0.0.0",
+  "type": "module",
+  "private": "true",
+  "scripts": {
+    "test": "sst bind vitest",
+    "typecheck": "tsc -noEmit"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.111",
+    "@types/node": "^18.14.6",
+    "sst": "^2.1.8"
+  },
+  "dependencies": {
+    "sst": "^2.1.8",
+    "abstraction": "*"
+  }
+}
