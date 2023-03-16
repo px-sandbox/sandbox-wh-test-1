@@ -1,0 +1,11 @@
+{
+	"name": "service1",
+	"version": "0.0.0",
+	"main": "dist/index.js",
+	"dependencies": {
+		"abstraction": "*"
+	},
+	"scripts": {
+		"build": "tsc index.ts --outDir dist"
+	}
+}
