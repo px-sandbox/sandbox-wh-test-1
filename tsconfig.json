@@ -3,10 +3,7 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-			"@packages/*":["packages/*"],
-			"@reusable-package-1/*":["packages/reusable-package-1/*"],
-			"@services/*": ["services/*"],
-			"@stacks/*": ["stacks/*"]
+			"services/*": ["services/*"],
 		}
 	}
 }
