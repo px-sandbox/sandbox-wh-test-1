@@ -2,7 +2,9 @@
 	"name": "abstraction",
 	"version": "0.0.0",
 	"main": "dist/index.js",
-	"devDependencies": {},
+	"devDependencies": {
+		"typescript": "^4.9.5"
+	},
 	"scripts": {
 		"build": "tsc index.ts --outDir dist"
 	}
