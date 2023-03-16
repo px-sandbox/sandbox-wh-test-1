@@ -6,9 +6,9 @@ AWS.config.update({
   region: 'eu-west-1',
 });
 
-const logger = createLogger({
+const Logger = createLogger({
   format: format.json(),
   transports: [new transports.Console()],
 });
 
-export default logger;
+export default Logger;
