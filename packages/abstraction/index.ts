@@ -1,2 +1,3 @@
-import { Note } from '@packages/abstraction/types/note';
-export { Note };
+import { Note } from './types/note';
+import Logger from './utils/logger';
+export { Note, Logger };
