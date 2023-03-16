@@ -13,16 +13,16 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"devDependencies": {
+		"@nrwl/nx-cloud": "latest",
 		"@tsconfig/node16": "^1.0.3",
 		"@types/aws-lambda": "^8.10.111",
 		"@types/jsonwebtoken": "^9.0.1",
 		"aws-cdk-lib": "2.62.2",
 		"constructs": "10.1.156",
-		"sst": "^2.1.3",
-		"typescript": "^4.9.5",
 		"nx": "15.8.6",
 		"prettier": "^2.6.2",
-		"@nrwl/nx-cloud": "latest"
+		"sst": "^1.16.0",
+		"typescript": "^4.9.5"
 	},
 	"dependencies": {
 		"aws-lambda": "^1.0.7",
@@ -30,6 +30,7 @@
 		"winston": "^3.8.2"
 	},
 	"workspaces": [
-		"packages/*"
+		"packages/*",
+		"services/*"
 	]
 }
