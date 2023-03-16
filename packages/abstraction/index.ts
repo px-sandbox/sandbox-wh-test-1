@@ -1,2 +1,2 @@
-import { Note } from "./types/notes";
+import { Note } from '@packages/abstraction/types/note';
 export { Note };

@@ -1,15 +1,15 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { notes } from "./notes";
-import logger from "@rest-api-ts/utils/src/logger";
+import logger from '@packages/abstraction/utils/logger';
+import { notes } from '@packages/notes';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
-export const handler = async function main(
+export const get = async function main(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const noteInfo = notes[event.pathParameters?.id!];
 
   logger.log({
-    level: "info",
-    message: "successfull notes api",
+    level: 'info',
+    message: 'successfull notes api',
   });
 
   return notes

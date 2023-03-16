@@ -1,5 +1,5 @@
 {
-	"name": "abstraction",
+	"name": "list",
 	"version": "0.0.0",
 	"main": "dist/index.js",
 	"devDependencies": {},

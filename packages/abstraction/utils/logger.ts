@@ -1,9 +1,9 @@
-import { createLogger, format, transports, add } from "winston";
+import { createLogger, format, transports } from 'winston';
 
-const AWS = require("aws-sdk");
+const AWS = require('aws-sdk');
 
 AWS.config.update({
-  region: "eu-west-1",
+  region: 'eu-west-1',
 });
 
 const logger = createLogger({

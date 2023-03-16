@@ -1,3 +1,12 @@
 {
-  "extends": "@tsconfig/node16/tsconfig.json"
+  "extends": "@tsconfig/node16/tsconfig.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@packages/*":["packages/*"],
+			"@reusable-package-1/*":["packages/reusable-package-1/*"],
+			"@services/*": ["services/*"],
+			"@stacks/*": ["stacks/*"]
+		}
+	}
 }
