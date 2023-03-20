@@ -1,14 +1,16 @@
 {
-	"name": "service1",
+	"name": "notes",
 	"version": "0.0.0",
 	"main": "dist/index.js",
 	"devDependencies": {
 		"sst": "^2.1.35",
 		"@types/aws-lambda": "^8.10.111",
-		"@types/jsonwebtoken": "^9.0.1"
+		"@types/jsonwebtoken": "^9.0.1",
+		"typescript": "^4.9.5"
 	},
 	"dependencies": {
-		"abstraction": "workspace:*",
+		"notes-types": "workspace:*",
+		"notes-utils": "workspace:*",
 		"aws-lambda": "^1.0.7",
 		"jsonwebtoken": "^9.0.0"
 	},

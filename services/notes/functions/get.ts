@@ -1,5 +1,5 @@
-import { Logger } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import Logger from 'notes-utils';
 import { notes } from './notes';
 
 export const get = async function main(

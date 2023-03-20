@@ -1,5 +1,5 @@
 {
-	"name": "abstraction",
+	"name": "notes-types",
 	"version": "0.0.0",
 	"main": "dist/index.js",
 	"devDependencies": {

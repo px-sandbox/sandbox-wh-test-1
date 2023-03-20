@@ -1,7 +1,7 @@
-import { Logger } from 'abstraction';
 import { APIGatewayProxyHandlerV2 } from 'aws-lambda';
 import jwt from 'jsonwebtoken';
-import { notes } from 'services/service1/functions/notes';
+import Logger from 'notes-utils';
+import { notes } from 'services/notes/functions/notes';
 
 export const update: APIGatewayProxyHandlerV2 = async function main(event) {
   const token: string = event.headers['authorization']?.split(' ')[1] || '';

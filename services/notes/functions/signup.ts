@@ -1,7 +1,7 @@
-import { Logger } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
+import Logger from 'notes-utils';
 
 export const signup = async function (
   event: APIGatewayProxyEvent

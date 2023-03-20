@@ -1,5 +1,5 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
-import { notes } from 'services/service1/functions/notes';
+import { notes } from 'services/notes/functions/notes';
 
 export const list = async function handler(): Promise<APIGatewayProxyResult> {
   return {
