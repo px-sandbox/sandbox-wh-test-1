@@ -15,7 +15,7 @@ importers:
     dependencies:
       winston: 3.8.2
     devDependencies:
-      '@nrwl/nx-cloud': 15.2.1
+      '@nrwl/nx-cloud': 15.2.3
       '@tsconfig/node16': 1.0.3
       aws-cdk-lib: 2.62.2_constructs@10.1.156
       constructs: 10.1.156
@@ -23,28 +23,38 @@ importers:
       prettier: 2.8.4
       typescript: 4.9.5
 
-  packages/abstraction:
+  packages/notes-types:
     specifiers:
       typescript: ^4.9.5
     devDependencies:
       typescript: 4.9.5
 
-  services/service1:
+  packages/notes-utils:
+    specifiers:
+      typescript: ^4.9.5
+    devDependencies:
+      typescript: 4.9.5
+
+  services/notes:
     specifiers:
       '@types/aws-lambda': ^8.10.111
       '@types/jsonwebtoken': ^9.0.1
-      abstraction: workspace:*
       aws-lambda: ^1.0.7
       jsonwebtoken: ^9.0.0
+      notes-types: workspace:*
+      notes-utils: workspace:*
       sst: ^2.1.35
+      typescript: ^4.9.5
     dependencies:
-      abstraction: link:../../packages/abstraction
       aws-lambda: 1.0.7
       jsonwebtoken: 9.0.0
+      notes-types: link:../../packages/notes-types
+      notes-utils: link:../../packages/notes-utils
     devDependencies:
       '@types/aws-lambda': 8.10.113
       '@types/jsonwebtoken': 9.0.1
       sst: 2.1.35
+      typescript: 4.9.5
 
 packages:
 
@@ -2730,8 +2740,8 @@ packages:
       - debug
     dev: true
 
-  /@nrwl/nx-cloud/15.2.1:
-    resolution: {integrity: sha512-T4ycGSx77TdvS0j6tKI/6zmh6YtsPHyfB2li+wDR+BW9wjGGqOTX1QvG3gf0k2enhA3dxLgYnmeDZoEUek6MOw==}
+  /@nrwl/nx-cloud/15.2.3:
+    resolution: {integrity: sha512-odbLJVhANnjXhUvHOeKGfMeK6hrC8poa/y1p6Wj1E5K8xbECMlz/kUWYjcbkEFcSCGyjCednDZCirhT9oy3RVQ==}
     hasBin: true
     dependencies:
       axios: 0.21.4
@@ -5851,13 +5861,13 @@ packages:
       '@aws-sdk/client-rds-data': 3.292.0
       '@aws-sdk/client-s3': 3.292.0_nbyvrjs3s34tof57zaon7hwa6y
       '@aws-sdk/client-ssm': 3.292.0
-      '@aws-sdk/client-sts': 3.290.0
-      '@aws-sdk/config-resolver': 3.290.0
+      '@aws-sdk/client-sts': 3.292.0
+      '@aws-sdk/config-resolver': 3.292.0
       '@aws-sdk/credential-providers': 3.291.0
-      '@aws-sdk/middleware-retry': 3.290.0
-      '@aws-sdk/middleware-signing': 3.290.0
+      '@aws-sdk/middleware-retry': 3.292.0
+      '@aws-sdk/middleware-signing': 3.292.0
       '@aws-sdk/signature-v4-crt': 3.292.0
-      '@aws-sdk/smithy-client': 3.290.0
+      '@aws-sdk/smithy-client': 3.292.0
       '@babel/core': 7.21.3
       '@babel/generator': 7.21.3
       '@trpc/server': 9.16.0
