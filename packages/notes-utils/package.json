@@ -5,6 +5,10 @@
 	"devDependencies": {
 		"typescript": "^4.9.5"
 	},
+	"dependencies": {
+		"aws-sdk": "^2.1339.0",
+		"winston": "^3.8.2"
+	},
 	"scripts": {
 		"build": "tsc index.ts --outDir dist"
 	}
