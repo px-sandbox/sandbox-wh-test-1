@@ -1,5 +1,5 @@
 import { Note } from 'notes-types';
-export const notes: Record<string, Note> = {
+export const handler: Record<string, Note> = {
   id1: {
     noteId: 'id1',
     userId: 'user1',

@@ -1,8 +1,8 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import Logger from 'notes-utils';
-import { notes } from './notes';
+import { handler as notes } from './notes';
 
-export const get = async function main(
+export const handler = async function handler(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const noteInfo = notes[event.pathParameters?.id!];

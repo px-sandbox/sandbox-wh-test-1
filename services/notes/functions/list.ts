@@ -1,9 +1,10 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
-import { notes } from 'services/notes/functions/notes';
+import { handler as notes } from 'services/notes/functions/notes';
 
-export const list = async function handler(): Promise<APIGatewayProxyResult> {
-  return {
-    statusCode: 200,
-    body: JSON.stringify(notes, null, '  '),
+export const handler =
+  async function handler(): Promise<APIGatewayProxyResult> {
+    return {
+      statusCode: 200,
+      body: JSON.stringify(notes, null, '  '),
+    };
   };
-};

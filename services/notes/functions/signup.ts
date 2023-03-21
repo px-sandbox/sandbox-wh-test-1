@@ -3,7 +3,7 @@ import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import Logger from 'notes-utils';
 
-export const signup = async function (
+export const handler = async function (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   let signUpData: string;
