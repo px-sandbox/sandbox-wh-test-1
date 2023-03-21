@@ -1,5 +1,5 @@
-import { userRoutes } from 'services/notes/routes';
 import { Api, StackContext } from 'sst/constructs';
+import { notesRoutes } from '../routes';
 
 export function API({ stack }: StackContext) {
   // Create User Pool
@@ -37,7 +37,7 @@ export function API({ stack }: StackContext) {
     // defaults: {
     //   authorizer: "jwt",
     // },
-    routes: userRoutes,
+    routes: notesRoutes,
   });
 
   // auth.attach(stack, {
