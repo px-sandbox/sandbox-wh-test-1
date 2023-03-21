@@ -6,7 +6,6 @@ importers:
     specifiers:
       '@nrwl/nx-cloud': latest
       '@tsconfig/node16': ^1.0.3
-      aws-cdk-lib: 2.62.2
       constructs: 10.1.156
       nx: 15.8.6
       prettier: ^2.6.2
@@ -17,7 +16,6 @@ importers:
     devDependencies:
       '@nrwl/nx-cloud': 15.2.3
       '@tsconfig/node16': 1.0.3
-      aws-cdk-lib: 2.62.2_constructs@10.1.156
       constructs: 10.1.156
       nx: 15.8.6
       prettier: 2.8.4
@@ -31,7 +29,12 @@ importers:
 
   packages/notes-utils:
     specifiers:
+      aws-sdk: ^2.1339.0
       typescript: ^4.9.5
+      winston: ^3.8.2
+    dependencies:
+      aws-sdk: 2.1339.0
+      winston: 3.8.2
     devDependencies:
       typescript: 4.9.5
 
@@ -125,6 +128,9 @@ packages:
   /@aws-cdk/cloud-assembly-schema/2.62.2:
     resolution: {integrity: sha512-oOjNdy9nZoz+dhuK/YBrfaT+ts2ge+RCy+9BtiFIspD0G+xkGODFB6pfIua6CnROWePEzhdEOpyZSJmqlc+XBw==}
     engines: {node: '>= 14.15.0'}
+    dependencies:
+      jsonschema: 1.4.1
+      semver: 7.3.8
     dev: true
     bundledDependencies:
       - jsonschema
@@ -148,6 +154,7 @@ packages:
     engines: {node: '>= 14.15.0'}
     dependencies:
       '@aws-cdk/cloud-assembly-schema': 2.62.2
+      semver: 7.3.8
     dev: true
     bundledDependencies:
       - semver
@@ -3186,14 +3193,14 @@ packages:
     resolution: {integrity: sha512-9GNFMRrEMG5y3Jvv+V4azWvc+qNWdWLTjDdhf/zgMlz8haaaLWv0xeAIWxz9PuWUBawsVxy0zZotjCdR3Xq+2w==}
     hasBin: true
     dependencies:
-      aws-sdk: 2.1335.0
+      aws-sdk: 2.1339.0
       commander: 3.0.2
       js-yaml: 3.14.1
       watchpack: 2.4.0
     dev: false
 
-  /aws-sdk/2.1335.0:
-    resolution: {integrity: sha512-cuX3OA9awP1rFEuemqNGF5278u4auFx7aS+C69d+QIwfH6cHE+hLxk660ypTIlionE40nGyYEjLhj6dZeHdWNw==}
+  /aws-sdk/2.1339.0:
+    resolution: {integrity: sha512-3TS2bmjfsi0ezxGKPKsGl9V40tLiU0PxPg/NH8VL8npDPoQvZxwmHsiOS5DugNXqtSr/lUSWgYXXJ2oDbtmDXg==}
     engines: {node: '>= 10.0.0'}
     dependencies:
       buffer: 4.9.2
@@ -3440,7 +3447,7 @@ packages:
       '@aws-cdk/cloud-assembly-schema': 2.62.2
       '@aws-cdk/cx-api': 2.62.2
       archiver: 5.3.1
-      aws-sdk: 2.1335.0
+      aws-sdk: 2.1339.0
       glob: 7.2.3
       mime: 2.6.0
       yargs: 16.2.0
@@ -4323,7 +4330,7 @@ packages:
       fs.realpath: 1.0.0
       inflight: 1.0.6
       inherits: 2.0.4
-      minimatch: 3.0.5
+      minimatch: 3.1.2
       once: 1.4.0
       path-is-absolute: 1.0.1
     dev: true
@@ -5877,7 +5884,7 @@ packages:
       aws-cdk-lib: 2.62.2_constructs@10.1.156
       aws-iot-device-sdk: 2.2.12
       aws-iot-device-sdk-v2: 1.9.5
-      aws-sdk: 2.1335.0
+      aws-sdk: 2.1339.0
       builtin-modules: 3.2.0
       cdk-assets: 2.62.2
       chalk: 4.1.2
