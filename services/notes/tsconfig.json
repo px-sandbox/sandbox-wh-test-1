@@ -1,0 +1,10 @@
+{
+	"include": ["functions/**/*.ts", "functions/**/*.spec.ts", "functions/**/*.test.ts"],
+	"exclude": ["node_modules"],
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"functions/*": ["functions/*"],
+		},
+	}
+}
