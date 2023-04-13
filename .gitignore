@@ -39,6 +39,7 @@ testem.log
 Thumbs.db
 
 # Env
+.env
 .env.local
 
 # SST
