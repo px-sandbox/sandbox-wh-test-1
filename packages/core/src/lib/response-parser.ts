@@ -1,6 +1,6 @@
-import { HttpStatusCode } from "../constant/httpStatusCode";
-import { ResponseCodes } from "../constant/responseCode";
-import { APIGatewayProxyResult } from "aws-lambda";
+import { HttpStatusCode } from '../constant/httpStatusCode';
+import { ResponseCodes } from '../constant/responseCode';
+import { APIGatewayProxyResult } from 'aws-lambda';
 
 interface Header {
   [name: string]: string | number | boolean;
@@ -19,10 +19,10 @@ class ResponseParser {
 
   constructor() {
     this.statusCode = HttpStatusCode[200];
-    this.resMessage = "";
+    this.resMessage = '';
     this.resCode = ResponseCodes.SUCCESS;
     this.resBody = {};
-    this.resHeader = { "Content-Type": "application/json" };
+    this.resHeader = { 'Content-Type': 'application/json' };
   }
 
   public setStatusCode(httpCode: number): this {
@@ -63,4 +63,5 @@ class ResponseParser {
   }
 }
 
-export default new ResponseParser();
+const responseParser = new ResponseParser();
+export { responseParser };

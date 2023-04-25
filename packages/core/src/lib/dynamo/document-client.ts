@@ -1,9 +1,9 @@
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { ddbClient } from "./client";
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { ddbClient } from './client';
 
 const marshallOptions = {
   // Whether to automatically convert empty strings, blobs, and sets to `null`.
-  convertEmptyValues: false, // false, by default.
+  convertEmptyValues: true, // false, by default.
   // Whether to remove undefined values while marshalling.
   removeUndefinedValues: false, // false, by default.
   // Whether to convert typeof object to map attribute.
@@ -19,7 +19,7 @@ const translateConfig = { marshallOptions, unmarshallOptions };
 
 // Create the DynamoDB Document client.
 
-const ddbDocClient = (region: string, endpoint: string) =>
-  DynamoDBDocumentClient.from(ddbClient(region, endpoint), translateConfig);
+const ddbDocClient = (region: string) =>
+  DynamoDBDocumentClient.from(ddbClient(region), translateConfig);
 
 export { ddbDocClient };

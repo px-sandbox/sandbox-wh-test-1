@@ -1,7 +1,9 @@
 {
-  "name": "@my-sst-app/core",
-  "version": "0.0.0",
-  "type": "module",
+  "name": "core",
+  "version": "0.0.1",
+  "types": "module",
+  "private": "true",
+  "main": "index.ts",
   "scripts": {
     "test": "sst bind vitest",
     "typecheck": "tsc -noEmit"
