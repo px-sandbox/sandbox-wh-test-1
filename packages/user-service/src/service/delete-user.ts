@@ -7,7 +7,7 @@ import {
   HttpStatusCode,
   APIHandler,
   logger,
-} from '@my-sst-app/core/index';
+} from 'core';
 import { Table } from 'sst/node/table';
 import { User } from 'src/abstraction/user';
 

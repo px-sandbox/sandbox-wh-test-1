@@ -9,7 +9,7 @@ import {
   HttpStatusCode,
   ddbDocClient,
   responseParser,
-} from '@my-sst-app/core/index';
+} from 'core';
 import { region } from '../constant/config';
 
 const createUser = async (
@@ -35,20 +35,22 @@ const createUser = async (
     logger.info(user);
     return responseParser
       .setBody(event.body)
-      .setMessage('signup successful')
+      .setMessage('user created successfully')
       .setStatusCode(HttpStatusCode[201])
       .setResponseBodyCode('SUCCESS')
       .send();
   } else {
     return responseParser
       .setBody({})
-      .setMessage('signup error -- data not provided')
+      .setMessage('user creation failed -- data not provided')
       .setStatusCode(HttpStatusCode[400])
       .setResponseBodyCode('ERROR')
       .send();
   }
 };
 
-export const handler = APIHandler(createUser, {
+const handler = APIHandler(createUser, {
   eventSchema: transpileSchema(createUserSchema),
 });
+
+export { createUser, handler };

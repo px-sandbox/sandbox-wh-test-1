@@ -1,13 +1,13 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { GetCommand } from '@aws-sdk/lib-dynamodb';
-import { region } from 'src/constant/config';
+import { region } from '../constant/config';
 import {
   ddbDocClient,
   responseParser,
   HttpStatusCode,
   APIHandler,
   logger,
-} from '@my-sst-app/core/index';
+} from 'core';
 import { Table } from 'sst/node/table';
 
 const getUser = async (
@@ -41,4 +41,6 @@ const getUser = async (
     .send();
 };
 
-export const handler = APIHandler(getUser);
+const handler = APIHandler(getUser);
+
+export { handler, getUser };

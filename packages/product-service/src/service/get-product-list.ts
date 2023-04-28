@@ -7,7 +7,7 @@ import {
   HttpStatusCode,
   APIHandler,
   logger,
-} from '@my-sst-app/core/index';
+} from 'core';
 import { Table } from 'sst/node/table';
 import { Product } from 'src/abstraction/product';
 
@@ -16,7 +16,7 @@ const getProductsList = async (
 ): Promise<APIGatewayProxyResult> => {
   logger.info('get products list invoked');
   const getParams = {
-    TableName: Table.users.tableName,
+    TableName: Table.products.tableName,
   };
   const ddbRes = await ddbDocClient(region as string).send(
     new ScanCommand(getParams)

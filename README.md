@@ -1,7 +1,7 @@
-
 # Serverless with SST
 
 Boilerplate for SST serverless APIs
+
 ## File and folder Naming conventions
 
 - Folder and file name will be singular and follow `kebab-case`
@@ -10,6 +10,7 @@ Boilerplate for SST serverless APIs
 - Variable name should be `camelCase`
 
 For more details onto casing refer [here](https://medium.com/better-programming/string-case-styles-camel-pascal-snake-and-kebab-case-981407998841)
+
 ## Monorepo architecture
 
 ```
@@ -17,7 +18,7 @@ For more details onto casing refer [here](https://medium.com/better-programming/
 ├── packages
 │    ├── sample-package
 │    │    ├── index.ts # export types or functions
-│    │    ├── package.json 
+│    │    ├── package.json
 ├── services
 │    ├── sample-service
 │    │    ├── functions
@@ -35,12 +36,7 @@ For more details onto casing refer [here](https://medium.com/better-programming/
 ├── pnpm-lock.yaml
 ├── pnpm-workspace.yaml
 └── ...
-```  
-
-
-
-
-
+```
 
 ## For API Creation
 
@@ -70,7 +66,6 @@ export default {
     app.stack(Storage);
   },
 } satisfies SSTConfig;
-
 ```
 
 The `routes` folder should have a file to export your routes, like this:
@@ -78,9 +73,8 @@ The `routes` folder should have a file to export your routes, like this:
 ```typescript
 export const crudRoutes = {
   'HTTP-METHOD /endpoint': 'path/to/function',
-  'GET /example': 'functions/example'
+  'GET /example': 'functions/example',
 };
-
 ```
 
 The `functions` folder should contain all your functions to run through routes, for example:
@@ -96,8 +90,8 @@ export const handler = ApiHandler(async (_evt) => {
   };
 });
 ```
-Functions must been called `handler` to sst indentifies as a function.
 
+Functions must been called `handler` to sst indentifies as a function.
 
 The `stacks` folder should have a file to export your main stack, importing your routes and functions, like this:
 
@@ -113,33 +107,32 @@ export function API({ stack }: StackContext) {
     ApiEndpoint: api.url,
   });
 }
-
 ```
-
-
-
-
-
 
 ## Deploy Service
 
-  - Install node 16.* and npm 8.*
-  - Setup aws credentials by exporting the credentials on terminal.
-  
+- Install node 16._ and npm 8._
+- Setup aws credentials by exporting the credentials on terminal.
+
 **Check by command if token is expired**
+
 ```
 aws sts get-caller-identity
 ```
+
 **Note:** If token expired then again need to be export the credentials on the terminal.
 
 ## Implement JWT Authorization with Auth0
-  - Create an account on Auth0 and create a single page application. 
-  - On created application's settings you will get domain and client id.
-  - Create .env.local file in the root project and set the below keys with your values.
+
+- Create an account on Auth0 and create a single page application.
+- On created application's settings you will get domain and client id.
+- Create .env.local file in the root project and set the below keys with your values.
+
 ```
 AUTH0_DOMAIN=https://your-domain
 AUTH0_CLIENT_ID=client-id
 ```
+
 Add these scripts in the package.json file of the service:
 
 ```
@@ -155,6 +148,7 @@ Add these scripts in the package.json file of the service:
 Now Run `pnpm run dev` command on terminal inside the service folder. It will deploy your stack changes and start Live Lambda Dev.## For DynamoDB communication
 
 After setting up SST, create a file in your `stacks` folder that creates a table:
+
 ```
 import { Table } from 'sst/constructs';
 
@@ -176,11 +170,15 @@ export function Storage({ stack, app }) {
 ```
 
 And then, simply add this line in your desided function/package:
+
 ```typescript
 const dynamoDb = new DynamoDB.DocumentClient();
 ```
+
 And use `dynamoDb` to run queries in that table.
+
 > For more information of DynamoDB methods: [docs](https://www.npmjs.com/package/dynamodb)
+
 ## Packages
 
 For using types or utils functions, create packages in `packages` folder, and add a `index.ts` file and a `package.json`file. For example:
@@ -189,8 +187,8 @@ For using types or utils functions, create packages in `packages` folder, and ad
 // index.ts
 
 export interface User {
-    username: string;
-    password: string;
+  username: string;
+  password: string;
 }
 ```
 
@@ -210,3 +208,7 @@ export interface User {
 }
 ```
 
+## running tests
+
+- your service package.json should have test script for npm to execute it in all the packages
+- vitest and other supporting packages for executing tests are at the root package.json file. they are not requred in package's package.json file unless it is for specific use in that package

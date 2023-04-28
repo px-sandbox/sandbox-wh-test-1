@@ -15,9 +15,11 @@
   "devDependencies": {
     "@tsconfig/node16": "^1.0.3",
     "aws-cdk-lib": "2.62.2",
+    "aws-sdk-client-mock": "^2.1.1",
     "constructs": "10.1.156",
     "sst": "^2.3.1",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.2",
+    "vitest": "^0.29.7"
   },
   "workspaces": [
     "packages/*"

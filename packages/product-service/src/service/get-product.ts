@@ -1,13 +1,13 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { GetCommand } from '@aws-sdk/lib-dynamodb';
-import { region } from 'src/constant/config';
+import { region } from '../constant/config';
 import {
   ddbDocClient,
   responseParser,
   HttpStatusCode,
   APIHandler,
   logger,
-} from '@my-sst-app/core/index';
+} from 'core';
 import { Table } from 'sst/node/table';
 
 const getProduct = async (
@@ -16,7 +16,7 @@ const getProduct = async (
   const sku = event.pathParameters!.sku;
   logger.info(`get product details for sku: ${sku}`);
   const getParams = {
-    TableName: Table.users.tableName,
+    TableName: Table.products.tableName,
     Key: {
       sku,
     },
@@ -42,3 +42,5 @@ const getProduct = async (
 };
 
 export const handler = APIHandler(getProduct);
+
+export { getProduct };

@@ -7,7 +7,7 @@ import {
   HttpStatusCode,
   APIHandler,
   logger,
-} from '@my-sst-app/core/index';
+} from 'core';
 import { Table } from 'sst/node/table';
 import { Product } from 'src/abstraction/product';
 
@@ -17,7 +17,7 @@ const updateProduct = async (
   const sku = event.pathParameters!.sku;
   logger.info(`update product details for sku: ${sku} init`);
   const getParams = {
-    TableName: Table.users.tableName,
+    TableName: Table.products.tableName,
     Key: {
       sku,
     },

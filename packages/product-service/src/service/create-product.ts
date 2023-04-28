@@ -17,24 +17,17 @@ const createProduct = async (
 ): Promise<APIGatewayProxyResult> => {
   if (event.body) {
     logger.info(event.body);
-    const { sku, title, category, subCategory } = JSON.parse(
-      JSON.stringify(event.body)
-    );
+    const productDetails = JSON.parse(JSON.stringify(event.body));
     const params: PutCommandInput = {
       TableName: Table.products.tableName,
-      Item: {
-        sku,
-        title,
-        category,
-        subCategory,
-      },
+      Item: { ...productDetails },
     };
     const product = await ddbDocClient(region as string).send(
       new PutCommand(params)
     );
-    logger.info(product);
+    logger.info(`putcommand response ${JSON.stringify(product)}`);
     return responseParser
-      .setBody({ sku, title, category, subCategory })
+      .setBody(productDetails)
       .setMessage('product created successfully')
       .setStatusCode(HttpStatusCode[201])
       .setResponseBodyCode('SUCCESS')

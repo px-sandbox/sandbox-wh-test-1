@@ -18,7 +18,13 @@ export function usersStack({ stack }: StackContext) {
       },
     },
     routes: {
-      'POST /users': 'packages/user-service/src/service/create-user.handler',
+      'POST /users': {
+        function: {
+          handler: 'packages/user-service/src/service/create-user.handler',
+          bind: [usersTable],
+        },
+      },
+
       'GET /users': 'packages/user-service/src/service/get-user-list.handler',
       'GET /users/{email}':
         'packages/user-service/src/service/get-user.handler',
