@@ -1,14 +1,16 @@
-import { SSTConfig } from "sst";
-import { API } from "./stacks/MyStack";
+import { SSTConfig } from 'sst';
+import { productsStack } from './stacks/product';
+import { usersStack } from './stacks/users';
 
 export default {
   config(_input) {
     return {
-      name: "rest-api-ts",
-      region: "us-east-1",
+      name: 'my-sst-app',
+      region: 'us-east-1',
     };
   },
   stacks(app) {
-    app.stack(API);
+    app.stack(usersStack);
+    app.stack(productsStack);
   },
 } satisfies SSTConfig;

@@ -1,0 +1,30 @@
+{
+  "name": "core",
+  "version": "0.0.1",
+  "types": "module",
+  "private": "true",
+  "main": "index.ts",
+  "scripts": {
+    "test": "sst bind vitest",
+    "typecheck": "tsc -noEmit"
+  },
+  "devDependencies": {
+    "@aws-sdk/types": "^3.306.0",
+    "@types/aws-lambda": "^8.10.114",
+    "@types/node": "^18.15.10",
+    "sst": "^2.3.1",
+    "vitest": "^0.29.7"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.306.0",
+    "@aws-sdk/lib-dynamodb": "^3.309.0",
+    "@aws-sdk/smithy-client": "^3.0.0",
+    "@aws-sdk/util-dynamodb": "^3.309.0",
+    "@middy/core": "^4.2.8",
+    "@middy/http-error-handler": "^4.2.8",
+    "@middy/http-json-body-parser": "^4.2.8",
+    "@middy/http-security-headers": "^4.2.8",
+    "@middy/validator": "^4.2.8",
+    "winston": "^3.8.2"
+  }
+}
