@@ -50,87 +50,99 @@ This structure segregates the services as micro-services and other modules like 
 └── ...
 ```
 
+## Prerequisites
+
+- You need AWS credentials to run in dev mode and deploy application.
+- Export your AWS credentials in your terminal.
+  Credentials to be exported in terminal look like
+  ```
+  export AWS_ACCESS_KEY_ID="XXXXX"
+  export AWS_SECRET_ACCESS_KEY="XXXXX"
+  export AWS_SESSION_TOKEN="XXXXX"
+  ```
+- Execute `npm run dev` or `pnpm run dev`. This will create your stacks and run lambdas in live mode. For more details on live lambda [refer here](https://docs.sst.dev/live-lambda-development)
+
 ## Create New Service
 
 - Create a new folder in `packages` with above recommended structure
-- Create a new file in `stacks` for API map and any other AWS infra req.
-- import the new stack in `sst.confi.ts`
+- Create a new file in `stacks` for API map and any other AWS infra requirements.
+- import the new stack in `sst.config.ts`
 
-Your `sst.config.ts` should be like this:
+  Your `sst.config.ts` should be like this:
 
-```typescript
-import { SSTConfig } from 'sst';
-import { API } from './stacks/my-stack';
-import { Storage } from './stacks/storage';
+  ```typescript
+  import { SSTConfig } from 'sst';
+  import { API } from './stacks/my-stack';
+  import { Storage } from './stacks/storage';
 
-export default {
-  config(_input) {
-    return {
-      name: 'rest-api-ts', // name of your app
-      region: 'us-east-1', // desired aws region
-    };
-  },
-  stacks(app) {
-    app.stack(API);
-    app.stack(Storage);
-  },
-} satisfies SSTConfig;
-```
+  export default {
+    config(_input) {
+      return {
+        name: 'rest-api-ts', // name of your app
+        region: 'us-east-1', // desired aws region
+      };
+    },
+    stacks(app) {
+      app.stack(API);
+      app.stack(Storage);
+    },
+  } satisfies SSTConfig;
+  ```
 
 ## Create New API
 
 1. Create a new handler in respective service's folder (packages/<service>/service/<new handler file>.ts).
    This handler will contain the logic for your API and invoke the validations.
 
-```typescript
-import { APIHandler } from 'core';
+   ```typescript
+   import { APIHandler } from 'core';
 
-const createUser = async (
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
-  // your logic goes here that handles event and responds
-};
+   const createUser = async (
+     event: APIGatewayProxyEvent
+   ): Promise<APIGatewayProxyResult> => {
+     // your logic goes here that handles event and responds
+   };
 
-const handler = APIHandler(createUser, {
-  eventSchema: transpileSchema(createUserSchema),
-});
-```
+   const handler = APIHandler(createUser, {
+     eventSchema: transpileSchema(createUserSchema),
+   });
+   ```
 
 2. if your API requires a validation then create a validation object in adjacent validation folder. The validation object for above example will look like
 
-```typescript
-export const createUserSchema = {
-  type: 'object',
-  properties: {
-    body: {
-      type: 'object',
-      properties: {
-        email: { type: 'string', format: 'email' },
-        password: { type: 'string' },
-        firstName: { type: 'string' },
-        lastName: { type: 'string' },
-      },
-      required: ['email', 'password', 'firstName', 'lastName'],
-    },
-  },
-};
-```
+   ```typescript
+   export const createUserSchema = {
+     type: 'object',
+     properties: {
+       body: {
+         type: 'object',
+         properties: {
+           email: { type: 'string', format: 'email' },
+           password: { type: 'string' },
+           firstName: { type: 'string' },
+           lastName: { type: 'string' },
+         },
+         required: ['email', 'password', 'firstName', 'lastName'],
+       },
+     },
+   };
+   ```
 
-we are using [ajv](https://ajv.js.org/) for validations.
+   we are using [ajv](https://ajv.js.org/) for validations.
 
 3. create an entry in routes of your service's stack.
 
-```typescript
-const usersAPI = new Api(stack, 'usersAPI', {
-  routes: {
-    '<HTTP-VERB> /<route>': {
-      function: {
-        handler: '<path to handler file>',
-      },
-    },
-    '<HTTP-VERB> /<route>': '<path to handler file>',
-  })
-```
+   ```typescript
+   const usersAPI = new Api(stack, 'usersAPI', {
+     routes: {
+       '<HTTP-VERB> /<route>': {
+         function: {
+           handler: '<path to handler file>',
+         },
+       },
+       '<HTTP-VERB> /<route>': '<path to handler file>',
+     })
+   ```
 
 ## Deploy Application
 
@@ -148,17 +160,15 @@ aws sts get-caller-identity
 Add these scripts in the package.json file of the service:
 
 ```
-	"scripts": {
-		"dev": "sst dev",
-		"build": "sst build",
-		"deploy": "sst deploy",
-		"remove": "sst remove",
-		"console": "sst console",
+  "scripts": {
+    "dev": "sst dev",
+    "build": "sst build",
+    "deploy": "sst deploy",
+    "remove": "sst remove",
+    "console": "sst console",
     "test": "sst bind vitest"
-	}
+  }
 ```
-
-Now Run `pnpm run dev` command on terminal inside the service folder. It will deploy your stack changes and start Live Lambda Dev.## For DynamoDB communication
 
 ## Unit Tests
 
@@ -170,11 +180,11 @@ Now Run `pnpm run dev` command on terminal inside the service folder. It will de
 ## Things accomplised in this boilerplate so far
 
 - Structure for the monorepo approach
-- Ability to add and use existing middlewares using middy
-- CRUD operations with dynamoDB
-- Supporting functions like validations (using ajv and middy), response parser
-- Configured unit test cases using vitest.
-- Add lambdas to existing VPC
+- Ability to add and use existing middlewares using `middy`
+- CRUD operations with `dynamoDB`
+- Supporting functions like validations (using `ajv` and `middy`), response parser
+- Configured unit test cases using `vitest`.
+- Add lambdas to existing `VPC`
 
 ## Problems that still exist
 
@@ -202,5 +212,3 @@ _SST gives out of box support for vitest. When executing tests using vitest SST 
 _If we don't need to bind then we can consider using jest_
 
 </details>
-
-<details>
