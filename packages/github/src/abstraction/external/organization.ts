@@ -1,0 +1,20 @@
+export type Organization = {
+  id: string;
+  name: string;
+  description: string;
+  company: string;
+  location: string;
+  email: string;
+  is_verified: boolean;
+  has_organization_projects: boolean;
+  has_repository_projects: boolean;
+  public_repos: number;
+  private: boolean;
+  owner: { login: string };
+  visibility: boolean;
+  open_issues_count: number;
+  pushed_at: Date;
+  created_at: Date;
+  updated_at: Date;
+  deleted_at: Date;
+};

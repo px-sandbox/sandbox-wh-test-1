@@ -2,4 +2,4 @@ import { config as dotenvConfig } from 'dotenv';
 
 dotenvConfig();
 
-export const { region } = process.env;
+export const { STAGE, DYNAMODB_LOCAL_URL } = process.env;

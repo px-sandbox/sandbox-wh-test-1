@@ -19,6 +19,12 @@
     "core": "workspace:0.0.1",
     "@middy/validator": "^4.2.8",
     "dotenv": "^16.0.3",
-    "dynamoose": "^3.1.0"
+    "dynamoose": "^3.1.0",
+    "@octokit/auth-app": "^4.0.9",
+    "@octokit/request": "^6.2.3",
+    "@octokit/types": "^9.0.0",
+    "node-rsa": "^1.1.1",
+    "octokit": "^2.0.14",
+    "uuid": "^9.0.0"
   }
 }
