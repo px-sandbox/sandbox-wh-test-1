@@ -1,16 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { transpileSchema } from '@middy/validator/transpile';
 import { getMetadata } from './validations';
-import { PutCommand, PutCommandInput } from '@aws-sdk/lib-dynamodb';
-import { Table } from 'sst/node/table';
-import {
-  logger,
-  APIHandler,
-  HttpStatusCode,
-  ddbDocClient,
-  responseParser,
-} from 'core';
-import { region } from '../constant/config';
+import { logger, APIHandler, HttpStatusCode, responseParser } from 'core';
 import { ghRequest } from '../lib/request-defaults';
 import { getOrganizationDetails } from '../lib/get-organization-details';
 
@@ -28,8 +19,8 @@ const GetMetadata = async (
   logger.info('getAllMetadata.invoked', { organizationName });
   logger.info('AllIndices.created');
 
-  // As of now only getting organization details
   const organization = await getOrganizationDetails(octokit, organizationName);
+  // TODO: In next PR
   // const [users, repo] = await Promise.all([
   //   getUsers(octokit, organizationName),
   //   getRepos(octokit, organizationName),

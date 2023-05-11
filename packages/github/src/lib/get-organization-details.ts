@@ -40,7 +40,7 @@ export async function getOrganizationDetails(
         ddbRes.Item?.parentId
       );
       logger.info(result);
-      // Todo: elastic search
+      // Todo: In next PRelastic search
       //   if (!record) {
       //     logger.info('---NEW_RECORD_FOUND---');
       //     await new DynamoDBClient().updateTable(result);
