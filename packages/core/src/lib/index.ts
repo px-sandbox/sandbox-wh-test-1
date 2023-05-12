@@ -3,3 +3,7 @@ export * from './dynamo/document-client';
 export * from './api';
 export * from './logger';
 export * from './response-parser';
+export * from './elastic_search/client';
+export * from './elastic_search/indices';
+export * from './elastic_search/github-indices';
+export * from './elastic_search/elastic-search-index';
