@@ -1,8 +1,8 @@
-import { Github } from 'pulse-abstraction';
+import { Github } from 'abstraction';
 import { v4 as uuid } from 'uuid';
 
 export async function organizationFormator(
-  data: Github.ExternalType.Organization,
+  data: Github.ExternalType.Api.Organization,
   oldId?: string
 ): Promise<any> {
   const orgObj = {

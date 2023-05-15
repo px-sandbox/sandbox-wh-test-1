@@ -1,4 +1,4 @@
-import { Github } from 'pulse-abstraction';
+import { Github } from 'abstraction';
 
 export const indices: any[] = [
   {

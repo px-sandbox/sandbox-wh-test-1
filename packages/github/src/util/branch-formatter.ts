@@ -1,9 +1,9 @@
-import { Github } from 'pulse-abstraction';
+import { Github } from 'abstraction';
 import { GIT_ORGANIZATION_ID } from 'src/constant/config';
 import { v4 as uuid } from 'uuid';
 
 export async function branchFormator(
-  data: Github.ExternalType.Branch,
+  data: Github.ExternalType.Api.Branch,
   oldId?: string
 ): Promise<Object> {
   const obj = {

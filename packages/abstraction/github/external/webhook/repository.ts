@@ -1,6 +1,7 @@
 export type Repository = {
     id: string;
     name: string;
+    action: string;
     description: string;
     private: boolean;
     visibility: string;
@@ -9,8 +10,8 @@ export type Repository = {
     };
     open_issues_count: number;
     organization_id: string;
-    created_at: Date;
-    updated_at: Date;
-    pushed_at: Date;
-    deleted_at: Date;
+    created_at: string;
+    updated_at: string;
+    pushed_at: string;
+    deleted_at?: string;
 };

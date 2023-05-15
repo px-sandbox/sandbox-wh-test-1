@@ -1,8 +1,8 @@
 import { logger, sqsDataSender } from 'core';
 import { ghRequest } from './request-defaults';
-import { GetInstallationAccessToken } from 'src/service/installation-access-token';
-import { Github } from 'pulse-abstraction';
+import { Github } from 'abstraction';
 import { RequestInterface } from '@octokit/types';
+import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 
 export async function getUsers(
   octokit: RequestInterface<
@@ -47,7 +47,7 @@ async function getUserList(
       `GET /orgs/${organizationName}/members?per_page=${perPage}&page=${page}`
     );
 
-    const membersPerPage = responseData.data as Github.ExternalType.User[];
+    const membersPerPage = responseData.data as Github.ExternalType.Api.User[];
 
     counter += membersPerPage.length;
     membersPerPage.forEach(async (member) => {
@@ -73,7 +73,7 @@ async function getUserList(
     if (error.status === 401) {
       const {
         body: { token },
-      } = await GetInstallationAccessToken();
+      } = await getInstallationAccessToken();
 
       const octokitObj = ghRequest.request.defaults({
         headers: {

@@ -1,5 +1,5 @@
 {
-  "name": "pulse-abstraction",
+  "name": "abstraction",
   "version": "1.0.0",
   "description": "Define types and enums",
   "main": "index.ts",

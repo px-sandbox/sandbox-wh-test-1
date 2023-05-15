@@ -1,4 +1,4 @@
-import { Other } from 'pulse-abstraction';
+import { Other } from 'abstraction';
 import { Config } from 'sst/node/config';
 import { getOauthCode } from './jwt-token';
 import { ghRequest } from 'src/lib/request-defaults';

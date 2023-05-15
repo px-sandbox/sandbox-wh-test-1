@@ -4,10 +4,10 @@ import { ElasticClient, ddbDocClient, logger } from 'core';
 import { region } from 'src/constant/config';
 import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
-import { Github } from 'pulse-abstraction';
-import { ddbGlobalIndex } from 'pulse-abstraction/other/type';
+import { Github } from 'abstraction';
+import { ddbGlobalIndex } from 'abstraction/other/type';
 
-export async function getOrganizationDetails(
+export async function fetchAndSaveOrganizationDetails(
   octokit: RequestInterface<
     object & {
       headers: {

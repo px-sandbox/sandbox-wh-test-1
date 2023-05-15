@@ -1,9 +1,8 @@
 import { Config } from 'sst/node/config';
 import NodeRSA from 'node-rsa';
 import githubAppJwt from 'universal-github-app-jwt';
-import { HttpStatusCode, logger, responseParser } from 'core';
-import { APIGatewayProxyResult } from 'aws-lambda';
-import { JWTResponse } from 'pulse-abstraction/github/type';
+import { logger } from 'core';
+import { JWTResponse } from '../../../abstraction/github/type';
 
 function getPrivateKey(pem: string) {
   const pemString = Buffer.from(pem, 'base64').toString('binary');

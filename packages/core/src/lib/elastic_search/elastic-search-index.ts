@@ -1,4 +1,4 @@
-import { Github } from 'pulse-abstraction';
+import { Github } from 'abstraction';
 import client from './client';
 
 export class ElasticClient {

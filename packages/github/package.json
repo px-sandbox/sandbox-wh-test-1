@@ -1,6 +1,6 @@
 {
-  "name": "@my-sst-app/auth",
-  "version": "0.0.0",
+  "name": "github",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "test": "sst bind vitest",
@@ -27,6 +27,6 @@
     "octokit": "^2.0.14",
     "uuid": "^9.0.0",
     "universal-github-app-jwt": "^2.0.1",
-    "pulse-abstraction": "workspace:^1.0.0"
+    "abstraction": "workspace:^1.0.0"
   }
 }

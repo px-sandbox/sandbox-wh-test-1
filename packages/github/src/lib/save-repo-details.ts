@@ -1,13 +1,13 @@
 import { ElasticClient, ddbDocClient, logger } from 'core';
-import { Github } from 'pulse-abstraction';
-import { ddbGlobalIndex } from 'pulse-abstraction/other/type';
+import { Github } from 'abstraction';
+import { ddbGlobalIndex } from 'abstraction/other/type';
 import { region } from 'src/constant/config';
 import { repoFormator } from 'src/util/repoFormator';
 import { Table } from 'sst/node/table';
 import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 
-export async function getRepoDetails(
-  data: Github.ExternalType.Repository
+export async function saveRepoDetails(
+  data: Github.ExternalType.Api.Repository
 ): Promise<void> {
   try {
     const getParams = {

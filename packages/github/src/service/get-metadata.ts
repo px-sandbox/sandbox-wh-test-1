@@ -9,9 +9,9 @@ import {
   createAllIndices,
 } from 'core';
 import { ghRequest } from '../lib/request-defaults';
-import { getOrganizationDetails } from '../lib/get-organization-details';
 import { getUsers } from 'src/lib/get-user-list';
-import { getRepos } from 'src/lib/get-repos';
+import { getRepos } from 'src/lib/get-repos-list';
+import { fetchAndSaveOrganizationDetails } from 'src/lib/fetch-and-save-org-details';
 
 const GetMetadata = async (
   event: APIGatewayProxyEvent
@@ -27,7 +27,10 @@ const GetMetadata = async (
   logger.info('getAllMetadata.invoked', { organizationName });
   createAllIndices();
   logger.info('AllIndices.created');
-  const organization = await getOrganizationDetails(octokit, organizationName);
+  const organization = await fetchAndSaveOrganizationDetails(
+    octokit,
+    organizationName
+  );
   // TODO: In next PR
   const [users, repo] = await Promise.all([
     getUsers(octokit, organizationName),

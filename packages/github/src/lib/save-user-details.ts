@@ -1,13 +1,13 @@
 import { ElasticClient, ddbDocClient, logger } from 'core';
-import { Github } from 'pulse-abstraction';
-import { ddbGlobalIndex } from 'pulse-abstraction/other/type';
+import { Github } from 'abstraction';
+import { ddbGlobalIndex } from 'abstraction/other/type';
 import { region } from 'src/constant/config';
 import { Table } from 'sst/node/table';
 import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
-import { branchFormator } from 'src/util/branch-formatter';
+import { userFormator } from 'src/util/user-formatter';
 
-export async function getBranchDetails(
-  data: Github.ExternalType.Branch
+export async function saveUserDetails(
+  data: Github.ExternalType.Api.User
 ): Promise<void> {
   try {
     const getParams = {
@@ -16,7 +16,7 @@ export async function getBranchDetails(
         IndexName: ddbGlobalIndex.GitHubIdIndex,
         KeyConditionExpression: 'githubId = :githubId',
         ExpressionAttributeValues: {
-          ':githubId': `gh_repo_${data?.id}`,
+          ':githubId': `gh_user_${data?.id}`,
         },
       },
     };
@@ -24,8 +24,8 @@ export async function getBranchDetails(
       new GetCommand(getParams)
     );
     logger.info(ddbRes);
-    const result = await branchFormator(data, ddbRes.Item?.parentId);
-    if (!ddbRes.Item) {
+    const result = await userFormator(data, ddbRes.Item?.parentId);
+    if (!result) {
       logger.info('---NEW_RECORD_FOUND---');
       const putParams = {
         TableName: Table.GithubMapping.tableName,
@@ -36,13 +36,14 @@ export async function getBranchDetails(
       };
       logger.info('DYNAMODB_PUT_PARAM_DATA', { data: putParams });
       await ddbDocClient(region as string).send(new PutCommand(putParams));
+      logger.info('---NEW_RECORD_FOUND---');
     }
     await ElasticClient.saveOrUpdateDocument(
-      Github.Enums.IndexName.GitBranch,
+      Github.Enums.IndexName.GitUsers,
       result
     );
   } catch (error: unknown) {
-    logger.error('getBranchDetails.error', {
+    logger.error('getUserDetails.error', {
       error,
     });
     throw error;

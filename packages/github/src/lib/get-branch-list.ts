@@ -1,6 +1,6 @@
 import { RequestInterface } from '@octokit/types';
 import { logger, sqsDataSender } from 'core';
-import { Github } from 'pulse-abstraction';
+import { Github } from 'abstraction';
 import { ghRequest } from './request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 

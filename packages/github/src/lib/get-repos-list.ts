@@ -1,7 +1,7 @@
 import { logger, sqsDataSender } from 'core';
 import { ghRequest } from './request-defaults';
 import { RequestInterface } from '@octokit/types';
-import { Github } from 'pulse-abstraction';
+import { Github } from 'abstraction';
 import { getBranches } from './get-branch-list';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 

@@ -5,7 +5,7 @@ import { getOauthCode } from '../util/jwt-token';
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 
-export async function GetInstallationAccessToken(): Promise<APIGatewayProxyResult> {
+export async function getGithubAccessToken(): Promise<APIGatewayProxyResult> {
   try {
     const installationAccessToken = await getInstallationAccessToken();
 
@@ -23,4 +23,4 @@ export async function GetInstallationAccessToken(): Promise<APIGatewayProxyResul
     throw error;
   }
 }
-export const handler = APIHandler(GetInstallationAccessToken);
+export const handler = APIHandler(getGithubAccessToken);

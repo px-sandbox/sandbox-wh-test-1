@@ -1,6 +1,6 @@
 import { StackContext, Api, Table, Queue, Config } from 'sst/constructs';
 
-export function PxDataGithubIntegration({ stack }: StackContext) {
+export function PulseDXIntegration({ stack }: StackContext) {
   // Set GITHUB config params
   const GITHUB_APP_ID = new Config.Secret(stack, 'GITHUB_APP_ID');
   const GITHUB_APP_PRIVATE_KEY_PEM = new Config.Secret(
@@ -59,10 +59,17 @@ export function PxDataGithubIntegration({ stack }: StackContext) {
       // GET github installation access token
       'GET /github/installation-access-token':
         'packages/github/src/service/installation-access-token.handler',
+      // GET github Oauth token
       'GET /github/auth-token':
-        'packages/github/src/service/jwt-token.getOauthCode',
+        'packages/github/src/service/jwt-token.getOauthToken',
+      // POST AWS SQS
       'POST /aws/sqs/trigger':
         'packages/core/src/lib/aws/sqs-data-sender.handler',
+      // GET Github app installations
+      'GET /github/app/installations':
+        'packages/github/src/service/github-app-installations.handler',
+      // POST Webhook handler
+      'POST /github/webhook': 'packages/github/src/service/webhook.webhookData',
     },
   });
 

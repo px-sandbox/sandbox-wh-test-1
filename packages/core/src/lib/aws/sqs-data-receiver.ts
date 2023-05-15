@@ -1,8 +1,8 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from '../logger';
-
-//import { IndexName } from "px-abstraction";
-
+import { saveRepoDetails } from 'github/src/lib/save-repo-details';
+import { saveUserDetails } from 'github/src/lib/save-user-details';
+import { saveBranchDetails } from 'github/src/lib/save-branch-details';
 export const handler = async function sqsDataReceiver(
   event: APIGatewayProxyEvent
 ): Promise<any> {
@@ -15,17 +15,17 @@ export const handler = async function sqsDataReceiver(
       case 'git_repo':
         logger.info('getRepoDetails.formatter.invoked');
         // TODO: create repo details library function
-        //getRepoDetails(messageBody.data);
+        saveRepoDetails(messageBody.data);
         break;
       case 'git_users':
         logger.info('getUsersDetails.formatter.invoked');
         //TODO: create user details library function
-        getUserDetails(messageBody.data);
+        saveUserDetails(messageBody.data);
         break;
       case 'git_branch':
         logger.info('getRBranchDetails.formatter.invoked');
         // TODO: create branch details library function
-        //getBranchDetails(messageBody.data);
+        saveBranchDetails(messageBody.data);
         break;
       default:
         break;

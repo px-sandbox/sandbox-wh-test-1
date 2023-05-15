@@ -1,13 +1,13 @@
 import { ElasticClient, ddbDocClient, logger } from 'core';
-import { Github } from 'pulse-abstraction';
-import { ddbGlobalIndex } from 'pulse-abstraction/other/type';
+import { Github } from 'abstraction';
+import { ddbGlobalIndex } from 'abstraction/other/type';
 import { region } from 'src/constant/config';
 import { Table } from 'sst/node/table';
 import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
-import { userFormator } from 'src/util/user-formatter';
+import { branchFormator } from 'src/util/branch-formatter';
 
-export async function getUserDetails(
-  data: Github.ExternalType.User
+export async function saveBranchDetails(
+  data: Github.ExternalType.Api.Branch
 ): Promise<void> {
   try {
     const getParams = {
@@ -16,7 +16,7 @@ export async function getUserDetails(
         IndexName: ddbGlobalIndex.GitHubIdIndex,
         KeyConditionExpression: 'githubId = :githubId',
         ExpressionAttributeValues: {
-          ':githubId': `gh_user_${data?.id}`,
+          ':githubId': `gh_branch_${data?.id}`,
         },
       },
     };
@@ -24,8 +24,8 @@ export async function getUserDetails(
       new GetCommand(getParams)
     );
     logger.info(ddbRes);
-    const result = await userFormator(data, ddbRes.Item?.parentId);
-    if (!result) {
+    const result = await branchFormator(data, ddbRes.Item?.parentId);
+    if (!ddbRes.Item) {
       logger.info('---NEW_RECORD_FOUND---');
       const putParams = {
         TableName: Table.GithubMapping.tableName,
@@ -36,14 +36,13 @@ export async function getUserDetails(
       };
       logger.info('DYNAMODB_PUT_PARAM_DATA', { data: putParams });
       await ddbDocClient(region as string).send(new PutCommand(putParams));
-      logger.info('---NEW_RECORD_FOUND---');
     }
     await ElasticClient.saveOrUpdateDocument(
-      Github.Enums.IndexName.GitUsers,
+      Github.Enums.IndexName.GitBranch,
       result
     );
   } catch (error: unknown) {
-    logger.error('getUserDetails.error', {
+    logger.error('getBranchDetails.error', {
       error,
     });
     throw error;
