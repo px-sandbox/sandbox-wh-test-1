@@ -25,6 +25,8 @@
     "@octokit/types": "^9.0.0",
     "node-rsa": "^1.1.1",
     "octokit": "^2.0.14",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "universal-github-app-jwt": "^2.0.1",
+    "pulse-abstraction": "workspace:^1.0.0"
   }
 }

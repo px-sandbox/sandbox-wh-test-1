@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk';
 import { Queue } from 'sst/node/queue';
+import { HttpStatusCode } from '../../constant';
 
 const sqs = new AWS.SQS();
 
@@ -16,7 +17,7 @@ export async function sqsDataSender(data: any): Promise<any> {
   // console.log("Message queued!");
 
   return {
-    statusCode: 200,
+    statusCode: HttpStatusCode[200],
     body: JSON.stringify({ status: 'successful' }),
   };
 }

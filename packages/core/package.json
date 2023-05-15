@@ -26,6 +26,8 @@
     "@middy/http-security-headers": "^4.2.8",
     "@middy/validator": "^4.2.8",
     "winston": "^3.8.2",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "@elastic/elasticsearch": "^8.6.0",
+    "pulse-abstraction": "workspace:^1.0.0"
   }
 }

@@ -19,8 +19,8 @@ export const handler = async function sqsDataReceiver(
         break;
       case 'git_users':
         logger.info('getUsersDetails.formatter.invoked');
-        // TODO: create user details library function
-        //getUserDetails(messageBody.data);
+        //TODO: create user details library function
+        getUserDetails(messageBody.data);
         break;
       case 'git_branch':
         logger.info('getRBranchDetails.formatter.invoked');

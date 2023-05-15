@@ -7,3 +7,5 @@ export * from './elastic_search/client';
 export * from './elastic_search/indices';
 export * from './elastic_search/github-indices';
 export * from './elastic_search/elastic-search-index';
+export * from './aws/sqs-data-receiver';
+export * from './aws/sqs-data-sender';

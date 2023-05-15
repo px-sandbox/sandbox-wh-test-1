@@ -1,10 +1,11 @@
 import { organizationFormator } from '../util/organization-formatter';
 import { RequestInterface } from '@octokit/types';
-import { ddbDocClient, logger } from 'core';
-import { IndexName } from '../abstraction/enum/es-index-names';
+import { ElasticClient, ddbDocClient, logger } from 'core';
 import { region } from 'src/constant/config';
-import { GetCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
+import { Github } from 'pulse-abstraction';
+import { ddbGlobalIndex } from 'pulse-abstraction/other/type';
 
 export async function getOrganizationDetails(
   octokit: RequestInterface<
@@ -24,7 +25,7 @@ export async function getOrganizationDetails(
       const getParams = {
         TableName: Table.GithubMapping.tableName,
         Key: {
-          IndexName: 'githubIdIndex',
+          IndexName: ddbGlobalIndex.GitHubIdIndex,
           KeyConditionExpression: 'githubId = :githubId',
           ExpressionAttributeValues: {
             ':githubId': `gh_org_${responseData.data.id}`,
@@ -40,15 +41,22 @@ export async function getOrganizationDetails(
         ddbRes.Item?.parentId
       );
       logger.info(result);
-      // Todo: In next PRelastic search
-      //   if (!record) {
-      //     logger.info('---NEW_RECORD_FOUND---');
-      //     await new DynamoDBClient().updateTable(result);
-      //   }
-      //   await ElasticSearchIndex.saveOrUpdateDocument(
-      //     IndexName.GitOrganization,
-      //     result
-      //   );
+      if (!ddbRes.Item) {
+        logger.info('---NEW_RECORD_FOUND---');
+        const putParams = {
+          TableName: Table.GithubMapping.tableName,
+          Item: {
+            parentId: result.id,
+            githubId: result.body.id,
+          },
+        };
+        logger.info('DYNAMODB_PUT_PARAM_DATA', { data: putParams });
+        await ddbDocClient(region as string).send(new PutCommand(putParams));
+      }
+      await ElasticClient.saveOrUpdateDocument(
+        Github.Enums.IndexName.GitOrganization,
+        result
+      );
     }
     logger.info('getOrganizationDetails.successfull', {
       response: responseData?.data,

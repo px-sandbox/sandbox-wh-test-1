@@ -56,6 +56,13 @@ export function PxDataGithubIntegration({ stack }: StackContext) {
       // GET Metadata route
       'GET /github/metadata':
         'packages/github/src/service/get-metadata.handler',
+      // GET github installation access token
+      'GET /github/installation-access-token':
+        'packages/github/src/service/installation-access-token.handler',
+      'GET /github/auth-token':
+        'packages/github/src/service/jwt-token.getOauthCode',
+      'POST /aws/sqs/trigger':
+        'packages/core/src/lib/aws/sqs-data-sender.handler',
     },
   });
 
