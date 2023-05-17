@@ -47,10 +47,10 @@ async function getUserList(
       `GET /orgs/${organizationName}/members?per_page=${perPage}&page=${page}`
     );
 
-    const membersPerPage = responseData.data as Github.ExternalType.Api.User[];
+    const membersPerPage: Github.ExternalType.Api.User[] = responseData.data;
     logger.info('Response', membersPerPage);
     counter += membersPerPage.length;
-    await membersPerPage.forEach(async (member) => {
+    membersPerPage.forEach(async (member) => {
       await sqsDataSender({
         data: member,
         type: Github.Enums.IndexName.GitUsers,

@@ -5,35 +5,35 @@ import { ghRequest } from 'src/lib/request-defaults';
 import { getOauthCode } from 'src/util/jwt-token';
 
 export const getGitAppInstallations = async function (
-  event: APIGatewayProxyEvent
+	event: APIGatewayProxyEvent
 ): Promise<Other.Type.LambdaResponse> {
-  const {
-    body: { token },
-  } = await getOauthCode();
+	const {
+		body: { token },
+	} = await getOauthCode();
 
-  try {
-    const octokit = ghRequest.request.defaults({
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
+	try {
+		const octokit = ghRequest.request.defaults({
+			headers: {
+				authorization: `Bearer ${token}`,
+			},
+		});
 
-    const installation = await octokit('GET /app/installations');
+		const installation = await octokit('GET /app/installations');
 
-    logger.info('Get list of all installations of github app');
+		logger.info('Get list of all installations of github app');
 
-    return responseParser
-      .setBody(installation.data)
-      .setMessage('get metadata')
-      .setStatusCode(HttpStatusCode[200])
-      .setResponseBodyCode('SUCCESS')
-      .send();
-  } catch (error: unknown) {
-    logger.error({
-      error,
-    });
-    throw error;
-  }
+		return responseParser
+			.setBody(installation.data)
+			.setMessage('get metadata')
+			.setStatusCode(HttpStatusCode[200])
+			.setResponseBodyCode('SUCCESS')
+			.send();
+	} catch (error: unknown) {
+		logger.error({
+			error,
+		});
+		throw error;
+	}
 };
 
 export const handler = APIHandler(getGitAppInstallations);

@@ -22,20 +22,14 @@ export async function fetchAndSaveOrganizationDetails(
     let responseData;
     responseData = await octokit(`GET /orgs/${organizationName}`);
     if (responseData?.data) {
-      const record = await find(`gh_user_${responseData.data.id}`);
-      const result = await organizationFormator(
-        responseData.data,
-        record?.parentId
-      );
+      const record = await find(`gh_org_${responseData.data.id}`);
+      const result = await organizationFormator(responseData.data, record?.parentId);
       if (!record) {
         logger.info('---NEW_RECORD_FOUND---');
 
         await updateTable(result);
       }
-      await ElasticClient.saveOrUpdateDocument(
-        Github.Enums.IndexName.GitOrganization,
-        result
-      );
+      await ElasticClient.saveOrUpdateDocument(Github.Enums.IndexName.GitOrganization, result);
     }
     logger.info('getOrganizationDetails.successfull', {
       response: responseData?.data,

@@ -47,9 +47,7 @@ const find = async (githubId: string): Promise<any | undefined> => {
     KeyConditionExpression: 'githubId = :githubId',
     ExpressionAttributeValues: { ':githubId': githubId },
   };
-  const ddbRes = await ddbDocClient(region as string).send(
-    new QueryCommand(getParams)
-  );
+  const ddbRes = await ddbDocClient(region as string).send(new QueryCommand(getParams));
   return ddbRes.Items ? ddbRes.Items[0] : undefined;
 };
 export { ddbDocClient, find, updateTable };

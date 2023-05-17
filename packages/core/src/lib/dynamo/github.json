@@ -1,5 +1,5 @@
 {
-  "TableName": "charchitkhandelwal-px-data-integration-px-data-integration-GithubMapping",
+  "TableName": "charchitkandelwal-pulse-dx-integration-GithubMapping",
   "KeySchema": [
     {
       "AttributeName": "parentId",

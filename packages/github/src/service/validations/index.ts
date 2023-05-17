@@ -11,9 +11,9 @@ export const getMetadata = {
     headers: {
       type: 'object',
       properties: {
-        token: { type: 'string' },
+        authorization: { type: 'string' },
       },
-      required: ['token'],
+      required: ['authorization'],
     },
   },
 };
