@@ -1,0 +1,41 @@
+{
+  "TableName": "charchitkandelwal-pulse-dx-integration-GithubMapping",
+  "KeySchema": [
+    {
+      "AttributeName": "parentId",
+      "KeyType": "HASH"
+    }
+  ],
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "parentId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "githubId",
+      "AttributeType": "S"
+    }
+  ],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "githubIdIndex",
+      "KeySchema": [
+        {
+          "AttributeName": "githubId",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 1,
+        "WriteCapacityUnits": 1
+      }
+    }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 1,
+    "WriteCapacityUnits": 1
+  }
+}
