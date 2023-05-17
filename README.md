@@ -1,150 +1,8 @@
-# Serverless with SST
+# sst-api-boilerplate
 
 Boilerplate for SST serverless APIs
 
-## File and folder Naming conventions
-
-- Folder and file name will be singular and follow `kebab-case`
-- Classes and interfaces Names will be singular and follow `PascalCasing`
-- Any global constants or environment variables are in `all-caps` and follow `SNAKE_CASE`
-- Variable name should be `camelCase`
-
-For more details onto casing refer [here](https://medium.com/better-programming/string-case-styles-camel-pascal-snake-and-kebab-case-981407998841)
-
-## Monorepo architecture
-
-This structure segregates the services as micro-services and other modules like `core` as the code sharing and in support to micro-services. `core` will be used as a package in micro-services.
-
-```
-.
-├── packages
-│    ├── core
-│    │    ├── src
-│    │    |   ├── constant # contain files for declaring constants
-|    |    |   |   ├── config.ts
-│    │    |   ├── lib
-│    │    │   |   ├── # folders and files for code shareability
-│    │    ├── index.ts # export types or helping functions
-│    │    ├── package.json
-│    │    ├── tsconfig.json
-│    ├── sample-service1
-│    │    ├── src
-│    │    |   ├── abstraction # contain files for types, interfaces
-│    │    |   ├── constant # contain files for declaring constants
-|    |    |   |   ├── config.ts
-│    │    |   ├── service
-│    │    |   |   ├── validation # folder to hold validations for your API
-│    │    │   |   ├── sample-function.ts # functions to use your service
-│    │    |   ├── test # contain test for the handlers of lambda
-│    │    ├── package.json
-│    │    ├── tsconfig.json
-│    │    ├── jest.config.js
-|
-├── stacks
-│    ├── my-stack.ts # example
-│    ├── storage.ts # example
-|
-├── package.json
-├── pnpm-lock.yaml
-├── pnpm-workspace.yaml
-└── ...
-```
-
-## Prerequisites
-
-- You need AWS credentials to run in dev mode and deploy application.
-- Export your AWS credentials in your terminal.
-  Credentials to be exported in terminal look like
-  ```
-  export AWS_ACCESS_KEY_ID="XXXXX"
-  export AWS_SECRET_ACCESS_KEY="XXXXX"
-  export AWS_SESSION_TOKEN="XXXXX"
-  ```
-- Execute `npm run dev` or `pnpm run dev`. This will create your stacks and run lambdas in live mode. For more details on live lambda [refer here](https://docs.sst.dev/live-lambda-development)
-
-## Create New Service
-
-- Create a new folder in `packages` with above recommended structure
-- Create a new file in `stacks` for API map and any other AWS infra requirements.
-- import the new stack in `sst.config.ts`
-
-  Your `sst.config.ts` should be like this:
-
-  ```typescript
-  import { SSTConfig } from 'sst';
-  import { API } from './stacks/my-stack';
-  import { Storage } from './stacks/storage';
-
-  export default {
-    config(_input) {
-      return {
-        name: 'rest-api-ts', // name of your app
-        region: 'us-east-1', // desired aws region
-      };
-    },
-    stacks(app) {
-      app.stack(API);
-      app.stack(Storage);
-    },
-  } satisfies SSTConfig;
-  ```
-
-## Create New API
-
-1. Create a new handler in respective service's folder (packages/<service>/service/<new handler file>.ts).
-   This handler will contain the logic for your API and invoke the validations.
-
-   ```typescript
-   import { APIHandler } from 'core';
-
-   const createUser = async (
-     event: APIGatewayProxyEvent
-   ): Promise<APIGatewayProxyResult> => {
-     // your logic goes here that handles event and responds
-   };
-
-   const handler = APIHandler(createUser, {
-     eventSchema: transpileSchema(createUserSchema),
-   });
-   ```
-
-2. if your API requires a validation then create a validation object in adjacent validation folder. The validation object for above example will look like
-
-   ```typescript
-   export const createUserSchema = {
-     type: 'object',
-     properties: {
-       body: {
-         type: 'object',
-         properties: {
-           email: { type: 'string', format: 'email' },
-           password: { type: 'string' },
-           firstName: { type: 'string' },
-           lastName: { type: 'string' },
-         },
-         required: ['email', 'password', 'firstName', 'lastName'],
-       },
-     },
-   };
-   ```
-
-   we are using [ajv](https://ajv.js.org/) for validations.
-
-3. create an entry in routes of your service's stack.
-
-   ```typescript
-   const usersAPI = new Api(stack, 'usersAPI', {
-     routes: {
-       '<HTTP-VERB> /<route>': {
-         function: {
-           handler: '<path to handler file>',
-         },
-       },
-       '<HTTP-VERB> /<route>': '<path to handler file>',
-     })
-   ```
-
-## Deploy Application
+## To setup SST project in local
 
 - Install node 16._ and npm 8._
 - Setup aws credentials by exporting the credentials on terminal.
@@ -157,58 +15,81 @@ aws sts get-caller-identity
 
 **Note:** If token expired then again need to be export the credentials on the terminal.
 
-Add these scripts in the package.json file of the service:
+## Implement JWT Authorization with Auth0
+
+- Create an account on Auth0 and create a single page application.
+- On created application's settings you will get domain and client id.
+- Create .env.local file and set the below keys with your values.
 
 ```
-  "scripts": {
-    "dev": "sst dev",
-    "build": "sst build",
-    "deploy": "sst deploy",
-    "remove": "sst remove",
-    "console": "sst console",
-    "test": "sst bind vitest"
+AUTH0_DOMAIN=https://your-domain
+AUTH0_CLIENT_ID=client-id
+```
+
+## Configure envirnoment variables
+
+- Copy .env.local to .env
+- Run the following command on terminal
+
+```
+npx sst secrets set GITHUB_SG_INSTALLATION_ID <INSTALLATION_ID>
+npx sst secrets set GITHUB_BASE_URL https://api.github.com
+npx sst secrets set GITHUB_APP_PRIVATE_KEY_PEM <PEM file content>
+npx sst secrets set GITHUB_APP_ID <APP_ID>
+```
+
+## Configure DynamoDB for local
+
+1. create json file in table directoy.
+2. paste the following table schema in the file.
+
+```
+{
+    "TableName": "<TABLE_NAME>",
+    "KeySchema": [{ "AttributeName": "parentId", "KeyType": "HASH"}],
+    "AttributeDefinitions": [{ "AttributeName": "parentId", "AttributeType": "S" }],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 1,
+      "WriteCapacityUnits": 1
+    }
   }
 ```
 
-## Unit Tests
+3. Run the follwing command on terminal to create the table.
+   `aws dynamodb create-table --cli-input-json file://tables/dynamodb/user.json --endpoint-url http://localhost:8000`
 
-- Every service will have a `test` folder which will contain tests for respective handlers of the micro-service. Tests are written using `vitest`
-- Tests can be executed by running `npm run test` or `pnpm run test`. This boilerplate is configured to use both.
-- Service's `package.json` should have test script for npm/pnpm to execute it in all the packages.
-- `vitest` and other supporting packages for executing tests are at the root `package.json` file. they are not requred in service's package.json file unless it is for specific use in that package
+4. To get the data from table run following command on terminal
+   `aws dynamodb --endpoint-url http://localhost:8000 scan --table-name <TABLE_NAME>`
 
-## Things accomplised in this boilerplate so far
+5. To delete the table run following command on terminal
+   `aws dynamodb delete-table --table-name <TABLE_NAME> --endpoint-url http://localhost:8000`
 
-- Structure for the monorepo approach
-- Ability to add and use existing middlewares using `middy`
-- CRUD operations with `dynamoDB`
-- Supporting functions like validations (using `ajv` and `middy`), response parser
-- Configured unit test cases using `vitest`.
-- Add lambdas to existing `VPC`
+## Steps to deploy your stack
 
-## Problems that still exist
+1. Run `pnpm i` to install all dependencies. It will install all the dependencies
+2. Now Run `npm start dev` command on terminal. It will deploy your stack changes
+3. Now after successfull run visit sst console url.
 
-- We cannot place our lambdas in VPC while running application in dev. To put lambdas in VPC we need to deploy our application.
-- After executing `pnpm run deploy --stage=staging` `stack.stage==='staging'` returned false. So cannot identify stage to make custom changes as per the deployment stage.
-- While execulting tests collecting coverage faults. As per documentation we can easily collect coverage using `sst bind vitest --coverage`
-- Using SST we can attach 1 domain per stack. Since this boilerplate follows multi stack approach we cannot connect our stacks to a single domain. **So the domain mapping needs to be implemented using Terraform or we need to restructure our stacks**
+## How to create an api
 
-## FAQs
+- We need to define endpoint inside the object of the routes key in PxDataIntegrationStack.ts file.
+  For eg `routes: {"PUT /notes/{id}": ""}`
+- In Api endpoint key, handler’s path needs to be define.
+  For eg `routes: {"PUT /notes/{id}": "src/update.handler"}`
+- By default all endpoints of api will be authorized.
 
-<details>
-<summary>Why not use nx for managing monorepo?</summary>
+If we want to remove authorisation from any endpoints then in api endpoint key, an object needs to be define.
+Which contains function and authorizer key.
 
-_With the achievements made so far we explicity did not require nx. To execute tests from a single command npm workspaces is doing the trick. pnpm is helped dependency management._
+- In function key we have to set handler’s path which needs to be called after hitting that api endpoint.
+- In authorizer key we have to set “none” value.
+  For eg
 
-_So **yes**, tomorrow we might need to include nx when we want some features that nx suppprts but npm or pnpm does not_
-
-</details>
-
-<details>
-<summary>Why not use jest for writing tests?</summary>
-
-_SST gives out of box support for vitest. When executing tests using vitest SST actually binds our AWS infra for executing tests. This capability is not supported with jest_
-
-_If we don't need to bind then we can consider using jest_
-
-</details>
+```
+routes: {
+          "GET /notes/{id}": {
+          function: "src/get.handler",
+          authorizer: "none",
+         }
+       }
+```
