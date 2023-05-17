@@ -8,33 +8,35 @@ import { getRepos } from 'src/lib/get-repos-list';
 import { fetchAndSaveOrganizationDetails } from 'src/lib/fetch-and-save-org-details';
 
 const GetMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-	const token: string = event.headers.authorization || '';
-	const organizationName: string = event?.queryStringParameters?.orgName || '';
+  const token: string = event.headers.authorization || '';
+  const organizationName: string = event?.queryStringParameters?.orgName || '';
 
-	const octokit = ghRequest.request.defaults({
-		headers: {
-			authorization: token,
-		},
-	});
-	logger.info('getAllMetadata.invoked', { organizationName });
-	createAllIndices();
-	logger.info('AllIndices.created');
-	const organization = await fetchAndSaveOrganizationDetails(octokit, organizationName);
-	const [users] = await Promise.all([
-		getUsers(octokit, organizationName),
-		getRepos(octokit, organizationName),
-	]);
+  const octokit = ghRequest.request.defaults({
+    headers: {
+      authorization: token,
+    },
+  });
+  logger.info('getAllMetadata.invoked', { organizationName });
+  createAllIndices();
+  logger.info('AllIndices.created');
+  const organization = await fetchAndSaveOrganizationDetails(octokit, organizationName);
+  const [users, repo] = await Promise.all([
+    getUsers(octokit, organizationName),
+    getRepos(octokit, organizationName),
+  ]);
 
-	return responseParser
-		.setBody({ organization, users })
-		.setMessage('get metadata')
-		.setStatusCode(HttpStatusCode[200])
-		.setResponseBodyCode('SUCCESS')
-		.send();
+  return responseParser
+    .setBody({ organization, users, repo })
+    .setMessage('get metadata')
+    .setStatusCode(HttpStatusCode[200])
+    .setResponseBodyCode('SUCCESS')
+    .send();
 };
 
-const handler = APIHandler(GetMetadata, {
-	eventSchema: transpileSchema(getMetadata),
-});
+const handler = GetMetadata;
+// Todo: Middy validation timeout
+//   APIHandler(GetMetadata, {
+//   eventSchema: transpileSchema(getMetadata),
+// });
 
 export { GetMetadata, handler };

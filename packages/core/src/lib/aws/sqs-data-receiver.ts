@@ -3,9 +3,7 @@ import { logger } from '../logger';
 import { saveRepoDetails } from 'github/src/lib/save-repo-details';
 import { saveUserDetails } from 'github/src/lib/save-user-details';
 import { saveBranchDetails } from 'github/src/lib/save-branch-details';
-export const handler = async function sqsDataReceiver(
-	event: APIGatewayProxyEvent
-): Promise<any> {
+export const handler = async function sqsDataReceiver(event: APIGatewayProxyEvent): Promise<any> {
 	for (const record of event.Records) {
 		const messageBody = JSON.parse(record.body);
 		// Do something with the message, e.g. send an email, process data, etc.
