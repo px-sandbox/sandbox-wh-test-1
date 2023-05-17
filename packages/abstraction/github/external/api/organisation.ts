@@ -1,6 +1,6 @@
 export type Organization = {
   id: string;
-  name: string;
+  login: string;
   description: string;
   company: string;
   location: string;

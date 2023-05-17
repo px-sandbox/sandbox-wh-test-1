@@ -1,8 +1,8 @@
 import { organizationFormator } from '../util/organization-formatter';
 import { RequestInterface } from '@octokit/types';
-import { ElasticClient, ddbDocClient, logger } from 'core';
+import { ElasticClient, ddbDocClient, find, logger, updateTable } from 'core';
 import { region } from 'src/constant/config';
-import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
 import { Github } from 'abstraction';
 import { ddbGlobalIndex } from 'abstraction/other/type';
@@ -22,36 +22,15 @@ export async function fetchAndSaveOrganizationDetails(
     let responseData;
     responseData = await octokit(`GET /orgs/${organizationName}`);
     if (responseData?.data) {
-      const getParams = {
-        TableName: Table.GithubMapping.tableName,
-        Key: {
-          IndexName: ddbGlobalIndex.GitHubIdIndex,
-          KeyConditionExpression: 'githubId = :githubId',
-          ExpressionAttributeValues: {
-            ':githubId': `gh_org_${responseData.data.id}`,
-          },
-        },
-      };
-      const ddbRes = await ddbDocClient(region as string).send(
-        new GetCommand(getParams)
-      );
-      logger.info(ddbRes);
+      const record = await find(`gh_user_${responseData.data.id}`);
       const result = await organizationFormator(
         responseData.data,
-        ddbRes.Item?.parentId
+        record?.parentId
       );
-      logger.info(result);
-      if (!ddbRes.Item) {
+      if (!record) {
         logger.info('---NEW_RECORD_FOUND---');
-        const putParams = {
-          TableName: Table.GithubMapping.tableName,
-          Item: {
-            parentId: result.id,
-            githubId: result.body.id,
-          },
-        };
-        logger.info('DYNAMODB_PUT_PARAM_DATA', { data: putParams });
-        await ddbDocClient(region as string).send(new PutCommand(putParams));
+
+        await updateTable(result);
       }
       await ElasticClient.saveOrUpdateDocument(
         Github.Enums.IndexName.GitOrganization,
@@ -62,7 +41,7 @@ export async function fetchAndSaveOrganizationDetails(
       response: responseData?.data,
     });
     return {
-      name: responseData?.data?.name,
+      name: responseData?.data?.login,
     };
   } catch (error: unknown) {
     logger.error({

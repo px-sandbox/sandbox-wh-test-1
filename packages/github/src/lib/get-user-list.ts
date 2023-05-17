@@ -48,9 +48,9 @@ async function getUserList(
     );
 
     const membersPerPage = responseData.data as Github.ExternalType.Api.User[];
-
+    logger.info('Response', membersPerPage);
     counter += membersPerPage.length;
-    membersPerPage.forEach(async (member) => {
+    await membersPerPage.forEach(async (member) => {
       await sqsDataSender({
         data: member,
         type: Github.Enums.IndexName.GitUsers,

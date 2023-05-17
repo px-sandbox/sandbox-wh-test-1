@@ -1,5 +1,12 @@
-import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+} from '@aws-sdk/lib-dynamodb';
 import { ddbClient } from './client';
+import { Table } from 'sst/node/table';
+import { region } from '../../constant/config';
 
 const marshallOptions = {
   // Whether to automatically convert empty strings, blobs, and sets to `null`.
@@ -22,4 +29,27 @@ const translateConfig = { marshallOptions, unmarshallOptions };
 const ddbDocClient = (region: string) =>
   DynamoDBDocumentClient.from(ddbClient(region), translateConfig);
 
-export { ddbDocClient };
+const updateTable = async (orgObj: any): Promise<void> => {
+  const putParams = {
+    TableName: Table.GithubMapping.tableName,
+    Item: {
+      parentId: orgObj.id,
+      githubId: orgObj.body.id,
+    },
+  };
+  await ddbDocClient(region as string).send(new PutCommand(putParams));
+};
+
+const find = async (githubId: string): Promise<any | undefined> => {
+  const getParams = {
+    TableName: Table.GithubMapping.tableName,
+    IndexName: 'githubIdIndex',
+    KeyConditionExpression: 'githubId = :githubId',
+    ExpressionAttributeValues: { ':githubId': githubId },
+  };
+  const ddbRes = await ddbDocClient(region as string).send(
+    new QueryCommand(getParams)
+  );
+  return ddbRes.Items ? ddbRes.Items[0] : undefined;
+};
+export { ddbDocClient, find, updateTable };

@@ -10,7 +10,7 @@ export async function organizationFormator(
     body: {
       id: `gh_org_${data.id}`,
       githubOrganizationId: data.id,
-      name: data.name,
+      name: data.login,
       description: data?.description,
       company: data?.company,
       location: data?.location,

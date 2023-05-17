@@ -8,4 +8,5 @@ export const {
   ELASTIC_MAX_RETRIES,
   ELASTIC_NODE,
   ELASTIC_REQUEST_TIMEOUT,
+  region,
 } = process.env;
