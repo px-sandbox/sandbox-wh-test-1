@@ -15,3 +15,21 @@ export interface Repository {
   pushedAt: Date;
   deletedAt: Date;
 }
+export interface RepoFormatter {
+  id: string;
+  body: {
+    id: string;
+    githubRepoId: string;
+    name: string;
+    description: string;
+    isPrivate: boolean;
+    visibility: string;
+    owner: string;
+    openIssuesCount: number;
+    organizationId: string;
+    createdAt: string;
+    updatedAt: string;
+    pushedAt: string;
+    deletedAt: boolean;
+  };
+}

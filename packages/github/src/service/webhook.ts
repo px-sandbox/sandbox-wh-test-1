@@ -48,19 +48,13 @@ export const WebhookData = async function getWebhookData(
 		};
 	} else {
 		const data = JSON.parse(event.body || '{}');
-		console.log(
-			'check sign1',
-			sigHex.match(event.headers['x-hub-signature-256'])
-		);
+		console.log('check sign1', sigHex.match(event.headers['x-hub-signature-256']));
 
 		let eventType = event.headers['x-github-event']?.toLowerCase();
 		const branchEvents = ['create', 'delete'];
 
 		if (eventType) {
-			if (
-				branchEvents.includes(eventType) &&
-        data.ref_type?.toLowerCase() === 'branch'
-			) {
+			if (branchEvents.includes(eventType) && data.ref_type?.toLowerCase() === 'branch') {
 				eventType = 'branch';
 			}
 		} else {
@@ -74,9 +68,7 @@ export const WebhookData = async function getWebhookData(
 		let obj = {};
 		switch (eventType?.toLowerCase()) {
 		case Github.Enums.Event.Repo:
-			await saveRepoDetails(
-          data.repository as Github.ExternalType.Webhook.Repository
-			);
+			await saveRepoDetails(data.repository as Github.ExternalType.Webhook.Repository);
 			break;
 		case Github.Enums.Event.Branch:
 			const {

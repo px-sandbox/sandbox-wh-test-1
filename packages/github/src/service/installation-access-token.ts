@@ -1,8 +1,5 @@
-import { ghRequest } from 'src/lib/request-defaults';
-import { Config } from 'sst/node/config';
-import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { getOauthCode } from '../util/jwt-token';
 import { APIGatewayProxyResult } from 'aws-lambda';
+import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 
 export async function getGithubAccessToken(): Promise<APIGatewayProxyResult> {

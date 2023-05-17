@@ -44,10 +44,9 @@ async function getBranchList(
 ): Promise<any> {
 	try {
 		logger.info('getBranchList.invoked', { repoName, repoOwner, page });
-		let responseData;
 		const perPage = 100;
 
-		responseData = await octokit(
+		const responseData = await octokit(
 			`GET /repos/${repoOwner}/${repoName}/branches?per_page=${perPage}&page=${page}`
 		);
 
@@ -55,9 +54,7 @@ async function getBranchList(
 
 		counter += branchesPerPage.length;
 		branchesPerPage.forEach(async (branch) => {
-			branch.id = Buffer.from(`${repoId}_${branch.name}`, 'binary').toString(
-				'base64'
-			);
+			branch.id = Buffer.from(`${repoId}_${branch.name}`, 'binary').toString('base64');
 			branch.repo_id = repoId;
 			await sqsDataSender({
 				data: branch,
@@ -69,14 +66,7 @@ async function getBranchList(
 			logger.info('getBranchList.successfull');
 			return counter;
 		} else {
-			return getBranchList(
-				octokit,
-				repoId,
-				repoName,
-				repoOwner,
-				++page,
-				counter
-			);
+			return getBranchList(octokit, repoId, repoName, repoOwner, ++page, counter);
 		}
 	} catch (error: any) {
 		logger.error('getBranchList.error', { repoName, repoOwner, page, error });
@@ -91,14 +81,7 @@ async function getBranchList(
 					authorization: `Bearer ${token}`,
 				},
 			});
-			return getBranchList(
-				octokitObj,
-				repoId,
-				repoName,
-				repoOwner,
-				page,
-				counter
-			);
+			return getBranchList(octokitObj, repoId, repoName, repoOwner, page, counter);
 		}
 		throw error;
 	}

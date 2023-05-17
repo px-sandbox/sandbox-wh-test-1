@@ -41,10 +41,9 @@ async function getReposList(
 ): Promise<number> {
 	try {
 		logger.info('getReposList.invoked', { organizationName, page, counter });
-		let responseData;
 		const perPage = 100;
 
-		responseData = await octokit(
+		const responseData = await octokit(
 			`GET /orgs/${organizationName}/repos?per_page=${perPage}&page=${page}`
 		);
 

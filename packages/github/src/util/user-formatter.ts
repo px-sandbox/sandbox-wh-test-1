@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 export async function userFormator(
 	data: Github.ExternalType.Api.User,
 	oldId?: string
-): Promise<any> {
+): Promise<Github.Type.User> {
 	const obj = {
 		id: oldId || uuid(),
 		body: {

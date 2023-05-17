@@ -1,5 +1,3 @@
-import { Config } from 'sst/node/config';
-import NodeRSA from 'node-rsa';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { getOauthCode } from 'src/util/jwt-token';

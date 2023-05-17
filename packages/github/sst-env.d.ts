@@ -1,1 +1,1 @@
-/// <reference path="../../.sst/types/index.ts" />
+import * as sst_env from '../../.sst/types/index.ts';

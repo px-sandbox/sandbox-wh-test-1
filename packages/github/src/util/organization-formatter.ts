@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid';
 export async function organizationFormator(
 	data: Github.ExternalType.Api.Organization,
 	oldId?: string
-): Promise<any> {
+): Promise<Github.Type.Organization> {
 	const orgObj = {
 		id: oldId || uuid(),
 		body: {
