@@ -1,13 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { transpileSchema } from '@middy/validator/transpile';
-import { getMetadata } from './validations';
-import { logger, APIHandler, HttpStatusCode, responseParser, createAllIndices } from 'core';
-import { ghRequest } from '../lib/request-defaults';
-import { getUsers } from 'src/lib/get-user-list';
-import { getRepos } from 'src/lib/get-repos-list';
+import { HttpStatusCode, createAllIndices, logger, responseParser } from 'core';
 import { fetchAndSaveOrganizationDetails } from 'src/lib/fetch-and-save-org-details';
+import { getRepos } from 'src/lib/get-repos-list';
+import { getUsers } from 'src/lib/get-user-list';
+import { ghRequest } from '../lib/request-defaults';
 
-const GetMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const token: string = event.headers.authorization || '';
   const organizationName: string = event?.queryStringParameters?.orgName || '';
 
@@ -33,10 +31,10 @@ const GetMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     .send();
 };
 
-const handler = GetMetadata;
+const handler = getMetadata;
 // Todo: Middy validation timeout
-//   APIHandler(GetMetadata, {
-//   eventSchema: transpileSchema(getMetadata),
+//   APIHandler(getMetadata, {
+//   eventSchema: transpileSchema(getMetadataSchema),
 // });
 
-export { GetMetadata, handler };
+export { getMetadata, handler };
