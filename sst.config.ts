@@ -1,14 +1,19 @@
 import { SSTConfig } from 'sst';
 import { gh } from './stacks/github';
+import { devops } from './stacks/devops';
 
 export default {
-  config(_input) {
+  config(): { name: string; region: string } {
     return {
       name: 'pulse-dx',
-      region: _input.region || 'eu-west-1',
+      region: 'eu-west-1',
     };
   },
   stacks(app) {
     app.stack(gh);
+    app.stack(devops);
+    if (app.stage !== 'live') {
+      app.setDefaultRemovalPolicy('destroy');
+    }
   },
 } satisfies SSTConfig;

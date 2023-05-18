@@ -1,8 +1,8 @@
 import { RequestInterface } from '@octokit/types';
 import { logger, sqsDataSender } from 'core';
 import { Github } from 'abstraction';
-import { ghRequest } from './request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { ghRequest } from './request-defaults';
 
 export async function getBranches(
 	octokit: RequestInterface<
@@ -65,9 +65,9 @@ async function getBranchList(
 		if (branchesPerPage.length < perPage) {
 			logger.info('getBranchList.successfull');
 			return counter;
-		} else {
+		} 
 			return getBranchList(octokit, repoId, repoName, repoOwner, ++page, counter);
-		}
+		
 	} catch (error: any) {
 		logger.error('getBranchList.error', { repoName, repoOwner, page, error });
 

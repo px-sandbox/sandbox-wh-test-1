@@ -46,7 +46,7 @@ export const WebhookData = async function getWebhookData(
 			statusCode: 403,
 			body: 'Permission Denied',
 		};
-	} else {
+	} 
 		const data = JSON.parse(event.body || '{}');
 		console.log('check sign1', sigHex.match(event.headers['x-hub-signature-256']));
 
@@ -103,7 +103,7 @@ export const WebhookData = async function getWebhookData(
 			}
 			const {
 				membership: {
-					user: { id: id, login: login, avatar_url: avatar_url },
+					user: { id, login, avatar_url },
 				},
 			} = data as Github.ExternalType.Webhook.User;
 
@@ -132,5 +132,5 @@ export const WebhookData = async function getWebhookData(
 		default:
 			break;
 		}
-	}
+	
 };

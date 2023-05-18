@@ -1,8 +1,8 @@
 import { Other } from 'abstraction';
 import { Config } from 'sst/node/config';
-import { getOauthCode } from './jwt-token';
 import { ghRequest } from 'src/lib/request-defaults';
 import { logger } from 'core';
+import { getOauthCode } from './jwt-token';
 
 export async function getInstallationAccessToken(): Promise<Other.Type.LambdaResponse> {
 	const {
