@@ -1,6 +1,6 @@
 import { StackContext, Api, Table, Queue, Config } from 'sst/constructs';
 
-export function PulseDXIntegration({ stack }: StackContext) {
+export function gh({ stack }: StackContext) {
   // Set GITHUB config params
   const GITHUB_APP_ID = new Config.Secret(stack, 'GITHUB_APP_ID');
   const GITHUB_APP_PRIVATE_KEY_PEM = new Config.Secret(stack, 'GITHUB_APP_PRIVATE_KEY_PEM');

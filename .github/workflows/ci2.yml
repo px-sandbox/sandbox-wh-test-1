@@ -1,0 +1,43 @@
+name: License Scanner
+
+on: [push]
+
+jobs:
+  license_scanner:
+    runs-on: ubuntu-latest
+    env:
+      GEM_HOME: ${{ github.workspace }}/vendor/bundle
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          node -v
+          npm -v
+          echo "source 'https://rubygems.org'" > Gemfile
+          echo "gem 'license_finder'" >> Gemfile
+          sudo gem install bundler
+          bundle config set path vendor/bundle
+          bundle install
+          npm ci
+      - name: Scan licenses
+        run: |
+          sudo gem install bundler
+          bundle exec license_finder restricted_licenses add "GPL 2.0" "GPL 3.0" "unknown" "AGPL 3.0" "LGPL 3.0" "LGPL 2.1"
+          bundle exec license_finder permitted_licenses add "MIT" "APACHE 2.0" "BSD 2.0" "SIMPLIFIED BSD" "ISC"
+          DECISION_CSV=doc/dependency_decisions.yml
+          bundle exec license_finder report --format=csv --decisions-file="$DECISION_CSV" --columns name licenses approved --quiet > licenses.csv
+          CSV_FILE="licenses.csv"
+          if grep -q "Not approved" "$CSV_FILE"; then
+            bundle exec license_finder action_items --columns name licenses version approved
+            echo "There are licenses that are not approved!"
+            exit 1
+          else
+            echo "All licenses are approved!"
+          fi
+
+      - name: Upload results
+        uses: actions/upload-artifact@v2
+        with:
+          name: licenses
+          path: licenses.csv
+        if: always()

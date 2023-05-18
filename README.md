@@ -1,11 +1,6 @@
-# sst-api-boilerplate
+# Pulse data integration
 
-Boilerplate for SST serverless APIs
-
-## To setup SST project in local
-
-- Install node 16._ and npm 8._
-- Setup aws credentials by exporting the credentials on terminal.
+Data integration layer for pulse
 
 **Check by command if token is expired**
 
@@ -64,15 +59,15 @@ npx sst secrets set GITHUB_APP_ID <APP_ID>
 5. To delete the table run following command on terminal
    `aws dynamodb delete-table --table-name <TABLE_NAME> --endpoint-url http://localhost:8000`
 
-## Steps to deploy your stack
+## Steps to deploy your stack (Can be change)
 
 1. Run `pnpm i` to install all dependencies. It will install all the dependencies
-2. Now Run `npm start dev` command on terminal. It will deploy your stack changes
+2. Now Run `npm start deploy` command on terminal. It will deploy your stack changes
 3. Now after successfull run visit sst console url.
 
 ## How to create an api
 
-- We need to define endpoint inside the object of the routes key in PxDataIntegrationStack.ts file.
+- We need to define endpoint inside the object of the routes key in the specific stack file.
   For eg `routes: {"PUT /notes/{id}": ""}`
 - In Api endpoint key, handler’s path needs to be define.
   For eg `routes: {"PUT /notes/{id}": "src/update.handler"}`
