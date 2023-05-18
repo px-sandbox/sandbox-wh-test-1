@@ -4,7 +4,7 @@ import { gh } from './stacks/github';
 export default {
   config(_input) {
     return {
-      name: 'pulse-gh',
+      name: 'pulse-dx',
       region: _input.region || 'eu-west-1',
     };
   },
