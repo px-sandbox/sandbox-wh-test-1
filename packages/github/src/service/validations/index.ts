@@ -21,7 +21,7 @@ export const getMetadataSchema = {
 export const getGitUserSchema = {
   type: 'object',
   properties: {
-    queryStringParameters: {
+    pathParameters: {
       type: 'object',
       properties: {
         githubUserId: { type: 'string' },

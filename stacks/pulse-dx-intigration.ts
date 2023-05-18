@@ -59,7 +59,7 @@ export function PulseDXIntegration({ stack }: StackContext) {
       // POST Webhook handler
       'POST /github/webhook': 'packages/github/src/service/webhook.webhookData',
       // GET GithubUser data
-      'GET /github/user/{githubUserId}': 'packages/github/src/github.githubUser',
+      'GET /github/user/{githubUserId}': 'packages/github/src/service/git-users.handler',
     },
   });
 
