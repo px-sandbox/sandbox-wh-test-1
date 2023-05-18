@@ -36,4 +36,19 @@ export class ElasticClient {
       console.error(error);
     }
   }
+  public static async search(
+    indexName: Github.Enums.IndexName,
+    searchKey: string,
+    searchValue: string
+  ): Promise<any> {
+    await client.indices.refresh({ index: indexName });
+
+    const result = await client.search({
+      index: indexName,
+      query: {
+        match: { [`body.${searchKey}`]: searchValue },
+      },
+    });
+    return result;
+  }
 }
