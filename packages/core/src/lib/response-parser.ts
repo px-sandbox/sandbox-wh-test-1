@@ -1,6 +1,6 @@
+import { APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode } from '../constant/httpStatusCode';
 import { ResponseCodes } from '../constant/responseCode';
-import { APIGatewayProxyResult } from 'aws-lambda';
 
 interface Header {
   [name: string]: string | number | boolean;

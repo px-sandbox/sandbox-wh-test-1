@@ -1,9 +1,9 @@
 import { logger, sqsDataSender } from 'core';
-import { ghRequest } from './request-defaults';
 import { RequestInterface } from '@octokit/types';
 import { Github } from 'abstraction';
-import { getBranches } from './get-branch-list';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getBranches } from './get-branch-list';
+import { ghRequest } from './request-defaults';
 
 export async function getRepos(
 	octokit: RequestInterface<
@@ -61,9 +61,9 @@ async function getReposList(
 		if (reposPerPage.length < perPage) {
 			logger.info('getReposList.successfull');
 			return counter;
-		} else {
+		} 
 			return getReposList(octokit, organizationName, ++page, counter);
-		}
+		
 	} catch (error: any) {
 		logger.error('getReposList.error', {
 			organizationName,

@@ -24,17 +24,17 @@ export async function updateUserFormator(
   data: Github.ExternalType.Api.User,
   oldId: string
 ): Promise<Object> {
-  let dataArray = {} as any;
+  const dataArray = {} as any;
   if ('action' in data) {
-    dataArray['action'] = data.action;
+    dataArray.action = data.action;
   }
   if ('deleted_at' in data) {
-    dataArray['deletedAt'] = data.deleted_at;
+    dataArray.deletedAt = data.deleted_at;
   }
-  //In case of removed user added again to the organization
+  // In case of removed user added again to the organization
   if ('created_at' in data) {
-    dataArray['createdAt'] = data.created_at;
-    dataArray['deletedAt'] = null;
+    dataArray.createdAt = data.created_at;
+    dataArray.deletedAt = null;
   }
   const obj = {
     id: oldId,

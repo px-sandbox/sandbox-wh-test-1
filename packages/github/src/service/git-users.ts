@@ -2,8 +2,8 @@ import { Github } from 'abstraction';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { APIHandler, ElasticClient, HttpStatusCode, logger, responseParser } from 'core';
 import { searchedDataFormator } from 'src/util/response-formatter';
-import { getGitUserSchema } from './validations';
 import { transpileSchema } from '@middy/validator/transpile';
+import { getGitUserSchema } from './validations';
 
 const githubUser = async function getUserData(event: APIGatewayProxyEvent): Promise<any> {
   const githubUserId: string = event?.pathParameters?.githubUserId || '';

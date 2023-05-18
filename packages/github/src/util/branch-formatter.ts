@@ -27,12 +27,12 @@ export async function updateBranchFormator(
   data: Github.ExternalType.Api.Branch,
   oldId: string
 ): Promise<Object> {
-  let dataArray = {} as any;
+  const dataArray = {} as any;
   if ('action' in data) {
-    dataArray['action'] = data.action;
+    dataArray.action = data.action;
   }
   if ('deleted_at' in data) {
-    dataArray['deletedAt'] = data.deleted_at;
+    dataArray.deletedAt = data.deleted_at;
   }
   const obj = {
     id: oldId,

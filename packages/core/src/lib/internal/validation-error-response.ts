@@ -2,7 +2,7 @@ import middy from '@middy/core';
 
 export const ValidationErrorResponse = {
 	onError: (request: middy.Request<any, any, Error, any>) => {
-		const response = request.response;
+		const {response} = request;
 		if (response) {
 			const error = <any>request.error;
 			if (response.statusCode != 400) return;

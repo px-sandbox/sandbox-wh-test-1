@@ -1,5 +1,6 @@
 import { Github } from 'abstraction';
 import client from './client';
+import { logger } from '../logger';
 
 export class ElasticClient {
   public static async saveOrUpdateDocument(
@@ -18,7 +19,7 @@ export class ElasticClient {
       });
       // });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
     }
   }
   public static async partialUpdateDocument(
@@ -33,7 +34,7 @@ export class ElasticClient {
         doc: body,
       });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
     }
   }
   public static async search(

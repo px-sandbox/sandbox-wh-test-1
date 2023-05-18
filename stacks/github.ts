@@ -7,7 +7,7 @@ export function gh({ stack }: StackContext) {
   const GITHUB_BASE_URL = new Config.Secret(stack, 'GITHUB_BASE_URL');
   const GITHUB_SG_INSTALLATION_ID = new Config.Secret(stack, 'GITHUB_SG_INSTALLATION_ID');
   const GITHUB_WEBHOOK_SECRET = new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET');
-  //const GITHUB_SG_ACCESS_TOKEN = new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN');
+  // const GITHUB_SG_ACCESS_TOKEN = new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN');
 
   // Create Table
   const table = new Table(stack, 'GithubMapping', {
@@ -28,7 +28,7 @@ export function gh({ stack }: StackContext) {
 
   queue.bind([table]);
 
-  const api = new Api(stack, 'api', {
+  const ghAPI = new Api(stack, 'api', {
     defaults: {
       function: {
         bind: [
@@ -64,6 +64,10 @@ export function gh({ stack }: StackContext) {
   });
 
   stack.addOutputs({
-    ApiEndpoint: api.url,
+    ApiEndpoint: ghAPI.url,
   });
+
+  return {
+    ghAPI,
+  };
 }

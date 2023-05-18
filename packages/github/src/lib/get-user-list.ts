@@ -1,8 +1,8 @@
 import { logger, sqsDataSender } from 'core';
-import { ghRequest } from './request-defaults';
 import { Github } from 'abstraction';
 import { RequestInterface } from '@octokit/types';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { ghRequest } from './request-defaults';
 
 export async function getUsers(
 	octokit: RequestInterface<
