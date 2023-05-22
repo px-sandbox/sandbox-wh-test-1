@@ -15,7 +15,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
     return this.client;
   }
 
-  public async saveOrUpdate(index: string, document: ElasticSearchDocument): Promise<void> {
+  public async putDocument(index: string, document: ElasticSearchDocument): Promise<void> {
     const { id, ...body } = document;
     await this.client.index({
       index,
