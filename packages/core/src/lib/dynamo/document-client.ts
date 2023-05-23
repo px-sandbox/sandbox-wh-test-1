@@ -1,4 +1,9 @@
-import { DynamoDBDocumentClient, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  QueryCommand,
+  QueryCommandInput,
+} from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
 import { region } from '../../constant/config';
 import { ddbClient } from './client';
@@ -35,13 +40,7 @@ const updateTable = async (orgObj: any): Promise<void> => {
   await ddbDocClient(region as string).send(new PutCommand(putParams));
 };
 
-const find = async (githubId: string): Promise<any | undefined> => {
-  const getParams = {
-    TableName: Table.GithubMapping.tableName,
-    IndexName: 'githubIdIndex',
-    KeyConditionExpression: 'githubId = :githubId',
-    ExpressionAttributeValues: { ':githubId': githubId },
-  };
+const find = async (getParams: QueryCommandInput): Promise<any | undefined> => {
   const ddbRes = await ddbDocClient(region as string).send(new QueryCommand(getParams));
   return ddbRes.Items ? ddbRes.Items[0] : undefined;
 };
