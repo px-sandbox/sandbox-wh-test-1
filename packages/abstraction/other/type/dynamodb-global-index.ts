@@ -1,3 +1,3 @@
 export const ddbGlobalIndex = {
-	GitHubIdIndex: 'githubIdIndex',
+  GitHubIdIndex: 'githubIdIndex',
 };

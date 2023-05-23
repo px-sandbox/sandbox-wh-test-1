@@ -31,7 +31,7 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
 
   private dynamoDbLocalURL = 'http://localhost:8000';
 
-  constructor(region: string, stage: string) {
+  constructor(region: string | undefined, stage: string) {
     const DbdClient = new DynamoDBClient({
       region,
       endpoint: stage === 'local' ? this.dynamoDbLocalURL : undefined,

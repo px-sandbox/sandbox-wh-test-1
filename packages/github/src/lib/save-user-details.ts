@@ -1,18 +1,17 @@
+import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { Github } from 'abstraction';
-import { ElasticClient, find, logger, updateTable } from 'core';
+import { ElasticClient, logger, updateTable } from 'core';
+import { ParamsMapping } from 'model/params-mapping';
+import { region } from 'src/constant/config';
 import { userFormator } from 'src/util/user-formatter';
-import { Table } from 'sst/node/table';
-import { QueryCommandInput } from '@aws-sdk/lib-dynamodb';
+import { Config } from 'sst/node/config';
+
 export async function saveUserDetails(data: Github.ExternalType.Api.User): Promise<void> {
+  const userId = `gh_user_${data?.id}`;
   try {
-    const githubId = `gh_user_${data?.id}`;
-    const getParams: QueryCommandInput = {
-      TableName: Table.GithubMapping.tableName,
-      IndexName: 'githubIdIndex',
-      KeyConditionExpression: 'githubId = :githubId',
-      ExpressionAttributeValues: { ':githubId': githubId },
-    };
-    const { Items } = await find(getParams);
+    const { Items } = await new DynamoDbDocClient(region, Config.STAGE).find(
+      new ParamsMapping().prepareGetParams(userId)
+    );
     const result = await userFormator(data, Items?.parentId);
     if (!Items) {
       logger.info('---NEW_RECORD_FOUND---');

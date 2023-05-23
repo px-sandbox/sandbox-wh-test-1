@@ -1,12 +1,19 @@
+import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { Github } from 'abstraction';
-import { ElasticClient, find, logger, updateTable } from 'core';
-import { branchFormator, updateBranchFormator } from 'src/util/branch-formatter';
+import { ElasticClient, logger, updateTable } from 'core';
+import { ParamsMapping } from 'model/params-mapping';
+import { region } from 'src/constant/config';
+import { branchFormator } from 'src/util/branch-formatter';
+import { Config } from 'sst/node/config';
 
 export async function saveBranchDetails(data: Github.ExternalType.Api.Branch): Promise<void> {
+  const branchId = `gh_branch_${data.id}`;
   try {
-    const record = await find(`gh_branch_${data.id}`);
-    const result = await branchFormator(data, record?.parentId);
-    if (!record) {
+    const { Items } = await new DynamoDbDocClient(region, Config.STAGE).find(
+      new ParamsMapping().prepareGetParams(branchId)
+    );
+    const result = await branchFormator(data, Items?.parentId);
+    if (!Items) {
       logger.info('---NEW_RECORD_FOUND---');
       await updateTable(result);
       await ElasticClient.saveOrUpdateDocument(Github.Enums.IndexName.GitBranch, result);
