@@ -3,85 +3,83 @@ import { Github } from 'abstraction';
 import { RequestInterface } from '@octokit/types';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { ghRequest } from './request-defaults';
+import { SQSClient } from '@pulse/event-handler';
+import { Queue } from 'sst/node/queue';
 
 export async function getUsers(
-	octokit: RequestInterface<
+  octokit: RequestInterface<
     object & {
       headers: {
         authorization: string | undefined;
       };
     }
   >,
-	organizationName: string
+  organizationName: string
 ): Promise<number> {
-	let userCount: number;
-	try {
-		userCount = await getUserList(octokit, organizationName);
-		return userCount;
-	} catch (error: unknown) {
-		logger.error({
-			error,
-		});
-		throw error;
-	}
+  let userCount: number;
+  try {
+    userCount = await getUserList(octokit, organizationName);
+    return userCount;
+  } catch (error: unknown) {
+    logger.error({
+      error,
+    });
+    throw error;
+  }
 }
 
 async function getUserList(
-	octokit: RequestInterface<
+  octokit: RequestInterface<
     object & {
       headers: {
         authorization: string | undefined;
       };
     }
   >,
-	organizationName: string,
-	page = 1,
-	counter = 0
+  organizationName: string,
+  page = 1,
+  counter = 0
 ): Promise<number> {
-	try {
-		logger.info('getUserList.invoked', { organizationName, page, counter });
-		const perPage = 100;
+  try {
+    logger.info('getUserList.invoked', { organizationName, page, counter });
+    const perPage = 100;
 
-		const responseData = await octokit(
-			`GET /orgs/${organizationName}/members?per_page=${perPage}&page=${page}`
-		);
+    const responseData = await octokit(
+      `GET /orgs/${organizationName}/members?per_page=${perPage}&page=${page}`
+    );
+    const membersPerPage: Github.ExternalType.Api.User[] = responseData.data;
+    logger.info('Response', membersPerPage);
+    counter += membersPerPage.length;
+    membersPerPage.forEach(async (member) => {
+      await new SQSClient().sendMessage(member, Queue.gh_users.queueUrl);
+    });
 
-		const membersPerPage: Github.ExternalType.Api.User[] = responseData.data;
-		logger.info('Response', membersPerPage);
-		counter += membersPerPage.length;
-		membersPerPage.forEach(async (member) => {
-			await sqsDataSender({
-				data: member,
-				type: Github.Enums.IndexName.GitUsers,
-			});
-		});
+    if (membersPerPage.length < perPage) {
+      logger.info('getUserList.successful');
+      return counter;
+    }
+    return getUserList(octokit, organizationName, ++page, counter);
+  } catch (error: any) {
+    logger.error('getUserList.error', {
+      organizationName,
+      page,
+      counter,
+      error,
+    });
 
-		if (membersPerPage.length < perPage) {
-			logger.info('getUserList.successful');
-			return counter;
-		}
-		return getUserList(octokit, organizationName, ++page, counter);
-	} catch (error: any) {
-		logger.error('getUserList.error', {
-			organizationName,
-			page,
-			counter,
-			error,
-		});
+    if (error.status === 401) {
+      const {
+        body: { token },
+      } = await getInstallationAccessToken();
 
-		if (error.status === 401) {
-			const {
-				body: { token },
-			} = await getInstallationAccessToken();
+      const octokitObj = ghRequest.request.defaults({
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
 
-			const octokitObj = ghRequest.request.defaults({
-				headers: {
-					authorization: `Bearer ${token}`,
-				},
-			});
-
-			return getUserList(octokitObj, organizationName, page, counter);
-		}
-		throw error;
-	}
+      return getUserList(octokitObj, organizationName, page, counter);
+    }
+    throw error;
+  }
 }
