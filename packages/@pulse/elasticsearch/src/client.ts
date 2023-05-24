@@ -3,11 +3,15 @@ import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '
 
 export class ElasticSearchClient implements IElasticSearchClient {
   private client: Client;
+  private elasticNode = 'http://localhost:9200';
 
-  constructor(options: ConnectionOptions) {
+  constructor(options?: ConnectionOptions) {
     this.client = new Client({
-      node: options.host,
-      auth: { username: options.username, password: options.password },
+      node: this.elasticNode,
+      auth: {
+        username: options?.username ? options.username : '',
+        password: options?.password ? options.password : '',
+      },
     });
   }
 
@@ -22,5 +26,16 @@ export class ElasticSearchClient implements IElasticSearchClient {
       id,
       body,
     });
+  }
+
+  public async search(indexName: string, searchKey: string, searchValue: string): Promise<any> {
+    await this.client.indices.refresh({ index: indexName });
+    const result = await this.client.search({
+      index: indexName,
+      query: {
+        match: { [`body.${searchKey}`]: searchValue },
+      },
+    });
+    return result;
   }
 }

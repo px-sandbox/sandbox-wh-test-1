@@ -1,5 +1,5 @@
 export interface User {
-  id: number;
+  id: string;
   body: {
     id: string;
     githubUserId: number;

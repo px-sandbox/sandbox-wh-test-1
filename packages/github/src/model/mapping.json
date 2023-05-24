@@ -1,5 +1,5 @@
 {
-  "TableName": "charchitkandelwal-pulse-dx-integration-GithubMapping",
+  "TableName": "<STAGE_APPNAME_TABLE_NAME>",
   "KeySchema": [
     {
       "AttributeName": "parentId",
@@ -18,7 +18,7 @@
   ],
   "GlobalSecondaryIndexes": [
     {
-      "IndexName": "githubIdIndex",
+      "IndexName": "githubIndex",
       "KeySchema": [
         {
           "AttributeName": "githubId",

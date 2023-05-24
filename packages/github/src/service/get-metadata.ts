@@ -1,9 +1,10 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, createAllIndices, logger, responseParser } from 'core';
+import { HttpStatusCode, logger, responseParser } from 'core';
 import { fetchAndSaveOrganizationDetails } from 'src/lib/fetch-and-save-org-details';
 import { getRepos } from 'src/lib/get-repos-list';
 import { getUsers } from 'src/lib/get-user-list';
 import { ghRequest } from '../lib/request-defaults';
+import { createAllIndices } from 'src/indices/indices';
 
 const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const token: string = event.headers.authorization || '';
@@ -14,8 +15,9 @@ const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       authorization: token,
     },
   });
+
   logger.info('getAllMetadata.invoked', { organizationName });
-  createAllIndices();
+  await createAllIndices();
   logger.info('AllIndices.created');
   const organization = await fetchAndSaveOrganizationDetails(octokit, organizationName);
   const [users, repo] = await Promise.all([

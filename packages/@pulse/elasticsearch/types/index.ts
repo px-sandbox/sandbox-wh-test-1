@@ -6,9 +6,9 @@ export interface IElasticSearchClient {
 }
 
 export type ConnectionOptions = {
-  host: string;
-  username: string;
-  password: string;
+  host?: string;
+  username?: string;
+  password?: string;
 };
 
 export type ElasticSearchDocument = {

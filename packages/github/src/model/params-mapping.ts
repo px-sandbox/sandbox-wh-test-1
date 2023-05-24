@@ -1,4 +1,4 @@
-import { QueryCommandInput } from '@aws-sdk/lib-dynamodb';
+import { PutCommandInput, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
 import { Other } from 'abstraction';
 import { Table } from 'sst/node/table';
 
@@ -14,6 +14,16 @@ export class ParamsMapping {
       IndexName: this.indexName,
       KeyConditionExpression: 'githubId = :githubId',
       ExpressionAttributeValues: { ':githubId': id },
+    };
+  }
+
+  public preparePutParams(parentId: string, githubId: string): PutCommandInput {
+    return {
+      TableName: Table.GithubMapping.tableName,
+      Item: {
+        parentId: parentId,
+        githubId: githubId,
+      },
     };
   }
 }
