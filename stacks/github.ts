@@ -8,7 +8,6 @@ export function gh({ stack }: StackContext) {
   const GITHUB_SG_INSTALLATION_ID = new Config.Secret(stack, 'GITHUB_SG_INSTALLATION_ID');
   const GITHUB_WEBHOOK_SECRET = new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET');
   const GITHUB_SG_ACCESS_TOKEN = new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN');
-  const STAGES = new Config.Secret(stack, 'STAGES');
 
   // Create Table
   const table = new Table(stack, 'GithubMapping', {
@@ -36,9 +35,9 @@ export function gh({ stack }: StackContext) {
   });
 
   // bind tables and config to queue
-  userQueue.bind([table, STAGES]);
-  repoQueue.bind([table, STAGES]);
-  branchQueue.bind([table, STAGES]);
+  userQueue.bind([table]);
+  repoQueue.bind([table]);
+  branchQueue.bind([table]);
 
   const ghAPI = new Api(stack, 'api', {
     defaults: {
@@ -54,7 +53,6 @@ export function gh({ stack }: StackContext) {
           GITHUB_WEBHOOK_SECRET,
           table,
           GITHUB_SG_ACCESS_TOKEN,
-          STAGES,
         ],
       },
     },
