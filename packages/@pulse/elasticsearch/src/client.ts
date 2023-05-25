@@ -9,8 +9,8 @@ export class ElasticSearchClient implements IElasticSearchClient {
     this.client = new Client({
       node: this.elasticNode,
       auth: {
-        username: options?.username ? options.username : '',
-        password: options?.password ? options.password : '',
+        username: options?.username ?? '',
+        password: options?.password ?? '',
       },
     });
   }
