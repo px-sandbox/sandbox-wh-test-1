@@ -75,8 +75,6 @@ export function gh({ stack }: StackContext) {
         'packages/github/src/service/installation-access-token.handler',
       // GET github Oauth token
       'GET /github/auth-token': 'packages/github/src/service/jwt-token.getOauthToken',
-      // POST AWS SQS
-      'POST /aws/sqs/trigger': 'packages/core/src/lib/aws/sqs-data-sender.handler',
       // GET Github app installations
       'GET /github/app/installations':
         'packages/github/src/service/github-app-installations.handler',

@@ -1,14 +1,15 @@
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent } from 'aws-lambda';
-import { APIHandler, ElasticClient, HttpStatusCode, logger, responseParser } from 'core';
+import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import { searchedDataFormator } from 'src/util/response-formatter';
 import { transpileSchema } from '@middy/validator/transpile';
 import { getGitUserSchema } from './validations';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 
 const githubUser = async function getUserData(event: APIGatewayProxyEvent): Promise<any> {
   const githubUserId: string = event?.pathParameters?.githubUserId || '';
 
-  const data = await ElasticClient.search(
+  const data = new ElasticSearchClient().search(
     Github.Enums.IndexName.GitUsers,
     Github.Enums.SearchKey.GitUserId,
     githubUserId

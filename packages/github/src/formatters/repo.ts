@@ -1,8 +1,8 @@
 import { Github } from 'abstraction';
-import { DataFormatter } from './data-formatter';
 import { v4 as uuid } from 'uuid';
 import { GIT_ORGANIZATION_ID, mappingPrefixes } from 'src/constant/config';
 import { Queue } from 'sst/node/queue';
+import { DataFormatter } from './data-formatter';
 
 export class Repo extends DataFormatter<
   Github.ExternalType.Api.Repository,

@@ -1,8 +1,8 @@
 import { Github } from 'abstraction';
-import { DataFormatter } from './data-formatter';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from 'src/constant/config';
 import { Queue } from 'sst/node/queue';
+import { DataFormatter } from './data-formatter';
 
 export class Branch extends DataFormatter<Github.ExternalType.Api.Branch, Github.Type.Branch> {
   constructor(data: Github.ExternalType.Api.Branch) {
