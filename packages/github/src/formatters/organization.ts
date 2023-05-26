@@ -2,6 +2,7 @@ import { Github } from 'abstraction';
 import { DataFormatter } from './data-formatter';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from 'src/constant/config';
+import { Queue } from 'sst/node/queue';
 
 export class Organization extends DataFormatter<
   Github.ExternalType.Api.Organization,
@@ -10,7 +11,10 @@ export class Organization extends DataFormatter<
   constructor(data: Github.ExternalType.Api.Organization) {
     super(data);
   }
-  formatter(parentId: string): Github.Type.Organization {
+  async formatter(): Promise<Github.Type.Organization> {
+    const parentId: string = await this.getParentId(
+      `${mappingPrefixes.organization}_${this.ghApiData.id}`
+    );
     const orgObj = {
       id: parentId || uuid(),
       body: {

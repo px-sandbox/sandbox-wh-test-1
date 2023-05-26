@@ -2,12 +2,14 @@ import { Github } from 'abstraction';
 import { DataFormatter } from './data-formatter';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from 'src/constant/config';
+import { Queue } from 'sst/node/queue';
 
 export class Branch extends DataFormatter<Github.ExternalType.Api.Branch, Github.Type.Branch> {
   constructor(data: Github.ExternalType.Api.Branch) {
     super(data);
   }
-  formatter(parentId: string): Github.Type.Branch {
+  async formatter(): Promise<Github.Type.Branch> {
+    const parentId: string = await this.getParentId(`${mappingPrefixes.user}_${this.ghApiData.id}`);
     const orgObj = {
       id: parentId || uuid(),
       body: {
@@ -22,6 +24,7 @@ export class Branch extends DataFormatter<Github.ExternalType.Api.Branch, Github
         deletedAt: false,
       },
     };
+    await this.sendDataToQueue(orgObj, Queue.gh_branch_index.queueUrl);
     return orgObj;
   }
 }

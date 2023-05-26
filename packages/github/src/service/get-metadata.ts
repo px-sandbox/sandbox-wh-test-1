@@ -3,8 +3,8 @@ import { HttpStatusCode, logger, responseParser } from 'core';
 import { fetchAndSaveOrganizationDetails } from 'src/lib/fetch-and-save-org-details';
 import { getRepos } from 'src/lib/get-repos-list';
 import { getUsers } from 'src/lib/get-user-list';
-import { ghRequest } from '../lib/request-defaults';
 import { createAllIndices } from 'src/indices/indices';
+import { ghRequest } from '../lib/request-defaults';
 
 const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const token: string = event.headers.authorization || '';

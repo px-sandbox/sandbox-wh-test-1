@@ -22,30 +22,41 @@ export function gh({ stack }: StackContext) {
   });
 
   // create queues
-  const userQueue = new Queue(stack, 'gh_users', {
-    consumer: 'packages/github/src/sqs/handlers/user.handler',
+  const userIndexDataQueue = new Queue(stack, 'gh_users_index', {
+    consumer: 'packages/github/src/sqs/handlers/indexer/users.handler',
+  });
+  const userFormatDataQueue = new Queue(stack, 'gh_users_format', {
+    consumer: 'packages/github/src/sqs/handlers/formatter/users.handler',
   });
 
-  const repoQueue = new Queue(stack, 'gh_repo', {
-    consumer: 'packages/github/src/sqs/handlers/repo.handler',
+  const repoIndexDataQueue = new Queue(stack, 'gh_repo_index', {
+    consumer: 'packages/github/src/sqs/handlers/indexer/repo.handler',
   });
-
-  const branchQueue = new Queue(stack, 'gh_branch', {
-    consumer: 'packages/github/src/sqs/handlers/branch.handler',
+  const repoFormatDataQueue = new Queue(stack, 'gh_repo_format', {
+    consumer: 'packages/github/src/sqs/handlers/formatter/repo.handler',
+  });
+  const branchFormatDataQueue = new Queue(stack, 'gh_branch_format', {
+    consumer: 'packages/github/src/sqs/handlers/formatter/branch.handler',
+  });
+  const branchIndexDataQueue = new Queue(stack, 'gh_branch_index', {
+    consumer: 'packages/github/src/sqs/handlers/indexer/branch.handler',
   });
 
   // bind tables and config to queue
-  userQueue.bind([table]);
-  repoQueue.bind([table]);
-  branchQueue.bind([table]);
+  userFormatDataQueue.bind([table, userIndexDataQueue]);
+  repoFormatDataQueue.bind([table, repoIndexDataQueue]);
+  branchFormatDataQueue.bind([table, branchIndexDataQueue]);
+  userIndexDataQueue.bind([table]);
+  repoIndexDataQueue.bind([table]);
+  branchIndexDataQueue.bind([table]);
 
   const ghAPI = new Api(stack, 'api', {
     defaults: {
       function: {
         bind: [
-          userQueue,
-          repoQueue,
-          branchQueue,
+          userFormatDataQueue,
+          repoFormatDataQueue,
+          branchFormatDataQueue,
           GITHUB_BASE_URL,
           GITHUB_APP_ID,
           GITHUB_APP_PRIVATE_KEY_PEM,

@@ -1,13 +1,12 @@
 import { RequestInterface } from '@octokit/types';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { Github } from 'abstraction';
-import { ElasticClient, logger, updateTable } from 'core';
-import { ParamsMapping } from 'src/model/params-mapping';
-import { mappingPrefixes, region } from 'src/constant/config';
-import { Config } from 'sst/node/config';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { organizationFormator } from '../util/organization-formatter';
+import { Github } from 'abstraction';
+import { logger } from 'core';
+import { mappingPrefixes, region } from 'src/constant/config';
 import { Organization } from 'src/formatters/organization';
+import { ParamsMapping } from 'src/model/params-mapping';
+import { Config } from 'sst/node/config';
 
 export async function fetchAndSaveOrganizationDetails(
   octokit: RequestInterface<
@@ -29,7 +28,7 @@ export async function fetchAndSaveOrganizationDetails(
     if (responseData?.data) {
       const result = new Organization(responseData.data).validate();
       if (result) {
-        const formattedData = result.formatter(records?.parentId);
+        const formattedData = await result.formatter(records?.parentId);
         if (records === undefined) {
           logger.info('---NEW_RECORD_FOUND---');
           await new DynamoDbDocClient(region, Config.STAGE).put(

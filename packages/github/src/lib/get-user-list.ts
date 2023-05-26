@@ -1,10 +1,10 @@
-import { logger, sqsDataSender } from 'core';
-import { Github } from 'abstraction';
 import { RequestInterface } from '@octokit/types';
-import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
-import { ghRequest } from './request-defaults';
 import { SQSClient } from '@pulse/event-handler';
+import { Github } from 'abstraction';
+import { logger } from 'core';
+import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
+import { ghRequest } from './request-defaults';
 
 export async function getUsers(
   octokit: RequestInterface<
@@ -51,7 +51,7 @@ async function getUserList(
     logger.info('Response', membersPerPage);
     counter += membersPerPage.length;
     membersPerPage.forEach(async (member) => {
-      await new SQSClient().sendMessage(member, Queue.gh_users.queueUrl);
+      await new SQSClient().sendMessage(member, Queue.gh_users_format.queueUrl);
     });
 
     if (membersPerPage.length < perPage) {

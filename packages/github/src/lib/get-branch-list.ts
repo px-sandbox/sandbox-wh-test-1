@@ -2,8 +2,8 @@ import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
-import { ghRequest } from './request-defaults';
 import { Queue } from 'sst/node/queue';
+import { ghRequest } from './request-defaults';
 
 export async function getBranches(
   octokit: RequestInterface<
@@ -57,7 +57,7 @@ async function getBranchList(
     branchesPerPage.forEach(async (branch) => {
       branch.id = Buffer.from(`${repoId}_${branch.name}`, 'binary').toString('base64');
       branch.repo_id = repoId;
-      await new SQSClient().sendMessage(branch, Queue.gh_branch.queueUrl);
+      await new SQSClient().sendMessage(branch, Queue.gh_branch_format.queueUrl);
     });
 
     if (branchesPerPage.length < perPage) {

@@ -2,6 +2,7 @@ import { Github } from 'abstraction';
 import { DataFormatter } from './data-formatter';
 import { v4 as uuid } from 'uuid';
 import { GIT_ORGANIZATION_ID, mappingPrefixes } from 'src/constant/config';
+import { Queue } from 'sst/node/queue';
 
 export class Repo extends DataFormatter<
   Github.ExternalType.Api.Repository,
@@ -10,7 +11,8 @@ export class Repo extends DataFormatter<
   constructor(data: Github.ExternalType.Api.Repository) {
     super(data);
   }
-  formatter(parentId: string): Github.Type.RepoFormatter {
+  async formatter(): Promise<Github.Type.RepoFormatter> {
+    const parentId: string = await this.getParentId(`${mappingPrefixes.repo}_${this.ghApiData.id}`);
     const orgObj = {
       id: parentId || uuid(),
       body: {
@@ -29,6 +31,7 @@ export class Repo extends DataFormatter<
         deletedAt: false,
       },
     };
+    await this.sendDataToQueue(orgObj, Queue.gh_repo_index.queueUrl);
     return orgObj;
   }
 }

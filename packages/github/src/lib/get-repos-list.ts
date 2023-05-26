@@ -2,10 +2,10 @@ import { logger, sqsDataSender } from 'core';
 import { RequestInterface } from '@octokit/types';
 import { Github } from 'abstraction';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
-import { getBranches } from './get-branch-list';
-import { ghRequest } from './request-defaults';
 import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
+import { getBranches } from './get-branch-list';
+import { ghRequest } from './request-defaults';
 
 export async function getRepos(
   octokit: RequestInterface<
@@ -48,12 +48,11 @@ async function getReposList(
     const responseData = await octokit(
       `GET /orgs/${organizationName}/repos?per_page=${perPage}&page=${page}`
     );
-
     const reposPerPage = responseData.data as Array<any>;
     counter += reposPerPage.length;
     reposPerPage.forEach(async (repo) => {
       await Promise.all([
-        new SQSClient().sendMessage(repo, Queue.gh_repo.queueUrl),
+        new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl),
         getBranches(octokit, repo.id, repo.name, repo.owner.login),
       ]);
     });
