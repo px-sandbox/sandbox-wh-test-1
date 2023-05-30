@@ -2,7 +2,12 @@ import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import { region } from 'src/constant/config';
+import {
+  OPENSEARCH_NODE,
+  OPENSEARCH_PASSWORD,
+  OPENSEARCH_USERNAME,
+  region,
+} from 'src/constant/config';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
 
@@ -14,7 +19,11 @@ export async function saveBranchDetails(data: Github.Type.Branch): Promise<void>
         new ParamsMapping().preparePutParams(data.id, data.body.id)
       );
     }
-    await new ElasticSearchClient().putDocument(Github.Enums.IndexName.GitBranch, data);
+    await new ElasticSearchClient({
+      host: OPENSEARCH_NODE,
+      username: OPENSEARCH_USERNAME ?? '',
+      password: OPENSEARCH_PASSWORD ?? '',
+    }).putDocument(Github.Enums.IndexName.GitBranch, data);
   } catch (error: unknown) {
     logger.error('getBranchDetails.error', {
       error,

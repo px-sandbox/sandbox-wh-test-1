@@ -1,16 +1,13 @@
 import { Client } from '@elastic/elasticsearch';
 import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
-
 export class ElasticSearchClient implements IElasticSearchClient {
   private client: Client;
-  private elasticNode = 'http://localhost:9200';
-
-  constructor(options?: ConnectionOptions) {
+  constructor(options: ConnectionOptions) {
     this.client = new Client({
-      node: this.elasticNode,
+      node: options.host,
       auth: {
-        username: options?.username ?? '',
-        password: options?.password ?? '',
+        username: options.username,
+        password: options.password,
       },
     });
   }

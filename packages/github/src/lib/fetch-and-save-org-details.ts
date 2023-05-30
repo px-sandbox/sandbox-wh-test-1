@@ -3,7 +3,13 @@ import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import { mappingPrefixes, region } from 'src/constant/config';
+import {
+  OPENSEARCH_NODE,
+  OPENSEARCH_PASSWORD,
+  OPENSEARCH_USERNAME,
+  mappingPrefixes,
+  region,
+} from 'src/constant/config';
 import { Organization } from 'src/formatters/organization';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
@@ -35,10 +41,11 @@ export async function fetchAndSaveOrganizationDetails(
             new ParamsMapping().preparePutParams(formattedData.id, formattedData.body.id)
           );
         }
-        await new ElasticSearchClient().putDocument(
-          Github.Enums.IndexName.GitOrganization,
-          formattedData
-        );
+        await new ElasticSearchClient({
+          host: OPENSEARCH_NODE,
+          username: OPENSEARCH_USERNAME ?? '',
+          password: OPENSEARCH_PASSWORD ?? '',
+        }).putDocument(Github.Enums.IndexName.GitOrganization, formattedData);
       }
     }
     logger.info('getOrganizationDetails.successfull', {
