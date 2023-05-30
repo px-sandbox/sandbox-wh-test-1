@@ -1,4 +1,4 @@
-import { StackContext, Api, Table, Config, Queue } from 'sst/constructs';
+import { StackContext, Api, Table, Config, Queue, Function } from 'sst/constructs';
 
 export function gh({ stack }: StackContext) {
   // Set GITHUB config params
@@ -8,6 +8,7 @@ export function gh({ stack }: StackContext) {
   const GITHUB_SG_INSTALLATION_ID = new Config.Secret(stack, 'GITHUB_SG_INSTALLATION_ID');
   const GITHUB_WEBHOOK_SECRET = new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET');
   const GITHUB_SG_ACCESS_TOKEN = new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN');
+  const AUTH_PUBLIC_KEY = new Config.Secret(stack, 'AUTH_PUBLIC_KEY');
 
   // Create Table
   const table = new Table(stack, 'GithubMapping', {
@@ -46,12 +47,24 @@ export function gh({ stack }: StackContext) {
   userFormatDataQueue.bind([table, userIndexDataQueue]);
   repoFormatDataQueue.bind([table, repoIndexDataQueue]);
   branchFormatDataQueue.bind([table, branchIndexDataQueue]);
+
   userIndexDataQueue.bind([table]);
   repoIndexDataQueue.bind([table]);
   branchIndexDataQueue.bind([table]);
 
   const ghAPI = new Api(stack, 'api', {
+    authorizers: {
+      lambdas: {
+        type: 'lambda',
+        responseTypes: ['simple'],
+        function: new Function(stack, 'Authorizer', {
+          handler: 'packages/auth/src/auth.handler',
+          bind: [AUTH_PUBLIC_KEY],
+        }),
+      },
+    },
     defaults: {
+      authorizer: 'lambdas',
       function: {
         bind: [
           userFormatDataQueue,
@@ -62,8 +75,8 @@ export function gh({ stack }: StackContext) {
           GITHUB_APP_PRIVATE_KEY_PEM,
           GITHUB_SG_INSTALLATION_ID,
           GITHUB_WEBHOOK_SECRET,
-          table,
           GITHUB_SG_ACCESS_TOKEN,
+          table,
         ],
       },
     },
@@ -79,7 +92,10 @@ export function gh({ stack }: StackContext) {
       'GET /github/app/installations':
         'packages/github/src/service/github-app-installations.handler',
       // POST Webhook handler
-      'POST /github/webhook': 'packages/github/src/service/webhook.webhookData',
+      'POST /github/webhook': {
+        function: 'packages/github/src/service/webhook.webhookData',
+        authorizer: 'none',
+      },
       // GET GithubUser data
       'GET /github/user/{githubUserId}': 'packages/github/src/service/git-users.handler',
     },
