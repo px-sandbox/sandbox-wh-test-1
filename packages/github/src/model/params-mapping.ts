@@ -21,8 +21,8 @@ export class ParamsMapping {
     return {
       TableName: Table.GithubMapping.tableName,
       Item: {
-        parentId: parentId,
-        githubId: githubId,
+        parentId,
+        githubId,
       },
     };
   }

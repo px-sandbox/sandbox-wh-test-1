@@ -4,7 +4,6 @@ import { logger } from 'core';
 import { region } from 'src/constant/config';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
-import { Queue } from 'sst/node/queue';
 
 export abstract class DataFormatter<T, S> {
   protected ghApiData: T;

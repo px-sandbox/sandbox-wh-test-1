@@ -1,13 +1,12 @@
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
   DynamoDBDocumentClient,
   PutCommand,
   PutCommandInput,
   QueryCommand,
   QueryCommandInput,
-  QueryCommandOutput,
 } from '@aws-sdk/lib-dynamodb';
 import { IDynmoDbDocClient } from '../types';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 export class DynamoDbDocClient implements IDynmoDbDocClient {
   private ddbDocClient: DynamoDBDocumentClient;
@@ -36,7 +35,7 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
   constructor(region: string | undefined, stage: string) {
     const DbdClient = new DynamoDBClient({
       region,
-      endpoint: stage === 'local' ? this.dynamoDbLocalURL : undefined,
+      endpoint: stage === 'charchitkandelwal' ? this.dynamoDbLocalURL : undefined,
     });
     this.ddbDocClient = DynamoDBDocumentClient.from(DbdClient, this.translateConfig);
   }

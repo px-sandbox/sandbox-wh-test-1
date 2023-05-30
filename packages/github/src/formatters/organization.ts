@@ -1,7 +1,6 @@
 import { Github } from 'abstraction';
-import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from 'src/constant/config';
-import { Queue } from 'sst/node/queue';
+import { v4 as uuid } from 'uuid';
 import { DataFormatter } from './data-formatter';
 
 export class Organization extends DataFormatter<

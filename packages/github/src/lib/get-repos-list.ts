@@ -1,9 +1,8 @@
-import { logger, sqsDataSender } from 'core';
 import { RequestInterface } from '@octokit/types';
-import { Github } from 'abstraction';
+import { SQSClient } from '@pulse/event-handler';
+import { logger } from 'core';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
-import { SQSClient } from '@pulse/event-handler';
 import { getBranches } from './get-branch-list';
 import { ghRequest } from './request-defaults';
 

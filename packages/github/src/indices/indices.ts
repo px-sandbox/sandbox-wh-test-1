@@ -87,18 +87,15 @@ const indices: any[] = [
 ];
 
 export async function createAllIndices(): Promise<void> {
+  const esClient = await new ElasticSearchClient().getClient();
   for (const { name, mappings } of indices) {
     try {
-      const indexExists = await new ElasticSearchClient()
-        .getClient()
-        .indices.exists({ index: name });
+      const indexExists = await esClient.indices.exists({ index: name });
       if (indexExists) {
         logger.info(`Index '${name}' already exists.`);
         continue;
       }
-      await new ElasticSearchClient()
-        .getClient()
-        .indices.create({ index: name, body: { mappings } });
+      esClient.indices.create({ index: name, body: { mappings } });
       logger.info(`Index '${name}' created.`);
     } catch (error) {
       logger.info(`Error creating index '${name}':`, error);
