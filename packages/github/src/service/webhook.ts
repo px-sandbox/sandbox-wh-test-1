@@ -1,7 +1,6 @@
 import { Github, Other } from 'abstraction';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import CryptoJS from 'crypto-js';
 import { Branch } from 'src/formatters/branch';
 import { Repo } from 'src/formatters/repo';
 import { Users } from 'src/formatters/users';
