@@ -25,6 +25,7 @@
     "@pulse/elasticsearch": "^1.0.0",
     "@pulse/event-handler": "^1.0.0",
     "abstraction": "workspace:^1.0.0",
+    "aws-lambda": "^1.0.7",
     "core": "workspace:0.0.1",
     "dotenv": "^16.0.3",
     "dynamoose": "^3.1.0",

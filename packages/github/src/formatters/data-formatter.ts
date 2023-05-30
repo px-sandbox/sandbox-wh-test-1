@@ -13,16 +13,16 @@ export abstract class DataFormatter<T, S> {
   }
 
   public validate(): DataFormatter<T, S> | false {
-    if (this.ghApiData != undefined) {
+    if (this.ghApiData !== undefined) {
       return this;
     }
     logger.error({ message: 'EMPTY_DATA', data: this.ghApiData });
     return false;
   }
 
-  abstract formatter(id: string): Promise<S>;
+  public abstract formatter(id: string): Promise<S>;
 
-  public async getParentId(id: string) {
+  public async getParentId(id: string): Promise<DataFormatter<T, S>> {
     const ddbRes = await new DynamoDbDocClient(region, Config.STAGE).find(
       new ParamsMapping().prepareGetParams(id)
     );
@@ -30,7 +30,7 @@ export abstract class DataFormatter<T, S> {
     return ddbRes?.parentId;
   }
 
-  public async sendDataToQueue(data: Object, url: string) {
+  public async sendDataToQueue(data: Object, url: string): Promise<void> {
     await new SQSClient().sendMessage(data, url);
   }
 }

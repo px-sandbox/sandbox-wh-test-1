@@ -10,14 +10,6 @@ const crypto = require('crypto');
 export const webhookData = async function getWebhookData(
   event: APIGatewayProxyEvent
 ): Promise<void | Other.Type.LambdaResponse> {
-  //   const sigHeaderName = 'X-Hub-Signature-256';
-  //   const sigHashAlg = 'sha256';
-  //   const sig = Buffer.from(event.headers[sigHeaderName] || '', 'utf8');
-  //   const hmac = CryptoJS.createHmac(sigHashAlg, Config.GITHUB_WEBHOOK_SECRET);
-  //   const digest = Buffer.from(sigHashAlg + '=' + hmac.update(req.rawBody).digest('hex'), 'utf8');
-  //   if (sig.length !== digest.length || !crypto.timingSafeEqual(digest, sig)) {
-  //     return next(`Request body digest (${digest}) did not match ${sigHeaderName} (${sig})`);
-  //   }
   logger.info('method invoked');
   const payload: any = event.body || {};
 

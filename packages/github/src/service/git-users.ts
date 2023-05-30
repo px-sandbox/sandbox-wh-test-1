@@ -8,8 +8,7 @@ import { getGitUserSchema } from './validations';
 
 const githubUser = async function getUserData(event: APIGatewayProxyEvent): Promise<any> {
   const githubUserId: string = event?.pathParameters?.githubUserId || '';
-
-  const data = new ElasticSearchClient().search(
+  const data = await new ElasticSearchClient().search(
     Github.Enums.IndexName.GitUsers,
     Github.Enums.SearchKey.GitUserId,
     githubUserId
@@ -19,7 +18,7 @@ const githubUser = async function getUserData(event: APIGatewayProxyEvent): Prom
 
   return responseParser
     .setBody(response)
-    .setMessage('get metadata')
+    .setMessage('get github user details')
     .setStatusCode(HttpStatusCode[200])
     .setResponseBodyCode('SUCCESS')
     .send();
