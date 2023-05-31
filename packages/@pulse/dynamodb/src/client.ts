@@ -1,11 +1,12 @@
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
   DynamoDBDocumentClient,
+  PutCommand,
+  PutCommandInput,
   QueryCommand,
   QueryCommandInput,
-  QueryCommandOutput,
 } from '@aws-sdk/lib-dynamodb';
 import { IDynmoDbDocClient } from '../types';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 export class DynamoDbDocClient implements IDynmoDbDocClient {
   private ddbDocClient: DynamoDBDocumentClient;
@@ -31,10 +32,10 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
 
   private dynamoDbLocalURL = 'http://localhost:8000';
 
-  constructor(region: string, stage: string) {
+  constructor(region: string | undefined, stage: string) {
     const DbdClient = new DynamoDBClient({
       region,
-      endpoint: stage === 'local' ? this.dynamoDbLocalURL : undefined,
+      endpoint: stage === 'charchitkandelwal' ? this.dynamoDbLocalURL : undefined,
     });
     this.ddbDocClient = DynamoDBDocumentClient.from(DbdClient, this.translateConfig);
   }
@@ -43,8 +44,12 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
     return this.ddbDocClient;
   }
 
-  public async find(getParams: QueryCommandInput): Promise<QueryCommandOutput> {
+  public async find(getParams: QueryCommandInput): Promise<Record<string, any> | undefined> {
     const ddbRes = await this.getDdbDocClient().send(new QueryCommand(getParams));
-    return ddbRes;
+    return ddbRes.Items ? ddbRes.Items[0] : undefined;
+  }
+
+  public async put(putParams: PutCommandInput): Promise<void> {
+    await this.getDdbDocClient().send(new PutCommand(putParams));
   }
 }

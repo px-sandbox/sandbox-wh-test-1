@@ -1,7 +1,12 @@
 import { RequestInterface } from '@octokit/types';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
-import { ElasticClient, find, logger, updateTable } from 'core';
-import { organizationFormator } from '../util/organization-formatter';
+import { logger } from 'core';
+import { mappingPrefixes, region } from 'src/constant/config';
+import { Organization } from 'src/processors/organization';
+import { ParamsMapping } from 'src/model/params-mapping';
+import { Config } from 'sst/node/config';
 
 export async function fetchAndSaveOrganizationDetails(
   octokit: RequestInterface<
@@ -16,15 +21,26 @@ export async function fetchAndSaveOrganizationDetails(
   try {
     logger.info('getOrganizationDetails.invoked');
     const responseData = await octokit(`GET /orgs/${organizationName}`);
+    const orgId = `${mappingPrefixes.organization}_${responseData.data.id}`;
+    const records = await new DynamoDbDocClient(region, Config.STAGE).find(
+      new ParamsMapping().prepareGetParams(orgId)
+    );
     if (responseData?.data) {
-      const record = await find(`gh_org_${responseData.data.id}`);
-      const result = await organizationFormator(responseData.data, record?.parentId);
-      if (!record) {
-        logger.info('---NEW_RECORD_FOUND---');
-
-        await updateTable(result);
+      const result = new Organization(responseData.data).validate();
+      if (result) {
+        const formattedData = await result.processor(records?.parentId);
+        if (records === undefined) {
+          logger.info('---NEW_RECORD_FOUND---');
+          await new DynamoDbDocClient(region, Config.STAGE).put(
+            new ParamsMapping().preparePutParams(formattedData.id, formattedData.body.id)
+          );
+        }
+        await new ElasticSearchClient({
+          host: Config.OPENSEARCH_NODE,
+          username: Config.OPENSEARCH_USERNAME ?? '',
+          password: Config.OPENSEARCH_PASSWORD ?? '',
+        }).putDocument(Github.Enums.IndexName.GitOrganization, formattedData);
       }
-      await ElasticClient.saveOrUpdateDocument(Github.Enums.IndexName.GitOrganization, result);
     }
     logger.info('getOrganizationDetails.successfull', {
       response: responseData?.data,

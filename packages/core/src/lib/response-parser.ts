@@ -7,60 +7,60 @@ interface Header {
 }
 
 class ResponseParser {
-	private statusCode: number;
+  private statusCode: number;
 
-	private resMessage: string;
+  private resMessage: string;
 
-	private resCode: string;
+  private resCode: string;
 
-	private resBody: unknown;
+  private resBody: unknown;
 
-	private resHeader: Header;
+  private resHeader: Header;
 
-	constructor() {
-		this.statusCode = HttpStatusCode[200];
-		this.resMessage = '';
-		this.resCode = ResponseCodes.SUCCESS;
-		this.resBody = {};
-		this.resHeader = { 'Content-Type': 'application/json' };
-	}
+  constructor() {
+    this.statusCode = HttpStatusCode[200];
+    this.resMessage = '';
+    this.resCode = ResponseCodes.SUCCESS;
+    this.resBody = {};
+    this.resHeader = { 'Content-Type': 'application/json' };
+  }
 
-	public setStatusCode(httpCode: number): this {
-		this.statusCode = httpCode;
-		return this;
-	}
+  public setStatusCode(httpCode: number): this {
+    this.statusCode = httpCode;
+    return this;
+  }
 
-	public setMessage(message: string): this {
-		this.resMessage = message;
-		return this;
-	}
+  public setMessage(message: string): this {
+    this.resMessage = message;
+    return this;
+  }
 
-	public setResponseBodyCode(code: string): this {
-		this.resCode = code;
-		return this;
-	}
+  public setResponseBodyCode(code: string): this {
+    this.resCode = code;
+    return this;
+  }
 
-	public setBody<T>(body: T): this {
-		this.resBody = body;
-		return this;
-	}
+  public setBody<T>(body: T): this {
+    this.resBody = body;
+    return this;
+  }
 
-	public setResponseHeader(header: Header): this {
-		this.resHeader = { ...header, ...this.resHeader };
-		return this;
-	}
+  public setResponseHeader(header: Header): this {
+    this.resHeader = { ...header, ...this.resHeader };
+    return this;
+  }
 
-	public send(): APIGatewayProxyResult {
-		return {
-			statusCode: this.statusCode,
-			body: JSON.stringify({
-				data: this.resBody,
-				message: this.resMessage,
-				code: this.resCode,
-			}),
-			headers: this.resHeader,
-		};
-	}
+  public send(): APIGatewayProxyResult {
+    return {
+      statusCode: this.statusCode,
+      body: JSON.stringify({
+        data: this.resBody,
+        message: this.resMessage,
+        code: this.resCode,
+      }),
+      headers: this.resHeader,
+    };
+  }
 }
 
 const responseParser = new ResponseParser();

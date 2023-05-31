@@ -6,9 +6,7 @@ export type User = {
     user: {
       login: string;
       id: number;
-
       avatar_url: string;
-
       type: string;
       site_admin: boolean;
     };

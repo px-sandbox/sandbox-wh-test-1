@@ -1,21 +1,28 @@
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
-import { ElasticClient, find, logger, updateTable } from 'core';
-import { repoFormator } from 'src/util/repoFormator';
+import { logger } from 'core';
+import { region } from 'src/constant/config';
+import { ParamsMapping } from 'src/model/params-mapping';
+import { Config } from 'sst/node/config';
 
-export async function saveRepoDetails(data: Github.ExternalType.Api.Repository): Promise<void> {
-	try {
-		const record = await find(`gh_repo_${data?.id}`);
-		const result = await repoFormator(data, record?.parentId);
-		logger.info(result);
-		if (!record) {
-			logger.info('---NEW_RECORD_FOUND---');
-			await updateTable(result);
-		}
-		await ElasticClient.saveOrUpdateDocument(Github.Enums.IndexName.GitRepo, result);
-	} catch (error: unknown) {
-		logger.error({
-			error,
-		});
-		throw error;
-	}
+export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<void> {
+  try {
+    if (data) {
+      logger.info('---NEW_RECORD_FOUND---');
+      await new DynamoDbDocClient(region, Config.STAGE).put(
+        new ParamsMapping().preparePutParams(data.id, data.body.id)
+      );
+      await new ElasticSearchClient({
+        host: Config.OPENSEARCH_NODE,
+        username: Config.OPENSEARCH_USERNAME ?? '',
+        password: Config.OPENSEARCH_PASSWORD ?? '',
+      }).putDocument(Github.Enums.IndexName.GitRepo, data);
+    }
+  } catch (error: unknown) {
+    logger.error({
+      error,
+    });
+    throw error;
+  }
 }

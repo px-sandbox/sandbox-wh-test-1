@@ -1,27 +1,24 @@
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
-import { ElasticClient, find, logger, updateTable } from 'core';
-import { userFormator } from 'src/util/user-formatter';
-import { Table } from 'sst/node/table';
-import { QueryCommandInput } from '@aws-sdk/lib-dynamodb';
-export async function saveUserDetails(data: Github.ExternalType.Api.User): Promise<void> {
+import { logger } from 'core';
+import { region } from 'src/constant/config';
+import { ParamsMapping } from 'src/model/params-mapping';
+import { Config } from 'sst/node/config';
+
+export async function saveUserDetails(data: Github.Type.User): Promise<void> {
   try {
-    const githubId = `gh_user_${data?.id}`;
-    const getParams: QueryCommandInput = {
-      TableName: Table.GithubMapping.tableName,
-      IndexName: 'githubIdIndex',
-      KeyConditionExpression: 'githubId = :githubId',
-      ExpressionAttributeValues: { ':githubId': githubId },
-    };
-    const { Items } = await find(getParams);
-    const result = await userFormator(data, Items?.parentId);
-    if (!Items) {
+    if (data) {
       logger.info('---NEW_RECORD_FOUND---');
-      await updateTable(result);
-      await ElasticClient.saveOrUpdateDocument(Github.Enums.IndexName.GitUsers, result);
-    } else {
-      logger.info('---UPDATE USER RECORD---');
-      await ElasticClient.partialUpdateDocument(Github.Enums.IndexName.GitUsers, result);
+      await new DynamoDbDocClient(region, Config.STAGE).put(
+        new ParamsMapping().preparePutParams(data.id, data.body.id)
+      );
     }
+    await new ElasticSearchClient({
+      host: Config.OPENSEARCH_NODE,
+      username: Config.OPENSEARCH_USERNAME ?? '',
+      password: Config.OPENSEARCH_PASSWORD ?? '',
+    }).putDocument(Github.Enums.IndexName.GitUsers, data);
   } catch (error: unknown) {
     logger.error('getUserDetails.error', {
       error,

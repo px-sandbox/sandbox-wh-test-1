@@ -1,19 +1,24 @@
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
-import { ElasticClient, find, logger, updateTable } from 'core';
-import { branchFormator, updateBranchFormator } from 'src/util/branch-formatter';
+import { logger } from 'core';
+import { region } from 'src/constant/config';
+import { ParamsMapping } from 'src/model/params-mapping';
+import { Config } from 'sst/node/config';
 
-export async function saveBranchDetails(data: Github.ExternalType.Api.Branch): Promise<void> {
+export async function saveBranchDetails(data: Github.Type.Branch): Promise<void> {
   try {
-    const record = await find(`gh_branch_${data.id}`);
-    const result = await branchFormator(data, record?.parentId);
-    if (!record) {
+    if (data) {
       logger.info('---NEW_RECORD_FOUND---');
-      await updateTable(result);
-      await ElasticClient.saveOrUpdateDocument(Github.Enums.IndexName.GitBranch, result);
-    } else {
-      logger.info('---UPDATE BRANCH RECORD---');
-      await ElasticClient.partialUpdateDocument(Github.Enums.IndexName.GitBranch, result);
+      await new DynamoDbDocClient(region, Config.STAGE).put(
+        new ParamsMapping().preparePutParams(data.id, data.body.id)
+      );
     }
+    await new ElasticSearchClient({
+      host: Config.OPENSEARCH_NODE,
+      username: Config.OPENSEARCH_USERNAME ?? '',
+      password: Config.OPENSEARCH_PASSWORD ?? '',
+    }).putDocument(Github.Enums.IndexName.GitBranch, data);
   } catch (error: unknown) {
     logger.error('getBranchDetails.error', {
       error,
