@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { Users } from 'src/formatters/users';
+import { UsersProcessor } from 'src/processors/users';
+import { Queue } from 'sst/node/queue';
 
 export const handler = async function userFormattedDataReciever(
   event: APIGatewayProxyEvent
@@ -11,6 +12,11 @@ export const handler = async function userFormattedDataReciever(
     /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
     logger.info('USER_SQS_RECIEVER_HANDLER_FORMATER', { messageBody });
 
-    new Users(messageBody).formatter();
+    const userProcessor = new UsersProcessor(messageBody);
+    const validatedData = userProcessor.validate();
+    if (validatedData) {
+      const data = await userProcessor.processor();
+      await userProcessor.sendDataToQueue(data, Queue.gh_users_index.queueUrl);
+    }
   }
 };

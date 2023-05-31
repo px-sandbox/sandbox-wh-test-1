@@ -1,16 +1,16 @@
 import { Github } from 'abstraction';
 import { mappingPrefixes } from 'src/constant/config';
 import { v4 as uuid } from 'uuid';
-import { DataFormatter } from './data-formatter';
+import { DataProcessor } from './data-processor';
 
-export class Organization extends DataFormatter<
+export class Organization extends DataProcessor<
   Github.ExternalType.Api.Organization,
   Github.Type.Organization
 > {
   constructor(data: Github.ExternalType.Api.Organization) {
     super(data);
   }
-  async formatter(): Promise<Github.Type.Organization> {
+  async processor(): Promise<Github.Type.Organization> {
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.organization}_${this.ghApiData.id}`
     );

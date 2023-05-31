@@ -5,14 +5,14 @@ import { region } from 'src/constant/config';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
 
-export abstract class DataFormatter<T, S> {
+export abstract class DataProcessor<T, S> {
   protected ghApiData: T;
 
   constructor(data: T) {
     this.ghApiData = data;
   }
 
-  public validate(): DataFormatter<T, S> | false {
+  public validate(): DataProcessor<T, S> | false {
     if (this.ghApiData !== undefined) {
       return this;
     }
@@ -20,9 +20,9 @@ export abstract class DataFormatter<T, S> {
     return false;
   }
 
-  public abstract formatter(id: string): Promise<S>;
+  public abstract processor(id: string): Promise<S>;
 
-  public async getParentId(id: string): Promise<DataFormatter<T, S>> {
+  public async getParentId(id: string): Promise<string> {
     const ddbRes = await new DynamoDbDocClient(region, Config.STAGE).find(
       new ParamsMapping().prepareGetParams(id)
     );

@@ -88,6 +88,10 @@ const indices: any[] = [
 ];
 
 export async function createAllIndices(): Promise<void> {
+  logger.info({
+    message: 'ELASTICSEARCH_INIT_DETAILS',
+    data: { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME },
+  });
   const esClient = await new ElasticSearchClient({
     host: OPENSEARCH_NODE,
     username: OPENSEARCH_USERNAME ?? '',

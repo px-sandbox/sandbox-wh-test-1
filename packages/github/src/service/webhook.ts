@@ -1,9 +1,9 @@
 import { Github, Other } from 'abstraction';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { Branch } from 'src/formatters/branch';
-import { Repo } from 'src/formatters/repo';
-import { Users } from 'src/formatters/users';
+import { BranchProcessor } from 'src/processors/branch';
+import { RepositoryProcessor } from 'src/processors/repo';
+import { UsersProcessor } from 'src/processors/users';
 import { Config } from 'sst/node/config';
 const crypto = require('crypto');
 
@@ -64,7 +64,9 @@ export const webhookData = async function getWebhookData(
   let obj = {};
   switch (eventType?.toLowerCase()) {
     case Github.Enums.Event.Repo:
-      await new Repo(data.repository as Github.ExternalType.Webhook.Repository).formatter();
+      await new RepositoryProcessor(
+        data.repository as Github.ExternalType.Webhook.Repository
+      ).processor();
       break;
     case Github.Enums.Event.Branch:
       const {
@@ -90,7 +92,7 @@ export const webhookData = async function getWebhookData(
       }
       logger.info('-------Branch event --------');
       logger.info(obj);
-      await new Branch(obj as Github.ExternalType.Api.Branch).formatter();
+      await new BranchProcessor(obj as Github.ExternalType.Api.Branch).processor();
       break;
 
     case Github.Enums.Event.Organization:
@@ -123,7 +125,7 @@ export const webhookData = async function getWebhookData(
       }
       logger.info('-------User event --------');
       logger.info(obj);
-      await new Users(obj as Github.ExternalType.Api.User).formatter();
+      await new UsersProcessor(obj as Github.ExternalType.Api.User).processor();
       break;
     default:
       break;

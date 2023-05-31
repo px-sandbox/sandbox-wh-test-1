@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { Repo } from 'src/formatters/repo';
+import { RepositoryProcessor } from 'src/processors/repo';
+import { Queue } from 'sst/node/queue';
 
 export const handler = async function repoFormattedDataReciever(
   event: APIGatewayProxyEvent
@@ -11,6 +12,11 @@ export const handler = async function repoFormattedDataReciever(
     /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
     logger.info('REPO_SQS_RECIEVER_HANDLER', { messageBody });
 
-    new Repo(messageBody).formatter();
+    const userProcessor = new RepositoryProcessor(messageBody);
+    const validatedData = userProcessor.validate();
+    if (validatedData) {
+      const data = await userProcessor.processor();
+      await userProcessor.sendDataToQueue(data, Queue.gh_repo_index.queueUrl);
+    }
   }
 };
