@@ -3,13 +3,7 @@ import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import {
-  OPENSEARCH_NODE,
-  OPENSEARCH_PASSWORD,
-  OPENSEARCH_USERNAME,
-  mappingPrefixes,
-  region,
-} from 'src/constant/config';
+import { mappingPrefixes, region } from 'src/constant/config';
 import { Organization } from 'src/processors/organization';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
@@ -42,9 +36,9 @@ export async function fetchAndSaveOrganizationDetails(
           );
         }
         await new ElasticSearchClient({
-          host: OPENSEARCH_NODE,
-          username: OPENSEARCH_USERNAME ?? '',
-          password: OPENSEARCH_PASSWORD ?? '',
+          host: Config.OPENSEARCH_NODE,
+          username: Config.OPENSEARCH_USERNAME ?? '',
+          password: Config.OPENSEARCH_PASSWORD ?? '',
         }).putDocument(Github.Enums.IndexName.GitOrganization, formattedData);
       }
     }

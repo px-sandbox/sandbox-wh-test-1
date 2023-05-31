@@ -5,7 +5,7 @@ import { Queue } from 'sst/node/queue';
 
 export const handler = async function repoFormattedDataReciever(
   event: APIGatewayProxyEvent
-): Promise<any> {
+): Promise<void> {
   for (const record of event.Records) {
     const messageBody = JSON.parse(record.body);
     // Do something with the message, e.g. send an email, process data, etc.

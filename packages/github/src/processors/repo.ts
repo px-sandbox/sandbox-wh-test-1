@@ -1,7 +1,7 @@
 import { Github } from 'abstraction';
+import { mappingPrefixes } from 'src/constant/config';
+import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import { GIT_ORGANIZATION_ID, mappingPrefixes } from 'src/constant/config';
-import { Queue } from 'sst/node/queue';
 import { DataProcessor } from './data-processor';
 
 export class RepositoryProcessor extends DataProcessor<
@@ -23,7 +23,7 @@ export class RepositoryProcessor extends DataProcessor<
         isPrivate: this.ghApiData.private,
         owner: this.ghApiData.owner.login,
         visibility: this.ghApiData.visibility,
-        organizationId: `${mappingPrefixes.organization}_${GIT_ORGANIZATION_ID}`,
+        organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         openIssuesCount: this.ghApiData.open_issues_count,
         createdAt: this.ghApiData.created_at,
         pushedAt: this.ghApiData.pushed_at,

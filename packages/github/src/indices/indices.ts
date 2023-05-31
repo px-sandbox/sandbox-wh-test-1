@@ -1,7 +1,7 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { logger } from 'core';
 import { Github } from 'abstraction';
-import { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } from 'src/constant/config';
+import { logger } from 'core';
+import { Config } from 'sst/node/config';
 
 const indices: any[] = [
   {
@@ -90,12 +90,16 @@ const indices: any[] = [
 export async function createAllIndices(): Promise<void> {
   logger.info({
     message: 'ELASTICSEARCH_INIT_DETAILS',
-    data: { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME },
+    data: {
+      host: Config.OPENSEARCH_NODE,
+      password: Config.OPENSEARCH_PASSWORD,
+      username: Config.OPENSEARCH_USERNAME,
+    },
   });
   const esClient = await new ElasticSearchClient({
-    host: OPENSEARCH_NODE,
-    username: OPENSEARCH_USERNAME ?? '',
-    password: OPENSEARCH_PASSWORD ?? '',
+    host: Config.OPENSEARCH_NODE,
+    username: Config.OPENSEARCH_USERNAME ?? '',
+    password: Config.OPENSEARCH_PASSWORD ?? '',
   }).getClient();
   for (const { name, mappings } of indices) {
     try {

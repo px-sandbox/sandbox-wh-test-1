@@ -1,7 +1,7 @@
 import { Github } from 'abstraction';
+import { mappingPrefixes } from 'src/constant/config';
+import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import { GIT_ORGANIZATION_ID, mappingPrefixes } from 'src/constant/config';
-import { Queue } from 'sst/node/queue';
 import { DataProcessor } from './data-processor';
 
 export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, Github.Type.User> {
@@ -17,7 +17,7 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
         githubUserId: this.ghApiData?.id,
         userName: this.ghApiData?.login,
         avatarUrl: this.ghApiData?.avatar_url,
-        organizationId: `${mappingPrefixes.organization}_${GIT_ORGANIZATION_ID}`,
+        organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         deletedAt: '',
       },
     };
