@@ -50,9 +50,16 @@ async function getUserList(
     const membersPerPage: Github.ExternalType.Api.User[] = responseData.data;
     logger.info('Response', membersPerPage);
     counter += membersPerPage.length;
-    membersPerPage.forEach(async (member) => {
-      await new SQSClient().sendMessage(member, Queue.gh_users_format.queueUrl);
-    });
+
+    // membersPerPage.forEach(async (member) => {
+    //   await new SQSClient().sendMessage(member, Queue.gh_users_format.queueUrl);
+    // });
+
+    await Promise.all(
+      membersPerPage.map((member) =>
+        new SQSClient().sendMessage(member, Queue.gh_users_format.queueUrl)
+      )
+    );
 
     if (membersPerPage.length < perPage) {
       logger.info('getUserList.successful');
