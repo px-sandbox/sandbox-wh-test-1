@@ -108,7 +108,7 @@ export async function createAllIndices(): Promise<void> {
         logger.info(`Index '${name}' already exists.`);
         continue;
       }
-      esClient.indices.create({ index: name, body: { mappings } });
+      await esClient.indices.create({ index: name, body: { mappings } });
       logger.info(`Index '${name}' created.`);
     } catch (error) {
       logger.info(`Error creating index '${name}':`, error);
