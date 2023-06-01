@@ -34,7 +34,7 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
 
   constructor(region: string | undefined, stage: string) {
     const DbdClient = new DynamoDBClient({
-      region,
+      region: 'eu-west-1',
       endpoint: stage === 'charchitkandelwal' ? this.dynamoDbLocalURL : undefined,
     });
     this.ddbDocClient = DynamoDBDocumentClient.from(DbdClient, this.translateConfig);
