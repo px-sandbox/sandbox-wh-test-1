@@ -13,7 +13,11 @@ export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<
       await new DynamoDbDocClient(region, Config.STAGE).put(
         new ParamsMapping().preparePutParams(data.id, data.body.id)
       );
-      await new ElasticSearchClient().putDocument(Github.Enums.IndexName.GitRepo, data);
+      await new ElasticSearchClient({
+        host: Config.OPENSEARCH_NODE,
+        username: Config.OPENSEARCH_USERNAME ?? '',
+        password: Config.OPENSEARCH_PASSWORD ?? '',
+      }).putDocument(Github.Enums.IndexName.GitRepo, data);
     }
   } catch (error: unknown) {
     logger.error({

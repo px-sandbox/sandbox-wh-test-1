@@ -4,7 +4,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { mappingPrefixes, region } from 'src/constant/config';
-import { Organization } from 'src/formatters/organization';
+import { Organization } from 'src/processors/organization';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
 
@@ -28,17 +28,18 @@ export async function fetchAndSaveOrganizationDetails(
     if (responseData?.data) {
       const result = new Organization(responseData.data).validate();
       if (result) {
-        const formattedData = await result.formatter(records?.parentId);
+        const formattedData = await result.processor(records?.parentId);
         if (records === undefined) {
           logger.info('---NEW_RECORD_FOUND---');
           await new DynamoDbDocClient(region, Config.STAGE).put(
             new ParamsMapping().preparePutParams(formattedData.id, formattedData.body.id)
           );
         }
-        await new ElasticSearchClient().putDocument(
-          Github.Enums.IndexName.GitOrganization,
-          formattedData
-        );
+        await new ElasticSearchClient({
+          host: Config.OPENSEARCH_NODE,
+          username: Config.OPENSEARCH_USERNAME ?? '',
+          password: Config.OPENSEARCH_PASSWORD ?? '',
+        }).putDocument(Github.Enums.IndexName.GitOrganization, formattedData);
       }
     }
     logger.info('getOrganizationDetails.successfull', {

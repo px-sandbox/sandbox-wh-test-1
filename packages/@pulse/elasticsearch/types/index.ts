@@ -11,7 +11,7 @@ export interface IElasticSearchClient {
 }
 
 export type ConnectionOptions = {
-  host?: string;
-  username?: string;
-  password?: string;
+  host: string | undefined;
+  username: string;
+  password: string;
 };

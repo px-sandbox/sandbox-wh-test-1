@@ -14,7 +14,11 @@ export async function saveBranchDetails(data: Github.Type.Branch): Promise<void>
         new ParamsMapping().preparePutParams(data.id, data.body.id)
       );
     }
-    await new ElasticSearchClient().putDocument(Github.Enums.IndexName.GitBranch, data);
+    await new ElasticSearchClient({
+      host: Config.OPENSEARCH_NODE,
+      username: Config.OPENSEARCH_USERNAME ?? '',
+      password: Config.OPENSEARCH_PASSWORD ?? '',
+    }).putDocument(Github.Enums.IndexName.GitBranch, data);
   } catch (error: unknown) {
     logger.error('getBranchDetails.error', {
       error,

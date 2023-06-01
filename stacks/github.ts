@@ -9,6 +9,10 @@ export function gh({ stack }: StackContext) {
   const GITHUB_WEBHOOK_SECRET = new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET');
   const GITHUB_SG_ACCESS_TOKEN = new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN');
   const AUTH_PUBLIC_KEY = new Config.Secret(stack, 'AUTH_PUBLIC_KEY');
+  const OPENSEARCH_NODE = new Config.Secret(stack, 'OPENSEARCH_NODE');
+  const OPENSEARCH_USERNAME = new Config.Secret(stack, 'OPENSEARCH_USERNAME');
+  const OPENSEARCH_PASSWORD = new Config.Secret(stack, 'OPENSEARCH_PASSWORD');
+  const GIT_ORGANIZATION_ID = new Config.Secret(stack, 'GIT_ORGANIZATION_ID');
 
   // Create Table
   const table = new Table(stack, 'GithubMapping', {
@@ -44,13 +48,13 @@ export function gh({ stack }: StackContext) {
   });
 
   // bind tables and config to queue
-  userFormatDataQueue.bind([table, userIndexDataQueue]);
-  repoFormatDataQueue.bind([table, repoIndexDataQueue]);
-  branchFormatDataQueue.bind([table, branchIndexDataQueue]);
+  userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
+  repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
+  branchFormatDataQueue.bind([table, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
+  userIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  repoIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  branchIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
-  userIndexDataQueue.bind([table]);
-  repoIndexDataQueue.bind([table]);
-  branchIndexDataQueue.bind([table]);
 
   const ghAPI = new Api(stack, 'api', {
     authorizers: {
@@ -79,6 +83,10 @@ export function gh({ stack }: StackContext) {
           GITHUB_SG_INSTALLATION_ID,
           GITHUB_WEBHOOK_SECRET,
           GITHUB_SG_ACCESS_TOKEN,
+          OPENSEARCH_NODE,
+          OPENSEARCH_PASSWORD,
+          OPENSEARCH_USERNAME,
+          GIT_ORGANIZATION_ID,
           table,
         ],
       },

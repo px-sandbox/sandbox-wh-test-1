@@ -14,7 +14,11 @@ export async function saveUserDetails(data: Github.Type.User): Promise<void> {
         new ParamsMapping().preparePutParams(data.id, data.body.id)
       );
     }
-    await new ElasticSearchClient().putDocument(Github.Enums.IndexName.GitUsers, data);
+    await new ElasticSearchClient({
+      host: Config.OPENSEARCH_NODE,
+      username: Config.OPENSEARCH_USERNAME ?? '',
+      password: Config.OPENSEARCH_PASSWORD ?? '',
+    }).putDocument(Github.Enums.IndexName.GitUsers, data);
   } catch (error: unknown) {
     logger.error('getUserDetails.error', {
       error,
