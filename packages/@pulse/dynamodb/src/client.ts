@@ -31,11 +31,12 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
   };
 
   private dynamoDbLocalURL = 'http://localhost:8000';
+  private region = process.env.AWS_REGION;
 
-  constructor(region: string | undefined, stage: string) {
+  constructor(stage: string) {
     const DbdClient = new DynamoDBClient({
-      region: 'eu-west-1',
-      endpoint: stage === 'charchitkandelwal' ? this.dynamoDbLocalURL : undefined,
+      region: this.region,
+      endpoint: stage === 'local' ? this.dynamoDbLocalURL : undefined,
     });
     this.ddbDocClient = DynamoDBDocumentClient.from(DbdClient, this.translateConfig);
   }

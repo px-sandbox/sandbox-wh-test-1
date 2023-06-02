@@ -1,7 +1,6 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
-import { region } from 'src/constant/config';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
 
@@ -23,7 +22,7 @@ export abstract class DataProcessor<T, S> {
   public abstract processor(id: string): Promise<S>;
 
   public async getParentId(id: string): Promise<string> {
-    const ddbRes = await new DynamoDbDocClient(region, Config.STAGE).find(
+    const ddbRes = await new DynamoDbDocClient(Config.STAGE).find(
       new ParamsMapping().prepareGetParams(id)
     );
 

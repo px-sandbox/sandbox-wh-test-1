@@ -2,7 +2,6 @@ import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import { region } from 'src/constant/config';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
 
@@ -10,7 +9,7 @@ export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<
   try {
     if (data) {
       logger.info('---NEW_RECORD_FOUND---');
-      await new DynamoDbDocClient(region, Config.STAGE).put(
+      await new DynamoDbDocClient(Config.STAGE).put(
         new ParamsMapping().preparePutParams(data.id, data.body.id)
       );
       await new ElasticSearchClient({
