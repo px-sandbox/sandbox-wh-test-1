@@ -29,8 +29,10 @@ export class ElasticSearchClient implements IElasticSearchClient {
     await this.client.indices.refresh({ index: indexName });
     const result = await this.client.search({
       index: indexName,
-      query: {
-        match: { [`body.${searchKey}`]: searchValue },
+      body: {
+        query: {
+          match: { [`body.${searchKey}`]: searchValue },
+        },
       },
     });
     return result;
