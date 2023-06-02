@@ -11,18 +11,28 @@ const githubUser = async function getUserData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const githubUserId: string = event?.pathParameters?.githubUserId || '';
-  const data = await new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-  }).search(Github.Enums.IndexName.GitUsers, Github.Enums.SearchKey.GitUserId, githubUserId);
-  const response = await searchedDataFormator(data);
-  logger.info({ level: 'info', message: 'github user data', data: response });
-
+  let response;
+  try {
+    const data = await new ElasticSearchClient({
+      host: Config.OPENSEARCH_NODE,
+      username: Config.OPENSEARCH_USERNAME ?? '',
+      password: Config.OPENSEARCH_PASSWORD ?? '',
+    }).search(Github.Enums.IndexName.GitUsers, Github.Enums.SearchKey.GitUserId, githubUserId);
+    response = await searchedDataFormator(data);
+    logger.info({ level: 'info', message: 'github user data', data: response });
+  } catch (error) {
+    logger.error('GET_GITHUB_USER_DETAILS', { error });
+  }
+  let body = null;
+  let statusCode = HttpStatusCode[404];
+  if (response[0]) {
+    body = response[0];
+    statusCode = HttpStatusCode[200];
+  }
   return responseParser
-    .setBody(response)
+    .setBody(body)
     .setMessage('get github user details')
-    .setStatusCode(HttpStatusCode[200])
+    .setStatusCode(statusCode)
     .setResponseBodyCode('SUCCESS')
     .send();
 };
