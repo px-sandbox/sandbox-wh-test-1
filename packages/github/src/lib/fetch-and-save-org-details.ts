@@ -3,9 +3,9 @@ import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import { mappingPrefixes, region } from 'src/constant/config';
-import { Organization } from 'src/processors/organization';
+import { mappingPrefixes } from 'src/constant/config';
 import { ParamsMapping } from 'src/model/params-mapping';
+import { Organization } from 'src/processors/organization';
 import { Config } from 'sst/node/config';
 
 export async function fetchAndSaveOrganizationDetails(
@@ -22,7 +22,7 @@ export async function fetchAndSaveOrganizationDetails(
     logger.info('getOrganizationDetails.invoked');
     const responseData = await octokit(`GET /orgs/${organizationName}`);
     const orgId = `${mappingPrefixes.organization}_${responseData.data.id}`;
-    const records = await new DynamoDbDocClient(region, Config.STAGE).find(
+    const records = await new DynamoDbDocClient(Config.STAGE).find(
       new ParamsMapping().prepareGetParams(orgId)
     );
     if (responseData?.data) {
@@ -31,7 +31,7 @@ export async function fetchAndSaveOrganizationDetails(
         const formattedData = await result.processor(records?.parentId);
         if (records === undefined) {
           logger.info('---NEW_RECORD_FOUND---');
-          await new DynamoDbDocClient(region, Config.STAGE).put(
+          await new DynamoDbDocClient(Config.STAGE).put(
             new ParamsMapping().preparePutParams(formattedData.id, formattedData.body.id)
           );
         }
