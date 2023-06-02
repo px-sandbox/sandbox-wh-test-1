@@ -26,7 +26,7 @@
     "vitest": "^0.29.7",
     "@commitlint/cli": "^17.5.1",
     "@commitlint/config-conventional": "^17.4.4",
-    "@elastic/elasticsearch": "7.17.0",
+    "@elastic/elasticsearch": "7.13.0",
     "@types/aws-lambda": "^8.10.111",
     "@types/crypto-js": "^4.1.1",
     "crypto-js": "^4.1.1",

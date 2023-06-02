@@ -88,14 +88,14 @@ const indices: any[] = [
 ];
 
 export async function createAllIndices(): Promise<void> {
-  logger.info({
-    message: 'ELASTICSEARCH_INIT_DETAILS',
-    data: {
-      host: Config.OPENSEARCH_NODE,
-      password: Config.OPENSEARCH_PASSWORD,
-      username: Config.OPENSEARCH_USERNAME,
-    },
-  });
+  // logger.info({
+  //   message: 'ELASTICSEARCH_INIT_DETAILS',
+  //   data: {
+  //     host: Config.OPENSEARCH_NODE,
+  //     password: Config.OPENSEARCH_PASSWORD,
+  //     username: Config.OPENSEARCH_USERNAME,
+  //   },
+  // });
   const esClient = await new ElasticSearchClient({
     host: Config.OPENSEARCH_NODE,
     username: Config.OPENSEARCH_USERNAME ?? '',
