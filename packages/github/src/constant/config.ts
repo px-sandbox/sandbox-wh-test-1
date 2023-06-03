@@ -3,4 +3,5 @@ export const mappingPrefixes = {
   branch: 'gh_branch',
   organization: 'gh_org',
   repo: 'gh_repo',
+  commit: 'gh_commit',
 };

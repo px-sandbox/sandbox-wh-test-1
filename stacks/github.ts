@@ -46,13 +46,22 @@ export function gh({ stack }: StackContext) {
     consumer: 'packages/github/src/sqs/handlers/indexer/branch.handler',
   });
 
+  const commitFormatDataQueue = new Queue(stack, 'gh_commit_format', {
+    consumer: 'packages/github/src/sqs/handlers/formatter/commit.handler',
+  });
+  const commitIndexDataQueue = new Queue(stack, 'gh_commit_index', {
+    consumer: 'packages/github/src/sqs/handlers/indexer/commit.handler',
+  });
+
   // bind tables and config to queue
   userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
   repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
   branchFormatDataQueue.bind([table, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
+  commitFormatDataQueue.bind([table, commitIndexDataQueue, GITHUB_WEBHOOK_SECRET]);
   userIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   repoIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   branchIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  commitIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
   const ghAPI = new Api(stack, 'api', {
     defaults: {

@@ -1,6 +1,7 @@
 import { Github, Other } from 'abstraction';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
+import { getCommits } from 'src/lib/git-commit-list';
 import { BranchProcessor } from 'src/processors/branch';
 import { RepositoryProcessor } from 'src/processors/repo';
 import { UsersProcessor } from 'src/processors/users';
@@ -45,7 +46,6 @@ export const webhookData = async function getWebhookData(
     };
   }
   const data = JSON.parse(event.body || '{}');
-
   let eventType = event.headers['x-github-event']?.toLowerCase();
   const branchEvents = ['create', 'delete'];
 
@@ -127,6 +127,10 @@ export const webhookData = async function getWebhookData(
       logger.info(obj);
       await new UsersProcessor(obj as Github.ExternalType.Api.User).processor();
       break;
+    case Github.Enums.Event.Commit:
+      const reponame = data.repository.name;
+      const ownername = data.repository.owner.name;
+      await getCommits(reponame, ownername, data.ref);
     default:
       break;
   }

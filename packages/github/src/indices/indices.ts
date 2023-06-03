@@ -85,17 +85,44 @@ const indices: any[] = [
       },
     },
   },
+  {
+    name: Github.Enums.IndexName.GitCommits,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        id: { type: 'keyword' },
+        githubCommitId: { type: 'keyword' },
+        message: { type: 'text' },
+        authorId: { type: 'keyword' },
+        committedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        changes: [
+          {
+            filename: { type: 'text' },
+            additions: { type: 'integer' },
+            deletions: { type: 'integer' },
+            changes: { type: 'integer' },
+            status: { type: 'text' },
+          },
+        ],
+        totalChanges: { type: 'integer' },
+        repoId: { type: 'keyword' },
+        organizationId: { type: 'keyword' },
+        pushEventId: { type: 'keyword' },
+        deletedAt: { type: 'date' },
+      },
+    },
+  },
 ];
 
 export async function createAllIndices(): Promise<void> {
-  // logger.info({
-  //   message: 'ELASTICSEARCH_INIT_DETAILS',
-  //   data: {
-  //     host: Config.OPENSEARCH_NODE,
-  //     password: Config.OPENSEARCH_PASSWORD,
-  //     username: Config.OPENSEARCH_USERNAME,
-  //   },
-  // });
+  logger.info({
+    message: 'ELASTICSEARCH_INIT_DETAILS',
+    data: {
+      host: Config.OPENSEARCH_NODE,
+      password: Config.OPENSEARCH_PASSWORD,
+      username: Config.OPENSEARCH_USERNAME,
+    },
+  });
   const esClient = await new ElasticSearchClient({
     host: Config.OPENSEARCH_NODE,
     username: Config.OPENSEARCH_USERNAME ?? '',
