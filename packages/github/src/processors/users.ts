@@ -10,6 +10,8 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
   }
   async processor(): Promise<Github.Type.User> {
     const parentId = await this.getParentId(`${mappingPrefixes.user}_${this.ghApiData.id}`);
+    const createdAt = this.ghApiData.created_at ?? new Date();
+    const action = this.ghApiData.action ?? '';
     const orgObj = {
       id: parentId || uuid(),
       body: {
@@ -18,7 +20,9 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
         userName: this.ghApiData?.login,
         avatarUrl: this.ghApiData?.avatar_url,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
-        deletedAt: '',
+        deletedAt: this.ghApiData.deleted_at,
+        created_at: createdAt,
+        action: action,
       },
     };
     return orgObj;

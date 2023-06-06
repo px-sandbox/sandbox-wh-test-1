@@ -1,7 +1,7 @@
 export type Commits = {
+  id: string;
   repoId: string;
-  commits: {
-    id: string;
+  commit: {
     message: string;
     timestamp: string;
     url: string;

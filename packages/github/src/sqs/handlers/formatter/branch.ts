@@ -11,11 +11,11 @@ export const handler = async function branchFormattedDataReciever(
     // Do something with the message, e.g. send an email, process data, etc.
     /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
     logger.info('BRANCH_SQS_RECIEVER_HANDLER', { messageBody });
-    const userProcessor = new BranchProcessor(messageBody);
-    const validatedData = userProcessor.validate();
+    const branchProcessor = new BranchProcessor(messageBody);
+    const validatedData = branchProcessor.validate();
     if (validatedData) {
-      const data = await userProcessor.processor();
-      await userProcessor.sendDataToQueue(data, Queue.gh_branch_index.queueUrl);
+      const data = await branchProcessor.processor();
+      await branchProcessor.sendDataToQueue(data, Queue.gh_branch_index.queueUrl);
     }
   }
 };

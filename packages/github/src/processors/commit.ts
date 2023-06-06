@@ -13,25 +13,23 @@ export class CommitProcessor extends DataProcessor<
   }
   async processor(): Promise<Github.Type.Commits> {
     const parentId: string = await this.getParentId(
-      `${mappingPrefixes.branch}_${this.ghApiData.commits.id}`
+      `${mappingPrefixes.commit}_${this.ghApiData.id}`
     );
     const orgObj = {
       id: parentId || uuid(),
       body: {
-        id: this.ghApiData.commits.id,
-        githubCommitId: `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`,
-        message: this.ghApiData.commits.message,
+        id: `${mappingPrefixes.commit}_${this.ghApiData.id}`,
+        githubCommitId: `${this.ghApiData.id}`,
+        message: this.ghApiData.commit.message,
         authorId: this.ghApiData.author.id,
-        committedAt: this.ghApiData.commits.timestamp,
-        changes: [
-          {
-            filename: this.ghApiData.files[0].filename,
-            additions: this.ghApiData.files[0].additions,
-            deletions: this.ghApiData.files[0].deletions,
-            changes: this.ghApiData.files[0].changes,
-            status: this.ghApiData.files[0].status,
-          },
-        ],
+        committedAt: this.ghApiData.commit.timestamp,
+        changes: {
+          filename: this.ghApiData.files[0].filename,
+          additions: this.ghApiData.files[0].additions,
+          deletions: this.ghApiData.files[0].deletions,
+          changes: this.ghApiData.files[0].changes,
+          status: this.ghApiData.files[0].status,
+        },
         totalChanges: this.ghApiData.stats.total,
         repoId: this.ghApiData.repoId,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
