@@ -5,14 +5,14 @@ import { getRepos } from 'src/lib/get-repos-list';
 import { getUsers } from 'src/lib/get-user-list';
 import { createAllIndices } from 'src/indices/indices';
 import { ghRequest } from '../lib/request-defaults';
+import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 
 const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const token: string = event.headers.authorization || '';
   const organizationName: string = event?.queryStringParameters?.orgName || '';
-
+  const installationAccessToken = await getInstallationAccessToken();
   const octokit = ghRequest.request.defaults({
     headers: {
-      authorization: token,
+      authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
 
