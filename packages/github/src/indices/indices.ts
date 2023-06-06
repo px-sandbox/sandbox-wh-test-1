@@ -130,8 +130,8 @@ export async function createAllIndices(): Promise<void> {
   }).getClient();
   for (const { name, mappings } of indices) {
     try {
-      const indexExists = await esClient.indices.exists({ index: name });
-      if (indexExists) {
+      const { statusCode } = await esClient.indices.exists({ index: name });
+      if (statusCode === 200) {
         logger.info(`Index '${name}' already exists.`);
         continue;
       }
