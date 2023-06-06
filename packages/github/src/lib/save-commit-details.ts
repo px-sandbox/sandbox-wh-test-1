@@ -5,7 +5,7 @@ import { logger } from 'core';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
 
-export async function savecommitDetails(data: Github.Type.Commits): Promise<void> {
+export async function saveCommitDetails(data: Github.Type.Commits): Promise<void> {
   try {
     if (data) {
       logger.info('---NEW_RECORD_FOUND---');

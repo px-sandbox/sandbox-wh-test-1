@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { savecommitDetails } from 'src/lib/save-commit-details';
+import { saveCommitDetails } from 'src/lib/save-commit-details';
 
 export const handler = async function commitIndexDataReciever(
   event: APIGatewayProxyEvent
@@ -12,7 +12,7 @@ export const handler = async function commitIndexDataReciever(
       /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
       logger.info('COMMIT_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
 
-      await savecommitDetails(messageBody);
+      await saveCommitDetails(messageBody);
     }
   } catch (error) {
     logger.error('commitIndexDataReciever.error', { error });

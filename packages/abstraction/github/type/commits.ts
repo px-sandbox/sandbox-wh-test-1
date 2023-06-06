@@ -6,13 +6,7 @@ export interface Commits {
     message: string;
     authorId: string;
     committedAt: string;
-    changes: {
-      filename: string;
-      additions: string;
-      deletions: string;
-      changes: string;
-      status: string;
-    };
+    changes?: CommitedFiles[];
     totalChanges: string;
     repoId: string;
     organizationId: string;
@@ -20,3 +14,10 @@ export interface Commits {
     deletedAt: boolean;
   };
 }
+export type CommitedFiles = {
+  filename: string;
+  additions: string;
+  deletions: string;
+  changes: string;
+  status: string;
+};

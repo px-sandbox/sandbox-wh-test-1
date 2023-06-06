@@ -95,15 +95,15 @@ const indices: any[] = [
         message: { type: 'text' },
         authorId: { type: 'keyword' },
         committedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        changes: [
-          {
+        changes: {
+          properties: {
             filename: { type: 'text' },
             additions: { type: 'integer' },
             deletions: { type: 'integer' },
             changes: { type: 'integer' },
             status: { type: 'text' },
           },
-        ],
+        },
         totalChanges: { type: 'integer' },
         repoId: { type: 'keyword' },
         organizationId: { type: 'keyword' },
