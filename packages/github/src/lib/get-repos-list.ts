@@ -56,7 +56,7 @@ async function getReposList(
           new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl),
           getBranches(octokit, repo.id, repo.name, repo.owner.login),
         ]),
-      ].flat()
+      ].flat(2)
     );
 
     if (reposPerPage.length < perPage) {
