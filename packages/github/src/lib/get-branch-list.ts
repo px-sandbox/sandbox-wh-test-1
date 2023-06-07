@@ -55,10 +55,10 @@ async function getBranchList(
 
     counter += branchesPerPage.length;
     await Promise.all([
-      branchesPerPage.map((branch) => {
+      branchesPerPage.map(async (branch) => {
         branch.id = Buffer.from(`${repoId}_${branch.name}`, 'binary').toString('base64');
         branch.repo_id = repoId;
-        new SQSClient().sendMessage(branch, Queue.gh_branch_format.queueUrl);
+        await new SQSClient().sendMessage(branch, Queue.gh_branch_format.queueUrl);
       }),
     ]);
 

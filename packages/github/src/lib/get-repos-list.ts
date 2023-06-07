@@ -52,8 +52,8 @@ async function getReposList(
 
     await Promise.all([
       reposPerPage.map(async (repo) => {
-        new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl),
-          getBranches(octokit, repo.id, repo.name, repo.owner.login);
+        await new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl),
+          await getBranches(octokit, repo.id, repo.name, repo.owner.login);
       }),
     ]);
 
