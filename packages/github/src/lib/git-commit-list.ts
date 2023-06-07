@@ -10,7 +10,7 @@ export async function getCommits(
   repo: string,
   owner: string,
   commits: Array<Github.ExternalType.Webhook.Commits>
-): Promise<any> {
+): Promise<void> {
   try {
     const installationAccessToken = await getInstallationAccessToken();
     const octokit = ghRequest.request.defaults({
@@ -18,15 +18,15 @@ export async function getCommits(
         Authorization: `Bearer ${installationAccessToken.body.token}`,
       },
     });
-
-    commits.map(async (commit: Github.ExternalType.Webhook.Commits): Promise<void> => {
-      console.log('commitId', commit.id);
-      const responseData = await octokit(`GET /repos/${owner}/${repo}/commits/${commit.id}`);
-      new SQSClient().sendMessage(
-        { ...responseData.data, commits: { id: commit.id } },
-        Queue.gh_commit_format.queueUrl
-      );
-    });
+    await Promise.all(
+      commits.map(async (commit: Github.ExternalType.Webhook.Commits): Promise<void> => {
+        const responseData = await octokit(`GET /repos/${owner}/${repo}/commits/${commit.id}`);
+        await new SQSClient().sendMessage(
+          { ...responseData.data, commits: { id: commit.id } },
+          Queue.gh_commit_format.queueUrl
+        );
+      })
+    );
   } catch (error: unknown) {
     logger.error({
       error,
