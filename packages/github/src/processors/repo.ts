@@ -13,6 +13,7 @@ export class RepositoryProcessor extends DataProcessor<
   }
   async processor(): Promise<Github.Type.RepoFormatter> {
     const parentId: string = await this.getParentId(`${mappingPrefixes.repo}_${this.ghApiData.id}`);
+    const action = this.ghApiData.action ?? '';
     const orgObj = {
       id: parentId || uuid(),
       body: {
@@ -28,7 +29,7 @@ export class RepositoryProcessor extends DataProcessor<
         createdAt: this.ghApiData.created_at,
         pushedAt: this.ghApiData.pushed_at,
         updatedAt: this.ghApiData.updated_at,
-        deletedAt: false,
+        action: action,
       },
     };
     return orgObj;

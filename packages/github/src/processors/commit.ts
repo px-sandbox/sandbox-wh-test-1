@@ -30,7 +30,7 @@ export class CommitProcessor extends DataProcessor<
       body: {
         id: `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`,
         githubCommitId: `${this.ghApiData.commits.id}`,
-        message: this.ghApiData.commits.message,
+        message: this.ghApiData.commit.message,
         authorId: this.ghApiData.author.id,
         committedAt: this.ghApiData.commits.timestamp,
         changes: filesArr,
@@ -41,7 +41,6 @@ export class CommitProcessor extends DataProcessor<
         deletedAt: false,
       },
     };
-
     return orgObj;
   }
 }

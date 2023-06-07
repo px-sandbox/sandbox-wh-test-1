@@ -7,6 +7,6 @@ export type Branch = {
   created_at: string;
   updated_at: string;
   pushed_at: string;
-  deleted_at?: string;
+  deleted_at: string;
   ref: string;
 };

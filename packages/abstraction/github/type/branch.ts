@@ -9,6 +9,6 @@ export interface Branch {
     createdAt: string;
     updatedAt: string;
     pushedAt: string;
-    deletedAt: boolean;
+    deletedAt: string;
   };
 }

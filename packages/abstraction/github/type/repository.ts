@@ -30,6 +30,5 @@ export interface RepoFormatter {
     createdAt: string;
     updatedAt: string;
     pushedAt: string;
-    deletedAt: boolean;
   };
 }
