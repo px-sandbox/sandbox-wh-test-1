@@ -63,7 +63,10 @@ export const webhookData = async function getWebhookData(
   let obj = {};
   switch (eventType?.toLowerCase()) {
     case Github.Enums.Event.Repo:
-      await new SQSClient().sendMessage(data.repository, Queue.gh_repo_format.queueUrl);
+      await new SQSClient().sendMessage(
+        { ...data.repository, action: data.action },
+        Queue.gh_repo_format.queueUrl
+      );
       break;
     case Github.Enums.Event.Branch:
       const {
@@ -82,9 +85,11 @@ export const webhookData = async function getWebhookData(
       }
       if (event.headers['x-github-event'] === 'delete') {
         obj = {
+          name,
           id: Buffer.from(`${repo_id}_${name}`, 'binary').toString('base64'),
           action: Github.Enums.Branch.Deleted,
-          deleted_at: event_at,
+          repo_id,
+          deleted_at: true,
         };
       }
       logger.info('-------Branch event --------');

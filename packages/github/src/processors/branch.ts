@@ -27,7 +27,7 @@ export class BranchProcessor extends DataProcessor<
         createdAt: this.ghApiData?.created_at,
         pushedAt: this.ghApiData?.pushed_at,
         updatedAt: this.ghApiData?.updated_at,
-        deletedAt: false,
+        deletedAt: this.ghApiData.deleted_at,
         action: action,
       },
     };

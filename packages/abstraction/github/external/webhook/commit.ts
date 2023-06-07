@@ -1,6 +1,9 @@
 export type Commit = {
   repoId: string;
   commits: Commits;
+  commit: {
+    message: string;
+  };
   author: {
     login: string;
     id: string;
@@ -25,7 +28,6 @@ export type Commit = {
 
 export type Commits = {
   id: string;
-  message?: string;
-  timestamp?: string;
+  timestamp: string;
   url?: string;
 };
