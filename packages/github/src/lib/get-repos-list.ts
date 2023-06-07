@@ -50,12 +50,14 @@ async function getReposList(
     const reposPerPage = responseData.data as Array<any>;
     counter += reposPerPage.length;
 
-    await Promise.all([
-      reposPerPage.map(async (repo) => {
-        await new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl),
-          await getBranches(octokit, repo.id, repo.name, repo.owner.login);
-      }),
-    ]);
+    await Promise.all(
+      [
+        reposPerPage.map(async (repo) => [
+          new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl),
+          getBranches(octokit, repo.id, repo.name, repo.owner.login),
+        ]),
+      ].flat()
+    );
 
     if (reposPerPage.length < perPage) {
       logger.info('getReposList.successfull');

@@ -13,6 +13,8 @@ export const handler = async function repoIndexDataReciever(
       logger.info('REPO_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
 
       await saveRepoDetails(messageBody);
+
+      //TODO: We can initiate saving branch afer repo is saved to OpenSearch
     }
   } catch (error) {
     logger.error('repoIndexDataReciever.error', { error });

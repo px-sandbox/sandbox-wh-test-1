@@ -49,3 +49,5 @@ coverage
 test-reports
 
 packages/github/src/model/mapping.json
+
+localfile
