@@ -1,5 +1,5 @@
 import { Branch } from './branch';
 import { Repository } from './repository';
 import { User } from './user';
-
-export { Branch, Repository, User };
+import { Commit, Commits } from './commit';
+export { Branch, Repository, User, Commits, Commit };

@@ -85,6 +85,33 @@ const indices: any[] = [
       },
     },
   },
+  {
+    name: Github.Enums.IndexName.GitCommits,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        id: { type: 'keyword' },
+        githubCommitId: { type: 'keyword' },
+        message: { type: 'text' },
+        authorId: { type: 'keyword' },
+        committedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        changes: {
+          properties: {
+            filename: { type: 'text' },
+            additions: { type: 'integer' },
+            deletions: { type: 'integer' },
+            changes: { type: 'integer' },
+            status: { type: 'text' },
+          },
+        },
+        totalChanges: { type: 'integer' },
+        repoId: { type: 'keyword' },
+        organizationId: { type: 'keyword' },
+        pushEventId: { type: 'keyword' },
+        deletedAt: { type: 'date' },
+      },
+    },
+  },
 ];
 
 export async function createAllIndices(): Promise<void> {
@@ -103,8 +130,8 @@ export async function createAllIndices(): Promise<void> {
   }).getClient();
   for (const { name, mappings } of indices) {
     try {
-      const indexExists = await esClient.indices.exists({ index: name });
-      if (indexExists) {
+      const { statusCode } = await esClient.indices.exists({ index: name });
+      if (statusCode === 200) {
         logger.info(`Index '${name}' already exists.`);
         continue;
       }

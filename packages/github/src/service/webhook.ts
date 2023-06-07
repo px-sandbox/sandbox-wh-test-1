@@ -1,10 +1,10 @@
+import { SQSClient } from '@pulse/event-handler';
 import { Github, Other } from 'abstraction';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { BranchProcessor } from 'src/processors/branch';
-import { RepositoryProcessor } from 'src/processors/repo';
-import { UsersProcessor } from 'src/processors/users';
+import { getCommits } from 'src/lib/git-commit-list';
 import { Config } from 'sst/node/config';
+import { Queue } from 'sst/node/queue';
 const crypto = require('crypto');
 
 export const webhookData = async function getWebhookData(
@@ -45,7 +45,6 @@ export const webhookData = async function getWebhookData(
     };
   }
   const data = JSON.parse(event.body || '{}');
-
   let eventType = event.headers['x-github-event']?.toLowerCase();
   const branchEvents = ['create', 'delete'];
 
@@ -64,9 +63,7 @@ export const webhookData = async function getWebhookData(
   let obj = {};
   switch (eventType?.toLowerCase()) {
     case Github.Enums.Event.Repo:
-      await new RepositoryProcessor(
-        data.repository as Github.ExternalType.Webhook.Repository
-      ).processor();
+      await new SQSClient().sendMessage(data.repository, Queue.gh_repo_format.queueUrl);
       break;
     case Github.Enums.Event.Branch:
       const {
@@ -92,41 +89,38 @@ export const webhookData = async function getWebhookData(
       }
       logger.info('-------Branch event --------');
       logger.info(obj);
-      await new BranchProcessor(obj as Github.ExternalType.Api.Branch).processor();
+      await new SQSClient().sendMessage(obj, Queue.gh_branch_format.queueUrl);
       break;
 
     case Github.Enums.Event.Organization:
       if (!data?.membership) {
         break;
       }
-      const {
-        membership: {
-          user: { id, login, avatar_url },
-        },
-      } = data as Github.ExternalType.Webhook.User;
 
       switch (data.action?.toLowerCase()) {
         case Github.Enums.Organization.MemberAdded:
           obj = {
-            id,
-            action: Github.Enums.Organization.MemberAdded,
-            login,
-            avatar_url,
-            created_at: new Date(eventTime),
+            ...data.membership.user,
+            action: data.action,
           };
           break;
         case Github.Enums.Organization.MemberRemoved:
           obj = {
-            id,
-            action: Github.Enums.Organization.MemberRemoved,
+            ...data.membership.user,
+            action: data.action,
             deleted_at: new Date(eventTime),
           };
           break;
       }
       logger.info('-------User event --------');
       logger.info(obj);
-      await new UsersProcessor(obj as Github.ExternalType.Api.User).processor();
+      await new SQSClient().sendMessage(obj, Queue.gh_users_format.queueUrl);
       break;
+    case Github.Enums.Event.Commit:
+      const reponame = data.repository.name;
+      const ownername = data.repository.owner.name;
+      const commits: Array<Github.ExternalType.Webhook.Commits> = data.commits;
+      await getCommits(reponame, ownername, commits);
     default:
       break;
   }

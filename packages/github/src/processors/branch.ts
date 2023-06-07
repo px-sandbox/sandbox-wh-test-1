@@ -15,18 +15,20 @@ export class BranchProcessor extends DataProcessor<
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.branch}_${this.ghApiData.id}`
     );
+    const action = this.ghApiData.action ?? '';
     const orgObj = {
       id: parentId || uuid(),
       body: {
         id: `${mappingPrefixes.branch}_${this.ghApiData.id}`,
         githubBranchId: this.ghApiData.id,
-        name: this.ghApiData.name,
+        name: this.ghApiData.name ?? this.ghApiData.ref,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repo_id}`,
         createdAt: this.ghApiData?.created_at,
         pushedAt: this.ghApiData?.pushed_at,
         updatedAt: this.ghApiData?.updated_at,
         deletedAt: false,
+        action: action,
       },
     };
 
