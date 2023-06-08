@@ -1,15 +1,18 @@
-import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
+import { preparePush } from './push';
 import { ghRequest } from './request-defaults';
 
 export async function getCommits(
   repo: string,
   owner: string,
-  commits: Array<Github.ExternalType.Webhook.Commits>
+  commits: Array<Github.ExternalType.Webhook.Commits>,
+  senderId: string,
+  ref: string,
+  lastCommitId: string
 ): Promise<void> {
   try {
     const installationAccessToken = await getInstallationAccessToken();
@@ -27,6 +30,7 @@ export async function getCommits(
         );
       })
     );
+    await preparePush(commits, ref, senderId, lastCommitId);
   } catch (error: unknown) {
     logger.error({
       error,

@@ -54,16 +54,24 @@ export function gh({ stack }: StackContext) {
     consumer: 'packages/github/src/sqs/handlers/indexer/commit.handler',
   });
 
+  const pushFormatDataQueue = new Queue(stack, 'gh_push_format', {
+    consumer: 'packages/github/src/sqs/handlers/formatter/push.handler',
+  });
+  const pushIndexDataQueue = new Queue(stack, 'gh_push_index', {
+    consumer: 'packages/github/src/sqs/handlers/indexer/push.handler',
+  });
+
   // bind tables and config to queue
   userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
   repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
   branchFormatDataQueue.bind([table, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
   commitFormatDataQueue.bind([table, commitIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pushFormatDataQueue.bind([table, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
   userIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   repoIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   branchIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   commitIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-
+  pushIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
   const ghAPI = new Api(stack, 'api', {
     authorizers: {
@@ -88,6 +96,8 @@ export function gh({ stack }: StackContext) {
           branchIndexDataQueue,
           commitFormatDataQueue,
           commitIndexDataQueue,
+          pushFormatDataQueue,
+          pushIndexDataQueue,
           GITHUB_BASE_URL,
           GITHUB_APP_ID,
           GITHUB_APP_PRIVATE_KEY_PEM,
