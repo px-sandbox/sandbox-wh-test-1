@@ -112,6 +112,26 @@ const indices: any[] = [
       },
     },
   },
+  {
+    name: Github.Enums.IndexName.GitPush,
+    _id: { type: 'uuid' },
+    body: {
+      mappings: {
+        properties: {
+          id: { type: 'keyword' },
+          githubPushId: { type: 'keyword' },
+          pusherId: { type: 'keyword' },
+          ref: { type: 'text' },
+          commits: {
+            properties: {
+              commitId: { type: 'keyword' },
+            },
+          },
+          organizationId: { type: 'keyword' },
+        },
+      },
+    },
+  },
 ];
 
 export async function createAllIndices(): Promise<void> {
