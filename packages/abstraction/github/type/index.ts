@@ -5,6 +5,7 @@ import { User } from './user';
 import { JWTResponse } from './jwt';
 import { Commits, CommitedFiles } from './commits';
 import { PullRequest, RequestedReviewers, Labels } from './pull-request';
+import { Push, CommitIds } from './push';
 
 export {
   Branch,
@@ -18,4 +19,6 @@ export {
   PullRequest,
   RequestedReviewers,
   Labels,
+  Push,
+  CommitIds,
 };

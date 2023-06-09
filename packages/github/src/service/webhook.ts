@@ -127,7 +127,8 @@ export const webhookData = async function getWebhookData(
       const reponame = data.repository.name;
       const ownername = data.repository.owner.name;
       const commits: Array<Github.ExternalType.Webhook.Commits> = data.commits;
-      await getCommits(reponame, ownername, commits);
+      const senderId = data.sender.id;
+      await getCommits(reponame, ownername, commits, senderId, data.ref, data.after);
     case Github.Enums.Event.PullRequest:
       await pullRequestOnQueue(data.pull_request);
       break;

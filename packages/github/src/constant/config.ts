@@ -5,4 +5,5 @@ export const mappingPrefixes = {
   repo: 'gh_repo',
   commit: 'gh_commit',
   pull: 'gh_pull',
+  push: 'gh_push',
 };

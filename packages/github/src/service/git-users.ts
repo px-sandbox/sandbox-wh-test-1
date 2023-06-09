@@ -3,7 +3,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { searchedDataFormator } from 'src/util/response-formatter';
+import { formatUserDataResponse, searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
 import { getGitUserSchema } from './validations';
 
@@ -12,6 +12,7 @@ const githubUser = async function getUserData(
 ): Promise<APIGatewayProxyResult> {
   const githubUserId: string = event?.pathParameters?.githubUserId || '';
   let response;
+  let apiRes;
   try {
     const data = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -26,7 +27,7 @@ const githubUser = async function getUserData(
   let body = null;
   let statusCode = HttpStatusCode[404];
   if (response[0]) {
-    body = response[0];
+    body = formatUserDataResponse(response[0]);
     statusCode = HttpStatusCode[200];
   }
   return responseParser
