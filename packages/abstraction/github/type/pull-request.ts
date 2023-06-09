@@ -3,17 +3,17 @@ export interface PullRequest {
   body: {
     id: string;
     githubPullId: number;
-    number?: number;
+    pullNumber?: number;
     state?: string;
     title?: string;
     pullRequestCreatedBy?: string;
-    body?: string;
+    pullBody?: string;
     createdAt?: string;
     updatedAt?: string;
     closedAt?: string;
     mergedAt?: string;
-    requestedReviewers?: requestedReviewers[];
-    labels?: labels[];
+    requestedReviewers?: RequestedReviewers[];
+    labels?: Labels[];
     head?: {
       label: string;
       ref: string;
@@ -34,10 +34,10 @@ export interface PullRequest {
   };
 }
 
-export type requestedReviewers = {
+export type RequestedReviewers = {
   login: string;
 };
 
-export type labels = {
+export type Labels = {
   name: string;
 };
