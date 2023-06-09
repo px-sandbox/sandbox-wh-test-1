@@ -46,6 +46,12 @@ export function gh({ stack }: StackContext) {
   const branchIndexDataQueue = new Queue(stack, 'gh_branch_index', {
     consumer: 'packages/github/src/sqs/handlers/indexer/branch.handler',
   });
+  const pullRequestFormatDataQueue = new Queue(stack, 'gh_pull_request_format', {
+    consumer: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
+  });
+  const pullRequestIndexDataQueue = new Queue(stack, 'gh_pull_request_index', {
+    consumer: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
+  });
 
   const commitFormatDataQueue = new Queue(stack, 'gh_commit_format', {
     consumer: 'packages/github/src/sqs/handlers/formatter/commit.handler',
@@ -59,11 +65,18 @@ export function gh({ stack }: StackContext) {
   repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
   branchFormatDataQueue.bind([table, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
   commitFormatDataQueue.bind([table, commitIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pullRequestFormatDataQueue.bind([table, pullRequestIndexDataQueue, GIT_ORGANIZATION_ID]);
+
+  commitIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   userIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   repoIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   branchIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  commitIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-
+  pullRequestIndexDataQueue.bind([
+    table,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
 
   const ghAPI = new Api(stack, 'api', {
     authorizers: {
@@ -83,11 +96,13 @@ export function gh({ stack }: StackContext) {
           userFormatDataQueue,
           repoFormatDataQueue,
           branchFormatDataQueue,
+          pullRequestFormatDataQueue,
           userIndexDataQueue,
           repoIndexDataQueue,
           branchIndexDataQueue,
           commitFormatDataQueue,
           commitIndexDataQueue,
+          pullRequestIndexDataQueue,
           GITHUB_BASE_URL,
           GITHUB_APP_ID,
           GITHUB_APP_PRIVATE_KEY_PEM,

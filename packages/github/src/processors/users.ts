@@ -12,7 +12,7 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
     const parentId = await this.getParentId(`${mappingPrefixes.user}_${this.ghApiData.id}`);
     const createdAt = this.ghApiData.created_at ?? new Date();
     const action = this.ghApiData.action ?? '';
-    const orgObj = {
+    const userObj = {
       id: parentId || uuid(),
       body: {
         id: `${mappingPrefixes.user}_${this.ghApiData?.id}`,
@@ -25,6 +25,6 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
         action: action,
       },
     };
-    return orgObj;
+    return userObj;
   }
 }

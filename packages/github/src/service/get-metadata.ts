@@ -20,13 +20,13 @@ const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
   await createAllIndices();
   logger.info('AllIndices.created');
   const organization = await fetchAndSaveOrganizationDetails(octokit, organizationName);
-  const [users, repo] = await Promise.all([
-    getUsers(octokit, organizationName),
-    getRepos(octokit, organizationName),
-  ]);
+  // const [users, repo] = await Promise.all([
+  //   getUsers(octokit, organizationName),
+  //   getRepos(octokit, organizationName),
+  // ]);
 
   return responseParser
-    .setBody({ organization, users, repo })
+    .setBody({ organization }) //, users, repo })
     .setMessage('get metadata')
     .setStatusCode(HttpStatusCode[200])
     .setResponseBodyCode('SUCCESS')

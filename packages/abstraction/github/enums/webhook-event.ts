@@ -3,4 +3,5 @@ export enum Event {
   Branch = 'branch',
   Organization = 'organization',
   Commit = 'push',
+  PullRequest = 'pull_request',
 }

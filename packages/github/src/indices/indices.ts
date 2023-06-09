@@ -112,6 +112,27 @@ const indices: any[] = [
       },
     },
   },
+  {
+    name: Github.Enums.IndexName.GitPull,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        id: { type: 'keyword' },
+        githubPullId: { type: 'keyword' },
+        number: { type: 'keyword' },
+        state: { type: 'text' },
+        title: { type: 'text' },
+        pullRequestCreatedBy: { type: 'text' },
+        body: { type: 'text' },
+        createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        updatedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        closedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        mergedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        repoId: { type: 'keyword' },
+        organizationId: { type: 'keyword' },
+      },
+    },
+  },
 ];
 
 export async function createAllIndices(): Promise<void> {
@@ -142,3 +163,32 @@ export async function createAllIndices(): Promise<void> {
     }
   }
 }
+// requestedReviewers: {
+//   properties: {
+//     login: { type: 'keyword' },
+//   },
+// },
+// labels: {
+//   properties: {
+//     name: { type: 'keyword' },
+//   },
+// },
+// head: {
+//   properties: {
+//     label: { type: 'text' },
+//     ref: { type: 'text' },
+//   },
+// },
+// base: {
+//   properties: {
+//     label: { type: 'text' },
+//     ref: { type: 'text' },
+//   },
+// },
+// mergedBy: { type: 'text' },
+// comments: { type: 'integer' },
+// reviewComments: { type: 'integer' },
+// commits: { type: 'integer' },
+// additions: { type: 'integer' },
+// deletions: { type: 'integer' },
+// changedFiles: { type: 'integer' },

@@ -16,7 +16,7 @@ export class BranchProcessor extends DataProcessor<
       `${mappingPrefixes.branch}_${this.ghApiData.id}`
     );
     const action = this.ghApiData.action ?? '';
-    const orgObj = {
+    const branchObj = {
       id: parentId || uuid(),
       body: {
         id: `${mappingPrefixes.branch}_${this.ghApiData.id}`,
@@ -32,6 +32,6 @@ export class BranchProcessor extends DataProcessor<
       },
     };
 
-    return orgObj;
+    return branchObj;
   }
 }
