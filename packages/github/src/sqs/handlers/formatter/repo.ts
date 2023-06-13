@@ -12,11 +12,11 @@ export const handler = async function repoFormattedDataReciever(
     /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
     logger.info('REPO_SQS_RECIEVER_HANDLER', { messageBody });
 
-    const userProcessor = new RepositoryProcessor(messageBody);
-    const validatedData = userProcessor.validate();
+    const repoProcessor = new RepositoryProcessor(messageBody);
+    const validatedData = repoProcessor.validate();
     if (validatedData) {
-      const data = await userProcessor.processor();
-      await userProcessor.sendDataToQueue(data, Queue.gh_repo_index.queueUrl);
+      const data = await repoProcessor.processor();
+      await repoProcessor.sendDataToQueue(data, Queue.gh_repo_index.queueUrl);
     }
   }
 };

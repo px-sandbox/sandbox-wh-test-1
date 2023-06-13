@@ -63,6 +63,11 @@ const indices: any[] = [
         pushedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         visibility: { type: 'text' },
         openIssuesCount: { type: 'integer' },
+        topics: {
+          properties: {
+            type: 'text',
+          },
+        },
         organizationId: { type: 'keyword' },
         deletedAt: { type: 'date' },
       },
@@ -129,6 +134,56 @@ const indices: any[] = [
           },
           organizationId: { type: 'keyword' },
         },
+      },
+    },
+  },
+  {
+    name: Github.Enums.IndexName.GitPull,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        id: { type: 'keyword' },
+        githubPullId: { type: 'keyword' },
+        pullNumber: { type: 'keyword' },
+        state: { type: 'text' },
+        title: { type: 'text' },
+        pullRequestCreatedBy: { type: 'text' },
+        pullBody: { type: 'text' },
+        createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        updatedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        closedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        mergedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        requestedReviewers: {
+          properties: {
+            login: { type: 'text' },
+          },
+        },
+        labels: {
+          properties: {
+            name: { type: 'text' },
+          },
+        },
+        head: {
+          properties: {
+            label: { type: 'text' },
+            ref: { type: 'text' },
+          },
+        },
+        base: {
+          properties: {
+            label: { type: 'text' },
+            ref: { type: 'text' },
+          },
+        },
+        mergedBy: { type: 'text' },
+        comments: { type: 'integer' },
+        reviewComments: { type: 'integer' },
+        commits: { type: 'integer' },
+        additions: { type: 'integer' },
+        deletions: { type: 'integer' },
+        changedFiles: { type: 'integer' },
+        repoId: { type: 'keyword' },
+        organizationId: { type: 'keyword' },
       },
     },
   },
