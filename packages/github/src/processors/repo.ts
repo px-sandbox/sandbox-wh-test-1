@@ -26,6 +26,7 @@ export class RepositoryProcessor extends DataProcessor<
         visibility: this.ghApiData.visibility,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         openIssuesCount: this.ghApiData.open_issues_count,
+        topics: this.ghApiData.topics,
         createdAt: this.ghApiData.created_at,
         pushedAt: this.ghApiData.pushed_at,
         updatedAt: this.ghApiData.updated_at,

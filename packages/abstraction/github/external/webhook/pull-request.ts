@@ -31,7 +31,9 @@ export type PullRequest = {
     ref: string;
     repo: { id: number };
   };
-  merged_by: string;
+  merged_by: {
+    login: string;
+  };
   comments: number;
   review_comments: number;
   commits: number;
