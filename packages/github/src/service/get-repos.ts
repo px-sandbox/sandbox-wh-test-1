@@ -3,11 +3,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import {
-  formatRepoDataResponse,
-  paginate,
-  searchedDataFormator,
-} from 'src/util/response-formatter';
+import { formatRepoDataResponse, searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
 import { getGitRepoSchema } from './validations';
 
@@ -15,7 +11,7 @@ const gitRepos = async function getRepoData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const gitRepoName: string = event?.queryStringParameters?.search || '';
-  const page = Number(event?.queryStringParameters?.page || 2);
+  const page = Number(event?.queryStringParameters?.page || 1);
   const size = Number(event?.queryStringParameters?.size || 10);
   let response;
   try {
@@ -28,7 +24,7 @@ const gitRepos = async function getRepoData(
     let data = (
       await esClient.getClient().search({
         index: Github.Enums.IndexName.GitRepo,
-        from: page - 1,
+        from: (page - 1) * size,
         size: size * page - (page - 1) * size,
       })
     ).body;
@@ -43,7 +39,7 @@ const gitRepos = async function getRepoData(
   }
   let body = null;
   let statusCode = HttpStatusCode[404];
-  if (response) {
+  if (response[0]) {
     body = formatRepoDataResponse(response);
     statusCode = HttpStatusCode[200];
   }
