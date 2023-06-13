@@ -63,6 +63,11 @@ const indices: any[] = [
         pushedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         visibility: { type: 'text' },
         openIssuesCount: { type: 'integer' },
+        topics: {
+          properties: {
+            type: 'text',
+          },
+        },
         organizationId: { type: 'keyword' },
         deletedAt: { type: 'date' },
       },

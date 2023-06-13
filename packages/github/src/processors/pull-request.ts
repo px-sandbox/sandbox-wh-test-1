@@ -51,7 +51,7 @@ export class PullRequestProcessor extends DataProcessor<
           label: this.ghApiData.base.label,
           ref: this.ghApiData.base.ref,
         },
-        mergedBy: this.ghApiData.merged_by,
+        mergedBy: this.ghApiData.merged_by.login,
         comments: this.ghApiData.comments,
         reviewComments: this.ghApiData.review_comments,
         commits: this.ghApiData.commits,
