@@ -23,7 +23,7 @@ export const formatRepoDataResponse = (data: any) => {
       id: repo._id,
       githubId: repo.id,
       name: repo.name,
-      topics: ['development', 'backend', 'frontend'],
+      topics: repo.topics,
     };
   });
 };
