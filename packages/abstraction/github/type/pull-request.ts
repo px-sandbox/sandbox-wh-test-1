@@ -22,7 +22,7 @@ export interface PullRequest {
       label: string;
       ref: string;
     };
-    mergedBy: { login: string } | null;
+    mergedBy: { userId: string } | null;
     comments: number;
     reviewComments: number;
     commits: number;
@@ -35,7 +35,7 @@ export interface PullRequest {
 }
 
 export type RequestedReviewers = {
-  login: string;
+  userId: string;
 };
 
 export type Labels = {
