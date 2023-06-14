@@ -146,6 +146,8 @@ export function gh({ stack }: StackContext) {
       },
       // GET GithubUser data
       'GET /github/user/{githubUserId}': 'packages/github/src/service/git-users.handler',
+      // GET GithubRepo data
+      'GET /github/repositories': 'packages/github/src/service/get-repos.handler',
     },
   });
 

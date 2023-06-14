@@ -37,3 +37,16 @@ export const getGitUserSchema = {
     },
   },
 };
+
+export const getGitRepoSchema = {
+  type: 'object',
+  properties: {
+    pathParameters: {
+      type: 'object',
+      properties: {
+        search: { type: 'string' },
+      },
+      required: ['search'],
+    },
+  },
+};
