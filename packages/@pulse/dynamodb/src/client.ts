@@ -36,7 +36,7 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
   constructor(stage: string) {
     const DbdClient = new DynamoDBClient({
       region: this.region,
-      endpoint: stage === 'local' ? this.dynamoDbLocalURL : undefined,
+      endpoint: process.env.IS_LOCAL ? this.dynamoDbLocalURL : undefined,
     });
     this.ddbDocClient = DynamoDBDocumentClient.from(DbdClient, this.translateConfig);
   }

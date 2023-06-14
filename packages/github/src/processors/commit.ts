@@ -35,7 +35,7 @@ export class CommitProcessor extends DataProcessor<
         committedAt: this.ghApiData.commits.timestamp,
         changes: filesArr,
         totalChanges: this.ghApiData.stats.total,
-        repoId: this.ghApiData.repoId,
+        repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         createdAt: '',
         deletedAt: false,

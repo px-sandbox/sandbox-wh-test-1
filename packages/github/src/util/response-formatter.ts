@@ -16,3 +16,14 @@ export const formatUserDataResponse = (data: any) => {
     organizationId: data.organizationId,
   };
 };
+
+export const formatRepoDataResponse = (data: any) => {
+  return data.map((repo: any) => {
+    return {
+      id: repo._id,
+      githubId: repo.id,
+      name: repo.name,
+      topics: repo.topics,
+    };
+  });
+};

@@ -12,7 +12,8 @@ export async function getCommits(
   commits: Array<Github.ExternalType.Webhook.Commits>,
   senderId: string,
   ref: string,
-  lastCommitId: string
+  lastCommitId: string,
+  repoId: string
 ): Promise<void> {
   try {
     const installationAccessToken = await getInstallationAccessToken();
@@ -25,7 +26,7 @@ export async function getCommits(
       commits.map(async (commit: Github.ExternalType.Webhook.Commits): Promise<void> => {
         const responseData = await octokit(`GET /repos/${owner}/${repo}/commits/${commit.id}`);
         await new SQSClient().sendMessage(
-          { ...responseData.data, commits: { id: commit.id } },
+          { ...responseData.data, commits: { id: commit.id }, repoId: repoId },
           Queue.gh_commit_format.queueUrl
         );
       })
