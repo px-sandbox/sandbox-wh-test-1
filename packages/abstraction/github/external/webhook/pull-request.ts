@@ -33,7 +33,7 @@ export type PullRequest = {
   };
   merged_by: {
     login: string;
-  };
+  } | null;
   comments: number;
   review_comments: number;
   commits: number;

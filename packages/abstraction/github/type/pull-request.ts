@@ -22,7 +22,7 @@ export interface PullRequest {
       label: string;
       ref: string;
     };
-    mergedBy: string;
+    mergedBy: { login: string } | null;
     comments: number;
     reviewComments: number;
     commits: number;
