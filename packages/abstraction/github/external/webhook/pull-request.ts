@@ -4,7 +4,7 @@ export type PullRequest = {
   state: string;
   title: string;
   user: {
-    login: string;
+    id: number;
   };
   body: string;
   created_at: string;
@@ -13,7 +13,7 @@ export type PullRequest = {
   merged_at: string;
   requested_reviewers: [
     {
-      login: string;
+      id: number;
     }
   ];
   labels: [
@@ -32,8 +32,8 @@ export type PullRequest = {
     repo: { id: number };
   };
   merged_by: {
-    login: string;
-  };
+    id: number;
+  } | null;
   comments: number;
   review_comments: number;
   commits: number;
