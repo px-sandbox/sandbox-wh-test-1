@@ -6,15 +6,7 @@ import { Queue } from 'sst/node/queue';
 import { preparePush } from './push';
 import { ghRequest } from './request-defaults';
 
-export async function getCommits(
-  repo: string,
-  owner: string,
-  commits: Array<Github.ExternalType.Webhook.Commits>,
-  senderId: string,
-  ref: string,
-  lastCommitId: string,
-  repoId: string
-): Promise<void> {
+export async function getCommits(commits: Github.ExternalType.Webhook.Commit): Promise<void> {
   try {
     const installationAccessToken = await getInstallationAccessToken();
     const octokit = ghRequest.request.defaults({
@@ -23,15 +15,27 @@ export async function getCommits(
       },
     });
     await Promise.all(
-      commits.map(async (commit: Github.ExternalType.Webhook.Commits): Promise<void> => {
-        const responseData = await octokit(`GET /repos/${owner}/${repo}/commits/${commit.id}`);
+      commits.commits.map(async (commit: Github.ExternalType.Webhook.Commits): Promise<void> => {
+        const responseData = await octokit(
+          `GET /repos/${commits.repository.owner.name}/${commits.repository.name}/commits/${commit.id}`
+        );
         await new SQSClient().sendMessage(
-          { ...responseData.data, commits: { id: commit.id }, repoId: repoId },
+          {
+            ...responseData.data,
+            commits: { id: commit.id },
+            repoId: commits.repository.id,
+          },
           Queue.gh_commit_format.queueUrl
         );
       })
     );
-    await preparePush(commits, ref, senderId, lastCommitId);
+    await preparePush(
+      commits.commits,
+      commits.ref,
+      commits.sender.id,
+      commits.after,
+      commits.repository.id
+    );
   } catch (error: unknown) {
     logger.error({
       error,

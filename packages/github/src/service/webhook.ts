@@ -124,12 +124,8 @@ export const webhookData = async function getWebhookData(
       await new SQSClient().sendMessage(obj, Queue.gh_users_format.queueUrl);
       break;
     case Github.Enums.Event.Commit:
-      const reponame = data.repository.name;
-      const repoId = data.repository.id;
-      const ownername = data.repository.owner.name;
-      const commits: Array<Github.ExternalType.Webhook.Commits> = data.commits;
-      const senderId = data.sender.id;
-      await getCommits(reponame, ownername, commits, senderId, data.ref, data.after, repoId);
+      const commitData: Github.ExternalType.Webhook.Commit = data;
+      await getCommits(commitData);
     case Github.Enums.Event.PullRequest:
       await pullRequestOnQueue(data.pull_request);
       break;
