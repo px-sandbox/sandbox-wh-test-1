@@ -5,10 +5,10 @@ import { v4 as uuid } from 'uuid';
 import { DataProcessor } from './data-processor';
 
 export class CommitProcessor extends DataProcessor<
-  Github.ExternalType.Webhook.Commit,
+  Github.ExternalType.Api.Commit,
   Github.Type.Commits
 > {
-  constructor(data: Github.ExternalType.Webhook.Commit) {
+  constructor(data: Github.ExternalType.Api.Commit) {
     super(data);
   }
   async processor(): Promise<Github.Type.Commits> {
@@ -31,14 +31,13 @@ export class CommitProcessor extends DataProcessor<
         id: `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`,
         githubCommitId: `${this.ghApiData.commits.id}`,
         message: this.ghApiData.commit.message,
-        authorId: this.ghApiData.author.id,
+        authorId: `${mappingPrefixes.user}_${this.ghApiData.committer.id}`,
         committedAt: this.ghApiData.commits.timestamp,
         changes: filesArr,
         totalChanges: this.ghApiData.stats.total,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
-        createdAt: '',
-        deletedAt: false,
+        createdAt: this.ghApiData.commit.committer.date,
       },
     };
     return orgObj;

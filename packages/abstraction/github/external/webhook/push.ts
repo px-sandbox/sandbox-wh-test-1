@@ -4,6 +4,7 @@ export type Push = {
   pusherId: string;
   commits: CommitIds[];
   organizationId: string;
+  repoId: string;
 };
 
 export type CommitIds = {
