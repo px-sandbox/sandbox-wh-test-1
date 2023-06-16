@@ -16,7 +16,7 @@ export class PullRequestProcessor extends DataProcessor<
     const reqReviewersData: Array<Github.Type.RequestedReviewers> = [];
     this.ghApiData.requested_reviewers.map((reqReviewer) => {
       reqReviewersData.push({
-        login: reqReviewer.login,
+        userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
       });
     });
 
@@ -35,7 +35,7 @@ export class PullRequestProcessor extends DataProcessor<
         pullNumber: this.ghApiData.number,
         state: this.ghApiData.state,
         title: this.ghApiData.title,
-        pullRequestCreatedBy: this.ghApiData.user.login,
+        pullRequestCreatedBy: `${mappingPrefixes.user}_${this.ghApiData.user.id}`,
         pullBody: this.ghApiData.body,
         createdAt: this.ghApiData.created_at,
         updatedAt: this.ghApiData.updated_at,
@@ -51,7 +51,9 @@ export class PullRequestProcessor extends DataProcessor<
           label: this.ghApiData.base.label,
           ref: this.ghApiData.base.ref,
         },
-        mergedBy: this.ghApiData.merged_by.login,
+        mergedBy: this.ghApiData.merged_by
+          ? { userId: `${mappingPrefixes.user}_${this.ghApiData.merged_by.id}` }
+          : null,
         comments: this.ghApiData.comments,
         reviewComments: this.ghApiData.review_comments,
         commits: this.ghApiData.commits,
