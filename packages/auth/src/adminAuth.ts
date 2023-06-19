@@ -1,4 +1,5 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { handler as auth } from './auth';
 
-export const handler = async (event: APIGatewayProxyEvent) => auth(event, 'ADMIN');
+export const handler = async (event: APIGatewayProxyEvent, context: Context) =>
+  auth(event, context, 'ADMIN');

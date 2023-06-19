@@ -143,22 +143,35 @@ export function gh({ stack }: StackContext) {
         authorizer: 'admin',
       },
       // GET github installation access token
-      'GET /github/installation-access-token':
-        'packages/github/src/service/installation-access-token.handler',
+      'GET /github/installation-access-token': {
+        function: 'packages/github/src/service/installation-access-token.handler',
+        authorizer: 'admin',
+      },
       // GET github Oauth token
-      'GET /github/auth-token': 'packages/github/src/service/jwt-token.getOauthToken',
+      'GET /github/auth-token': {
+        function: 'packages/github/src/service/jwt-token.getOauthToken',
+        authorizer: 'admin',
+      },
       // GET Github app installations
-      'GET /github/app/installations':
-        'packages/github/src/service/github-app-installations.handler',
+      'GET /github/app/installations': {
+        function: 'packages/github/src/service/github-app-installations.handler',
+        authorizer: 'admin',
+      },
       // POST Webhook handler
       'POST /github/webhook': {
         function: 'packages/github/src/service/webhook.webhookData',
         authorizer: 'none',
       },
       // GET GithubUser data
-      'GET /github/user/{githubUserId}': 'packages/github/src/service/git-users.handler',
+      'GET /github/user/{githubUserId}': {
+        function: 'packages/github/src/service/git-users.handler',
+        authorizer: 'universal',
+      },
       // GET GithubRepo data
-      'GET /github/repositories': 'packages/github/src/service/get-repos.handler',
+      'GET /github/repositories': {
+        function: 'packages/github/src/service/get-repos.handler',
+        authorizer: 'universal',
+      },
     },
   });
 

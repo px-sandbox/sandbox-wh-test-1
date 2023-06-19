@@ -1,9 +1,9 @@
 import { Config } from 'sst/node/config';
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import jwt from 'jsonwebtoken';
 import { logger } from 'core';
 
-export const handler = async (event: APIGatewayProxyEvent, userRole?: string) => {
+export const handler = async (event: APIGatewayProxyEvent, context: Context, userRole?: string) => {
   try {
     logger.info('Auth.invoked', { event, userRole });
     if (process.env.IS_LOCAL) {
@@ -12,6 +12,7 @@ export const handler = async (event: APIGatewayProxyEvent, userRole?: string) =>
         context: {},
       };
     }
+
     const authHeader = event.headers['authorization'] || '';
     if (authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7, authHeader.length);
