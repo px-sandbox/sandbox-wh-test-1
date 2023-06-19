@@ -92,7 +92,7 @@ export function gh({ stack }: StackContext) {
       universal: {
         type: 'lambda',
         responseTypes: ['simple'],
-        function: new Function(stack, 'Authorizer', {
+        function: new Function(stack, 'Universal-Authorizer', {
           handler: 'packages/auth/src/auth.handler',
           bind: [AUTH_PUBLIC_KEY],
         }),
@@ -100,7 +100,7 @@ export function gh({ stack }: StackContext) {
       admin: {
         type: 'lambda',
         responseTypes: ['simple'],
-        function: new Function(stack, 'Authorizer', {
+        function: new Function(stack, 'Admin-Authorizer', {
           handler: 'packages/auth/src/adminAuth.handler',
           bind: [AUTH_PUBLIC_KEY],
         }),
