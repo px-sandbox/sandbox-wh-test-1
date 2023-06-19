@@ -89,7 +89,7 @@ export function gh({ stack }: StackContext) {
 
   const ghAPI = new Api(stack, 'api', {
     authorizers: {
-      lambdas: {
+      universal: {
         type: 'lambda',
         responseTypes: ['simple'],
         function: new Function(stack, 'Authorizer', {
@@ -97,9 +97,17 @@ export function gh({ stack }: StackContext) {
           bind: [AUTH_PUBLIC_KEY],
         }),
       },
+      admin: {
+        type: 'lambda',
+        responseTypes: ['simple'],
+        function: new Function(stack, 'Authorizer', {
+          handler: 'packages/auth/src/adminAuth.handler',
+          bind: [AUTH_PUBLIC_KEY],
+        }),
+      },
     },
     defaults: {
-      authorizer: 'lambdas',
+      authorizer: 'universal',
       function: {
         bind: [
           userFormatDataQueue,
@@ -130,7 +138,10 @@ export function gh({ stack }: StackContext) {
     },
     routes: {
       // GET Metadata route
-      'GET /github/metadata': 'packages/github/src/service/get-metadata.handler',
+      'GET /github/metadata': {
+        function: 'packages/github/src/service/get-metadata.handler',
+        authorizer: 'admin',
+      },
       // GET github installation access token
       'GET /github/installation-access-token':
         'packages/github/src/service/installation-access-token.handler',
