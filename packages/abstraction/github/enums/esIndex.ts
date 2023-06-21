@@ -4,6 +4,7 @@ export enum IndexName {
   GitCommits = 'git_commits',
   GitPush = 'git_push',
   GitPull = 'git_pull',
+  GitPRReviewComment = 'git_pull_request_review_comment',
   GitRepo = 'git_repo',
   GitOrganization = 'git_organization',
 }
