@@ -1,0 +1,41 @@
+{
+  "TableName": "<STAGE_APPNAME_TABLE_NAME>",
+  "KeySchema": [
+    {
+      "AttributeName": "parentId",
+      "KeyType": "HASH"
+    }
+  ],
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "parentId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "githubId",
+      "AttributeType": "S"
+    }
+  ],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "githubIndex",
+      "KeySchema": [
+        {
+          "AttributeName": "githubId",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 1,
+        "WriteCapacityUnits": 1
+      }
+    }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 1,
+    "WriteCapacityUnits": 1
+  }
+}

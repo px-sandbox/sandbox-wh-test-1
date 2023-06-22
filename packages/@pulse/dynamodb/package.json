@@ -1,0 +1,19 @@
+{
+  "name": "@pulse/dynamodb",
+  "version": "1.0.0",
+  "types": "module",
+  "private": "true",
+  "main": "index.ts",
+  "scripts": {
+    "test": "sst bind vitest",
+    "typecheck": "tsc -noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.10"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.306.0",
+    "@aws-sdk/lib-dynamodb": "^3.309.0",
+    "@aws-sdk/util-dynamodb": "^3.309.0"
+  }
+}

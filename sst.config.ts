@@ -1,16 +1,19 @@
 import { SSTConfig } from 'sst';
-import { productsStack } from './stacks/product';
-import { usersStack } from './stacks/users';
+import { gh } from './stacks/github';
+import { devops } from './stacks/devops';
 
 export default {
-  config(_input) {
+  config(): { name: string; region: string } {
     return {
-      name: 'my-sst-app',
-      region: 'us-east-1',
+      name: 'pulse-dx',
+      region: 'eu-west-1',
     };
   },
   stacks(app) {
-    app.stack(usersStack);
-    app.stack(productsStack);
+    app.stack(gh);
+    app.stack(devops);
+    if (app.stage !== 'live') {
+      app.setDefaultRemovalPolicy('destroy');
+    }
   },
 } satisfies SSTConfig;

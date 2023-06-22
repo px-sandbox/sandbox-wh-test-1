@@ -1,0 +1,37 @@
+import { Github } from 'abstraction';
+import { mappingPrefixes } from 'src/constant/config';
+import { Config } from 'sst/node/config';
+import { v4 as uuid } from 'uuid';
+import { DataProcessor } from './data-processor';
+
+export class BranchProcessor extends DataProcessor<
+  Github.ExternalType.Api.Branch,
+  Github.Type.Branch
+> {
+  constructor(data: Github.ExternalType.Api.Branch) {
+    super(data);
+  }
+  async processor(): Promise<Github.Type.Branch> {
+    const parentId: string = await this.getParentId(
+      `${mappingPrefixes.branch}_${this.ghApiData.id}`
+    );
+    const action = this.ghApiData.action ?? '';
+    const branchObj = {
+      id: parentId || uuid(),
+      body: {
+        id: `${mappingPrefixes.branch}_${this.ghApiData.id}`,
+        githubBranchId: this.ghApiData.id,
+        name: this.ghApiData.name ?? this.ghApiData.ref,
+        organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        repoId: `${mappingPrefixes.repo}_${this.ghApiData.repo_id}`,
+        createdAt: this.ghApiData?.created_at,
+        pushedAt: this.ghApiData?.pushed_at,
+        updatedAt: this.ghApiData?.updated_at,
+        deletedAt: this.ghApiData.deleted_at,
+        action: action,
+      },
+    };
+
+    return branchObj;
+  }
+}

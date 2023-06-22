@@ -1,0 +1,11 @@
+name: CI checks
+
+on:
+  pull_request: {}
+  workflow_dispatch:
+
+jobs:
+  call-workflow:
+    uses: studiographene/studiographene-nodejs-scans/.github/workflows/ci.yml@fix/pnpm
+    with:
+      project_name: px-data-integration

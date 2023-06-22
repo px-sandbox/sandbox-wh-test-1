@@ -2,12 +2,12 @@ import middy from '@middy/core';
 import validator from '@middy/validator';
 import httpErrorHandler from '@middy/http-error-handler';
 import jsonBodyParser from '@middy/http-json-body-parser';
-import { ValidationErrorResponse } from './internal/validation-error-response';
 import {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  Context,
+	APIGatewayProxyEvent,
+	APIGatewayProxyResult,
+	Context,
 } from 'aws-lambda';
+import { ValidationErrorResponse } from './internal/validation-error-response';
 
 interface Handler {
   (
@@ -17,14 +17,14 @@ interface Handler {
 }
 
 const APIHandler = (handler: Handler, validation?: any) => {
-  if (validation) {
-    return middy(handler)
-      .use(jsonBodyParser())
-      .use(validator(validation))
-      .use(ValidationErrorResponse)
-      .use(httpErrorHandler());
-  } else {
-    return middy(handler).use(jsonBodyParser()).use(httpErrorHandler());
-  }
+	if (validation) {
+		return middy(handler)
+			.use(jsonBodyParser())
+			.use(validator(validation))
+			.use(ValidationErrorResponse)
+			.use(httpErrorHandler());
+	} 
+		return middy(handler).use(jsonBodyParser()).use(httpErrorHandler());
+	
 };
 export { APIHandler };
