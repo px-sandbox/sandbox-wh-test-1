@@ -7,11 +7,12 @@ export async function preparePush(
   commits: Array<Github.ExternalType.Webhook.Commits>,
   ref: string,
   pusherId: string,
-  lastCommitId: string
+  lastCommitId: string,
+  repoId: string
 ): Promise<void> {
   try {
     await new SQSClient().sendMessage(
-      { commits, ref, pusherId, id: lastCommitId },
+      { commits, ref, pusherId, id: lastCommitId, repoId },
       Queue.gh_push_format.queueUrl
     );
   } catch (error: unknown) {

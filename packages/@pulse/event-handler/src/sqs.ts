@@ -9,6 +9,7 @@ export class SQSClient implements ISQSClient {
   }
 
   public async sendMessage(message: Object, queueUrl: string): Promise<void> {
+    const queueName = queueUrl.split('/').slice(-1).toString();
     try {
       const res = await this.sqs
         .sendMessage({
@@ -16,9 +17,13 @@ export class SQSClient implements ISQSClient {
           QueueUrl: queueUrl,
         })
         .promise();
-      logger.info({ message: 'SQS_SEND_MESSAGE_RESPONSE', res });
+      logger.info({
+        message: 'SQS_SEND_MESSAGE_RESPONSE',
+        res,
+        queueName,
+      });
     } catch (error) {
-      logger.error({ message: 'ERROR_SQS_SEND_MESSAGE', error });
+      logger.error({ message: 'ERROR_SQS_SEND_MESSAGE', error, queueName });
     }
   }
 }

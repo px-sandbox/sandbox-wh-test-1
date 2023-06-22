@@ -1,3 +1,4 @@
+import { Other } from 'abstraction';
 import { Config } from 'sst/node/config';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import jwt from 'jsonwebtoken';
@@ -5,7 +6,7 @@ import { logger } from 'core';
 
 export const handler = async (event: APIGatewayProxyEvent) => {
   try {
-    logger.info('Auth.invoked', { event });
+    logger.info('AdminAuth.invoked', { event });
     if (process.env.IS_LOCAL) {
       return {
         isAuthorized: true,
@@ -19,7 +20,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       const publicKey = Buffer.from(Config.AUTH_PUBLIC_KEY, 'base64').toString();
       const user: any = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
       return {
-        isAuthorized: true,
+        isAuthorized: user && user.role === Other.Enum.Role.ADMIN,
         context: { user },
       };
     }
@@ -28,7 +29,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       context: {},
     };
   } catch (error) {
-    logger.error('Auth.error', { error });
+    logger.error('AdminAuth.error', { error });
     return {
       isAuthorized: false,
       context: {},
