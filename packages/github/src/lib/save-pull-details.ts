@@ -12,12 +12,12 @@ export async function savePullRequestDetails(data: Github.Type.PullRequest): Pro
       await new DynamoDbDocClient(Config.STAGE).put(
         new ParamsMapping().preparePutParams(data.id, data.body.id)
       );
+      await new ElasticSearchClient({
+        host: Config.OPENSEARCH_NODE,
+        username: Config.OPENSEARCH_USERNAME ?? '',
+        password: Config.OPENSEARCH_PASSWORD ?? '',
+      }).putDocument(Github.Enums.IndexName.GitPull, data);
     }
-    await new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    }).putDocument(Github.Enums.IndexName.GitPull, data);
   } catch (error: unknown) {
     logger.error('savePullRequestDetails.error', {
       error,

@@ -11,12 +11,12 @@ export async function savePushDetails(data: Github.Type.Push): Promise<void> {
       await new DynamoDbDocClient(Config.STAGE).put(
         new ParamsMapping().preparePutParams(data.id, data.body.id)
       );
+      await new ElasticSearchClient({
+        host: Config.OPENSEARCH_NODE,
+        username: Config.OPENSEARCH_USERNAME ?? '',
+        password: Config.OPENSEARCH_PASSWORD ?? '',
+      }).putDocument(Github.Enums.IndexName.GitPush, data);
     }
-    await new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    }).putDocument(Github.Enums.IndexName.GitPush, data);
   } catch (error: unknown) {
     logger.error('savePushDetails.error', {
       error,
