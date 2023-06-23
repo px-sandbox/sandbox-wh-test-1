@@ -63,11 +63,7 @@ const indices: any[] = [
         pushedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         visibility: { type: 'text' },
         openIssuesCount: { type: 'integer' },
-        topics: {
-          properties: {
-            type: 'text',
-          },
-        },
+        topics: { type: 'text' },
         organizationId: { type: 'keyword' },
         deletedAt: { type: 'date' },
       },
@@ -248,6 +244,7 @@ export async function createAllIndices(): Promise<void> {
       logger.info(`Index '${name}' created.`);
     } catch (error) {
       logger.info(`Error creating index '${name}':`, error);
+      throw new Error('INDEX_CREATING_ERROR');
     }
   }
 }
