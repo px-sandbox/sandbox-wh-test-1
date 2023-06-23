@@ -11,7 +11,6 @@ export interface Commits {
     repoId: string;
     organizationId: string;
     createdAt: string;
-    deletedAt: boolean;
   };
 }
 export type CommitedFiles = {

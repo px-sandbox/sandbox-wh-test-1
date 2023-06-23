@@ -8,7 +8,7 @@ import { Config } from 'sst/node/config';
 export async function saveCommitDetails(data: Github.Type.Commits): Promise<void> {
   try {
     if (data) {
-      logger.info('---NEW_RECORD_FOUND---');
+      logger.info('---INSERT_RECORD---', data);
       await new DynamoDbDocClient(Config.STAGE).put(
         new ParamsMapping().preparePutParams(data.id, data.body.id)
       );

@@ -17,16 +17,17 @@ export class PushProcessor extends DataProcessor<
     );
     const commitsArr: Array<string> = [];
     this.ghApiData.commits.map((data: { id: string }) => {
-      commitsArr.push(data.id);
+      commitsArr.push(`${mappingPrefixes.commit}_${data.id}`);
     });
     const orgObj = {
       id: parentId || uuid(),
       body: {
         id: `${mappingPrefixes.push}_${this.ghApiData.id}`,
         githubPushId: `${this.ghApiData.id}`,
-        pusherId: this.ghApiData.pusherId,
+        pusherId: `${mappingPrefixes.user}_${this.ghApiData.pusherId}`,
         ref: this.ghApiData.ref,
         commits: commitsArr,
+        repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
       },
     };
