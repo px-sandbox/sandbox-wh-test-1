@@ -183,6 +183,40 @@ const indices: any[] = [
       },
     },
   },
+  {
+    name: Github.Enums.IndexName.GitPRReviewComment,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        id: { type: 'keyword' },
+        githubPullRequestReviewCommentId: { type: 'keyword' },
+        pullRequestReviewId: { type: 'keyword' },
+        diffHunk: { type: 'text' },
+        path: { type: 'text' },
+        commitId: { type: 'keyword' },
+        commentedBy: { type: 'keyword' },
+        commentBody: { type: 'text' },
+        createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        updatedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        reactions: {
+          properties: {
+            totalCount: { type: 'integer' },
+            '+1': { type: 'integer' },
+            '-1': { type: 'integer' },
+            laugh: { type: 'integer' },
+            hooray: { type: 'integer' },
+            confused: { type: 'integer' },
+            heart: { type: 'integer' },
+            rocket: { type: 'integer' },
+            eyes: { type: 'integer' },
+          },
+        },
+        pullId: { type: 'keyword' },
+        repoId: { type: 'keyword' },
+        organizationId: { type: 'keyword' },
+      },
+    },
+  },
 ];
 
 export async function createAllIndices(): Promise<void> {

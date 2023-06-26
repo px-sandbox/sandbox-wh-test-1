@@ -67,6 +67,14 @@ export function gh({ stack }: StackContext) {
     consumer: 'packages/github/src/sqs/handlers/indexer/push.handler',
   });
 
+  const pullRequestReviewCommentFormatDataQueue = new Queue(stack, 'gh_pr_review_comment_format', {
+    consumer: 'packages/github/src/sqs/handlers/formatter/pull-request-review-comment.handler',
+  });
+
+  const pullRequestReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index', {
+    consumer: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
+  });
+
   // bind tables and config to queue
   userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
   repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
@@ -74,6 +82,11 @@ export function gh({ stack }: StackContext) {
   commitFormatDataQueue.bind([table, commitIndexDataQueue, GIT_ORGANIZATION_ID]);
   pullRequestFormatDataQueue.bind([table, pullRequestIndexDataQueue, GIT_ORGANIZATION_ID]);
   pushFormatDataQueue.bind([table, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pullRequestReviewCommentFormatDataQueue.bind([
+    table,
+    pullRequestReviewCommentIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
 
   pushIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   commitIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
@@ -81,6 +94,12 @@ export function gh({ stack }: StackContext) {
   repoIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   branchIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   pullRequestIndexDataQueue.bind([
+    table,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  pullRequestReviewCommentIndexDataQueue.bind([
     table,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -120,6 +139,8 @@ export function gh({ stack }: StackContext) {
           commitFormatDataQueue,
           commitIndexDataQueue,
           pullRequestIndexDataQueue,
+          pullRequestReviewCommentFormatDataQueue,
+          pullRequestReviewCommentIndexDataQueue,
           pushFormatDataQueue,
           pushIndexDataQueue,
           GITHUB_BASE_URL,

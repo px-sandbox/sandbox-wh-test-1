@@ -4,7 +4,7 @@ import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { getCommits } from 'src/lib/git-commit-list';
 import { pullRequestOnQueue } from 'src/lib/send-pull-to-queue';
-import { PullRequestProcessor } from 'src/processors/pull-request';
+import { pullRequestReviewCommentOnQueue } from 'src/lib/send-pr-review-comment-to-queue';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 const crypto = require('crypto');
@@ -129,6 +129,16 @@ export const webhookData = async function getWebhookData(
       break;
     case Github.Enums.Event.PullRequest:
       await pullRequestOnQueue(data.pull_request);
+      break;
+    case Github.Enums.Event.PRReviewComment:
+      await pullRequestReviewCommentOnQueue(
+        data.comment,
+        data.pull_request.id,
+        data.repository.id,
+        data.repository.name,
+        data.repository.owner.login,
+        data.pull_request.number
+      );
       break;
     default:
       break;

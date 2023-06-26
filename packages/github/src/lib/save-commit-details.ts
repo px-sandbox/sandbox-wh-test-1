@@ -7,19 +7,17 @@ import { Config } from 'sst/node/config';
 
 export async function saveCommitDetails(data: Github.Type.Commits): Promise<void> {
   try {
-    if (data) {
-      logger.info('---INSERT_RECORD---', data);
-      await new DynamoDbDocClient(Config.STAGE).put(
-        new ParamsMapping().preparePutParams(data.id, data.body.id)
-      );
-    }
+    await new DynamoDbDocClient(Config.STAGE).put(
+      new ParamsMapping().preparePutParams(data.id, data.body.id)
+    );
     await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     }).putDocument(Github.Enums.IndexName.GitCommits, data);
+    logger.info('saveCommitDetails.successful');
   } catch (error: unknown) {
-    logger.error('getcommitDetails.error', {
+    logger.error('saveCommitDetails.error', {
       error,
     });
     throw error;

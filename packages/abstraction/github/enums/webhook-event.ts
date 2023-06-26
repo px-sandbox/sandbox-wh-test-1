@@ -4,4 +4,5 @@ export enum Event {
   Organization = 'organization',
   Commit = 'push',
   PullRequest = 'pull_request',
+  PRReviewComment = 'pull_request_review_comment',
 }
