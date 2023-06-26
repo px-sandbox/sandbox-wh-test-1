@@ -21,6 +21,12 @@ const indices: any[] = [
         company: { type: 'text' },
         deletedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         organizationId: { type: 'keyword' },
+        action: {
+          properties: {
+            action: { type: 'text' },
+            createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+          },
+        },
       },
     },
   },

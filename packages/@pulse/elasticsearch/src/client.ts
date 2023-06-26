@@ -37,4 +37,19 @@ export class ElasticSearchClient implements IElasticSearchClient {
     });
     return result.body;
   }
+
+  public async searchWithEsb(indexName: string, query: object): Promise<any> {
+    try {
+      await this.client.indices.refresh({ index: indexName });
+      const result = await this.client.search({
+        index: indexName,
+        body: {
+          query: query,
+        },
+      });
+      return result.body;
+    } catch (err) {
+      throw err;
+    }
+  }
 }
