@@ -14,8 +14,10 @@ export const handler = async function repoFormattedDataReciever(
 
   const repoProcessor = new RepositoryProcessor(messageBody);
   const validatedData = repoProcessor.validate();
-  if (validatedData) {
-    const data = await repoProcessor.processor();
-    await repoProcessor.sendDataToQueue(data, Queue.gh_repo_index.queueUrl);
+  if (!validatedData) {
+    logger.error('repoFormattedDataReciever.error', { error: 'validation failed' });
+    return;
   }
+  const data = await repoProcessor.processor();
+  await repoProcessor.sendDataToQueue(data, Queue.gh_repo_index.queueUrl);
 };

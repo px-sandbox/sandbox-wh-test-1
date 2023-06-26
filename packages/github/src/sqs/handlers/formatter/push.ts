@@ -17,8 +17,10 @@ export const handler = async function pushFormattedDataReciever(
 
   const pushProcessor = new PushProcessor(messageBody);
   const validatedData = pushProcessor.validate();
-  if (validatedData) {
-    const data = await pushProcessor.processor();
-    await pushProcessor.sendDataToQueue(data, Queue.gh_push_index.queueUrl);
+  if (!validatedData) {
+    logger.error('pushFormattedDataReciever.error', { error: 'validation failed' });
+    return;
   }
+  const data = await pushProcessor.processor();
+  await pushProcessor.sendDataToQueue(data, Queue.gh_push_index.queueUrl);
 };

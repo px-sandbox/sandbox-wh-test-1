@@ -14,8 +14,10 @@ export const handler = async function pullRequestFormattedDataReciever(
 
   const pullProcessor = new PullRequestProcessor(messageBody);
   const validatedData = pullProcessor.validate();
-  if (validatedData) {
-    const data = await pullProcessor.processor();
-    await pullProcessor.sendDataToQueue(data, Queue.gh_pull_request_index.queueUrl);
+  if (!validatedData) {
+    logger.error('pullRequestFormattedDataReciever.error', { error: 'validation failed' });
+    return;
   }
+  const data = await pullProcessor.processor();
+  await pullProcessor.sendDataToQueue(data, Queue.gh_pull_request_index.queueUrl);
 };

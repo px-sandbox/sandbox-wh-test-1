@@ -14,8 +14,10 @@ export const handler = async function userFormattedDataReciever(
 
   const userProcessor = new UsersProcessor(messageBody);
   const validatedData = userProcessor.validate();
-  if (validatedData) {
-    const data = await userProcessor.processor();
-    await userProcessor.sendDataToQueue(data, Queue.gh_users_index.queueUrl);
+  if (!validatedData) {
+    logger.error('userFormattedDataReciever.error', { error: 'validation failed' });
+    return;
   }
+  const data = await userProcessor.processor();
+  await userProcessor.sendDataToQueue(data, Queue.gh_users_index.queueUrl);
 };

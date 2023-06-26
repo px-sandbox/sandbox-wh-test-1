@@ -14,8 +14,12 @@ export const handler = async function pullRequestReviewCommentFormattedDataRecie
   const { comment, pullId, repoId } = messageBody;
   const prReviewCommentProcessor = new PullRequestReviewCommentProcessor(comment, pullId, repoId);
   const validatedData = prReviewCommentProcessor.validate();
-  if (validatedData) {
-    const data = await prReviewCommentProcessor.processor();
-    await prReviewCommentProcessor.sendDataToQueue(data, Queue.gh_pr_review_comment_index.queueUrl);
+  if (!validatedData) {
+    logger.error('pullRequestReviewCommentFormattedDataReciever.error', {
+      error: 'validation failed',
+    });
+    return;
   }
+  const data = await prReviewCommentProcessor.processor();
+  await prReviewCommentProcessor.sendDataToQueue(data, Queue.gh_pr_review_comment_index.queueUrl);
 };

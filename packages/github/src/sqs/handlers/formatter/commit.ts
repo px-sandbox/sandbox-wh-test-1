@@ -17,8 +17,10 @@ export const handler = async function commitFormattedDataReciever(
 
   const commitProcessor = new CommitProcessor(messageBody);
   const validatedData = commitProcessor.validate();
-  if (validatedData) {
-    const data = await commitProcessor.processor();
-    await commitProcessor.sendDataToQueue(data, Queue.gh_commit_index.queueUrl);
+  if (!validatedData) {
+    logger.error('commitFormattedDataReciever.error', { error: 'validation failed' });
+    return;
   }
+  const data = await commitProcessor.processor();
+  await commitProcessor.sendDataToQueue(data, Queue.gh_commit_index.queueUrl);
 };
