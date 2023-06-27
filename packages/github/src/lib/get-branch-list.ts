@@ -6,20 +6,13 @@ import { Queue } from 'sst/node/queue';
 import { ghRequest } from './request-defaults';
 
 export async function getBranches(
-  octokit: RequestInterface<
-    object & {
-      headers: {
-        authorization: string | undefined;
-      };
-    }
-  >,
   repoId: string,
   repoName: string,
   repoOwner: string
 ): Promise<number> {
   let branchCount: Promise<number>;
   try {
-    branchCount = await getBranchList(octokit, repoId, repoName, repoOwner);
+    branchCount = await getBranchList(repoId, repoName, repoOwner);
     return branchCount;
   } catch (error: unknown) {
     logger.error({
@@ -29,14 +22,7 @@ export async function getBranches(
   }
 }
 
-async function getBranchList(
-  octokit: RequestInterface<
-    object & {
-      headers: {
-        authorization: string | undefined;
-      };
-    }
-  >,
+export async function getBranchList(
   repoId: string,
   repoName: string,
   repoOwner: string,
@@ -44,6 +30,12 @@ async function getBranchList(
   counter = 0
 ): Promise<any> {
   try {
+    const installationAccessToken = await getInstallationAccessToken();
+    const octokit = ghRequest.request.defaults({
+      headers: {
+        Authorization: `Bearer ${installationAccessToken.body.token}`,
+      },
+    });
     logger.info('getBranchList.invoked', { repoName, repoOwner, page });
     const perPage = 100;
 
@@ -66,21 +58,12 @@ async function getBranchList(
       logger.info('getBranchList.successfull');
       return counter;
     }
-    return getBranchList(octokit, repoId, repoName, repoOwner, ++page, counter);
+    return getBranchList(repoId, repoName, repoOwner, ++page, counter);
   } catch (error: any) {
     logger.error('getBranchList.error', { repoName, repoOwner, page, error });
 
     if (error.status === 401) {
-      const {
-        body: { token },
-      } = await getInstallationAccessToken();
-
-      const octokitObj = ghRequest.request.defaults({
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-      });
-      return getBranchList(octokitObj, repoId, repoName, repoOwner, page, counter);
+      return getBranchList(repoId, repoName, repoOwner, page, counter);
     }
     throw error;
   }

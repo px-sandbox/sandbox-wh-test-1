@@ -75,6 +75,10 @@ export function gh({ stack }: StackContext) {
     consumer: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
   });
 
+  const afterRepoSaveQueue = new Queue(stack, 'gh_after_repo_save', {
+    consumer: 'packages/github/src/sqs/handlers/save-branches.handler',
+  });
+
   // bind tables and config to queue
   userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
   repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
@@ -91,7 +95,13 @@ export function gh({ stack }: StackContext) {
   pushIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   commitIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   userIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  repoIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  repoIndexDataQueue.bind([
+    table,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    afterRepoSaveQueue,
+  ]);
   branchIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   pullRequestIndexDataQueue.bind([
     table,
@@ -105,7 +115,13 @@ export function gh({ stack }: StackContext) {
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
-
+  afterRepoSaveQueue.bind([
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    branchFormatDataQueue,
+    branchIndexDataQueue,
+  ]);
   const ghAPI = new Api(stack, 'api', {
     authorizers: {
       universal: {
@@ -154,6 +170,7 @@ export function gh({ stack }: StackContext) {
           OPENSEARCH_USERNAME,
           GIT_ORGANIZATION_ID,
           table,
+          afterRepoSaveQueue,
         ],
       },
     },
