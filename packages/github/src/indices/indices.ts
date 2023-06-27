@@ -72,6 +72,12 @@ const indices: any[] = [
         topics: { type: 'text' },
         organizationId: { type: 'keyword' },
         deletedAt: { type: 'date' },
+        action: {
+          properties: {
+            action: { type: 'text' },
+            createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+          },
+        },
       },
     },
   },

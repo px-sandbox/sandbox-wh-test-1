@@ -1,8 +1,10 @@
+import { actions } from './actions';
+
 export interface User {
   id: string;
   body: {
     id: string;
-    action: Array<{ action: string; actionTime: string }>;
+    action: actions;
     githubUserId: number;
     userName: string;
     avatarUrl: string;

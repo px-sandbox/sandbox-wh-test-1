@@ -30,7 +30,7 @@ export async function saveUserDetails(data: Github.Type.User): Promise<void> {
         data.body.createdAt = formattedData[0].createdAt;
       }
     }
-    esClientObj.putDocument(Github.Enums.IndexName.GitUsers, data);
+    await esClientObj.putDocument(Github.Enums.IndexName.GitUsers, data);
     logger.info('saveUserDetails.successful');
   } catch (error: unknown) {
     logger.error('saveUserDetails.error', {
