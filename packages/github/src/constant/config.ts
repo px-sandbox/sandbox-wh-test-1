@@ -7,4 +7,5 @@ export const mappingPrefixes = {
   pull: 'gh_pull',
   pullRequestReviewComment: 'gh_pull_request_review_comment',
   push: 'gh_push',
+  pullRequestReview: 'gh_pull_request_review',
 };

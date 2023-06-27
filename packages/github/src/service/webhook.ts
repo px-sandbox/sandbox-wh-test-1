@@ -5,6 +5,7 @@ import { logger } from 'core';
 import { getCommits } from 'src/lib/git-commit-list';
 import { pullRequestOnQueue } from 'src/lib/send-pull-to-queue';
 import { pullRequestReviewCommentOnQueue } from 'src/lib/send-pr-review-comment-to-queue';
+import { pullRequestReviewOnQueue } from 'src/lib/send-pr-review-to-queue';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 const crypto = require('crypto');
@@ -133,6 +134,16 @@ export const webhookData = async function getWebhookData(
     case Github.Enums.Event.PRReviewComment:
       await pullRequestReviewCommentOnQueue(
         data.comment,
+        data.pull_request.id,
+        data.repository.id,
+        data.repository.name,
+        data.repository.owner.login,
+        data.pull_request.number
+      );
+      break;
+    case Github.Enums.Event.PRReview:
+      await pullRequestReviewOnQueue(
+        data.review,
         data.pull_request.id,
         data.repository.id,
         data.repository.name,

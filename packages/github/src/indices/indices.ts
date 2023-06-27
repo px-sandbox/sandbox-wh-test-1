@@ -217,6 +217,24 @@ const indices: any[] = [
       },
     },
   },
+  {
+    name: Github.Enums.IndexName.GitPRReview,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        id: { type: 'keyword' },
+        githubPullRequestReviewId: { type: 'keyword' },
+        commitId: { type: 'keyword' },
+        reviewedBy: { type: 'keyword' },
+        reviewBody: { type: 'text' },
+        submittedAt: { type: 'text' },
+        state: { type: 'text' },
+        pullId: { type: 'keyword' },
+        repoId: { type: 'keyword' },
+        organizationId: { type: 'keyword' },
+      },
+    },
+  },
 ];
 
 export async function createAllIndices(): Promise<void> {

@@ -7,6 +7,7 @@ import { Commits, CommitedFiles } from './commits';
 import { PullRequest, RequestedReviewers, Labels } from './pull-request';
 import { Push, CommitIds } from './push';
 import { PullRequestReviewComment } from './pull-request-review-comment';
+import { PullRequestReview } from './pull-request-review';
 
 export {
   Branch,
@@ -23,4 +24,5 @@ export {
   Push,
   CommitIds,
   PullRequestReviewComment,
+  PullRequestReview,
 };

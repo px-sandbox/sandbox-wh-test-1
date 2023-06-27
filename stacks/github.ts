@@ -70,9 +70,14 @@ export function gh({ stack }: StackContext) {
   const pullRequestReviewCommentFormatDataQueue = new Queue(stack, 'gh_pr_review_comment_format', {
     consumer: 'packages/github/src/sqs/handlers/formatter/pull-request-review-comment.handler',
   });
-
   const pullRequestReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index', {
     consumer: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
+  });
+  const pullRequestReviewFormatDataQueue = new Queue(stack, 'gh_pull_request_review_format', {
+    consumer: 'packages/github/src/sqs/handlers/formatter/pull-request-review.handler',
+  });
+  const pullRequestReviewIndexDataQueue = new Queue(stack, 'gh_pull_request_review_index', {
+    consumer: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
   });
 
   // bind tables and config to queue
@@ -100,6 +105,17 @@ export function gh({ stack }: StackContext) {
     OPENSEARCH_USERNAME,
   ]);
   pullRequestReviewCommentIndexDataQueue.bind([
+    table,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  pullRequestReviewFormatDataQueue.bind([
+    table,
+    pullRequestReviewIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
+  pullRequestReviewIndexDataQueue.bind([
     table,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -143,6 +159,8 @@ export function gh({ stack }: StackContext) {
           pullRequestReviewCommentIndexDataQueue,
           pushFormatDataQueue,
           pushIndexDataQueue,
+          pullRequestReviewFormatDataQueue,
+          pullRequestReviewIndexDataQueue,
           GITHUB_BASE_URL,
           GITHUB_APP_ID,
           GITHUB_APP_PRIVATE_KEY_PEM,
