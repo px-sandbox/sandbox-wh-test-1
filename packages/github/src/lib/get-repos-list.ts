@@ -3,7 +3,6 @@ import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
-import { getBranches } from './get-branch-list';
 import { ghRequest } from './request-defaults';
 
 export async function getRepos(
