@@ -187,7 +187,14 @@ export function gh({ stack }: StackContext) {
   userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
   repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
   branchFormatDataQueue.bind([table, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
-  commitFormatDataQueue.bind([table, commitIndexDataQueue, GIT_ORGANIZATION_ID]);
+  commitFormatDataQueue.bind([
+    table,
+    commitIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+  ]);
   pullRequestFormatDataQueue.bind([table, pullRequestIndexDataQueue, GIT_ORGANIZATION_ID]);
   pushFormatDataQueue.bind([table, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
   pullRequestReviewCommentFormatDataQueue.bind([
