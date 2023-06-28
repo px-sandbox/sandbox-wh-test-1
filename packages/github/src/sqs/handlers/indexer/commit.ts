@@ -6,13 +6,14 @@ export const handler = async function commitIndexDataReciever(
   event: APIGatewayProxyEvent
 ): Promise<void> {
   try {
-    const [record] = event.Records;
-    const messageBody = JSON.parse(record.body);
-    // Do something with the message, e.g. send an email, process data, etc.
-    /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
-    logger.info('COMMIT_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
+    for (const record of event.Records) {
+      const messageBody = JSON.parse(record.body);
+      // Do something with the message, e.g. send an email, process data, etc.
+      /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
+      logger.info('COMMIT_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
 
-    await saveCommitDetails(messageBody);
+      await saveCommitDetails(messageBody);
+    }
   } catch (error) {
     logger.error('commitIndexDataReciever.error', { error });
   }

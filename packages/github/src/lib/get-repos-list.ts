@@ -3,7 +3,6 @@ import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
-import { getBranches } from './get-branch-list';
 import { ghRequest } from './request-defaults';
 
 export async function getRepos(
@@ -50,11 +49,16 @@ async function getReposList(
     const reposPerPage = responseData.data as Array<any>;
     counter += reposPerPage.length;
 
+    // await Promise.all(
+    //   reposPerPage.map(async (repo) => {
+    //     // const branches = await getBranches(octokit, repo.id, repo.name, repo.owner.login);
+    //     return new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl);
+    //   })
+    // );
     await Promise.all(
-      reposPerPage.map(async (repo) => {
-        const branches = await getBranches(octokit, repo.id, repo.name, repo.owner.login);
-        return [new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl), branches];
-      })
+      reposPerPage.map(
+        async (repo) => await new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl)
+      )
     );
 
     if (reposPerPage.length < perPage) {
