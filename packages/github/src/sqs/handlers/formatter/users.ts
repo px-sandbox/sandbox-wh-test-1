@@ -6,18 +6,19 @@ import { Queue } from 'sst/node/queue';
 export const handler = async function userFormattedDataReciever(
   event: APIGatewayProxyEvent
 ): Promise<void> {
-  const [record] = event.Records;
-  const messageBody = JSON.parse(record.body);
-  // Do something with the message, e.g. send an email, process data, etc.
-  /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
-  logger.info('USER_SQS_RECIEVER_HANDLER_FORMATER', { messageBody });
+  for (const record of event.Records) {
+    const messageBody = JSON.parse(record.body);
+    // Do something with the message, e.g. send an email, process data, etc.
+    /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
+    logger.info('USER_SQS_RECIEVER_HANDLER_FORMATER', { messageBody });
 
-  const userProcessor = new UsersProcessor(messageBody);
-  const validatedData = userProcessor.validate();
-  if (!validatedData) {
-    logger.error('userFormattedDataReciever.error', { error: 'validation failed' });
-    return;
+    const userProcessor = new UsersProcessor(messageBody);
+    const validatedData = userProcessor.validate();
+    if (!validatedData) {
+      logger.error('userFormattedDataReciever.error', { error: 'validation failed' });
+      return;
+    }
+    const data = await userProcessor.processor();
+    await userProcessor.sendDataToQueue(data, Queue.gh_users_index.queueUrl);
   }
-  const data = await userProcessor.processor();
-  await userProcessor.sendDataToQueue(data, Queue.gh_users_index.queueUrl);
 };
