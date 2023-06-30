@@ -88,7 +88,7 @@ export function gh({ stack }: StackContext) {
       },
     },
   });
-  const pullRequestFormatDataQueue = new Queue(stack, 'gh_pull_request_format', {
+  const pRFormatDataQueue = new Queue(stack, 'gh_pr_format', {
     consumer: {
       function: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
       cdk: {
@@ -98,7 +98,7 @@ export function gh({ stack }: StackContext) {
       },
     },
   });
-  const pullRequestIndexDataQueue = new Queue(stack, 'gh_pull_request_index', {
+  const pRIndexDataQueue = new Queue(stack, 'gh_pr_index', {
     consumer: {
       function: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
       cdk: {
@@ -151,7 +151,7 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const pullRequestReviewCommentFormatDataQueue = new Queue(stack, 'gh_pr_review_comment_format', {
+  const pRReviewCommentFormatDataQueue = new Queue(stack, 'gh_pr_review_comment_format', {
     consumer: {
       function: 'packages/github/src/sqs/handlers/formatter/pull-request-review-comment.handler',
       cdk: {
@@ -161,7 +161,7 @@ export function gh({ stack }: StackContext) {
       },
     },
   });
-  const pullRequestReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index', {
+  const pRReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index', {
     consumer: {
       function: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
       cdk: {
@@ -182,10 +182,10 @@ export function gh({ stack }: StackContext) {
       },
     },
   });
-  const pullRequestReviewFormatDataQueue = new Queue(stack, 'gh_pull_request_review_format', {
+  const pRReviewFormatDataQueue = new Queue(stack, 'gh_pr_review_format', {
     consumer: 'packages/github/src/sqs/handlers/formatter/pull-request-review.handler',
   });
-  const pullRequestReviewIndexDataQueue = new Queue(stack, 'gh_pull_request_review_index', {
+  const pRReviewIndexDataQueue = new Queue(stack, 'gh_pr_review_index', {
     consumer: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
   });
 
@@ -201,13 +201,9 @@ export function gh({ stack }: StackContext) {
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
   ]);
-  pullRequestFormatDataQueue.bind([table, pullRequestIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pRFormatDataQueue.bind([table, pRIndexDataQueue, GIT_ORGANIZATION_ID]);
   pushFormatDataQueue.bind([table, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
-  pullRequestReviewCommentFormatDataQueue.bind([
-    table,
-    pullRequestReviewCommentIndexDataQueue,
-    GIT_ORGANIZATION_ID,
-  ]);
+  pRReviewCommentFormatDataQueue.bind([table, pRReviewCommentIndexDataQueue, GIT_ORGANIZATION_ID]);
 
   pushIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   commitIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
@@ -220,29 +216,15 @@ export function gh({ stack }: StackContext) {
     afterRepoSaveQueue,
   ]);
   branchIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  pullRequestIndexDataQueue.bind([
+  pRIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  pRReviewCommentIndexDataQueue.bind([
     table,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
-  pullRequestReviewCommentIndexDataQueue.bind([
-    table,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
-  pullRequestReviewFormatDataQueue.bind([
-    table,
-    pullRequestReviewIndexDataQueue,
-    GIT_ORGANIZATION_ID,
-  ]);
-  pullRequestReviewIndexDataQueue.bind([
-    table,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
+  pRReviewFormatDataQueue.bind([table, pRReviewIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pRReviewIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
   afterRepoSaveQueue.bind([
     GITHUB_APP_PRIVATE_KEY_PEM,
@@ -277,19 +259,19 @@ export function gh({ stack }: StackContext) {
           userFormatDataQueue,
           repoFormatDataQueue,
           branchFormatDataQueue,
-          pullRequestFormatDataQueue,
+          pRFormatDataQueue,
           userIndexDataQueue,
           repoIndexDataQueue,
           branchIndexDataQueue,
           commitFormatDataQueue,
           commitIndexDataQueue,
-          pullRequestIndexDataQueue,
-          pullRequestReviewCommentFormatDataQueue,
-          pullRequestReviewCommentIndexDataQueue,
+          pRIndexDataQueue,
+          pRReviewCommentFormatDataQueue,
+          pRReviewCommentIndexDataQueue,
           pushFormatDataQueue,
           pushIndexDataQueue,
-          pullRequestReviewFormatDataQueue,
-          pullRequestReviewIndexDataQueue,
+          pRReviewFormatDataQueue,
+          pRReviewIndexDataQueue,
           GITHUB_BASE_URL,
           GITHUB_APP_ID,
           GITHUB_APP_PRIVATE_KEY_PEM,

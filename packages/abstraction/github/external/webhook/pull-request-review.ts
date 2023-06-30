@@ -1,4 +1,4 @@
-export type PullRequestReview = {
+export type PRReview = {
   id: number;
   commit_id: string;
   user: {

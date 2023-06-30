@@ -5,7 +5,7 @@ import { logger } from 'core';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
 
-export async function savePullRequestDetails(data: Github.Type.PullRequest): Promise<void> {
+export async function savePRDetails(data: Github.Type.PullRequest): Promise<void> {
   try {
     await new DynamoDbDocClient(Config.STAGE).put(
       new ParamsMapping().preparePutParams(data.id, data.body.id)
@@ -15,9 +15,9 @@ export async function savePullRequestDetails(data: Github.Type.PullRequest): Pro
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     }).putDocument(Github.Enums.IndexName.GitPull, data);
-    logger.info('savePullRequestDetails.successful');
+    logger.info('savePRDetails.successful');
   } catch (error: unknown) {
-    logger.error('savePullRequestDetails.error', {
+    logger.error('savePRDetails.error', {
       error,
     });
     throw error;

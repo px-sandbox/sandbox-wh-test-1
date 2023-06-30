@@ -1,9 +1,9 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { PullRequestReviewCommentProcessor } from 'src/processors/pull-request-review-comment';
+import { PRReviewCommentProcessor } from 'src/processors/pull-request-review-comment';
 import { Queue } from 'sst/node/queue';
 
-export const handler = async function pullRequestReviewCommentFormattedDataReciever(
+export const handler = async function pRReviewCommentFormattedDataReciever(
   event: APIGatewayProxyEvent
 ): Promise<void> {
   for (const record of event.Records) {
@@ -12,10 +12,10 @@ export const handler = async function pullRequestReviewCommentFormattedDataRecie
     /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
     logger.info('PULL_REQUEST_REVIEW_COMMENT_SQS_RECIEVER_HANDLER', { messageBody });
     const { comment, pullId, repoId } = messageBody;
-    const prReviewCommentProcessor = new PullRequestReviewCommentProcessor(comment, pullId, repoId);
+    const prReviewCommentProcessor = new PRReviewCommentProcessor(comment, pullId, repoId);
     const validatedData = prReviewCommentProcessor.validate();
     if (!validatedData) {
-      logger.error('pullRequestReviewCommentFormattedDataReciever.error', {
+      logger.error('pRReviewCommentFormattedDataReciever.error', {
         error: 'validation failed',
       });
       return;

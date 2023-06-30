@@ -143,7 +143,7 @@ const indices: any[] = [
         pullNumber: { type: 'keyword' },
         state: { type: 'text' },
         title: { type: 'text' },
-        pullRequestCreatedBy: { type: 'text' },
+        pRCreatedBy: { type: 'text' },
         pullBody: { type: 'text' },
         createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         updatedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
@@ -189,8 +189,8 @@ const indices: any[] = [
     mappings: {
       properties: {
         id: { type: 'keyword' },
-        githubPullRequestReviewCommentId: { type: 'keyword' },
-        pullRequestReviewId: { type: 'keyword' },
+        githubPRReviewCommentId: { type: 'keyword' },
+        pRReviewId: { type: 'keyword' },
         diffHunk: { type: 'text' },
         path: { type: 'text' },
         commitId: { type: 'keyword' },
@@ -223,7 +223,7 @@ const indices: any[] = [
     mappings: {
       properties: {
         id: { type: 'keyword' },
-        githubPullRequestReviewId: { type: 'keyword' },
+        githubPRReviewId: { type: 'keyword' },
         commitId: { type: 'keyword' },
         reviewedBy: { type: 'keyword' },
         reviewBody: { type: 'text' },

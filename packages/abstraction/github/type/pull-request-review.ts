@@ -1,8 +1,8 @@
-export interface PullRequestReview {
+export interface PRReview {
   id: string;
   body: {
     id: string;
-    githubPullRequestReviewId: number;
+    githubPRReviewId: number;
     commitId: string;
     reviewedBy: string;
     reviewBody: string;

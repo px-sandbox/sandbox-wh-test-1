@@ -4,27 +4,27 @@ import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { DataProcessor } from './data-processor';
 
-export class PullRequestReviewProcessor extends DataProcessor<
-  Github.ExternalType.Webhook.PullRequestReview,
-  Github.Type.PullRequestReview
+export class PRReviewProcessor extends DataProcessor<
+  Github.ExternalType.Webhook.PRReview,
+  Github.Type.PRReview
 > {
   private pullId;
   private repoId;
-  constructor(data: Github.ExternalType.Webhook.PullRequestReview, pullId: number, repoId: number) {
+  constructor(data: Github.ExternalType.Webhook.PRReview, pullId: number, repoId: number) {
     super(data);
     this.pullId = pullId;
     this.repoId = repoId;
   }
-  async processor(): Promise<Github.Type.PullRequestReview> {
+  async processor(): Promise<Github.Type.PRReview> {
     const parentId: string = await this.getParentId(
-      `${mappingPrefixes.pullRequestReview}_${this.ghApiData.id}`
+      `${mappingPrefixes.pRReview}_${this.ghApiData.id}`
     );
 
-    const pullRequestReviewObj = {
+    const pRReviewObj = {
       id: parentId || uuid(),
       body: {
-        id: `${mappingPrefixes.pullRequestReview}_${this.ghApiData.id}`,
-        githubPullRequestReviewId: this.ghApiData.id,
+        id: `${mappingPrefixes.pRReview}_${this.ghApiData.id}`,
+        githubPRReviewId: this.ghApiData.id,
         commitId: `${mappingPrefixes.commit}_${this.ghApiData.commit_id}`,
         reviewedBy: `${mappingPrefixes.user}_${this.ghApiData.user.id}`,
         reviewBody: this.ghApiData.body,
@@ -35,6 +35,6 @@ export class PullRequestReviewProcessor extends DataProcessor<
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
       },
     };
-    return pullRequestReviewObj;
+    return pRReviewObj;
   }
 }

@@ -1,9 +1,9 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { PullRequestReviewProcessor } from 'src/processors/pull-request-review';
+import { PRReviewProcessor } from 'src/processors/pull-request-review';
 import { Queue } from 'sst/node/queue';
 
-export const handler = async function pullRequestReviewFormattedDataReciever(
+export const handler = async function pRReviewFormattedDataReciever(
   event: APIGatewayProxyEvent
 ): Promise<void> {
   const [record] = event.Records;
@@ -12,12 +12,12 @@ export const handler = async function pullRequestReviewFormattedDataReciever(
   /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
   logger.info('PULL_REQUEST_REVIEW_SQS_RECIEVER_HANDLER', { messageBody });
   const { review, pullId, repoId } = messageBody;
-  const prReviewProcessor = new PullRequestReviewProcessor(review, pullId, repoId);
+  const prReviewProcessor = new PRReviewProcessor(review, pullId, repoId);
   const validatedData = prReviewProcessor.validate();
   if (!validatedData) {
-    logger.error('pullRequestReviewFormattedDataReciever.error', { error: 'validation failed' });
+    logger.error('pRReviewFormattedDataReciever.error', { error: 'validation failed' });
     return;
   }
   const data = await prReviewProcessor.processor();
-  await prReviewProcessor.sendDataToQueue(data, Queue.gh_pull_request_review_index.queueUrl);
+  await prReviewProcessor.sendDataToQueue(data, Queue.gh_pr_review_index.queueUrl);
 };

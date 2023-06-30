@@ -3,9 +3,9 @@ import { Github, Other } from 'abstraction';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { getCommits } from 'src/lib/git-commit-list';
-import { pullRequestOnQueue } from 'src/lib/send-pull-to-queue';
-import { pullRequestReviewCommentOnQueue } from 'src/lib/send-pr-review-comment-to-queue';
-import { pullRequestReviewOnQueue } from 'src/lib/send-pr-review-to-queue';
+import { pROnQueue } from 'src/lib/send-pull-to-queue';
+import { pRReviewCommentOnQueue } from 'src/lib/send-pr-review-comment-to-queue';
+import { pRReviewOnQueue } from 'src/lib/send-pr-review-to-queue';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 const crypto = require('crypto');
@@ -129,10 +129,10 @@ export const webhookData = async function getWebhookData(
       await getCommits(commitData);
       break;
     case Github.Enums.Event.PullRequest:
-      await pullRequestOnQueue(data.pull_request);
+      await pROnQueue(data.pull_request);
       break;
     case Github.Enums.Event.PRReviewComment:
-      await pullRequestReviewCommentOnQueue(
+      await pRReviewCommentOnQueue(
         data.comment,
         data.pull_request.id,
         data.repository.id,
@@ -142,7 +142,7 @@ export const webhookData = async function getWebhookData(
       );
       break;
     case Github.Enums.Event.PRReview:
-      await pullRequestReviewOnQueue(
+      await pRReviewOnQueue(
         data.review,
         data.pull_request.id,
         data.repository.id,

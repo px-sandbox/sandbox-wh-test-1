@@ -5,8 +5,8 @@ import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { ghRequest } from './request-defaults';
 
-export async function pullRequestReviewOnQueue(
-  prReview: Array<Github.ExternalType.Webhook.PullRequestReview>,
+export async function pRReviewOnQueue(
+  prReview: Array<Github.ExternalType.Webhook.PRReview>,
   pullId: number,
   repoId: number,
   repo: string,
@@ -27,9 +27,9 @@ export async function pullRequestReviewOnQueue(
     await Promise.all([
       new SQSClient().sendMessage(
         { review: prReview, pullId: pullId, repoId: repoId },
-        Queue.gh_pull_request_review_format.queueUrl
+        Queue.gh_pr_review_format.queueUrl
       ),
-      new SQSClient().sendMessage(responseData.data, Queue.gh_pull_request_format.queueUrl),
+      new SQSClient().sendMessage(responseData.data, Queue.gh_pr_format.queueUrl),
     ]);
   } catch (error: unknown) {
     logger.error({

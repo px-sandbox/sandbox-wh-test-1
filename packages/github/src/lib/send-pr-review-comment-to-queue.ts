@@ -5,8 +5,8 @@ import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { ghRequest } from './request-defaults';
 
-export async function pullRequestReviewCommentOnQueue(
-  prReviewComment: Array<Github.ExternalType.Webhook.PullRequestReviewComment>,
+export async function pRReviewCommentOnQueue(
+  prReviewComment: Array<Github.ExternalType.Webhook.PRReviewComment>,
   pullId: number,
   repoId: number,
   repo: string,
@@ -29,7 +29,7 @@ export async function pullRequestReviewCommentOnQueue(
         { comment: prReviewComment, pullId: pullId, repoId: repoId },
         Queue.gh_pr_review_comment_format.queueUrl
       ),
-      new SQSClient().sendMessage(responseData.data, Queue.gh_pull_request_format.queueUrl),
+      new SQSClient().sendMessage(responseData.data, Queue.gh_pr_format.queueUrl),
     ]);
   } catch (error: unknown) {
     logger.error({
