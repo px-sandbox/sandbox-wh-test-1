@@ -6,7 +6,7 @@ export interface PullRequest {
     pullNumber: number;
     state: string;
     title: string;
-    pullRequestCreatedBy: string;
+    pRCreatedBy: string;
     pullBody: string;
     createdAt: string;
     updatedAt: string;

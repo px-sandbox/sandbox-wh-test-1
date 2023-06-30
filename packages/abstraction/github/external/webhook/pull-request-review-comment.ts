@@ -1,4 +1,4 @@
-export type PullRequestReviewComment = {
+export type PRReviewComment = {
   pull_request_review_id: number;
   id: number;
   diff_hunk: string;

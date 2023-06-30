@@ -4,32 +4,28 @@ import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { DataProcessor } from './data-processor';
 
-export class PullRequestReviewCommentProcessor extends DataProcessor<
-  Github.ExternalType.Webhook.PullRequestReviewComment,
-  Github.Type.PullRequestReviewComment
+export class PRReviewCommentProcessor extends DataProcessor<
+  Github.ExternalType.Webhook.PRReviewComment,
+  Github.Type.PRReviewComment
 > {
   private pullId;
   private repoId;
-  constructor(
-    data: Github.ExternalType.Webhook.PullRequestReviewComment,
-    pullId: number,
-    repoId: number
-  ) {
+  constructor(data: Github.ExternalType.Webhook.PRReviewComment, pullId: number, repoId: number) {
     super(data);
     this.pullId = pullId;
     this.repoId = repoId;
   }
-  async processor(): Promise<Github.Type.PullRequestReviewComment> {
+  async processor(): Promise<Github.Type.PRReviewComment> {
     const parentId: string = await this.getParentId(
-      `${mappingPrefixes.pullRequestReviewComment}_${this.ghApiData.id}`
+      `${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`
     );
 
-    const pullRequestReviewCommentObj = {
+    const pRReviewCommentObj = {
       id: parentId || uuid(),
       body: {
-        id: `${mappingPrefixes.pullRequestReviewComment}_${this.ghApiData.id}`,
-        githubPullRequestReviewCommentId: this.ghApiData.id,
-        pullRequestReviewId: this.ghApiData.pull_request_review_id,
+        id: `${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`,
+        githubPRReviewCommentId: this.ghApiData.id,
+        pRReviewId: this.ghApiData.pull_request_review_id,
         diffHunk: this.ghApiData.diff_hunk,
         path: this.ghApiData.path,
         commitId: `${mappingPrefixes.commit}_${this.ghApiData.commit_id}`,
@@ -53,6 +49,6 @@ export class PullRequestReviewCommentProcessor extends DataProcessor<
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
       },
     };
-    return pullRequestReviewCommentObj;
+    return pRReviewCommentObj;
   }
 }

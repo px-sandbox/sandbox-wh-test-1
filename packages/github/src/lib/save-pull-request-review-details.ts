@@ -5,7 +5,7 @@ import { logger } from 'core';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
 
-export async function savePRReviewComment(data: Github.Type.PRReviewComment): Promise<void> {
+export async function savePRReview(data: Github.Type.PRReview): Promise<void> {
   try {
     await new DynamoDbDocClient(Config.STAGE).put(
       new ParamsMapping().preparePutParams(data.id, data.body.id)
@@ -14,10 +14,10 @@ export async function savePRReviewComment(data: Github.Type.PRReviewComment): Pr
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
-    }).putDocument(Github.Enums.IndexName.GitPRReviewComment, data);
-    logger.info('savePRReviewComment.successful');
+    }).putDocument(Github.Enums.IndexName.GitPRReview, data);
+    logger.info('savePRReview.successful');
   } catch (error: unknown) {
-    logger.error('savePRReviewComment.error', {
+    logger.error('savePRReview.error', {
       error,
     });
     throw error;

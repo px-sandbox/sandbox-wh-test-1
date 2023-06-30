@@ -1,8 +1,8 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { savePullRequestDetails } from 'src/lib/save-pull-details';
+import { savePRDetails } from 'src/lib/save-pull-details';
 
-export const handler = async function pullRequestIndexDataReciever(
+export const handler = async function pRIndexDataReciever(
   event: APIGatewayProxyEvent
 ): Promise<void> {
   try {
@@ -12,9 +12,9 @@ export const handler = async function pullRequestIndexDataReciever(
       /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
       logger.info('PULL_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
 
-      await savePullRequestDetails(messageBody);
+      await savePRDetails(messageBody);
     }
   } catch (error) {
-    logger.error('pullRequestIndexDataReciever.error', { error });
+    logger.error('pRIndexDataReciever.error', { error });
   }
 };

@@ -6,7 +6,8 @@ import { JWTResponse } from './jwt';
 import { Commits, CommitedFiles } from './commits';
 import { PullRequest, RequestedReviewers, Labels } from './pull-request';
 import { Push, CommitIds } from './push';
-import { PullRequestReviewComment } from './pull-request-review-comment';
+import { PRReviewComment } from './pull-request-review-comment';
+import { PRReview } from './pull-request-review';
 
 export {
   Branch,
@@ -22,5 +23,6 @@ export {
   Labels,
   Push,
   CommitIds,
-  PullRequestReviewComment,
+  PRReviewComment,
+  PRReview,
 };
