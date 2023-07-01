@@ -290,7 +290,10 @@ export function gh({ stack }: StackContext) {
     routes: {
       // GET Metadata route
       'GET /github/metadata': {
-        function: 'packages/github/src/service/get-metadata.handler',
+        function: {
+          handler: 'packages/github/src/service/get-metadata.handler',
+          timeout: '15 minutes',
+        },
         authorizer: 'admin',
       },
       // GET github installation access token
