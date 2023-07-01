@@ -1,24 +1,23 @@
 import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
-import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
 import { ghRequest } from './request-defaults';
+import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 
 export async function getBranches(
-  octokit: RequestInterface<
-    object & {
-      headers: {
-        authorization: string | undefined;
-      };
-    }
-  >,
   repoId: string,
   repoName: string,
   repoOwner: string
 ): Promise<number> {
   let branchCount: Promise<number>;
   try {
+    const installationAccessToken = await getInstallationAccessToken();
+    const octokit = ghRequest.request.defaults({
+      headers: {
+        Authorization: `Bearer ${installationAccessToken.body.token}`,
+      },
+    });
     branchCount = await getBranchList(octokit, repoId, repoName, repoOwner);
     return branchCount;
   } catch (error: unknown) {
@@ -33,7 +32,7 @@ async function getBranchList(
   octokit: RequestInterface<
     object & {
       headers: {
-        authorization: string | undefined;
+        Authorization: string | undefined;
       };
     }
   >,
@@ -71,16 +70,7 @@ async function getBranchList(
     logger.error('getBranchList.error', { repoName, repoOwner, page, error });
 
     if (error.status === 401) {
-      const {
-        body: { token },
-      } = await getInstallationAccessToken();
-
-      const octokitObj = ghRequest.request.defaults({
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-      });
-      return getBranchList(octokitObj, repoId, repoName, repoOwner, page, counter);
+      return getBranchList(octokit, repoId, repoName, repoOwner, page, counter);
     }
     throw error;
   }

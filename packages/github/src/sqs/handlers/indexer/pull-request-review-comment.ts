@@ -1,8 +1,8 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { saveRepoDetails } from 'src/lib/save-repo-details';
+import { savePRReviewComment } from 'src/lib/save-pull-request-review-comment';
 
-export const handler = async function repoIndexDataReciever(
+export const handler = async function pullRequestReviewCommentIndexDataReciever(
   event: APIGatewayProxyEvent
 ): Promise<void> {
   try {
@@ -10,10 +10,11 @@ export const handler = async function repoIndexDataReciever(
       const messageBody = JSON.parse(record.body);
       // Do something with the message, e.g. send an email, process data, etc.
       /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
-      logger.info('REPO_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
-      await saveRepoDetails(messageBody);
+      logger.info('PULL_REQUEST_REVIEW_COMMENT_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
+
+      await savePRReviewComment(messageBody);
     }
   } catch (error) {
-    logger.error('repoIndexDataReciever.error', { error });
+    logger.error('pRReviewCommentIndexDataReciever.error', { error });
   }
 };

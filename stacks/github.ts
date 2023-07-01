@@ -28,65 +28,211 @@ export function gh({ stack }: StackContext) {
 
   // create queues
   const userIndexDataQueue = new Queue(stack, 'gh_users_index', {
-    consumer: 'packages/github/src/sqs/handlers/indexer/users.handler',
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/indexer/users.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
   });
   const userFormatDataQueue = new Queue(stack, 'gh_users_format', {
-    consumer: 'packages/github/src/sqs/handlers/formatter/users.handler',
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/formatter/users.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
   });
 
   const repoIndexDataQueue = new Queue(stack, 'gh_repo_index', {
-    consumer: 'packages/github/src/sqs/handlers/indexer/repo.handler',
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/indexer/repo.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
   });
   const repoFormatDataQueue = new Queue(stack, 'gh_repo_format', {
-    consumer: 'packages/github/src/sqs/handlers/formatter/repo.handler',
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/formatter/repo.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
   });
   const branchFormatDataQueue = new Queue(stack, 'gh_branch_format', {
-    consumer: 'packages/github/src/sqs/handlers/formatter/branch.handler',
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/formatter/branch.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
   });
   const branchIndexDataQueue = new Queue(stack, 'gh_branch_index', {
-    consumer: 'packages/github/src/sqs/handlers/indexer/branch.handler',
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/indexer/branch.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
   });
-  const pullRequestFormatDataQueue = new Queue(stack, 'gh_pull_request_format', {
-    consumer: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
+  const pRFormatDataQueue = new Queue(stack, 'gh_pr_format', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
   });
-  const pullRequestIndexDataQueue = new Queue(stack, 'gh_pull_request_index', {
-    consumer: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
+  const pRIndexDataQueue = new Queue(stack, 'gh_pr_index', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
   });
 
   const commitFormatDataQueue = new Queue(stack, 'gh_commit_format', {
-    consumer: 'packages/github/src/sqs/handlers/formatter/commit.handler',
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/formatter/commit.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
   });
   const commitIndexDataQueue = new Queue(stack, 'gh_commit_index', {
-    consumer: 'packages/github/src/sqs/handlers/indexer/commit.handler',
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/indexer/commit.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
   });
 
   const pushFormatDataQueue = new Queue(stack, 'gh_push_format', {
-    consumer: 'packages/github/src/sqs/handlers/formatter/push.handler',
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/formatter/push.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
   });
   const pushIndexDataQueue = new Queue(stack, 'gh_push_index', {
-    consumer: 'packages/github/src/sqs/handlers/indexer/push.handler',
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/indexer/push.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
+  });
+
+  const pRReviewCommentFormatDataQueue = new Queue(stack, 'gh_pr_review_comment_format', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/formatter/pull-request-review-comment.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
+  });
+  const pRReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
+  });
+
+  const afterRepoSaveQueue = new Queue(stack, 'gh_after_repo_save', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/save-branches.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
+  });
+  const pRReviewFormatDataQueue = new Queue(stack, 'gh_pr_review_format', {
+    consumer: 'packages/github/src/sqs/handlers/formatter/pull-request-review.handler',
+  });
+  const pRReviewIndexDataQueue = new Queue(stack, 'gh_pr_review_index', {
+    consumer: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
   });
 
   // bind tables and config to queue
   userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
   repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
   branchFormatDataQueue.bind([table, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
-  commitFormatDataQueue.bind([table, commitIndexDataQueue, GIT_ORGANIZATION_ID]);
-  pullRequestFormatDataQueue.bind([table, pullRequestIndexDataQueue, GIT_ORGANIZATION_ID]);
+  commitFormatDataQueue.bind([
+    table,
+    commitIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+  ]);
+  pRFormatDataQueue.bind([table, pRIndexDataQueue, GIT_ORGANIZATION_ID]);
   pushFormatDataQueue.bind([table, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pRReviewCommentFormatDataQueue.bind([table, pRReviewCommentIndexDataQueue, GIT_ORGANIZATION_ID]);
 
   pushIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   commitIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
   userIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  repoIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  repoIndexDataQueue.bind([
+    table,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    afterRepoSaveQueue,
+  ]);
   branchIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  pullRequestIndexDataQueue.bind([
+  pRIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  pRReviewCommentIndexDataQueue.bind([
     table,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
+  pRReviewFormatDataQueue.bind([table, pRReviewIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pRReviewIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
+  afterRepoSaveQueue.bind([
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    branchFormatDataQueue,
+    branchIndexDataQueue,
+  ]);
   const ghAPI = new Api(stack, 'api', {
     authorizers: {
       universal: {
@@ -113,15 +259,19 @@ export function gh({ stack }: StackContext) {
           userFormatDataQueue,
           repoFormatDataQueue,
           branchFormatDataQueue,
-          pullRequestFormatDataQueue,
+          pRFormatDataQueue,
           userIndexDataQueue,
           repoIndexDataQueue,
           branchIndexDataQueue,
           commitFormatDataQueue,
           commitIndexDataQueue,
-          pullRequestIndexDataQueue,
+          pRIndexDataQueue,
+          pRReviewCommentFormatDataQueue,
+          pRReviewCommentIndexDataQueue,
           pushFormatDataQueue,
           pushIndexDataQueue,
+          pRReviewFormatDataQueue,
+          pRReviewIndexDataQueue,
           GITHUB_BASE_URL,
           GITHUB_APP_ID,
           GITHUB_APP_PRIVATE_KEY_PEM,
@@ -133,6 +283,7 @@ export function gh({ stack }: StackContext) {
           OPENSEARCH_USERNAME,
           GIT_ORGANIZATION_ID,
           table,
+          afterRepoSaveQueue,
         ],
       },
     },

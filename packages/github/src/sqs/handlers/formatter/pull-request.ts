@@ -1,9 +1,9 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { PullRequestProcessor } from 'src/processors/pull-request';
+import { PRProcessor } from 'src/processors/pull-request';
 import { Queue } from 'sst/node/queue';
 
-export const handler = async function pullRequestFormattedDataReciever(
+export const handler = async function pRFormattedDataReciever(
   event: APIGatewayProxyEvent
 ): Promise<void> {
   for (const record of event.Records) {
@@ -12,11 +12,13 @@ export const handler = async function pullRequestFormattedDataReciever(
     /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
     logger.info('PULL_SQS_RECIEVER_HANDLER', { messageBody });
 
-    const pullProcessor = new PullRequestProcessor(messageBody);
+    const pullProcessor = new PRProcessor(messageBody);
     const validatedData = pullProcessor.validate();
-    if (validatedData) {
-      const data = await pullProcessor.processor();
-      await pullProcessor.sendDataToQueue(data, Queue.gh_pull_request_index.queueUrl);
+    if (!validatedData) {
+      logger.error('pRFormattedDataReciever.error', { error: 'validation failed' });
+      return;
     }
+    const data = await pullProcessor.processor();
+    await pullProcessor.sendDataToQueue(data, Queue.gh_pr_index.queueUrl);
   }
 };

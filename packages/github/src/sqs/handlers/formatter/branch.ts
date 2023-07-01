@@ -13,9 +13,11 @@ export const handler = async function branchFormattedDataReciever(
     logger.info('BRANCH_SQS_RECIEVER_HANDLER', { messageBody });
     const branchProcessor = new BranchProcessor(messageBody);
     const validatedData = branchProcessor.validate();
-    if (validatedData) {
-      const data = await branchProcessor.processor();
-      await branchProcessor.sendDataToQueue(data, Queue.gh_branch_index.queueUrl);
+    if (!validatedData) {
+      logger.error('branchFormattedDataReciever.error', { error: 'validation error' });
+      return;
     }
+    const data = await branchProcessor.processor();
+    await branchProcessor.sendDataToQueue(data, Queue.gh_branch_index.queueUrl);
   }
 };
