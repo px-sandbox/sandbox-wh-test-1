@@ -1,3 +1,5 @@
+import { actions } from './actions';
+
 export interface PullRequestReviewComment {
   id: string;
   body: {
@@ -25,5 +27,6 @@ export interface PullRequestReviewComment {
     pullId: string;
     repoId: string;
     organizationId: string;
+    action: actions;
   };
 }

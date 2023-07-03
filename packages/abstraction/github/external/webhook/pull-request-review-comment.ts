@@ -22,4 +22,5 @@ export type PullRequestReviewComment = {
     rocket: number;
     eyes: number;
   };
+  action: string;
 };

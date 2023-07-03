@@ -10,20 +10,29 @@ export class PullRequestReviewCommentProcessor extends DataProcessor<
 > {
   private pullId;
   private repoId;
+  private action;
   constructor(
     data: Github.ExternalType.Webhook.PullRequestReviewComment,
     pullId: number,
-    repoId: number
+    repoId: number,
+    action: string
   ) {
     super(data);
     this.pullId = pullId;
     this.repoId = repoId;
+    this.action = action;
   }
   async processor(): Promise<Github.Type.PullRequestReviewComment> {
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.pullRequestReviewComment}_${this.ghApiData.id}`
     );
 
+    const action = [
+      {
+        action: this.action ?? 'initialized',
+        actionTime: new Date().toISOString(),
+      },
+    ];
     const pullRequestReviewCommentObj = {
       id: parentId || uuid(),
       body: {
@@ -51,6 +60,7 @@ export class PullRequestReviewCommentProcessor extends DataProcessor<
         pullId: `${mappingPrefixes.pull}_${this.pullId}`,
         repoId: `${mappingPrefixes.repo}_${this.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        action: action,
       },
     };
     return pullRequestReviewCommentObj;
