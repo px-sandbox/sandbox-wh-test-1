@@ -11,4 +11,5 @@ export type Branch = {
   organization: object;
   sender: object;
   installation: object;
+  action: string;
 };

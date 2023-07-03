@@ -25,6 +25,12 @@ export class CommitProcessor extends DataProcessor<
         status: data.status,
       });
     });
+    const action = [
+      {
+        action: this.ghApiData.action ?? 'initialized',
+        actionTime: new Date().toISOString(),
+      },
+    ];
     const orgObj = {
       id: parentId || uuid(),
       body: {
@@ -38,6 +44,7 @@ export class CommitProcessor extends DataProcessor<
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         createdAt: this.ghApiData.commit.committer.date,
+        action: action,
       },
     };
     return orgObj;

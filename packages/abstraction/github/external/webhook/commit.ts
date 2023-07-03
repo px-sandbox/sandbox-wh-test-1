@@ -22,4 +22,5 @@ export type Commit = {
     login: string;
   };
   commits: Commits[];
+  action: string;
 };

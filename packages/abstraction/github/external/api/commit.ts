@@ -10,6 +10,7 @@ export type Commit = {
       id: string;
     };
     committer: {
+      id: number;
       login: string;
       date: string;
     };
@@ -29,4 +30,5 @@ export type Commit = {
       status: string;
     }
   ];
+  action?: string;
 };

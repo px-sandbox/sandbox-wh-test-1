@@ -6,15 +6,13 @@ export const handler = async function repoIndexDataReciever(
   event: APIGatewayProxyEvent
 ): Promise<void> {
   try {
-    const [record] = event.Records;
-    const messageBody = JSON.parse(record.body);
-    // Do something with the message, e.g. send an email, process data, etc.
-    /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
-    logger.info('REPO_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
-
-    await saveRepoDetails(messageBody);
-
-    //TODO: We can initiate saving branch afer repo is saved to OpenSearch
+    for (const record of event.Records) {
+      const messageBody = JSON.parse(record.body);
+      // Do something with the message, e.g. send an email, process data, etc.
+      /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
+      logger.info('REPO_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
+      await saveRepoDetails(messageBody);
+    }
   } catch (error) {
     logger.error('repoIndexDataReciever.error', { error });
   }

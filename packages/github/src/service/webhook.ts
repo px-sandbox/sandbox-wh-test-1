@@ -128,7 +128,7 @@ export const webhookData = async function getWebhookData(
       await getCommits(commitData);
       break;
     case Github.Enums.Event.PullRequest:
-      await pullRequestOnQueue(data.pull_request);
+      await pullRequestOnQueue(data.pull_request, data.action);
       break;
     case Github.Enums.Event.PRReviewComment:
       await pullRequestReviewCommentOnQueue(

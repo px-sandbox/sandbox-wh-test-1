@@ -19,16 +19,10 @@ export async function saveUserDetails(data: Github.Type.User): Promise<void> {
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
     const userData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitUsers, matchQry);
     const formattedData = await searchedDataFormator(userData);
-    if (formattedData.length > 0) {
-      if (formattedData[0].action) {
-        logger.info('LAST_ACTIONS_PERFORMED', formattedData[0].action);
-        const actionArr: { action: any; actionTime: string }[] = [];
-        actionArr.push(...formattedData[0].action, ...data.body.action);
-        data.body.action = actionArr;
-      }
-      if (formattedData[0].createdAt) {
-        data.body.createdAt = formattedData[0].createdAt;
-      }
+    if (formattedData[0]) {
+      logger.info('LAST_ACTIONS_PERFORMED', formattedData[0].action);
+      data.body.action = [...formattedData[0].action, ...data.body.action];
+      data.body.createdAt = formattedData[0].createdAt;
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitUsers, data);
     logger.info('saveUserDetails.successful');

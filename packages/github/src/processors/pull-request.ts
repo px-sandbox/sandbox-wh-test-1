@@ -26,7 +26,12 @@ export class PullRequestProcessor extends DataProcessor<
         name: label.name,
       });
     });
-
+    const action = [
+      {
+        action: this.ghApiData.action ?? 'initialized',
+        actionTime: new Date().toISOString(),
+      },
+    ];
     const pullObj = {
       id: parentId || uuid(),
       body: {
@@ -62,6 +67,7 @@ export class PullRequestProcessor extends DataProcessor<
         changedFiles: this.ghApiData.changed_files,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.head.repo.id}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        action: action,
       },
     };
     return pullObj;

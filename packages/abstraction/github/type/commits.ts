@@ -1,3 +1,5 @@
+import { actions } from './actions';
+
 export interface Commits {
   id: string;
   body: {
@@ -11,6 +13,7 @@ export interface Commits {
     repoId: string;
     organizationId: string;
     createdAt: string;
+    action: actions;
   };
 }
 export type CommitedFiles = {

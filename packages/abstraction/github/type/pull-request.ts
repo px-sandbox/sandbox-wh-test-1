@@ -1,3 +1,5 @@
+import { actions } from './actions';
+
 export interface PullRequest {
   id: string;
   body: {
@@ -31,6 +33,7 @@ export interface PullRequest {
     changedFiles: number;
     repoId: string;
     organizationId: string;
+    action: actions;
   };
 }
 
