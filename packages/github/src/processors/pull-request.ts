@@ -4,7 +4,7 @@ import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { DataProcessor } from './data-processor';
 
-export class PullRequestProcessor extends DataProcessor<
+export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
   Github.Type.PullRequest
 > {
@@ -40,7 +40,7 @@ export class PullRequestProcessor extends DataProcessor<
         pullNumber: this.ghApiData.number,
         state: this.ghApiData.state,
         title: this.ghApiData.title,
-        pullRequestCreatedBy: `${mappingPrefixes.user}_${this.ghApiData.user.id}`,
+        pRCreatedBy: `${mappingPrefixes.user}_${this.ghApiData.user.id}`,
         pullBody: this.ghApiData.body,
         createdAt: this.ghApiData.created_at,
         updatedAt: this.ghApiData.updated_at,

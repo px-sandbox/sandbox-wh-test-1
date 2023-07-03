@@ -5,14 +5,13 @@ import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { ghRequest } from './request-defaults';
 
-export async function pRReviewCommentOnQueue(
-  prReviewComment: Array<Github.ExternalType.Webhook.PRReviewComment>,
+export async function pRReviewOnQueue(
+  prReview: Array<Github.ExternalType.Webhook.PRReview>,
   pullId: number,
   repoId: number,
   repo: string,
   owner: string,
-  pullNumber: number,
-  action: string
+  pullNumber: number
 ): Promise<void> {
   try {
     //Get token to pass into header of Github Api call
@@ -27,13 +26,10 @@ export async function pRReviewCommentOnQueue(
     const responseData = await octokit(`GET /repos/${owner}/${repo}/pulls/${pullNumber}`);
     await Promise.all([
       new SQSClient().sendMessage(
-        { comment: prReviewComment, pullId: pullId, repoId: repoId, action: action },
-        Queue.gh_pr_review_comment_format.queueUrl
+        { review: prReview, pullId: pullId, repoId: repoId },
+        Queue.gh_pr_review_format.queueUrl
       ),
-      new SQSClient().sendMessage(
-        { ...responseData.data, action: 'review-commented' },
-        Queue.gh_pr_format.queueUrl
-      ),
+      new SQSClient().sendMessage(responseData.data, Queue.gh_pr_format.queueUrl),
     ]);
   } catch (error: unknown) {
     logger.error({

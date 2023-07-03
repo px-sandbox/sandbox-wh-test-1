@@ -5,6 +5,7 @@ export const mappingPrefixes = {
   repo: 'gh_repo',
   commit: 'gh_commit',
   pull: 'gh_pull',
-  pullRequestReviewComment: 'gh_pull_request_review_comment',
+  pRReviewComment: 'gh_pr_review_comment',
   push: 'gh_push',
+  pRReview: 'gh_pr_review',
 };

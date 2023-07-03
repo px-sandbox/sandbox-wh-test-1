@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { savePullRequestReviewComment } from 'src/lib/save-pull-request-review-comment';
+import { savePRReviewComment } from 'src/lib/save-pull-request-review-comment';
 
 export const handler = async function pullRequestReviewCommentIndexDataReciever(
   event: APIGatewayProxyEvent
@@ -12,9 +12,9 @@ export const handler = async function pullRequestReviewCommentIndexDataReciever(
       /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
       logger.info('PULL_REQUEST_REVIEW_COMMENT_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
 
-      await savePullRequestReviewComment(messageBody);
+      await savePRReviewComment(messageBody);
     }
   } catch (error) {
-    logger.error('pullRequestReviewCommentIndexDataReciever.error', { error });
+    logger.error('pRReviewCommentIndexDataReciever.error', { error });
   }
 };

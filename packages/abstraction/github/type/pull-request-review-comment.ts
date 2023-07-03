@@ -1,11 +1,10 @@
 import { actions } from './actions';
-
-export interface PullRequestReviewComment {
+export interface PRReviewComment {
   id: string;
   body: {
     id: string;
-    githubPullRequestReviewCommentId: number;
-    pullRequestReviewId: number;
+    githubPRReviewCommentId: number;
+    pRReviewId: number;
     diffHunk: string;
     path: string;
     commitId: string;

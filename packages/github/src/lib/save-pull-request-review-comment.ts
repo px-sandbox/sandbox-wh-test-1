@@ -7,9 +7,7 @@ import { searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 
-export async function savePullRequestReviewComment(
-  data: Github.Type.PullRequestReviewComment
-): Promise<void> {
+export async function savePRReviewComment(data: Github.Type.PRReviewComment): Promise<void> {
   try {
     await new DynamoDbDocClient(Config.STAGE).put(
       new ParamsMapping().preparePutParams(data.id, data.body.id)
@@ -31,9 +29,9 @@ export async function savePullRequestReviewComment(
       data.body.createdAt = formattedData[0].createdAt;
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPRReviewComment, data);
-    logger.info('savePullRequestReviewComment.successful');
+    logger.info('savePRReviewComment.successful');
   } catch (error: unknown) {
-    logger.error('savePullRequestReviewComment.error', {
+    logger.error('savePRReviewComment.error', {
       error,
     });
     throw error;

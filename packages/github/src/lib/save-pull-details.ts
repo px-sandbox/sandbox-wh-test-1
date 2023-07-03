@@ -7,7 +7,7 @@ import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from 'src/util/response-formatter';
 
-export async function savePullRequestDetails(data: Github.Type.PullRequest): Promise<void> {
+export async function savePRDetails(data: Github.Type.PullRequest): Promise<void> {
   try {
     await new DynamoDbDocClient(Config.STAGE).put(
       new ParamsMapping().preparePutParams(data.id, data.body.id)
@@ -26,9 +26,9 @@ export async function savePullRequestDetails(data: Github.Type.PullRequest): Pro
       data.body.createdAt = formattedData[0].createdAt;
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPull, data);
-    logger.info('savePullRequestDetails.successful');
+    logger.info('savePRDetails.successful');
   } catch (error: unknown) {
-    logger.error('savePullRequestDetails.error', {
+    logger.error('savePRDetails.error', {
       error,
     });
     throw error;
