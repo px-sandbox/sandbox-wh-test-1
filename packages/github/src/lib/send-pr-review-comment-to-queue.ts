@@ -31,7 +31,7 @@ export async function pRReviewCommentOnQueue(
         Queue.gh_pr_review_comment_format.queueUrl
       ),
       new SQSClient().sendMessage(
-        { ...responseData.data, action: 'review-commented' },
+        { ...responseData.data, action: Github.Enums.Comments.PR_COMMENTED },
         Queue.gh_pr_format.queueUrl
       ),
     ]);

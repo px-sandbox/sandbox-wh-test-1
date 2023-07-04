@@ -268,6 +268,12 @@ const indices: any[] = [
         pullId: { type: 'keyword' },
         repoId: { type: 'keyword' },
         organizationId: { type: 'keyword' },
+        action: {
+          properties: {
+            action: { type: 'text' },
+            createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+          },
+        },
       },
     },
   },

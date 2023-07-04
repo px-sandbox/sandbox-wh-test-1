@@ -1,3 +1,5 @@
+import { actions } from './actions';
+
 export interface PRReview {
   id: string;
   body: {
@@ -11,5 +13,6 @@ export interface PRReview {
     pullId: string;
     repoId: string;
     organizationId: string;
+    action: actions;
   };
 }

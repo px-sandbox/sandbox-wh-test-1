@@ -1,5 +1,7 @@
-import { Client } from '@elastic/elasticsearch';
+import { Client, RequestParams } from '@elastic/elasticsearch';
 import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
+import esb from '@elastic/elasticsearch';
+import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
 export class ElasticSearchClient implements IElasticSearchClient {
   private client: Client;
   constructor(options: ConnectionOptions) {
@@ -25,7 +27,11 @@ export class ElasticSearchClient implements IElasticSearchClient {
     });
   }
 
-  public async search(indexName: string, searchKey: string, searchValue: string): Promise<any> {
+  public async search(
+    indexName: string,
+    searchKey: string,
+    searchValue: string
+  ): Promise<RequestParams.Search<MultiSearchBody>> {
     await this.client.indices.refresh({ index: indexName });
     const result = await this.client.search({
       index: indexName,
@@ -38,7 +44,10 @@ export class ElasticSearchClient implements IElasticSearchClient {
     return result.body;
   }
 
-  public async searchWithEsb(indexName: string, query: object): Promise<any> {
+  public async searchWithEsb(
+    indexName: string,
+    query: object
+  ): Promise<RequestParams.Search<MultiSearchBody>> {
     try {
       await this.client.indices.refresh({ index: indexName });
       const result = await this.client.search({
