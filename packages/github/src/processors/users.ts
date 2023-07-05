@@ -3,7 +3,7 @@ import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { DataProcessor } from './data-processor';
-
+import moment from 'moment';
 export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, Github.Type.User> {
   constructor(data: Github.ExternalType.Api.User) {
     super(data);
@@ -15,6 +15,7 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
       {
         action: this.ghApiData.action ?? 'initialized',
         actionTime: new Date().toISOString(),
+        actionDay: moment().format('dddd'),
       },
     ];
     const userObj = {
@@ -28,6 +29,9 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
         deletedAt: this.ghApiData.deleted_at,
         createdAt: createdAt,
         action: action,
+        createdAtDay: moment(createdAt).format('dddd'),
+        computationalDate: await this.calculateComputationalDate(createdAt),
+        githubDate: moment(createdAt).format('YYYY-MM-DD'),
       },
     };
     return userObj;
