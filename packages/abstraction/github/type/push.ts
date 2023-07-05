@@ -1,3 +1,5 @@
+import { actions } from './actions';
+
 export type Push = {
   id: string;
   body: {
@@ -7,6 +9,7 @@ export type Push = {
     pusherId: string;
     commits: string[];
     organizationId: string;
+    action: actions;
   };
 };
 
