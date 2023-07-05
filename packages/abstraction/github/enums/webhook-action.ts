@@ -22,3 +22,8 @@ export enum Organization {
   MemberRemoved = 'member_removed',
   Renamed = 'renamed',
 }
+
+export enum Comments {
+  REVIEW_COMMENTED = 'review_commented',
+  PR_COMMENTED = 'pr_commented',
+}

@@ -11,7 +11,8 @@ export async function pRReviewOnQueue(
   repoId: number,
   repo: string,
   owner: string,
-  pullNumber: number
+  pullNumber: number,
+  action: string
 ): Promise<void> {
   try {
     //Get token to pass into header of Github Api call
@@ -26,10 +27,13 @@ export async function pRReviewOnQueue(
     const responseData = await octokit(`GET /repos/${owner}/${repo}/pulls/${pullNumber}`);
     await Promise.all([
       new SQSClient().sendMessage(
-        { review: prReview, pullId: pullId, repoId: repoId },
+        { review: prReview, pullId: pullId, repoId: repoId, action: action },
         Queue.gh_pr_review_format.queueUrl
       ),
-      new SQSClient().sendMessage(responseData.data, Queue.gh_pr_format.queueUrl),
+      new SQSClient().sendMessage(
+        { ...responseData.data, action: Github.Enums.Comments.REVIEW_COMMENTED },
+        Queue.gh_pr_format.queueUrl
+      ),
     ]);
   } catch (error: unknown) {
     logger.error({

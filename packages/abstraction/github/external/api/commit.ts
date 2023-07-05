@@ -30,4 +30,5 @@ export type Commit = {
       status: string;
     }
   ];
+  action?: string;
 };

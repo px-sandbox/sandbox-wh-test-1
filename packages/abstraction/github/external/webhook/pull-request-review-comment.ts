@@ -22,4 +22,5 @@ export type PRReviewComment = {
     rocket: number;
     eyes: number;
   };
+  action: string;
 };

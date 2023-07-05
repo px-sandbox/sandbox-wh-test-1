@@ -15,7 +15,12 @@ export class BranchProcessor extends DataProcessor<
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.branch}_${this.ghApiData.id}`
     );
-    const action = this.ghApiData.action ?? '';
+    const action = [
+      {
+        action: this.ghApiData.action ?? 'initialized',
+        actionTime: new Date().toISOString(),
+      },
+    ];
     const branchObj = {
       id: parentId || uuid(),
       body: {

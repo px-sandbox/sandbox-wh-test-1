@@ -10,16 +10,28 @@ export class PRReviewCommentProcessor extends DataProcessor<
 > {
   private pullId;
   private repoId;
-  constructor(data: Github.ExternalType.Webhook.PRReviewComment, pullId: number, repoId: number) {
+  private action;
+  constructor(
+    data: Github.ExternalType.Webhook.PRReviewComment,
+    pullId: number,
+    repoId: number,
+    action: string
+  ) {
     super(data);
     this.pullId = pullId;
     this.repoId = repoId;
+    this.action = action;
   }
   async processor(): Promise<Github.Type.PRReviewComment> {
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`
     );
-
+    const action = [
+      {
+        action: this.action ?? 'initialized',
+        actionTime: new Date().toISOString(),
+      },
+    ];
     const pRReviewCommentObj = {
       id: parentId || uuid(),
       body: {
@@ -47,6 +59,7 @@ export class PRReviewCommentProcessor extends DataProcessor<
         pullId: `${mappingPrefixes.pull}_${this.pullId}`,
         repoId: `${mappingPrefixes.repo}_${this.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        action: action,
       },
     };
     return pRReviewCommentObj;

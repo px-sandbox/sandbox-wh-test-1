@@ -13,7 +13,12 @@ export class RepositoryProcessor extends DataProcessor<
   }
   async processor(): Promise<Github.Type.RepoFormatter> {
     const parentId: string = await this.getParentId(`${mappingPrefixes.repo}_${this.ghApiData.id}`);
-    const action = this.ghApiData.action ?? '';
+    const action = [
+      {
+        action: this.ghApiData.action ?? 'initialized',
+        actionTime: new Date().toISOString(),
+      },
+    ];
     const repoObj = {
       id: parentId || uuid(),
       body: {

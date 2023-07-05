@@ -129,7 +129,7 @@ export const webhookData = async function getWebhookData(
       await getCommits(commitData);
       break;
     case Github.Enums.Event.PullRequest:
-      await pROnQueue(data.pull_request);
+      await pROnQueue(data.pull_request, data.action);
       break;
     case Github.Enums.Event.PRReviewComment:
       await pRReviewCommentOnQueue(
@@ -138,7 +138,8 @@ export const webhookData = async function getWebhookData(
         data.repository.id,
         data.repository.name,
         data.repository.owner.login,
-        data.pull_request.number
+        data.pull_request.number,
+        data.action
       );
       break;
     case Github.Enums.Event.PRReview:
@@ -148,7 +149,8 @@ export const webhookData = async function getWebhookData(
         data.repository.id,
         data.repository.name,
         data.repository.owner.login,
-        data.pull_request.number
+        data.pull_request.number,
+        data.action
       );
       break;
     default:

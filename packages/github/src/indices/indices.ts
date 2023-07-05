@@ -21,6 +21,12 @@ const indices: any[] = [
         company: { type: 'text' },
         deletedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         organizationId: { type: 'keyword' },
+        action: {
+          properties: {
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+          },
+        },
       },
     },
   },
@@ -66,6 +72,12 @@ const indices: any[] = [
         topics: { type: 'text' },
         organizationId: { type: 'keyword' },
         deletedAt: { type: 'date' },
+        action: {
+          properties: {
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+          },
+        },
       },
     },
   },
@@ -83,6 +95,12 @@ const indices: any[] = [
         repoId: { type: 'keyword' },
         organizationId: { type: 'keyword' },
         deletedAt: { type: 'date' },
+        action: {
+          properties: {
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+          },
+        },
       },
     },
   },
@@ -110,6 +128,12 @@ const indices: any[] = [
         organizationId: { type: 'keyword' },
         pushEventId: { type: 'keyword' },
         deletedAt: { type: 'date' },
+        action: {
+          properties: {
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+          },
+        },
       },
     },
   },
@@ -180,6 +204,12 @@ const indices: any[] = [
         changedFiles: { type: 'integer' },
         repoId: { type: 'keyword' },
         organizationId: { type: 'keyword' },
+        action: {
+          properties: {
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+          },
+        },
       },
     },
   },
@@ -214,6 +244,12 @@ const indices: any[] = [
         pullId: { type: 'keyword' },
         repoId: { type: 'keyword' },
         organizationId: { type: 'keyword' },
+        action: {
+          properties: {
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+          },
+        },
       },
     },
   },
@@ -232,6 +268,12 @@ const indices: any[] = [
         pullId: { type: 'keyword' },
         repoId: { type: 'keyword' },
         organizationId: { type: 'keyword' },
+        action: {
+          properties: {
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+          },
+        },
       },
     },
   },
