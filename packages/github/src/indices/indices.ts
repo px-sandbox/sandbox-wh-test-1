@@ -23,8 +23,8 @@ const indices: any[] = [
         organizationId: { type: 'keyword' },
         action: {
           properties: {
-            action: { type: 'text' },
-            createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
           },
         },
       },
@@ -74,8 +74,8 @@ const indices: any[] = [
         deletedAt: { type: 'date' },
         action: {
           properties: {
-            action: { type: 'text' },
-            createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
           },
         },
       },
@@ -97,8 +97,8 @@ const indices: any[] = [
         deletedAt: { type: 'date' },
         action: {
           properties: {
-            action: { type: 'text' },
-            createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
           },
         },
       },
@@ -130,8 +130,8 @@ const indices: any[] = [
         deletedAt: { type: 'date' },
         action: {
           properties: {
-            action: { type: 'text' },
-            createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
           },
         },
       },
@@ -206,8 +206,8 @@ const indices: any[] = [
         organizationId: { type: 'keyword' },
         action: {
           properties: {
-            action: { type: 'text' },
-            createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
           },
         },
       },
@@ -246,8 +246,8 @@ const indices: any[] = [
         organizationId: { type: 'keyword' },
         action: {
           properties: {
-            action: { type: 'text' },
-            createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
           },
         },
       },
@@ -270,8 +270,8 @@ const indices: any[] = [
         organizationId: { type: 'keyword' },
         action: {
           properties: {
-            action: { type: 'text' },
-            createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+            action: { type: 'keyword' },
+            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
           },
         },
       },
