@@ -11,5 +11,8 @@ export interface User {
     organizationId: string;
     deletedAt?: string;
     createdAt: string | Date;
+    createdAtDay: string;
+    computationalDate: string;
+    githubDate: string | Date;
   };
 }

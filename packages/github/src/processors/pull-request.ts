@@ -3,6 +3,7 @@ import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { DataProcessor } from './data-processor';
+import moment from 'moment';
 
 export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
@@ -30,6 +31,7 @@ export class PRProcessor extends DataProcessor<
       {
         action: this.ghApiData.action ?? 'initialized',
         actionTime: new Date().toISOString(),
+        actionDay: moment().format('dddd'),
       },
     ];
     const pullObj = {
@@ -68,6 +70,9 @@ export class PRProcessor extends DataProcessor<
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.head.repo.id}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         action: action,
+        createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
+        computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
+        githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
       },
     };
     return pullObj;
