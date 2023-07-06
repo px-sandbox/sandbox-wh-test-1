@@ -176,6 +176,7 @@ const indices: any[] = [
               actionDay: { type: 'keyword' },
             },
           },
+          createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
           createdAtDay: { type: 'keyword' },
           computationDate: { type: 'date', format: 'yyyy-MM-dd' },
           githubDate: { type: 'date', format: 'yyyy-MM-dd' },

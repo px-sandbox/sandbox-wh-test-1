@@ -27,6 +27,7 @@ export class PushProcessor extends DataProcessor<
         actionDay: moment().format('dddd'),
       },
     ];
+    const createdAt = new Date().toISOString();
     const orgObj = {
       id: parentId || uuid(),
       body: {
@@ -38,6 +39,10 @@ export class PushProcessor extends DataProcessor<
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         action: action,
+        createdAt: createdAt,
+        createdAtDay: moment(createdAt).format('dddd'),
+        computationalDate: await this.calculateComputationalDate(createdAt),
+        githubDate: moment(createdAt).format('YYYY-MM-DD'),
       },
     };
     return orgObj;

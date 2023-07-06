@@ -34,11 +34,11 @@ export abstract class DataProcessor<T, S> {
     await new SQSClient().sendMessage(data, url);
   }
 
-  public async calculateComputationalDate(date: string | Date): Promise<string> {
-    const computationalDateDay = moment(date).format('dddd');
-    if (computationalDateDay === 'Saturday') {
+  public async calculateComputationalDate(date: string): Promise<string> {
+    const inputDay = moment(date).format('dddd');
+    if (inputDay === 'Saturday') {
       return moment(date).add(2, 'days').format('YYYY-MM-DD');
-    } else if (computationalDateDay === 'Sunday') {
+    } else if (inputDay === 'Sunday') {
       return moment(date).add(1, 'days').format('YYYY-MM-DD');
     }
     return moment(date).format('YYYY-MM-DD');

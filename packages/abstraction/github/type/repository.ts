@@ -33,5 +33,8 @@ export interface RepoFormatter {
     updatedAt: string;
     pushedAt: string;
     action: actions;
+    createdAtDay: string;
+    computationalDate: string;
+    githubDate: string | Date;
   };
 }

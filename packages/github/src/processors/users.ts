@@ -10,7 +10,7 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
   }
   async processor(): Promise<Github.Type.User> {
     const parentId = await this.getParentId(`${mappingPrefixes.user}_${this.ghApiData.id}`);
-    const createdAt = this.ghApiData.created_at ?? new Date();
+    const createdAt = this.ghApiData.created_at ?? new Date().toISOString();
     const action = [
       {
         action: this.ghApiData.action ?? 'initialized',

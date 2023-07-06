@@ -23,6 +23,7 @@ export async function savePRReview(data: Github.Type.PRReview): Promise<void> {
     if (formattedData[0]) {
       logger.info('LAST_ACTIONS_PERFORMED', formattedData[0].action);
       data.body.action = [...formattedData[0].action, ...data.body.action];
+      data.body.submittedAt = formattedData[0].submittedAt;
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPRReview, data);
     logger.info('savePRReview.successful');

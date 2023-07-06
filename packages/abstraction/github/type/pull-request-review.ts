@@ -14,5 +14,8 @@ export interface PRReview {
     repoId: string;
     organizationId: string;
     action: actions;
+    createdAtDay: string;
+    computationalDate: string;
+    githubDate: string | Date;
   };
 }

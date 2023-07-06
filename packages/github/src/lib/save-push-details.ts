@@ -18,13 +18,13 @@ export async function savePushDetails(data: Github.Type.Push): Promise<void> {
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
-    const userData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPull, matchQry);
+    const userData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPush, matchQry);
     const formattedData = await searchedDataFormator(userData);
     if (formattedData[0]) {
       logger.info('LAST_ACTIONS_PERFORMED', formattedData[0].action);
       data.body.action = [...formattedData[0].action, ...data.body.action];
     }
-    await esClientObj.putDocument(Github.Enums.IndexName.GitPull, data);
+    await esClientObj.putDocument(Github.Enums.IndexName.GitPush, data);
     logger.info('savePushDetails.successful');
   } catch (error: unknown) {
     logger.error('savePushDetails.error', {

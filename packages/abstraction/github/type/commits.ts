@@ -14,6 +14,9 @@ export interface Commits {
     organizationId: string;
     createdAt: string;
     action: actions;
+    createdAtDay: string;
+    computationalDate: string;
+    githubDate: string | Date;
   };
 }
 export type CommitedFiles = {
