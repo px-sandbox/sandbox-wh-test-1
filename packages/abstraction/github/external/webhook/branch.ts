@@ -12,4 +12,5 @@ export type Branch = {
   sender: object;
   installation: object;
   action: string;
+  protected: boolean;
 };

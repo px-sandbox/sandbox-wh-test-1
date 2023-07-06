@@ -36,10 +36,12 @@ export class BranchProcessor extends DataProcessor<
         pushedAt: this.ghApiData?.pushed_at,
         updatedAt: this.ghApiData?.updated_at,
         deletedAt: this.ghApiData.deleted_at,
+        isDeleted: this.ghApiData.deleted_at ? true : false,
         action: action,
         createdAtDay: moment(createdAt).format('dddd'),
         computationalDate: await this.calculateComputationalDate(createdAt),
         githubDate: moment(createdAt).format('YYYY-MM-DD'),
+        protected: this.ghApiData?.protected,
       },
     };
 

@@ -102,7 +102,8 @@ const indices: any[] = [
         pushedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         repoId: { type: 'keyword' },
         organizationId: { type: 'keyword' },
-        deletedAt: { type: 'date' },
+        deletedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        isDeleted: { type: 'boolean' },
         action: {
           properties: {
             action: { type: 'keyword' },

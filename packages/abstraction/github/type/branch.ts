@@ -16,5 +16,7 @@ export interface Branch {
     createdAtDay: string;
     computationalDate: string;
     githubDate: string | Date;
+    protected: boolean;
+    isDeleted: boolean;
   };
 }
