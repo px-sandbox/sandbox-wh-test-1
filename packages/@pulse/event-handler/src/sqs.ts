@@ -8,13 +8,14 @@ export class SQSClient implements ISQSClient {
     this.sqs = new SQS();
   }
 
-  public async sendMessage(message: Object, queueUrl: string): Promise<void> {
+  public async sendMessage(message: Object, queueUrl: string, delay?: number): Promise<void> {
     const queueName = queueUrl.split('/').slice(-1).toString();
     try {
       const res = await this.sqs
         .sendMessage({
           MessageBody: JSON.stringify(message),
           QueueUrl: queueUrl,
+          DelaySeconds: delay,
         })
         .promise();
       logger.info({

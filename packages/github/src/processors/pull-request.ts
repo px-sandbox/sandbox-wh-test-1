@@ -3,6 +3,9 @@ import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { DataProcessor } from './data-processor';
+import { SQSClient } from '@pulse/event-handler';
+import { Queue } from 'sst/node/queue';
+import { logger } from 'core';
 
 export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
@@ -12,6 +15,41 @@ export class PRProcessor extends DataProcessor<
     super(data);
   }
   async processor(): Promise<Github.Type.PullRequest> {
+    if (
+      this.ghApiData.action === Github.Enums.PullRequest.Closed &&
+      this.ghApiData.merged === true
+    ) {
+      const commitParentId = await this.getParentId(
+        `${mappingPrefixes.commit}_${this.ghApiData.merged_commit_sha}`
+      );
+
+      if (commitParentId) {
+        await new SQSClient().sendMessage(
+          {
+            commitId: this.ghApiData.merged_commit_sha,
+            isMergedCommit: this.ghApiData.merged,
+            mergedBranch: this.ghApiData.base.ref,
+            pushedBranch: this.ghApiData.head.ref,
+            repository: {
+              id: this.ghApiData.head.repo.id,
+              name: this.ghApiData.head.repo.name,
+              owner: this.ghApiData.head.repo.owner.login,
+            },
+          },
+          Queue.gh_commit_format.queueUrl
+        );
+      } else {
+        const attemptNo = this.ghApiData.attempt + 1;
+        if (attemptNo <= 5) {
+          console.log('No. of Attempt to find Merged commit:', attemptNo);
+          this.ghApiData.attempt = attemptNo;
+          const data = this.ghApiData;
+          await new SQSClient().sendMessage(data, Queue.gh_pr_format.queueUrl, 3);
+        }
+        logger.error('MERGE_COMMIT_NOT_FOUND');
+        throw new Error('ATTEMPT EXCEED : MERGE_COMMIT_NOT_FOUND');
+      }
+    }
     const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
     const reqReviewersData: Array<Github.Type.RequestedReviewers> = [];
     this.ghApiData.requested_reviewers.map((reqReviewer) => {
@@ -58,6 +96,10 @@ export class PRProcessor extends DataProcessor<
         },
         mergedBy: this.ghApiData.merged_by
           ? { userId: `${mappingPrefixes.user}_${this.ghApiData.merged_by.id}` }
+          : null,
+        merged: this.ghApiData.merged,
+        mergedCommitId: this.ghApiData.merged_commit_sha
+          ? `${mappingPrefixes.commit}_${this.ghApiData.merged_commit_sha}`
           : null,
         comments: this.ghApiData.comments,
         reviewComments: this.ghApiData.review_comments,

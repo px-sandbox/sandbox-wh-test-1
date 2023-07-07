@@ -5,10 +5,11 @@ import { Queue } from 'sst/node/queue';
 
 export async function pROnQueue(
   pull: Array<Github.ExternalType.Webhook.PullRequest>,
-  action: string
+  action: string,
+  attempt: number = 1
 ): Promise<void> {
   try {
-    await new SQSClient().sendMessage({ ...pull, action }, Queue.gh_pr_format.queueUrl);
+    await new SQSClient().sendMessage({ ...pull, action, attempt }, Queue.gh_pr_format.queueUrl);
   } catch (error: unknown) {
     logger.error({
       error,

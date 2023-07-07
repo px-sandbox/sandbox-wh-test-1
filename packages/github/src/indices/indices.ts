@@ -111,6 +111,9 @@ const indices: any[] = [
       properties: {
         id: { type: 'keyword' },
         githubCommitId: { type: 'keyword' },
+        isMergedCommit: { type: 'boolean' },
+        pushedBranch: { type: 'text' },
+        mergedBranch: { type: 'text' },
         message: { type: 'text' },
         authorId: { type: 'keyword' },
         committedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
@@ -196,6 +199,8 @@ const indices: any[] = [
           },
         },
         mergedBy: { type: 'text' },
+        merged: { type: 'boolean' },
+        mergedCommitId: { type: 'keyword' },
         comments: { type: 'integer' },
         reviewComments: { type: 'integer' },
         commits: { type: 'integer' },

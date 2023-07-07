@@ -31,11 +31,15 @@ export class CommitProcessor extends DataProcessor<
         actionTime: new Date().toISOString(),
       },
     ];
+
     const orgObj = {
       id: parentId || uuid(),
       body: {
         id: `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`,
-        githubCommitId: `${this.ghApiData.commits.id}`,
+        githubCommitId: this.ghApiData.commits.id,
+        isMergedCommit: this.ghApiData.isMergedCommit,
+        pushedBranch: this.ghApiData.pushedBranch,
+        mergedBranch: this.ghApiData.mergedBranch,
         message: this.ghApiData.commit.message,
         authorId: `${mappingPrefixes.user}_${this.ghApiData.committer.id}`,
         committedAt: this.ghApiData.commits.timestamp,

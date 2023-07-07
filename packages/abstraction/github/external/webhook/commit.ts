@@ -2,6 +2,11 @@ export type Commits = {
   id: string;
   timestamp: string;
   url?: string;
+  committer: {
+    username: string;
+    email: string;
+  };
+  message: string;
 };
 
 export type Commit = {

@@ -15,6 +15,9 @@ export const handler = async function commitFormattedDataReciever(
     logger.info('COMMIT_SQS_RECIEVER_HANDLER_FORMATER', { messageBody });
     const {
       commitId,
+      isMergedCommit,
+      mergedBranch,
+      pushedBranch,
       repository: { id: repoId, name: repoName, owner: repoOwner },
     } = messageBody;
     /**
@@ -33,7 +36,12 @@ export const handler = async function commitFormattedDataReciever(
     const responseData = await octokit(`GET /repos/${repoOwner}/${repoName}/commits/${commitId}`);
     const commitProcessor = new CommitProcessor({
       ...responseData.data,
-      commits: { id: commitId },
+      commits: {
+        id: commitId,
+        isMergedCommit: isMergedCommit,
+        mergedBranch: mergedBranch,
+        pushedBranch: pushedBranch,
+      },
       repoId: repoId,
     });
     const validatedData = commitProcessor.validate();

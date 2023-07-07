@@ -5,6 +5,9 @@ export interface Commits {
   body: {
     id: string;
     githubCommitId: string;
+    isMergedCommit: boolean;
+    pushedBranch: string | null;
+    mergedBranch: string;
     message: string;
     authorId: string;
     committedAt: string;

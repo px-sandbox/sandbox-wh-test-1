@@ -25,6 +25,8 @@ export interface PullRequest {
       ref: string;
     };
     mergedBy: { userId: string } | null;
+    merged: boolean;
+    mergedCommitId: string | null;
     comments: number;
     reviewComments: number;
     commits: number;

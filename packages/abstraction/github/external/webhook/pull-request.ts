@@ -24,16 +24,30 @@ export type PullRequest = {
   head: {
     label: string;
     ref: string;
-    repo: { id: number };
+    repo: {
+      id: number;
+      name: string;
+      owner: {
+        login: string;
+      };
+    };
   };
   base: {
     label: string;
     ref: string;
-    repo: { id: number };
+    repo: {
+      id: number;
+      name: string;
+      owner: {
+        login: string;
+      };
+    };
   };
   merged_by: {
     id: number;
   } | null;
+  merged: boolean;
+  merged_commit_sha: string;
   comments: number;
   review_comments: number;
   commits: number;
@@ -41,4 +55,5 @@ export type PullRequest = {
   deletions: number;
   changed_files: number;
   action: string;
+  attempt: number;
 };
