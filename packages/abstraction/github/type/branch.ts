@@ -13,5 +13,10 @@ export interface Branch {
     pushedAt: string;
     deletedAt: string;
     action: actions;
+    createdAtDay: string;
+    computationalDate: string;
+    githubDate: string | Date;
+    protected: boolean;
+    isDeleted: boolean;
   };
 }

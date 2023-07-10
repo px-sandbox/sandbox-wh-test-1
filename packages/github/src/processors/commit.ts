@@ -3,6 +3,7 @@ import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { DataProcessor } from './data-processor';
+import moment from 'moment';
 
 export class CommitProcessor extends DataProcessor<
   Github.ExternalType.Api.Commit,
@@ -29,6 +30,7 @@ export class CommitProcessor extends DataProcessor<
       {
         action: this.ghApiData.action ?? 'initialized',
         actionTime: new Date().toISOString(),
+        actionDay: moment().format('dddd'),
       },
     ];
 
@@ -49,6 +51,11 @@ export class CommitProcessor extends DataProcessor<
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         createdAt: this.ghApiData.commit.committer.date,
         action: action,
+        createdAtDay: moment(this.ghApiData.commit.committer.date).format('dddd'),
+        computationalDate: await this.calculateComputationalDate(
+          this.ghApiData.commit.committer.date
+        ),
+        githubDate: moment(this.ghApiData.commit.committer.date).format('YYYY-MM-DD'),
       },
     };
     return orgObj;
