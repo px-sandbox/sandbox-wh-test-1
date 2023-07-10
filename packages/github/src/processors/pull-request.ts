@@ -40,14 +40,14 @@ export class PRProcessor extends DataProcessor<
         );
       } else {
         const attemptNo = this.ghApiData.attempt + 1;
-        if (attemptNo <= 5) {
-          console.log('No. of Attempt to find Merged commit:', attemptNo);
-          this.ghApiData.attempt = attemptNo;
-          const data = this.ghApiData;
-          await new SQSClient().sendMessage(data, Queue.gh_pr_format.queueUrl, 3);
+        if (attemptNo > 5) {
+          logger.error('MERGE_COMMIT_NOT_FOUND', this.ghApiData);
+          throw new Error('ATTEMPT EXCEED : MERGE_COMMIT_NOT_FOUND');
         }
-        logger.error('MERGE_COMMIT_NOT_FOUND');
-        throw new Error('ATTEMPT EXCEED : MERGE_COMMIT_NOT_FOUND');
+        console.log('No. of Attempt to find Merged commit:', attemptNo);
+        this.ghApiData.attempt = attemptNo;
+        const data = this.ghApiData;
+        await new SQSClient().sendMessage(data, Queue.gh_pr_format.queueUrl, 3);
       }
     }
     const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
@@ -84,6 +84,8 @@ export class PRProcessor extends DataProcessor<
         updatedAt: this.ghApiData.updated_at,
         closedAt: this.ghApiData.closed_at,
         mergedAt: this.ghApiData.merged_at,
+        reviewedAt: this.ghApiData.reviewed_at,
+        approvedAt: this.ghApiData.approved_at,
         requestedReviewers: reqReviewersData,
         labels: labelsData,
         head: {

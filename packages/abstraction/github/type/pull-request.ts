@@ -14,6 +14,8 @@ export interface PullRequest {
     updatedAt: string;
     closedAt: string;
     mergedAt: string;
+    reviewedAt: string | null;
+    approvedAt: string | null;
     requestedReviewers: RequestedReviewers[];
     labels: Labels[];
     head: {
