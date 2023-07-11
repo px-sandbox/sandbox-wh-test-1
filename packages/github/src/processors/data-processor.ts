@@ -3,6 +3,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
+import moment from 'moment';
 
 export abstract class DataProcessor<T, S> {
   protected ghApiData: T;
@@ -31,5 +32,15 @@ export abstract class DataProcessor<T, S> {
 
   public async sendDataToQueue(data: Object, url: string): Promise<void> {
     await new SQSClient().sendMessage(data, url);
+  }
+
+  public async calculateComputationalDate(date: string): Promise<string> {
+    const inputDay = moment(date).format('dddd');
+    if (inputDay === 'Saturday') {
+      return moment(date).add(2, 'days').format('YYYY-MM-DD');
+    } else if (inputDay === 'Sunday') {
+      return moment(date).add(1, 'days').format('YYYY-MM-DD');
+    }
+    return moment(date).format('YYYY-MM-DD');
   }
 }

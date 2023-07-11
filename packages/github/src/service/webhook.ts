@@ -92,7 +92,7 @@ export const webhookData = async function getWebhookData(
           id: Buffer.from(`${repo_id}_${name}`, 'binary').toString('base64'),
           action: Github.Enums.Branch.Deleted,
           repo_id,
-          deleted_at: true,
+          deleted_at: event_at,
         };
       }
       logger.info('-------Branch event --------');

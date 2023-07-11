@@ -6,6 +6,7 @@ import { DataProcessor } from './data-processor';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
+import moment from 'moment';
 
 export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
@@ -68,6 +69,7 @@ export class PRProcessor extends DataProcessor<
       {
         action: this.ghApiData.action ?? 'initialized',
         actionTime: new Date().toISOString(),
+        actionDay: moment().format('dddd'),
       },
     ];
     const pullObj = {
@@ -112,6 +114,9 @@ export class PRProcessor extends DataProcessor<
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.head.repo.id}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         action: action,
+        createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
+        computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
+        githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
       },
     };
     return pullObj;
