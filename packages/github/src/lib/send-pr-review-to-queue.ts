@@ -35,11 +35,11 @@ export async function pRReviewOnQueue(
      * update the value to store the first reviewed_at and approved_at time.
      */
     const [pullData] = await getPullRequestById(pullId);
-    if (pullData && pullData.reviewedAt === null) {
-      reviewed_at = prReview.submitted_at;
-    }
-    if (pullData && pullData.approvedAt === null) {
-      if (prReview.state === Github.Enums.ReviewState.APPROVED) {
+    if (pullData) {
+      if (pullData.reviewedAt === null) {
+        reviewed_at = prReview.submitted_at;
+      }
+      if (pullData.approvedAt === null && prReview.state === Github.Enums.ReviewState.APPROVED) {
         approved_at = prReview.submitted_at;
       }
     }
