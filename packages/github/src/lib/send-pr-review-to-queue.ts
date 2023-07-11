@@ -4,9 +4,10 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { ghRequest } from './request-defaults';
+import { getPullRequestById } from './get-pull-request';
 
 export async function pRReviewOnQueue(
-  prReview: Array<Github.ExternalType.Webhook.PRReview>,
+  prReview: Github.ExternalType.Webhook.PRReview,
   pullId: number,
   repoId: number,
   repo: string,
@@ -25,16 +26,45 @@ export async function pRReviewOnQueue(
 
     //Get pull request details through Github Api and update the same into index.
     const responseData = await octokit(`GET /repos/${owner}/${repo}/pulls/${pullNumber}`);
-    await Promise.all([
-      new SQSClient().sendMessage(
-        { review: prReview, pullId: pullId, repoId: repoId, action: action },
-        Queue.gh_pr_review_format.queueUrl
-      ),
-      new SQSClient().sendMessage(
-        { ...responseData.data, action: Github.Enums.Comments.REVIEW_COMMENTED },
-        Queue.gh_pr_format.queueUrl
-      ),
-    ]);
+
+    //
+    let reviewed_at = null;
+    let approved_at = null;
+    /**
+     * Search pull request index and check if reviewed_at and approved_at is null or not. If null then
+     * update the value to store the first reviewed_at and approved_at time.
+     */
+    const [pullData] = await getPullRequestById(pullId);
+    if (pullData) {
+      if (pullData.reviewedAt === null) {
+        reviewed_at = prReview.submitted_at;
+      }
+      if (pullData.approvedAt === null && prReview.state === Github.Enums.ReviewState.APPROVED) {
+        approved_at = prReview.submitted_at;
+      }
+      await Promise.all([
+        new SQSClient().sendMessage(
+          { review: prReview, pullId: pullId, repoId: repoId, action: action },
+          Queue.gh_pr_review_format.queueUrl
+        ),
+        new SQSClient().sendMessage(
+          {
+            ...responseData.data,
+            reviewed_at: reviewed_at,
+            approved_at: approved_at,
+            action: Github.Enums.Comments.REVIEW_COMMENTED,
+            attempt: 1,
+          },
+          Queue.gh_pr_format.queueUrl
+        ),
+      ]);
+    }
+    logger.error('pRReviewOnQueue.failed: PR NOT FOUND', {
+      review: prReview,
+      pullId: pullId,
+      repoId: repoId,
+      action: action,
+    });
   } catch (error: unknown) {
     logger.error({
       error,
