@@ -42,24 +42,29 @@ export async function pRReviewOnQueue(
       if (pullData.approvedAt === null && prReview.state === Github.Enums.ReviewState.APPROVED) {
         approved_at = prReview.submitted_at;
       }
+      await Promise.all([
+        new SQSClient().sendMessage(
+          { review: prReview, pullId: pullId, repoId: repoId, action: action },
+          Queue.gh_pr_review_format.queueUrl
+        ),
+        new SQSClient().sendMessage(
+          {
+            ...responseData.data,
+            reviewed_at: reviewed_at,
+            approved_at: approved_at,
+            action: Github.Enums.Comments.REVIEW_COMMENTED,
+            attempt: 1,
+          },
+          Queue.gh_pr_format.queueUrl
+        ),
+      ]);
     }
-
-    await Promise.all([
-      new SQSClient().sendMessage(
-        { review: prReview, pullId: pullId, repoId: repoId, action: action },
-        Queue.gh_pr_review_format.queueUrl
-      ),
-      new SQSClient().sendMessage(
-        {
-          ...responseData.data,
-          reviewed_at: reviewed_at,
-          approved_at: approved_at,
-          action: Github.Enums.Comments.REVIEW_COMMENTED,
-          attempt: 1,
-        },
-        Queue.gh_pr_format.queueUrl
-      ),
-    ]);
+    logger.error('pRReviewOnQueue.failed: PR NOT FOUND', {
+      review: prReview,
+      pullId: pullId,
+      repoId: repoId,
+      action: action,
+    });
   } catch (error: unknown) {
     logger.error({
       error,

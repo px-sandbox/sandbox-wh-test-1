@@ -36,32 +36,36 @@ export async function pRReviewCommentOnQueue(
      * be by Github Bot. If comment is from Github Bob then we will not update reviewed_at.
      */
     const [pullData] = await getPullRequestById(pullId);
-    if (pullData && pullData.reviewedAt === null) {
-      if (prReviewComment.user.type !== Github.Enums.UserType.BOT) {
+    if (pullData) {
+      if (pullData.reviewedAt === null && prReviewComment.user.type !== Github.Enums.UserType.BOT) {
         reviewed_at = prReviewComment.created_at;
       }
+      if (pullData.approvedAt !== null) {
+        approved_at = pullData.approvedAt;
+      }
+      await Promise.all([
+        new SQSClient().sendMessage(
+          { comment: prReviewComment, pullId: pullId, repoId: repoId, action: action },
+          Queue.gh_pr_review_comment_format.queueUrl
+        ),
+        new SQSClient().sendMessage(
+          {
+            ...responseData.data,
+            reviewed_at: reviewed_at,
+            approved_at: approved_at,
+            action: Github.Enums.Comments.PR_COMMENTED,
+            attempt: 1,
+          },
+          Queue.gh_pr_format.queueUrl
+        ),
+      ]);
     }
-
-    if (pullData && pullData.approvedAt !== null) {
-      approved_at = pullData.approvedAt;
-    }
-
-    await Promise.all([
-      new SQSClient().sendMessage(
-        { comment: prReviewComment, pullId: pullId, repoId: repoId, action: action },
-        Queue.gh_pr_review_comment_format.queueUrl
-      ),
-      new SQSClient().sendMessage(
-        {
-          ...responseData.data,
-          reviewed_at: reviewed_at,
-          approved_at: approved_at,
-          action: Github.Enums.Comments.PR_COMMENTED,
-          attempt: 1,
-        },
-        Queue.gh_pr_format.queueUrl
-      ),
-    ]);
+    logger.error('pRReviewCommentOnQueue.failed: PR NOT FOUND', {
+      review: prReviewComment,
+      pullId: pullId,
+      repoId: repoId,
+      action: action,
+    });
   } catch (error: unknown) {
     logger.error({
       error,
