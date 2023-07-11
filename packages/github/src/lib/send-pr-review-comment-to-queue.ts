@@ -4,11 +4,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { ghRequest } from './request-defaults';
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
-import { mappingPrefixes } from 'src/constant/config';
-import { searchedDataFormator } from 'src/util/response-formatter';
+import { getPullRequestById } from './get-pull-request';
 
 export async function pRReviewCommentOnQueue(
   prReviewComment: Github.ExternalType.Webhook.PRReviewComment,
@@ -35,25 +31,19 @@ export async function pRReviewCommentOnQueue(
     let reviewed_at = null;
     let approved_at = null;
     /**
-     * Search pull request index and check if reviewed_at and approved_at is null or not. If null then
-     * update the value to store the first reviewed_at and approved_at time.
+     * Search pull request index and check if reviewed_at is null or not. If null then
+     * update the value to store the first reviewed_at time. Also this commented shouldn't
+     * be by Github Bot. If comment is from Github Bob then we will not update reviewed_at.
      */
-    const esClientObj = await new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const matchQry = esb.matchQuery('body.id', `${mappingPrefixes}_${pullId}`).toJSON();
-    const pullData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPull, matchQry);
-    const formattedData = await searchedDataFormator(pullData);
-    if (formattedData[0] && formattedData[0].reviewed_at === null) {
+    const [pullData] = await getPullRequestById(pullId);
+    if (pullData && pullData.reviewedAt === null) {
       if (prReviewComment.user.type !== Github.Enums.UserType.BOT) {
         reviewed_at = prReviewComment.created_at;
       }
     }
 
-    if (formattedData[0] && formattedData[0].approved_at !== null) {
-      approved_at = formattedData[0].approved_at;
+    if (pullData && pullData.approvedAt !== null) {
+      approved_at = pullData.approvedAt;
     }
 
     await Promise.all([

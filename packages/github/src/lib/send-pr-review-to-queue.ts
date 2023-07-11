@@ -4,11 +4,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { ghRequest } from './request-defaults';
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
-import { mappingPrefixes } from 'src/constant/config';
-import { searchedDataFormator } from 'src/util/response-formatter';
+import { getPullRequestById } from './get-pull-request';
 
 export async function pRReviewOnQueue(
   prReview: Github.ExternalType.Webhook.PRReview,
@@ -38,18 +34,11 @@ export async function pRReviewOnQueue(
      * Search pull request index and check if reviewed_at and approved_at is null or not. If null then
      * update the value to store the first reviewed_at and approved_at time.
      */
-    const esClientObj = await new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const matchQry = esb.matchQuery('body.id', `${mappingPrefixes}_${pullId}`).toJSON();
-    const pullData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPull, matchQry);
-    const formattedData = await searchedDataFormator(pullData);
-    if (formattedData[0] && formattedData[0].reviewed_at === null) {
+    const [pullData] = await getPullRequestById(pullId);
+    if (pullData && pullData.reviewedAt === null) {
       reviewed_at = prReview.submitted_at;
     }
-    if (formattedData[0] && formattedData[0].approved_at === null) {
+    if (pullData && pullData.approvedAt === null) {
       if (prReview.state === Github.Enums.ReviewState.APPROVED) {
         approved_at = prReview.submitted_at;
       }

@@ -44,7 +44,7 @@ export class PRProcessor extends DataProcessor<
           logger.error('MERGE_COMMIT_NOT_FOUND', this.ghApiData);
           throw new Error('ATTEMPT EXCEED : MERGE_COMMIT_NOT_FOUND');
         }
-        console.log('No. of Attempt to find Merged commit:', attemptNo);
+        logger.info(`No. of Attempt to find Merged commit: ${attemptNo}`);
         this.ghApiData.attempt = attemptNo;
         const data = this.ghApiData;
         await new SQSClient().sendMessage(data, Queue.gh_pr_format.queueUrl, 3);
