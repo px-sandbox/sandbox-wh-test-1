@@ -326,6 +326,11 @@ export function gh({ stack }: StackContext) {
         function: 'packages/github/src/service/get-repos.handler',
         authorizer: 'universal',
       },
+      // GET PR comments graph data
+      'GET /github/pr-comments-graph': {
+        function: 'packages/github/src/service/get-pr-comments.handler',
+        authorizer: 'universal',
+      },
     },
   });
 

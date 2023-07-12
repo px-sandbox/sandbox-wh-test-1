@@ -50,3 +50,18 @@ export const getGitRepoSchema = {
     },
   },
 };
+
+export const prCommentsGraphSchema = {
+  type: 'object',
+  properties: {
+    pathParameters: {
+      type: 'object',
+      properties: {
+        startDate: { type: 'string' },
+        endDate: { type: 'string' },
+        intervals: { type: 'string' },
+      },
+      required: ['startDate', 'endDate', 'intervals'],
+    },
+  },
+};
