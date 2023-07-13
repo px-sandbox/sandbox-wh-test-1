@@ -54,14 +54,15 @@ export const getGitRepoSchema = {
 export const prCommentsGraphSchema = {
   type: 'object',
   properties: {
-    pathParameters: {
+    queryStringParameters: {
       type: 'object',
       properties: {
         startDate: { type: 'string' },
         endDate: { type: 'string' },
-        intervals: { type: 'string' },
+        interval: { type: 'string' },
+        repoIds: { type: 'string' },
       },
-      required: ['startDate', 'endDate', 'intervals'],
+      required: ['startDate', 'endDate', 'interval', 'repoIds'],
     },
   },
 };

@@ -1,8 +1,8 @@
 import { transpileSchema } from '@middy/validator/transpile';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
+import { prCommentsAvg, prCommentsGraphData } from 'src/lib/get-pr-comments';
 import { prCommentsGraphSchema } from './validations';
-import { graphDataForPRComments } from 'src/lib/get-pr-comments';
 
 const prCommentsGraph = async function getPrCommentsGraph(
   event: APIGatewayProxyEvent
@@ -10,15 +10,16 @@ const prCommentsGraph = async function getPrCommentsGraph(
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
-  let prCommentData;
+  const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
+  let prCommentGraphData: any, prCommentAvg: any;
   try {
-    prCommentData = await graphDataForPRComments(startDate, endDate, interval);
-    console.log(prCommentData);
+    prCommentGraphData = await prCommentsGraphData(startDate, endDate, interval, repoIds);
+    prCommentAvg = await prCommentsAvg(startDate, endDate, repoIds);
   } catch (e) {
     logger.info(e);
   }
   return responseParser
-    .setBody(prCommentData)
+    .setBody({ prCommentGraphData, headline: prCommentAvg })
     .setMessage('get github user details')
     .setStatusCode(HttpStatusCode['200'])
     .setResponseBodyCode('SUCCESS')
