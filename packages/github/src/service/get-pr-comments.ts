@@ -19,7 +19,7 @@ const prCommentsGraph = async function getPrCommentsGraph(
     logger.info(e);
   }
   return responseParser
-    .setBody({ prCommentGraphData, headline: prCommentAvg })
+    .setBody({ graphData: prCommentGraphData, headline: prCommentAvg })
     .setMessage('get github user details')
     .setStatusCode(HttpStatusCode['200'])
     .setResponseBodyCode('SUCCESS')
