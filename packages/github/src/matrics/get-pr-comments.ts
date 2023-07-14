@@ -32,16 +32,17 @@ export async function prCommentsGraphData(
     let graphIntervals: esb.DateHistogramAggregation;
 
     switch (intervals) {
-      case esbDateHistogramInterval.day ||
-        esbDateHistogramInterval.month ||
-        esbDateHistogramInterval.year:
+      case esbDateHistogramInterval.day:
+      case esbDateHistogramInterval.month:
+      case esbDateHistogramInterval.year:
         graphIntervals = esb
           .dateHistogramAggregation('commentsPerDay')
           .field('body.createdAt')
           .format('yyyy-MM-dd')
           .calendarInterval(intervals);
         break;
-      case esbDateHistogramInterval['2d'] || esbDateHistogramInterval['3d']:
+      case esbDateHistogramInterval['2d']:
+      case esbDateHistogramInterval['3d']:
         graphIntervals = esb
           .dateHistogramAggregation('commentsPerDay')
           .field('body.createdAt')

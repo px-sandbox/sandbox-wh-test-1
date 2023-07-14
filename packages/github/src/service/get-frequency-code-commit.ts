@@ -1,35 +1,36 @@
 import { transpileSchema } from '@middy/validator/transpile';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { prCommentsAvg, prCommentsGraphData } from 'src/matrics/get-pr-comments';
+import {
+  frequencyOfCodeCommitAvg,
+  frequencyOfCodeCommitGraph,
+} from 'src/matrics/get-frequency-of-commits';
 import { prCommentsGraphSchema } from './validations';
-import { IPrCommentAggregationResponse } from 'abstraction/github/type';
 
-const prCommentsGraph = async function getPrCommentsGraph(
+const frequencyOfCodeCommits = async function getFrequencyOfCodeCommits(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
-  let prCommentGraphData: IPrCommentAggregationResponse | null | undefined,
-    prCommentAvg: string | null | undefined;
+  let frequencyOfCodeCommitsGraphData, frequencyOfCodeCommitsAvg;
   try {
-    [prCommentGraphData, prCommentAvg] = await Promise.all([
-      prCommentsGraphData(startDate, endDate, interval, repoIds),
-      prCommentsAvg(startDate, endDate, repoIds),
+    [frequencyOfCodeCommitsGraphData, frequencyOfCodeCommitsAvg] = await Promise.all([
+      frequencyOfCodeCommitGraph(startDate, endDate, interval, repoIds),
+      frequencyOfCodeCommitAvg(startDate, endDate, repoIds),
     ]);
   } catch (e) {
     logger.error(e);
   }
   return responseParser
-    .setBody({ graphData: prCommentGraphData, headline: prCommentAvg })
+    .setBody({ graphData: frequencyOfCodeCommitsGraphData, headline: frequencyOfCodeCommitsAvg })
     .setMessage('get github user details')
     .setStatusCode(HttpStatusCode['200'])
     .setResponseBodyCode('SUCCESS')
     .send();
 };
-const handler = APIHandler(prCommentsGraph, {
+const handler = APIHandler(frequencyOfCodeCommits, {
   eventSchema: transpileSchema(prCommentsGraphSchema),
 });
-export { handler, prCommentsGraph };
+export { frequencyOfCodeCommits, handler };

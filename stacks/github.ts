@@ -327,8 +327,13 @@ export function gh({ stack }: StackContext) {
         authorizer: 'universal',
       },
       // GET PR comments graph data
-      'GET /github/pr-comments-graph': {
+      'GET /github/graph/pr-comments': {
         function: 'packages/github/src/service/get-pr-comments.handler',
+        authorizer: 'universal',
+      },
+      // GET Graph for frequency of code commits
+      'GET /github/graph/frequency-of-code-commit': {
+        function: 'packages/github/src/service/get-frequency-code-commit.handler',
         authorizer: 'universal',
       },
     },
