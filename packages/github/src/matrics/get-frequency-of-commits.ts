@@ -6,6 +6,7 @@ import { IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { esbDateHistogramInterval } from 'src/constant/config';
+import { getWeekDaysCount } from 'src/util/weekend-calculations';
 import { Config } from 'sst/node/config';
 
 export async function frequencyOfCodeCommitGraph(
@@ -81,7 +82,7 @@ export async function frequencyOfCodeCommitAvg(
   startDate: string,
   endDate: string,
   repoIds: string[]
-): Promise<Search<MultiSearchBody>> {
+): Promise<number | {}> {
   try {
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -105,7 +106,9 @@ export async function frequencyOfCodeCommitAvg(
       index: Github.Enums.IndexName.GitCommits,
       body: prCommentAvgQuery,
     });
-    return data.body.hits.total;
+    const totalDoc = data.body.hits.total.value;
+    const weekendCount = getWeekDaysCount(startDate, endDate);
+    return { value: totalDoc / weekendCount };
   } catch (e) {
     logger.error(e);
   }

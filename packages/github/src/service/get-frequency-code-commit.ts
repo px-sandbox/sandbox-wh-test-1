@@ -25,7 +25,7 @@ const frequencyOfCodeCommits = async function getFrequencyOfCodeCommits(
   }
   return responseParser
     .setBody({ graphData: frequencyOfCodeCommitsGraphData, headline: frequencyOfCodeCommitsAvg })
-    .setMessage('get github user details')
+    .setMessage('frequency of code commits data')
     .setStatusCode(HttpStatusCode['200'])
     .setResponseBodyCode('SUCCESS')
     .send();
