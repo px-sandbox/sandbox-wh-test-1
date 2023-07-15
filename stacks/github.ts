@@ -336,6 +336,10 @@ export function gh({ stack }: StackContext) {
         function: 'packages/github/src/service/get-frequency-code-commit.handler',
         authorizer: 'universal',
       },
+      'GET /github/graph/number-of-pr-raised': {
+        function: 'packages/github/src/service/number-of-pr-raised.handler',
+        authorizer: 'universal',
+      },
     },
   });
 

@@ -66,3 +66,19 @@ export const prCommentsGraphSchema = {
     },
   },
 };
+
+export const numberOfPrRaisedGraphSchema = {
+  type: 'object',
+  properties: {
+    queryStringParameters: {
+      type: 'object',
+      properties: {
+        startDate: { type: 'string' },
+        endDate: { type: 'string' },
+        interval: { type: 'string' },
+        repoIds: { type: 'string' },
+      },
+      required: ['startDate', 'endDate', 'interval', 'repoIds'],
+    },
+  },
+};
