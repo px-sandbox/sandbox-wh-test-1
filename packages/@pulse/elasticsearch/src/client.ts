@@ -1,7 +1,7 @@
 import { Client, RequestParams } from '@elastic/elasticsearch';
-import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
-import esb from '@elastic/elasticsearch';
 import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
+import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
+
 export class ElasticSearchClient implements IElasticSearchClient {
   private client: Client;
   constructor(options: ConnectionOptions) {
@@ -57,6 +57,19 @@ export class ElasticSearchClient implements IElasticSearchClient {
         },
       });
       return result.body;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  public async queryAggs<T>(indexName: string, query: object): Promise<T> {
+    try {
+      await this.client.indices.refresh({ index: indexName });
+      const { body } = await this.client.search({
+        index: indexName,
+        body: query,
+      });
+      return body.aggregations;
     } catch (err) {
       throw err;
     }

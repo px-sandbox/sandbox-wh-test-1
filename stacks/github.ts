@@ -326,6 +326,21 @@ export function gh({ stack }: StackContext) {
         function: 'packages/github/src/service/get-repos.handler',
         authorizer: 'universal',
       },
+      // GET PR comments graph data
+      'GET /github/graph/number-comments-added-to-prs': {
+        function: 'packages/github/src/service/get-pr-comments.handler',
+        authorizer: 'universal',
+      },
+      // GET Graph for frequency of code commits
+      'GET /github/graph/code-commit-frequency': {
+        function: 'packages/github/src/service/get-frequency-code-commit.handler',
+        authorizer: 'universal',
+      },
+      // GET Graph for number of PRs
+      'GET /github/graph/number-pr-raised': {
+        function: 'packages/github/src/service/number-of-pr-raised.handler',
+        authorizer: 'universal',
+      },
     },
   });
 
