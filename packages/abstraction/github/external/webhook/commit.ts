@@ -7,6 +7,9 @@ export type Commits = {
     email: string;
   };
   message: string;
+  isMergedCommit: boolean;
+  mergedBranch: string;
+  pushedBranch: string | null;
 };
 
 export type Commit = {
