@@ -13,7 +13,7 @@ const prCommentsGraph = async function getPrCommentsGraph(
   const interval: string = event.queryStringParameters?.interval || '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
   let prCommentGraphData: IPrCommentAggregationResponse | null | undefined;
-    let prCommentAvg: string | null | undefined;
+  let prCommentAvg: string | null | undefined;
   try {
     [prCommentGraphData, prCommentAvg] = await Promise.all([
       prCommentsGraphData(startDate, endDate, interval, repoIds),
@@ -21,6 +21,7 @@ const prCommentsGraph = async function getPrCommentsGraph(
     ]);
   } catch (e) {
     logger.error(e);
+    throw new Error(`Something went wrong: ${e}`);
   }
   return responseParser
     .setBody({ graphData: prCommentGraphData, headline: prCommentAvg })

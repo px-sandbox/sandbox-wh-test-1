@@ -13,8 +13,10 @@ const frequencyOfCodeCommits = async function getFrequencyOfCodeCommits(
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
-  const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
-  let frequencyOfCodeCommitsGraphData, frequencyOfCodeCommitsAvg;
+  const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [''];
+
+  let frequencyOfCodeCommitsGraphData;
+  let frequencyOfCodeCommitsAvg;
   try {
     [frequencyOfCodeCommitsGraphData, frequencyOfCodeCommitsAvg] = await Promise.all([
       frequencyOfCodeCommitGraph(startDate, endDate, interval, repoIds),
@@ -22,6 +24,7 @@ const frequencyOfCodeCommits = async function getFrequencyOfCodeCommits(
     ]);
   } catch (e) {
     logger.error(e);
+    throw new Error(`Something went wrong: ${e}`);
   }
   return responseParser
     .setBody({ graphData: frequencyOfCodeCommitsGraphData, headline: frequencyOfCodeCommitsAvg })

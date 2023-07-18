@@ -11,7 +11,8 @@ const numberOfPrRaised = async function getNumberOfPrRaised(
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
-  let numberOfPrRaisedGraphData, numberOfPrRaisedAvg;
+  let numberOfPrRaisedGraphData;
+  let numberOfPrRaisedAvg;
   try {
     [numberOfPrRaisedGraphData, numberOfPrRaisedAvg] = await Promise.all([
       numberOfPrRaisedGraph(startDate, endDate, interval, repoIds),
@@ -19,6 +20,7 @@ const numberOfPrRaised = async function getNumberOfPrRaised(
     ]);
   } catch (e) {
     logger.error(e);
+    throw new Error(`Something went wrong: ${e}`);
   }
   return responseParser
     .setBody({ graphData: numberOfPrRaisedGraphData, headline: numberOfPrRaisedAvg })
