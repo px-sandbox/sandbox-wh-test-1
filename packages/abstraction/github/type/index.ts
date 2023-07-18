@@ -8,7 +8,7 @@ import { PullRequest, RequestedReviewers, Labels, PullRequestBody } from './pull
 import { Push, CommitIds } from './push';
 import { PRReviewComment } from './pull-request-review-comment';
 import { PRReview } from './pull-request-review';
-
+import { IPrCommentAggregationResponse } from './aggregations/pr-comments';
 export {
   Branch,
   Organization,
@@ -26,4 +26,5 @@ export {
   CommitIds,
   PRReviewComment,
   PRReview,
+  IPrCommentAggregationResponse,
 };
