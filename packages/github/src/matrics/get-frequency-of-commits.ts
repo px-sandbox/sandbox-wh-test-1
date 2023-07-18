@@ -1,5 +1,3 @@
-import { Search } from '@elastic/elasticsearch/api/requestParams';
-import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { IPrCommentAggregationResponse } from 'abstraction/github/type';
@@ -21,7 +19,7 @@ export async function frequencyOfCodeCommitGraph(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    let frquencyOfCodeCommitGraphQuery = await esb.requestBodySearch().size(0);
+    const frquencyOfCodeCommitGraphQuery = await esb.requestBodySearch().size(0);
     frquencyOfCodeCommitGraphQuery.query(
       esb
         .boolQuery()
@@ -73,7 +71,7 @@ export async function frequencyOfCodeCommitGraph(
     });
     return bucketData;
   } catch (e) {
-    logger.error(e);
+    logger.error('frequencyOfCodeCommitGraph.error', e);
   }
   return null;
 }
@@ -89,7 +87,7 @@ export async function frequencyOfCodeCommitAvg(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    let prCommentAvgQuery = await esb.requestBodySearch().size(0);
+    const prCommentAvgQuery = await esb.requestBodySearch().size(0);
     prCommentAvgQuery
       .query(
         esb
@@ -107,10 +105,10 @@ export async function frequencyOfCodeCommitAvg(
       body: prCommentAvgQuery,
     });
     const totalDoc = data.body.hits.total.value;
-    const weekendCount = getWeekDaysCount(startDate, endDate);
-    return { value: totalDoc / weekendCount };
+    const weekDaysCount = getWeekDaysCount(startDate, endDate);
+    return { value: totalDoc / weekDaysCount };
   } catch (e) {
-    logger.error(e);
+    logger.error('frequencyOfCodeCommitGraphAvg.error', e);
   }
   return {};
 }

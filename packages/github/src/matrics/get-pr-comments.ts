@@ -18,7 +18,7 @@ export async function prCommentsGraphData(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    let prCommentGraphQuery = await esb.requestBodySearch().size(0);
+    const prCommentGraphQuery = await esb.requestBodySearch().size(0);
     prCommentGraphQuery.query(
       esb
         .boolQuery()
@@ -85,7 +85,7 @@ export async function prCommentsGraphData(
     });
     return bucketData;
   } catch (e) {
-    logger.error(e);
+    logger.error('prCommentsGraph.error', e);
   }
   return null;
 }
@@ -101,7 +101,7 @@ export async function prCommentsAvg(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    let prCommentAvgQuery = await esb.requestBodySearch().size(0);
+    const prCommentAvgQuery = await esb.requestBodySearch().size(0);
     prCommentAvgQuery
       .query(
         esb
@@ -141,7 +141,7 @@ export async function prCommentsAvg(
     }>(Github.Enums.IndexName.GitPRReviewComment, prCommentAvgQuery);
     return data.pr_comment_avg;
   } catch (e) {
-    logger.error(e);
+    logger.error('prCommentsAvg.error', e);
   }
   return null;
 }

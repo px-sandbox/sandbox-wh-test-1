@@ -19,7 +19,7 @@ export async function numberOfPrRaisedGraph(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    let numberOfPrRaisedGraphQuery = await esb.requestBodySearch().size(0);
+    const numberOfPrRaisedGraphQuery = await esb.requestBodySearch().size(0);
     numberOfPrRaisedGraphQuery.query(
       esb
         .boolQuery()
@@ -71,7 +71,7 @@ export async function numberOfPrRaisedGraph(
     });
     return bucketData;
   } catch (e) {
-    logger.error(e);
+    logger.error('numberOfPrRaisedtGraph.error', e);
   }
   return null;
 }
@@ -87,7 +87,7 @@ export async function numberOfPrRaisedtAvg(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    let numberOfPrRaisedAvgQuery = await esb.requestBodySearch().size(0);
+    const numberOfPrRaisedAvgQuery = await esb.requestBodySearch().size(0);
     numberOfPrRaisedAvgQuery
       .query(
         esb
@@ -105,10 +105,10 @@ export async function numberOfPrRaisedtAvg(
       body: numberOfPrRaisedAvgQuery,
     });
     const totalDoc = data.body.hits.total.value;
-    const weekendCount = getWeekDaysCount(startDate, endDate);
-    return { value: totalDoc / weekendCount };
+    const weekDaysCount = getWeekDaysCount(startDate, endDate);
+    return { value: totalDoc / weekDaysCount };
   } catch (e) {
-    logger.error(e);
+    logger.error('numberOfPrRaisedtAvg.error', e);
   }
   return {};
 }
