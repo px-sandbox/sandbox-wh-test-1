@@ -11,23 +11,21 @@ const numberOfPrRaised = async function getNumberOfPrRaised(
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
-  let numberOfPrRaisedGraphData;
-  let numberOfPrRaisedAvg;
   try {
-    [numberOfPrRaisedGraphData, numberOfPrRaisedAvg] = await Promise.all([
+    const [numberOfPrRaisedGraphData, numberOfPrRaisedAvg] = await Promise.all([
       numberOfPrRaisedGraph(startDate, endDate, interval, repoIds),
       numberOfPrRaisedtAvg(startDate, endDate, repoIds),
     ]);
+    return responseParser
+      .setBody({ graphData: numberOfPrRaisedGraphData, headline: numberOfPrRaisedAvg })
+      .setMessage('number of PR raised')
+      .setStatusCode(HttpStatusCode['200'])
+      .setResponseBodyCode('SUCCESS')
+      .send();
   } catch (e) {
     logger.error(e);
     throw new Error(`Something went wrong: ${e}`);
   }
-  return responseParser
-    .setBody({ graphData: numberOfPrRaisedGraphData, headline: numberOfPrRaisedAvg })
-    .setMessage('number of PR raised')
-    .setStatusCode(HttpStatusCode['200'])
-    .setResponseBodyCode('SUCCESS')
-    .send();
 };
 const handler = APIHandler(numberOfPrRaised, {
   eventSchema: transpileSchema(numberOfPrRaisedGraphSchema),

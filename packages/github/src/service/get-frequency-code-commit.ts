@@ -15,23 +15,21 @@ const frequencyOfCodeCommits = async function getFrequencyOfCodeCommits(
   const interval: string = event.queryStringParameters?.interval || '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [''];
 
-  let frequencyOfCodeCommitsGraphData;
-  let frequencyOfCodeCommitsAvg;
   try {
-    [frequencyOfCodeCommitsGraphData, frequencyOfCodeCommitsAvg] = await Promise.all([
+    const [frequencyOfCodeCommitsGraphData, frequencyOfCodeCommitsAvg] = await Promise.all([
       frequencyOfCodeCommitGraph(startDate, endDate, interval, repoIds),
       frequencyOfCodeCommitAvg(startDate, endDate, repoIds),
     ]);
+    return responseParser
+      .setBody({ graphData: frequencyOfCodeCommitsGraphData, headline: frequencyOfCodeCommitsAvg })
+      .setMessage('frequency of code commits data')
+      .setStatusCode(HttpStatusCode['200'])
+      .setResponseBodyCode('SUCCESS')
+      .send();
   } catch (e) {
     logger.error(e);
     throw new Error(`Something went wrong: ${e}`);
   }
-  return responseParser
-    .setBody({ graphData: frequencyOfCodeCommitsGraphData, headline: frequencyOfCodeCommitsAvg })
-    .setMessage('frequency of code commits data')
-    .setStatusCode(HttpStatusCode['200'])
-    .setResponseBodyCode('SUCCESS')
-    .send();
 };
 const handler = APIHandler(frequencyOfCodeCommits, {
   eventSchema: transpileSchema(prCommentsGraphSchema),

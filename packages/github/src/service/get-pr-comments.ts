@@ -12,23 +12,22 @@ const prCommentsGraph = async function getPrCommentsGraph(
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
-  let prCommentGraphData: IPrCommentAggregationResponse | null | undefined;
-  let prCommentAvg: string | null | undefined;
+
   try {
-    [prCommentGraphData, prCommentAvg] = await Promise.all([
+    const [prCommentGraphData, prCommentAvg] = await Promise.all([
       prCommentsGraphData(startDate, endDate, interval, repoIds),
       prCommentsAvg(startDate, endDate, repoIds),
     ]);
+    return responseParser
+      .setBody({ graphData: prCommentGraphData, headline: prCommentAvg })
+      .setMessage('pr comments graph data')
+      .setStatusCode(HttpStatusCode['200'])
+      .setResponseBodyCode('SUCCESS')
+      .send();
   } catch (e) {
     logger.error(e);
     throw new Error(`Something went wrong: ${e}`);
   }
-  return responseParser
-    .setBody({ graphData: prCommentGraphData, headline: prCommentAvg })
-    .setMessage('pr comments graph data')
-    .setStatusCode(HttpStatusCode['200'])
-    .setResponseBodyCode('SUCCESS')
-    .send();
 };
 const handler = APIHandler(prCommentsGraph, {
   eventSchema: transpileSchema(prCommentsGraphSchema),
