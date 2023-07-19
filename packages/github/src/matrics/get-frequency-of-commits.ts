@@ -73,7 +73,7 @@ export async function frequencyOfCodeCommitGraph(
       );
     const bucketData: any = [];
     await data.commentsPerDay.buckets.map(async (item: any): Promise<any> => {
-      bucketData.push({ date: item.key_as_string, values: item.doc_count });
+      bucketData.push({ date: item.key_as_string, value: item.doc_count });
     });
     return bucketData;
   } catch (e) {
