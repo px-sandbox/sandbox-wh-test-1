@@ -40,7 +40,8 @@ export async function frequencyOfCodeCommitGraph(
           .dateHistogramAggregation('commentsPerDay')
           .field('body.createdAt')
           .format('yyyy-MM-dd')
-          .calendarInterval(intervals);
+          .calendarInterval(intervals)
+          .extendedBounds(startDate, endDate);
         break;
       case esbDateHistogramInterval['2d']:
       case esbDateHistogramInterval['3d']:
@@ -48,14 +49,16 @@ export async function frequencyOfCodeCommitGraph(
           .dateHistogramAggregation('commentsPerDay')
           .field('body.createdAt')
           .format('yyyy-MM-dd')
-          .fixedInterval(intervals);
+          .fixedInterval(intervals)
+          .extendedBounds(startDate, endDate);
         break;
       default:
         graphIntervals = esb
           .dateHistogramAggregation('commentsPerDay')
           .field('body.createdAt')
           .format('yyyy-MM-dd')
-          .calendarInterval(esbDateHistogramInterval.month);
+          .calendarInterval(esbDateHistogramInterval.month)
+          .extendedBounds(startDate, endDate);
     }
     frquencyOfCodeCommitGraphQuery.agg(graphIntervals).toJSON();
 
