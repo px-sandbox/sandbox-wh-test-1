@@ -40,7 +40,8 @@ export async function prCommentsGraphData(
           .field('body.createdAt')
           .format('yyyy-MM-dd')
           .calendarInterval(intervals)
-          .extendedBounds(startDate, endDate);
+          .extendedBounds(startDate, endDate)
+          .minDocCount(0);
         break;
       case esbDateHistogramInterval['2d']:
       case esbDateHistogramInterval['3d']:
@@ -49,7 +50,8 @@ export async function prCommentsGraphData(
           .field('body.createdAt')
           .format('yyyy-MM-dd')
           .fixedInterval(intervals)
-          .extendedBounds(startDate, endDate);
+          .extendedBounds(startDate, endDate)
+          .minDocCount(0);
         break;
       default:
         graphIntervals = esb
@@ -57,7 +59,8 @@ export async function prCommentsGraphData(
           .field('body.createdAt')
           .format('yyyy-MM-dd')
           .calendarInterval(esbDateHistogramInterval.month)
-          .extendedBounds(startDate, endDate);
+          .extendedBounds(startDate, endDate)
+          .minDocCount(0);
     }
     prCommentGraphQuery
       .agg(
