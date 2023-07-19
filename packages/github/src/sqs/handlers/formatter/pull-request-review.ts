@@ -1,10 +1,10 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { PRReviewProcessor } from 'src/processors/pull-request-review';
 import { Queue } from 'sst/node/queue';
 
 export const handler = async function pRReviewFormattedDataReciever(
-  event: APIGatewayProxyEvent
+  event: SQSEvent
 ): Promise<void> {
   const [record] = event.Records;
   const messageBody = JSON.parse(record.body);

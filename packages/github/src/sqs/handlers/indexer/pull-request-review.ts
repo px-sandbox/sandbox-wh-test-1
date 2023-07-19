@@ -1,10 +1,8 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { savePRReview } from 'src/lib/save-pull-request-review-details';
 
-export const handler = async function pRReviewIndexDataReciever(
-  event: APIGatewayProxyEvent
-): Promise<void> {
+export const handler = async function pRReviewIndexDataReciever(event: SQSEvent): Promise<void> {
   try {
     const [record] = event.Records;
     const messageBody = JSON.parse(record.body);

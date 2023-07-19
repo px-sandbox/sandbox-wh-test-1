@@ -1,11 +1,9 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { RepositoryProcessor } from 'src/processors/repo';
 import { Queue } from 'sst/node/queue';
 
-export const handler = async function repoFormattedDataReciever(
-  event: APIGatewayProxyEvent
-): Promise<void> {
+export const handler = async function repoFormattedDataReciever(event: SQSEvent): Promise<void> {
   for (const record of event.Records) {
     const messageBody = JSON.parse(record.body);
     // Do something with the message, e.g. send an email, process data, etc.

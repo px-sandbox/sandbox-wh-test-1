@@ -22,6 +22,7 @@ export class SQSClient implements ISQSClient {
         message: 'SQS_SEND_MESSAGE_RESPONSE',
         res,
         queueName,
+        delay,
       });
     } catch (error) {
       logger.error({ message: 'ERROR_SQS_SEND_MESSAGE', error, queueName });

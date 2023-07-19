@@ -49,7 +49,7 @@ export type PullRequest = {
     id: number;
   } | null;
   merged: boolean;
-  merged_commit_sha: string;
+  merge_commit_sha: string;
   comments: number;
   review_comments: number;
   commits: number;
@@ -57,5 +57,5 @@ export type PullRequest = {
   deletions: number;
   changed_files: number;
   action: string;
-  attempt: number;
+  review_seconds: number;
 };

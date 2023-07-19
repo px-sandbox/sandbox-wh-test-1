@@ -1,13 +1,11 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { CommitProcessor } from 'src/processors/commit';
 import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { ghRequest } from 'src/lib/request-defaults';
 
-export const handler = async function commitFormattedDataReciever(
-  event: APIGatewayProxyEvent
-): Promise<void> {
+export const handler = async function commitFormattedDataReciever(event: SQSEvent): Promise<void> {
   for (const record of event.Records) {
     const messageBody = JSON.parse(record.body);
     // Do something with the message, e.g. send an email, process data, etc.

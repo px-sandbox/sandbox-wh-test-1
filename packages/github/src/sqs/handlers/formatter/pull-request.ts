@@ -1,13 +1,12 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { PRProcessor } from 'src/processors/pull-request';
 import { Queue } from 'sst/node/queue';
 
-export const handler = async function pRFormattedDataReciever(
-  event: APIGatewayProxyEvent
-): Promise<void> {
+export const handler = async function pRFormattedDataReciever(event: SQSEvent): Promise<void> {
   for (const record of event.Records) {
     const messageBody = JSON.parse(record.body);
+
     // Do something with the message, e.g. send an email, process data, etc.
     /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
     logger.info('PULL_SQS_RECIEVER_HANDLER', { messageBody });

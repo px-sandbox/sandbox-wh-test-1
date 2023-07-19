@@ -206,6 +206,7 @@ const indices: any[] = [
         mergedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         reviewedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         approvedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        reviewTime: { type: 'integer' },
         requestedReviewers: {
           properties: {
             login: { type: 'text' },

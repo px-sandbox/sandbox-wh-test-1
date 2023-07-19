@@ -53,7 +53,6 @@ export async function pRReviewOnQueue(
             reviewed_at: reviewed_at,
             approved_at: approved_at,
             action: Github.Enums.Comments.REVIEW_COMMENTED,
-            attempt: 1,
           },
           Queue.gh_pr_format.queueUrl
         ),
