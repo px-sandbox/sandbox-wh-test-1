@@ -87,7 +87,7 @@ export async function prCommentsGraphData(
       );
     const bucketData: any = [];
     await data.commentsPerDay.buckets.map(async (item: any): Promise<any> => {
-      bucketData.push({ date: item.key_as_string, values: item.combined_avg.value });
+      bucketData.push({ date: item.key_as_string, value: item.combined_avg.value });
     });
     return bucketData;
   } catch (e) {
