@@ -16,6 +16,6 @@ export async function getPullRequestById(
   const matchQry = esb.matchQuery('body.id', `${mappingPrefixes.pull}_${pullId}`).toJSON();
   const pullData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPull, matchQry);
   const formattedPullData = await searchedDataFormator(pullData);
-  console.log('pull data from ES: ', formattedPullData);
+
   return formattedPullData;
 }

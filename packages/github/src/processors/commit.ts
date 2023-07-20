@@ -58,7 +58,6 @@ export class CommitProcessor extends DataProcessor<
         githubDate: moment(this.ghApiData.commit.committer.date).format('YYYY-MM-DD'),
       },
     };
-    console.log(orgObj);
     return orgObj;
   }
 }

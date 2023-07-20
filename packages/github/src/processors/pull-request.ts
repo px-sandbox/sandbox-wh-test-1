@@ -18,7 +18,6 @@ export class PRProcessor extends DataProcessor<
   }
 
   private async delay(time: number) {
-    console.log('delay arg : ', time);
     return new Promise((resolve, reject) => {
       setTimeout(resolve, time);
       logger.info('Delay time : ', time);
@@ -27,7 +26,7 @@ export class PRProcessor extends DataProcessor<
   async isCommitExist(attempt: number): Promise<boolean> {
     if (attempt < 7) {
       //Set delay time in fibonacci series for 6 attempts to check commit id in dynamoDb.
-      await this.delay(delayAr[attempt] * 5000);
+      await this.delay(delayAr[attempt] * 1000);
       const commit = await this.getParentId(
         `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`
       );
@@ -48,7 +47,7 @@ export class PRProcessor extends DataProcessor<
   async isPRExist(attempt: number): Promise<boolean> {
     if (attempt < 7) {
       //Set delay time in fibonacci series for 6 attempts to check PR ID in dynamoDb.
-      await this.delay(delayAr[attempt] * 5000);
+      await this.delay(delayAr[attempt] * 1000);
 
       const pull = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
       logger.info('PULL REQUEST ID : ', this.ghApiData.id);
