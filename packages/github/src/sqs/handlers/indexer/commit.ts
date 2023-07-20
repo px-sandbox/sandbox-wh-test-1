@@ -1,10 +1,8 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { saveCommitDetails } from 'src/lib/save-commit-details';
 
-export const handler = async function commitIndexDataReciever(
-  event: APIGatewayProxyEvent
-): Promise<void> {
+export const handler = async function commitIndexDataReciever(event: SQSEvent): Promise<void> {
   try {
     for (const record of event.Records) {
       const messageBody = JSON.parse(record.body);

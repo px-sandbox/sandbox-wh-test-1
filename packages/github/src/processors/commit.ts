@@ -39,9 +39,9 @@ export class CommitProcessor extends DataProcessor<
       body: {
         id: `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`,
         githubCommitId: this.ghApiData.commits.id,
-        isMergedCommit: this.ghApiData.isMergedCommit,
-        pushedBranch: this.ghApiData.pushedBranch,
-        mergedBranch: this.ghApiData.mergedBranch,
+        isMergedCommit: this.ghApiData.commits.isMergedCommit,
+        pushedBranch: this.ghApiData.commits.pushedBranch,
+        mergedBranch: this.ghApiData.commits.mergedBranch,
         message: this.ghApiData.commit.message,
         authorId: `${mappingPrefixes.user}_${this.ghApiData.committer.id}`,
         committedAt: this.ghApiData.commits.timestamp,

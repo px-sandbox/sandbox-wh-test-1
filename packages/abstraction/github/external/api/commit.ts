@@ -2,9 +2,6 @@ import { Commits } from '../webhook';
 
 export type Commit = {
   repoId: string;
-  isMergedCommit: boolean;
-  mergedBranch: string;
-  pushedBranch: string | null;
   commits: Commits;
   commit: {
     message: string;

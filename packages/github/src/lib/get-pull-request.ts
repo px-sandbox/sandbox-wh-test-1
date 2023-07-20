@@ -13,8 +13,9 @@ export async function getPullRequestById(
     username: Config.OPENSEARCH_USERNAME ?? '',
     password: Config.OPENSEARCH_PASSWORD ?? '',
   });
-  const matchQry = esb.matchQuery('body.id', `${mappingPrefixes}_${pullId}`).toJSON();
+  const matchQry = esb.matchQuery('body.id', `${mappingPrefixes.pull}_${pullId}`).toJSON();
   const pullData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPull, matchQry);
+  const formattedPullData = await searchedDataFormator(pullData);
 
-  return await searchedDataFormator(pullData);
+  return formattedPullData;
 }

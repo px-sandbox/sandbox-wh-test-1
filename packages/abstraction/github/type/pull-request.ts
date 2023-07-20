@@ -1,10 +1,5 @@
 import { actions } from './actions';
 
-export interface PullRequest {
-  id: string;
-  body: PullRequestBody;
-}
-
 export type RequestedReviewers = {
   userId: string;
 };
@@ -27,6 +22,7 @@ export type PullRequestBody = {
   mergedAt: string;
   reviewedAt: string | null;
   approvedAt: string | null;
+  reviewSeconds: number;
   requestedReviewers: RequestedReviewers[];
   labels: Labels[];
   head: {
@@ -50,3 +46,8 @@ export type PullRequestBody = {
   organizationId: string;
   action: actions;
 };
+
+export interface PullRequest {
+  id: string;
+  body: PullRequestBody;
+}

@@ -90,7 +90,10 @@ export function gh({ stack }: StackContext) {
   });
   const pRFormatDataQueue = new Queue(stack, 'gh_pr_format', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
+      function: {
+        handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
+        timeout: '15 minutes',
+      },
       cdk: {
         eventSource: {
           batchSize: 10,
@@ -201,7 +204,7 @@ export function gh({ stack }: StackContext) {
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
   ]);
-  pRFormatDataQueue.bind([table, pRIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pRFormatDataQueue.bind([table, pRIndexDataQueue, GIT_ORGANIZATION_ID, commitFormatDataQueue]);
   pushFormatDataQueue.bind([table, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
   pRReviewCommentFormatDataQueue.bind([table, pRReviewCommentIndexDataQueue, GIT_ORGANIZATION_ID]);
 

@@ -31,15 +31,15 @@ export const webhookData = async function getWebhookData(
       crypto.createHmac('sha256', Config.GITHUB_WEBHOOK_SECRET).update(payload).digest('hex')
   );
 
-  console.log('SIG - HMAC (CryptoJS): ', hmac.toString());
+  logger.info('SIG - HMAC (CryptoJS): ', hmac.toString());
   logger.info(event.headers);
-  console.log('REQUEST CONTEXT---------', event.requestContext);
+  logger.info('REQUEST CONTEXT---------', event.requestContext);
   const reqContext = event.requestContext as typeof event.requestContext & {
     timeEpoch: number;
   };
   const eventTime = reqContext.timeEpoch;
 
-  console.log('time epoch -------', new Date(eventTime));
+  logger.info('time epoch -------', new Date(eventTime));
   if (sig.length !== hmac.length || !crypto.timingSafeEqual(hmac, sig)) {
     logger.error('Webhook request not validated');
     return {

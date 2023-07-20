@@ -1,6 +1,7 @@
 import { SQS } from 'aws-sdk';
-import { ISQSClient } from '../types';
 import { logger } from 'core';
+import { ISQSClient } from '../types';
+
 export class SQSClient implements ISQSClient {
   private sqs: SQS;
 
@@ -22,6 +23,7 @@ export class SQSClient implements ISQSClient {
         message: 'SQS_SEND_MESSAGE_RESPONSE',
         res,
         queueName,
+        delay,
       });
     } catch (error) {
       logger.error({ message: 'ERROR_SQS_SEND_MESSAGE', error, queueName });
