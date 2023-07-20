@@ -31,6 +31,7 @@ const indices: any[] = [
         createdAtDay: { type: 'keyword' },
         computationDate: { type: 'date', format: 'yyyy-MM-dd' },
         githubDate: { type: 'date', format: 'yyyy-MM-dd' },
+        timezone: { type: 'keyword' },
       },
     },
   },
@@ -129,7 +130,7 @@ const indices: any[] = [
         mergedBranch: { type: 'text' },
         message: { type: 'text' },
         authorId: { type: 'keyword' },
-        committedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        committedAt: { type: 'keyword' },
         changes: {
           properties: {
             filename: { type: 'text' },

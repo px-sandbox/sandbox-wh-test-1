@@ -3,6 +3,7 @@ import { Commits } from '../webhook';
 export type Commit = {
   repoId: string;
   commits: Commits;
+  timestamp: string;
   commit: {
     message: string;
     author: {

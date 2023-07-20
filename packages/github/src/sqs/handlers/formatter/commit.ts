@@ -17,6 +17,7 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
       mergedBranch,
       pushedBranch,
       repository: { id: repoId, name: repoName, owner: repoOwner },
+      timestamp,
     } = messageBody;
     /**
      * ------------------------------------
@@ -36,11 +37,12 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
       ...responseData.data,
       commits: {
         id: commitId,
-        isMergedCommit: isMergedCommit,
-        mergedBranch: mergedBranch,
-        pushedBranch: pushedBranch,
+        isMergedCommit,
+        mergedBranch,
+        pushedBranch,
+        timestamp,
       },
-      repoId: repoId,
+      repoId,
     });
     const validatedData = commitProcessor.validate();
     if (!validatedData) {
