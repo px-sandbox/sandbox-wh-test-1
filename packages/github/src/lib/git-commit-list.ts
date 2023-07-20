@@ -20,6 +20,7 @@ export async function getCommits(commits: Github.ExternalType.Webhook.Commit): P
                 name: commits.repository.name,
                 owner: commits.repository.owner.name,
               },
+              timestamp: commit.timestamp,
             },
             Queue.gh_commit_format.queueUrl
           );
