@@ -40,7 +40,9 @@ export async function numberOfPrRaisedGraph(
           .dateHistogramAggregation('commentsPerDay')
           .field('body.createdAt')
           .format('yyyy-MM-dd')
-          .calendarInterval(intervals);
+          .calendarInterval(intervals)
+          .extendedBounds(startDate, endDate)
+          .minDocCount(0);
         break;
       case esbDateHistogramInterval['2d']:
       case esbDateHistogramInterval['3d']:
@@ -48,14 +50,18 @@ export async function numberOfPrRaisedGraph(
           .dateHistogramAggregation('commentsPerDay')
           .field('body.createdAt')
           .format('yyyy-MM-dd')
-          .fixedInterval(intervals);
+          .fixedInterval(intervals)
+          .extendedBounds(startDate, endDate)
+          .minDocCount(0);
         break;
       default:
         graphIntervals = esb
           .dateHistogramAggregation('commentsPerDay')
           .field('body.createdAt')
           .format('yyyy-MM-dd')
-          .calendarInterval(esbDateHistogramInterval.month);
+          .calendarInterval(esbDateHistogramInterval.month)
+          .extendedBounds(startDate, endDate)
+          .minDocCount(0);
     }
     numberOfPrRaisedGraphQuery.agg(graphIntervals).toJSON();
 
@@ -67,7 +73,7 @@ export async function numberOfPrRaisedGraph(
       );
     const bucketData: any = [];
     await data.commentsPerDay.buckets.map(async (item: any): Promise<any> => {
-      bucketData.push({ date: item.key_as_string, values: item.doc_count });
+      bucketData.push({ date: item.key_as_string, value: item.doc_count });
     });
     return bucketData;
   } catch (e) {
