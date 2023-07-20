@@ -11,9 +11,7 @@ import { Queue } from 'sst/node/queue';
 
 export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<void> {
   try {
-    await new DynamoDbDocClient(Config.STAGE).put(
-      new ParamsMapping().preparePutParams(data.id, data.body.id)
-    );
+    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',

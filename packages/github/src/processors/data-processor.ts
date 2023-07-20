@@ -23,9 +23,7 @@ export abstract class DataProcessor<T, S> {
   public abstract processor(id: string): Promise<S>;
 
   public async getParentId(id: string): Promise<string> {
-    const ddbRes = await new DynamoDbDocClient(Config.STAGE).find(
-      new ParamsMapping().prepareGetParams(id)
-    );
+    const ddbRes = await new DynamoDbDocClient().find(new ParamsMapping().prepareGetParams(id));
 
     return ddbRes?.parentId;
   }

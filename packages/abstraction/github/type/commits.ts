@@ -1,5 +1,12 @@
 import { actions } from './actions';
 
+export type CommitedFiles = {
+  filename: string;
+  additions: string;
+  deletions: string;
+  changes: string;
+  status: string;
+};
 export interface Commits {
   id: string;
   body: {
@@ -22,10 +29,3 @@ export interface Commits {
     githubDate: string | Date;
   };
 }
-export type CommitedFiles = {
-  filename: string;
-  additions: string;
-  deletions: string;
-  changes: string;
-  status: string;
-};

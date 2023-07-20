@@ -8,9 +8,7 @@ import esb from 'elastic-builder';
 import { searchedDataFormator } from 'src/util/response-formatter';
 export async function saveUserDetails(data: Github.Type.User): Promise<void> {
   try {
-    await new DynamoDbDocClient(Config.STAGE).put(
-      new ParamsMapping().preparePutParams(data.id, data.body.id)
-    );
+    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',

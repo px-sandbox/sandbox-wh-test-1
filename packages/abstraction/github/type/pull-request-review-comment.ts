@@ -1,4 +1,5 @@
 import { actions } from './actions';
+
 export interface PRReviewComment {
   id: string;
   body: {

@@ -9,6 +9,7 @@ import { Push, CommitIds } from './push';
 import { PRReviewComment } from './pull-request-review-comment';
 import { PRReview } from './pull-request-review';
 import { IPrCommentAggregationResponse } from './aggregations/pr-comments';
+
 export {
   Branch,
   Organization,

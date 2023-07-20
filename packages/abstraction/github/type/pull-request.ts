@@ -1,18 +1,5 @@
 import { actions } from './actions';
 
-export interface PullRequest {
-  id: string;
-  body: PullRequestBody;
-}
-
-export type RequestedReviewers = {
-  userId: string;
-};
-
-export type Labels = {
-  name: string;
-};
-
 export type PullRequestBody = {
   id: string;
   githubPullId: number;
@@ -50,4 +37,17 @@ export type PullRequestBody = {
   repoId: string;
   organizationId: string;
   action: actions;
+};
+
+export interface PullRequest {
+  id: string;
+  body: PullRequestBody;
+}
+
+export type RequestedReviewers = {
+  userId: string;
+};
+
+export type Labels = {
+  name: string;
 };

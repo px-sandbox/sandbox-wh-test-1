@@ -1,6 +1,7 @@
 import { SQS } from 'aws-sdk';
-import { ISQSClient } from '../types';
 import { logger } from 'core';
+import { ISQSClient } from '../types';
+
 export class SQSClient implements ISQSClient {
   private sqs: SQS;
 

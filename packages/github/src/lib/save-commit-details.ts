@@ -9,9 +9,7 @@ import esb from 'elastic-builder';
 
 export async function saveCommitDetails(data: Github.Type.Commits): Promise<void> {
   try {
-    await new DynamoDbDocClient(Config.STAGE).put(
-      new ParamsMapping().preparePutParams(data.id, data.body.id)
-    );
+    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
