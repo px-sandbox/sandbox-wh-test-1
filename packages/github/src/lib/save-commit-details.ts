@@ -27,7 +27,7 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
     await esClientObj.putDocument(Github.Enums.IndexName.GitCommits, data);
 
     // Store timezone in git_user index
-    const userDocQuery = esb.matchQuery('body.id', 'gh_user_66475255').toJSON();
+    const userDocQuery = esb.matchQuery('body.id', data.body.authorId).toJSON();
     const authorData = await esClientObj.searchWithEsb(
       Github.Enums.IndexName.GitUsers,
       userDocQuery
@@ -35,7 +35,7 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
     const authorDataFormat = await searchedDataFormator(authorData);
     if (authorDataFormat) {
       const [author] = authorDataFormat;
-      const timezone = data.body.committedAt.split('+')[1];
+      const timezone = data.body.committedAt.substring(19);
       const authorData: User = {
         id: author._id,
         body: {
