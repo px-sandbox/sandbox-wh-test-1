@@ -31,6 +31,7 @@ const indices: any[] = [
         createdAtDay: { type: 'keyword' },
         computationDate: { type: 'date', format: 'yyyy-MM-dd' },
         githubDate: { type: 'date', format: 'yyyy-MM-dd' },
+        timezone: { type: 'keyword' },
       },
     },
   },

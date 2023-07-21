@@ -1,11 +1,12 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
+import { User } from 'abstraction/github/type';
 import { logger } from 'core';
+import esb from 'elastic-builder';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
-import esb from 'elastic-builder';
 
 export async function saveCommitDetails(data: Github.Type.Commits): Promise<void> {
   try {
@@ -23,7 +24,46 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
       data.body.action = [...formattedData[0].action, ...data.body.action];
       data.body.createdAt = formattedData[0].createdAt;
     }
-    await esClientObj.putDocument(Github.Enums.IndexName.GitCommits, data);
+
+    const commitIndexData = {
+      ...data,
+      body: {
+        ...data.body,
+        committedAt: new Date(data.body.committedAt).toISOString(), // Change the committedAt value
+      },
+    };
+    await esClientObj.putDocument(Github.Enums.IndexName.GitCommits, commitIndexData);
+
+    // Store timezone in git_user index
+    const userDocQuery = esb.matchQuery('body.id', data.body.authorId).toJSON();
+    const authorData = await esClientObj.searchWithEsb(
+      Github.Enums.IndexName.GitUsers,
+      userDocQuery
+    );
+    const authorDataFormat = await searchedDataFormator(authorData);
+    if (authorDataFormat) {
+      const [author] = authorDataFormat;
+      const timezone = data.body.committedAt.substring(19);
+      const authorData: User = {
+        id: author._id,
+        body: {
+          id: author.id,
+          githubUserId: author.githubUserId,
+          userName: author.userName,
+          avatarUrl: author.avatarUrl,
+          organizationId: author.organizationId,
+          deletedAt: author.deletedAt,
+          createdAt: author.createdAt,
+          action: author.action,
+          createdAtDay: author.createdAtDay,
+          computationalDate: author.computationalDate,
+          githubDate: author.githubDate,
+          timezone: timezone,
+        },
+      };
+      logger.info('USER_DATA_UPDATE_WITH_TIMEZONE', authorData);
+      await esClientObj.putDocument(Github.Enums.IndexName.GitUsers, authorData);
+    }
     logger.info('saveCommitDetails.successful');
   } catch (error: unknown) {
     logger.error('saveCommitDetails.error', {

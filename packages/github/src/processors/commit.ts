@@ -43,7 +43,7 @@ export class CommitProcessor extends DataProcessor<
         pushedBranch: this.ghApiData.commits.pushedBranch,
         mergedBranch: this.ghApiData.commits.mergedBranch,
         message: this.ghApiData.commit.message,
-        authorId: `${mappingPrefixes.user}_${this.ghApiData.committer.id}`,
+        authorId: `${mappingPrefixes.user}_${this.ghApiData.author.id}`,
         committedAt: this.ghApiData.commits.timestamp,
         changes: filesArr,
         totalChanges: this.ghApiData.stats.total,

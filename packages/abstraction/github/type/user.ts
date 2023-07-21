@@ -14,5 +14,6 @@ export interface User {
     createdAtDay: string;
     computationalDate: string;
     githubDate: string | Date;
+    timezone?: string;
   };
 }
