@@ -16,7 +16,7 @@ export async function pROnQueue(
     let approved_at = null;
     let review_seconds = 0;
     const [pullData] = await getPullRequestById(pull.id);
-    console.log('pROnQueue - Pull Data from ES : ', pullData);
+
     if (pullData) {
       if (pullData.reviewedAt) {
         reviewed_at = pullData.reviewedAt;
