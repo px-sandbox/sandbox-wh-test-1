@@ -3,8 +3,11 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getWorkingTime } from 'src/util/timezone-calculation';
+import moment from 'moment';
 import { ghRequest } from './request-defaults';
 import { getPullRequestById } from './get-pull-request';
+import { getTimezoneOfUser } from './get-user-timezone';
 
 export async function pRReviewCommentOnQueue(
   prReviewComment: Github.ExternalType.Webhook.PRReviewComment,
@@ -30,6 +33,7 @@ export async function pRReviewCommentOnQueue(
     //
     let reviewed_at = null;
     let approved_at = null;
+    let review_seconds = 0;
     /**
      * Search pull request index and check if reviewed_at is null or not. If null then
      * update the value to store the first reviewed_at time. Also this commented shouldn't
@@ -39,6 +43,12 @@ export async function pRReviewCommentOnQueue(
     if (pullData) {
       if (pullData.reviewedAt === null && prReviewComment.user.type !== Github.Enums.UserType.BOT) {
         reviewed_at = prReviewComment.created_at;
+        const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
+        review_seconds = getWorkingTime(
+          moment(pullData.createdAt),
+          moment(reviewed_at),
+          createdTimezone
+        );
       }
       if (pullData.approvedAt !== null) {
         approved_at = pullData.approvedAt;
@@ -51,8 +61,9 @@ export async function pRReviewCommentOnQueue(
         new SQSClient().sendMessage(
           {
             ...responseData.data,
-            reviewed_at: reviewed_at,
-            approved_at: approved_at,
+            reviewed_at,
+            approved_at,
+            review_seconds,
             action: Github.Enums.Comments.PR_COMMENTED,
           },
           Queue.gh_pr_format.queueUrl

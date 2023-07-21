@@ -1,7 +1,7 @@
 import { Client, RequestParams } from '@elastic/elasticsearch';
 import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
-import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
 import { logger } from 'core';
+import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
 
 export class ElasticSearchClient implements IElasticSearchClient {
   private client: Client;
@@ -54,7 +54,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
       const result = await this.client.search({
         index: indexName,
         body: {
-          query: query,
+          query,
         },
       });
       return result.body;
