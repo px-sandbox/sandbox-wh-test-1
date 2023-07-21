@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-export function getWeekDaysCount(startDate: string, endDate: string) {
+export function getWeekenedCount(startDate: string, endDate: string): number {
   const momentStartDate = moment(startDate, 'YYYY-MM-DD');
   const momentEndDate = moment(endDate, 'YYYY-MM-DD');
 
@@ -11,10 +11,20 @@ export function getWeekDaysCount(startDate: string, endDate: string) {
   const weekendsFromWeeks = weeksCount * 2;
   const weekendsFromRemainingDays = getWeekendsFromRemainingDays(momentStartDate, remainingDays);
 
-  return diff - (weekendsFromWeeks + weekendsFromRemainingDays);
+  return weekendsFromWeeks + weekendsFromRemainingDays;
+}
+export function getWeekDaysCount(startDate: string, endDate: string): number {
+  const momentStartDate = moment(startDate, 'YYYY-MM-DD');
+  const momentEndDate = moment(endDate, 'YYYY-MM-DD');
+  const diff = momentEndDate.diff(momentStartDate, 'd') + 1;
+
+  return diff - getWeekenedCount(startDate, endDate);
 }
 
-export function getWeekendsFromRemainingDays(startDate: moment.Moment, remainingDays: number) {
+export function getWeekendsFromRemainingDays(
+  startDate: moment.Moment,
+  remainingDays: number
+): number {
   if (remainingDays === 0) {
     return 0;
   }

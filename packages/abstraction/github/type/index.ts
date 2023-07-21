@@ -1,7 +1,7 @@
 import { Branch } from './branch';
 import { Organization } from './organization';
 import { Repository, RepoFormatter } from './repository';
-import { User } from './user';
+import { User, UserBody } from './user';
 import { JWTResponse } from './jwt';
 import { Commits, CommitedFiles } from './commits';
 import { PullRequest, RequestedReviewers, Labels, PullRequestBody } from './pull-request';
@@ -16,6 +16,7 @@ export {
   Repository,
   JWTResponse,
   User,
+  UserBody,
   RepoFormatter,
   Commits,
   CommitedFiles,
