@@ -24,7 +24,15 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
       data.body.action = [...formattedData[0].action, ...data.body.action];
       data.body.createdAt = formattedData[0].createdAt;
     }
-    await esClientObj.putDocument(Github.Enums.IndexName.GitCommits, data);
+
+    const commitIndexData = {
+      ...data,
+      body: {
+        ...data.body,
+        committedAt: new Date(data.body.committedAt).toISOString(), // Change the committedAt value
+      },
+    };
+    await esClientObj.putDocument(Github.Enums.IndexName.GitCommits, commitIndexData);
 
     // Store timezone in git_user index
     const userDocQuery = esb.matchQuery('body.id', data.body.authorId).toJSON();

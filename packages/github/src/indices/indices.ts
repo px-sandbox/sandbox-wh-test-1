@@ -130,7 +130,7 @@ const indices: any[] = [
         mergedBranch: { type: 'text' },
         message: { type: 'text' },
         authorId: { type: 'keyword' },
-        committedAt: { type: 'keyword' },
+        committedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         changes: {
           properties: {
             filename: { type: 'text' },
