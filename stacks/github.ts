@@ -344,6 +344,12 @@ export function gh({ stack }: StackContext) {
         function: 'packages/github/src/service/number-of-pr-raised.handler',
         authorizer: 'universal',
       },
+
+      // GET Graph for PRs review time
+      'GET /github/graph/pr-review-time': {
+        function: 'packages/github/src/service/pr-review-time.handler',
+        authorizer: 'universal',
+      },
     },
   });
 
