@@ -11,7 +11,7 @@ export async function prCommentsGraphData(
   endDate: string,
   intervals: string,
   repoIds: string[]
-): Promise<IPrCommentAggregationResponse | null> {
+): Promise<{ date: string; value: number }[]> {
   try {
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -85,15 +85,14 @@ export async function prCommentsGraphData(
         Github.Enums.IndexName.GitPRReviewComment,
         prCommentGraphQuery
       );
-    const bucketData: any = [];
-    await data.commentsPerDay.buckets.map(async (item: any): Promise<any> => {
-      bucketData.push({ date: item.key_as_string, value: item.combined_avg.value });
-    });
-    return bucketData;
+    return data.commentsPerDay.buckets.map((item: any) => ({
+      date: item.key_as_string,
+      value: item.combined_avg.value,
+    }));
   } catch (e) {
     logger.error('prCommentsGraph.error', e);
+    throw e;
   }
-  return null;
 }
 
 export async function prCommentsAvg(

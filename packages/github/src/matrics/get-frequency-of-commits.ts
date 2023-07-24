@@ -1,6 +1,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
-import { IPrCommentAggregationResponse } from 'abstraction/github/type';
+import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { esbDateHistogramInterval } from 'src/constant/config';
@@ -12,7 +12,7 @@ export async function frequencyOfCodeCommitGraph(
   endDate: string,
   intervals: string,
   repoIds: string[]
-): Promise<IPrCommentAggregationResponse | null> {
+): Promise<GraphResponse[]> {
   try {
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -26,6 +26,7 @@ export async function frequencyOfCodeCommitGraph(
         .must([
           esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
           esb.termsQuery('body.repoId', repoIds),
+          esb.termsQuery('body.isMergedCommit', 'false'),
         ])
     );
 
@@ -71,15 +72,14 @@ export async function frequencyOfCodeCommitGraph(
         Github.Enums.IndexName.GitCommits,
         frquencyOfCodeCommitGraphQuery
       );
-    const bucketData: any = [];
-    await data.commentsPerDay.buckets.map(async (item: any): Promise<any> => {
-      bucketData.push({ date: item.key_as_string, value: item.doc_count });
-    });
-    return bucketData;
+    return data.commentsPerDay.buckets.map((item: any) => ({
+      date: item.key_as_string,
+      value: item.combined_avg.value,
+    }));
   } catch (e) {
     logger.error('frequencyOfCodeCommitGraph.error', e);
+    throw e;
   }
-  return null;
 }
 
 export async function frequencyOfCodeCommitAvg(

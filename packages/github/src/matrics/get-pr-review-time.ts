@@ -7,7 +7,7 @@ import { esbDateHistogramInterval } from 'src/constant/config';
 import { getWeekDaysCount } from 'src/util/weekend-calculations';
 import { Config } from 'sst/node/config';
 
-export async function numberOfPrRaisedGraph(
+export async function prReviewTimeGraphData(
   startDate: string,
   endDate: string,
   intervals: string,
@@ -19,8 +19,8 @@ export async function numberOfPrRaisedGraph(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const numberOfPrRaisedGraphQuery = await esb.requestBodySearch().size(0);
-    numberOfPrRaisedGraphQuery.query(
+    const prReviewTimeGraphQuery = await esb.requestBodySearch().size(0);
+    prReviewTimeGraphQuery.query(
       esb
         .boolQuery()
         .must([
@@ -63,37 +63,51 @@ export async function numberOfPrRaisedGraph(
           .extendedBounds(startDate, endDate)
           .minDocCount(0);
     }
-    numberOfPrRaisedGraphQuery.agg(graphIntervals).toJSON();
+    prReviewTimeGraphQuery
+      .agg(
+        graphIntervals
+          .agg(esb.valueCountAggregation('pr_count', 'body.githubPullId'))
+          .agg(esb.sumAggregation('pr_time_in_seconds', 'body.reviewSeconds'))
+          .agg(
+            esb
+              .bucketScriptAggregation('combined_avg')
+              .bucketsPath({ avgPrCount: 'pr_count', sumPrReviewTime: 'pr_time_in_seconds' })
+              .gapPolicy('insert_zeros')
+              .script('params.avgPrCount == 0 ? 0 :(params.sumPrReviewTime / params.avgPrCount)')
+          )
+      )
+      .toJSON();
 
-    logger.info('NUMBER_OF_PR_RAISED_GRAPH_ESB_QUERY', numberOfPrRaisedGraphQuery);
+    logger.info('PR_REVIEW_TIME_GRAPH_ESB_QUERY', prReviewTimeGraphQuery);
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitPull,
-        numberOfPrRaisedGraphQuery
+        prReviewTimeGraphQuery
       );
+    console.log(JSON.stringify(data));
     return data.commentsPerDay.buckets.map((item: any) => ({
-      date: item.key_as_string,
-      value: item.combined_avg.value,
+      date: item.key_as_string as string,
+      value: parseFloat((item.combined_avg.value / 3600).toFixed(2)),
     }));
   } catch (e) {
-    logger.error('numberOfPrRaisedtGraph.error', e);
+    logger.error('prReviewTimeGraph.error', e);
     throw e;
   }
 }
 
-export async function numberOfPrRaisedtAvg(
+export async function prReviewTimeAvg(
   startDate: string,
   endDate: string,
   repoIds: string[]
-): Promise<number | {}> {
+): Promise<{ value: number } | null> {
   try {
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const numberOfPrRaisedAvgQuery = await esb.requestBodySearch().size(0);
-    numberOfPrRaisedAvgQuery
+    const prReviewTimeAvgQuery = await esb.requestBodySearch().size(0);
+    prReviewTimeAvgQuery
       .query(
         esb
           .boolQuery()
@@ -102,18 +116,19 @@ export async function numberOfPrRaisedtAvg(
             esb.termsQuery('body.repoId', repoIds),
           ])
       )
+      .agg(esb.sumAggregation('total_time', 'body.reviewSeconds'))
       .size(0)
       .toJSON();
-    logger.info('NUMBER_OF_PR_RAISED_AVG_ESB_QUERY', numberOfPrRaisedAvgQuery);
+    logger.info('NUMBER_OF_PR_REVIEW_TIME_AVG_ESB_QUERY', prReviewTimeAvgQuery);
     const data = await esClientObj.getClient().search({
       index: Github.Enums.IndexName.GitPull,
-      body: numberOfPrRaisedAvgQuery,
+      body: prReviewTimeAvgQuery,
     });
-    const totalDoc = data.body.hits.total.value;
+    const totalDoc = data.body.aggregations.total_time.value;
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
     return { value: totalDoc / weekDaysCount };
   } catch (e) {
-    logger.error('numberOfPrRaisedtAvg.error', e);
+    logger.error('prReviewTimeAvg.error', e);
+    throw e;
   }
-  return {};
 }
