@@ -6,7 +6,7 @@ on:
 
 jobs:
   call-workflow:
-    uses: studiographene/studiographene-reactjs-scans/.github/workflows/ci-cron.yml@feature/pnpm
+    uses: studiographene/studiographene-reactjs-scans/.github/workflows/cron-ci.yml@feature/pnpm
     with:
       project_name: px-data-integration
     permissions: write-all
