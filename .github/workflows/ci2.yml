@@ -8,5 +8,6 @@ jobs:
   call-workflow:
     uses: studiographene/studiographene-reactjs-scans/.github/workflows/cron-ci.yml@feature/pnpm
     with:
-      project_name: px-data-integration
+      project_name: pulse-data-integration
+      apply_suppression: false
     permissions: write-all

@@ -8,4 +8,4 @@ jobs:
   call-workflow:
     uses: studiographene/studiographene-reactjs-scans/.github/workflows/ci.yml@feature/pnpm
     with:
-      project_name: px-data-integration
+      project_name: pulse-data-integration
