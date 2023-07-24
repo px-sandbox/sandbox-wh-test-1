@@ -9,6 +9,7 @@ import { Push, CommitIds } from './push';
 import { PRReviewComment } from './pull-request-review-comment';
 import { PRReview } from './pull-request-review';
 import { IPrCommentAggregationResponse } from './aggregations/pr-comments';
+import { GraphResponse } from './aggregations/graph-response';
 
 export {
   Branch,
@@ -29,4 +30,5 @@ export {
   PRReviewComment,
   PRReview,
   IPrCommentAggregationResponse,
+  GraphResponse,
 };
