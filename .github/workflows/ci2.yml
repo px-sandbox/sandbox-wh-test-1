@@ -1,4 +1,4 @@
-name: CI checks
+name: CI-CRON checks
 
 on:
   pull_request: {}
