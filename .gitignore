@@ -52,3 +52,5 @@ packages/github/src/model/mapping.json
 
 localfile
 livefile
+
+pnpm-lock-deleted.yaml
