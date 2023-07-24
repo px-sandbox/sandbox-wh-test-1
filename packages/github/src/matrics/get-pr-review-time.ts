@@ -84,7 +84,7 @@ export async function prReviewTimeGraphData(
         Github.Enums.IndexName.GitPull,
         prReviewTimeGraphQuery
       );
-    console.log(JSON.stringify(data));
+
     return data.commentsPerDay.buckets.map((item: any) => ({
       date: item.key_as_string as string,
       value: parseFloat((item.combined_avg.value / 3600).toFixed(2)),
