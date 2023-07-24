@@ -8,6 +8,7 @@ import moment from 'moment';
 import { ghRequest } from './request-defaults';
 import { getPullRequestById } from './get-pull-request';
 import { getTimezoneOfUser } from './get-user-timezone';
+import { mappingPrefixes } from 'src/constant/config';
 
 export async function pRReviewCommentOnQueue(
   prReviewComment: Github.ExternalType.Webhook.PRReviewComment,
@@ -42,13 +43,15 @@ export async function pRReviewCommentOnQueue(
     const [pullData] = await getPullRequestById(pullId);
     if (pullData) {
       if (pullData.reviewedAt === null && prReviewComment.user.type !== Github.Enums.UserType.BOT) {
-        reviewed_at = prReviewComment.created_at;
-        const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
-        review_seconds = getWorkingTime(
-          moment(pullData.createdAt),
-          moment(reviewed_at),
-          createdTimezone
-        );
+        if (pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReviewComment.user.id}`) {
+          reviewed_at = prReviewComment.created_at;
+          const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
+          review_seconds = getWorkingTime(
+            moment(pullData.createdAt),
+            moment(reviewed_at),
+            createdTimezone
+          );
+        }
       }
       if (pullData.approvedAt !== null) {
         approved_at = pullData.approvedAt;
