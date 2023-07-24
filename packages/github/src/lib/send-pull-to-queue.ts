@@ -30,13 +30,15 @@ export async function pROnQueue(
         action === Github.Enums.PullRequest.Closed &&
         pullData.reviewedAt === null
       ) {
-        reviewed_at = pull.merged_at;
-        const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
-        review_seconds = getWorkingTime(
-          moment(pull.created_at),
-          moment(pull.merged_at),
-          createdTimezone
-        );
+        if (pull.user.id !== pull.merged_by?.id) {
+          reviewed_at = pull.merged_at;
+          const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
+          review_seconds = getWorkingTime(
+            moment(pull.created_at),
+            moment(pull.merged_at),
+            createdTimezone
+          );
+        }
       }
     }
     await new SQSClient().sendMessage(
