@@ -6,6 +6,6 @@ on:
 
 jobs:
   call-workflow:
-    uses: studiographene/studiographene-nodejs-scans/.github/workflows/ci.yml@fix/pnpm
+    uses: studiographene/studiographene-reactjs-scans/.github/workflows/ci.yml@feature/pnpm
     with:
       project_name: px-data-integration
