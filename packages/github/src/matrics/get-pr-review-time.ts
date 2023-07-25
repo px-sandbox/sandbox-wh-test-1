@@ -124,7 +124,8 @@ export async function prReviewTimeAvg(
       index: Github.Enums.IndexName.GitPull,
       body: prReviewTimeAvgQuery,
     });
-    const totalDoc = data.body.aggregations.total_time.value;
+
+    const totalDoc = Number((data.body.aggregations.total_time.value / 3600).toFixed(2));
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
     return { value: totalDoc / weekDaysCount };
   } catch (e) {
