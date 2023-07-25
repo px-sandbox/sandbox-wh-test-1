@@ -1,12 +1,12 @@
 import { Other } from 'abstraction';
 import { Config } from 'sst/node/config';
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { APIGatewayAuthorizerResultContext, APIGatewayProxyEvent } from 'aws-lambda';
 import jwt from 'jsonwebtoken';
 import { logger } from 'core';
 
 export const handler = async (
   event: APIGatewayProxyEvent
-): Promise<{ isAuthorized: boolean; context: object }> => {
+): Promise<{ isAuthorized: boolean; context: APIGatewayAuthorizerResultContext }> => {
   try {
     logger.info('AdminAuth.invoked', { event });
     if (process.env.IS_LOCAL) {
