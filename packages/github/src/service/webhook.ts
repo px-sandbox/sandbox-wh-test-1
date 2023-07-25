@@ -62,98 +62,102 @@ export const webhookData = async function getWebhookData(
       body: 'Bad Request : Event type can not be undefined',
     };
   }
-
+  const { id: orgId } = data.organization;
+  logger.info('Organization : ', { login: data.organization.login });
   let obj = {};
-  switch (eventType?.toLowerCase()) {
-    case Github.Enums.Event.Repo:
-      await new SQSClient().sendMessage(
-        { ...data.repository, action: data.action },
-        Queue.gh_repo_format.queueUrl
-      );
-      break;
-    case Github.Enums.Event.Branch:
-      const {
-        ref: name,
-        repository: { id: repo_id, pushed_at: event_at },
-      } = data as Github.ExternalType.Webhook.Branch;
 
-      if (event.headers['x-github-event'] === 'create') {
-        obj = {
-          name,
-          id: Buffer.from(`${repo_id}_${name}`, 'binary').toString('base64'),
-          action: Github.Enums.Branch.Created,
-          repo_id,
-          created_at: event_at,
-        };
-      }
-      if (event.headers['x-github-event'] === 'delete') {
-        obj = {
-          name,
-          id: Buffer.from(`${repo_id}_${name}`, 'binary').toString('base64'),
-          action: Github.Enums.Branch.Deleted,
-          repo_id,
-          deleted_at: event_at,
-        };
-      }
-      logger.info('-------Branch event --------');
-      logger.info(obj);
-      await new SQSClient().sendMessage(obj, Queue.gh_branch_format.queueUrl);
-      break;
-
-    case Github.Enums.Event.Organization:
-      if (!data?.membership) {
+  if (orgId === Number(Config.GIT_ORGANIZATION_ID)) {
+    switch (eventType?.toLowerCase()) {
+      case Github.Enums.Event.Repo:
+        await new SQSClient().sendMessage(
+          { ...data.repository, action: data.action },
+          Queue.gh_repo_format.queueUrl
+        );
         break;
-      }
+      case Github.Enums.Event.Branch:
+        const {
+          ref: name,
+          repository: { id: repo_id, pushed_at: event_at },
+        } = data as Github.ExternalType.Webhook.Branch;
 
-      switch (data.action?.toLowerCase()) {
-        case Github.Enums.Organization.MemberAdded:
+        if (event.headers['x-github-event'] === 'create') {
           obj = {
-            ...data.membership.user,
-            action: data.action,
+            name,
+            id: Buffer.from(`${repo_id}_${name}`, 'binary').toString('base64'),
+            action: Github.Enums.Branch.Created,
+            repo_id,
+            created_at: event_at,
           };
-          break;
-        case Github.Enums.Organization.MemberRemoved:
+        }
+        if (event.headers['x-github-event'] === 'delete') {
           obj = {
-            ...data.membership.user,
-            action: data.action,
-            deleted_at: new Date(eventTime),
+            name,
+            id: Buffer.from(`${repo_id}_${name}`, 'binary').toString('base64'),
+            action: Github.Enums.Branch.Deleted,
+            repo_id,
+            deleted_at: event_at,
           };
+        }
+        logger.info('-------Branch event --------');
+        logger.info(obj);
+        await new SQSClient().sendMessage(obj, Queue.gh_branch_format.queueUrl);
+        break;
+
+      case Github.Enums.Event.Organization:
+        if (!data?.membership) {
           break;
-      }
-      logger.info('-------User event --------');
-      logger.info(obj);
-      await new SQSClient().sendMessage(obj, Queue.gh_users_format.queueUrl);
-      break;
-    case Github.Enums.Event.Commit:
-      const commitData: Github.ExternalType.Webhook.Commit = data;
-      await getCommits(commitData);
-      break;
-    case Github.Enums.Event.PullRequest:
-      await pROnQueue(data.pull_request, data.action);
-      break;
-    case Github.Enums.Event.PRReviewComment:
-      await pRReviewCommentOnQueue(
-        data.comment,
-        data.pull_request.id,
-        data.repository.id,
-        data.repository.name,
-        data.repository.owner.login,
-        data.pull_request.number,
-        data.action
-      );
-      break;
-    case Github.Enums.Event.PRReview:
-      await pRReviewOnQueue(
-        data.review,
-        data.pull_request.id,
-        data.repository.id,
-        data.repository.name,
-        data.repository.owner.login,
-        data.pull_request.number,
-        data.action
-      );
-      break;
-    default:
-      break;
+        }
+
+        switch (data.action?.toLowerCase()) {
+          case Github.Enums.Organization.MemberAdded:
+            obj = {
+              ...data.membership.user,
+              action: data.action,
+            };
+            break;
+          case Github.Enums.Organization.MemberRemoved:
+            obj = {
+              ...data.membership.user,
+              action: data.action,
+              deleted_at: new Date(eventTime),
+            };
+            break;
+        }
+        logger.info('-------User event --------');
+        logger.info(obj);
+        await new SQSClient().sendMessage(obj, Queue.gh_users_format.queueUrl);
+        break;
+      case Github.Enums.Event.Commit:
+        const commitData: Github.ExternalType.Webhook.Commit = data;
+        await getCommits(commitData);
+        break;
+      case Github.Enums.Event.PullRequest:
+        await pROnQueue(data.pull_request, data.action);
+        break;
+      case Github.Enums.Event.PRReviewComment:
+        await pRReviewCommentOnQueue(
+          data.comment,
+          data.pull_request.id,
+          data.repository.id,
+          data.repository.name,
+          data.repository.owner.login,
+          data.pull_request.number,
+          data.action
+        );
+        break;
+      case Github.Enums.Event.PRReview:
+        await pRReviewOnQueue(
+          data.review,
+          data.pull_request.id,
+          data.repository.id,
+          data.repository.name,
+          data.repository.owner.login,
+          data.pull_request.number,
+          data.action
+        );
+        break;
+      default:
+        break;
+    }
   }
 };
