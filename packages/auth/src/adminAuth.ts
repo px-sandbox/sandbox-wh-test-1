@@ -1,10 +1,12 @@
 import { Other } from 'abstraction';
 import { Config } from 'sst/node/config';
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { APIGatewayAuthorizerResultContext, APIGatewayProxyEvent } from 'aws-lambda';
 import jwt from 'jsonwebtoken';
 import { logger } from 'core';
 
-export const handler = async (event: APIGatewayProxyEvent) => {
+export const handler = async (
+  event: APIGatewayProxyEvent
+): Promise<{ isAuthorized: boolean; context: APIGatewayAuthorizerResultContext }> => {
   try {
     logger.info('AdminAuth.invoked', { event });
     if (process.env.IS_LOCAL) {
@@ -14,7 +16,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       };
     }
 
-    const authHeader = event.headers['authorization'] || '';
+    const authHeader = event.headers.authorization || '';
     if (authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7, authHeader.length);
       const publicKey = Buffer.from(Config.AUTH_PUBLIC_KEY, 'base64').toString();
