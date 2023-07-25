@@ -1,3 +1,7 @@
+export type CommitIds = {
+  id: string;
+};
+
 export type Push = {
   id: string;
   ref: string;
@@ -5,8 +9,5 @@ export type Push = {
   commits: CommitIds[];
   organizationId: string;
   repoId: string;
-};
-
-export type CommitIds = {
-  id: string;
+  action: string;
 };

@@ -3,12 +3,14 @@ import { Commits } from '../webhook';
 export type Commit = {
   repoId: string;
   commits: Commits;
+  timestamp: string;
+  author: {
+    login: string;
+    id: string;
+  };
   commit: {
     message: string;
-    author: {
-      login: string;
-      id: string;
-    };
+
     committer: {
       id: number;
       login: string;
@@ -30,4 +32,5 @@ export type Commit = {
       status: string;
     }
   ];
+  action?: string;
 };

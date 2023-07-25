@@ -1,3 +1,5 @@
+import { actions } from './actions';
+
 export interface Branch {
   id: string;
   body: {
@@ -10,5 +12,11 @@ export interface Branch {
     updatedAt: string;
     pushedAt: string;
     deletedAt: string;
+    action: actions;
+    createdAtDay: string;
+    computationalDate: string;
+    githubDate: string | Date;
+    protected: boolean;
+    isDeleted: boolean;
   };
 }

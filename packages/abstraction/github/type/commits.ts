@@ -1,8 +1,20 @@
+import { actions } from './actions';
+
+export type CommitedFiles = {
+  filename: string;
+  additions: string;
+  deletions: string;
+  changes: string;
+  status: string;
+};
 export interface Commits {
   id: string;
   body: {
     id: string;
     githubCommitId: string;
+    isMergedCommit: boolean;
+    pushedBranch: string | null;
+    mergedBranch: string;
     message: string;
     authorId: string;
     committedAt: string;
@@ -11,12 +23,9 @@ export interface Commits {
     repoId: string;
     organizationId: string;
     createdAt: string;
+    action: actions;
+    createdAtDay: string;
+    computationalDate: string;
+    githubDate: string | Date;
   };
 }
-export type CommitedFiles = {
-  filename: string;
-  additions: string;
-  deletions: string;
-  changes: string;
-  status: string;
-};

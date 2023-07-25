@@ -3,6 +3,7 @@ import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { DataProcessor } from './data-processor';
+import moment from 'moment';
 
 export class RepositoryProcessor extends DataProcessor<
   Github.ExternalType.Api.Repository,
@@ -13,7 +14,13 @@ export class RepositoryProcessor extends DataProcessor<
   }
   async processor(): Promise<Github.Type.RepoFormatter> {
     const parentId: string = await this.getParentId(`${mappingPrefixes.repo}_${this.ghApiData.id}`);
-    const action = this.ghApiData.action ?? '';
+    const action = [
+      {
+        action: this.ghApiData.action ?? 'initialized',
+        actionTime: new Date().toISOString(),
+        actionDay: moment().format('dddd'),
+      },
+    ];
     const repoObj = {
       id: parentId || uuid(),
       body: {
@@ -31,6 +38,9 @@ export class RepositoryProcessor extends DataProcessor<
         pushedAt: this.ghApiData.pushed_at,
         updatedAt: this.ghApiData.updated_at,
         action: action,
+        createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
+        computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
+        githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
       },
     };
     return repoObj;

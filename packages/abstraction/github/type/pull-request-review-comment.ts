@@ -1,3 +1,5 @@
+import { actions } from './actions';
+
 export interface PRReviewComment {
   id: string;
   body: {
@@ -25,5 +27,9 @@ export interface PRReviewComment {
     pullId: string;
     repoId: string;
     organizationId: string;
+    action: actions;
+    createdAtDay: string;
+    computationalDate: string;
+    githubDate: string | Date;
   };
 }

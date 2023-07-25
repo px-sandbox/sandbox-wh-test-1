@@ -3,6 +3,7 @@ import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { DataProcessor } from './data-processor';
+import moment from 'moment';
 
 export class PushProcessor extends DataProcessor<
   Github.ExternalType.Webhook.Push,
@@ -19,6 +20,14 @@ export class PushProcessor extends DataProcessor<
     this.ghApiData.commits.map((data: { id: string }) => {
       commitsArr.push(`${mappingPrefixes.commit}_${data.id}`);
     });
+    const action = [
+      {
+        action: this.ghApiData.action ?? 'initialized',
+        actionTime: new Date().toISOString(),
+        actionDay: moment().format('dddd'),
+      },
+    ];
+    const createdAt = new Date().toISOString();
     const orgObj = {
       id: parentId || uuid(),
       body: {
@@ -29,6 +38,11 @@ export class PushProcessor extends DataProcessor<
         commits: commitsArr,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        action: action,
+        createdAt: createdAt,
+        createdAtDay: moment(createdAt).format('dddd'),
+        computationalDate: await this.calculateComputationalDate(createdAt),
+        githubDate: moment(createdAt).format('YYYY-MM-DD'),
       },
     };
     return orgObj;

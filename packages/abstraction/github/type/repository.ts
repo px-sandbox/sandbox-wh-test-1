@@ -1,3 +1,5 @@
+import { actions } from './actions';
+
 export interface Repository {
   id: string;
   githubId: number;
@@ -30,5 +32,9 @@ export interface RepoFormatter {
     createdAt: string;
     updatedAt: string;
     pushedAt: string;
+    action: actions;
+    createdAtDay: string;
+    computationalDate: string;
+    githubDate: string | Date;
   };
 }

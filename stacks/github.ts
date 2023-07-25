@@ -90,7 +90,10 @@ export function gh({ stack }: StackContext) {
   });
   const pRFormatDataQueue = new Queue(stack, 'gh_pr_format', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
+      function: {
+        handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
+        timeout: '15 minutes',
+      },
       cdk: {
         eventSource: {
           batchSize: 10,
@@ -201,7 +204,7 @@ export function gh({ stack }: StackContext) {
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
   ]);
-  pRFormatDataQueue.bind([table, pRIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pRFormatDataQueue.bind([table, pRIndexDataQueue, GIT_ORGANIZATION_ID, commitFormatDataQueue]);
   pushFormatDataQueue.bind([table, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
   pRReviewCommentFormatDataQueue.bind([table, pRReviewCommentIndexDataQueue, GIT_ORGANIZATION_ID]);
 
@@ -324,6 +327,27 @@ export function gh({ stack }: StackContext) {
       // GET GithubRepo data
       'GET /github/repositories': {
         function: 'packages/github/src/service/get-repos.handler',
+        authorizer: 'universal',
+      },
+      // GET PR comments graph data
+      'GET /github/graph/number-comments-added-to-prs': {
+        function: 'packages/github/src/service/get-pr-comments.handler',
+        authorizer: 'universal',
+      },
+      // GET Graph for frequency of code commits
+      'GET /github/graph/code-commit-frequency': {
+        function: 'packages/github/src/service/get-frequency-code-commit.handler',
+        authorizer: 'universal',
+      },
+      // GET Graph for number of PRs
+      'GET /github/graph/number-pr-raised': {
+        function: 'packages/github/src/service/number-of-pr-raised.handler',
+        authorizer: 'universal',
+      },
+
+      // GET Graph for PRs review time
+      'GET /github/graph/pr-review-time': {
+        function: 'packages/github/src/service/pr-review-time.handler',
         authorizer: 'universal',
       },
     },

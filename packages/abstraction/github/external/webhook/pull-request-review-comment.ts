@@ -7,6 +7,7 @@ export type PRReviewComment = {
   original_commit_id: string;
   user: {
     id: number;
+    type: string;
   };
   body: string;
   created_at: string;
@@ -22,4 +23,5 @@ export type PRReviewComment = {
     rocket: number;
     eyes: number;
   };
+  action: string;
 };

@@ -1,10 +1,8 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { saveRepoDetails } from 'src/lib/save-repo-details';
 
-export const handler = async function repoIndexDataReciever(
-  event: APIGatewayProxyEvent
-): Promise<void> {
+export const handler = async function repoIndexDataReciever(event: SQSEvent): Promise<void> {
   try {
     for (const record of event.Records) {
       const messageBody = JSON.parse(record.body);

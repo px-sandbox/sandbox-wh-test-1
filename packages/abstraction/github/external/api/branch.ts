@@ -9,4 +9,5 @@ export type Branch = {
   pushed_at: string;
   deleted_at: string;
   ref: string;
+  protected: boolean;
 };

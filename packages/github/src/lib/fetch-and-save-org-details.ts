@@ -22,16 +22,14 @@ export async function fetchAndSaveOrganizationDetails(
     logger.info('getOrganizationDetails.invoked');
     const responseData = await octokit(`GET /orgs/${organizationName}`);
     const orgId = `${mappingPrefixes.organization}_${responseData.data.id}`;
-    const records = await new DynamoDbDocClient(Config.STAGE).find(
-      new ParamsMapping().prepareGetParams(orgId)
-    );
+    const records = await new DynamoDbDocClient().find(new ParamsMapping().prepareGetParams(orgId));
     if (responseData?.data) {
       const result = new Organization(responseData.data).validate();
       if (result) {
         const formattedData = await result.processor(records?.parentId);
         if (records === undefined) {
           logger.info('---NEW_RECORD_FOUND---');
-          await new DynamoDbDocClient(Config.STAGE).put(
+          await new DynamoDbDocClient().put(
             new ParamsMapping().preparePutParams(formattedData.id, formattedData.body.id)
           );
         }

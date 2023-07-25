@@ -33,7 +33,7 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
   private dynamoDbLocalURL = 'http://localhost:8000';
   private region = process.env.AWS_REGION;
 
-  constructor(stage: string) {
+  constructor() {
     const DbdClient = new DynamoDBClient({
       region: this.region,
       endpoint: process.env.IS_LOCAL ? this.dynamoDbLocalURL : undefined,

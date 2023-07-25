@@ -1,9 +1,9 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { savePRReviewComment } from 'src/lib/save-pull-request-review-comment';
 
 export const handler = async function pullRequestReviewCommentIndexDataReciever(
-  event: APIGatewayProxyEvent
+  event: SQSEvent
 ): Promise<void> {
   try {
     for (const record of event.Records) {

@@ -15,4 +15,5 @@ export type Repository = {
   updated_at: string;
   pushed_at: string;
   deleted_at?: string;
+  actions: string;
 };

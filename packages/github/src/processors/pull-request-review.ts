@@ -3,6 +3,7 @@ import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { DataProcessor } from './data-processor';
+import moment from 'moment';
 
 export class PRReviewProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PRReview,
@@ -10,15 +11,29 @@ export class PRReviewProcessor extends DataProcessor<
 > {
   private pullId;
   private repoId;
-  constructor(data: Github.ExternalType.Webhook.PRReview, pullId: number, repoId: number) {
+  private action;
+  constructor(
+    data: Github.ExternalType.Webhook.PRReview,
+    pullId: number,
+    repoId: number,
+    action: string
+  ) {
     super(data);
     this.pullId = pullId;
     this.repoId = repoId;
+    this.action = action;
   }
   async processor(): Promise<Github.Type.PRReview> {
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.pRReview}_${this.ghApiData.id}`
     );
+    const action = [
+      {
+        action: this.action ?? 'initialized',
+        actionTime: new Date().toISOString(),
+        actionDay: moment().format('dddd'),
+      },
+    ];
 
     const pRReviewObj = {
       id: parentId || uuid(),
@@ -33,6 +48,10 @@ export class PRReviewProcessor extends DataProcessor<
         pullId: `${mappingPrefixes.pull}_${this.pullId}`,
         repoId: `${mappingPrefixes.repo}_${this.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        action: action,
+        createdAtDay: moment(this.ghApiData.submitted_at).format('dddd'),
+        computationalDate: await this.calculateComputationalDate(this.ghApiData.submitted_at),
+        githubDate: moment(this.ghApiData.submitted_at).format('YYYY-MM-DD'),
       },
     };
     return pRReviewObj;

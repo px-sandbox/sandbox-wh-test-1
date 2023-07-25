@@ -2,6 +2,14 @@ export type Commits = {
   id: string;
   timestamp: string;
   url?: string;
+  committer: {
+    username: string;
+    email: string;
+  };
+  message: string;
+  isMergedCommit: boolean;
+  mergedBranch: string;
+  pushedBranch: string | null;
 };
 
 export type Commit = {
@@ -22,4 +30,5 @@ export type Commit = {
     login: string;
   };
   commits: Commits[];
+  action: string;
 };
