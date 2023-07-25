@@ -12,7 +12,6 @@ const githubUser = async function getUserData(
 ): Promise<APIGatewayProxyResult> {
   const githubUserId: string = event?.pathParameters?.githubUserId || '';
   let response;
-  let apiRes;
   try {
     const data = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,

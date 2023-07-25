@@ -4,8 +4,8 @@ import { fetchAndSaveOrganizationDetails } from 'src/lib/fetch-and-save-org-deta
 import { getRepos } from 'src/lib/get-repos-list';
 import { getUsers } from 'src/lib/get-user-list';
 import { createAllIndices } from 'src/indices/indices';
-import { ghRequest } from '../lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { ghRequest } from '../lib/request-defaults';
 
 const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const organizationName: string = event?.queryStringParameters?.orgName || '';

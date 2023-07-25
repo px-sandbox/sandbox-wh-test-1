@@ -8,6 +8,7 @@ import { pRReviewCommentOnQueue } from 'src/lib/send-pr-review-comment-to-queue'
 import { pRReviewOnQueue } from 'src/lib/send-pr-review-to-queue';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+
 const crypto = require('crypto');
 
 export const webhookData = async function getWebhookData(
@@ -27,8 +28,8 @@ export const webhookData = async function getWebhookData(
   const sig = Buffer.from(event.headers['x-hub-signature-256'] || '');
   const hmac = Buffer.from(
     'sha256' +
-      '=' +
-      crypto.createHmac('sha256', Config.GITHUB_WEBHOOK_SECRET).update(payload).digest('hex')
+      `=${ 
+      crypto.createHmac('sha256', Config.GITHUB_WEBHOOK_SECRET).update(payload).digest('hex')}`
   );
 
   logger.info('SIG - HMAC (CryptoJS): ', hmac.toString());

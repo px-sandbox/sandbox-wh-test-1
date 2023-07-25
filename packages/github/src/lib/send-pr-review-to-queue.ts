@@ -5,10 +5,10 @@ import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { getWorkingTime } from 'src/util/timezone-calculation';
 import moment from 'moment';
+import { mappingPrefixes } from 'src/constant/config';
 import { ghRequest } from './request-defaults';
 import { getPullRequestById } from './get-pull-request';
 import { getTimezoneOfUser } from './get-user-timezone';
-import { mappingPrefixes } from 'src/constant/config';
 
 export async function pRReviewOnQueue(
   prReview: Github.ExternalType.Webhook.PRReview,
@@ -20,7 +20,7 @@ export async function pRReviewOnQueue(
   action: string
 ): Promise<void> {
   try {
-    //Get token to pass into header of Github Api call
+    // Get token to pass into header of Github Api call
     const installationAccessToken = await getInstallationAccessToken();
     const octokit = ghRequest.request.defaults({
       headers: {
@@ -28,7 +28,7 @@ export async function pRReviewOnQueue(
       },
     });
 
-    //Get pull request details through Github Api and update the same into index.
+    // Get pull request details through Github Api and update the same into index.
     const responseData = await octokit(`GET /repos/${owner}/${repo}/pulls/${pullNumber}`);
 
     //
@@ -57,7 +57,7 @@ export async function pRReviewOnQueue(
       }
       await Promise.all([
         new SQSClient().sendMessage(
-          { review: prReview, pullId: pullId, repoId: repoId, action: action },
+          { review: prReview, pullId, repoId, action },
           Queue.gh_pr_review_format.queueUrl
         ),
         new SQSClient().sendMessage(
@@ -74,9 +74,9 @@ export async function pRReviewOnQueue(
     }
     logger.error('pRReviewOnQueue.failed: PR NOT FOUND', {
       review: prReview,
-      pullId: pullId,
-      repoId: repoId,
-      action: action,
+      pullId,
+      repoId,
+      action,
     });
   } catch (error: unknown) {
     logger.error({

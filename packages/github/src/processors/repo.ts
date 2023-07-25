@@ -2,8 +2,8 @@ import { Github } from 'abstraction';
 import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import { DataProcessor } from './data-processor';
 import moment from 'moment';
+import { DataProcessor } from './data-processor';
 
 export class RepositoryProcessor extends DataProcessor<
   Github.ExternalType.Api.Repository,
@@ -37,7 +37,7 @@ export class RepositoryProcessor extends DataProcessor<
         createdAt: this.ghApiData.created_at,
         pushedAt: this.ghApiData.pushed_at,
         updatedAt: this.ghApiData.updated_at,
-        action: action,
+        action,
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
         githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),

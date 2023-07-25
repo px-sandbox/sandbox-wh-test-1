@@ -86,7 +86,7 @@ export async function frequencyOfCodeCommitAvg(
   startDate: string,
   endDate: string,
   repoIds: string[]
-): Promise<number | {}> {
+): Promise<{ value: number } | null> {
   try {
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -115,6 +115,6 @@ export async function frequencyOfCodeCommitAvg(
     return { value: totalDoc / weekDaysCount };
   } catch (e) {
     logger.error('frequencyOfCodeCommitGraphAvg.error', e);
+    throw e;
   }
-  return {};
 }

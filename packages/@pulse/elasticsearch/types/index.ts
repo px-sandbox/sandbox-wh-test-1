@@ -2,7 +2,7 @@ import { Client } from '@elastic/elasticsearch';
 
 export type ElasticSearchDocument = {
   id: string;
-  body: Object;
+  body: Record<string, unknown>;
 };
 
 export interface IElasticSearchClient {

@@ -2,8 +2,9 @@ import { Github } from 'abstraction';
 import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import { DataProcessor } from './data-processor';
 import moment from 'moment';
+import { DataProcessor } from './data-processor';
+
 export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, Github.Type.User> {
   constructor(data: Github.ExternalType.Api.User) {
     super(data);
@@ -27,8 +28,8 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
         avatarUrl: this.ghApiData?.avatar_url,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         deletedAt: this.ghApiData.deleted_at,
-        createdAt: createdAt,
-        action: action,
+        createdAt,
+        action,
         createdAtDay: moment(createdAt).format('dddd'),
         computationalDate: await this.calculateComputationalDate(createdAt),
         githubDate: moment(createdAt).format('YYYY-MM-DD'),
