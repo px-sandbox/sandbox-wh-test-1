@@ -74,7 +74,7 @@ export async function frequencyOfCodeCommitGraph(
       );
     return data.commentsPerDay.buckets.map((item: any) => ({
       date: item.key_as_string,
-      value: item.combined_avg.value,
+      value: item.doc_count,
     }));
   } catch (e) {
     logger.error('frequencyOfCodeCommitGraph.error', e);
