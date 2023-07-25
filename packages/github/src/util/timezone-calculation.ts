@@ -39,9 +39,11 @@ function regulariseDate(date: moment.Moment) {
 
   if (date.isBetween(minBoundary, maxBoundary)) {
     return date;
-  } else if (minBoundary.isSameOrAfter(date)) {
+  }
+  if (minBoundary.isSameOrAfter(date)) {
     return minBoundary;
-  } else return maxBoundary;
+  }
+  return maxBoundary;
 }
 
 function getDays(startDate: moment.Moment, endDate: moment.Moment) {
@@ -76,8 +78,3 @@ export function getWorkingTime(startDate: moment.Moment, endDate: moment.Moment,
 
   return totalTime - offhoursTime - weekendTime;
 }
-
-const startDate = moment('2023-07-20T04:30:16.000Z', moment.ISO_8601);
-const endDate = moment('2023-07-20T17:30:16.000Z', moment.ISO_8601);
-
-console.log(getWorkingTime(startDate, endDate, '+0530'));
