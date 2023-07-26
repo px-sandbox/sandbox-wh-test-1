@@ -72,7 +72,7 @@ export async function frequencyOfCodeCommitGraph(
         Github.Enums.IndexName.GitCommits,
         frquencyOfCodeCommitGraphQuery
       );
-    return data.commentsPerDay.buckets.map((item: any) => ({
+    return data.commentsPerDay.buckets.map((item) => ({
       date: item.key_as_string,
       value: item.doc_count,
     }));

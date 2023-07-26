@@ -8,16 +8,17 @@ export const searchedDataFormator = async (data: any) => {
   return [];
 };
 export const formatUserDataResponse = (data: any) => ({
-    id: data._id,
-    githubId: data.id,
-    userName: data.userName,
-    avatarUrl: data.avatarUrl,
-    organizationId: data.organizationId,
-  });
+  id: data._id,
+  githubId: data.id,
+  userName: data.userName,
+  avatarUrl: data.avatarUrl,
+  organizationId: data.organizationId,
+});
 
-export const formatRepoDataResponse = (data: any) => data.map((repo: any) => ({
-      id: repo._id,
-      githubId: repo.id,
-      name: repo.name,
-      topics: repo.topics,
-    }));
+export const formatRepoDataResponse = (data: any) =>
+  data.map((repo: any) => ({
+    id: repo._id,
+    githubId: repo.id,
+    name: repo.name,
+    topics: repo.topics,
+  }));

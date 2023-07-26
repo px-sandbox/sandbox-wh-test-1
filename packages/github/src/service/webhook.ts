@@ -1,18 +1,18 @@
 import { SQSClient } from '@pulse/event-handler';
-import { Github, Other } from 'abstraction';
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { Github } from 'abstraction';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { logger } from 'core';
+import crypto from 'crypto';
 import { getCommits } from 'src/lib/git-commit-list';
-import { pROnQueue } from 'src/lib/send-pull-to-queue';
 import { pRReviewCommentOnQueue } from 'src/lib/send-pr-review-comment-to-queue';
 import { pRReviewOnQueue } from 'src/lib/send-pr-review-to-queue';
+import { pROnQueue } from 'src/lib/send-pull-to-queue';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
-import crypto from 'crypto';
 
 export const webhookData = async function getWebhookData(
   event: APIGatewayProxyEvent
-): Promise<void | Other.Type.LambdaResponse> {
+): Promise<void | APIGatewayProxyResult> {
   logger.info('method invoked');
   const payload: any = event.body || {};
 

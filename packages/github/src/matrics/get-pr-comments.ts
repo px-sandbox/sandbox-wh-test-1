@@ -85,7 +85,7 @@ export async function prCommentsGraphData(
         Github.Enums.IndexName.GitPRReviewComment,
         prCommentGraphQuery
       );
-    return data.commentsPerDay.buckets.map((item: any) => ({
+    return data.commentsPerDay.buckets.map((item) => ({
       date: item.key_as_string,
       value: item.doc_count,
     }));

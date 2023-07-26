@@ -1,10 +1,10 @@
-import { Other } from 'abstraction';
+import { APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getOauthCode } from 'src/util/jwt-token';
 
 export const getGitAppInstallations =
-  async function getGitAppInstallationList(): Promise<Other.Type.LambdaResponse> {
+  async function getGitAppInstallationList(): Promise<APIGatewayProxyResult> {
     const {
       body: { token },
     } = await getOauthCode();

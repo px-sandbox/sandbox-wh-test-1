@@ -71,7 +71,7 @@ export async function numberOfPrRaisedGraph(
         Github.Enums.IndexName.GitPull,
         numberOfPrRaisedGraphQuery
       );
-    return data.commentsPerDay.buckets.map((item: any) => ({
+    return data.commentsPerDay.buckets.map((item) => ({
       date: item.key_as_string,
       value: item.doc_count,
     }));
