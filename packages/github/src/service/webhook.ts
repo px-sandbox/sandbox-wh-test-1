@@ -62,8 +62,11 @@ export const webhookData = async function getWebhookData(
       body: 'Bad Request : Event type can not be undefined',
     };
   }
-
+  const { id: orgId } = data.organization;
+  logger.info('Organization : ', { login: data.organization.login });
   let obj = {};
+
+  if (orgId !== Number(Config.GIT_ORGANIZATION_ID)) return;
   switch (eventType?.toLowerCase()) {
     case Github.Enums.Event.Repo:
       await new SQSClient().sendMessage(

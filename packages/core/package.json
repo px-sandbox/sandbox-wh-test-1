@@ -28,6 +28,7 @@
     "winston": "^3.8.2",
     "dotenv": "^16.0.3",
     "abstraction": "workspace:^1.0.0",
-    "github": "workspace:^1.0.0"
+    "github": "workspace:^1.0.0",
+    "aws-lambda": "^1.0.7"
   }
 }
