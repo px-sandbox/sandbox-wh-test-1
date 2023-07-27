@@ -31,54 +31,55 @@ export async function pRReviewCommentOnQueue(
     //Get pull request details through Github Api and update the same into index.
     const responseData = await octokit(`GET /repos/${owner}/${repo}/pulls/${pullNumber}`);
 
-    //
-    let reviewed_at = null;
-    let approved_at = null;
-    let review_seconds = 0;
     /**
      * Search pull request index and check if reviewed_at is null or not. If null then
      * update the value to store the first reviewed_at time. Also this commented shouldn't
      * be by Github Bot. If comment is from Github Bob then we will not update reviewed_at.
      */
     const [pullData] = await getPullRequestById(pullId);
-    if (pullData) {
-      if (pullData.reviewedAt === null && prReviewComment.user.type !== Github.Enums.UserType.BOT) {
-        if (pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReviewComment.user.id}`) {
-          reviewed_at = prReviewComment.created_at;
-          const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
-          review_seconds = getWorkingTime(
-            moment(pullData.createdAt),
-            moment(reviewed_at),
-            createdTimezone
-          );
-        }
-      }
-      if (pullData.approvedAt !== null) {
-        approved_at = pullData.approvedAt;
-      }
-      await Promise.all([
-        new SQSClient().sendMessage(
-          { comment: prReviewComment, pullId: pullId, repoId: repoId, action: action },
-          Queue.gh_pr_review_comment_format.queueUrl
-        ),
-        new SQSClient().sendMessage(
-          {
-            ...responseData.data,
-            reviewed_at,
-            approved_at,
-            review_seconds,
-            action: Github.Enums.Comments.PR_COMMENTED,
-          },
-          Queue.gh_pr_format.queueUrl
-        ),
-      ]);
+    if (!pullData) {
+      logger.error('pRReviewCommentOnQueue.failed: PR NOT FOUND', {
+        review: prReviewComment,
+        pullId: pullId,
+        repoId: repoId,
+        action: action,
+      });
+      return;
     }
-    logger.error('pRReviewCommentOnQueue.failed: PR NOT FOUND', {
-      review: prReviewComment,
-      pullId: pullId,
-      repoId: repoId,
-      action: action,
-    });
+
+    let approved_at = pullData.approvedAt;
+    let reviewed_at = pullData.reviewedAt;
+    let review_seconds = pullData.reviewSeconds;
+
+    /*if (
+      pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReviewComment.user.id}` &&
+      prReviewComment.user.type !== Github.Enums.UserType.BOT &&
+      !reviewed_at
+    ) {
+      reviewed_at = prReviewComment.created_at;
+      const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
+      review_seconds = getWorkingTime(
+        moment(pullData.createdAt),
+        moment(reviewed_at),
+        createdTimezone
+      );
+    }*/
+    await Promise.all([
+      new SQSClient().sendMessage(
+        { comment: prReviewComment, pullId: pullId, repoId: repoId, action: action },
+        Queue.gh_pr_review_comment_format.queueUrl
+      ),
+      new SQSClient().sendMessage(
+        {
+          ...responseData.data,
+          reviewed_at,
+          approved_at,
+          review_seconds,
+          action: Github.Enums.Comments.PR_COMMENTED,
+        },
+        Queue.gh_pr_format.queueUrl
+      ),
+    ]);
   } catch (error: unknown) {
     logger.error({
       error,

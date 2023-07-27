@@ -11,7 +11,7 @@ type Offset = {
 function getOffsetTime(offset: string): Offset {
   const radical = offset.at(0) as '+' | '-';
   const hours = parseInt(offset.substr(1, 2), 10);
-  const minutes = parseInt(offset.substr(3, 2), 10);
+  const minutes = parseInt(offset.substr(4, 2), 10);
 
   return {
     radical,
@@ -57,7 +57,7 @@ function getDays(startDate: moment.Moment, endDate: moment.Moment) {
  *
  * @param startDate PR create date UTC
  * @param endDate PR reviewed date UTC
- * @param offset Time offset of the author: +0530, +0100
+ * @param offset Time offset of the author: +05:30, +01:00
  * @returns number that represents time  in seconds
  */
 
@@ -65,11 +65,9 @@ export function getWorkingTime(startDate: moment.Moment, endDate: moment.Moment,
   const offsetTime = getOffsetTime(offset);
 
   startDate = regulariseDate(getTimeWithOffset(startDate, offsetTime));
-
   endDate = regulariseDate(getTimeWithOffset(endDate, offsetTime));
 
   const totalDays = getDays(startDate, endDate);
-
   const weekends = getWeekenedCount(startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD'));
 
   const totalTime = endDate.diff(startDate, 'seconds');
