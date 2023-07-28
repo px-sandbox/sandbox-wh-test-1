@@ -31,53 +31,60 @@ export async function pRReviewOnQueue(
     // Get pull request details through Github Api and update the same into index.
     const responseData = await octokit(`GET /repos/${owner}/${repo}/pulls/${pullNumber}`);
 
-    //
-    let reviewed_at = null;
-    let approved_at = null;
-    let review_seconds = 0;
     /**
      * Search pull request index and check if reviewed_at and approved_at is null or not. If null then
      * update the value to store the first reviewed_at and approved_at time.
      */
+
     const [pullData] = await getPullRequestById(pullId);
-    if (pullData) {
-      if (pullData.reviewedAt === null) {
-        if (pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReview.user.id}`) {
-          reviewed_at = prReview.submitted_at;
-          const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
-          review_seconds = getWorkingTime(
-            moment(pullData.createdAt),
-            moment(reviewed_at),
-            createdTimezone
-          );
-        }
-      }
-      if (pullData.approvedAt === null && prReview.state === Github.Enums.ReviewState.APPROVED) {
-        approved_at = prReview.submitted_at;
-      }
-      await Promise.all([
-        new SQSClient().sendMessage(
-          { review: prReview, pullId, repoId, action },
-          Queue.gh_pr_review_format.queueUrl
-        ),
-        new SQSClient().sendMessage(
-          {
-            ...responseData.data,
-            reviewed_at,
-            approved_at,
-            review_seconds,
-            action: Github.Enums.Comments.REVIEW_COMMENTED,
-          },
-          Queue.gh_pr_format.queueUrl
-        ),
-      ]);
+    if (!pullData) {
+      logger.error('pRReviewOnQueue.failed: PR NOT FOUND', {
+        review: prReview,
+        pullId: pullId,
+        repoId: repoId,
+        action: action,
+      });
+      return;
     }
-    logger.error('pRReviewOnQueue.failed: PR NOT FOUND', {
-      review: prReview,
-      pullId,
-      repoId,
-      action,
-    });
+
+    let approved_at = pullData.approvedAt;
+    let reviewed_at = pullData.reviewedAt;
+    let review_seconds = pullData.reviewSeconds;
+
+    if (
+      !reviewed_at &&
+      pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReview.user.id}` &&
+      prReview.user.type !== Github.Enums.UserType.BOT
+    ) {
+      reviewed_at = prReview.submitted_at;
+      const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
+      review_seconds = getWorkingTime(
+        moment(pullData.createdAt),
+        moment(reviewed_at),
+        createdTimezone
+      );
+    }
+
+    if (!approved_at && prReview.state === Github.Enums.ReviewState.APPROVED) {
+      approved_at = prReview.submitted_at;
+    }
+
+    await Promise.all([
+      new SQSClient().sendMessage(
+        { review: prReview, pullId: pullId, repoId: repoId, action: action },
+        Queue.gh_pr_review_format.queueUrl
+      ),
+      new SQSClient().sendMessage(
+        {
+          ...responseData.data,
+          reviewed_at,
+          approved_at,
+          review_seconds,
+          action: Github.Enums.Comments.REVIEW_COMMENTED,
+        },
+        Queue.gh_pr_format.queueUrl
+      ),
+    ]);
   } catch (error: unknown) {
     logger.error({
       error,
