@@ -192,6 +192,28 @@ export function gh({ stack }: StackContext) {
     consumer: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
   });
 
+  const collectPRData = new Queue(stack, 'gh_historical_pr', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/historical-pr.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
+  });
+
+  const collectCommitsData = new Queue(stack, 'gh_historical_commit', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/historical-commits.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
+  });
+
   // bind tables and config to queue
   userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
   repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
@@ -236,6 +258,28 @@ export function gh({ stack }: StackContext) {
     branchFormatDataQueue,
     branchIndexDataQueue,
   ]);
+
+  collectPRData.bind([
+    table,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    collectCommitsData,
+  ]);
+
+  collectCommitsData.bind([
+    table,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+  ]);
+
   const ghAPI = new Api(stack, 'api', {
     authorizers: {
       universal: {
@@ -287,6 +331,8 @@ export function gh({ stack }: StackContext) {
           GIT_ORGANIZATION_ID,
           table,
           afterRepoSaveQueue,
+          collectPRData,
+          collectCommitsData,
         ],
       },
     },
@@ -348,6 +394,12 @@ export function gh({ stack }: StackContext) {
       // GET Graph for PRs review time
       'GET /github/graph/pr-review-time': {
         function: 'packages/github/src/service/pr-review-time.handler',
+        authorizer: 'universal',
+      },
+
+      // GET Historical Data
+      'GET /github/history': {
+        function: 'packages/github/src/service/history-data.handler',
         authorizer: 'universal',
       },
     },
