@@ -3,7 +3,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { formatRepoDataResponse, searchedDataFormator } from 'src/util/response-formatter';
+import { IRepo, formatRepoDataResponse, searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
 import { getGitRepoSchema } from './validations';
 
@@ -13,7 +13,7 @@ const gitRepos = async function getRepoData(
   const gitRepoName: string = event?.queryStringParameters?.search || '';
   const page = Number(event?.queryStringParameters?.page || 1);
   const size = Number(event?.queryStringParameters?.size || 10);
-  let response;
+  let response: IRepo[] = [];
   try {
     const esClient = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
