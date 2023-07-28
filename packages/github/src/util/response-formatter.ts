@@ -1,5 +1,3 @@
-import { estypes } from '@elastic/elasticsearch';
-
 export interface IformatUserDataResponse {
   _id: number;
   id: number;
