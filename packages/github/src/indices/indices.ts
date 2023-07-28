@@ -3,7 +3,7 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
 
-const indices: any[] = [
+const indices = [
   {
     name: Github.Enums.IndexName.GitUsers,
     _id: { type: 'uuid' },

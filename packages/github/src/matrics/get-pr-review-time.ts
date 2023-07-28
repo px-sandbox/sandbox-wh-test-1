@@ -85,7 +85,7 @@ export async function prReviewTimeGraphData(
         prReviewTimeGraphQuery
       );
 
-    return data.commentsPerDay.buckets.map((item: any) => ({
+    return data.commentsPerDay.buckets.map((item) => ({
       date: item.key_as_string as string,
       value: parseFloat((item.combined_avg.value / 3600).toFixed(2)),
     }));

@@ -1,8 +1,8 @@
 import { Other } from 'abstraction';
-import { Config } from 'sst/node/config';
 import { APIGatewayAuthorizerResultContext, APIGatewayProxyEvent } from 'aws-lambda';
-import jwt from 'jsonwebtoken';
 import { logger } from 'core';
+import jwt from 'jsonwebtoken';
+import { Config } from 'sst/node/config';
 
 export const handler = async (
   event: APIGatewayProxyEvent

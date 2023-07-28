@@ -3,7 +3,6 @@ export type PRReview = {
   commit_id: string;
   user: {
     id: number;
-    type: string;
   };
   body: string;
   submitted_at: string;

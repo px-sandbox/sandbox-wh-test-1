@@ -1,4 +1,4 @@
-import { RequestInterface } from '@octokit/types';
+import { OctokitResponse, RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
@@ -46,7 +46,7 @@ async function getReposList(
     const responseData = await octokit(
       `GET /orgs/${organizationName}/repos?per_page=${perPage}&page=${page}`
     );
-    const reposPerPage = responseData.data as Array<any>;
+    const reposPerPage = responseData.data as Array<OctokitResponse<string>>;
     counter += reposPerPage.length;
 
     // await Promise.all(

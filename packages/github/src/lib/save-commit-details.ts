@@ -58,7 +58,7 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
           createdAtDay: author.createdAtDay,
           computationalDate: author.computationalDate,
           githubDate: author.githubDate,
-          timezone: timezone,
+          timezone,
         },
       };
       logger.info('USER_DATA_UPDATE_WITH_TIMEZONE', authorData);

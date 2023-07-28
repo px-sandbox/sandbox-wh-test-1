@@ -6,6 +6,8 @@ export interface IPrCommentAggregationResponse {
         combined_avg: {
           value: number;
         };
+        key: number;
+        doc_count: number;
       }
     ];
   };

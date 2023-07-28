@@ -6,6 +6,7 @@ import { ParamsMapping } from 'src/model/params-mapping';
 import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from 'src/util/response-formatter';
+
 export async function saveUserDetails(data: Github.Type.User): Promise<void> {
   try {
     await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));

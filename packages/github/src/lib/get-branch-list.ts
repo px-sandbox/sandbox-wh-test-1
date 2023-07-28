@@ -18,7 +18,7 @@ async function getBranchList(
   repoOwner: string,
   page = 1,
   counter = 0
-): Promise<any> {
+): Promise<number> {
   try {
     logger.info('getBranchList.invoked', { repoName, repoOwner, page });
     const perPage = 100;
@@ -58,7 +58,7 @@ export async function getBranches(
   repoName: string,
   repoOwner: string
 ): Promise<number> {
-  let branchCount: Promise<number>;
+  let branchCount: number;
   try {
     const installationAccessToken = await getInstallationAccessToken();
     const octokit = ghRequest.request.defaults({
