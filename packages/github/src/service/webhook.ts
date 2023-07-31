@@ -143,9 +143,6 @@ export const webhookData = async function getWebhookData(
         data.comment,
         data.pull_request.id,
         data.repository.id,
-        data.repository.name,
-        data.repository.owner.login,
-        data.pull_request.number,
         data.action
       );
       break;

@@ -18,6 +18,10 @@ export async function pROnQueue(
     const [pullData] = await getPullRequestById(pull.id);
 
     if (pullData) {
+      if (action === Github.Enums.PullRequest.Opened) {
+        logger.info('PR already exist');
+        return;
+      }
       if (pullData.reviewedAt) {
         reviewed_at = pullData.reviewedAt;
         review_seconds = pullData.reviewSeconds;
