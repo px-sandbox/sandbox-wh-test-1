@@ -19,9 +19,7 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
       const responseData = await octokit(
         `GET /repos/${prData.owner}/${prData.name}/pulls?state=all`
       );
-      console.log('ALL_PR_DATA', responseData);
-      throw 'error';
-      await new SQSClient().sendMessage(prData, Queue.gh_historical_commit.queueUrl);
+      await new SQSClient().sendMessage(responseData.data, Queue.gh_historical_commit.queueUrl);
     }
     // check for pull request is merge or closed
     // commit sha for that PR

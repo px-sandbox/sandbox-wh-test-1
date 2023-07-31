@@ -1,6 +1,6 @@
 import { SQSEvent } from 'aws-lambda';
-import { logger } from 'core';
 import { ghRequest } from 'src/lib/request-defaults';
+import { pROnQueue } from 'src/lib/send-pull-to-queue';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 
 export const handler = async function collectCommitData(event: SQSEvent): Promise<void> {
@@ -10,14 +10,17 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
       Authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
+  let i = 0;
   for (const record of event.Records) {
     const messageBody = JSON.parse(record.body);
 
-    logger.info('ALL_PR_DATA_TO_GET_SINGLE_PR', { number: messageBody.number });
-    // const responseData = await octokit(
-    //   `GET /repos/${prNumber.head.repo.owner}/${prNumber.head.repo.name}/pulls/${prNumber.number}`
-    // );
-    // console.log('singlePR', responseData);
+    //logger.info('ALL_PR_DATA_TO_GET_SINGLE_PR', { messageBody });
+    for (const numberPr of messageBody) {
+      const responseData = await octokit(
+        `GET /repos/${numberPr.head.repo.owner.login}/${numberPr.head.repo.name}/pulls/${numberPr.number}`
+      );
+      await pROnQueue(responseData.data, responseData.data.state);
+    }
   }
 
   // check for pull request is merge or closed
