@@ -20,15 +20,15 @@ export async function pRReviewCommentOnQueue(
     if (!pullData) {
       logger.error('pRReviewCommentOnQueue.failed: PR NOT FOUND', {
         review: prReviewComment,
-        pullId: pullId,
-        repoId: repoId,
-        action: action,
+        pullId,
+        repoId,
+        action,
       });
       return;
     }
 
     await new SQSClient().sendMessage(
-      { comment: prReviewComment, pullId: pullId, repoId: repoId, action: action },
+      { comment: prReviewComment, pullId, repoId, action },
       Queue.gh_pr_review_comment_format.queueUrl
     );
   } catch (error: unknown) {
