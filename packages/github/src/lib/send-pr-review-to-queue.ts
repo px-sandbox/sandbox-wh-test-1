@@ -40,9 +40,9 @@ export async function pRReviewOnQueue(
     if (!pullData) {
       logger.error('pRReviewOnQueue.failed: PR NOT FOUND', {
         review: prReview,
-        pullId: pullId,
-        repoId: repoId,
-        action: action,
+        pullId,
+        repoId,
+        action,
       });
       return;
     }
