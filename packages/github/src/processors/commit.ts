@@ -2,8 +2,8 @@ import { Github } from 'abstraction';
 import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import { DataProcessor } from './data-processor';
 import moment from 'moment';
+import { DataProcessor } from './data-processor';
 
 export class CommitProcessor extends DataProcessor<
   Github.ExternalType.Api.Commit,
@@ -50,7 +50,7 @@ export class CommitProcessor extends DataProcessor<
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         createdAt: this.ghApiData.commit.committer.date,
-        action: action,
+        action,
         createdAtDay: moment(this.ghApiData.commit.committer.date).format('dddd'),
         computationalDate: await this.calculateComputationalDate(
           this.ghApiData.commit.committer.date

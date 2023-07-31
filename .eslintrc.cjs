@@ -1,62 +1,22 @@
 module.exports = {
   env: {
-    browser: true,
-    es6: true,
+    es2021: true,
+    node: true,
   },
-  extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/eslint-recommended',
-    'airbnb-base',
-    'prettier',
-  ],
-  globals: {
-    Atomics: 'readonly',
-    SharedArrayBuffer: 'readonly',
-  },
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
+  overrides: [],
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    ecmaVersion: 2018,
+    ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint', 'import'],
+  plugins: ['@typescript-eslint'],
   rules: {
-    'import/extensions': [
-      'error',
-      'ignorePackages',
-      {
-        js: 'never',
-        ts: 'never',
-      },
-    ],
-    '@typescript-eslint/explicit-function-return-type': 2,
-    'import/prefer-default-export': 'off',
-    'class-methods-use-this': 0,
-    'no-underscore-dangle': 0,
-    'no-useless-constructor': 0,
-    'no-empty-function': 'off',
-    '@typescript-eslint/no-empty-function': 0,
-    'no-shadow': 'off',
-    '@typescript-eslint/no-shadow': ['error'],
-    'lines-between-class-members': 0,
-    'consistent-return': 0,
-    'no-restricted-syntax': 0,
+    'linebreak-style': ['error', 'unix'],
+    quotes: ['error', 'single'],
+    semi: ['error', 'always'],
+    '@typescript-eslint/no-empty-interface': ['error'],
+    'no-console': 2, // Remember, this means error!
     '@typescript-eslint/no-unused-vars': ['error'],
-    '@typescript-eslint/explicit-member-accessibility': [
-      'error',
-      { overrides: { parameterProperties: 'off', constructors: 'off' } },
-    ],
-    'max-lines-per-function': ['error', { max: 65, skipComments: true, skipBlankLines: true }],
-    complexity: ['error', 10],
-    'no-console': 'error',
-    'max-len': ['error', 120],
-    eqeqeq: 'warn',
-    'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
-  },
-  settings: {
-    'import/resolver': {
-      node: {
-        extensions: ['.js', '.ts', '.d.ts', '.json'],
-      },
-    },
   },
 };

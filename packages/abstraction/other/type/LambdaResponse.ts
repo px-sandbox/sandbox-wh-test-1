@@ -1,4 +1,4 @@
 export interface LambdaResponse {
   statusCode: number;
-  body: any;
+  body: Record<string, unknown>;
 }

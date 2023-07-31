@@ -2,11 +2,11 @@ import { Github } from 'abstraction';
 import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import { DataProcessor } from './data-processor';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
 import moment from 'moment';
+import { DataProcessor } from './data-processor';
 
 const delayAr = [0, 1, 1, 2, 3, 5, 8];
 export class PRProcessor extends DataProcessor<
@@ -18,50 +18,46 @@ export class PRProcessor extends DataProcessor<
   }
 
   private async delay(time: number) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       setTimeout(resolve, time);
       logger.info('Delay time : ', time);
     });
   }
   async isCommitExist(attempt: number): Promise<boolean> {
     if (attempt < 7) {
-      //Set delay time in fibonacci series for 6 attempts to check commit id in dynamoDb.
+      // Set delay time in fibonacci series for 6 attempts to check commit id in dynamoDb.
       await this.delay(delayAr[attempt] * 1000);
       const commit = await this.getParentId(
         `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`
       );
       logger.info('MERGE COMMIT ID : ', this.ghApiData.merge_commit_sha);
 
-      //If commit exist then it will return true otherwise it will attempt again to check commit id.
+      // If commit exist then it will return true otherwise it will attempt again to check commit id.
       if (commit) {
         return true;
-      } else {
-        logger.info('NEXT ATTEMPT : ', attempt + 1);
-        return this.isCommitExist(attempt + 1);
       }
-    } else {
-      return false;
+      logger.info('NEXT ATTEMPT : ', attempt + 1);
+      return this.isCommitExist(attempt + 1);
     }
+    return false;
   }
 
   async isPRExist(attempt: number): Promise<boolean> {
     if (attempt < 7) {
-      //Set delay time in fibonacci series for 6 attempts to check PR ID in dynamoDb.
+      // Set delay time in fibonacci series for 6 attempts to check PR ID in dynamoDb.
       await this.delay(delayAr[attempt] * 1000);
 
       const pull = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
       logger.info('PULL REQUEST ID : ', this.ghApiData.id);
 
-      //If commit exist then it will return true otherwise it will attempt again to check commit id.
+      // If commit exist then it will return true otherwise it will attempt again to check commit id.
       if (pull) {
         return true;
-      } else {
-        logger.info('NEXT ATTEMPT : ', attempt + 1);
-        return this.isPRExist(attempt + 1);
       }
-    } else {
-      return false;
+      logger.info('NEXT ATTEMPT : ', attempt + 1);
+      return this.isPRExist(attempt + 1);
     }
+    return false;
   }
 
   async processor(): Promise<Github.Type.PullRequest> {
@@ -173,7 +169,7 @@ export class PRProcessor extends DataProcessor<
         changedFiles: this.ghApiData.changed_files,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.head.repo.id}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
-        action: action,
+        action,
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
         githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),

@@ -71,7 +71,7 @@ export async function numberOfPrRaisedGraph(
         Github.Enums.IndexName.GitPull,
         numberOfPrRaisedGraphQuery
       );
-    return data.commentsPerDay.buckets.map((item: any) => ({
+    return data.commentsPerDay.buckets.map((item) => ({
       date: item.key_as_string,
       value: item.doc_count,
     }));
@@ -85,7 +85,7 @@ export async function numberOfPrRaisedtAvg(
   startDate: string,
   endDate: string,
   repoIds: string[]
-): Promise<number | {}> {
+): Promise<{ value: number } | null> {
   try {
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -114,6 +114,6 @@ export async function numberOfPrRaisedtAvg(
     return { value: totalDoc / weekDaysCount };
   } catch (e) {
     logger.error('numberOfPrRaisedtAvg.error', e);
+    throw e;
   }
-  return {};
 }

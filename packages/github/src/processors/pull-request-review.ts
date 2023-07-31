@@ -2,8 +2,8 @@ import { Github } from 'abstraction';
 import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import { DataProcessor } from './data-processor';
 import moment from 'moment';
+import { DataProcessor } from './data-processor';
 
 export class PRReviewProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PRReview,
@@ -48,7 +48,7 @@ export class PRReviewProcessor extends DataProcessor<
         pullId: `${mappingPrefixes.pull}_${this.pullId}`,
         repoId: `${mappingPrefixes.repo}_${this.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
-        action: action,
+        action,
         createdAtDay: moment(this.ghApiData.submitted_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.submitted_at),
         githubDate: moment(this.ghApiData.submitted_at).format('YYYY-MM-DD'),
