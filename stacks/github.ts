@@ -268,6 +268,7 @@ export function gh({ stack }: StackContext) {
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
     collectCommitsData,
+    GIT_ORGANIZATION_ID,
   ]);
 
   collectCommitsData.bind([
@@ -278,6 +279,9 @@ export function gh({ stack }: StackContext) {
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
+    GIT_ORGANIZATION_ID,
+    commitFormatDataQueue,
+    pRReviewCommentFormatDataQueue,
   ]);
 
   const ghAPI = new Api(stack, 'api', {
