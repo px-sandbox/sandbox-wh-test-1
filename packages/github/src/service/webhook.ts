@@ -13,8 +13,10 @@ import { Queue } from 'sst/node/queue';
 export const webhookData = async function getWebhookData(
   event: APIGatewayProxyEvent
 ): Promise<void | APIGatewayProxyResult> {
-  logger.info('method invoked');
+  logger.info('method invoked', { event });
   const payload: any = event.body || {};
+  const data = JSON.parse(event.body || '{}');
+  if (!data.organization) return;
 
   /**
    * ------------------------------------
@@ -47,7 +49,7 @@ export const webhookData = async function getWebhookData(
       body: 'Permission Denied',
     };
   }
-  const data = JSON.parse(event.body || '{}');
+
   let eventType = event.headers['x-github-event']?.toLowerCase();
   const branchEvents = ['create', 'delete'];
 
@@ -62,6 +64,7 @@ export const webhookData = async function getWebhookData(
       body: 'Bad Request : Event type can not be undefined',
     };
   }
+
   const { id: orgId } = data.organization;
   logger.info('Organization : ', { login: data.organization.login });
   let obj = {};
