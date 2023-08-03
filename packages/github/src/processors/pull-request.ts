@@ -86,17 +86,15 @@ export class PRProcessor extends DataProcessor<
 
       if (commitParentId) {
         const matchQry = esb
-          .matchQuery('body.id', `${mappingPrefixes.pull}_${this.ghApiData.id}`)
+          .matchQuery('body.id', `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`)
           .toJSON();
-        const searchMergeCommit = this.esClient.searchWithEsb(
+        const searchMergeCommit = await this.esClient.searchWithEsb(
           Github.Enums.IndexName.GitCommits,
           matchQry
         );
 
-        const mergeCommitDetail: Array<Github.Type.Commits> = await searchedDataFormator(
-          searchMergeCommit
-        );
-
+        const [mergeCommitDetail] = await searchedDataFormator(searchMergeCommit);
+        logger.info('MERGE_COMMIT_DETAILS', mergeCommitDetail);
         await new SQSClient().sendMessage(
           {
             commitId: this.ghApiData.merge_commit_sha,
@@ -108,7 +106,7 @@ export class PRProcessor extends DataProcessor<
               name: this.ghApiData.head.repo.name,
               owner: this.ghApiData.head.repo.owner.login,
             },
-            timestamp: mergeCommitDetail.at(0)?.body.committedAt,
+            timestamp: mergeCommitDetail.committedAt,
           },
           Queue.gh_commit_format.queueUrl
         );
