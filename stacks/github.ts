@@ -203,9 +203,20 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const collectCommitsData = new Queue(stack, 'gh_historical_commit', {
+  const collectReviewsData = new Queue(stack, 'gh_historical_reviews', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/historical-commits.handler',
+      function: 'packages/github/src/sqs/handlers/historical-reviews.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
+  });
+
+  const collectPrNumberData = new Queue(stack, 'gh_historical_single_number', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/historical-pr-number.handler',
       cdk: {
         eventSource: {
           batchSize: 10,
@@ -267,11 +278,22 @@ export function gh({ stack }: StackContext) {
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
-    collectCommitsData,
+    collectReviewsData,
     GIT_ORGANIZATION_ID,
   ]);
-
-  collectCommitsData.bind([
+  collectPrNumberData.bind([
+    table,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    pRFormatDataQueue,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    collectReviewsData,
+    GIT_ORGANIZATION_ID,
+  ]);
+  collectReviewsData.bind([
     table,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -279,9 +301,11 @@ export function gh({ stack }: StackContext) {
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
+    collectReviewsData,
     GIT_ORGANIZATION_ID,
-    commitFormatDataQueue,
     pRReviewCommentFormatDataQueue,
+    pRReviewFormatDataQueue,
+    collectPrNumberData,
   ]);
 
   const ghAPI = new Api(stack, 'api', {
@@ -336,7 +360,9 @@ export function gh({ stack }: StackContext) {
           table,
           afterRepoSaveQueue,
           collectPRData,
-          collectCommitsData,
+          collectReviewsData,
+          collectReviewsData,
+          collectPrNumberData,
         ],
       },
     },

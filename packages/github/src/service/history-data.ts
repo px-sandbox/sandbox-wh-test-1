@@ -32,7 +32,9 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     ).body;
     const formatedData = await searchedDataFormator(data);
     logger.info({ level: 'info', message: 'github user data', formatedData });
-    await new SQSClient().sendMessage(formatedData, Queue.gh_historical_pr.queueUrl);
+    for (let repoData of formatedData) {
+      await new SQSClient().sendMessage(repoData, Queue.gh_historical_pr.queueUrl);
+    }
   } catch (error) {
     logger.error('HISTORY_DATA_ERROR', { error });
   }

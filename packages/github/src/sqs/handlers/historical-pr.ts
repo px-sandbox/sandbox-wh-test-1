@@ -12,17 +12,21 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
       Authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
-  const record = event.Records[0];
-  const messageBody = JSON.parse(record.body);
+  // for (const record of event.Records) {
+  let page = 1;
+  const perPage = 100;
+  const record = event.Records;
+  const messageBody = JSON.parse(record[0].body);
   logger.info('ALL_COMMIT_HISTORY_FOR_A_REPO', { messageBody });
-  for (let prData of messageBody) {
-    const responseData = await octokit(`GET /repos/${prData.owner}/${prData.name}/pulls?state=all`);
-    await new SQSClient().sendMessage(responseData.data, Queue.gh_historical_commit.queueUrl);
+  const responseData = await octokit(
+    `GET /repos/${messageBody.owner}/${messageBody.name}/pulls?state=all&per_page=${perPage}&page=${page}`
+  );
+  responseData.data.map(async (prData: any) => {
+    await new SQSClient().sendMessage(prData, Queue.gh_historical_reviews.queueUrl);
+  });
+  page++;
+  if (responseData.data.length < perPage) {
+    logger.info('LAST_100_RECORD_PR');
+    return;
   }
-  // check for pull request is merge or closed
-  // commit sha for that PR
-  // commit wali api call single data
-  // we always get the head and base branch toh hamesh key will go for mergedBranch, pushedBranch
-  // timestamp create on runtime default(+5:30)
-  // check for PR is merge or closed and merge_commit_sha is equal to that commit id, then set isMergeCommit= true
 };
