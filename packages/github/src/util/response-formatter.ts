@@ -23,6 +23,7 @@ export const searchedDataFormator = async (data: any) => {
   }
   return [];
 };
+
 export const formatUserDataResponse = (data: IformatUserDataResponse) => ({
   id: data._id,
   githubId: data.id,
