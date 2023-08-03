@@ -13,6 +13,7 @@ export const handler = async function commitIndexDataReciever(event: SQSEvent): 
       await saveCommitDetails(messageBody);
     }
   } catch (error) {
-    logger.error('commitIndexDataReciever.error', { error });
+    logger.error('commitIndexDataReciever.error', { errorInfo: JSON.stringify(error) });
+    throw error;
   }
 };
