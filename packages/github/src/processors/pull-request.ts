@@ -7,20 +7,30 @@ import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
 import moment from 'moment';
 import { DataProcessor } from './data-processor';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import esb from 'elastic-builder';
+import { searchedDataFormator } from 'src/util/response-formatter';
 
 const delayAr = [0, 1, 1, 2, 3, 5, 8];
 export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
   Github.Type.PullRequest
 > {
+  private esClient: ElasticSearchClient;
   constructor(data: Github.ExternalType.Webhook.PullRequest) {
     super(data);
+
+    this.esClient = new ElasticSearchClient({
+      host: Config.OPENSEARCH_NODE,
+      username: Config.OPENSEARCH_USERNAME ?? '',
+      password: Config.OPENSEARCH_PASSWORD ?? '',
+    });
   }
 
   private async delay(time: number) {
     return new Promise((resolve) => {
       setTimeout(resolve, time);
-      logger.info('Delay time : ', time);
+      logger.info('Delay time : ', { delayTime: time });
     });
   }
   async isCommitExist(attempt: number): Promise<boolean> {
@@ -30,13 +40,13 @@ export class PRProcessor extends DataProcessor<
       const commit = await this.getParentId(
         `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`
       );
-      logger.info('MERGE COMMIT ID : ', this.ghApiData.merge_commit_sha);
+      logger.info('MERGE COMMIT ID : ', { commit: this.ghApiData.merge_commit_sha });
 
       // If commit exist then it will return true otherwise it will attempt again to check commit id.
       if (commit) {
         return true;
       }
-      logger.info('NEXT ATTEMPT : ', attempt + 1);
+      logger.info('NEXT ATTEMPT : ', { attempt: attempt + 1 });
       return this.isCommitExist(attempt + 1);
     }
     return false;
@@ -54,7 +64,7 @@ export class PRProcessor extends DataProcessor<
       if (pull) {
         return true;
       }
-      logger.info('NEXT ATTEMPT : ', attempt + 1);
+      logger.info('NEXT ATTEMPT : ', { attempt: attempt + 1 });
       return this.isPRExist(attempt + 1);
     }
     return false;
@@ -75,6 +85,18 @@ export class PRProcessor extends DataProcessor<
       const commitParentId = await this.isCommitExist(1);
 
       if (commitParentId) {
+        const matchQry = esb
+          .matchQuery('body.id', `${mappingPrefixes.pull}_${this.ghApiData.id}`)
+          .toJSON();
+        const searchMergeCommit = this.esClient.searchWithEsb(
+          Github.Enums.IndexName.GitCommits,
+          matchQry
+        );
+
+        const mergeCommitDetail: Array<Github.Type.Commits> = await searchedDataFormator(
+          searchMergeCommit
+        );
+
         await new SQSClient().sendMessage(
           {
             commitId: this.ghApiData.merge_commit_sha,
@@ -86,6 +108,7 @@ export class PRProcessor extends DataProcessor<
               name: this.ghApiData.head.repo.name,
               owner: this.ghApiData.head.repo.owner.login,
             },
+            timestamp: mergeCommitDetail.at(0)?.body.committedAt,
           },
           Queue.gh_commit_format.queueUrl
         );

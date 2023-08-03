@@ -46,12 +46,18 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
       },
       repoId,
     });
+    logger.info('commitFormattedDataReciever.data_check', {
+      octokitResponse: responseData.data,
+      commitProcessorData: commitProcessor,
+    });
+
     const validatedData = commitProcessor.validate();
     if (!validatedData) {
       logger.error('commitFormattedDataReciever.error', { error: 'validation failed' });
       return;
     }
     const data = await commitProcessor.processor();
+    logger.info('commitFormattedDataReciever.final_data_check', { savingData: data });
     await commitProcessor.sendDataToQueue(data, Queue.gh_commit_index.queueUrl);
   }
 };
