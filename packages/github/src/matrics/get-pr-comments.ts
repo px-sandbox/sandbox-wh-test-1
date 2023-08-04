@@ -87,7 +87,7 @@ export async function prCommentsGraphData(
       );
     return data.commentsPerDay.buckets.map((item) => ({
       date: item.key_as_string,
-      value: item.combined_avg.value,
+      value: parseFloat(item.combined_avg.value.toFixed(2)),
     }));
   } catch (e) {
     logger.error('prCommentsGraph.error', e);
