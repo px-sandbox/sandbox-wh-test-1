@@ -101,6 +101,7 @@ export async function frequencyOfCodeCommitAvg(
           .must([
             esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
             esb.termsQuery('body.repoId', repoIds),
+            esb.termsQuery('body.isMergedCommit', 'false'),
           ])
       )
       .size(0)
