@@ -1,11 +1,33 @@
-name: CI checks
+name: studiographene-ci
 
 on:
   pull_request: {}
+  push:
+    branches: ["master", "dev"]
   workflow_dispatch:
 
 jobs:
   call-workflow:
-    uses: studiographene/studiographene-reactjs-scans/.github/workflows/ci.yml@feature/pnpm
+    uses: studiographene/nodejs-ci/.github/workflows/ci.yml@master
     with:
       project_name: pulse-data-integration
+      package_manager: pnpm
+      build_command: pnpm run build
+      lint_command: pnpm run lint
+      excluded_jobs: docker
+    secrets: inherit
+    permissions: write-all
+
+######################### IGNORE BELOW, OLD CI-CHECKS #############################
+
+# name: CI checks
+
+# on:
+#   pull_request: {}
+#   workflow_dispatch:
+
+# jobs:
+#   call-workflow:
+#     uses: studiographene/studiographene-reactjs-scans/.github/workflows/ci.yml@feature/pnpm
+#     with:
+#       project_name: pulse-data-integration
