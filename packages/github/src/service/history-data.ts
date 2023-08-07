@@ -13,6 +13,7 @@ import { Queue } from 'sst/node/queue';
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const organizationName: string = event?.queryStringParameters?.orgName || '';
   const installationAccessToken = await getInstallationAccessToken();
+  const historyType = event?.queryStringParameters?.type || '';
   const octokit = ghRequest.request.defaults({
     headers: {
       authorization: `Bearer ${installationAccessToken.body.token}`,
@@ -32,8 +33,14 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     ).body;
     const formatedData = await searchedDataFormator(data);
     logger.info({ level: 'info', message: 'github user data', formatedData });
+    let queueUrl = '';
+    if (historyType == 'commits') {
+      queueUrl = Queue.gh_historical_commits.queueUrl;
+    } else {
+      queueUrl = Queue.gh_historical_pr.queueUrl;
+    }
     for (let repoData of formatedData) {
-      await new SQSClient().sendMessage(repoData, Queue.gh_historical_pr.queueUrl);
+      await new SQSClient().sendMessage(repoData, queueUrl);
     }
   } catch (error) {
     logger.error('HISTORY_DATA_ERROR', { error });

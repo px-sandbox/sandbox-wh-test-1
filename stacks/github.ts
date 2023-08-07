@@ -225,6 +225,17 @@ export function gh({ stack }: StackContext) {
     },
   });
 
+  const collectCommitsData = new Queue(stack, 'gh_historical_commits', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/historical-commits.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
+  });
+
   // bind tables and config to queue
   userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
   repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
@@ -303,9 +314,21 @@ export function gh({ stack }: StackContext) {
     GITHUB_SG_INSTALLATION_ID,
     collectReviewsData,
     GIT_ORGANIZATION_ID,
+    collectPrNumberData,
     pRReviewCommentFormatDataQueue,
     pRReviewFormatDataQueue,
-    collectPrNumberData,
+  ]);
+
+  collectCommitsData.bind([
+    table,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    GIT_ORGANIZATION_ID,
+    commitFormatDataQueue,
   ]);
 
   const ghAPI = new Api(stack, 'api', {
@@ -363,6 +386,7 @@ export function gh({ stack }: StackContext) {
           collectReviewsData,
           collectReviewsData,
           collectPrNumberData,
+          collectCommitsData,
         ],
       },
     },

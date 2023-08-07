@@ -1,3 +1,4 @@
+import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
@@ -18,15 +19,31 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
   const record = event.Records;
   const messageBody = JSON.parse(record[0].body);
   logger.info('ALL_COMMIT_HISTORY_FOR_A_REPO', { messageBody });
+  await getPrList(messageBody.owner, messageBody.name, perPage, page, octokit);
+};
+async function getPrList(
+  owner: string,
+  name: string,
+  perPage: number,
+  page: number,
+  octokit: RequestInterface<{
+    headers: {
+      Authorization: string;
+    };
+  }>
+) {
   const responseData = await octokit(
-    `GET /repos/${messageBody.owner}/${messageBody.name}/pulls?state=all&per_page=${perPage}&page=${page}`
+    `GET /repos/${owner}/history/pulls?state=all&per_page=${perPage}&page=${page}`
   );
+
   responseData.data.map(async (prData: any) => {
     await new SQSClient().sendMessage(prData, Queue.gh_historical_reviews.queueUrl);
   });
-  page++;
   if (responseData.data.length < perPage) {
     logger.info('LAST_100_RECORD_PR');
     return;
+  } else {
+    page++;
+    await getPrList(owner, name, perPage, page, octokit);
   }
-};
+}
