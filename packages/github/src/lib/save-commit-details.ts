@@ -21,12 +21,10 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
     });
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
     const commitData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitCommits, matchQry);
-    logger.info('saveCommitDetails.searchWithEsb', { commitData });
+
     const formattedData = await searchedDataFormator(commitData);
-    logger.info('saveCommitDetails.searchWithEsb.formatted', { commitData });
+
     if (formattedData[0]) {
-      logger.info('LAST_ACTIONS_PERFORMED', formattedData[0].action);
-      data.body.action = [...formattedData[0].action, ...data.body.action];
       data.body.createdAt = formattedData[0].createdAt;
     }
 
@@ -42,8 +40,6 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
         committedAt: new Date(committedAt), // Change the committedAt value
       },
     };
-
-    logger.info('saveCommitDetails.commitIndexData_created', { commitIndexData });
 
     await esClientObj.putDocument(Github.Enums.IndexName.GitCommits, commitIndexData);
 
