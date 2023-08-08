@@ -50,9 +50,8 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
         Github.Enums.IndexName.GitUsers,
         userDocQuery
       );
-      const authorDataFormat = await searchedDataFormator(authorData);
-      if (authorDataFormat) {
-        const [author] = authorDataFormat;
+      const [author] = await searchedDataFormator(authorData);
+      if (author) {
         const timezone = data.body.committedAt.substring(19);
         const authorData: User = {
           id: author._id,
