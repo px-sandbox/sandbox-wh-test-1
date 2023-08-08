@@ -1,10 +1,10 @@
 import { transpileSchema } from '@middy/validator/transpile';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { prReviewTimeAvg, prReviewTimeGraphData } from 'src/matrics/get-pr-review-time';
+import { prWaitTimeAvg, prWaitTimeGraphData } from 'src/matrics/get-pr-wait-time';
 import { prCommentsGraphSchema } from './validations';
 
-const prReviewTimeGraph = async function getPrCommentsGraph(
+const prWaitTimeGraph = async function getPrCommentsGraph(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const startDate: string = event.queryStringParameters?.startDate || '';
@@ -14,12 +14,12 @@ const prReviewTimeGraph = async function getPrCommentsGraph(
 
   try {
     const [prCommentGraphData, prCommentAvg] = await Promise.all([
-      prReviewTimeGraphData(startDate, endDate, interval, repoIds),
-      prReviewTimeAvg(startDate, endDate, repoIds),
+      prWaitTimeGraphData(startDate, endDate, interval, repoIds),
+      prWaitTimeAvg(startDate, endDate, repoIds),
     ]);
     return responseParser
       .setBody({ graphData: prCommentGraphData, headline: prCommentAvg })
-      .setMessage('pr review time graph data')
+      .setMessage('pr wait time graph data')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')
       .send();
@@ -28,7 +28,7 @@ const prReviewTimeGraph = async function getPrCommentsGraph(
     throw new Error(`Something went wrong: ${e}`);
   }
 };
-const handler = APIHandler(prReviewTimeGraph, {
+const handler = APIHandler(prWaitTimeGraph, {
   eventSchema: transpileSchema(prCommentsGraphSchema),
 });
-export { handler, prReviewTimeGraph };
+export { handler, prWaitTimeGraph };

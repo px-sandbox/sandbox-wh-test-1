@@ -354,8 +354,8 @@ export function gh({ stack }: StackContext) {
       },
 
       // GET Graph for PRs review time
-      'GET /github/graph/pr-review-time': {
-        function: 'packages/github/src/service/pr-review-time.handler',
+      'GET /github/graph/pr-wait-time': {
+        function: 'packages/github/src/service/pr-wait-time.handler',
         authorizer: 'universal',
       },
     },
