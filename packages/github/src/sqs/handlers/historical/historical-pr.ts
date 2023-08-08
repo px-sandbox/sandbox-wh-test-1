@@ -40,24 +40,32 @@ async function getPrList(
   }>,
   isCommit: boolean
 ) {
-  const responseData = await octokit(
-    `GET /repos/${owner}/history/pulls?state=all&per_page=${perPage}&page=${page}`
-  );
-  if (isCommit) {
-    responseData.data.map(async (prData: any) => {
-      await new SQSClient().sendMessage(prData, Queue.gh_historical_pr_commits.queueUrl);
-    });
-  } else {
-    responseData.data.map(async (prData: any) => {
-      await new SQSClient().sendMessage(prData, Queue.gh_historical_reviews.queueUrl);
-    });
-  }
+  try {
+    const responseData = await octokit(
+      `GET /repos/${owner}/${name}/pulls?state=all&per_page=${perPage}&page=${page}`
+    );
+    if (isCommit) {
+      responseData.data.map(async (prData: any) => {
+        await new SQSClient().sendMessage(prData, Queue.gh_historical_pr_commits.queueUrl);
+      });
+    } else {
+      responseData.data.map(async (prData: any) => {
+        await new SQSClient().sendMessage(prData, Queue.gh_historical_reviews.queueUrl);
+      });
+      responseData.data.map(async (prData: any) => {
+        await new SQSClient().sendMessage(prData, Queue.gh_historical_pr_comments.queueUrl);
+      });
+    }
 
-  if (responseData.data.length < perPage) {
-    logger.info('LAST_100_RECORD_PR');
-    return;
-  } else {
-    page++;
-    await getPrList(owner, name, perPage, page, octokit, isCommit);
+    if (responseData.data.length < perPage) {
+      logger.info('LAST_100_RECORD_PR');
+      return;
+    } else {
+      page++;
+      await getPrList(owner, name, perPage, page, octokit, isCommit);
+    }
+  } catch (error) {
+    logger.error('historical.PR.error');
+    throw error;
   }
 }

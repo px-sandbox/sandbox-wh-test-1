@@ -194,7 +194,7 @@ export function gh({ stack }: StackContext) {
 
   const collectPRData = new Queue(stack, 'gh_historical_pr', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/historical-pr.handler',
+      function: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
       cdk: {
         eventSource: {
           batchSize: 10,
@@ -205,7 +205,7 @@ export function gh({ stack }: StackContext) {
 
   const collectReviewsData = new Queue(stack, 'gh_historical_reviews', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/historical-reviews.handler',
+      function: 'packages/github/src/sqs/handlers/historical/historical-reviews.handler',
       cdk: {
         eventSource: {
           batchSize: 10,
@@ -216,7 +216,7 @@ export function gh({ stack }: StackContext) {
 
   const collectPrNumberData = new Queue(stack, 'gh_historical_single_number', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/historical-pr-number.handler',
+      function: 'packages/github/src/sqs/handlers/historical/historical-pr-number.handler',
       cdk: {
         eventSource: {
           batchSize: 10,
@@ -227,7 +227,7 @@ export function gh({ stack }: StackContext) {
 
   const collectCommitsData = new Queue(stack, 'gh_historical_commits', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/historical-commits.handler',
+      function: 'packages/github/src/sqs/handlers/historical/historical-commits.handler',
       cdk: {
         eventSource: {
           batchSize: 10,
@@ -238,7 +238,18 @@ export function gh({ stack }: StackContext) {
 
   const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/historical-pr-commits.handler',
+      function: 'packages/github/src/sqs/handlers/historical/historical-pr-commits.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
+  });
+
+  const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
       cdk: {
         eventSource: {
           batchSize: 10,
@@ -303,6 +314,7 @@ export function gh({ stack }: StackContext) {
     collectReviewsData,
     GIT_ORGANIZATION_ID,
     collectPRCommitsData,
+    collectPRReviewCommentsData,
   ]);
   collectPrNumberData.bind([
     table,
@@ -328,7 +340,7 @@ export function gh({ stack }: StackContext) {
     collectReviewsData,
     GIT_ORGANIZATION_ID,
     collectPrNumberData,
-    pRReviewCommentFormatDataQueue,
+
     pRReviewFormatDataQueue,
     collectPRCommitsData,
   ]);
@@ -358,6 +370,17 @@ export function gh({ stack }: StackContext) {
     commitFormatDataQueue,
   ]);
 
+  collectPRReviewCommentsData.bind([
+    table,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    GIT_ORGANIZATION_ID,
+    pRReviewCommentFormatDataQueue,
+  ]);
   const ghAPI = new Api(stack, 'api', {
     authorizers: {
       universal: {
@@ -415,6 +438,7 @@ export function gh({ stack }: StackContext) {
           collectPrNumberData,
           collectCommitsData,
           collectPRCommitsData,
+          collectPRReviewCommentsData,
         ],
       },
     },
