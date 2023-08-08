@@ -23,7 +23,6 @@ export interface Commits {
     repoId: string;
     organizationId: string;
     createdAt: string;
-    action: actions;
     createdAtDay: string;
     computationalDate: string;
     githubDate: string | Date;

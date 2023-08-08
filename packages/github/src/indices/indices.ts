@@ -145,13 +145,6 @@ const indices = [
         organizationId: { type: 'keyword' },
         pushEventId: { type: 'keyword' },
         deletedAt: { type: 'date' },
-        action: {
-          properties: {
-            action: { type: 'keyword' },
-            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-            actionDay: { type: 'keyword' },
-          },
-        },
         createdAtDay: { type: 'keyword' },
         computationDate: { type: 'date', format: 'yyyy-MM-dd' },
         githubDate: { type: 'date', format: 'yyyy-MM-dd' },

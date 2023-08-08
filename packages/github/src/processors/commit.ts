@@ -14,7 +14,6 @@ export class CommitProcessor extends DataProcessor<
     super(data);
   }
   async processor(): Promise<Github.Type.Commits> {
-    logger.info('CommitProcessor.processor.data_check', { ghApiData: this.ghApiData });
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`
     );
@@ -28,13 +27,6 @@ export class CommitProcessor extends DataProcessor<
         status: data.status,
       });
     });
-    const action = [
-      {
-        action: this.ghApiData.action ?? 'initialized',
-        actionTime: new Date().toISOString(),
-        actionDay: moment().format('dddd'),
-      },
-    ];
 
     const orgObj = {
       id: parentId || uuid(),
@@ -54,7 +46,6 @@ export class CommitProcessor extends DataProcessor<
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         createdAt: this.ghApiData.commit.committer.date,
-        action,
         createdAtDay: moment(this.ghApiData.commit.committer.date).format('dddd'),
         computationalDate: await this.calculateComputationalDate(
           this.ghApiData.commit.committer.date
