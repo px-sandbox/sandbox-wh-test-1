@@ -315,6 +315,7 @@ export function gh({ stack }: StackContext) {
     GITHUB_SG_INSTALLATION_ID,
     collectReviewsData,
     GIT_ORGANIZATION_ID,
+    commitFormatDataQueue,
   ]);
   collectReviewsData.bind([
     table,
