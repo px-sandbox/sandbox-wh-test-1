@@ -34,7 +34,9 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
 
     const responseData = await octokit(`GET /repos/${repoOwner}/${repoName}/commits/${commitId}`);
 
-    logger.info('commitFormattedDataReciever.data_check', { octokitResponse: responseData.data });
+    logger.info('commitFormattedDataReciever.data_check', {
+      octokitResponse: responseData.data ?? false,
+    });
     const commitProcessor = new CommitProcessor({
       ...responseData.data,
       commits: {
@@ -46,10 +48,6 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
       },
       repoId,
     });
-    logger.info('commitFormattedDataReciever.data_check', {
-      octokitResponse: responseData.data,
-      commitProcessorData: commitProcessor,
-    });
 
     const validatedData = commitProcessor.validate();
     if (!validatedData) {
@@ -57,7 +55,6 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
       return;
     }
     const data = await commitProcessor.processor();
-    logger.info('commitFormattedDataReciever.final_data_check', { savingData: data });
     await commitProcessor.sendDataToQueue(data, Queue.gh_commit_index.queueUrl);
   }
 };

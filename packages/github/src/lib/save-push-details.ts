@@ -17,10 +17,10 @@ export async function savePushDetails(data: Github.Type.Push): Promise<void> {
     });
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
     const userData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPush, matchQry);
-    const formattedData = await searchedDataFormator(userData);
-    if (formattedData[0]) {
-      logger.info('LAST_ACTIONS_PERFORMED', formattedData[0].action);
-      data.body.action = [...formattedData[0].action, ...data.body.action];
+    const [formattedData] = await searchedDataFormator(userData);
+    if (formattedData) {
+      logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
+      data.body.action = [...formattedData.action, ...data.body.action];
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPush, data);
     logger.info('savePushDetails.successful');

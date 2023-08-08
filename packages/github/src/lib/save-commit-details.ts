@@ -21,13 +21,11 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
     });
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
     const commitData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitCommits, matchQry);
-    logger.info('saveCommitDetails.searchWithEsb', { commitData });
-    const formattedData = await searchedDataFormator(commitData);
-    logger.info('saveCommitDetails.searchWithEsb.formatted', { commitData });
-    if (formattedData[0]) {
-      logger.info('LAST_ACTIONS_PERFORMED', formattedData[0].action);
-      data.body.action = [...formattedData[0].action, ...data.body.action];
-      data.body.createdAt = formattedData[0].createdAt;
+
+    const [formattedData] = await searchedDataFormator(commitData);
+
+    if (formattedData) {
+      data.body.createdAt = formattedData.createdAt;
     }
 
     const {
@@ -43,8 +41,6 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
       },
     };
 
-    logger.info('saveCommitDetails.commitIndexData_created', { commitIndexData });
-
     await esClientObj.putDocument(Github.Enums.IndexName.GitCommits, commitIndexData);
 
     // Store timezone in git_user index
@@ -54,9 +50,8 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
         Github.Enums.IndexName.GitUsers,
         userDocQuery
       );
-      const authorDataFormat = await searchedDataFormator(authorData);
-      if (authorDataFormat) {
-        const [author] = authorDataFormat;
+      const [author] = await searchedDataFormator(authorData);
+      if (author) {
         const timezone = data.body.committedAt.substring(19);
         const authorData: User = {
           id: author._id,
