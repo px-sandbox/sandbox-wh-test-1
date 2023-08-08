@@ -31,7 +31,9 @@ async function getRepoCommits(
     };
   }>
 ) {
-  const commitDataOnPr = await octokit(`GET /repos/${owner}/webhook_data/commits`);
+  const commitDataOnPr = await octokit(
+    `GET /repos/${owner}/${name}/commits?per_page=${perPage}&page=${page}`
+  );
 
   commitDataOnPr.data.map(async (commitData: any) => {
     commitData.isMergedCommit = false;
@@ -53,6 +55,11 @@ async function getRepoCommits(
       Queue.gh_commit_format.queueUrl
     );
   });
+  await new SQSClient().sendMessage(
+    { owner, name, isCommit: true },
+    Queue.gh_historical_pr.queueUrl
+  );
+  //commits from PR
   page++;
   if (commitDataOnPr.data.length < perPage) {
     logger.info('LAST_100_RECORD_PR');

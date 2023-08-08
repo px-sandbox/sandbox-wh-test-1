@@ -236,6 +236,17 @@ export function gh({ stack }: StackContext) {
     },
   });
 
+  const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/historical-pr-commits.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 10,
+        },
+      },
+    },
+  });
+
   // bind tables and config to queue
   userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
   repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
@@ -291,6 +302,7 @@ export function gh({ stack }: StackContext) {
     GITHUB_SG_INSTALLATION_ID,
     collectReviewsData,
     GIT_ORGANIZATION_ID,
+    collectPRCommitsData,
   ]);
   collectPrNumberData.bind([
     table,
@@ -317,9 +329,23 @@ export function gh({ stack }: StackContext) {
     collectPrNumberData,
     pRReviewCommentFormatDataQueue,
     pRReviewFormatDataQueue,
+    collectPRCommitsData,
   ]);
 
   collectCommitsData.bind([
+    table,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    GIT_ORGANIZATION_ID,
+    commitFormatDataQueue,
+    collectPRData,
+  ]);
+
+  collectPRCommitsData.bind([
     table,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -387,6 +413,7 @@ export function gh({ stack }: StackContext) {
           collectReviewsData,
           collectPrNumberData,
           collectCommitsData,
+          collectPRCommitsData,
         ],
       },
     },

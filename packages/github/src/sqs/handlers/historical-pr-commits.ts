@@ -7,7 +7,7 @@ import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
 
-export const handler = async function collectCommitData(event: SQSEvent): Promise<any> {
+export const handler = async function collectPRCommitData(event: SQSEvent): Promise<any> {
   const installationAccessToken = await getInstallationAccessToken();
   const octokit = ghRequest.request.defaults({
     headers: {
@@ -19,10 +19,10 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
   for (const record of event.Records) {
     const messageBody = JSON.parse(record.body);
     logger.info(`PR_NUMBER: ${messageBody.number}`, `REPO_NAME: ${messageBody.head.repo.name}`);
-    await getPrReviews(messageBody, perPage, page, octokit);
+    await getPRCommits(messageBody, perPage, page, octokit);
   }
 };
-async function getPrReviews(
+async function getPRCommits(
   messageBody: any,
   perPage: number,
   page: number,
@@ -33,60 +33,35 @@ async function getPrReviews(
   }>
 ) {
   const commentsDataOnPr = await octokit(
-    `GET /repos/${messageBody.head.repo.owner.login}/${messageBody.head.repo.name}/pulls/${messageBody.number}/reviews?per_page=${perPage}&page=${page}`
+    `GET /repos/${messageBody.head.repo.owner.login}/${messageBody.head.repo.name}/pulls/${messageBody.number}/commits?per_page=${perPage}&page=${page}`
   );
-  commentsDataOnPr.data.map(async (comments: any) => {
+  commentsDataOnPr.data.map(async (commitData: any) => {
+    commitData.isMergedCommit = false;
+    commitData.mergedBranch = null;
+    commitData.pushedBranch = null;
     await new SQSClient().sendMessage(
       {
-        review: comments,
-        pullId: messageBody.id,
-        repoId: messageBody.head.repo.id,
+        commitId: commitData.sha,
+        isMergedCommit: commitData.isMergedCommit,
+        mergedBranch: commitData.mergedBranch,
+        pushedBranch: commitData.pushedBranch,
+        repository: {
+          id: messageBody.head.repo.owner.id,
+          name: messageBody.head.repo.name,
+          owner: messageBody.head.repo.owner.login,
+        },
+        timestamp: new Date(),
       },
-      Queue.gh_pr_review_format.queueUrl
+      Queue.gh_commit_format.queueUrl
     );
   });
-
-  let submittedAt = null;
-  let approvedAt = null;
-  const reviewAt = await commentsDataOnPr.data.find(
-    (commentState: any) => commentState.state === 'COMMENTED'
-  );
-  const approvedTime = await commentsDataOnPr.data.find(
-    (commentState: any) => commentState.state === 'APPROVED'
-  );
-
-  if (reviewAt) {
-    if (messageBody.merged_at) {
-      if (new Date(messageBody.merged_at) < new Date(reviewAt.submitted_at)) {
-        submittedAt = messageBody.merged_at;
-      }
-    } else {
-      submittedAt = reviewAt.submitted_at;
-    }
-  }
-
-  if (approvedTime) {
-    if (!messageBody.approved_at) {
-      approvedAt = approvedTime.submitted_at;
-    }
-  }
-  await new SQSClient().sendMessage(
-    {
-      submittedAt: submittedAt,
-      approvedAt: approvedAt,
-      owner: messageBody.head.repo.owner.login,
-      repoName: messageBody.head.repo.name,
-      prNumber: messageBody.number,
-    },
-    Queue.gh_historical_single_number.queueUrl
-  );
 
   if (commentsDataOnPr.data.length < perPage) {
     logger.info('LAST_100_RECORD_PR_REVIEW');
     return;
   } else {
     page++;
-    await getPrReviews(messageBody, perPage, page, octokit);
+    await getPRCommits(messageBody, perPage, page, octokit);
   }
 }
 // const prResponseData = await octokit(
