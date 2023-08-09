@@ -325,7 +325,6 @@ export function gh({ stack }: StackContext) {
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
-    collectReviewsData,
     GIT_ORGANIZATION_ID,
     commitFormatDataQueue,
   ]);
@@ -337,12 +336,9 @@ export function gh({ stack }: StackContext) {
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
-    collectReviewsData,
     GIT_ORGANIZATION_ID,
     collectPrNumberData,
-
     pRReviewFormatDataQueue,
-    collectPRCommitsData,
   ]);
 
   collectCommitsData.bind([

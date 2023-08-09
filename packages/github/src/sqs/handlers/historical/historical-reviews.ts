@@ -57,16 +57,16 @@ async function getPrReviews(
       (commentState: any) => commentState.state === 'APPROVED'
     );
 
-    if (reviewAt && messageBody.merged_at) {
-      if (moment(messageBody.merged_at).isBefore(moment(reviewAt.submitted_at))) {
-        submittedAt = messageBody.merged_at;
-      } else {
-        submittedAt = reviewAt.submitted_at;
-      }
-    } else if (messageBody.merged_at && !reviewAt) {
-      submittedAt = messageBody.merged_at;
-    } else {
+    const minimumActionDates = [
+      reviewAt?.submitted_at,
+      messageBody?.merged_at,
+      approvedTime?.submitted_at,
+    ].filter((item) => !!item);
+
+    if (minimumActionDates.length === 0) {
       submittedAt = null;
+    } else {
+      submittedAt = moment.unix(Math.min(...minimumActionDates));
     }
 
     if (approvedTime) {
