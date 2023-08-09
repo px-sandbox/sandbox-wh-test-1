@@ -36,7 +36,6 @@ export async function prWaitTimeGraphData(
     switch (intervals) {
       case esbDateHistogramInterval.day:
       case esbDateHistogramInterval.month:
-        // case esbDateHistogramInterval.year:
         graphIntervals = esb
           .dateHistogramAggregation('commentsPerDay')
           .field('body.createdAt')
@@ -67,7 +66,7 @@ export async function prWaitTimeGraphData(
           .minDocCount(0);
         graphIntervalSize = 12;
     }
-    console.log(graphIntervalSize);
+
     prWaitTimeGraphQuery
       .agg(
         graphIntervals
@@ -79,14 +78,9 @@ export async function prWaitTimeGraphData(
               .bucketsPath({ avgPrCount: 'pr_count', sumPrReviewTime: 'pr_time_in_seconds' })
               .gapPolicy('insert_zeros')
               .script(`params.avgPrCount == 0 ? 0 :(params.sumPrReviewTime /${graphIntervalSize} )`)
-            // .script('params.avgPrCount == 0 ? 0 :(params.sumPrReviewTime / params.avgPrCount)')
           )
       )
       .toJSON();
-
-    //Suppose there are 100 PR from 20th july to 30th july
-    //100 pr TotalTime =  1000s
-    //avg time to calculate 1 PR = 1000/100 = 10sec
 
     logger.info('PR_WAIT_TIME_GRAPH_ESB_QUERY', prWaitTimeGraphQuery);
     const data: IPrCommentAggregationResponse =
