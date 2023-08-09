@@ -7,7 +7,7 @@ import { esbDateHistogramInterval } from 'src/constant/config';
 import { getWeekDaysCount } from 'src/util/weekend-calculations';
 import { Config } from 'sst/node/config';
 
-export async function prReviewTimeGraphData(
+export async function prWaitTimeGraphData(
   startDate: string,
   endDate: string,
   intervals: string,
@@ -19,8 +19,8 @@ export async function prReviewTimeGraphData(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const prReviewTimeGraphQuery = await esb.requestBodySearch().size(0);
-    prReviewTimeGraphQuery.query(
+    const prWaitTimeGraphQuery = await esb.requestBodySearch().size(0);
+    prWaitTimeGraphQuery.query(
       esb
         .boolQuery()
         .must([
@@ -63,7 +63,7 @@ export async function prReviewTimeGraphData(
           .extendedBounds(startDate, endDate)
           .minDocCount(0);
     }
-    prReviewTimeGraphQuery
+    prWaitTimeGraphQuery
       .agg(
         graphIntervals
           .agg(esb.valueCountAggregation('pr_count', 'body.githubPullId'))
@@ -78,11 +78,11 @@ export async function prReviewTimeGraphData(
       )
       .toJSON();
 
-    logger.info('PR_REVIEW_TIME_GRAPH_ESB_QUERY', prReviewTimeGraphQuery);
+    logger.info('PR_WAIT_TIME_GRAPH_ESB_QUERY', prWaitTimeGraphQuery);
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitPull,
-        prReviewTimeGraphQuery
+        prWaitTimeGraphQuery
       );
 
     return data.commentsPerDay.buckets.map((item) => ({
@@ -90,12 +90,12 @@ export async function prReviewTimeGraphData(
       value: parseFloat((item.combined_avg.value / 3600).toFixed(2)),
     }));
   } catch (e) {
-    logger.error('prReviewTimeGraph.error', e);
+    logger.error('prWaitTimeGraph.error', e);
     throw e;
   }
 }
 
-export async function prReviewTimeAvg(
+export async function prWaitTimeAvg(
   startDate: string,
   endDate: string,
   repoIds: string[]
@@ -106,8 +106,8 @@ export async function prReviewTimeAvg(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const prReviewTimeAvgQuery = await esb.requestBodySearch().size(0);
-    prReviewTimeAvgQuery
+    const prWaitTimeAvgQuery = await esb.requestBodySearch().size(0);
+    prWaitTimeAvgQuery
       .query(
         esb
           .boolQuery()
@@ -119,17 +119,17 @@ export async function prReviewTimeAvg(
       .agg(esb.sumAggregation('total_time', 'body.reviewSeconds'))
       .size(0)
       .toJSON();
-    logger.info('NUMBER_OF_PR_REVIEW_TIME_AVG_ESB_QUERY', prReviewTimeAvgQuery);
+    logger.info('NUMBER_OF_PR_WAIT_TIME_AVG_ESB_QUERY', prWaitTimeAvgQuery);
     const data = await esClientObj.getClient().search({
       index: Github.Enums.IndexName.GitPull,
-      body: prReviewTimeAvgQuery,
+      body: prWaitTimeAvgQuery,
     });
 
     const totalDoc = Number((data.body.aggregations.total_time.value / 3600).toFixed(2));
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
     return { value: totalDoc / weekDaysCount };
   } catch (e) {
-    logger.error('prReviewTimeAvg.error', e);
+    logger.error('prWaitTimeAvg.error', e);
     throw e;
   }
 }
