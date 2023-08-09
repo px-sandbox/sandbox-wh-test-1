@@ -44,18 +44,25 @@ async function getPrList(
     const responseData = await octokit(
       `GET /repos/${owner}/${name}/pulls?state=all&per_page=${perPage}&page=${page}`
     );
+
+    let processes = [];
+
     if (isCommit) {
-      responseData.data.map(async (prData: any) => {
-        await new SQSClient().sendMessage(prData, Queue.gh_historical_pr_commits.queueUrl);
-      });
+      processes = responseData.data.map((prData: any) =>
+        new SQSClient().sendMessage(prData, Queue.gh_historical_pr_commits.queueUrl)
+      );
     } else {
-      responseData.data.map(async (prData: any) => {
-        await new SQSClient().sendMessage(prData, Queue.gh_historical_reviews.queueUrl);
-      });
-      responseData.data.map(async (prData: any) => {
-        await new SQSClient().sendMessage(prData, Queue.gh_historical_pr_comments.queueUrl);
-      });
+      processes = [
+        ...responseData.data.map((prData: any) =>
+          new SQSClient().sendMessage(prData, Queue.gh_historical_reviews.queueUrl)
+        ),
+        ...responseData.data.map((prData: any) =>
+          new SQSClient().sendMessage(prData, Queue.gh_historical_pr_comments.queueUrl)
+        ),
+      ];
     }
+
+    await Promise.all(processes);
 
     if (responseData.data.length < perPage) {
       logger.info('LAST_100_RECORD_PR');
