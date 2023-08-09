@@ -16,17 +16,18 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
   // for (const record of event.Records) {
   let page = 1;
   const perPage = 100;
-  const record = event.Records;
-  const messageBody = JSON.parse(record[0].body);
-  logger.info('ALL_COMMIT_HISTORY_FOR_A_REPO', { messageBody });
-  await getPrList(
-    messageBody.owner,
-    messageBody.name,
-    perPage,
-    page,
-    octokit,
-    messageBody.isCommit
-  );
+  for (const record of event.Records) {
+    const messageBody = JSON.parse(record.body);
+    logger.info('ALL_COMMIT_HISTORY_FOR_A_REPO', { messageBody });
+    await getPrList(
+      messageBody.owner,
+      messageBody.name,
+      perPage,
+      page,
+      octokit,
+      messageBody.isCommit
+    );
+  }
 };
 async function getPrList(
   owner: string,

@@ -3,6 +3,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
+import moment from 'moment';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
@@ -56,14 +57,16 @@ async function getPrReviews(
       (commentState: any) => commentState.state === 'APPROVED'
     );
 
-    if (reviewAt) {
-      if (messageBody.merged_at) {
-        if (new Date(messageBody.merged_at) < new Date(reviewAt.submitted_at)) {
-          submittedAt = messageBody.merged_at;
-        }
+    if (reviewAt && messageBody.merged_at) {
+      if (moment(messageBody.merged_at).isBefore(moment(reviewAt.submitted_at))) {
+        submittedAt = messageBody.merged_at;
       } else {
         submittedAt = reviewAt.submitted_at;
       }
+    } else if (messageBody.merged_at && !reviewAt) {
+      submittedAt = messageBody.merged_at;
+    } else {
+      submittedAt = null;
     }
 
     if (approvedTime) {

@@ -16,10 +16,11 @@ export const handler = async function collectPRCommentsData(event: SQSEvent): Pr
   });
   let page = 1;
   const perPage = 100;
-  const record = event.Records[0];
-  const messageBody = JSON.parse(record.body);
-  logger.info(`PR_NUMBER: ${messageBody.number}`, `REPO_NAME: ${messageBody.head.repo.name}`);
-  await getPrComments(messageBody, perPage, page, octokit);
+  for (const record of event.Records) {
+    const messageBody = JSON.parse(record.body);
+    logger.info(`PR_NUMBER: ${messageBody.number}`, `REPO_NAME: ${messageBody.head.repo.name}`);
+    await getPrComments(messageBody, perPage, page, octokit);
+  }
 };
 async function getPrComments(
   messageBody: any,

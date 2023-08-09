@@ -15,9 +15,17 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
   });
   let page = 1;
   const perPage = 100;
-  const record = event.Records[0];
-  const messageBody = JSON.parse(record.body);
-  await getRepoCommits(messageBody.owner, messageBody.name, messageBody.id, perPage, page, octokit);
+  for (const record of event.Records) {
+    const messageBody = JSON.parse(record.body);
+    await getRepoCommits(
+      messageBody.owner,
+      messageBody.name,
+      messageBody.id,
+      perPage,
+      page,
+      octokit
+    );
+  }
 };
 async function getRepoCommits(
   owner: string,
