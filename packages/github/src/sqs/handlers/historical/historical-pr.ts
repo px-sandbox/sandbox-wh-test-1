@@ -48,8 +48,10 @@ async function getPrList(
       `GET /repos/${owner}/${name}/pulls?state=all&per_page=${perPage}&page=${page}`
     );
 
+    if (responseData.data.length === 0) {
+      return;
+    }
     let processes = [];
-
     if (isCommit) {
       processes = responseData.data.map((prData: any) =>
         new SQSClient().sendMessage(prData, Queue.gh_historical_pr_commits.queueUrl)
