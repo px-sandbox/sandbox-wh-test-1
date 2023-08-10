@@ -15,7 +15,6 @@ export const handler = async function pRIndexDataReciever(event: SQSEvent): Prom
         await savePRDetails(messageBody);
       } catch (error) {
         logger.error('pRIndexDataReciever.error', { error });
-        throw error;
       }
     })
   );

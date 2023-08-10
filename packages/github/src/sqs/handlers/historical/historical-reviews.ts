@@ -104,6 +104,5 @@ async function getPrReviews(
     }
   } catch (error) {
     logger.error('historical.reviews.error');
-    throw error;
   }
 }

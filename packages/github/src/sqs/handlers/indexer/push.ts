@@ -14,7 +14,6 @@ export const handler = async function pushIndexDataReciever(event: SQSEvent): Pr
         await savePushDetails(messageBody);
       } catch (error) {
         logger.error('pushIndexDataReciever.error', { error });
-        throw error;
       }
     })
   );

@@ -64,7 +64,6 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
         await commitProcessor.sendDataToQueue(data, Queue.gh_commit_index.queueUrl);
       } catch (error) {
         logger.error('commitFormattedDataReciever', error);
-        throw error;
       }
     })
   );

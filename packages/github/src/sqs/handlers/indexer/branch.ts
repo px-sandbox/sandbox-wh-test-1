@@ -15,7 +15,6 @@ export const handler = async function branchIndexDataReciever(event: SQSEvent): 
         await saveBranchDetails(messageBody);
       } catch (error) {
         logger.error('branchIndexDataReciever.error', { error });
-        throw error;
       }
     })
   );

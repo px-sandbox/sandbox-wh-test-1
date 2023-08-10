@@ -23,7 +23,6 @@ export const handler = async function repoFormattedDataReciever(event: SQSEvent)
         await repoProcessor.sendDataToQueue(data, Queue.gh_repo_index.queueUrl);
       } catch (error) {
         logger.error('repoFormattedDataReciever.error', error);
-        throw error;
       }
     })
   );

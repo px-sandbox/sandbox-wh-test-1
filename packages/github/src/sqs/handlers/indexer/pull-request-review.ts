@@ -15,7 +15,6 @@ export const handler = async function pRReviewIndexDataReciever(event: SQSEvent)
         await savePRReview(messageBody);
       } catch (error) {
         logger.error('pRReviewIndexDataReciever.error', { error });
-        throw error;
       }
     })
   );

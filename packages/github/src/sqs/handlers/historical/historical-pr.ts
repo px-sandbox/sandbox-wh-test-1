@@ -76,6 +76,5 @@ async function getPrList(
     }
   } catch (error) {
     logger.error('historical.PR.error');
-    throw error;
   }
 }

@@ -26,7 +26,6 @@ export const handler = async function pRReviewFormattedDataReciever(
         await prReviewProcessor.sendDataToQueue(data, Queue.gh_pr_review_index.queueUrl);
       } catch (error) {
         logger.error('pRReviewFormattedDataReciever.error', error);
-        throw error;
       }
     })
   );

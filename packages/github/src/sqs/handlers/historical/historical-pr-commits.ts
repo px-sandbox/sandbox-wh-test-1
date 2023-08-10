@@ -52,7 +52,6 @@ async function getPRCommits(
     }
   } catch (error) {
     logger.error('historical.PR.commits.error');
-    throw error;
   }
 }
 

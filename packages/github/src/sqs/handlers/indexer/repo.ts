@@ -14,7 +14,6 @@ export const handler = async function repoIndexDataReciever(event: SQSEvent): Pr
         await saveRepoDetails(messageBody);
       } catch (error) {
         logger.error('repoIndexDataReciever.error', { error });
-        throw error;
       }
     })
   );

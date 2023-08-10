@@ -57,6 +57,5 @@ async function getPrComments(
     }
   } catch (error) {
     logger.error('historical.comments.error');
-    throw error;
   }
 }

@@ -36,7 +36,6 @@ export const handler = async function pRReviewCommentFormattedDataReciever(
         );
       } catch (error) {
         logger.error('pRReviewCommentFormattedDataReciever.error', error);
-        throw error;
       }
     })
   );

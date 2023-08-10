@@ -16,7 +16,6 @@ export const handler = async function pullRequestReviewCommentIndexDataReciever(
         await savePRReviewComment(messageBody);
       } catch (error) {
         logger.error('pRReviewCommentIndexDataReciever.error', { error });
-        throw error;
       }
     })
   );

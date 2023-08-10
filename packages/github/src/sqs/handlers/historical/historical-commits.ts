@@ -82,6 +82,5 @@ async function getRepoCommits(
     }
   } catch (error) {
     logger.error('historical.commits.error');
-    throw error;
   }
 }

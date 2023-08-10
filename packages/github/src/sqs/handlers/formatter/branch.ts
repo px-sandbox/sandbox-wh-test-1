@@ -22,7 +22,6 @@ export const handler = async function branchFormattedDataReciever(event: SQSEven
         await branchProcessor.sendDataToQueue(data, Queue.gh_branch_index.queueUrl);
       } catch (error) {
         logger.error('branchFormattedDataReciever.error', error);
-        throw error;
       }
     })
   );

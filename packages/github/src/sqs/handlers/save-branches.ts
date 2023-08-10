@@ -16,7 +16,6 @@ export const handler = async function saveBranches(event: SQSEvent): Promise<voi
         );
       } catch (error) {
         logger.error('saveBranches.error', error);
-        throw error;
       }
     })
   );

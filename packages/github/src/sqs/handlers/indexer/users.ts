@@ -15,7 +15,6 @@ export const handler = async function userIndexDataReciever(event: SQSEvent): Pr
         await saveUserDetails(messageBody);
       } catch (error) {
         logger.error('userIndexDataReciever.error', { error });
-        throw error;
       }
     })
   );
