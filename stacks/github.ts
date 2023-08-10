@@ -92,7 +92,7 @@ export function gh({ stack }: StackContext) {
     consumer: {
       function: {
         handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
-        timeout: '15 minutes',
+        timeout: '30 seconds',
       },
       cdk: {
         eventSource: {
