@@ -19,11 +19,12 @@ export const handler = async function collectPRCommitData(event: SQSEvent): Prom
   });
   let page = 1;
   const perPage = 100;
-  for (const record of event.Records) {
-    const messageBody = JSON.parse(record.body);
-    logger.info(`PR_NUMBER: ${messageBody.number}`, `REPO_NAME: ${messageBody.head.repo.name}`);
-    await getPRCommits(messageBody, perPage, page, octokit);
-  }
+  await Promise.all(
+    event.Records.map(async (record: any) => {
+      logger.info(`PR_NUMBER: ${record.body.number}`, `REPO_NAME: ${record.body.head.repo.name}`);
+      await getPRCommits(JSON.parse(record.body), perPage, page, octokit);
+    })
+  );
 };
 async function getPRCommits(
   messageBody: any,
@@ -40,34 +41,7 @@ async function getPRCommits(
       `GET /repos/${messageBody.head.repo.owner.login}/${messageBody.head.repo.name}/pulls/${messageBody.number}/commits?per_page=${perPage}&page=${page}`
     );
 
-    commentsDataOnPr.data.map(async (commitData: any) => {
-      const commitId = `${mappingPrefixes.commit}_${commitData.sha}`;
-      const records = await new DynamoDbDocClient().find(
-        new ParamsMapping().prepareGetParams(commitId)
-      );
-      if (records) {
-        logger.info('DYNAMO_DB_DATA_FOUND', records);
-        return;
-      }
-      commitData.isMergedCommit = false;
-      commitData.mergedBranch = null;
-      commitData.pushedBranch = null;
-      await new SQSClient().sendMessage(
-        {
-          commitId: commitData.sha,
-          isMergedCommit: commitData.isMergedCommit,
-          mergedBranch: commitData.mergedBranch,
-          pushedBranch: commitData.pushedBranch,
-          repository: {
-            id: messageBody.head.repo.owner.id,
-            name: messageBody.head.repo.name,
-            owner: messageBody.head.repo.owner.login,
-          },
-          timestamp: new Date(),
-        },
-        Queue.gh_commit_format.queueUrl
-      );
-    });
+    await Promise.all(commentsDataOnPr.data.map((commit: any) => saveCommit(commit, messageBody)));
 
     if (commentsDataOnPr.data.length < perPage) {
       logger.info('LAST_100_RECORD_PR_REVIEW');
@@ -80,4 +54,33 @@ async function getPRCommits(
     logger.error('historical.PR.commits.error');
     throw error;
   }
+}
+
+async function saveCommit(commitData: any, messageBody: any) {
+  // const commitId = `${mappingPrefixes.commit}_${commitData.sha}`;
+  // const records = await new DynamoDbDocClient().find(
+  //   new ParamsMapping().prepareGetParams(commitId)
+  // );
+  // if (records) {
+  //   logger.info('DYNAMO_DB_DATA_FOUND', records);
+  //   return;
+  // }
+  commitData.isMergedCommit = false;
+  commitData.mergedBranch = null;
+  commitData.pushedBranch = null;
+  await new SQSClient().sendMessage(
+    {
+      commitId: commitData.sha,
+      isMergedCommit: commitData.isMergedCommit,
+      mergedBranch: commitData.mergedBranch,
+      pushedBranch: commitData.pushedBranch,
+      repository: {
+        id: messageBody.head.repo.owner.id,
+        name: messageBody.head.repo.name,
+        owner: messageBody.head.repo.owner.login,
+      },
+      timestamp: new Date(),
+    },
+    Queue.gh_commit_format.queueUrl
+  );
 }

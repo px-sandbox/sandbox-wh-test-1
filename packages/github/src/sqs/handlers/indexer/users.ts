@@ -3,16 +3,20 @@ import { logger } from 'core';
 import { saveUserDetails } from 'src/lib/save-user-details';
 
 export const handler = async function userIndexDataReciever(event: SQSEvent): Promise<void> {
-  try {
-    for (const record of event.Records) {
-      const messageBody = JSON.parse(record.body);
-      // Do something with the message, e.g. send an email, process data, etc.
-      /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
-      logger.info('USER_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
+  logger.info(`Records Length: ${event.Records.length}`);
+  await Promise.all(
+    event.Records.map(async (record: any) => {
+      try {
+        const messageBody = JSON.parse(record.body);
+        // Do something with the message, e.g. send an email, process data, etc.
+        /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
+        logger.info('USER_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
 
-      await saveUserDetails(messageBody);
-    }
-  } catch (error) {
-    logger.error('userIndexDataReciever.error', { error });
-  }
+        await saveUserDetails(messageBody);
+      } catch (error) {
+        logger.error('userIndexDataReciever.error', { error });
+        throw error;
+      }
+    })
+  );
 };

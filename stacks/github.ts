@@ -32,7 +32,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/users.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -42,7 +42,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/formatter/users.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -53,7 +53,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/repo.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -63,7 +63,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/formatter/repo.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -73,7 +73,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/formatter/branch.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -83,7 +83,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/branch.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -96,7 +96,7 @@ export function gh({ stack }: StackContext) {
       },
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -106,7 +106,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -117,7 +117,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/formatter/commit.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -127,7 +127,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/commit.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -138,7 +138,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/formatter/push.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -148,7 +148,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/push.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -159,7 +159,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/formatter/pull-request-review-comment.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -169,7 +169,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -180,24 +180,42 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/save-branches.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
   });
   const pRReviewFormatDataQueue = new Queue(stack, 'gh_pr_review_format', {
-    consumer: 'packages/github/src/sqs/handlers/formatter/pull-request-review.handler',
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/formatter/pull-request-review.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 1,
+        },
+      },
+    },
   });
+
   const pRReviewIndexDataQueue = new Queue(stack, 'gh_pr_review_index', {
-    consumer: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 1,
+        },
+      },
+    },
   });
 
   const collectPRData = new Queue(stack, 'gh_historical_pr', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
+      function: {
+        handler: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
+        timeout: '20 seconds',
+      },
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -205,10 +223,13 @@ export function gh({ stack }: StackContext) {
 
   const collectReviewsData = new Queue(stack, 'gh_historical_reviews', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/historical/historical-reviews.handler',
+      function: {
+        handler: 'packages/github/src/sqs/handlers/historical/historical-reviews.handler',
+        timeout: '30 seconds',
+      },
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -216,10 +237,13 @@ export function gh({ stack }: StackContext) {
 
   const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/historical/historical-pr-number.handler',
+      function: {
+        handler: 'packages/github/src/sqs/handlers/historical/historical-pr-number.handler',
+        timeout: '20 seconds',
+      },
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -227,10 +251,13 @@ export function gh({ stack }: StackContext) {
 
   const collectCommitsData = new Queue(stack, 'gh_historical_commits', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/historical/historical-commits.handler',
+      function: {
+        handler: 'packages/github/src/sqs/handlers/historical/historical-commits.handler',
+        timeout: '30 seconds',
+      },
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -238,10 +265,13 @@ export function gh({ stack }: StackContext) {
 
   const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/historical/historical-pr-commits.handler',
+      function: {
+        handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commits.handler',
+        timeout: '20 seconds',
+      },
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -249,10 +279,13 @@ export function gh({ stack }: StackContext) {
 
   const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
+      function: {
+        handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
+        timeout: '20 seconds',
+      },
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
@@ -407,6 +440,7 @@ export function gh({ stack }: StackContext) {
     defaults: {
       authorizer: 'universal',
       function: {
+        timeout: '30 seconds',
         bind: [
           userFormatDataQueue,
           repoFormatDataQueue,

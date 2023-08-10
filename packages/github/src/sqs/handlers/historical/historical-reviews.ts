@@ -1,6 +1,5 @@
 import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
-import { Github } from 'abstraction';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import moment from 'moment';
@@ -17,12 +16,14 @@ export const handler = async function collectPrReviewsData(event: SQSEvent): Pro
   });
   let page = 1;
   const perPage = 100;
-  for (const record of event.Records) {
-    const messageBody = JSON.parse(record.body);
-    logger.info(`PR_NUMBER: ${messageBody.number}`, `REPO_NAME: ${messageBody.head.repo.name}`);
-    await getPrReviews(messageBody, perPage, page, octokit);
-  }
+
+  await Promise.all(
+    event.Records.map((record: any) =>
+      getPrReviews(JSON.parse(record.body), perPage, page, octokit)
+    )
+  );
 };
+
 async function getPrReviews(
   messageBody: any,
   perPage: number,
@@ -34,11 +35,11 @@ async function getPrReviews(
   }>
 ) {
   try {
-    const commentsDataOnPr = await octokit(
+    const prReviews = await octokit(
       `GET /repos/${messageBody.head.repo.owner.login}/${messageBody.head.repo.name}/pulls/${messageBody.number}/reviews?per_page=${perPage}&page=${page}`
     );
     let queueProcessed = [];
-    queueProcessed = commentsDataOnPr.data.map((reviews: any) =>
+    queueProcessed = prReviews.data.map((reviews: any) =>
       new SQSClient().sendMessage(
         {
           review: reviews,
@@ -48,55 +49,58 @@ async function getPrReviews(
         Queue.gh_pr_review_format.queueUrl
       )
     );
+
     await Promise.all(queueProcessed);
 
-    let submittedAt = null;
-    let approvedAt = null;
-    const reviewAt = await commentsDataOnPr.data.find(
-      (commentState: any) => commentState.state === 'COMMENTED'
-    );
-    const approvedTime = await commentsDataOnPr.data.find(
-      (commentState: any) => commentState.state === 'APPROVED'
-    );
+    if (page === 1) {
+      let submittedAt = null;
+      let approvedAt = null;
+      const reviewAt = await prReviews.data.find(
+        (commentState: any) => commentState.state === 'COMMENTED'
+      );
+      const approvedTime = await prReviews.data.find(
+        (commentState: any) => commentState.state === 'APPROVED'
+      );
 
-    const minimumActionDates = [
-      reviewAt?.submitted_at,
-      messageBody?.merged_at,
-      approvedTime?.submitted_at,
-    ]
-      .filter((item) => !!item)
-      .map((date) => moment(date).unix());
+      const minimumActionDates = [
+        reviewAt?.submitted_at,
+        messageBody?.merged_at,
+        approvedTime?.submitted_at,
+      ]
+        .filter((item) => !!item)
+        .map((date) => moment(date).unix());
 
-    if (minimumActionDates.length === 0) {
-      submittedAt = null;
-    } else {
-      submittedAt = moment.unix(Math.min(...minimumActionDates));
-    }
-
-    if (approvedTime) {
-      if (!messageBody.approved_at) {
-        approvedAt = approvedTime.submitted_at;
+      if (minimumActionDates.length === 0) {
+        submittedAt = null;
+      } else {
+        submittedAt = moment.unix(Math.min(...minimumActionDates));
       }
-    }
 
-    await new SQSClient().sendMessage(
-      {
-        submittedAt: submittedAt,
-        approvedAt: approvedAt,
-        owner: messageBody.head.repo.owner.login,
-        repoName: messageBody.head.repo.name,
-        prNumber: messageBody.number,
-        repoId: messageBody.head.repo.id,
-      },
-      Queue.gh_historical_pr_by_number.queueUrl
-    );
+      if (approvedTime) {
+        if (!messageBody.approved_at) {
+          approvedAt = approvedTime.submitted_at;
+        }
+      }
 
-    if (commentsDataOnPr.data.length < perPage) {
-      logger.info('LAST_100_RECORD_PR_REVIEW');
-      return;
-    } else {
-      page++;
-      await getPrReviews(messageBody, perPage, page, octokit);
+      await new SQSClient().sendMessage(
+        {
+          submittedAt: submittedAt,
+          approvedAt: approvedAt,
+          owner: messageBody.head.repo.owner.login,
+          repoName: messageBody.head.repo.name,
+          prNumber: messageBody.number,
+          repoId: messageBody.head.repo.id,
+        },
+        Queue.gh_historical_pr_by_number.queueUrl
+      );
+
+      if (prReviews.data.length < perPage) {
+        logger.info('LAST_100_RECORD_PR_REVIEW');
+        return;
+      } else {
+        page++;
+        await getPrReviews(messageBody, perPage, page, octokit);
+      }
     }
   } catch (error) {
     logger.error('historical.reviews.error');
