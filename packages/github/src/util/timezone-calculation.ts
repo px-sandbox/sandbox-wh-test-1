@@ -34,16 +34,23 @@ function getTimeWithOffset(date: moment.Moment, offset: Offset) {
 }
 
 function regulariseDate(date: moment.Moment) {
-  const minBoundary = moment(date).hour(9).minute(30).second(0).millisecond(0);
-  const maxBoundary = moment(date).hour(18).minute(30).second(0).millisecond(0);
-
-  if (date.isBetween(minBoundary, maxBoundary)) {
-    return date;
+  if (date.day() === 6) {
+    //Saturday
+    return moment(date).add(2, 'd').hour(9).minute(30).second(0).millisecond(0);
+  } else if (date.day() === 0) {
+    //Sunday
+    return moment(date).add(1, 'd').hour(9).minute(30).second(0).millisecond(0);
+  } else {
+    const minBoundary = moment(date).hour(9).minute(30).second(0).millisecond(0);
+    const maxBoundary = moment(date).hour(18).minute(30).second(0).millisecond(0);
+    if (date.isBetween(minBoundary, maxBoundary)) {
+      return date;
+    }
+    if (minBoundary.isSameOrAfter(date)) {
+      return minBoundary;
+    }
+    return maxBoundary;
   }
-  if (minBoundary.isSameOrAfter(date)) {
-    return minBoundary;
-  }
-  return maxBoundary;
 }
 
 function getDays(startDate: moment.Moment, endDate: moment.Moment) {
@@ -65,9 +72,11 @@ export function getWorkingTime(startDate: moment.Moment, endDate: moment.Moment,
   const offsetTime = getOffsetTime(offset);
 
   startDate = regulariseDate(getTimeWithOffset(startDate, offsetTime));
+
   endDate = regulariseDate(getTimeWithOffset(endDate, offsetTime));
 
   const totalDays = getDays(startDate, endDate);
+
   const weekends = getWeekenedCount(startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD'));
 
   const totalTime = endDate.diff(startDate, 'seconds');

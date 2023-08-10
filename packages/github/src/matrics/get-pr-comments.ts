@@ -85,9 +85,9 @@ export async function prCommentsGraphData(
         Github.Enums.IndexName.GitPRReviewComment,
         prCommentGraphQuery
       );
-    return data.commentsPerDay.buckets.map((item: any) => ({
+    return data.commentsPerDay.buckets.map((item) => ({
       date: item.key_as_string,
-      value: item.doc_count,
+      value: parseFloat(item.combined_avg.value.toFixed(2)),
     }));
   } catch (e) {
     logger.error('prCommentsGraph.error', e);
@@ -120,9 +120,9 @@ export async function prCommentsAvg(
         esb
           .scriptedMetricAggregation('pr_comment_avg')
           .initScript('state.transactions = []')
-          .mapScript(`state.transactions.add(doc['body.pullId.keyword'].value)`)
+          .mapScript("state.transactions.add(doc['body.pullId.keyword'].value)")
           .combineScript(
-            `double comments = 0;Map prMap = new HashMap();for(t in state.transactions){comments += 1;if(prMap.get(t) == null ){prMap.put(t, 1);}else{prMap.put(t, prMap.get(t) + 1);}}Map result = new HashMap(); result.put('comments', comments);result.put('prs', prMap);return result;`
+            "double comments = 0;Map prMap = new HashMap();for(t in state.transactions){comments += 1;if(prMap.get(t) == null ){prMap.put(t, 1);}else{prMap.put(t, prMap.get(t) + 1);}}Map result = new HashMap(); result.put('comments', comments);result.put('prs', prMap);return result;"
           ).reduceScript(` double totalComments = 0;
           Map totalPRMap = new HashMap();
         

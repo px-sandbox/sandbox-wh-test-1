@@ -72,7 +72,7 @@ export async function frequencyOfCodeCommitGraph(
         Github.Enums.IndexName.GitCommits,
         frquencyOfCodeCommitGraphQuery
       );
-    return data.commentsPerDay.buckets.map((item: any) => ({
+    return data.commentsPerDay.buckets.map((item) => ({
       date: item.key_as_string,
       value: item.doc_count,
     }));
@@ -86,7 +86,7 @@ export async function frequencyOfCodeCommitAvg(
   startDate: string,
   endDate: string,
   repoIds: string[]
-): Promise<number | {}> {
+): Promise<{ value: number } | null> {
   try {
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -101,6 +101,7 @@ export async function frequencyOfCodeCommitAvg(
           .must([
             esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
             esb.termsQuery('body.repoId', repoIds),
+            esb.termsQuery('body.isMergedCommit', 'false'),
           ])
       )
       .size(0)
@@ -115,6 +116,6 @@ export async function frequencyOfCodeCommitAvg(
     return { value: totalDoc / weekDaysCount };
   } catch (e) {
     logger.error('frequencyOfCodeCommitGraphAvg.error', e);
+    throw e;
   }
-  return {};
 }

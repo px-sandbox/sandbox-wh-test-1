@@ -16,14 +16,13 @@ export interface Commits {
     pushedBranch: string | null;
     mergedBranch: string;
     message: string;
-    authorId: string;
+    authorId: string | null;
     committedAt: string;
     changes?: CommitedFiles[];
     totalChanges: string;
     repoId: string;
     organizationId: string;
     createdAt: string;
-    action: actions;
     createdAtDay: string;
     computationalDate: string;
     githubDate: string | Date;

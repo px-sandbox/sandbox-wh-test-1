@@ -2,8 +2,8 @@ import { Github } from 'abstraction';
 import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import { DataProcessor } from './data-processor';
 import moment from 'moment';
+import { DataProcessor } from './data-processor';
 
 export class PushProcessor extends DataProcessor<
   Github.ExternalType.Webhook.Push,
@@ -38,8 +38,8 @@ export class PushProcessor extends DataProcessor<
         commits: commitsArr,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
-        action: action,
-        createdAt: createdAt,
+        action,
+        createdAt,
         createdAtDay: moment(createdAt).format('dddd'),
         computationalDate: await this.calculateComputationalDate(createdAt),
         githubDate: moment(createdAt).format('YYYY-MM-DD'),

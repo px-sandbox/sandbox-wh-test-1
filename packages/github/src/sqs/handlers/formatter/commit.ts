@@ -33,6 +33,10 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
     });
 
     const responseData = await octokit(`GET /repos/${repoOwner}/${repoName}/commits/${commitId}`);
+
+    logger.info('commitFormattedDataReciever.data_check', {
+      octokitResponse: responseData.data ?? false,
+    });
     const commitProcessor = new CommitProcessor({
       ...responseData.data,
       commits: {
@@ -44,6 +48,7 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
       },
       repoId,
     });
+
     const validatedData = commitProcessor.validate();
     if (!validatedData) {
       logger.error('commitFormattedDataReciever.error', { error: 'validation failed' });

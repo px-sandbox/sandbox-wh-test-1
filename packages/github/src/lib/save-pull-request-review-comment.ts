@@ -20,11 +20,11 @@ export async function savePRReviewComment(data: Github.Type.PRReviewComment): Pr
       Github.Enums.IndexName.GitPRReviewComment,
       matchQry
     );
-    const formattedData = await searchedDataFormator(userData);
-    if (formattedData[0]) {
-      logger.info('LAST_ACTIONS_PERFORMED', formattedData[0].action);
-      data.body.action = [...formattedData[0].action, ...data.body.action];
-      data.body.createdAt = formattedData[0].createdAt;
+    const [formattedData] = await searchedDataFormator(userData);
+    if (formattedData) {
+      logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
+      data.body.action = [...formattedData.action, ...data.body.action];
+      data.body.createdAt = formattedData.createdAt;
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPRReviewComment, data);
     logger.info('savePRReviewComment.successful');

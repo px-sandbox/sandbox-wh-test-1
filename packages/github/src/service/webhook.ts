@@ -1,20 +1,22 @@
 import { SQSClient } from '@pulse/event-handler';
-import { Github, Other } from 'abstraction';
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { Github } from 'abstraction';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { logger } from 'core';
+import crypto from 'crypto';
 import { getCommits } from 'src/lib/git-commit-list';
-import { pROnQueue } from 'src/lib/send-pull-to-queue';
 import { pRReviewCommentOnQueue } from 'src/lib/send-pr-review-comment-to-queue';
 import { pRReviewOnQueue } from 'src/lib/send-pr-review-to-queue';
+import { pROnQueue } from 'src/lib/send-pull-to-queue';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
-const crypto = require('crypto');
 
 export const webhookData = async function getWebhookData(
   event: APIGatewayProxyEvent
-): Promise<void | Other.Type.LambdaResponse> {
-  logger.info('method invoked');
+): Promise<void | APIGatewayProxyResult> {
+  logger.info('method invoked', { event });
   const payload: any = event.body || {};
+  const data = JSON.parse(event.body || '{}');
+  if (!data.organization) return;
 
   /**
    * ------------------------------------
@@ -24,11 +26,11 @@ export const webhookData = async function getWebhookData(
    * so that we can allow only github webhook requests
    *
    */
+
   const sig = Buffer.from(event.headers['x-hub-signature-256'] || '');
   const hmac = Buffer.from(
     'sha256' +
-      '=' +
-      crypto.createHmac('sha256', Config.GITHUB_WEBHOOK_SECRET).update(payload).digest('hex')
+      `=${crypto.createHmac('sha256', Config.GITHUB_WEBHOOK_SECRET).update(payload).digest('hex')}`
   );
 
   logger.info('SIG - HMAC (CryptoJS): ', hmac.toString());
@@ -47,7 +49,7 @@ export const webhookData = async function getWebhookData(
       body: 'Permission Denied',
     };
   }
-  const data = JSON.parse(event.body || '{}');
+
   let eventType = event.headers['x-github-event']?.toLowerCase();
   const branchEvents = ['create', 'delete'];
 
@@ -62,6 +64,7 @@ export const webhookData = async function getWebhookData(
       body: 'Bad Request : Event type can not be undefined',
     };
   }
+
   const { id: orgId } = data.organization;
   logger.info('Organization : ', { login: data.organization.login });
   let obj = {};
@@ -75,32 +78,34 @@ export const webhookData = async function getWebhookData(
       );
       break;
     case Github.Enums.Event.Branch:
-      const {
-        ref: name,
-        repository: { id: repo_id, pushed_at: event_at },
-      } = data as Github.ExternalType.Webhook.Branch;
+      {
+        const {
+          ref: name,
+          repository: { id: repo_id, pushed_at: event_at },
+        } = data as Github.ExternalType.Webhook.Branch;
 
-      if (event.headers['x-github-event'] === 'create') {
-        obj = {
-          name,
-          id: Buffer.from(`${repo_id}_${name}`, 'binary').toString('base64'),
-          action: Github.Enums.Branch.Created,
-          repo_id,
-          created_at: event_at,
-        };
+        if (event.headers['x-github-event'] === 'create') {
+          obj = {
+            name,
+            id: Buffer.from(`${repo_id}_${name}`, 'binary').toString('base64'),
+            action: Github.Enums.Branch.Created,
+            repo_id,
+            created_at: event_at,
+          };
+        }
+        if (event.headers['x-github-event'] === 'delete') {
+          obj = {
+            name,
+            id: Buffer.from(`${repo_id}_${name}`, 'binary').toString('base64'),
+            action: Github.Enums.Branch.Deleted,
+            repo_id,
+            deleted_at: event_at,
+          };
+        }
+        logger.info('-------Branch event --------');
+        logger.info(obj);
+        await new SQSClient().sendMessage(obj, Queue.gh_branch_format.queueUrl);
       }
-      if (event.headers['x-github-event'] === 'delete') {
-        obj = {
-          name,
-          id: Buffer.from(`${repo_id}_${name}`, 'binary').toString('base64'),
-          action: Github.Enums.Branch.Deleted,
-          repo_id,
-          deleted_at: event_at,
-        };
-      }
-      logger.info('-------Branch event --------');
-      logger.info(obj);
-      await new SQSClient().sendMessage(obj, Queue.gh_branch_format.queueUrl);
       break;
 
     case Github.Enums.Event.Organization:
@@ -128,8 +133,10 @@ export const webhookData = async function getWebhookData(
       await new SQSClient().sendMessage(obj, Queue.gh_users_format.queueUrl);
       break;
     case Github.Enums.Event.Commit:
-      const commitData: Github.ExternalType.Webhook.Commit = data;
-      await getCommits(commitData);
+      {
+        const commitData: Github.ExternalType.Webhook.Commit = data;
+        await getCommits(commitData);
+      }
       break;
     case Github.Enums.Event.PullRequest:
       await pROnQueue(data.pull_request, data.action);

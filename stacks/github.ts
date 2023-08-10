@@ -270,7 +270,15 @@ export function gh({ stack }: StackContext) {
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
   ]);
-  pRFormatDataQueue.bind([table, pRIndexDataQueue, GIT_ORGANIZATION_ID, commitFormatDataQueue]);
+  pRFormatDataQueue.bind([
+    table,
+    pRIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+    OPENSEARCH_NODE,
+    OPENSEARCH_USERNAME,
+    OPENSEARCH_PASSWORD,
+    commitFormatDataQueue,
+  ]);
   pushFormatDataQueue.bind([table, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
   pRReviewCommentFormatDataQueue.bind([table, pRReviewCommentIndexDataQueue, GIT_ORGANIZATION_ID]);
 
@@ -494,8 +502,8 @@ export function gh({ stack }: StackContext) {
       },
 
       // GET Graph for PRs review time
-      'GET /github/graph/pr-review-time': {
-        function: 'packages/github/src/service/pr-review-time.handler',
+      'GET /github/graph/pr-wait-time': {
+        function: 'packages/github/src/service/pr-wait-time.handler',
         authorizer: 'universal',
       },
 

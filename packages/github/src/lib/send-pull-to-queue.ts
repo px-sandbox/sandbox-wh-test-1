@@ -16,7 +16,7 @@ export async function pROnQueue(
     let approved_at = null;
     let review_seconds = 0;
     const [pullData] = await getPullRequestById(pull.id);
-
+    logger.info('ES : PR Data ', pullData);
     if (pullData) {
       if (action === Github.Enums.PullRequest.Opened) {
         logger.info('PR already exist');

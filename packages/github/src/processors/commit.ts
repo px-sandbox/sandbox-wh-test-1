@@ -2,8 +2,9 @@ import { Github } from 'abstraction';
 import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import { DataProcessor } from './data-processor';
 import moment from 'moment';
+import { DataProcessor } from './data-processor';
+import { logger } from 'core';
 
 export class CommitProcessor extends DataProcessor<
   Github.ExternalType.Api.Commit,
@@ -26,13 +27,6 @@ export class CommitProcessor extends DataProcessor<
         status: data.status,
       });
     });
-    const action = [
-      {
-        action: this.ghApiData.action ?? 'initialized',
-        actionTime: new Date().toISOString(),
-        actionDay: moment().format('dddd'),
-      },
-    ];
 
     const orgObj = {
       id: parentId || uuid(),
@@ -43,14 +37,15 @@ export class CommitProcessor extends DataProcessor<
         pushedBranch: this.ghApiData.commits.pushedBranch,
         mergedBranch: this.ghApiData.commits.mergedBranch,
         message: this.ghApiData.commit.message,
-        authorId: `${mappingPrefixes.user}_${this.ghApiData.author.id}`,
+        authorId: this.ghApiData.author
+          ? `${mappingPrefixes.user}_${this.ghApiData.author.id}`
+          : null,
         committedAt: this.ghApiData.commits.timestamp,
         changes: filesArr,
         totalChanges: this.ghApiData.stats.total,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
         createdAt: this.ghApiData.commit.committer.date,
-        action: action,
         createdAtDay: moment(this.ghApiData.commit.committer.date).format('dddd'),
         computationalDate: await this.calculateComputationalDate(
           this.ghApiData.commit.committer.date

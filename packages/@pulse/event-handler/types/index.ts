@@ -1,3 +1,3 @@
 export interface ISQSClient {
-  sendMessage(queuUrl: string, message: Object): Promise<void>;
+  sendMessage(message: Record<string, unknown>, queueUrl: string): Promise<void>;
 }

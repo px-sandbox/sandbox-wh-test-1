@@ -2,7 +2,6 @@ import { transpileSchema } from '@middy/validator/transpile';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import { prCommentsAvg, prCommentsGraphData } from 'src/matrics/get-pr-comments';
-import { IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { prCommentsGraphSchema } from './validations';
 
 const prCommentsGraph = async function getPrCommentsGraph(
