@@ -42,7 +42,7 @@ export const handler = async function collectReviewsData(event: SQSEvent): Promi
         '+5:30'
       );
 
-      new SQSClient().sendMessage(
+      await new SQSClient().sendMessage(
         {
           ...dataOnPr.data,
           reviewed_at: messageBody.submittedAt,
@@ -52,7 +52,7 @@ export const handler = async function collectReviewsData(event: SQSEvent): Promi
         Queue.gh_pr_format.queueUrl
       );
       if (dataOnPr.data.merged === true) {
-        const commitId = `${mappingPrefixes.commit}_${dataOnPr.data.head.sha}`;
+        const commitId = `${mappingPrefixes.commit}_${dataOnPr.data.merge_commit_sha}`;
         const records = await new DynamoDbDocClient().find(
           new ParamsMapping().prepareGetParams(commitId)
         );

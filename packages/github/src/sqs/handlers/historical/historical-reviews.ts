@@ -63,7 +63,9 @@ async function getPrReviews(
       reviewAt?.submitted_at,
       messageBody?.merged_at,
       approvedTime?.submitted_at,
-    ].filter((item) => !!item);
+    ]
+      .filter((item) => !!item)
+      .map((date) => moment(date).unix());
 
     if (minimumActionDates.length === 0) {
       submittedAt = null;
