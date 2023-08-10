@@ -8,7 +8,7 @@ import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
 
-export const handler = async function collectCommitData(event: SQSEvent): Promise<any> {
+export const handler = async function collectPrReviewsData(event: SQSEvent): Promise<any> {
   const installationAccessToken = await getInstallationAccessToken();
   const octokit = ghRequest.request.defaults({
     headers: {
@@ -38,16 +38,16 @@ async function getPrReviews(
       `GET /repos/${messageBody.head.repo.owner.login}/${messageBody.head.repo.name}/pulls/${messageBody.number}/reviews?per_page=${perPage}&page=${page}`
     );
     let queueProcessed = [];
-    queueProcessed = commentsDataOnPr.data.map((comments: any) => {
+    queueProcessed = commentsDataOnPr.data.map((reviews: any) =>
       new SQSClient().sendMessage(
         {
-          review: comments,
+          review: reviews,
           pullId: messageBody.id,
           repoId: messageBody.head.repo.id,
         },
         Queue.gh_pr_review_format.queueUrl
-      );
-    });
+      )
+    );
     await Promise.all(queueProcessed);
 
     let submittedAt = null;
@@ -71,7 +71,6 @@ async function getPrReviews(
       submittedAt = null;
     } else {
       submittedAt = moment.unix(Math.min(...minimumActionDates));
-      console.log('ELSE_LOG', submittedAt, ...minimumActionDates);
     }
 
     if (approvedTime) {
@@ -79,7 +78,7 @@ async function getPrReviews(
         approvedAt = approvedTime.submitted_at;
       }
     }
-    console.log('LAST_LOG', submittedAt);
+
     await new SQSClient().sendMessage(
       {
         submittedAt: submittedAt,
@@ -89,7 +88,7 @@ async function getPrReviews(
         prNumber: messageBody.number,
         repoId: messageBody.head.repo.id,
       },
-      Queue.gh_historical_single_number.queueUrl
+      Queue.gh_historical_pr_by_number.queueUrl
     );
 
     if (commentsDataOnPr.data.length < perPage) {

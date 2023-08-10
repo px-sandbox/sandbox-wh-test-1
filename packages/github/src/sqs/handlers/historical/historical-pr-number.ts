@@ -15,7 +15,7 @@ import { getWorkingTime } from 'src/util/timezone-calculation';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 
-export const handler = async function collectReviewsData(event: SQSEvent): Promise<void> {
+export const handler = async function collectPrByNumberData(event: SQSEvent): Promise<void> {
   const installationAccessToken = await getInstallationAccessToken();
   const octokit = ghRequest.request.defaults({
     headers: {

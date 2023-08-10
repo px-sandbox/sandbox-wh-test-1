@@ -214,7 +214,7 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const collectPrNumberData = new Queue(stack, 'gh_historical_single_number', {
+  const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number', {
     consumer: {
       function: 'packages/github/src/sqs/handlers/historical/historical-pr-number.handler',
       cdk: {
@@ -324,7 +324,7 @@ export function gh({ stack }: StackContext) {
     collectPRCommitsData,
     collectPRReviewCommentsData,
   ]);
-  collectPrNumberData.bind([
+  collecthistoricalPrByumber.bind([
     table,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -345,7 +345,7 @@ export function gh({ stack }: StackContext) {
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
     GIT_ORGANIZATION_ID,
-    collectPrNumberData,
+    collecthistoricalPrByumber,
     pRReviewFormatDataQueue,
   ]);
 
@@ -439,7 +439,7 @@ export function gh({ stack }: StackContext) {
           collectPRData,
           collectReviewsData,
           collectReviewsData,
-          collectPrNumberData,
+          collecthistoricalPrByumber,
           collectCommitsData,
           collectPRCommitsData,
           collectPRReviewCommentsData,
