@@ -37,8 +37,9 @@ async function getPrReviews(
     const commentsDataOnPr = await octokit(
       `GET /repos/${messageBody.head.repo.owner.login}/${messageBody.head.repo.name}/pulls/${messageBody.number}/reviews?per_page=${perPage}&page=${page}`
     );
-    commentsDataOnPr.data.map(async (comments: any) => {
-      await new SQSClient().sendMessage(
+    let queueProcessed = [];
+    queueProcessed = commentsDataOnPr.data.map((comments: any) => {
+      new SQSClient().sendMessage(
         {
           review: comments,
           pullId: messageBody.id,
@@ -47,6 +48,7 @@ async function getPrReviews(
         Queue.gh_pr_review_format.queueUrl
       );
     });
+    await Promise.all(queueProcessed);
 
     let submittedAt = null;
     let approvedAt = null;
@@ -67,6 +69,7 @@ async function getPrReviews(
       submittedAt = null;
     } else {
       submittedAt = moment.unix(Math.min(...minimumActionDates));
+      console.log('ELSE_LOG', submittedAt, ...minimumActionDates);
     }
 
     if (approvedTime) {
@@ -74,6 +77,7 @@ async function getPrReviews(
         approvedAt = approvedTime.submitted_at;
       }
     }
+    console.log('LAST_LOG', submittedAt);
     await new SQSClient().sendMessage(
       {
         submittedAt: submittedAt,
