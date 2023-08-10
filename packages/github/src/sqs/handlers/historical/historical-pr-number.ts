@@ -48,38 +48,39 @@ export const handler = async function collectReviewsData(event: SQSEvent): Promi
           reviewed_at: messageBody.submittedAt,
           approved_at: messageBody.approvedAt,
           review_seconds: review_seconds,
-          action: Github.Enums.Comments.REVIEW_COMMENTED,
         },
         Queue.gh_pr_format.queueUrl
       );
-      const commitId = `${mappingPrefixes.commit}_${dataOnPr.data.head.sha}`;
-      const records = await new DynamoDbDocClient().find(
-        new ParamsMapping().prepareGetParams(commitId)
-      );
-      if (records) {
-        const commitQuery = esb.matchQuery('body.id', commitId).toJSON();
-        const commits = await new ElasticSearchClient({
-          host: Config.OPENSEARCH_NODE,
-          username: Config.OPENSEARCH_USERNAME ?? '',
-          password: Config.OPENSEARCH_PASSWORD ?? '',
-        }).searchWithEsb(Github.Enums.IndexName.GitCommits, commitQuery);
-        const [commitsData] = await searchedDataFormator(commits);
-        if (commitsData) {
-          await new SQSClient().sendMessage(
-            {
-              commitId: commitsData.githubCommitId,
-              isMergedCommit: dataOnPr.data.merged,
-              mergedBranch: null,
-              pushedBranch: dataOnPr.data.head.ref,
-              repository: {
-                id: messageBody.id,
-                name: messageBody.repoName,
-                owner: messageBody.owner,
+      if (dataOnPr.data.merged === true) {
+        const commitId = `${mappingPrefixes.commit}_${dataOnPr.data.head.sha}`;
+        const records = await new DynamoDbDocClient().find(
+          new ParamsMapping().prepareGetParams(commitId)
+        );
+        if (records) {
+          const commitQuery = esb.matchQuery('body.id', commitId).toJSON();
+          const commits = await new ElasticSearchClient({
+            host: Config.OPENSEARCH_NODE,
+            username: Config.OPENSEARCH_USERNAME ?? '',
+            password: Config.OPENSEARCH_PASSWORD ?? '',
+          }).searchWithEsb(Github.Enums.IndexName.GitCommits, commitQuery);
+          const [commitsData] = await searchedDataFormator(commits);
+          if (commitsData) {
+            await new SQSClient().sendMessage(
+              {
+                commitId: commitsData.githubCommitId,
+                isMergedCommit: dataOnPr.data.merged,
+                mergedBranch: null,
+                pushedBranch: dataOnPr.data.head.ref,
+                repository: {
+                  id: messageBody.repoId,
+                  name: messageBody.repoName,
+                  owner: messageBody.owner,
+                },
+                timestamp: new Date(),
               },
-              timestamp: new Date(),
-            },
-            Queue.gh_commit_format.queueUrl
-          );
+              Queue.gh_commit_format.queueUrl
+            );
+          }
         }
       }
     } catch (error) {

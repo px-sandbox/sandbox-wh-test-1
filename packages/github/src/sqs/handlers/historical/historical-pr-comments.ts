@@ -42,7 +42,6 @@ async function getPrComments(
           comment: comments,
           pullId: messageBody.id,
           repoId: messageBody.head.repo.id,
-          action: 'pull_request_review_comment',
         },
         Queue.gh_pr_review_comment_format.queueUrl
       );

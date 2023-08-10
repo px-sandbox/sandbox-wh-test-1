@@ -20,7 +20,7 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
     await getRepoCommits(
       messageBody.owner,
       messageBody.name,
-      messageBody.id,
+      messageBody.githubRepoId,
       perPage,
       page,
       octokit
@@ -30,7 +30,7 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
 async function getRepoCommits(
   owner: string,
   name: string,
-  id: string,
+  githubRepoId: string,
   perPage: number,
   page: number,
   octokit: RequestInterface<{
@@ -40,6 +40,7 @@ async function getRepoCommits(
   }>
 ) {
   try {
+    console.log('REPO_IDDD', name, githubRepoId);
     const commitDataOnPr = await octokit(
       `GET /repos/${owner}/${name}/commits?per_page=${perPage}&page=${page}`
     );
@@ -55,7 +56,7 @@ async function getRepoCommits(
           mergedBranch: commitData.mergedBranch,
           pushedBranch: commitData.pushedBranch,
           repository: {
-            id: id,
+            id: githubRepoId,
             name: name,
             owner: owner,
           },
@@ -75,7 +76,7 @@ async function getRepoCommits(
       return;
     } else {
       page++;
-      await getRepoCommits(owner, name, id, perPage, page, octokit);
+      await getRepoCommits(owner, name, githubRepoId, perPage, page, octokit);
     }
   } catch (error) {
     logger.error('historical.commits.error');

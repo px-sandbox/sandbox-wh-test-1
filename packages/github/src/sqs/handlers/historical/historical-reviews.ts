@@ -81,6 +81,7 @@ async function getPrReviews(
         owner: messageBody.head.repo.owner.login,
         repoName: messageBody.head.repo.name,
         prNumber: messageBody.number,
+        repoId: messageBody.head.repo.id,
       },
       Queue.gh_historical_single_number.queueUrl
     );
