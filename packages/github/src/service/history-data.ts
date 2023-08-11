@@ -29,6 +29,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     let data = (
       await esClientObj.getClient().search({
         index: Github.Enums.IndexName.GitRepo,
+        size: 1000,
       })
     ).body;
     const formatedData = await searchedDataFormator(data);
