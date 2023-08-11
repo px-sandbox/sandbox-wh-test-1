@@ -28,7 +28,6 @@ export class SQSClient implements ISQSClient {
           MessageDeduplicationId: messageGroupId,
         };
       }
-      console.log('QUEUE_OBJ', queueObj);
       const res = await this.sqs.sendMessage(queueObj).promise();
 
       // const res = await this.sqs

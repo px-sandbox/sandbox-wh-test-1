@@ -17,7 +17,7 @@ export const handler = async function collectBranchData(event: SQSEvent): Promis
   const perPage = 100;
   await Promise.all(
     event.Records.map(async (record: any) => {
-      const messageBody = JSON.parse(record.body);
+      const [messageBody] = JSON.parse(record.body);
       await getRepoBranches(
         messageBody.owner,
         messageBody.name,
