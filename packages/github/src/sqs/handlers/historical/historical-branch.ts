@@ -2,12 +2,11 @@ import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import moment from 'moment';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
 
-export const handler = async function collectCommitData(event: SQSEvent): Promise<void> {
+export const handler = async function collectBranchData(event: SQSEvent): Promise<void> {
   const installationAccessToken = await getInstallationAccessToken();
   const octokit = ghRequest.request.defaults({
     headers: {
@@ -19,11 +18,10 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
   await Promise.all(
     event.Records.map(async (record: any) => {
       const messageBody = JSON.parse(record.body);
-      await getRepoCommits(
+      await getRepoBranches(
         messageBody.owner,
         messageBody.name,
         messageBody.githubRepoId,
-        messageBody.branchName,
         perPage,
         page,
         octokit
@@ -31,11 +29,10 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
     })
   );
 };
-async function getRepoCommits(
+async function getRepoBranches(
   owner: string,
   name: string,
   githubRepoId: string,
-  branchName: string,
   perPage: number,
   page: number,
   octokit: RequestInterface<{
@@ -45,42 +42,31 @@ async function getRepoCommits(
   }>
 ) {
   try {
-    const last_one_year_date = moment('2022-01-01', 'YYYY-MM-DD').toISOString();
-    const commitDataOnPr = await octokit(
-      `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=${perPage}&page=${page}&sort=created&direction=asc&since=${last_one_year_date}`
+    const branches = await octokit(
+      `GET /repos/${owner}/${name}/branches?per_page=${perPage}&page=${page}`
     );
-
     let queueProcessed = [];
-    queueProcessed = commitDataOnPr.data.map((commitData: any) => {
-      commitData.isMergedCommit = false;
-      commitData.mergedBranch = null;
-      commitData.pushedBranch = null;
+    queueProcessed = branches.data.map((branch: any) => {
       new SQSClient().sendMessage(
         {
-          commitId: commitData.sha,
-          isMergedCommit: commitData.isMergedCommit,
-          mergedBranch: commitData.mergedBranch,
-          pushedBranch: commitData.pushedBranch,
-          repository: {
-            id: githubRepoId,
-            name: name,
-            owner: owner,
-          },
-          timestamp: new Date(),
+          branchName: branch.name,
+          owner: owner,
+          name: name,
+          githubRepoId: githubRepoId,
         },
-        Queue.gh_commit_format.queueUrl
+        Queue.gh_historical_commits.queueUrl
       );
     });
     await Promise.all(queueProcessed);
 
-    if (commitDataOnPr.data.length < perPage) {
+    if (queueProcessed.data.length < perPage) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
       page++;
-      await getRepoCommits(owner, name, githubRepoId, branchName, perPage, page, octokit);
+      await getRepoBranches(owner, name, githubRepoId, perPage, page, octokit);
     }
   } catch (error) {
-    logger.error(JSON.stringify({ message: 'historical.commits.error', error }));
+    logger.error('historical.repoBranches.error', { error });
   }
 }

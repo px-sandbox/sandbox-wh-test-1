@@ -1,6 +1,5 @@
 import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
-import { Github } from 'abstraction';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { ghRequest } from 'src/lib/request-defaults';
@@ -70,6 +69,6 @@ async function getPrComments(
       await getPrComments(messageBody, perPage, page, octokit);
     }
   } catch (error) {
-    logger.error('historical.comments.error');
+    logger.error('historical.comments.error', { error });
   }
 }

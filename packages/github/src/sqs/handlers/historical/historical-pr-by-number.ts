@@ -85,7 +85,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
           }
         }
       } catch (error) {
-        logger.error('historical.pr.number.error');
+        logger.error('historical.pr.number.error', { error });
       }
     })
   );

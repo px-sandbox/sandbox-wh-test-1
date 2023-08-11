@@ -40,9 +40,6 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           `GET /repos/${repoOwner}/${repoName}/commits/${commitId}`
         );
 
-        logger.info('commitFormattedDataReciever.data_check', {
-          octokitResponse: responseData.data ?? false,
-        });
         const commitProcessor = new CommitProcessor({
           ...responseData.data,
           commits: {
