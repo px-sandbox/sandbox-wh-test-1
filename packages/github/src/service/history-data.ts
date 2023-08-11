@@ -24,14 +24,15 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     // ).body;
     // const formatedData = await searchedDataFormator(data);
     const repoData = await searchedDataFormator(data);
-
     logger.info({ level: 'info', message: 'github user data', repoData });
+
     let queueUrl = '';
     if (historyType == 'commits') {
       queueUrl = Queue.gh_historical_branch.queueUrl;
     } else {
       queueUrl = Queue.gh_historical_pr.queueUrl;
     }
+    
     await new SQSClient().sendMessage(repoData, queueUrl);
   } catch (error) {
     logger.error('HISTORY_DATA_ERROR', { error });
@@ -43,5 +44,6 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     .setResponseBodyCode('SUCCESS')
     .send();
 };
+
 const handler = collectData;
 export { collectData, handler };
