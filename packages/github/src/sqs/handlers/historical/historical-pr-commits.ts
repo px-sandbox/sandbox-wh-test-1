@@ -20,8 +20,18 @@ export const handler = async function collectPRCommitData(event: SQSEvent): Prom
   let page = 1;
   const perPage = 100;
   await Promise.all(
-    event.Records.map(async (record: any) => {
-      logger.info(`PR_NUMBER: ${record.body.number}`, `REPO_NAME: ${record.body.head.repo.name}`);
+    event.Records.filter((record: any) => {
+      const body = JSON.parse(record.body);
+      if (body.head && body.head.repo) {
+        return true;
+      }
+
+      logger.info(`
+      PR with no repo: ${body}
+      `);
+
+      return false;
+    }).map(async (record: any) => {
       await getPRCommits(JSON.parse(record.body), perPage, page, octokit);
     })
   );
@@ -37,6 +47,10 @@ async function getPRCommits(
   }>
 ) {
   try {
+    if (!messageBody && !messageBody.head) {
+      logger.info('HISTORY_MESSGE_BODY', messageBody);
+      return;
+    }
     const commentsDataOnPr = await octokit(
       `GET /repos/${messageBody.head.repo.owner.login}/${messageBody.head.repo.name}/pulls/${messageBody.number}/commits?per_page=${perPage}&page=${page}`
     );
