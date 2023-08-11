@@ -32,7 +32,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/users.handler',
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -45,7 +45,7 @@ export function gh({ stack }: StackContext) {
       },
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -56,7 +56,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/repo.handler',
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -69,7 +69,7 @@ export function gh({ stack }: StackContext) {
       },
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -79,7 +79,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/branch.handler',
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -92,7 +92,7 @@ export function gh({ stack }: StackContext) {
       },
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -103,7 +103,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -117,7 +117,7 @@ export function gh({ stack }: StackContext) {
       },
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -128,7 +128,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/commit.handler',
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -141,7 +141,7 @@ export function gh({ stack }: StackContext) {
       },
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -152,7 +152,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/push.handler',
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -165,7 +165,7 @@ export function gh({ stack }: StackContext) {
       },
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -175,7 +175,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -210,7 +210,7 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -224,7 +224,7 @@ export function gh({ stack }: StackContext) {
       },
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -234,7 +234,7 @@ export function gh({ stack }: StackContext) {
     consumer: {
       function: {
         handler: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
-        timeout: '20 seconds',
+        timeout: '30 seconds',
       },
       cdk: {
         eventSource: {
@@ -252,7 +252,7 @@ export function gh({ stack }: StackContext) {
       },
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -304,11 +304,11 @@ export function gh({ stack }: StackContext) {
     consumer: {
       function: {
         handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commits.handler',
-        timeout: '20 seconds',
+        timeout: '30 seconds',
       },
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
@@ -318,11 +318,11 @@ export function gh({ stack }: StackContext) {
     consumer: {
       function: {
         handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
-        timeout: '20 seconds',
+        timeout: '30 seconds',
       },
       cdk: {
         eventSource: {
-          batchSize: 1,
+          batchSize: 5,
         },
       },
     },
