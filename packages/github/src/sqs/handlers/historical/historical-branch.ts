@@ -45,8 +45,13 @@ async function getRepoBranches(
     const branches = await octokit(
       `GET /repos/${owner}/${name}/branches?per_page=${perPage}&page=${page}`
     );
+
+    const branchNameRegx = new RegExp('^(dev|develop|development)$', 'g');
     let queueProcessed = [];
     queueProcessed = branches.data.map((branch: any) => {
+      if (!branchNameRegx.test(branch.name)) {
+        return;
+      }
       new SQSClient().sendMessage(
         {
           branchName: branch.name,
