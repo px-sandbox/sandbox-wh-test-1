@@ -1,9 +1,12 @@
 import { RequestInterface } from '@octokit/types';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import moment from 'moment';
+import { mappingPrefixes } from 'src/constant/config';
 import { ghRequest } from 'src/lib/request-defaults';
+import { ParamsMapping } from 'src/model/params-mapping';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
 
@@ -19,6 +22,7 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
   await Promise.all(
     event.Records.map(async (record: any) => {
       const messageBody = JSON.parse(record.body);
+
       await getRepoCommits(
         messageBody.owner,
         messageBody.name,
@@ -51,7 +55,15 @@ async function getRepoCommits(
     );
 
     let queueProcessed = [];
-    queueProcessed = commitDataOnPr.data.map((commitData: any) => {
+    queueProcessed = commitDataOnPr.data.map(async (commitData: any) => {
+      // const commitId = `${mappingPrefixes.commit}_${commitData.sha}`;
+      // const records = await new DynamoDbDocClient().find(
+      //   new ParamsMapping().prepareGetParams(commitId)
+      // );
+      // if (records) {
+      //   logger.info('DYNAMO_DB_DATA_FOUND', records);
+      //   return;
+      // }
       commitData.isMergedCommit = false;
       commitData.mergedBranch = null;
       commitData.pushedBranch = null;
@@ -68,7 +80,8 @@ async function getRepoCommits(
           },
           timestamp: new Date(),
         },
-        Queue.gh_commit_format.queueUrl
+        Queue.gh_commit_format.queueUrl,
+        commitData.sha
       );
     });
     await Promise.all(queueProcessed);

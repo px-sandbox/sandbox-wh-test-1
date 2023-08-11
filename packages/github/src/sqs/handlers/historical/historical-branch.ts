@@ -59,7 +59,7 @@ async function getRepoBranches(
     });
     await Promise.all(queueProcessed);
 
-    if (queueProcessed.data.length < perPage) {
+    if (queueProcessed.length < perPage) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
