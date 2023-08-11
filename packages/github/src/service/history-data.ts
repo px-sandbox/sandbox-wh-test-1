@@ -39,9 +39,16 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     } else {
       queueUrl = Queue.gh_historical_pr.queueUrl;
     }
-    for (let repoData of formatedData) {
-      await new SQSClient().sendMessage(repoData, queueUrl);
-    }
+
+    logger.info(`Total Repositories Processing: ${formatedData.length}`);
+
+    await Promise.all(
+      formatedData.map((repoData: any) => new SQSClient().sendMessage(repoData, queueUrl))
+    );
+
+    // for (let repoData of formatedData) {
+    //   await new SQSClient().sendMessage(repoData, queueUrl);
+    // }
   } catch (error) {
     logger.error('HISTORY_DATA_ERROR', { error });
   }
@@ -52,5 +59,6 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     .setResponseBodyCode('SUCCESS')
     .send();
 };
+
 const handler = collectData;
 export { collectData, handler };
