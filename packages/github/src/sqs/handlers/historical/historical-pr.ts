@@ -2,6 +2,7 @@ import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
+import moment from 'moment';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
@@ -44,32 +45,28 @@ async function getPrList(
   isCommit: boolean
 ) {
   try {
+    const last_one_year_date = moment().subtract(1, 'year').toISOString();
     const responseData = await octokit(
-      `GET /repos/${owner}/${name}/pulls?state=all&per_page=${perPage}&page=${page}`
+      `GET /repos/${owner}/${name}/pulls?state=all&per_page=${perPage}&page=${page}&sort=created&direction=desc`
     );
-
     if (responseData.data.length === 0) {
+      logger.info('HISTORY_EMPTY_PULLS', responseData);
       return;
     }
+    const prs = responseData.data.filter((pr: any) =>
+      moment(pr.created_at).isSameOrAfter(last_one_year_date)
+    );
     let processes = [];
-    if (isCommit) {
-      processes = responseData.data.map((prData: any) =>
-        new SQSClient().sendMessage(prData, Queue.gh_historical_pr_commits.queueUrl)
-      );
-    } else {
-      processes = [
-        ...responseData.data.map((prData: any) =>
-          new SQSClient().sendMessage(prData, Queue.gh_historical_reviews.queueUrl)
-        ),
-        ...responseData.data.map((prData: any) =>
-          new SQSClient().sendMessage(prData, Queue.gh_historical_pr_comments.queueUrl)
-        ),
-      ];
-    }
-
+    processes = [
+      ...prs.map((prData: any) =>
+        new SQSClient().sendMessage(prData, Queue.gh_historical_reviews.queueUrl)
+      ),
+      ...prs.map((prData: any) =>
+        new SQSClient().sendMessage(prData, Queue.gh_historical_pr_comments.queueUrl)
+      ),
+    ];
     await Promise.all(processes);
-
-    if (responseData.data.length < perPage) {
+    if (prs.length < perPage) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
@@ -77,6 +74,6 @@ async function getPrList(
       await getPrList(owner, name, perPage, page, octokit, isCommit);
     }
   } catch (error) {
-    logger.error('historical.PR.error');
+    logger.error('historical.PR.error', { error });
   }
 }

@@ -18,9 +18,20 @@ export const handler = async function collectPrReviewsData(event: SQSEvent): Pro
   const perPage = 100;
 
   await Promise.all(
-    event.Records.map((record: any) =>
-      getPrReviews(JSON.parse(record.body), perPage, page, octokit)
-    )
+    event.Records.filter((record: any) => {
+      const body = JSON.parse(record.body);
+      if (body.head && body.head.repo) {
+        return true;
+      }
+
+      logger.info(`
+      PR with no repo: ${body}
+      `);
+
+      return false;
+    }).map(async (record: any) => {
+      await getPrReviews(JSON.parse(record.body), perPage, page, octokit);
+    })
   );
 };
 
@@ -103,6 +114,6 @@ async function getPrReviews(
       }
     }
   } catch (error) {
-    logger.error('historical.reviews.error');
+    logger.error('historical.reviews.error', { error });
   }
 }

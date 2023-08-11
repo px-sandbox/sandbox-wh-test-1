@@ -35,7 +35,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     logger.info({ level: 'info', message: 'github user data', formatedData });
     let queueUrl = '';
     if (historyType == 'commits') {
-      queueUrl = Queue.gh_historical_commits.queueUrl;
+      queueUrl = Queue.gh_historical_branch.queueUrl;
     } else {
       queueUrl = Queue.gh_historical_pr.queueUrl;
     }

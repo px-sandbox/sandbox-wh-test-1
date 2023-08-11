@@ -1,12 +1,8 @@
 import { RequestInterface } from '@octokit/types';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
-import { Github } from 'abstraction';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { mappingPrefixes } from 'src/constant/config';
 import { ghRequest } from 'src/lib/request-defaults';
-import { ParamsMapping } from 'src/model/params-mapping';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
 
@@ -65,7 +61,7 @@ async function getPRCommits(
       await getPRCommits(messageBody, perPage, page, octokit);
     }
   } catch (error) {
-    logger.error('historical.PR.commits.error');
+    logger.error('historical.PR.commits.error', { error });
   }
 }
 
