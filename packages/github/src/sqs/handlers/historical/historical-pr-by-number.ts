@@ -79,7 +79,8 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
                   },
                   timestamp: new Date(),
                 },
-                Queue.gh_commit_format.queueUrl
+                Queue.gh_commit_format.queueUrl,
+                commitsData.githubCommitId
               );
             }
           }

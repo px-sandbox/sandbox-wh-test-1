@@ -1,12 +1,9 @@
 import { RequestInterface } from '@octokit/types';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import moment from 'moment';
-import { mappingPrefixes } from 'src/constant/config';
 import { ghRequest } from 'src/lib/request-defaults';
-import { ParamsMapping } from 'src/model/params-mapping';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
 
@@ -20,7 +17,18 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
   let page = 1;
   const perPage = 100;
   await Promise.all(
-    event.Records.map(async (record: any) => {
+    event.Records.filter((record: any) => {
+      const body = JSON.parse(record.body);
+      if (body.owner && body.name && body.branchName) {
+        return true;
+      }
+
+      logger.info(`
+      COMMIT_MESSAGE_BODY: ${body}
+      `);
+
+      return false;
+    }).map(async (record: any) => {
       const messageBody = JSON.parse(record.body);
 
       await getRepoCommits(
@@ -53,9 +61,8 @@ async function getRepoCommits(
     const commitDataOnPr = await octokit(
       `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=${perPage}&page=${page}&sort=created&direction=asc&since=${last_one_year_date}`
     );
-
     let queueProcessed = [];
-    queueProcessed = commitDataOnPr.data.map(async (commitData: any) => {
+    queueProcessed = commitDataOnPr.data.map((commitData: any) =>
       // const commitId = `${mappingPrefixes.commit}_${commitData.sha}`;
       // const records = await new DynamoDbDocClient().find(
       //   new ParamsMapping().prepareGetParams(commitId)
@@ -64,15 +71,15 @@ async function getRepoCommits(
       //   logger.info('DYNAMO_DB_DATA_FOUND', records);
       //   return;
       // }
-      commitData.isMergedCommit = false;
-      commitData.mergedBranch = null;
-      commitData.pushedBranch = null;
+      // commitData.isMergedCommit = false;
+      // commitData.mergedBranch = null;
+      // commitData.pushedBranch = null;
       new SQSClient().sendMessage(
         {
           commitId: commitData.sha,
-          isMergedCommit: commitData.isMergedCommit,
-          mergedBranch: commitData.mergedBranch,
-          pushedBranch: commitData.pushedBranch,
+          isMergedCommit: false,
+          mergedBranch: null,
+          pushedBranch: null,
           repository: {
             id: githubRepoId,
             name: name,
@@ -82,8 +89,8 @@ async function getRepoCommits(
         },
         Queue.gh_commit_format.queueUrl,
         commitData.sha
-      );
-    });
+      )
+    );
     await Promise.all(queueProcessed);
 
     if (commitDataOnPr.data.length < perPage) {
