@@ -346,6 +346,9 @@ export function gh({ stack }: StackContext) {
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
+    OPENSEARCH_NODE,
+    OPENSEARCH_USERNAME,
+    OPENSEARCH_PASSWORD,
   ]);
   pRFormatDataQueue.bind([
     table,
