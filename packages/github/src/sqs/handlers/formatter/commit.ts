@@ -4,6 +4,9 @@ import { CommitProcessor } from 'src/processors/commit';
 import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { ghRequest } from 'src/lib/request-defaults';
+import { mappingPrefixes } from 'src/constant/config';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ParamsMapping } from 'src/model/params-mapping';
 
 export const handler = async function commitFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
@@ -28,7 +31,14 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
          * Get commit details from Github API
          * ------------------------------------
          */
-
+        const commitSha = `${mappingPrefixes.commit}_${commitId}`;
+        const records = await new DynamoDbDocClient().find(
+          new ParamsMapping().prepareGetParams(commitSha)
+        );
+        if (records) {
+          logger.info('COMMIT_FOUND_IN_DYNAMODB', records);
+          return;
+        }
         const installationAccessToken = await getInstallationAccessToken();
         const octokit = ghRequest.request.defaults({
           headers: {

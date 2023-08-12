@@ -145,6 +145,11 @@ export function gh({ stack }: StackContext) {
         },
       },
     },
+    cdk: {
+      queue: {
+        fifo: true,
+      },
+    },
   });
 
   const pushIndexDataQueue = new Queue(stack, 'gh_push_index', {
@@ -281,6 +286,7 @@ export function gh({ stack }: StackContext) {
       cdk: {
         eventSource: {
           batchSize: 1,
+          maxConcurrency: 2,
         },
       },
     },
@@ -295,6 +301,7 @@ export function gh({ stack }: StackContext) {
       cdk: {
         eventSource: {
           batchSize: 1,
+          maxConcurrency: 2,
         },
       },
     },

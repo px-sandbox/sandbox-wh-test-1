@@ -17,7 +17,7 @@ export const handler = async function collectBranchData(event: SQSEvent): Promis
   const perPage = 100;
   await Promise.all(
     event.Records.map(async (record: any) => {
-      const messageBody = JSON.parse(record.body);
+      const [messageBody] = JSON.parse(record.body);
       await getRepoBranches(
         messageBody.owner,
         messageBody.name,
@@ -45,8 +45,13 @@ async function getRepoBranches(
     const branches = await octokit(
       `GET /repos/${owner}/${name}/branches?per_page=${perPage}&page=${page}`
     );
+
+    const branchNameRegx = new RegExp('^(dev|develop|development)$', 'g');
     let queueProcessed = [];
     queueProcessed = branches.data.map((branch: any) => {
+      if (!branchNameRegx.test(branch.name)) {
+        return;
+      }
       new SQSClient().sendMessage(
         {
           branchName: branch.name,
@@ -59,7 +64,7 @@ async function getRepoBranches(
     });
     await Promise.all(queueProcessed);
 
-    if (queueProcessed.data.length < perPage) {
+    if (queueProcessed.length < perPage) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
