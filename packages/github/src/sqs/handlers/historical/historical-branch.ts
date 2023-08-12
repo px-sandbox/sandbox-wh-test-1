@@ -45,12 +45,12 @@ async function getRepoBranches(
     const branches = await octokit(
       `GET /repos/${owner}/${name}/branches?per_page=${perPage}&page=${page}`
     );
-
+    logger.info('BRANCH_DATA', branches);
     const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/;
     let queueProcessed = [];
     queueProcessed = branches.data
       .filter((branchName: any) => branchNameRegx.test(branchName.name))
-      .map((branch: any) => {
+      .map((branch: any) =>
         new SQSClient().sendMessage(
           {
             branchName: branch.name,
@@ -59,8 +59,8 @@ async function getRepoBranches(
             githubRepoId: githubRepoId,
           },
           Queue.gh_historical_commits.queueUrl
-        );
-      });
+        )
+      );
     await Promise.all(queueProcessed);
 
     if (queueProcessed.length < perPage) {
