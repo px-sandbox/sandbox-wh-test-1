@@ -36,8 +36,8 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           new ParamsMapping().prepareGetParams(commitSha)
         );
         if (records) {
-          logger.info('COMMIT_FOUND_IN_DYNAMODB', records);
-          return;
+          logger.info('COMMIT_FOUND_IN_DYNAMODB', { records });
+          return false;
         }
         const installationAccessToken = await getInstallationAccessToken();
         const octokit = ghRequest.request.defaults({
