@@ -46,22 +46,21 @@ async function getRepoBranches(
       `GET /repos/${owner}/${name}/branches?per_page=${perPage}&page=${page}`
     );
 
-    const branchNameRegx = new RegExp('^(dev|develop|development)$', 'g');
+    const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/;
     let queueProcessed = [];
-    queueProcessed = branches.data.map((branch: any) => {
-      if (!branchNameRegx.test(branch.name)) {
-        return;
-      }
-      new SQSClient().sendMessage(
-        {
-          branchName: branch.name,
-          owner: owner,
-          name: name,
-          githubRepoId: githubRepoId,
-        },
-        Queue.gh_historical_commits.queueUrl
-      );
-    });
+    queueProcessed = branches.data
+      .filter((branchName: any) => branchNameRegx.test(branchName.name))
+      .map((branch: any) => {
+        new SQSClient().sendMessage(
+          {
+            branchName: branch.name,
+            owner: owner,
+            name: name,
+            githubRepoId: githubRepoId,
+          },
+          Queue.gh_historical_commits.queueUrl
+        );
+      });
     await Promise.all(queueProcessed);
 
     if (queueProcessed.length < perPage) {
