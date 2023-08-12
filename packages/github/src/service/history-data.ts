@@ -32,8 +32,9 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     } else {
       queueUrl = Queue.gh_historical_pr.queueUrl;
     }
-    
-    await new SQSClient().sendMessage(repoData, queueUrl);
+    if (repoData) {
+      await new SQSClient().sendMessage(repoData, queueUrl);
+    }
   } catch (error) {
     logger.error('HISTORY_DATA_ERROR', { error });
   }
