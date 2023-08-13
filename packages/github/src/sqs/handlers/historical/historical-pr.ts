@@ -19,7 +19,7 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
   const perPage = 100;
   await Promise.all(
     event.Records.filter((record: any) => {
-      const [body] = JSON.parse(record.body);
+      const body = JSON.parse(record.body);
 
       if (body.owner && body.name) {
         return true;
@@ -31,7 +31,7 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
 
       return false;
     }).map(async (record: any) => {
-      const [messageBody] = JSON.parse(record.body);
+      const messageBody = JSON.parse(record.body);
       logger.info('ALL_PR', { messageBody });
       await getPrList(
         messageBody.owner,

@@ -17,7 +17,7 @@ export const handler = async function collectBranchData(event: SQSEvent): Promis
   const perPage = 100;
   await Promise.all(
     event.Records.filter((record: any) => {
-      const [body] = JSON.parse(record.body);
+      const body = JSON.parse(record.body);
       if (body.owner && body.name) {
         return true;
       }
@@ -27,7 +27,7 @@ export const handler = async function collectBranchData(event: SQSEvent): Promis
 
       return false;
     }).map(async (record: any) => {
-      const [messageBody] = JSON.parse(record.body);
+      const messageBody = JSON.parse(record.body);
       await getRepoBranches(
         messageBody.owner,
         messageBody.name,

@@ -49,7 +49,7 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           logger.info('COMMIT_FOUND_IN_ELASTICSEARCH', { esData });
           return false;
         }
-        // CHECK DATA EXISTS IN DYNAMODB
+        // // CHECK DATA EXISTS IN DYNAMODB
         // const commitSha = `${mappingPrefixes.commit}_${commitId}`;
         // const records = await new DynamoDbDocClient().find(
         //   new ParamsMapping().prepareGetParams(commitSha)
