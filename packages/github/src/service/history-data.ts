@@ -23,7 +23,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     //   })
     // ).body;
     // const formatedData = await searchedDataFormator(data);
-    const repoData = await searchedDataFormator(data);
+    const [repoData] = await searchedDataFormator(data);
     logger.info({ level: 'info', message: 'github user data', repoData });
 
     let queueUrl = '';

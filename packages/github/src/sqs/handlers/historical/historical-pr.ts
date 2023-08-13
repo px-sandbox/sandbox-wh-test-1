@@ -18,9 +18,21 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
   let page = 1;
   const perPage = 100;
   await Promise.all(
-    event.Records.map(async (record: any) => {
+    event.Records.filter((record: any) => {
+      const body = JSON.parse(record.body);
+
+      if (body.owner && body.name) {
+        return true;
+      }
+
+      logger.info(`
+      PR_MESSAGE_BODY: ${JSON.stringify(body)}
+      `);
+
+      return false;
+    }).map(async (record: any) => {
       const messageBody = JSON.parse(record.body);
-      logger.info('ALL_COMMIT_HISTORY_FOR_A_REPO', { messageBody });
+      logger.info('ALL_PR', { messageBody });
       await getPrList(
         messageBody.owner,
         messageBody.name,
