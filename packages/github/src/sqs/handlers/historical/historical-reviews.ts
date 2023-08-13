@@ -5,6 +5,7 @@ import { logger } from 'core';
 import moment from 'moment';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
 export const handler = async function collectPrReviewsData(event: SQSEvent): Promise<any> {
@@ -14,8 +15,6 @@ export const handler = async function collectPrReviewsData(event: SQSEvent): Pro
       Authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
-  let page = 1;
-  const perPage = 100;
 
   await Promise.all(
     event.Records.filter((record: any) => {
@@ -30,24 +29,34 @@ export const handler = async function collectPrReviewsData(event: SQSEvent): Pro
 
       return false;
     }).map(async (record: any) => {
-      await getPrReviews(JSON.parse(record.body), perPage, page, octokit);
+      await getPrReviews(record, octokit);
     })
   );
 };
 
 async function getPrReviews(
-  messageBody: any,
-  perPage: number,
-  page: number,
+  record: any,
   octokit: RequestInterface<{
     headers: {
       Authorization: string;
     };
   }>
 ) {
+  const messageBody = JSON.parse(record.body);
+  if (!messageBody && !messageBody.head) {
+    logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
+    return;
+  }
+  const {
+    page = 1,
+    number,
+    head: {
+      repo: { owner, name },
+    },
+  } = messageBody;
   try {
     const prReviews = await octokit(
-      `GET /repos/${messageBody.head.repo.owner.login}/${messageBody.head.repo.name}/pulls/${messageBody.number}/reviews?per_page=${perPage}&page=${page}`
+      `GET /repos/${owner.login}/${name}/pulls/${number}/reviews?per_page=100&page=${page}`
     );
     let queueProcessed = [];
     queueProcessed = prReviews.data.map((reviews: any) =>
@@ -105,15 +114,16 @@ async function getPrReviews(
         Queue.gh_historical_pr_by_number.queueUrl
       );
 
-      if (prReviews.data.length < perPage) {
+      if (prReviews.data.length < 100) {
         logger.info('LAST_100_RECORD_PR_REVIEW');
         return;
       } else {
-        page++;
-        await getPrReviews(messageBody, perPage, page, octokit);
+        messageBody.page = page + 1;
+        await new SQSClient().sendMessage(messageBody, Queue.gh_historical_reviews.queueUrl);
       }
     }
   } catch (error) {
     logger.error('historical.reviews.error', { error });
+    await logProcessToRetry(record, Queue.gh_historical_reviews.queueUrl, error);
   }
 }

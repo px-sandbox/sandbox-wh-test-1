@@ -1,19 +1,11 @@
-import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
-import { Github } from 'abstraction';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import esb from 'elastic-builder';
 import moment from 'moment';
-import { mappingPrefixes } from 'src/constant/config';
 import { ghRequest } from 'src/lib/request-defaults';
-import { ParamsMapping } from 'src/model/params-mapping';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
-import { searchedDataFormator } from 'src/util/response-formatter';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { getWorkingTime } from 'src/util/timezone-calculation';
-import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 
 export const handler = async function collectPrByNumberData(event: SQSEvent): Promise<void> {
@@ -54,39 +46,39 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
           Queue.gh_pr_format.queueUrl
         );
 
-        // setting the `isMergedCommit` of commit
+        // setting the `isMergedCommit` for commit
         if (dataOnPr.data.merged === true) {
-          const commitId = `${mappingPrefixes.commit}_${dataOnPr.data.merge_commit_sha}`;
-          const records = await new DynamoDbDocClient().find(
-            new ParamsMapping().prepareGetParams(commitId)
+          // const commitId = `${mappingPrefixes.commit}_${dataOnPr.data.merge_commit_sha}`;
+          // const records = await new DynamoDbDocClient().find(
+          //   new ParamsMapping().prepareGetParams(commitId)
+          // );
+          // console.log('DDB_RECORD', records);
+          // if (records) {
+          //   const commitQuery = esb.matchQuery('body.id', commitId).toJSON();
+          //   const commits = await new ElasticSearchClient({
+          //     host: Config.OPENSEARCH_NODE,
+          //     username: Config.OPENSEARCH_USERNAME ?? '',
+          //     password: Config.OPENSEARCH_PASSWORD ?? '',
+          //   }).searchWithEsb(Github.Enums.IndexName.GitCommits, commitQuery);
+          //   const [commitsData] = await searchedDataFormator(commits);
+          //   console.log('COMMIT_SHSH', commitsData);
+          //   if (commitsData) {
+          await new SQSClient().sendMessage(
+            {
+              commitId: dataOnPr.data.merge_commit_sha,
+              isMergedCommit: dataOnPr.data.merged,
+              mergedBranch: null,
+              pushedBranch: dataOnPr.data.head.ref,
+              repository: {
+                id: messageBody.repoId,
+                name: messageBody.repoName,
+                owner: messageBody.owner,
+              },
+              timestamp: new Date(),
+            },
+            Queue.gh_commit_format.queueUrl,
+            dataOnPr.data.merge_commit_sha
           );
-          if (records) {
-            const commitQuery = esb.matchQuery('body.id', commitId).toJSON();
-            const commits = await new ElasticSearchClient({
-              host: Config.OPENSEARCH_NODE,
-              username: Config.OPENSEARCH_USERNAME ?? '',
-              password: Config.OPENSEARCH_PASSWORD ?? '',
-            }).searchWithEsb(Github.Enums.IndexName.GitCommits, commitQuery);
-            const [commitsData] = await searchedDataFormator(commits);
-            if (commitsData) {
-              await new SQSClient().sendMessage(
-                {
-                  commitId: commitsData.githubCommitId,
-                  isMergedCommit: dataOnPr.data.merged,
-                  mergedBranch: null,
-                  pushedBranch: dataOnPr.data.head.ref,
-                  repository: {
-                    id: messageBody.repoId,
-                    name: messageBody.repoName,
-                    owner: messageBody.owner,
-                  },
-                  timestamp: new Date(),
-                },
-                Queue.gh_commit_format.queueUrl,
-                commitsData.githubCommitId
-              );
-            }
-          }
         }
       } catch (error) {
         await logProcessToRetry(record, Queue.gh_historical_pr_by_number.queueUrl, error);

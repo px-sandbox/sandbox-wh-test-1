@@ -242,102 +242,112 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const collectPRData = new Queue(stack, 'gh_historical_pr', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
-        timeout: '30 seconds',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 1,
-        },
+  const collectPRData = new Queue(stack, 'gh_historical_pr');
+
+  collectPRData.addConsumer(stack, {
+    function: new Function(stack, 'histPRFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
+      timeout: '30 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectPRData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
       },
     },
   });
 
-  const collectReviewsData = new Queue(stack, 'gh_historical_reviews', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-reviews.handler',
-        timeout: '30 seconds',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const collectReviewsData = new Queue(stack, 'gh_historical_reviews');
+
+  collectReviewsData.addConsumer(stack, {
+    function: new Function(stack, 'histPrReviewFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-reviews.handler',
+      timeout: '30 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectReviewsData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
 
-  const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-pr-by-number.handler',
-        timeout: '20 seconds',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 1,
-        },
-      },
-    },
-  });
-
-  const collectCommitsData = new Queue(stack, 'gh_historical_commits', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-commits.handler',
-        timeout: '30 seconds',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 1,
-          maxConcurrency: 2,
-        },
+  const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number');
+  collecthistoricalPrByumber.addConsumer(stack, {
+    function: new Function(stack, 'histPrFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-by-number.handler',
+      timeout: '20 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collecthistoricalPrByumber],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
       },
     },
   });
 
-  const historicalBranch = new Queue(stack, 'gh_historical_branch', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-branch.handler',
-        timeout: '30 seconds',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 1,
-          maxConcurrency: 2,
-        },
-      },
-    },
-  });
-
-  const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commits.handler',
-        timeout: '30 seconds',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const collectCommitsData = new Queue(stack, 'gh_historical_commits');
+  collectCommitsData.addConsumer(stack, {
+    function: new Function(stack, 'histCommitFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-commits.handler',
+      timeout: '30 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectCommitsData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
+        maxConcurrency: 2,
       },
     },
   });
 
-  const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
-        timeout: '30 seconds',
+  const historicalBranch = new Queue(stack, 'gh_historical_branch');
+
+  historicalBranch.addConsumer(stack, {
+    function: new Function(stack, 'histBranchFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-branch.handler',
+      bind: [historicalBranch],
+      runtime: 'nodejs18.x',
+      timeout: '30 seconds',
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
+        maxConcurrency: 2,
       },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+    },
+  });
+
+  const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits');
+  collectPRCommitsData.addConsumer(stack, {
+    function: new Function(stack, 'histPRCommitFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commits.handler',
+      timeout: '30 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectPRCommitsData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+
+  const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments');
+  collectPRReviewCommentsData.addConsumer(stack, {
+    function: new Function(stack, 'histPRReviewFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
+      timeout: '30 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectPRReviewCommentsData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });

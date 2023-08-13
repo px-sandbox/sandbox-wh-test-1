@@ -4,6 +4,7 @@ import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
 export const handler = async function collectPRCommentsData(event: SQSEvent): Promise<any> {
@@ -13,8 +14,7 @@ export const handler = async function collectPRCommentsData(event: SQSEvent): Pr
       Authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
-  let page = 1;
-  const perPage = 100;
+
   await Promise.all(
     event.Records.filter((record: any) => {
       const body = JSON.parse(record.body);
@@ -28,27 +28,34 @@ export const handler = async function collectPRCommentsData(event: SQSEvent): Pr
 
       return false;
     }).map(async (record: any) => {
-      await getPrComments(JSON.parse(record.body), perPage, page, octokit);
+      await getPrComments(record, octokit);
     })
   );
 };
 async function getPrComments(
-  messageBody: any,
-  perPage: number,
-  page: number,
+  record: any,
   octokit: RequestInterface<{
     headers: {
       Authorization: string;
     };
   }>
 ) {
+  const messageBody = JSON.parse(record.body);
+  if (!messageBody && !messageBody.head) {
+    logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
+    return;
+  }
+  const {
+    page = 1,
+    number,
+    head: {
+      repo: { owner, name },
+    },
+  } = messageBody;
+
   try {
-    if (!messageBody && !messageBody.head) {
-      logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
-      return;
-    }
     const commentsDataOnPr = await octokit(
-      `GET /repos/${messageBody.head.repo.owner.login}/${messageBody.head.repo.name}/pulls/${messageBody.number}/comments?per_page=${perPage}&page=${page}`
+      `GET /repos/${owner.login}/${name}/pulls/${number}/comments?per_page=100&page=${page}`
     );
     commentsDataOnPr.data.map(async (comments: any) => {
       await new SQSClient().sendMessage(
@@ -61,14 +68,15 @@ async function getPrComments(
       );
     });
 
-    if (commentsDataOnPr.data.length < perPage) {
+    if (commentsDataOnPr.data.length < 100) {
       logger.info('LAST_100_RECORD_PR_REVIEW');
       return;
     } else {
-      page++;
-      await getPrComments(messageBody, perPage, page, octokit);
+      messageBody.page = page + 1;
+      await new SQSClient().sendMessage(messageBody, Queue.gh_historical_pr_comments.queueUrl);
     }
   } catch (error) {
+    await logProcessToRetry(record, Queue.gh_historical_pr_comments.queueUrl, error);
     logger.error('historical.comments.error', { error });
   }
 }
