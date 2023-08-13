@@ -11,6 +11,7 @@ import { ghRequest } from 'src/lib/request-defaults';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { searchedDataFormator } from 'src/util/response-formatter';
+import { logProcessToRetry } from 'src/util/retry-process';
 import { getWorkingTime } from 'src/util/timezone-calculation';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
@@ -52,6 +53,8 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
           },
           Queue.gh_pr_format.queueUrl
         );
+
+        // setting the `isMergedCommit` of commit
         if (dataOnPr.data.merged === true) {
           const commitId = `${mappingPrefixes.commit}_${dataOnPr.data.merge_commit_sha}`;
           const records = await new DynamoDbDocClient().find(
@@ -86,6 +89,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
           }
         }
       } catch (error) {
+        await logProcessToRetry(record, Queue.gh_historical_pr_by_number.queueUrl, error);
         logger.error('historical.pr.number.error', { error });
       }
     })

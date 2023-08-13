@@ -32,6 +32,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     } else {
       queueUrl = Queue.gh_historical_pr.queueUrl;
     }
+
     if (repoData) {
       await new SQSClient().sendMessage(repoData, queueUrl);
     }

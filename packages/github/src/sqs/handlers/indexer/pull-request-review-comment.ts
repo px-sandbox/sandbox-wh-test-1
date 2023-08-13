@@ -1,6 +1,8 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { savePRReviewComment } from 'src/lib/save-pull-request-review-comment';
+import { logProcessToRetry } from 'src/util/retry-process';
+import { Queue } from 'sst/node/queue';
 
 export const handler = async function pullRequestReviewCommentIndexDataReciever(
   event: SQSEvent
@@ -15,6 +17,7 @@ export const handler = async function pullRequestReviewCommentIndexDataReciever(
 
         await savePRReviewComment(messageBody);
       } catch (error) {
+        await logProcessToRetry(record, Queue.gh_pr_review_comment_index.queueUrl, error);
         logger.error('pRReviewCommentIndexDataReciever.error', { error });
       }
     })

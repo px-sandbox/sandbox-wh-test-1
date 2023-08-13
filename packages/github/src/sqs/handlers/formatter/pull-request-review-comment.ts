@@ -1,6 +1,7 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { PRReviewCommentProcessor } from 'src/processors/pull-request-review-comment';
+import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
 export const handler = async function pRReviewCommentFormattedDataReciever(
@@ -35,6 +36,7 @@ export const handler = async function pRReviewCommentFormattedDataReciever(
           Queue.gh_pr_review_comment_index.queueUrl
         );
       } catch (error) {
+        await logProcessToRetry(record, Queue.gh_pr_review_comment_format.queueUrl, error);
         logger.error('pRReviewCommentFormattedDataReciever.error', error);
       }
     })

@@ -26,6 +26,13 @@ export function gh({ stack }: StackContext) {
     primaryIndex: { partitionKey: 'parentId' },
   });
 
+  const retryProcessTable = new Table(stack, 'RetryProcesses', {
+    fields: {
+      processId: 'string',
+    },
+    primaryIndex: { partitionKey: 'processId' },
+  });
+
   // create queues
   const userIndexDataQueue = new Queue(stack, 'gh_users_index', {
     consumer: {
@@ -336,11 +343,12 @@ export function gh({ stack }: StackContext) {
   });
 
   // bind tables and config to queue
-  userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
-  repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
-  branchFormatDataQueue.bind([table, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
+  userFormatDataQueue.bind([table, retryProcessTable, userIndexDataQueue, GIT_ORGANIZATION_ID]);
+  repoFormatDataQueue.bind([table, retryProcessTable, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
+  branchFormatDataQueue.bind([table, retryProcessTable, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
   commitFormatDataQueue.bind([
     table,
+    retryProcessTable,
     commitIndexDataQueue,
     GIT_ORGANIZATION_ID,
     GITHUB_APP_PRIVATE_KEY_PEM,
@@ -352,6 +360,7 @@ export function gh({ stack }: StackContext) {
   ]);
   pRFormatDataQueue.bind([
     table,
+    retryProcessTable,
     pRIndexDataQueue,
     GIT_ORGANIZATION_ID,
     OPENSEARCH_NODE,
@@ -359,29 +368,77 @@ export function gh({ stack }: StackContext) {
     OPENSEARCH_PASSWORD,
     commitFormatDataQueue,
   ]);
-  pushFormatDataQueue.bind([table, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
-  pRReviewCommentFormatDataQueue.bind([table, pRReviewCommentIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pushFormatDataQueue.bind([table, retryProcessTable, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pRReviewCommentFormatDataQueue.bind([
+    table,
+    retryProcessTable,
+    pRReviewCommentIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
 
-  pushIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  commitIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  userIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  pushIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  commitIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  userIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
   repoIndexDataQueue.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     afterRepoSaveQueue,
   ]);
-  branchIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  pRIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  pRReviewCommentIndexDataQueue.bind([
+  branchIndexDataQueue.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
-  pRReviewFormatDataQueue.bind([table, pRReviewIndexDataQueue, GIT_ORGANIZATION_ID]);
-  pRReviewIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  pRIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  pRReviewCommentIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  pRReviewFormatDataQueue.bind([
+    table,
+    retryProcessTable,
+    pRReviewIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
+  pRReviewIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
 
   afterRepoSaveQueue.bind([
     GITHUB_APP_PRIVATE_KEY_PEM,
@@ -393,6 +450,7 @@ export function gh({ stack }: StackContext) {
 
   collectPRData.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -406,6 +464,7 @@ export function gh({ stack }: StackContext) {
   ]);
   collecthistoricalPrByumber.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -418,6 +477,7 @@ export function gh({ stack }: StackContext) {
   ]);
   collectReviewsData.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -431,6 +491,7 @@ export function gh({ stack }: StackContext) {
 
   collectCommitsData.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -444,6 +505,7 @@ export function gh({ stack }: StackContext) {
 
   collectPRCommitsData.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -456,6 +518,7 @@ export function gh({ stack }: StackContext) {
 
   collectPRReviewCommentsData.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -468,6 +531,7 @@ export function gh({ stack }: StackContext) {
 
   historicalBranch.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -521,6 +585,7 @@ export function gh({ stack }: StackContext) {
           OPENSEARCH_USERNAME,
           GIT_ORGANIZATION_ID,
           table,
+          retryProcessTable,
           afterRepoSaveQueue,
           collectPRData,
           collectReviewsData,
