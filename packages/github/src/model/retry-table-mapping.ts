@@ -1,20 +1,24 @@
-import { PutCommandInput } from '@aws-sdk/lib-dynamodb';
+import { PutCommandInput, ScanCommandInput, DeleteCommandInput } from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
 
 export class RetryTableMapping {
   private tableName = Table.RetryProcesses.tableName;
 
-  //   private indexName = 'processId';
+  public prepareDeleteParams(processId: string): DeleteCommandInput {
+    return {
+      TableName: this.tableName,
+      Key: {
+        processId,
+      },
+    };
+  }
 
-  // Can be generic and move to @pulse/dynamodb package
-  //   public prepareGetParams(id: string): QueryCommandInput {
-  //     return {
-  //       TableName: this.tableName,
-  //       IndexName: this.indexName,
-  //       KeyConditionExpression: 'githubId = :githubId',
-  //       ExpressionAttributeValues: { ':githubId': id },
-  //     };
-  //   }
+  public prepareScanParams(limit: number): ScanCommandInput {
+    return {
+      TableName: this.tableName,
+      Limit: limit,
+    };
+  }
 
   public preparePutParams(processId: string, otherData: any): PutCommandInput {
     return {
