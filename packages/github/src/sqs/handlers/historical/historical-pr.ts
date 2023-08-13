@@ -15,8 +15,6 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
       Authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
-  // for (const record of event.Records) {
-
   await Promise.all(
     event.Records.filter((record: any) => {
       const body = JSON.parse(record.body);

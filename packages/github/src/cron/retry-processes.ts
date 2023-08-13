@@ -22,7 +22,7 @@ async function processIt(record: any): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId } = record;
 
   // send to queue
-  await new SQSClient().sendMessage(messageBody, queue, MessageDeduplicationId);
+  await new SQSClient().sendMessage(JSON.parse(messageBody), queue, MessageDeduplicationId);
 
   // delete from dynamodb
   await new DynamoDbDocClient().delete(new RetryTableMapping().prepareDeleteParams(processId));

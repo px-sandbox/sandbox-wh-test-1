@@ -15,11 +15,11 @@ export async function logProcessToRetry(record: SQSRecord, queue: string, error:
     //entry in dynamodb table
     const processId = uuid();
     const retryBody = {
-      messageBody: { ...messageBody, retry: retry ? retry + 1 : 1 },
+      messageBody: JSON.stringify({ ...messageBody, retry: retry ? retry + 1 : 1 }),
       queue,
-      MessageGroupId,
-      MessageDeduplicationId,
-      error,
+      ...(MessageDeduplicationId && MessageGroupId
+        ? { MessageGroupId, MessageDeduplicationId }
+        : {}),
     };
 
     await new DynamoDbDocClient().put(
@@ -27,7 +27,7 @@ export async function logProcessToRetry(record: SQSRecord, queue: string, error:
     );
   } catch (err) {
     logger.error(
-      JSON.stringify({ message: 'logProcessToRetry.failed', body: { record, queue, error } })
+      JSON.stringify({ message: 'logProcessToRetry.failed', body: { record, queue, err } })
     );
   }
 }

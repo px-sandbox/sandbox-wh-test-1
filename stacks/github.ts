@@ -26,7 +26,7 @@ export function gh({ stack }: StackContext) {
     primaryIndex: { partitionKey: 'parentId' },
   });
 
-  const retryProcessTable = new Table(stack, 'RetryProcesses', {
+  const retryProcessTable = new Table(stack, 'process-retry', {
     fields: {
       processId: 'string',
     },
@@ -706,14 +706,14 @@ export function gh({ stack }: StackContext) {
       },
 
       'GET /github/retry/failed': {
-        function: processRetryFunction,
+        function: 'packages/github/src/cron/retry-processes.handler',
       },
     },
   });
 
   // Initialize cron that runs every hour to fetch failed processes from `retryProcessTable` Table and process them out
   new Cron(stack, 'failed-process-retry-cron', {
-    schedule: 'cron(0 * * * *)',
+    schedule: 'cron(0 * ? * * *)',
     job: processRetryFunction,
   });
 

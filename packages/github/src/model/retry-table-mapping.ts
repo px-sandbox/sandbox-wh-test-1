@@ -2,7 +2,7 @@ import { PutCommandInput, ScanCommandInput, DeleteCommandInput } from '@aws-sdk/
 import { Table } from 'sst/node/table';
 
 export class RetryTableMapping {
-  private tableName = Table.RetryProcesses.tableName;
+  private tableName = Table['process-retry'].tableName;
 
   public prepareDeleteParams(processId: string): DeleteCommandInput {
     return {
@@ -25,7 +25,7 @@ export class RetryTableMapping {
       TableName: this.tableName,
       Item: {
         processId,
-        ...(otherData ?? {}),
+        ...otherData,
       },
     };
   }
