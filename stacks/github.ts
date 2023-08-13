@@ -1,4 +1,4 @@
-import { StackContext, Api, Table, Config, Queue, Function } from 'sst/constructs';
+import { StackContext, Api, Table, Config, Queue, Function, Cron } from 'sst/constructs';
 
 export function gh({ stack }: StackContext) {
   // Set GITHUB config params
@@ -542,6 +542,37 @@ export function gh({ stack }: StackContext) {
     collectCommitsData,
   ]);
 
+  const processRetryFunction = new Function(stack, 'retry-failed-processor', {
+    handler: 'packages/github/src/cron/retry-processes.handler',
+    bind: [
+      retryProcessTable,
+      userIndexDataQueue,
+      userFormatDataQueue,
+      repoIndexDataQueue,
+      repoFormatDataQueue,
+      branchIndexDataQueue,
+      branchFormatDataQueue,
+      pRIndexDataQueue,
+      pRFormatDataQueue,
+      commitIndexDataQueue,
+      commitFormatDataQueue,
+      pushIndexDataQueue,
+      pushFormatDataQueue,
+      pRReviewCommentIndexDataQueue,
+      pRReviewCommentFormatDataQueue,
+      afterRepoSaveQueue,
+      pRReviewIndexDataQueue,
+      pRReviewFormatDataQueue,
+      collectPRData,
+      collectReviewsData,
+      collecthistoricalPrByumber,
+      collectCommitsData,
+      historicalBranch,
+      collectPRCommitsData,
+      collectPRReviewCommentsData,
+    ],
+  });
+
   const ghAPI = new Api(stack, 'api', {
     authorizers: {
       universal: {
@@ -662,9 +693,18 @@ export function gh({ stack }: StackContext) {
       // GET Historical Data
       'GET /github/history': {
         function: 'packages/github/src/service/history-data.handler',
-        authorizer: 'universal',
+      },
+
+      'GET /github/retry/failed': {
+        function: processRetryFunction,
       },
     },
+  });
+
+  // Initialize cron that runs every hour to fetch failed processes from `retryProcessTable` Table and process them out
+  new Cron(stack, 'failed-process-retry-cron', {
+    schedule: 'cron(0 * * * *)',
+    job: processRetryFunction,
   });
 
   stack.addOutputs({
