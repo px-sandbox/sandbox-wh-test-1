@@ -1,6 +1,8 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { savePRReview } from 'src/lib/save-pull-request-review-details';
+import { logProcessToRetry } from 'src/util/retry-process';
+import { Queue } from 'sst/node/queue';
 
 export const handler = async function pRReviewIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
@@ -14,6 +16,7 @@ export const handler = async function pRReviewIndexDataReciever(event: SQSEvent)
 
         await savePRReview(messageBody);
       } catch (error) {
+        await logProcessToRetry(record, Queue.gh_pr_review_index.queueUrl, error);
         logger.error('pRReviewIndexDataReciever.error', { error });
       }
     })

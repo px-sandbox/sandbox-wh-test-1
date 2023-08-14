@@ -1,4 +1,4 @@
-import { StackContext, Api, Table, Config, Queue, Function } from 'sst/constructs';
+import { StackContext, Api, Table, Config, Queue, Function, Cron } from 'sst/constructs';
 
 export function gh({ stack }: StackContext) {
   // Set GITHUB config params
@@ -24,6 +24,13 @@ export function gh({ stack }: StackContext) {
       githubIndex: { partitionKey: 'githubId' },
     },
     primaryIndex: { partitionKey: 'parentId' },
+  });
+
+  const retryProcessTable = new Table(stack, 'process-retry', {
+    fields: {
+      processId: 'string',
+    },
+    primaryIndex: { partitionKey: 'processId' },
   });
 
   // create queues
@@ -235,112 +242,123 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const collectPRData = new Queue(stack, 'gh_historical_pr', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
-        timeout: '30 seconds',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 1,
-        },
+  const collectPRData = new Queue(stack, 'gh_historical_pr');
+
+  collectPRData.addConsumer(stack, {
+    function: new Function(stack, 'histPRFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
+      timeout: '30 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectPRData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
       },
     },
   });
 
-  const collectReviewsData = new Queue(stack, 'gh_historical_reviews', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-reviews.handler',
-        timeout: '30 seconds',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const collectReviewsData = new Queue(stack, 'gh_historical_reviews');
+
+  collectReviewsData.addConsumer(stack, {
+    function: new Function(stack, 'histPrReviewFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-reviews.handler',
+      timeout: '30 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectReviewsData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
 
-  const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-pr-by-number.handler',
-        timeout: '20 seconds',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 1,
-        },
-      },
-    },
-  });
-
-  const collectCommitsData = new Queue(stack, 'gh_historical_commits', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-commits.handler',
-        timeout: '30 seconds',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 1,
-          maxConcurrency: 2,
-        },
+  const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number');
+  collecthistoricalPrByumber.addConsumer(stack, {
+    function: new Function(stack, 'histPrFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-by-number.handler',
+      timeout: '20 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collecthistoricalPrByumber],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
       },
     },
   });
 
-  const historicalBranch = new Queue(stack, 'gh_historical_branch', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-branch.handler',
-        timeout: '30 seconds',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 1,
-          maxConcurrency: 2,
-        },
-      },
-    },
-  });
-
-  const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commits.handler',
-        timeout: '30 seconds',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const collectCommitsData = new Queue(stack, 'gh_historical_commits');
+  collectCommitsData.addConsumer(stack, {
+    function: new Function(stack, 'histCommitFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-commits.handler',
+      timeout: '30 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectCommitsData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
+        maxConcurrency: 2,
       },
     },
   });
 
-  const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
-        timeout: '30 seconds',
+  const historicalBranch = new Queue(stack, 'gh_historical_branch');
+
+  historicalBranch.addConsumer(stack, {
+    function: new Function(stack, 'histBranchFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-branch.handler',
+      bind: [historicalBranch],
+      runtime: 'nodejs18.x',
+      timeout: '30 seconds',
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
+        maxConcurrency: 2,
       },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+    },
+  });
+
+  const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits');
+  collectPRCommitsData.addConsumer(stack, {
+    function: new Function(stack, 'histPRCommitFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commits.handler',
+      timeout: '30 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectPRCommitsData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+
+  const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments');
+  collectPRReviewCommentsData.addConsumer(stack, {
+    function: new Function(stack, 'histPRReviewFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
+      timeout: '30 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectPRReviewCommentsData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
 
   // bind tables and config to queue
-  userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
-  repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
-  branchFormatDataQueue.bind([table, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
+  userFormatDataQueue.bind([table, retryProcessTable, userIndexDataQueue, GIT_ORGANIZATION_ID]);
+  repoFormatDataQueue.bind([table, retryProcessTable, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
+  branchFormatDataQueue.bind([table, retryProcessTable, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
   commitFormatDataQueue.bind([
     table,
+    retryProcessTable,
     commitIndexDataQueue,
     GIT_ORGANIZATION_ID,
     GITHUB_APP_PRIVATE_KEY_PEM,
@@ -352,6 +370,7 @@ export function gh({ stack }: StackContext) {
   ]);
   pRFormatDataQueue.bind([
     table,
+    retryProcessTable,
     pRIndexDataQueue,
     GIT_ORGANIZATION_ID,
     OPENSEARCH_NODE,
@@ -359,29 +378,77 @@ export function gh({ stack }: StackContext) {
     OPENSEARCH_PASSWORD,
     commitFormatDataQueue,
   ]);
-  pushFormatDataQueue.bind([table, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
-  pRReviewCommentFormatDataQueue.bind([table, pRReviewCommentIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pushFormatDataQueue.bind([table, retryProcessTable, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pRReviewCommentFormatDataQueue.bind([
+    table,
+    retryProcessTable,
+    pRReviewCommentIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
 
-  pushIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  commitIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  userIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  pushIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  commitIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  userIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
   repoIndexDataQueue.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     afterRepoSaveQueue,
   ]);
-  branchIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  pRIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  pRReviewCommentIndexDataQueue.bind([
+  branchIndexDataQueue.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
-  pRReviewFormatDataQueue.bind([table, pRReviewIndexDataQueue, GIT_ORGANIZATION_ID]);
-  pRReviewIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  pRIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  pRReviewCommentIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  pRReviewFormatDataQueue.bind([
+    table,
+    retryProcessTable,
+    pRReviewIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
+  pRReviewIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
 
   afterRepoSaveQueue.bind([
     GITHUB_APP_PRIVATE_KEY_PEM,
@@ -393,6 +460,7 @@ export function gh({ stack }: StackContext) {
 
   collectPRData.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -406,6 +474,7 @@ export function gh({ stack }: StackContext) {
   ]);
   collecthistoricalPrByumber.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -418,6 +487,7 @@ export function gh({ stack }: StackContext) {
   ]);
   collectReviewsData.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -431,6 +501,7 @@ export function gh({ stack }: StackContext) {
 
   collectCommitsData.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -444,6 +515,7 @@ export function gh({ stack }: StackContext) {
 
   collectPRCommitsData.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -456,6 +528,7 @@ export function gh({ stack }: StackContext) {
 
   collectPRReviewCommentsData.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -468,6 +541,7 @@ export function gh({ stack }: StackContext) {
 
   historicalBranch.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -477,6 +551,37 @@ export function gh({ stack }: StackContext) {
     GIT_ORGANIZATION_ID,
     collectCommitsData,
   ]);
+
+  const processRetryFunction = new Function(stack, 'retry-failed-processor', {
+    handler: 'packages/github/src/cron/retry-processes.handler',
+    bind: [
+      retryProcessTable,
+      userIndexDataQueue,
+      userFormatDataQueue,
+      repoIndexDataQueue,
+      repoFormatDataQueue,
+      branchIndexDataQueue,
+      branchFormatDataQueue,
+      pRIndexDataQueue,
+      pRFormatDataQueue,
+      commitIndexDataQueue,
+      commitFormatDataQueue,
+      pushIndexDataQueue,
+      pushFormatDataQueue,
+      pRReviewCommentIndexDataQueue,
+      pRReviewCommentFormatDataQueue,
+      afterRepoSaveQueue,
+      pRReviewIndexDataQueue,
+      pRReviewFormatDataQueue,
+      collectPRData,
+      collectReviewsData,
+      collecthistoricalPrByumber,
+      collectCommitsData,
+      historicalBranch,
+      collectPRCommitsData,
+      collectPRReviewCommentsData,
+    ],
+  });
 
   const ghAPI = new Api(stack, 'api', {
     authorizers: {
@@ -521,6 +626,7 @@ export function gh({ stack }: StackContext) {
           OPENSEARCH_USERNAME,
           GIT_ORGANIZATION_ID,
           table,
+          retryProcessTable,
           afterRepoSaveQueue,
           collectPRData,
           collectReviewsData,
@@ -597,9 +703,18 @@ export function gh({ stack }: StackContext) {
       // GET Historical Data
       'GET /github/history': {
         function: 'packages/github/src/service/history-data.handler',
-        authorizer: 'universal',
+      },
+
+      'GET /github/retry/failed': {
+        function: 'packages/github/src/cron/retry-processes.handler',
       },
     },
+  });
+
+  // Initialize cron that runs every hour to fetch failed processes from `retryProcessTable` Table and process them out
+  new Cron(stack, 'failed-process-retry-cron', {
+    schedule: 'cron(0 * ? * * *)',
+    job: processRetryFunction,
   });
 
   stack.addOutputs({

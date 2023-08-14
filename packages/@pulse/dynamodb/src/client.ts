@@ -5,6 +5,10 @@ import {
   PutCommandInput,
   QueryCommand,
   QueryCommandInput,
+  ScanCommand,
+  ScanCommandInput,
+  DeleteCommandInput,
+  DeleteCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { IDynmoDbDocClient } from '../types';
 
@@ -52,5 +56,15 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
 
   public async put(putParams: PutCommandInput): Promise<void> {
     await this.getDdbDocClient().send(new PutCommand(putParams));
+  }
+
+  public async scan(scanParams: ScanCommandInput): Promise<Array<any>> {
+    const ddbRes = await this.getDdbDocClient().send(new ScanCommand(scanParams));
+
+    return ddbRes.Items && ddbRes.Items.length ? ddbRes.Items : [];
+  }
+
+  public async delete(deleteParams: DeleteCommandInput): Promise<void> {
+    await this.getDdbDocClient().send(new DeleteCommand(deleteParams));
   }
 }

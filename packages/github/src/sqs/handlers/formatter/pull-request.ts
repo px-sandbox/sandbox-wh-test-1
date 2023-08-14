@@ -1,6 +1,7 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { PRProcessor } from 'src/processors/pull-request';
+import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
 export const handler = async function pRFormattedDataReciever(event: SQSEvent): Promise<void> {
@@ -23,6 +24,7 @@ export const handler = async function pRFormattedDataReciever(event: SQSEvent): 
         const data = await pullProcessor.processor();
         await pullProcessor.sendDataToQueue(data, Queue.gh_pr_index.queueUrl);
       } catch (error) {
+        await logProcessToRetry(record, Queue.gh_pr_format.queueUrl, error);
         logger.error('pRFormattedDataReciever.error', error);
       }
     })

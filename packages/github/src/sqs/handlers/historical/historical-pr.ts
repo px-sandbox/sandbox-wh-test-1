@@ -5,6 +5,7 @@ import { logger } from 'core';
 import moment from 'moment';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
 export const handler = async function collectPRData(event: SQSEvent): Promise<void> {
@@ -14,9 +15,6 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
       Authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
-  // for (const record of event.Records) {
-  let page = 1;
-  const perPage = 100;
   await Promise.all(
     event.Records.filter((record: any) => {
       const body = JSON.parse(record.body);
@@ -30,36 +28,27 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
       `);
 
       return false;
-    }).map(async (record: any) => {
-      const messageBody = JSON.parse(record.body);
-      logger.info('ALL_PR', { messageBody });
-      await getPrList(
-        messageBody.owner,
-        messageBody.name,
-        perPage,
-        page,
-        octokit,
-        messageBody.isCommit
-      );
-    })
+    }).map(async (record: any) => await getPrList(record, octokit))
   );
 };
 async function getPrList(
-  owner: string,
-  name: string,
-  perPage: number,
-  page: number,
+  record: any,
   octokit: RequestInterface<{
     headers: {
       Authorization: string;
     };
-  }>,
-  isCommit: boolean
+  }>
 ) {
+  const messageBody = JSON.parse(record.body);
+  if (!messageBody && !messageBody.head) {
+    logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
+    return;
+  }
+  const { page = 1, owner, name } = messageBody;
   try {
     const last_one_year_date = moment().subtract(1, 'year').toISOString();
     const responseData = await octokit(
-      `GET /repos/${owner}/${name}/pulls?state=all&per_page=${perPage}&page=${page}&sort=created&direction=desc`
+      `GET /repos/${owner}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
     );
     if (responseData.data.length === 0) {
       logger.info('HISTORY_EMPTY_PULLS', responseData);
@@ -78,14 +67,15 @@ async function getPrList(
       ),
     ];
     await Promise.all(processes);
-    if (prs.length < perPage) {
+    if (prs.length < 100) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
-      page++;
-      await getPrList(owner, name, perPage, page, octokit, isCommit);
+      messageBody.page = page + 1;
+      await new SQSClient().sendMessage(messageBody, Queue.gh_historical_pr.queueUrl);
     }
   } catch (error) {
     logger.error('historical.PR.error', { error });
+    await logProcessToRetry(record, Queue.gh_historical_pr.queueUrl, error);
   }
 }

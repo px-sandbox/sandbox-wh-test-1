@@ -1,5 +1,5 @@
 {
-  "TableName": "<STAGE_APPNAME_TABLE_NAME>",
+  "TableName": "github-mapping",
   "KeySchema": [
     {
       "AttributeName": "parentId",
