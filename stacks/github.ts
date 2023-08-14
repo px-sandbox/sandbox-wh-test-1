@@ -713,7 +713,7 @@ export function gh({ stack }: StackContext) {
 
   // Initialize cron that runs every hour to fetch failed processes from `retryProcessTable` Table and process them out
   new Cron(stack, 'failed-process-retry-cron', {
-    schedule: 'cron(0/5 * ? * * *)',
+    schedule: 'cron(*/30 * ? * * *)',
     job: processRetryFunction,
   });
 
