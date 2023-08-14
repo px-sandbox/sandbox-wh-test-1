@@ -1,20 +1,24 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { savePRReviewComment } from 'src/lib/save-pull-request-review-comment';
+import { logProcessToRetry } from 'src/util/retry-process';
+import { Queue } from 'sst/node/queue';
 
 export const handler = async function pullRequestReviewCommentIndexDataReciever(
   event: SQSEvent
 ): Promise<void> {
-  try {
-    for (const record of event.Records) {
-      const messageBody = JSON.parse(record.body);
-      // Do something with the message, e.g. send an email, process data, etc.
-      /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
-      logger.info('PULL_REQUEST_REVIEW_COMMENT_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
+  await Promise.all(
+    event.Records.map(async (record: any) => {
+      try {
+        const messageBody = JSON.parse(record.body);
 
-      await savePRReviewComment(messageBody);
-    }
-  } catch (error) {
-    logger.error('pRReviewCommentIndexDataReciever.error', { error });
-  }
+        logger.info('PULL_REQUEST_REVIEW_COMMENT_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
+
+        await savePRReviewComment(messageBody);
+      } catch (error) {
+        await logProcessToRetry(record, Queue.gh_pr_review_comment_index.queueUrl, error);
+        logger.error('pRReviewCommentIndexDataReciever.error', { error });
+      }
+    })
+  );
 };
