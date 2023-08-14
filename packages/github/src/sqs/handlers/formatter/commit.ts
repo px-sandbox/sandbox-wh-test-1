@@ -1,18 +1,15 @@
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { CommitProcessor } from 'src/processors/commit';
-import { Queue } from 'sst/node/queue';
-import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
-import { ghRequest } from 'src/lib/request-defaults';
-import { mappingPrefixes } from 'src/constant/config';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { ParamsMapping } from 'src/model/params-mapping';
 import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
-import { Github } from 'abstraction';
+import { ghRequest } from 'src/lib/request-defaults';
+import { CommitProcessor } from 'src/processors/commit';
+import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { searchedDataFormator } from 'src/util/response-formatter';
 import { logProcessToRetry } from 'src/util/retry-process';
+import { Config } from 'sst/node/config';
+import { Queue } from 'sst/node/queue';
 
 export const handler = async function commitFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
@@ -36,7 +33,6 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
          * ------------------------------------
          */
         //CHECK DATA EXISTS IN ELASTICSEARCH
-
         const commitSearchQuery = esb.matchQuery('body.githubCommitId', commitId);
         const searchInEsb = await new ElasticSearchClient({
           host: Config.OPENSEARCH_NODE,
@@ -48,15 +44,6 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           logger.info('COMMIT_FOUND_IN_ELASTICSEARCH', { esData });
           return false;
         }
-        // // CHECK DATA EXISTS IN DYNAMODB
-        // const commitSha = `${mappingPrefixes.commit}_${commitId}`;
-        // const records = await new DynamoDbDocClient().find(
-        //   new ParamsMapping().prepareGetParams(commitSha)
-        // );
-        // if (records) {
-        //   logger.info('COMMIT_FOUND_IN_DYNAMODB', { records });
-        //   return false;
-        // }
         const installationAccessToken = await getInstallationAccessToken();
         const octokit = ghRequest.request.defaults({
           headers: {

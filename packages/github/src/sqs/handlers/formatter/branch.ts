@@ -10,8 +10,6 @@ export const handler = async function branchFormattedDataReciever(event: SQSEven
     event.Records.map(async (record: any) => {
       try {
         const messageBody = JSON.parse(record.body);
-        // Do something with the message, e.g. send an email, process data, etc.
-        /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
         logger.info('BRANCH_SQS_RECIEVER_HANDLER', { messageBody });
         const branchProcessor = new BranchProcessor(messageBody);
         const validatedData = branchProcessor.validate();
@@ -22,7 +20,6 @@ export const handler = async function branchFormattedDataReciever(event: SQSEven
         const data = await branchProcessor.processor();
         await branchProcessor.sendDataToQueue(data, Queue.gh_branch_index.queueUrl);
       } catch (error) {
-        // await logProcessToRetry(record, Queue.gh_branch_format.queueUrl, error);
         logger.error('branchFormattedDataReciever.error', error);
       }
     })

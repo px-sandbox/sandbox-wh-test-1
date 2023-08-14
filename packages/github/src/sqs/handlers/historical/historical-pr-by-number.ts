@@ -51,21 +51,6 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
 
         // setting the `isMergedCommit` for commit
         if (dataOnPr.data.merged === true) {
-          // const commitId = `${mappingPrefixes.commit}_${dataOnPr.data.merge_commit_sha}`;
-          // const records = await new DynamoDbDocClient().find(
-          //   new ParamsMapping().prepareGetParams(commitId)
-          // );
-          // console.log('DDB_RECORD', records);
-          // if (records) {
-          //   const commitQuery = esb.matchQuery('body.id', commitId).toJSON();
-          //   const commits = await new ElasticSearchClient({
-          //     host: Config.OPENSEARCH_NODE,
-          //     username: Config.OPENSEARCH_USERNAME ?? '',
-          //     password: Config.OPENSEARCH_PASSWORD ?? '',
-          //   }).searchWithEsb(Github.Enums.IndexName.GitCommits, commitQuery);
-          //   const [commitsData] = await searchedDataFormator(commits);
-          //   console.log('COMMIT_SHSH', commitsData);
-          //   if (commitsData) {
           await new SQSClient().sendMessage(
             {
               commitId: dataOnPr.data.merge_commit_sha,

@@ -705,6 +705,7 @@ export function gh({ stack }: StackContext) {
         function: 'packages/github/src/service/history-data.handler',
       },
 
+      // GET githib data ingestion failed retry
       'GET /github/retry/failed': {
         function: 'packages/github/src/cron/retry-processes.handler',
       },
