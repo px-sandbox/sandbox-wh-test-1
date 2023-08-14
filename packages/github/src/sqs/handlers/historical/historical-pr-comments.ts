@@ -14,7 +14,6 @@ export const handler = async function collectPRCommentsData(event: SQSEvent): Pr
       Authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
-
   await Promise.all(
     event.Records.filter((record: any) => {
       const body = JSON.parse(record.body);
@@ -61,17 +60,19 @@ async function getPrComments(
     const commentsDataOnPr = await octokit(
       `GET /repos/${owner.login}/${name}/pulls/${number}/comments?per_page=100&page=${page}`
     );
-    commentsDataOnPr.data.map(async (comments: any) => {
-      await new SQSClient().sendMessage(
+
+    let queueProcessed = [];
+    queueProcessed = commentsDataOnPr.data.map((comments: any) =>
+      new SQSClient().sendMessage(
         {
           comment: comments,
           pullId: messageBody.id,
           repoId: messageBody.head.repo.id,
         },
         Queue.gh_pr_review_comment_format.queueUrl
-      );
-    });
-
+      )
+    );
+    await Promise.all(queueProcessed);
     if (commentsDataOnPr.data.length < 100) {
       logger.info('LAST_100_RECORD_PR_REVIEW');
       return;
