@@ -77,14 +77,6 @@ async function getPRCommits(
 }
 
 async function saveCommit(commitData: any, messageBody: any) {
-  // const commitId = `${mappingPrefixes.commit}_${commitData.sha}`;
-  // const records = await new DynamoDbDocClient().find(
-  //   new ParamsMapping().prepareGetParams(commitId)
-  // );
-  // if (records) {
-  //   logger.info('DYNAMO_DB_DATA_FOUND', records);
-  //   return;
-  // }
   commitData.isMergedCommit = false;
   commitData.mergedBranch = null;
   commitData.pushedBranch = null;

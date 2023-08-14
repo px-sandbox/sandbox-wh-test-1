@@ -13,8 +13,6 @@ export const handler = async function pRReviewFormattedDataReciever(
     event.Records.map(async (record: any) => {
       try {
         const messageBody = JSON.parse(record.body);
-        // Do something with the message, e.g. send an email, process data, etc.
-        /*  USE SWITCH CASE HERE FOT HANDLE WEBHOOK AND REST API CALLS FROM SQS */
         logger.info('PULL_REQUEST_REVIEW_SQS_RECIEVER_HANDLER', { messageBody });
         const { review, pullId, repoId, action } = messageBody;
         const prReviewProcessor = new PRReviewProcessor(review, pullId, repoId, action);
