@@ -43,37 +43,38 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
 
     await esClientObj.putDocument(Github.Enums.IndexName.GitCommits, commitIndexData);
 
+    // TODO: check for duplicacy of user index
     // Store timezone in git_user index
-    if (data.body.authorId) {
-      const userDocQuery = esb.matchQuery('body.id', data.body.authorId).toJSON();
-      const authorData = await esClientObj.searchWithEsb(
-        Github.Enums.IndexName.GitUsers,
-        userDocQuery
-      );
-      const [author] = await searchedDataFormator(authorData);
-      if (author) {
-        const timezone = data.body.committedAt.substring(19);
-        const authorData: User = {
-          id: author._id,
-          body: {
-            id: author.id,
-            githubUserId: author.githubUserId,
-            userName: author.userName,
-            avatarUrl: author.avatarUrl,
-            organizationId: author.organizationId,
-            deletedAt: author.deletedAt,
-            createdAt: author.createdAt,
-            action: author.action,
-            createdAtDay: author.createdAtDay,
-            computationalDate: author.computationalDate,
-            githubDate: author.githubDate,
-            timezone,
-          },
-        };
-        logger.info('USER_DATA_UPDATE_WITH_TIMEZONE', authorData);
-        await esClientObj.putDocument(Github.Enums.IndexName.GitUsers, authorData);
-      }
-    }
+    // if (data.body.authorId) {
+    //   const userDocQuery = esb.matchQuery('body.id', data.body.authorId).toJSON();
+    //   const authorData = await esClientObj.searchWithEsb(
+    //     Github.Enums.IndexName.GitUsers,
+    //     userDocQuery
+    //   );
+    //   const [author] = await searchedDataFormator(authorData);
+    //   if (author) {
+    //     const timezone = data.body.committedAt.substring(19);
+    //     const authorData: User = {
+    //       id: author._id,
+    //       body: {
+    //         id: author.id,
+    //         githubUserId: author.githubUserId,
+    //         userName: author.userName,
+    //         avatarUrl: author.avatarUrl,
+    //         organizationId: author.organizationId,
+    //         deletedAt: author.deletedAt,
+    //         createdAt: author.createdAt,
+    //         action: author.action,
+    //         createdAtDay: author.createdAtDay,
+    //         computationalDate: author.computationalDate,
+    //         githubDate: author.githubDate,
+    //         timezone,
+    //       },
+    //     };
+    //     logger.info('USER_DATA_UPDATE_WITH_TIMEZONE', authorData);
+    //     await esClientObj.putDocument(Github.Enums.IndexName.GitUsers, authorData);
+    //   }
+    // }
     logger.info('saveCommitDetails.successful');
   } catch (error: unknown) {
     logger.error('saveCommitDetails.error', {
