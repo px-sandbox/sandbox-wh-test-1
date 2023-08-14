@@ -19,6 +19,10 @@ export const handler = async function collectPRCommentsData(event: SQSEvent): Pr
     event.Records.filter((record: any) => {
       const body = JSON.parse(record.body);
       if (body.head && body.head.repo) {
+        logger.info(
+          `PR with repo: ${body}
+      `
+        );
         return true;
       }
 
