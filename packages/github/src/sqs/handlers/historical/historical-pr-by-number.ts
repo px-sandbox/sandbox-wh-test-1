@@ -31,9 +31,6 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
           `${mappingPrefixes.user}_${dataOnPr.data.user.id}`
         );
 
-        // const createdTimezone = await getTimezoneOfUser(
-        //   `${mappingPrefixes.user}_${dataOnPr.data.user.id}`
-        // );
         if (
           messageBody.approved_at &&
           moment(messageBody.approved_at).isBefore(moment(messageBody.submitted_at))
