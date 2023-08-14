@@ -68,7 +68,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
               commitId: dataOnPr.data.merge_commit_sha,
               isMergedCommit: dataOnPr.data.merged,
               mergedBranch: null,
-              pushedBranch: dataOnPr.data.head.ref,
+              pushedBranch: dataOnPr.data?.head?.ref,
               repository: {
                 id: messageBody.repoId,
                 name: messageBody.repoName,
