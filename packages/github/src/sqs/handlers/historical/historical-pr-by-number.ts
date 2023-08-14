@@ -2,6 +2,8 @@ import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import moment from 'moment';
+import { mappingPrefixes } from 'src/constant/config';
+import { getTimezoneOfUser } from 'src/lib/get-user-timezone';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { logProcessToRetry } from 'src/util/retry-process';
@@ -24,16 +26,17 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         const dataOnPr = await octokit(
           `GET /repos/${messageBody.owner}/${messageBody.repoName}/pulls/${messageBody.prNumber}`
         );
-        // const createdTimezone = await getTimezoneOfUser(
-        //   `${mappingPrefixes.user}_${dataOnPr.data.user.id}`
-        // );
+        const createdTimezone = await getTimezoneOfUser(
+          `${mappingPrefixes.user}_${dataOnPr.data.user.id}`
+        );
+
         if (moment(messageBody.approved_at).isBefore(moment(messageBody.submitted_at))) {
           messageBody.submittedAt = messageBody.approved_at;
         }
         const review_seconds = await getWorkingTime(
           moment(dataOnPr.data.created_at),
           moment(messageBody.submittedAt),
-          '+5:30'
+          createdTimezone ?? '+5:30'
         );
 
         await new SQSClient().sendMessage(
