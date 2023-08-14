@@ -276,7 +276,7 @@ export function gh({ stack }: StackContext) {
 
   const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number');
   collecthistoricalPrByumber.addConsumer(stack, {
-    function: new Function(stack, 'histPrFunc', {
+    function: new Function(stack, 'histPrByNumberFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historical-pr-by-number.handler',
       timeout: '20 seconds',
       runtime: 'nodejs18.x',
@@ -339,7 +339,7 @@ export function gh({ stack }: StackContext) {
 
   const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments');
   collectPRReviewCommentsData.addConsumer(stack, {
-    function: new Function(stack, 'histPRReviewFunc', {
+    function: new Function(stack, 'histPRReviewCommentsFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
       timeout: '30 seconds',
       runtime: 'nodejs18.x',
@@ -713,7 +713,7 @@ export function gh({ stack }: StackContext) {
 
   // Initialize cron that runs every hour to fetch failed processes from `retryProcessTable` Table and process them out
   new Cron(stack, 'failed-process-retry-cron', {
-    schedule: 'cron(*/30 * ? * * *)',
+    schedule: 'cron(0 * ? * * *)',
     job: processRetryFunction,
   });
 
