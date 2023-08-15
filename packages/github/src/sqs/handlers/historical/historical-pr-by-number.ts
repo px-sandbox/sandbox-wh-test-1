@@ -41,7 +41,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         const review_seconds = await getWorkingTime(
           moment(dataOnPr.data.created_at),
           moment(messageBody.submittedAt),
-          createdTimezone ?? '+5:30'
+          createdTimezone
         );
 
         await new SQSClient().sendMessage(
