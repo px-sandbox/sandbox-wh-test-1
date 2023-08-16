@@ -2,6 +2,8 @@ import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import moment from 'moment';
+import { mappingPrefixes } from 'src/constant/config';
+import { getTimezoneOfUser } from 'src/lib/get-user-timezone';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { logProcessToRetry } from 'src/util/retry-process';
@@ -24,16 +26,17 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         const dataOnPr = await octokit(
           `GET /repos/${messageBody.owner}/${messageBody.repoName}/pulls/${messageBody.prNumber}`
         );
-        // const createdTimezone = await getTimezoneOfUser(
-        //   `${mappingPrefixes.user}_${dataOnPr.data.user.id}`
-        // );
+        const createdTimezone = await getTimezoneOfUser(
+          `${mappingPrefixes.user}_${dataOnPr.data.user.id}`
+        );
+
         if (moment(messageBody.approved_at).isBefore(moment(messageBody.submitted_at))) {
           messageBody.submittedAt = messageBody.approved_at;
         }
         const review_seconds = await getWorkingTime(
           moment(dataOnPr.data.created_at),
           moment(messageBody.submittedAt),
-          '+5:30'
+          createdTimezone ?? '+5:30'
         );
 
         await new SQSClient().sendMessage(
@@ -48,21 +51,6 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
 
         // setting the `isMergedCommit` for commit
         if (dataOnPr.data.merged === true) {
-          // const commitId = `${mappingPrefixes.commit}_${dataOnPr.data.merge_commit_sha}`;
-          // const records = await new DynamoDbDocClient().find(
-          //   new ParamsMapping().prepareGetParams(commitId)
-          // );
-          // console.log('DDB_RECORD', records);
-          // if (records) {
-          //   const commitQuery = esb.matchQuery('body.id', commitId).toJSON();
-          //   const commits = await new ElasticSearchClient({
-          //     host: Config.OPENSEARCH_NODE,
-          //     username: Config.OPENSEARCH_USERNAME ?? '',
-          //     password: Config.OPENSEARCH_PASSWORD ?? '',
-          //   }).searchWithEsb(Github.Enums.IndexName.GitCommits, commitQuery);
-          //   const [commitsData] = await searchedDataFormator(commits);
-          //   console.log('COMMIT_SHSH', commitsData);
-          //   if (commitsData) {
           await new SQSClient().sendMessage(
             {
               commitId: dataOnPr.data.merge_commit_sha,

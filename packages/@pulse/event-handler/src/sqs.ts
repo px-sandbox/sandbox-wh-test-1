@@ -29,14 +29,6 @@ export class SQSClient implements ISQSClient {
         };
       }
       const res = await this.sqs.sendMessage(queueObj).promise();
-
-      // const res = await this.sqs
-      //   .sendMessage({
-      //     MessageBody: JSON.stringify(message),
-      //     QueueUrl: queueUrl,
-      //     MessageGroupId: messageGroupId,
-      //   })
-      //   .promise();
       logger.info({
         message: 'SQS_SEND_MESSAGE_RESPONSE',
         res,

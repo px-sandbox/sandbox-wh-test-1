@@ -16,6 +16,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
+
     const data = await esClientObj.search(Github.Enums.IndexName.GitRepo, 'name', `${repo}`);
 
     const [repoData] = await searchedDataFormator(data);

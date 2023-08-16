@@ -16,9 +16,10 @@ export async function savePushDetails(data: Github.Type.Push): Promise<void> {
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
-    const userData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPush, matchQry);
-    const [formattedData] = await searchedDataFormator(userData);
+    const pushData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPush, matchQry);
+    const [formattedData] = await searchedDataFormator(pushData);
     if (formattedData) {
+      //TODO: remove actions from push
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
       data.body.action = [...formattedData.action, ...data.body.action];
     }
