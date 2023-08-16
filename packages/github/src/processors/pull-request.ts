@@ -108,7 +108,8 @@ export class PRProcessor extends DataProcessor<
             },
             timestamp: mergeCommitDetail.committedAt,
           },
-          Queue.gh_commit_format.queueUrl
+          Queue.gh_commit_format.queueUrl,
+          this.ghApiData.merge_commit_sha
         );
       } else {
         logger.error('MERGE_COMMIT_NOT_FOUND', this.ghApiData);
