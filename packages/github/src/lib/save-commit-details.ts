@@ -1,7 +1,6 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
-import { User } from 'abstraction/github/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { ParamsMapping } from 'src/model/params-mapping';

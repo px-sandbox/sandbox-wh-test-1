@@ -4,7 +4,6 @@ import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import moment from 'moment';
 import { DataProcessor } from './data-processor';
-import { logger } from 'core';
 
 export class CommitProcessor extends DataProcessor<
   Github.ExternalType.Api.Commit,

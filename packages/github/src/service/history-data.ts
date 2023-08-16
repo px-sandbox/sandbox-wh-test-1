@@ -16,13 +16,8 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    let data = await esClientObj.search(Github.Enums.IndexName.GitRepo, 'name', `${repo}`);
-    // let data = (
-    //   await esClientObj.getClient().search({
-    //     index: Github.Enums.IndexName.GitRepo,
-    //   })
-    // ).body;
-    // const formatedData = await searchedDataFormator(data);
+    const data = await esClientObj.search(Github.Enums.IndexName.GitRepo, 'name', `${repo}`);
+
     const [repoData] = await searchedDataFormator(data);
     logger.info({ level: 'info', message: 'github user data', repoData });
 
