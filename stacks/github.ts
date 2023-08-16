@@ -105,104 +105,108 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const pRIndexDataQueue = new Queue(stack, 'gh_pr_index', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const pRIndexDataQueue = new Queue(stack, 'gh_pr_index');
+  pRIndexDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
+      bind: [pRIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
-  const pRFormatDataQueue = new Queue(stack, 'gh_pr_format', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
-        timeout: '30 seconds',
-        bind: [pRIndexDataQueue],
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const pRFormatDataQueue = new Queue(stack, 'gh_pr_format');
+  pRFormatDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_format_func', {
+      handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
+      timeout: '30 seconds',
+      bind: [pRFormatDataQueue, pRIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
 
-  const commitIndexDataQueue = new Queue(stack, 'gh_commit_index', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/indexer/commit.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const commitIndexDataQueue = new Queue(stack, 'gh_commit_index');
+  commitIndexDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_commit_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/commit.handler',
+      bind: [commitIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
   const commitFormatDataQueue = new Queue(stack, 'gh_commit_format', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/formatter/commit.handler',
-        // bind: [commitIndexDataQueue],
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
     cdk: {
       queue: {
         fifo: true,
       },
     },
   });
-
-  const pushIndexDataQueue = new Queue(stack, 'gh_push_index', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/indexer/push.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
-  const pushFormatDataQueue = new Queue(stack, 'gh_push_format', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/formatter/push.handler',
-        bind: [pushIndexDataQueue],
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
-  const pRReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  commitFormatDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_commit_format_func', {
+      handler: 'packages/github/src/sqs/handlers/formatter/commit.handler',
+      bind: [commitFormatDataQueue, commitIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
 
-  const pRReviewCommentFormatDataQueue = new Queue(stack, 'gh_pr_review_comment_format', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/formatter/pull-request-review-comment.handler',
-        bind: [pRReviewCommentIndexDataQueue],
+  const pushIndexDataQueue = new Queue(stack, 'gh_push_index');
+  pushIndexDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_push_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/push.handler',
+      bind: [pushIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
-      cdk: {
-        eventSource: {
-          batchSize: 1,
-        },
+    },
+  });
+  const pushFormatDataQueue = new Queue(stack, 'gh_push_format');
+  pushFormatDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_push_format_func', {
+      handler: 'packages/github/src/sqs/handlers/formatter/push.handler',
+      bind: [pushFormatDataQueue, pushIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+  const pRReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index');
+  pRReviewCommentIndexDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_review_comment_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
+      bind: [pRReviewCommentIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+  const pRReviewCommentFormatDataQueue = new Queue(stack, 'gh_pr_review_comment_format');
+  pRReviewCommentFormatDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_review_comment_format_func', {
+      handler: 'packages/github/src/sqs/handlers/formatter/pull-request-review-comment.handler',
+      bind: [pRReviewCommentFormatDataQueue, pRReviewCommentIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
       },
     },
   });
@@ -217,27 +221,28 @@ export function gh({ stack }: StackContext) {
       },
     },
   });
-  const pRReviewIndexDataQueue = new Queue(stack, 'gh_pr_review_index', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const pRReviewIndexDataQueue = new Queue(stack, 'gh_pr_review_index');
+  pRReviewIndexDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_review_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
+      bind: [pRReviewIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
 
-  const pRReviewFormatDataQueue = new Queue(stack, 'gh_pr_review_format', {
-    consumer: {
-      function: {
-        handler: 'packages/github/src/sqs/handlers/formatter/pull-request-review.handler',
-        bind: [pRReviewIndexDataQueue],
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const pRReviewFormatDataQueue = new Queue(stack, 'gh_pr_review_format');
+  pRReviewFormatDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_review_format_func', {
+      handler: 'packages/github/src/sqs/handlers/formatter/pull-request-review.handler',
+      bind: [pRReviewFormatDataQueue, pRReviewIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
@@ -705,7 +710,7 @@ export function gh({ stack }: StackContext) {
         function: 'packages/github/src/service/history-data.handler',
       },
 
-      // GET githib data ingestion failed retry
+      // GET github data ingestion failed retry
       'GET /github/retry/failed': {
         function: 'packages/github/src/cron/retry-processes.handler',
       },
