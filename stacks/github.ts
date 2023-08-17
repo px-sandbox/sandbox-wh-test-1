@@ -252,7 +252,7 @@ export function gh({ stack }: StackContext) {
   collectPRData.addConsumer(stack, {
     function: new Function(stack, 'histPRFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
-      timeout: '30 seconds',
+      timeout: '300 seconds',
       runtime: 'nodejs18.x',
       bind: [collectPRData],
     }),
@@ -283,7 +283,7 @@ export function gh({ stack }: StackContext) {
   collecthistoricalPrByumber.addConsumer(stack, {
     function: new Function(stack, 'histPrByNumberFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historical-pr-by-number.handler',
-      timeout: '20 seconds',
+      timeout: '300 seconds',
       runtime: 'nodejs18.x',
       bind: [collecthistoricalPrByumber],
     }),
@@ -298,7 +298,7 @@ export function gh({ stack }: StackContext) {
   collectCommitsData.addConsumer(stack, {
     function: new Function(stack, 'histCommitFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historical-commits.handler',
-      timeout: '30 seconds',
+      timeout: '300 seconds',
       runtime: 'nodejs18.x',
       bind: [collectCommitsData],
     }),
@@ -317,7 +317,7 @@ export function gh({ stack }: StackContext) {
       handler: 'packages/github/src/sqs/handlers/historical/historical-branch.handler',
       bind: [historicalBranch],
       runtime: 'nodejs18.x',
-      timeout: '30 seconds',
+      timeout: '300 seconds',
     }),
     cdk: {
       eventSource: {
@@ -346,7 +346,7 @@ export function gh({ stack }: StackContext) {
   collectPRReviewCommentsData.addConsumer(stack, {
     function: new Function(stack, 'histPRReviewCommentsFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
-      timeout: '30 seconds',
+      timeout: '300 seconds',
       runtime: 'nodejs18.x',
       bind: [collectPRReviewCommentsData],
     }),

@@ -5,6 +5,7 @@ import { logger } from 'core';
 import moment from 'moment';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getOctokitResp } from 'src/util/octokit-response';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
@@ -24,7 +25,7 @@ export const handler = async function collectPrReviewsData(event: SQSEvent): Pro
       }
 
       logger.info(`
-      PR with no repo: ${body}
+      PR with no repo: ${JSON.stringify(body)}
       `);
 
       return false;
@@ -58,8 +59,9 @@ async function getPrReviews(
     const prReviews = await octokit(
       `GET /repos/${owner.login}/${name}/pulls/${number}/reviews?per_page=100&page=${page}`
     );
+    const octokitRespData = getOctokitResp(prReviews);
     let queueProcessed = [];
-    queueProcessed = prReviews.data.map((reviews: any) =>
+    queueProcessed = octokitRespData.map((reviews: any) =>
       new SQSClient().sendMessage(
         {
           review: reviews,
@@ -114,7 +116,7 @@ async function getPrReviews(
       );
     }
 
-    if (prReviews.data.length < 100) {
+    if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR_REVIEW');
       return;
     } else {

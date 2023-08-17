@@ -28,12 +28,12 @@ export class SQSClient implements ISQSClient {
           MessageDeduplicationId: messageGroupId,
         };
       }
-      const res = await this.sqs.sendMessage(queueObj).promise();
-      logger.info({
-        message: 'SQS_SEND_MESSAGE_RESPONSE',
-        res,
-        queueName,
-      });
+      await this.sqs.sendMessage(queueObj).promise();
+      // logger.info({
+      //   message: 'SQS_SEND_MESSAGE_RESPONSE',
+      //   res,
+      //   queueName,
+      // });
     } catch (error) {
       logger.error({ message: 'ERROR_SQS_SEND_MESSAGE', error, queueName });
     }

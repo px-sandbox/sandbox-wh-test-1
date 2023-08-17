@@ -4,6 +4,7 @@ import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getOctokitResp } from 'src/util/octokit-response';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
@@ -60,9 +61,9 @@ async function getPrComments(
     const commentsDataOnPr = await octokit(
       `GET /repos/${owner.login}/${name}/pulls/${number}/comments?per_page=100&page=${page}`
     );
-
+    const octokitRespData = getOctokitResp(commentsDataOnPr);
     let queueProcessed = [];
-    queueProcessed = commentsDataOnPr.data.map((comments: any) =>
+    queueProcessed = octokitRespData.map((comments: any) =>
       new SQSClient().sendMessage(
         {
           comment: comments,
@@ -73,7 +74,7 @@ async function getPrComments(
       )
     );
     await Promise.all(queueProcessed);
-    if (commentsDataOnPr.data.length < 100) {
+    if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR_REVIEW');
       return;
     } else {
@@ -81,7 +82,7 @@ async function getPrComments(
       await new SQSClient().sendMessage(messageBody, Queue.gh_historical_pr_comments.queueUrl);
     }
   } catch (error) {
-    await logProcessToRetry(record, Queue.gh_historical_pr_comments.queueUrl, error);
     logger.error('historical.comments.error', { error });
+    await logProcessToRetry(record, Queue.gh_historical_pr_comments.queueUrl, error);
   }
 }

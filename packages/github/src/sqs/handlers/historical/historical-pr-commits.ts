@@ -4,6 +4,7 @@ import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getOctokitResp } from 'src/util/octokit-response';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
@@ -60,10 +61,10 @@ async function getPRCommits(
     const commentsDataOnPr = await octokit(
       `GET /repos/${owner.login}/${name}/pulls/${number}/commits?per_page=100&page=${page}`
     );
+    const octokitRespData = getOctokitResp(commentsDataOnPr);
+    await Promise.all(octokitRespData.map((commit: any) => saveCommit(commit, messageBody)));
 
-    await Promise.all(commentsDataOnPr.data.map((commit: any) => saveCommit(commit, messageBody)));
-
-    if (commentsDataOnPr.data.length < 100) {
+    if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR_REVIEW');
       return;
     } else {

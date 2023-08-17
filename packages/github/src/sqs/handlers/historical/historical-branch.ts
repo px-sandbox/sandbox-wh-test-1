@@ -4,6 +4,7 @@ import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getOctokitResp } from 'src/util/octokit-response';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
@@ -53,9 +54,10 @@ async function getRepoBranches(
       const githubBranches = await octokit(
         `GET /repos/${owner}/${name}/branches?per_page=100&page=${page}`
       );
-      logger.info('GET_API_BRANCH_DATA', githubBranches);
+      const octokitRespData = getOctokitResp(githubBranches);
+      logger.info('GET_API_BRANCH_DATA', octokitRespData);
       const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/;
-      branches = githubBranches.data
+      branches = octokitRespData
         .filter((branchName: any) => branchNameRegx.test(branchName.name))
         .map((branch: any) => branch.name);
     }
