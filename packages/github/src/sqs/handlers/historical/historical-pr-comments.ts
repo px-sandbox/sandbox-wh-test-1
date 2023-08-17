@@ -75,7 +75,7 @@ async function getPrComments(
     );
     await Promise.all(queueProcessed);
     if (octokitRespData.length < 100) {
-      logger.info('LAST_100_RECORD_PR_REVIEW');
+      logger.info('LAST_100_RECORD_PR_COMMENT');
       return;
     } else {
       messageBody.page = page + 1;
