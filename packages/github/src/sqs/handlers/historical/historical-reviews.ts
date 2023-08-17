@@ -72,9 +72,9 @@ async function getPrReviews(
 
     await Promise.all(queueProcessed);
 
-    let submittedAt = null;
-    let approvedAt = null;
     if (page === 1) {
+      let submittedAt = null;
+      let approvedAt = null;
       const reviewAt = await prReviews.data.find(
         (commentState: any) => commentState.state === 'COMMENTED'
       );
@@ -101,18 +101,18 @@ async function getPrReviews(
           approvedAt = approvedTime.submitted_at;
         }
       }
+      await new SQSClient().sendMessage(
+        {
+          submittedAt: submittedAt,
+          approvedAt: approvedAt,
+          owner: messageBody.head.repo.owner.login,
+          repoName: messageBody.head.repo.name,
+          prNumber: messageBody.number,
+          repoId: messageBody.head.repo.id,
+        },
+        Queue.gh_historical_pr_by_number.queueUrl
+      );
     }
-    await new SQSClient().sendMessage(
-      {
-        submittedAt: submittedAt,
-        approvedAt: approvedAt,
-        owner: messageBody.head.repo.owner.login,
-        repoName: messageBody.head.repo.name,
-        prNumber: messageBody.number,
-        repoId: messageBody.head.repo.id,
-      },
-      Queue.gh_historical_pr_by_number.queueUrl
-    );
 
     if (prReviews.data.length < 100) {
       logger.info('LAST_100_RECORD_PR_REVIEW');
