@@ -75,7 +75,7 @@ async function getRepoCommits(
       await new SQSClient().sendMessage(messageBody, Queue.gh_historical_commits.queueUrl);
     }
   } catch (error) {
-    await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error);
+    await logProcessToRetry(record, Queue.gh_historical_commits.queueUrl, error);
     logger.error(JSON.stringify({ message: 'historical.commits.error', error }));
   }
 }
