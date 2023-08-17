@@ -6,7 +6,8 @@
   "types": "module",
   "scripts": {
     "test": "test",
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "eslint . --ext .ts"
   },
   "keywords": [
     "types",

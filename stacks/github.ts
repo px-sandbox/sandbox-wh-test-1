@@ -1,6 +1,19 @@
-import { StackContext, Api, Table, Config, Queue, Function, Cron } from 'sst/constructs';
+import { Api, Table, Config, Queue, Function, Cron, StackContext } from 'sst/constructs';
 
-export function gh({ stack }: StackContext) {
+export function gh({ stack }: StackContext): {
+  ghAPI: Api<{
+    universal: {
+      type: 'lambda';
+      responseTypes: 'simple'[];
+      function: Function;
+    };
+    admin: {
+      type: 'lambda';
+      responseTypes: 'simple'[];
+      function: Function;
+    };
+  }>;
+} {
   // Set GITHUB config params
   const GITHUB_APP_ID = new Config.Secret(stack, 'GITHUB_APP_ID');
   const GITHUB_APP_PRIVATE_KEY_PEM = new Config.Secret(stack, 'GITHUB_APP_PRIVATE_KEY_PEM');
@@ -713,10 +726,11 @@ export function gh({ stack }: StackContext) {
   });
 
   // Initialize cron that runs every hour to fetch failed processes from `retryProcessTable` Table and process them out
-  new Cron(stack, 'failed-process-retry-cron', {
+  const cron = new Cron(stack, 'failed-process-retry-cron', {
     schedule: 'cron(0 * ? * * *)',
     job: processRetryFunction,
   });
+  console.info(`Cron job created: ${cron}`);
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,

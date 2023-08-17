@@ -9,7 +9,7 @@ export default {
       region: 'eu-west-1',
     };
   },
-  stacks(app) {
+  stacks(app): void | Promise<void> {
     app.stack(gh);
     app.stack(devops);
     if (app.stage !== 'live') {

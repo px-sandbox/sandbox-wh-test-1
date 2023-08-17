@@ -1,6 +1,9 @@
 {
-  "extends": "@tsconfig/node16/tsconfig.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "esnext"
-  }
+    "module": "esnext",
+    "outDir": "./dist",
+    "rootDir": "./"
+  },
+  "exclude": ["node_modules"]
 }

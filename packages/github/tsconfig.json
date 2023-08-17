@@ -6,5 +6,6 @@
     "paths": {
       "core/*": ["node_modules/core/src/*"]
     }
-  }
+  },
+  "exclude": ["node_modules"]
 }
