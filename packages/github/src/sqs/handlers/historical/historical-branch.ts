@@ -46,26 +46,31 @@ async function getRepoBranches(
   const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId } = messageBody;
   try {
-    const branches = await octokit(
-      `GET /repos/${owner}/${name}/branches?per_page=100&page=${page}`
-    );
-    logger.info('GET_API_BRANCH_DATA', branches);
-    const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/;
-    let queueProcessed = [];
-    queueProcessed = branches.data
-      .filter((branchName: any) => branchNameRegx.test(branchName.name))
-      .map((branch: any) =>
-        new SQSClient().sendMessage(
-          {
-            branchName: branch.name,
-            owner: owner,
-            name: name,
-            githubRepoId: githubRepoId,
-            page: 1,
-          },
-          Queue.gh_historical_commits.queueUrl
-        )
+    let branches = [];
+    if (messageBody.reqBranch) {
+      branches.push(messageBody.reqBranch);
+    } else {
+      const githubBranches = await octokit(
+        `GET /repos/${owner}/${name}/branches?per_page=100&page=${page}`
       );
+      logger.info('GET_API_BRANCH_DATA', githubBranches);
+      const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/;
+      branches = githubBranches.data
+        .filter((branchName: any) => branchNameRegx.test(branchName.name))
+        .map((branch: any) => branch.name);
+    }
+    const queueProcessed = branches.map((branch: any) =>
+      new SQSClient().sendMessage(
+        {
+          branchName: branch.name ?? messageBody.reqBranch,
+          owner: owner,
+          name: name,
+          githubRepoId: githubRepoId,
+          page: 1,
+        },
+        Queue.gh_historical_commits.queueUrl
+      )
+    );
     await Promise.all(queueProcessed);
     if (branches.data.length < 100) {
       logger.info('LAST_100_RECORD_PR');

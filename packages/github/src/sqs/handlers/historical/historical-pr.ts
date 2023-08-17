@@ -46,7 +46,7 @@ async function getPrList(
   }
   const { page = 1, owner, name } = messageBody;
   try {
-    const last_one_year_date = moment().subtract(1, 'year').toISOString();
+    // const last_one_year_date = moment().subtract(1, 'year').toISOString();
     const responseData = await octokit(
       `GET /repos/${owner}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
     );
@@ -54,20 +54,20 @@ async function getPrList(
       logger.info('HISTORY_EMPTY_PULLS', responseData);
       return;
     }
-    const prs = responseData.data.filter((pr: any) =>
-      moment(pr.created_at).isSameOrAfter(last_one_year_date)
-    );
+    // const prs = responseData.data.filter((pr: any) =>
+    //   moment(pr.created_at).isSameOrAfter(last_one_year_date)
+    // );
     let processes = [];
     processes = [
-      ...prs.map((prData: any) =>
+      ...responseData.data.map((prData: any) =>
         new SQSClient().sendMessage(prData, Queue.gh_historical_reviews.queueUrl)
       ),
-      ...prs.map((prData: any) =>
+      ...responseData.data.map((prData: any) =>
         new SQSClient().sendMessage(prData, Queue.gh_historical_pr_comments.queueUrl)
       ),
     ];
     await Promise.all(processes);
-    if (prs.length < 100) {
+    if (responseData.data.length < 100) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {

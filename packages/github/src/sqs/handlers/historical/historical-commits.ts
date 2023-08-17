@@ -43,9 +43,8 @@ async function getRepoCommits(
   const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId, branchName } = messageBody;
   try {
-    const last_one_year_date = moment('2022-01-01', 'YYYY-MM-DD').toISOString();
     const commitDataOnPr = await octokit(
-      `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=100&page=${page}&sort=created&direction=asc&since=${last_one_year_date}`
+      `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=100&page=${page}`
     );
     let queueProcessed = [];
     queueProcessed = commitDataOnPr.data.map((commitData: any) =>
@@ -76,7 +75,7 @@ async function getRepoCommits(
       await new SQSClient().sendMessage(messageBody, Queue.gh_historical_commits.queueUrl);
     }
   } catch (error) {
-    await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error);
+    await logProcessToRetry(record, Queue.gh_historical_commits.queueUrl, error);
     logger.error(JSON.stringify({ message: 'historical.commits.error', error }));
   }
 }

@@ -10,6 +10,7 @@ import { Queue } from 'sst/node/queue';
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const historyType = event?.queryStringParameters?.type || '';
   const repo = event?.queryStringParameters?.repo || '';
+  const branch = event?.queryStringParameters?.branch || '';
   try {
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -18,10 +19,11 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     });
     let data = await esClientObj.search(Github.Enums.IndexName.GitRepo, 'name', `${repo}`);
     const [repoData] = await searchedDataFormator(data);
-    logger.info({ level: 'info', message: 'github user data', repoData });
+    logger.info({ level: 'info', message: 'github repo data', repoData });
 
     let queueUrl = '';
     if (historyType == 'commits') {
+      repoData.reqBranch = branch;
       queueUrl = Queue.gh_historical_branch.queueUrl;
     } else {
       queueUrl = Queue.gh_historical_pr.queueUrl;
