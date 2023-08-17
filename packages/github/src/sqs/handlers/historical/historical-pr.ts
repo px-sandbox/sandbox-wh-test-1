@@ -5,6 +5,7 @@ import { logger } from 'core';
 import moment from 'moment';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getOctokitResp } from 'src/util/octokit-response';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
@@ -50,7 +51,8 @@ async function getPrList(
     const responseData = await octokit(
       `GET /repos/${owner}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
     );
-    if (responseData.data.length === 0) {
+    const octokitRespData = getOctokitResp(responseData);
+    if (octokitRespData.length === 0) {
       logger.info('HISTORY_EMPTY_PULLS', responseData);
       return;
     }
@@ -59,15 +61,15 @@ async function getPrList(
     // );
     let processes = [];
     processes = [
-      ...responseData.data.map((prData: any) =>
+      ...octokitRespData.map((prData: any) =>
         new SQSClient().sendMessage(prData, Queue.gh_historical_reviews.queueUrl)
       ),
-      ...responseData.data.map((prData: any) =>
+      ...octokitRespData.map((prData: any) =>
         new SQSClient().sendMessage(prData, Queue.gh_historical_pr_comments.queueUrl)
       ),
     ];
     await Promise.all(processes);
-    if (responseData.data.length < 100) {
+    if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {

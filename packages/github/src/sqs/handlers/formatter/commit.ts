@@ -6,6 +6,7 @@ import esb from 'elastic-builder';
 import { ghRequest } from 'src/lib/request-defaults';
 import { CommitProcessor } from 'src/processors/commit';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getOctokitResp } from 'src/util/octokit-response';
 import { searchedDataFormator } from 'src/util/response-formatter';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { Config } from 'sst/node/config';
@@ -56,7 +57,7 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
         );
 
         const commitProcessor = new CommitProcessor({
-          ...responseData.data,
+          ...getOctokitResp(responseData),
           commits: {
             id: commitId,
             isMergedCommit,
@@ -75,8 +76,8 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
         const data = await commitProcessor.processor();
         await commitProcessor.sendDataToQueue(data, Queue.gh_commit_index.queueUrl);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_commit_format.queueUrl, error);
         logger.error('commitFormattedDataReciever', error);
+        await logProcessToRetry(record, Queue.gh_commit_format.queueUrl, error);
       }
     })
   );

@@ -5,6 +5,7 @@ import { logger } from 'core';
 import moment from 'moment';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getOctokitResp } from 'src/util/octokit-response';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
@@ -46,8 +47,9 @@ async function getRepoCommits(
     const commitDataOnPr = await octokit(
       `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=100&page=${page}`
     );
+    const octokitRespData = getOctokitResp(commitDataOnPr);
     let queueProcessed = [];
-    queueProcessed = commitDataOnPr.data.map((commitData: any) =>
+    queueProcessed = octokitRespData.map((commitData: any) =>
       new SQSClient().sendMessage(
         {
           commitId: commitData.sha,
@@ -67,7 +69,7 @@ async function getRepoCommits(
     );
     await Promise.all(queueProcessed);
 
-    if (commitDataOnPr.data.length < 100) {
+    if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
@@ -75,7 +77,7 @@ async function getRepoCommits(
       await new SQSClient().sendMessage(messageBody, Queue.gh_historical_commits.queueUrl);
     }
   } catch (error) {
-    await logProcessToRetry(record, Queue.gh_historical_commits.queueUrl, error);
     logger.error(JSON.stringify({ message: 'historical.commits.error', error }));
+    await logProcessToRetry(record, Queue.gh_historical_commits.queueUrl, error);
   }
 }
