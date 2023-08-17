@@ -65,7 +65,7 @@ async function getPRCommits(
     await Promise.all(octokitRespData.map((commit: any) => saveCommit(commit, messageBody)));
 
     if (octokitRespData.length < 100) {
-      logger.info('LAST_100_RECORD_PR_REVIEW');
+      logger.info('LAST_100_RECORD_PR_COMMITS');
       return;
     } else {
       messageBody.page = page + 1;
