@@ -32,18 +32,19 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
 };
 
 async function getPrList(record: any) {
-  const messageBody = JSON.parse(record.body);
+  let messageBody = JSON.parse(record.body);
   logger.info(JSON.stringify(messageBody));
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
     return;
   }
-  const { page = 1, owner, name } = messageBody;
+  let { page = 1 } = messageBody;
+  const { owner, name } = messageBody;
   logger.info(`page: ${page}`);
   try {
     // const last_one_year_date = moment().subtract(1, 'year').toISOString();
     const responseData = await octokit(
-      `GET /repos/${owner}/${name}/pulls?state=all&per_page=50&page=${page}&sort=created&direction=desc`
+      `GET /repos/${owner}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
     );
     logger.info(`total prs from GH: ${responseData.data.length}`);
     logger.info(
@@ -68,13 +69,13 @@ async function getPrList(record: any) {
     await Promise.all(processes);
     logger.info(`total comments processed: ${processes.length}`);
     logger.info(`total prs: ${octokitRespData.length}`);
-    if (octokitRespData.length < 50) {
+    if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
       messageBody.page = page + 1;
       logger.info(`messageBody: ${JSON.stringify(messageBody)}`);
-      await getPrList({body: JSON.stringify(messageBody)});
+      await getPrList({ body: JSON.stringify(messageBody) });
     }
   } catch (error) {
     logger.error(`historical.PR.error: ${JSON.stringify(error)}`);

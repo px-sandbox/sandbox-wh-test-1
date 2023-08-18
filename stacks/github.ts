@@ -1,4 +1,5 @@
 import { StackContext, Api, Table, Config, Queue, Function, Cron } from 'sst/constructs';
+import { Duration } from 'aws-cdk-lib';
 
 export function gh({ stack }: StackContext) {
   // Set GITHUB config params
@@ -247,7 +248,13 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const collectPRData = new Queue(stack, 'gh_historical_pr');
+  const collectPRData = new Queue(stack, 'gh_historical_pr', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
 
   collectPRData.addConsumer(stack, {
     function: new Function(stack, 'histPRFunc', {
@@ -263,7 +270,13 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const collectReviewsData = new Queue(stack, 'gh_historical_reviews');
+  const collectReviewsData = new Queue(stack, 'gh_historical_reviews', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
 
   collectReviewsData.addConsumer(stack, {
     function: new Function(stack, 'histPrReviewFunc', {
@@ -279,7 +292,13 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number');
+  const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
   collecthistoricalPrByumber.addConsumer(stack, {
     function: new Function(stack, 'histPrByNumberFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historical-pr-by-number.handler',
@@ -294,7 +313,13 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const collectCommitsData = new Queue(stack, 'gh_historical_commits');
+  const collectCommitsData = new Queue(stack, 'gh_historical_commits', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
   collectCommitsData.addConsumer(stack, {
     function: new Function(stack, 'histCommitFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historical-commits.handler',
@@ -310,7 +335,13 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const historicalBranch = new Queue(stack, 'gh_historical_branch');
+  const historicalBranch = new Queue(stack, 'gh_historical_branch', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
 
   historicalBranch.addConsumer(stack, {
     function: new Function(stack, 'histBranchFunc', {
@@ -327,7 +358,13 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits');
+  const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
   collectPRCommitsData.addConsumer(stack, {
     function: new Function(stack, 'histPRCommitFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commits.handler',
@@ -342,7 +379,13 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments');
+  const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
   collectPRReviewCommentsData.addConsumer(stack, {
     function: new Function(stack, 'histPRReviewCommentsFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',

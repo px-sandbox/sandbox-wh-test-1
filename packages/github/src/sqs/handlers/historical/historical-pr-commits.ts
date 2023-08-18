@@ -8,14 +8,13 @@ import { getOctokitResp } from 'src/util/octokit-response';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
+const installationAccessToken = await getInstallationAccessToken();
+const octokit = ghRequest.request.defaults({
+  headers: {
+    Authorization: `Bearer ${installationAccessToken.body.token}`,
+  },
+});
 export const handler = async function collectPRCommitData(event: SQSEvent): Promise<any> {
-  const installationAccessToken = await getInstallationAccessToken();
-  const octokit = ghRequest.request.defaults({
-    headers: {
-      Authorization: `Bearer ${installationAccessToken.body.token}`,
-    },
-  });
-
   await Promise.all(
     event.Records.filter((record: any) => {
       const body = JSON.parse(record.body);
@@ -29,19 +28,12 @@ export const handler = async function collectPRCommitData(event: SQSEvent): Prom
 
       return false;
     }).map(async (record: any) => {
-      await getPRCommits(record, octokit);
+      await getPRCommits(record);
     })
   );
 };
-async function getPRCommits(
-  record: any,
-  octokit: RequestInterface<{
-    headers: {
-      Authorization: string;
-    };
-  }>
-) {
-  const messageBody = JSON.parse(record.body);
+async function getPRCommits(record: any) {
+  let messageBody = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
     return;
@@ -59,20 +51,21 @@ async function getPRCommits(
       return;
     }
     const commentsDataOnPr = await octokit(
-      `GET /repos/${owner.login}/${name}/pulls/${number}/commits?per_page=50&page=${page}`
+      `GET /repos/${owner.login}/${name}/pulls/${number}/commits?per_page=100&page=${page}`
     );
     const octokitRespData = getOctokitResp(commentsDataOnPr);
     await Promise.all(octokitRespData.map((commit: any) => saveCommit(commit, messageBody)));
 
-    if (octokitRespData.length < 50) {
+    if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR_COMMITS');
       return;
     } else {
       messageBody.page = page + 1;
-      await new SQSClient().sendMessage(messageBody, Queue.gh_historical_commits.queueUrl);
+      logger.error(`message-body: ${JSON.stringify(messageBody)}`);
+      await getPRCommits({ body: JSON.stringify(messageBody) });
     }
   } catch (error) {
-    logger.error('historical.PR.commits.error', { error });
+    logger.error(`historical.PR.commits.error: ${JSON.stringify(error)}`);
     await logProcessToRetry(record, Queue.gh_historical_pr_commits.queueUrl, error);
   }
 }
