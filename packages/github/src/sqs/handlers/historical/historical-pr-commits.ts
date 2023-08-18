@@ -59,7 +59,7 @@ async function getPRCommits(
       return;
     }
     const commentsDataOnPr = await octokit(
-      `GET /repos/${owner.login}/${name}/pulls/${number}/commits?per_page=100&page=${page}`
+      `GET /repos/${owner.login}/${name}/pulls/${number}/commits?per_page=50&page=${page}`
     );
     const octokitRespData = getOctokitResp(commentsDataOnPr);
     await Promise.all(octokitRespData.map((commit: any) => saveCommit(commit, messageBody)));

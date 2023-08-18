@@ -48,7 +48,7 @@ async function getRepoCommits(
   logger.info('page', page);
   try {
     const commitDataOnPr = await octokit(
-      `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=100&page=${page}`
+      `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=50&page=${page}`
     );
     const octokitRespData = getOctokitResp(commitDataOnPr);
     let queueProcessed = [];

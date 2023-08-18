@@ -57,7 +57,7 @@ async function getPrReviews(
   } = messageBody;
   try {
     const prReviews = await octokit(
-      `GET /repos/${owner.login}/${name}/pulls/${number}/reviews?per_page=100&page=${page}`
+      `GET /repos/${owner.login}/${name}/pulls/${number}/reviews?per_page=50&page=${page}`
     );
     const octokitRespData = getOctokitResp(prReviews);
     let queueProcessed = [];

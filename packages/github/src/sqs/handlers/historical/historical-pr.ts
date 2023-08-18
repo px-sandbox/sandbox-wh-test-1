@@ -52,7 +52,7 @@ async function getPrList(
   try {
     // const last_one_year_date = moment().subtract(1, 'year').toISOString();
     const responseData = await octokit(
-      `GET /repos/${owner}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
+      `GET /repos/${owner}/${name}/pulls?state=all&per_page=50&page=${page}&sort=created&direction=desc`
     );
     const octokitRespData = getOctokitResp(responseData);
     if (octokitRespData.length === 0) {
