@@ -6,6 +6,7 @@ import { mappingPrefixes } from 'src/constant/config';
 import { getTimezoneOfUser } from 'src/lib/get-user-timezone';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getOctokitResp } from 'src/util/octokit-response';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { getWorkingTime } from 'src/util/timezone-calculation';
 import { Queue } from 'sst/node/queue';
@@ -26,9 +27,9 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         const dataOnPr = await octokit(
           `GET /repos/${messageBody.owner}/${messageBody.repoName}/pulls/${messageBody.prNumber}`
         );
-
+        const octokitRespData = getOctokitResp(dataOnPr);
         const createdTimezone = await getTimezoneOfUser(
-          `${mappingPrefixes.user}_${dataOnPr.data.user.id}`
+          `${mappingPrefixes.user}_${octokitRespData.user.id}`
         );
 
         if (
@@ -39,14 +40,14 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         }
 
         const review_seconds = await getWorkingTime(
-          moment(dataOnPr.data.created_at),
+          moment(octokitRespData.created_at),
           moment(messageBody.submittedAt),
           createdTimezone
         );
 
         await new SQSClient().sendMessage(
           {
-            ...dataOnPr.data,
+            ...octokitRespData,
             reviewed_at: messageBody.submittedAt,
             approved_at: messageBody.approvedAt,
             review_seconds: review_seconds,
@@ -55,13 +56,13 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         );
 
         // setting the `isMergedCommit` for commit
-        if (dataOnPr.data.merged === true) {
+        if (octokitRespData.merged === true) {
           await new SQSClient().sendMessage(
             {
-              commitId: dataOnPr.data.merge_commit_sha,
-              isMergedCommit: dataOnPr.data.merged,
+              commitId: octokitRespData.merge_commit_sha,
+              isMergedCommit: octokitRespData.merged,
               mergedBranch: null,
-              pushedBranch: dataOnPr.data?.head?.ref,
+              pushedBranch: octokitRespData?.head?.ref,
               repository: {
                 id: messageBody.repoId,
                 name: messageBody.repoName,
@@ -70,12 +71,12 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
               timestamp: new Date(),
             },
             Queue.gh_commit_format.queueUrl,
-            dataOnPr.data.merge_commit_sha
+            octokitRespData.merge_commit_sha
           );
         }
       } catch (error) {
         await logProcessToRetry(record, Queue.gh_historical_pr_by_number.queueUrl, error);
-        logger.error('historical.pr.number.error', { error });
+        logger.error(`historical.pr.number.error: ${JSON.stringify(error)}`);
       }
     })
   );

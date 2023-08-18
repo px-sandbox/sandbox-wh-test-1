@@ -5,16 +5,18 @@ import { logger } from 'core';
 import moment from 'moment';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getOctokitResp } from 'src/util/octokit-response';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
+const installationAccessToken = await getInstallationAccessToken();
+const octokit = ghRequest.request.defaults({
+  headers: {
+    Authorization: `Bearer ${installationAccessToken.body.token}`,
+  },
+});
 export const handler = async function collectCommitData(event: SQSEvent): Promise<void> {
-  const installationAccessToken = await getInstallationAccessToken();
-  const octokit = ghRequest.request.defaults({
-    headers: {
-      Authorization: `Bearer ${installationAccessToken.body.token}`,
-    },
-  });
+  logger.info(`total event records: ${event.Records.length}`);
   await Promise.all(
     event.Records.filter((record: any) => {
       const body = JSON.parse(record.body);
@@ -28,27 +30,21 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
 
       return false;
     }).map(async (record: any) => {
-      await getRepoCommits(record, octokit);
+      await getRepoCommits(record);
     })
   );
 };
-async function getRepoCommits(
-  record: any,
-  octokit: RequestInterface<{
-    headers: {
-      Authorization: string;
-    };
-  }>
-) {
-  const messageBody = JSON.parse(record.body);
+async function getRepoCommits(record: any) {
+  let messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId, branchName } = messageBody;
+  logger.info(`page: ${page}`);
   try {
-    const last_one_year_date = moment('2022-01-01', 'YYYY-MM-DD').toISOString();
     const commitDataOnPr = await octokit(
-      `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=100&page=${page}&sort=created&direction=asc&since=${last_one_year_date}`
+      `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=100&page=${page}`
     );
+    const octokitRespData = getOctokitResp(commitDataOnPr);
     let queueProcessed = [];
-    queueProcessed = commitDataOnPr.data.map((commitData: any) =>
+    queueProcessed = octokitRespData.map((commitData: any) =>
       new SQSClient().sendMessage(
         {
           commitId: commitData.sha,
@@ -68,15 +64,18 @@ async function getRepoCommits(
     );
     await Promise.all(queueProcessed);
 
-    if (commitDataOnPr.data.length < 100) {
+    logger.info(`ALL_AWAITED_COMMIT_QUEUE_PROCESSED: ${queueProcessed.length}`);
+
+    if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
       messageBody.page = page + 1;
-      await new SQSClient().sendMessage(messageBody, Queue.gh_historical_commits.queueUrl);
+      logger.info(`message_body_pr_commits: ${JSON.stringify(messageBody)}`);
+      await getRepoCommits({ body: JSON.stringify(messageBody) });
     }
   } catch (error) {
-    await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error);
     logger.error(JSON.stringify({ message: 'historical.commits.error', error }));
+    await logProcessToRetry(record, Queue.gh_historical_commits.queueUrl, error);
   }
 }

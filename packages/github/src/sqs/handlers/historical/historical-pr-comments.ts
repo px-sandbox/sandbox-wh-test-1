@@ -4,16 +4,17 @@ import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { ghRequest } from 'src/lib/request-defaults';
 import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getOctokitResp } from 'src/util/octokit-response';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
+const installationAccessToken = await getInstallationAccessToken();
+const octokit = ghRequest.request.defaults({
+  headers: {
+    Authorization: `Bearer ${installationAccessToken.body.token}`,
+  },
+});
 export const handler = async function collectPRCommentsData(event: SQSEvent): Promise<any> {
-  const installationAccessToken = await getInstallationAccessToken();
-  const octokit = ghRequest.request.defaults({
-    headers: {
-      Authorization: `Bearer ${installationAccessToken.body.token}`,
-    },
-  });
   await Promise.all(
     event.Records.filter((record: any) => {
       const body = JSON.parse(record.body);
@@ -31,19 +32,12 @@ export const handler = async function collectPRCommentsData(event: SQSEvent): Pr
 
       return false;
     }).map(async (record: any) => {
-      await getPrComments(record, octokit);
+      await getPrComments(record);
     })
   );
 };
-async function getPrComments(
-  record: any,
-  octokit: RequestInterface<{
-    headers: {
-      Authorization: string;
-    };
-  }>
-) {
-  const messageBody = JSON.parse(record.body);
+async function getPrComments(record: any) {
+  let messageBody = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
     return;
@@ -60,9 +54,9 @@ async function getPrComments(
     const commentsDataOnPr = await octokit(
       `GET /repos/${owner.login}/${name}/pulls/${number}/comments?per_page=100&page=${page}`
     );
-
+    const octokitRespData = getOctokitResp(commentsDataOnPr);
     let queueProcessed = [];
-    queueProcessed = commentsDataOnPr.data.map((comments: any) =>
+    queueProcessed = octokitRespData.map((comments: any) =>
       new SQSClient().sendMessage(
         {
           comment: comments,
@@ -73,15 +67,18 @@ async function getPrComments(
       )
     );
     await Promise.all(queueProcessed);
-    if (commentsDataOnPr.data.length < 100) {
-      logger.info('LAST_100_RECORD_PR_REVIEW');
+    logger.info(`total pr comments proccessed: ${queueProcessed.length}`);
+    if (octokitRespData.length < 100) {
+      logger.info('LAST_100_RECORD_PR_COMMENT');
       return;
     } else {
       messageBody.page = page + 1;
-      await new SQSClient().sendMessage(messageBody, Queue.gh_historical_pr_comments.queueUrl);
+      logger.info(`message_body_pr_comments: ${JSON.stringify(messageBody)}`);
+      // await new SQSClient().sendMessage(messageBody, Queue.gh_historical_pr_comments.queueUrl);
+      await getPrComments({ body: JSON.stringify(messageBody) });
     }
   } catch (error) {
+    logger.error(`historical.comments.error: ${JSON.stringify(error)}`);
     await logProcessToRetry(record, Queue.gh_historical_pr_comments.queueUrl, error);
-    logger.error('historical.comments.error', { error });
   }
 }
