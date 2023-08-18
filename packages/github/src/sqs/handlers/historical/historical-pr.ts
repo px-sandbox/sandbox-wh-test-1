@@ -54,6 +54,9 @@ async function getPrList(
     const responseData = await octokit(
       `GET /repos/${owner}/${name}/pulls?state=all&per_page=50&page=${page}&sort=created&direction=desc`
     );
+    logger.info(`total prs from GH: ${responseData.data.length}`);
+    logger.info(`GH url: /repos/${owner}/${name}/pulls?state=all&per_page=50&page=${page}&sort=created&direction=desc`)
+
     const octokitRespData = getOctokitResp(responseData);
     if (octokitRespData.length === 0) {
       logger.info('HISTORY_EMPTY_PULLS', responseData);
@@ -72,12 +75,14 @@ async function getPrList(
       ),
     ];
     await Promise.all(processes);
-    logger.info(`total prs: ${processes.length}`);
+    logger.info(`total comments processed: ${processes.length}`);
+    logger.info(`total prs: ${octokitRespData.length}`)
     if (octokitRespData.length < 50) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
       messageBody.page = page + 1;
+      logger.info(`messageBody: ${JSON.stringify(messageBody)}`);
       await new SQSClient().sendMessage(messageBody, Queue.gh_historical_pr.queueUrl);
     }
   } catch (error) {
