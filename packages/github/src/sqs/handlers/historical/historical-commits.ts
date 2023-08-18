@@ -9,13 +9,13 @@ import { getOctokitResp } from 'src/util/octokit-response';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
+const installationAccessToken = await getInstallationAccessToken();
+const octokit = ghRequest.request.defaults({
+  headers: {
+    Authorization: `Bearer ${installationAccessToken.body.token}`,
+  },
+});
 export const handler = async function collectCommitData(event: SQSEvent): Promise<void> {
-  const installationAccessToken = await getInstallationAccessToken();
-  const octokit = ghRequest.request.defaults({
-    headers: {
-      Authorization: `Bearer ${installationAccessToken.body.token}`,
-    },
-  });
   logger.info(`total event records: ${event.Records.length}`);
   await Promise.all(
     event.Records.filter((record: any) => {
@@ -30,25 +30,17 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
 
       return false;
     }).map(async (record: any) => {
-      await getRepoCommits(record, octokit);
+      await getRepoCommits(record);
     })
   );
 };
-async function getRepoCommits(
-  record: any,
-  octokit: RequestInterface<{
-    headers: {
-      Authorization: string;
-    };
-  }>
-) {
-  const messageBody = JSON.parse(record.body);
-  logger.info(JSON.stringify(messageBody));
+async function getRepoCommits(record: any) {
+  let messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId, branchName } = messageBody;
   logger.info(`page: ${page}`);
   try {
     const commitDataOnPr = await octokit(
-      `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=50&page=${page}`
+      `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=100&page=${page}`
     );
     const octokitRespData = getOctokitResp(commitDataOnPr);
     let queueProcessed = [];
@@ -74,12 +66,13 @@ async function getRepoCommits(
 
     logger.info(`ALL_AWAITED_COMMIT_QUEUE_PROCESSED: ${queueProcessed.length}`);
 
-    if (octokitRespData.length < 50) {
+    if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
       messageBody.page = page + 1;
-      await new SQSClient().sendMessage(messageBody, Queue.gh_historical_commits.queueUrl);
+      logger.info(`message_body_pr_commits: ${JSON.stringify(messageBody)}`);
+      await getRepoCommits({ body: JSON.stringify(messageBody) });
     }
   } catch (error) {
     logger.error(JSON.stringify({ message: 'historical.commits.error', error }));

@@ -8,13 +8,13 @@ import { getOctokitResp } from 'src/util/octokit-response';
 import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
+const installationAccessToken = await getInstallationAccessToken();
+const octokit = ghRequest.request.defaults({
+  headers: {
+    Authorization: `Bearer ${installationAccessToken.body.token}`,
+  },
+});
 export const handler = async function collectBranchData(event: SQSEvent): Promise<void> {
-  const installationAccessToken = await getInstallationAccessToken();
-  const octokit = ghRequest.request.defaults({
-    headers: {
-      Authorization: `Bearer ${installationAccessToken.body.token}`,
-    },
-  });
   await Promise.all(
     event.Records.filter((record: any) => {
       const body = JSON.parse(record.body);
@@ -28,7 +28,7 @@ export const handler = async function collectBranchData(event: SQSEvent): Promis
       return false;
     }).map(async (record: any) => {
       try {
-        await getRepoBranches(record, octokit);
+        await getRepoBranches(record);
       } catch (error) {
         await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error);
         logger.error(JSON.stringify({ message: 'collectBranchData.failed', record, error }));
@@ -36,15 +36,8 @@ export const handler = async function collectBranchData(event: SQSEvent): Promis
     })
   );
 };
-async function getRepoBranches(
-  record: any,
-  octokit: RequestInterface<{
-    headers: {
-      Authorization: string;
-    };
-  }>
-) {
-  const messageBody = JSON.parse(record.body);
+async function getRepoBranches(record: any) {
+  let messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId } = messageBody;
   try {
     let branches = [];
@@ -61,6 +54,7 @@ async function getRepoBranches(
         .filter((branchName: any) => branchNameRegx.test(branchName.name))
         .map((branch: any) => branch.name);
     }
+    logger.info(`Proccessing data for repo: ${branches}`);
     const queueProcessed = branches.map((branch: any) =>
       new SQSClient().sendMessage(
         {
@@ -79,10 +73,11 @@ async function getRepoBranches(
       return;
     } else {
       messageBody.page = page + 1;
-      await new SQSClient().sendMessage(messageBody, Queue.gh_historical_branch.queueUrl);
+      logger.info(`message_body_repo: ${messageBody}`);
+      await getRepoBranches({ body: JSON.stringify(messageBody) });
     }
   } catch (error) {
+    logger.error(`historical.repoBranches.error: ${JSON.stringify(error)}`);
     await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error);
-    logger.error('historical.repoBranches.error', { error });
   }
 }
