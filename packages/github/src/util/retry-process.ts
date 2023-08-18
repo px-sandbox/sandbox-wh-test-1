@@ -12,7 +12,7 @@ export async function logProcessToRetry(record: SQSRecord, queue: string, error:
     } = record;
 
     const { retry, ...messageBody } = JSON.parse(body);
-    //entry in dynamodb table
+    // entry in dynamodb table
     const processId = uuid();
     const retryBody = {
       messageBody: JSON.stringify({ ...messageBody, retry: retry ? retry + 1 : 1 }),

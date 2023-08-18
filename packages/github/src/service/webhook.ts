@@ -1,8 +1,8 @@
+import crypto from 'crypto';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { logger } from 'core';
-import crypto from 'crypto';
 import { getCommits } from 'src/lib/git-commit-list';
 import { pRReviewCommentOnQueue } from 'src/lib/send-pr-review-comment-to-queue';
 import { pRReviewOnQueue } from 'src/lib/send-pr-review-to-queue';

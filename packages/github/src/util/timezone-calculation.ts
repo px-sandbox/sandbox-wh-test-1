@@ -35,12 +35,12 @@ function getTimeWithOffset(date: moment.Moment, offset: Offset) {
 
 function regulariseDate(date: moment.Moment) {
   if (date.day() === 6) {
-    //Saturday
+    // Saturday
     return moment(date).add(2, 'd').hour(9).minute(30).second(0).millisecond(0);
-  } else if (date.day() === 0) {
-    //Sunday
+  } if (date.day() === 0) {
+    // Sunday
     return moment(date).add(1, 'd').hour(9).minute(30).second(0).millisecond(0);
-  } else {
+  } 
     const minBoundary = moment(date).hour(9).minute(30).second(0).millisecond(0);
     const maxBoundary = moment(date).hour(18).minute(30).second(0).millisecond(0);
     if (date.isBetween(minBoundary, maxBoundary)) {
@@ -50,7 +50,7 @@ function regulariseDate(date: moment.Moment) {
       return minBoundary;
     }
     return maxBoundary;
-  }
+  
 }
 
 function getDays(startDate: moment.Moment, endDate: moment.Moment) {

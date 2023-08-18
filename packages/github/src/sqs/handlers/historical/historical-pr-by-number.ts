@@ -44,7 +44,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
             ...dataOnPr.data,
             reviewed_at: messageBody.submittedAt,
             approved_at: messageBody.approvedAt,
-            review_seconds: review_seconds,
+            review_seconds,
           },
           Queue.gh_pr_format.queueUrl
         );

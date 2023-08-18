@@ -1,9 +1,19 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
-import { RetryTableMapping } from 'src/model/retry-table-mapping';
+import { RetryTableMapping } from '../model/retry-table-mapping';
 
-export async function handler() {
+async function processIt(record: any): Promise<void> {
+  const { processId, messageBody, queue, MessageDeduplicationId } = record;
+
+  // send to queue
+  await new SQSClient().sendMessage(JSON.parse(messageBody), queue, MessageDeduplicationId);
+
+  // delete from dynamodb
+  await new DynamoDbDocClient().delete(new RetryTableMapping().prepareDeleteParams(processId));
+}
+
+export async function handler(): Promise<void> {
   logger.info(`RetryProcessHandler invoked at: ${new Date().toISOString()}`);
 
   const processes = await new DynamoDbDocClient().scan(
@@ -16,14 +26,4 @@ export async function handler() {
   }
 
   await Promise.all(processes.map((record: any) => processIt(record)));
-}
-
-async function processIt(record: any): Promise<void> {
-  const { processId, messageBody, queue, MessageDeduplicationId } = record;
-
-  // send to queue
-  await new SQSClient().sendMessage(JSON.parse(messageBody), queue, MessageDeduplicationId);
-
-  // delete from dynamodb
-  await new DynamoDbDocClient().delete(new RetryTableMapping().prepareDeleteParams(processId));
 }

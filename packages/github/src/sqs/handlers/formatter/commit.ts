@@ -32,7 +32,7 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
          * Get commit details from Github API
          * ------------------------------------
          */
-        //CHECK DATA EXISTS IN ELASTICSEARCH
+        // CHECK DATA EXISTS IN ELASTICSEARCH
         const commitSearchQuery = esb.matchQuery('body.githubCommitId', commitId);
         const searchInEsb = await new ElasticSearchClient({
           host: Config.OPENSEARCH_NODE,

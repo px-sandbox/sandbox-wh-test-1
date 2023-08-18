@@ -71,7 +71,7 @@ export async function pRReviewOnQueue(
 
     await Promise.all([
       new SQSClient().sendMessage(
-        { review: prReview, pullId: pullId, repoId: repoId, action: action },
+        { review: prReview, pullId, repoId, action },
         Queue.gh_pr_review_format.queueUrl
       ),
       new SQSClient().sendMessage(

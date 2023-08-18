@@ -6,10 +6,10 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
 import moment from 'moment';
-import { DataProcessor } from './data-processor';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from 'src/util/response-formatter';
+import { DataProcessor } from './data-processor';
 
 const delayAr = [0, 1, 1, 2, 3, 5, 8];
 export class PRProcessor extends DataProcessor<
