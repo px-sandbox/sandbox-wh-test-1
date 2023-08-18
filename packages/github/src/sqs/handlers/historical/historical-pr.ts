@@ -81,6 +81,7 @@ async function getPrList(
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       messageBody.page = page + 1;
       logger.info(`messageBody: ${JSON.stringify(messageBody)}`);
       await new SQSClient().sendMessage(messageBody, Queue.gh_historical_pr.queueUrl);
