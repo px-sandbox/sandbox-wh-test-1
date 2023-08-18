@@ -16,6 +16,7 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
       Authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
+  logger.info('total event records', event.Records.length);
   await Promise.all(
     event.Records.filter((record: any) => {
       const body = JSON.parse(record.body);
@@ -41,15 +42,17 @@ async function getPrList(
   }>
 ) {
   const messageBody = JSON.parse(record.body);
+  logger.info('HISTORY_PULL_REQUEST_DATA', JSON.stringify(messageBody));
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
     return;
   }
   const { page = 1, owner, name } = messageBody;
+  logger.info('page', page);
   try {
     // const last_one_year_date = moment().subtract(1, 'year').toISOString();
     const responseData = await octokit(
-      `GET /repos/${owner}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
+      `GET /repos/${owner}/${name}/pulls?state=all&per_page=50&page=${page}&sort=created&direction=desc`
     );
     const octokitRespData = getOctokitResp(responseData);
     if (octokitRespData.length === 0) {

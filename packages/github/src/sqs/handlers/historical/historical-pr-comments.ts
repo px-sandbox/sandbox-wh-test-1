@@ -59,7 +59,7 @@ async function getPrComments(
 
   try {
     const commentsDataOnPr = await octokit(
-      `GET /repos/${owner.login}/${name}/pulls/${number}/comments?per_page=100&page=${page}`
+      `GET /repos/${owner.login}/${name}/pulls/${number}/comments?per_page=50&page=${page}`
     );
     const octokitRespData = getOctokitResp(commentsDataOnPr);
     let queueProcessed = [];
