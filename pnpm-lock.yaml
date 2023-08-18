@@ -32,7 +32,7 @@ importers:
       winston: ^3.8.2
     dependencies:
       aws-lambda: 1.0.7
-      aws-sdk: 2.1438.0
+      aws-sdk: 2.1439.0
       prettier: 2.8.8
       prettier-eslint: 15.0.1
       winston: 3.10.0
@@ -92,7 +92,7 @@ importers:
       core: workspace:0.0.1
     dependencies:
       '@elastic/elasticsearch': 7.13.0
-      aws-sdk: 2.1438.0
+      aws-sdk: 2.1439.0
       core: link:../../core
     devDependencies:
       '@types/aws-sdk': 2.7.0
@@ -303,9 +303,6 @@ packages:
   /@aws-cdk/cloud-assembly-schema/2.91.0:
     resolution: {integrity: sha512-H7pbe7VMnX2siipaT6rVDWjp0p9clrKc+8C+FG+6woqQIuQBuBZxZGVVSNtR0hdtAj7UWFX/CHGS4ihFtJnmIQ==}
     engines: {node: '>= 14.15.0'}
-    dependencies:
-      jsonschema: 1.4.1
-      semver: 7.5.4
     bundledDependencies:
       - jsonschema
       - semver
@@ -326,7 +323,6 @@ packages:
     engines: {node: '>= 14.15.0'}
     dependencies:
       '@aws-cdk/cloud-assembly-schema': 2.91.0
-      semver: 7.5.4
     bundledDependencies:
       - semver
 
@@ -1850,9 +1846,6 @@ packages:
       '@babel/helper-string-parser': 7.22.5
       '@babel/helper-validator-identifier': 7.22.5
       to-fast-properties: 2.0.0
-
-  /@balena/dockerignore/1.0.2:
-    resolution: {integrity: sha512-wMue2Sy4GAVTk6Ic4tJVcnfdau+gx2EnG7S+uAEe+TWJFqE4YoWN4/H8MSLj4eYJKxGg26lZwboEniNiNwZQ6Q==}
 
   /@colors/colors/1.5.0:
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
@@ -3763,7 +3756,7 @@ packages:
     resolution: {integrity: sha512-bF6brnwPN9+kheqdKCpinMgCkj+sJIUEj+0v0LPug9OQwL5/1jy+kiJwl+Nkw4Kh+7oaL1phhC4gMz6Oq60jMg==}
     deprecated: This is a stub types definition for aws-sdk (https://github.com/aws/aws-sdk-js). aws-sdk provides its own type definitions, so you don't need @types/aws-sdk installed!
     dependencies:
-      aws-sdk: 2.1438.0
+      aws-sdk: 2.1439.0
     dev: true
 
   /@types/btoa-lite/1.0.0:
@@ -4477,16 +4470,7 @@ packages:
       '@aws-cdk/asset-awscli-v1': 2.2.200
       '@aws-cdk/asset-kubectl-v20': 2.1.2
       '@aws-cdk/asset-node-proxy-agent-v5': 2.0.166
-      '@balena/dockerignore': 1.0.2
-      case: 1.6.3
       constructs: 10.1.156
-      fs-extra: 9.1.0
-      ignore: 5.2.4
-      jsonschema: 1.4.1
-      minimatch: 3.1.2
-      punycode: 2.3.0
-      semver: 7.5.4
-      yaml: 1.10.2
     dev: true
     bundledDependencies:
       - '@balena/dockerignore'
@@ -4508,17 +4492,7 @@ packages:
       '@aws-cdk/asset-awscli-v1': 2.2.200
       '@aws-cdk/asset-kubectl-v20': 2.1.2
       '@aws-cdk/asset-node-proxy-agent-v5': 2.0.166
-      '@balena/dockerignore': 1.0.2
-      case: 1.6.3
       constructs: 10.2.69
-      fs-extra: 11.1.1
-      ignore: 5.2.4
-      jsonschema: 1.4.1
-      minimatch: 3.1.2
-      punycode: 2.3.0
-      semver: 7.5.4
-      table: 6.8.1
-      yaml: 1.10.2
     bundledDependencies:
       - '@balena/dockerignore'
       - case
@@ -4565,7 +4539,7 @@ packages:
     resolution: {integrity: sha512-9GNFMRrEMG5y3Jvv+V4azWvc+qNWdWLTjDdhf/zgMlz8haaaLWv0xeAIWxz9PuWUBawsVxy0zZotjCdR3Xq+2w==}
     hasBin: true
     dependencies:
-      aws-sdk: 2.1438.0
+      aws-sdk: 2.1439.0
       commander: 3.0.2
       js-yaml: 3.14.1
       watchpack: 2.4.0
@@ -4590,8 +4564,8 @@ packages:
       - supports-color
     dev: false
 
-  /aws-sdk/2.1438.0:
-    resolution: {integrity: sha512-xessrWtoMD2icLPnm4KlTl3tiudJlYh3RtqBx+BggBc3ie9l98za1tSB4NunabTEbBUj4YMmzN1lpMsNEZ0NGw==}
+  /aws-sdk/2.1439.0:
+    resolution: {integrity: sha512-T2kXdLylb+pmpAhjFVQO4OpRYjkBpAKtxzRvv7tv90AJCaoguxZ5vfK8S7iKvHDuS9xKgBI8dVktYcgtkGcTJw==}
     engines: {node: '>= 10.0.0'}
     dependencies:
       buffer: 4.9.2
@@ -4704,7 +4678,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001521
-      electron-to-chromium: 1.4.494
+      electron-to-chromium: 1.4.495
       node-releases: 2.0.13
       update-browserslist-db: 1.0.11_browserslist@4.21.10
 
@@ -4802,10 +4776,6 @@ packages:
       upper-case-first: 2.0.2
     dev: false
 
-  /case/1.6.3:
-    resolution: {integrity: sha512-mzDSXIPaFwVDvZAHqZ9VlbyF4yyXRuX6IvB06WvPYkqJVO24kX1PPhv9bfpKNFZyxYFmmgo03HUiD8iklmJYRQ==}
-    engines: {node: '>= 0.8.0'}
-
   /cdk-assets/2.91.0:
     resolution: {integrity: sha512-/dc6K/a2Gfl+3SX8SU6FyoLY3jGcCuwu/Gs1SCsbom4v22ZbAXIL8enhffSNiVKry/yfHbS/VRHRwiPpbYqVMQ==}
     engines: {node: '>= 14.15.0'}
@@ -4814,7 +4784,7 @@ packages:
       '@aws-cdk/cloud-assembly-schema': 2.91.0
       '@aws-cdk/cx-api': 2.91.0
       archiver: 5.3.2
-      aws-sdk: 2.1438.0
+      aws-sdk: 2.1439.0
       glob: 7.2.3
       mime: 2.6.0
       yargs: 16.2.0
@@ -5468,8 +5438,8 @@ packages:
       lodash.omit: 4.5.0
     dev: true
 
-  /electron-to-chromium/1.4.494:
-    resolution: {integrity: sha512-KF7wtsFFDu4ws1ZsSOt4pdmO1yWVNWCFtijVYZPUeW4SV7/hy/AESjLn/+qIWgq7mHscNOKAwN5AIM1+YAy+Ww==}
+  /electron-to-chromium/1.4.495:
+    resolution: {integrity: sha512-mwknuemBZnoOCths4GtpU/SDuVMp3uQHKa2UNJT9/aVD6WVRjGpXOxRGX7lm6ILIenTdGXPSTCTDaWos5tEU8Q==}
 
   /emoji-regex/8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -6140,6 +6110,7 @@ packages:
       graceful-fs: 4.2.11
       jsonfile: 6.1.0
       universalify: 2.0.0
+    dev: true
 
   /fs-extra/9.1.0:
     resolution: {integrity: sha512-hcg3ZmepS30/7BSFqRvoo3DOMQu7IjqxO5nCDt+zM9XWjb33Wg7ziNT+Qvqbuc3+gWpzO02JubVyk2G4Zvo1OQ==}
@@ -6914,9 +6885,6 @@ packages:
     resolution: {integrity: sha512-POQXvpdL69+CluYsillJ7SUhKvytYjW9vG/GKpnf+xP8UWgYEM/RaMzHHofbALDiKbbP1W8UEYmgGl39WkPZsg==}
     engines: {'0': node >= 0.2.0}
     dev: true
-
-  /jsonschema/1.4.1:
-    resolution: {integrity: sha512-S6cATIPVv1z0IlxdN+zUk5EPjkGCdnhN4wVSBlvoUO1tOLJootbo9CquNJmbIh4yikWHiUedhRYrNPn1arpEmQ==}
 
   /jsonwebtoken/9.0.1:
     resolution: {integrity: sha512-K8wx7eJ5TPvEjuiVSkv167EVboBDv9PZdDoF7BgeQnBLVvZWW9clr2PsQHVJDTKaEIH5JBIwHujGcHp7GgI2eg==}
@@ -8537,7 +8505,7 @@ packages:
       adm-zip: 0.5.10
       aws-cdk-lib: 2.91.0_constructs@10.2.69
       aws-iot-device-sdk: 2.2.12
-      aws-sdk: 2.1438.0
+      aws-sdk: 2.1439.0
       builtin-modules: 3.2.0
       cdk-assets: 2.91.0
       chalk: 5.3.0
