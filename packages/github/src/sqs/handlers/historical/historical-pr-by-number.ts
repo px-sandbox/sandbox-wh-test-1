@@ -26,17 +26,22 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         const dataOnPr = await octokit(
           `GET /repos/${messageBody.owner}/${messageBody.repoName}/pulls/${messageBody.prNumber}`
         );
+
         const createdTimezone = await getTimezoneOfUser(
           `${mappingPrefixes.user}_${dataOnPr.data.user.id}`
         );
 
-        if (moment(messageBody.approved_at).isBefore(moment(messageBody.submitted_at))) {
+        if (
+          messageBody.approved_at &&
+          moment(messageBody.approved_at).isBefore(moment(messageBody.submitted_at))
+        ) {
           messageBody.submittedAt = messageBody.approved_at;
         }
+
         const review_seconds = await getWorkingTime(
           moment(dataOnPr.data.created_at),
           moment(messageBody.submittedAt),
-          createdTimezone ?? '+5:30'
+          createdTimezone
         );
 
         await new SQSClient().sendMessage(
