@@ -116,7 +116,7 @@ async function getPrReviews(
       );
     }
 
-    if (octokitRespData.length < 100) {
+    if (octokitRespData.length < 50) {
       logger.info('LAST_100_RECORD_PR_REVIEW');
       return;
     } else {
