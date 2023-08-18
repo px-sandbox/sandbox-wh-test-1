@@ -64,7 +64,7 @@ async function getRepoBranches(
     const queueProcessed = branches.map((branch: any) =>
       new SQSClient().sendMessage(
         {
-          branchName: branch.name ?? messageBody.reqBranch,
+          branchName: branch,
           owner: owner,
           name: name,
           githubRepoId: githubRepoId,
@@ -74,7 +74,7 @@ async function getRepoBranches(
       )
     );
     await Promise.all(queueProcessed);
-    if (branches.data.length < 100) {
+    if (branches.length < 100) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
