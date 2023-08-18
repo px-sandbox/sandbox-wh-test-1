@@ -74,10 +74,10 @@ async function getPrList(record: any) {
     } else {
       messageBody.page = page + 1;
       logger.info(`messageBody: ${JSON.stringify(messageBody)}`);
-      await getPrList({body: messageBody});
+      await getPrList({body: JSON.stringify(messageBody)});
     }
   } catch (error) {
-    logger.error('historical.PR.error', { error });
+    logger.error(`historical.PR.error: ${JSON.stringify(error)}`);
     await logProcessToRetry(record, Queue.gh_historical_pr.queueUrl, error);
   }
 }
