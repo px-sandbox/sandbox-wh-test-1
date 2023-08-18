@@ -16,7 +16,7 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
       Authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
-  logger.info('total event records', event.Records.length);
+  logger.info(`total event records: ${event.Records.length}`);
   await Promise.all(
     event.Records.filter((record: any) => {
       const body = JSON.parse(record.body);
@@ -43,9 +43,9 @@ async function getRepoCommits(
   }>
 ) {
   const messageBody = JSON.parse(record.body);
-  logger.info('COMMIT_DATA', JSON.stringify(messageBody));
+  logger.info(JSON.stringify(messageBody));
   const { owner, name, page = 1, githubRepoId, branchName } = messageBody;
-  logger.info('page', page);
+  logger.info(`page: ${page}`);
   try {
     const commitDataOnPr = await octokit(
       `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=50&page=${page}`
@@ -72,9 +72,9 @@ async function getRepoCommits(
     );
     await Promise.all(queueProcessed);
 
-    logger.info('ALL_AWAITED_COMMIT_QUEUE_PROCESSED', queueProcessed.length);
+    logger.info(`ALL_AWAITED_COMMIT_QUEUE_PROCESSED: ${queueProcessed.length}`);
 
-    if (octokitRespData.length < 100) {
+    if (octokitRespData.length < 50) {
       logger.info('LAST_100_RECORD_PR');
       return;
     } else {
