@@ -39,9 +39,10 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           username: Config.OPENSEARCH_USERNAME ?? '',
           password: Config.OPENSEARCH_PASSWORD ?? '',
         }).searchWithEsb(Github.Enums.IndexName.GitCommits, commitSearchQuery);
-        const esData = await searchedDataFormator(searchInEsb);
-        if (esData.length > 0) {
-          logger.info('COMMIT_FOUND_IN_ELASTICSEARCH', { esData });
+        const [commit] = await searchedDataFormator(searchInEsb);
+
+        if (commit && isMergedCommit === commit.isMergedCommit) {
+          logger.info('COMMIT_FOUND_IN_ELASTICSEARCH', { commit });
           return false;
         }
         const installationAccessToken = await getInstallationAccessToken();

@@ -1,7 +1,6 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { BranchProcessor } from 'src/processors/branch';
-// import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
 
 export const handler = async function branchFormattedDataReciever(event: SQSEvent): Promise<void> {
