@@ -32,13 +32,14 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
 };
 
 async function getPrList(record: any) {
-  const messageBody = JSON.parse(record.body);
+  let messageBody = JSON.parse(record.body);
   logger.info(JSON.stringify(messageBody));
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
     return;
   }
-  const { page = 1, owner, name } = messageBody;
+  let { page = 1 } = messageBody;
+  const { owner, name } = messageBody;
   logger.info(`page: ${page}`);
   try {
     // const last_one_year_date = moment().subtract(1, 'year').toISOString();
