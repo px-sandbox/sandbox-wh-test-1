@@ -14,20 +14,22 @@ export async function handler() {
     },
   });
   const githubRetryLimit = await octokit('GET /rate_limit');
-  if (githubRetryLimit.data && githubRetryLimit.data.rate.remaining === 0) {
-    logger.info('NO_REMANING_RATE_LIMIT', { githubRetryLimit: githubRetryLimit.data });
-    return false;
-  }
-  const processes = await new DynamoDbDocClient().scan(
-    new RetryTableMapping().prepareScanParams(1000)
-  );
+  if (githubRetryLimit.data && githubRetryLimit.data.rate.remaining > 3) {
+    const itemsToPick = githubRetryLimit.data.rate.remaining / 3;
+    const processes = await new DynamoDbDocClient().scan(
+      new RetryTableMapping().prepareScanParams(itemsToPick)
+    );
 
-  if (processes.length === 0) {
-    logger.info(`RetryProcessHandler no processes found at: ${new Date().toISOString()}`);
+    if (processes.length === 0) {
+      logger.info(`RetryProcessHandler no processes found at: ${new Date().toISOString()}`);
+      return;
+    }
+
+    await Promise.all(processes.map((record: any) => processIt(record)));
+  } else {
+    logger.info('NO_REMANING_RATE_LIMIT', { githubRetryLimit: githubRetryLimit.data });
     return;
   }
-
-  await Promise.all(processes.map((record: any) => processIt(record)));
 }
 
 async function processIt(record: any): Promise<void> {
