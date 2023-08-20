@@ -1,8 +1,7 @@
-import { GraphAvgCal } from 'abstraction/github/type';
 import moment from 'moment';
 import { esbDateHistogramInterval } from 'src/constant/config';
 
-export function calculateGraphAvg(interval: string, data: GraphAvgCal): number {
+export function calculateGraphAvg(interval: string, data: any): number {
   const prTimeInSeconds = data.pr_time_in_seconds.value;
 
   if (prTimeInSeconds === 0) {
@@ -11,14 +10,8 @@ export function calculateGraphAvg(interval: string, data: GraphAvgCal): number {
 
   switch (interval) {
     case esbDateHistogramInterval.month:
-    case esbDateHistogramInterval.year:
       const selectedDate = moment(data.key_as_string);
-      const totalDays =
-        interval === esbDateHistogramInterval.month
-          ? selectedDate.daysInMonth()
-          : interval === esbDateHistogramInterval.year
-          ? selectedDate.clone().endOf('year').dayOfYear()
-          : 0;
+      const totalDays = selectedDate.daysInMonth();
       return prTimeInSeconds / totalDays;
 
     case esbDateHistogramInterval.day:
@@ -29,6 +22,11 @@ export function calculateGraphAvg(interval: string, data: GraphAvgCal): number {
 
     case esbDateHistogramInterval['3d']:
       return prTimeInSeconds / 3;
+
+    case esbDateHistogramInterval.year:
+      const selectedDateYear = moment(data.key_as_string, 'YYYY-MM-DD');
+      const totalDaysYear = selectedDateYear.clone().endOf('year').dayOfYear();
+      return prTimeInSeconds / totalDaysYear;
 
     default:
       return 0;
