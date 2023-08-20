@@ -1,4 +1,5 @@
-import { StackContext, Api, Table, Config, Queue, Function } from 'sst/constructs';
+import { StackContext, Api, Table, Config, Queue, Function, Cron } from 'sst/constructs';
+import { Duration } from 'aws-cdk-lib';
 
 export function gh({ stack }: StackContext) {
   // Set GITHUB config params
@@ -26,23 +27,33 @@ export function gh({ stack }: StackContext) {
     primaryIndex: { partitionKey: 'parentId' },
   });
 
+  const retryProcessTable = new Table(stack, 'process-retry', {
+    fields: {
+      processId: 'string',
+    },
+    primaryIndex: { partitionKey: 'processId' },
+  });
+
   // create queues
   const userIndexDataQueue = new Queue(stack, 'gh_users_index', {
     consumer: {
       function: 'packages/github/src/sqs/handlers/indexer/users.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 5,
         },
       },
     },
   });
   const userFormatDataQueue = new Queue(stack, 'gh_users_format', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/formatter/users.handler',
+      function: {
+        handler: 'packages/github/src/sqs/handlers/formatter/users.handler',
+        bind: [userIndexDataQueue],
+      },
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 5,
         },
       },
     },
@@ -53,27 +64,20 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/repo.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 5,
         },
       },
     },
   });
   const repoFormatDataQueue = new Queue(stack, 'gh_repo_format', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/formatter/repo.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 10,
-        },
+      function: {
+        handler: 'packages/github/src/sqs/handlers/formatter/repo.handler',
+        bind: [repoIndexDataQueue],
       },
-    },
-  });
-  const branchFormatDataQueue = new Queue(stack, 'gh_branch_format', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/formatter/branch.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 5,
         },
       },
     },
@@ -83,94 +87,127 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/indexer/branch.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 5,
         },
       },
     },
   });
-  const pRFormatDataQueue = new Queue(stack, 'gh_pr_format', {
+  const branchFormatDataQueue = new Queue(stack, 'gh_branch_format', {
     consumer: {
       function: {
-        handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
-        timeout: '15 minutes',
+        handler: 'packages/github/src/sqs/handlers/formatter/branch.handler',
+        bind: [branchIndexDataQueue],
       },
       cdk: {
         eventSource: {
-          batchSize: 10,
-        },
-      },
-    },
-  });
-  const pRIndexDataQueue = new Queue(stack, 'gh_pr_index', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 10,
+          batchSize: 5,
         },
       },
     },
   });
 
+  const pRIndexDataQueue = new Queue(stack, 'gh_pr_index');
+  pRIndexDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
+      bind: [pRIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+  const pRFormatDataQueue = new Queue(stack, 'gh_pr_format');
+  pRFormatDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_format_func', {
+      handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
+      timeout: '30 seconds',
+      bind: [pRFormatDataQueue, pRIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+
+  const commitIndexDataQueue = new Queue(stack, 'gh_commit_index');
+  commitIndexDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_commit_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/commit.handler',
+      bind: [commitIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
   const commitFormatDataQueue = new Queue(stack, 'gh_commit_format', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/formatter/commit.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 10,
-        },
+    cdk: {
+      queue: {
+        fifo: true,
       },
     },
   });
-  const commitIndexDataQueue = new Queue(stack, 'gh_commit_index', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/indexer/commit.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 10,
-        },
-      },
-    },
-  });
-
-  const pushFormatDataQueue = new Queue(stack, 'gh_push_format', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/formatter/push.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 10,
-        },
-      },
-    },
-  });
-  const pushIndexDataQueue = new Queue(stack, 'gh_push_index', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/indexer/push.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 10,
-        },
+  commitFormatDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_commit_format_func', {
+      handler: 'packages/github/src/sqs/handlers/formatter/commit.handler',
+      bind: [commitFormatDataQueue, commitIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
 
-  const pRReviewCommentFormatDataQueue = new Queue(stack, 'gh_pr_review_comment_format', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/formatter/pull-request-review-comment.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 10,
-        },
+  const pushIndexDataQueue = new Queue(stack, 'gh_push_index');
+  pushIndexDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_push_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/push.handler',
+      bind: [pushIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
-  const pRReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index', {
-    consumer: {
-      function: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 10,
-        },
+  const pushFormatDataQueue = new Queue(stack, 'gh_push_format');
+  pushFormatDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_push_format_func', {
+      handler: 'packages/github/src/sqs/handlers/formatter/push.handler',
+      bind: [pushFormatDataQueue, pushIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+  const pRReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index');
+  pRReviewCommentIndexDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_review_comment_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
+      bind: [pRReviewCommentIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+  const pRReviewCommentFormatDataQueue = new Queue(stack, 'gh_pr_review_comment_format');
+  pRReviewCommentFormatDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_review_comment_format_func', {
+      handler: 'packages/github/src/sqs/handlers/formatter/pull-request-review-comment.handler',
+      bind: [pRReviewCommentFormatDataQueue, pRReviewCommentIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
       },
     },
   });
@@ -180,32 +217,208 @@ export function gh({ stack }: StackContext) {
       function: 'packages/github/src/sqs/handlers/save-branches.handler',
       cdk: {
         eventSource: {
-          batchSize: 10,
+          batchSize: 1,
         },
       },
     },
   });
-  const pRReviewFormatDataQueue = new Queue(stack, 'gh_pr_review_format', {
-    consumer: 'packages/github/src/sqs/handlers/formatter/pull-request-review.handler',
+  const pRReviewIndexDataQueue = new Queue(stack, 'gh_pr_review_index');
+  pRReviewIndexDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_review_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
+      bind: [pRReviewIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
   });
-  const pRReviewIndexDataQueue = new Queue(stack, 'gh_pr_review_index', {
-    consumer: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
+
+  const pRReviewFormatDataQueue = new Queue(stack, 'gh_pr_review_format');
+  pRReviewFormatDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_review_format_func', {
+      handler: 'packages/github/src/sqs/handlers/formatter/pull-request-review.handler',
+      bind: [pRReviewFormatDataQueue, pRReviewIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+
+  const collectPRData = new Queue(stack, 'gh_historical_pr', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
+
+  collectPRData.addConsumer(stack, {
+    function: new Function(stack, 'histPRFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
+      timeout: '300 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectPRData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
+      },
+    },
+  });
+
+  const collectReviewsData = new Queue(stack, 'gh_historical_reviews', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
+
+  collectReviewsData.addConsumer(stack, {
+    function: new Function(stack, 'histPrReviewFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-reviews.handler',
+      timeout: '30 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectReviewsData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+
+  const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
+  collecthistoricalPrByumber.addConsumer(stack, {
+    function: new Function(stack, 'histPrByNumberFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-by-number.handler',
+      timeout: '300 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collecthistoricalPrByumber],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
+      },
+    },
+  });
+
+  const collectCommitsData = new Queue(stack, 'gh_historical_commits', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
+  collectCommitsData.addConsumer(stack, {
+    function: new Function(stack, 'histCommitFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-commits.handler',
+      timeout: '300 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectCommitsData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
+        maxConcurrency: 2,
+      },
+    },
+  });
+
+  const historicalBranch = new Queue(stack, 'gh_historical_branch', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
+
+  historicalBranch.addConsumer(stack, {
+    function: new Function(stack, 'histBranchFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-branch.handler',
+      bind: [historicalBranch],
+      runtime: 'nodejs18.x',
+      timeout: '300 seconds',
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 1,
+        maxConcurrency: 2,
+      },
+    },
+  });
+
+  const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
+  collectPRCommitsData.addConsumer(stack, {
+    function: new Function(stack, 'histPRCommitFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commits.handler',
+      timeout: '30 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectPRCommitsData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+
+  const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
+  collectPRReviewCommentsData.addConsumer(stack, {
+    function: new Function(stack, 'histPRReviewCommentsFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
+      timeout: '300 seconds',
+      runtime: 'nodejs18.x',
+      bind: [collectPRReviewCommentsData],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
   });
 
   // bind tables and config to queue
-  userFormatDataQueue.bind([table, userIndexDataQueue, GIT_ORGANIZATION_ID]);
-  repoFormatDataQueue.bind([table, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
-  branchFormatDataQueue.bind([table, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
+  userFormatDataQueue.bind([table, retryProcessTable, userIndexDataQueue, GIT_ORGANIZATION_ID]);
+  repoFormatDataQueue.bind([table, retryProcessTable, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
+  branchFormatDataQueue.bind([table, retryProcessTable, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
   commitFormatDataQueue.bind([
     table,
+    retryProcessTable,
     commitIndexDataQueue,
     GIT_ORGANIZATION_ID,
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
+    OPENSEARCH_NODE,
+    OPENSEARCH_USERNAME,
+    OPENSEARCH_PASSWORD,
   ]);
   pRFormatDataQueue.bind([
     table,
+    retryProcessTable,
     pRIndexDataQueue,
     GIT_ORGANIZATION_ID,
     OPENSEARCH_NODE,
@@ -213,29 +426,77 @@ export function gh({ stack }: StackContext) {
     OPENSEARCH_PASSWORD,
     commitFormatDataQueue,
   ]);
-  pushFormatDataQueue.bind([table, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
-  pRReviewCommentFormatDataQueue.bind([table, pRReviewCommentIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pushFormatDataQueue.bind([table, retryProcessTable, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pRReviewCommentFormatDataQueue.bind([
+    table,
+    retryProcessTable,
+    pRReviewCommentIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
 
-  pushIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  commitIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  userIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  pushIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  commitIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  userIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
   repoIndexDataQueue.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     afterRepoSaveQueue,
   ]);
-  branchIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  pRIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  pRReviewCommentIndexDataQueue.bind([
+  branchIndexDataQueue.bind([
     table,
+    retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
-  pRReviewFormatDataQueue.bind([table, pRReviewIndexDataQueue, GIT_ORGANIZATION_ID]);
-  pRReviewIndexDataQueue.bind([table, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  pRIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  pRReviewCommentIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  pRReviewFormatDataQueue.bind([
+    table,
+    retryProcessTable,
+    pRReviewIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
+  pRReviewIndexDataQueue.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
 
   afterRepoSaveQueue.bind([
     GITHUB_APP_PRIVATE_KEY_PEM,
@@ -244,6 +505,132 @@ export function gh({ stack }: StackContext) {
     branchFormatDataQueue,
     branchIndexDataQueue,
   ]);
+
+  collectPRData.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    collectReviewsData,
+    GIT_ORGANIZATION_ID,
+    collectPRCommitsData,
+    collectPRReviewCommentsData,
+  ]);
+  collecthistoricalPrByumber.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    pRFormatDataQueue,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    GIT_ORGANIZATION_ID,
+    commitFormatDataQueue,
+  ]);
+  collectReviewsData.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    GIT_ORGANIZATION_ID,
+    collecthistoricalPrByumber,
+    pRReviewFormatDataQueue,
+  ]);
+
+  collectCommitsData.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    GIT_ORGANIZATION_ID,
+    commitFormatDataQueue,
+    collectPRData,
+  ]);
+
+  collectPRCommitsData.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    GIT_ORGANIZATION_ID,
+    commitFormatDataQueue,
+  ]);
+
+  collectPRReviewCommentsData.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    GIT_ORGANIZATION_ID,
+    pRReviewCommentFormatDataQueue,
+  ]);
+
+  historicalBranch.bind([
+    table,
+    retryProcessTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    GIT_ORGANIZATION_ID,
+    collectCommitsData,
+  ]);
+
+  const processRetryFunction = new Function(stack, 'retry-failed-processor', {
+    handler: 'packages/github/src/cron/retry-processes.handler',
+    bind: [
+      retryProcessTable,
+      userIndexDataQueue,
+      userFormatDataQueue,
+      repoIndexDataQueue,
+      repoFormatDataQueue,
+      branchIndexDataQueue,
+      branchFormatDataQueue,
+      pRIndexDataQueue,
+      pRFormatDataQueue,
+      commitIndexDataQueue,
+      commitFormatDataQueue,
+      pushIndexDataQueue,
+      pushFormatDataQueue,
+      pRReviewCommentIndexDataQueue,
+      pRReviewCommentFormatDataQueue,
+      afterRepoSaveQueue,
+      pRReviewIndexDataQueue,
+      pRReviewFormatDataQueue,
+      collectPRData,
+      collectReviewsData,
+      collecthistoricalPrByumber,
+      collectCommitsData,
+      historicalBranch,
+      collectPRCommitsData,
+      collectPRReviewCommentsData,
+    ],
+  });
+
   const ghAPI = new Api(stack, 'api', {
     authorizers: {
       universal: {
@@ -266,23 +653,16 @@ export function gh({ stack }: StackContext) {
     defaults: {
       authorizer: 'universal',
       function: {
+        timeout: '30 seconds',
         bind: [
           userFormatDataQueue,
+          commitFormatDataQueue,
           repoFormatDataQueue,
           branchFormatDataQueue,
           pRFormatDataQueue,
-          userIndexDataQueue,
-          repoIndexDataQueue,
-          branchIndexDataQueue,
-          commitFormatDataQueue,
-          commitIndexDataQueue,
-          pRIndexDataQueue,
           pRReviewCommentFormatDataQueue,
-          pRReviewCommentIndexDataQueue,
           pushFormatDataQueue,
-          pushIndexDataQueue,
           pRReviewFormatDataQueue,
-          pRReviewIndexDataQueue,
           GITHUB_BASE_URL,
           GITHUB_APP_ID,
           GITHUB_APP_PRIVATE_KEY_PEM,
@@ -294,7 +674,16 @@ export function gh({ stack }: StackContext) {
           OPENSEARCH_USERNAME,
           GIT_ORGANIZATION_ID,
           table,
+          retryProcessTable,
           afterRepoSaveQueue,
+          collectPRData,
+          collectReviewsData,
+          collectReviewsData,
+          collecthistoricalPrByumber,
+          collectCommitsData,
+          collectPRCommitsData,
+          collectPRReviewCommentsData,
+          historicalBranch,
         ],
       },
     },
@@ -358,7 +747,23 @@ export function gh({ stack }: StackContext) {
         function: 'packages/github/src/service/pr-wait-time.handler',
         authorizer: 'universal',
       },
+
+      // GET Historical Data
+      'GET /github/history': {
+        function: 'packages/github/src/service/history-data.handler',
+      },
+
+      // GET github data ingestion failed retry
+      'GET /github/retry/failed': {
+        function: 'packages/github/src/cron/retry-processes.handler',
+      },
     },
+  });
+
+  // Initialize cron that runs every hour to fetch failed processes from `retryProcessTable` Table and process them out
+  new Cron(stack, 'failed-process-retry-cron', {
+    schedule: 'cron(0/30 * ? * * *)',
+    job: processRetryFunction,
   });
 
   stack.addOutputs({
