@@ -628,6 +628,9 @@ export function gh({ stack }: StackContext) {
       historicalBranch,
       collectPRCommitsData,
       collectPRReviewCommentsData,
+      GITHUB_APP_PRIVATE_KEY_PEM,
+      GITHUB_APP_ID,
+      GITHUB_SG_INSTALLATION_ID,
     ],
   });
 
