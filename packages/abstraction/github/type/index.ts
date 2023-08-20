@@ -8,7 +8,7 @@ import { PullRequest, RequestedReviewers, Labels, PullRequestBody } from './pull
 import { Push, CommitIds } from './push';
 import { PRReviewComment } from './pull-request-review-comment';
 import { PRReview } from './pull-request-review';
-import { IPrCommentAggregationResponse } from './aggregations/pr-comments';
+import { IPrCommentAggregationResponse, GraphAvgCal } from './aggregations/pr-comments';
 import { GraphResponse } from './aggregations/graph-response';
 
 export {
@@ -31,4 +31,5 @@ export {
   PRReview,
   IPrCommentAggregationResponse,
   GraphResponse,
+  GraphAvgCal,
 };

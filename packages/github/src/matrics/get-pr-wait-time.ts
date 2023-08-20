@@ -4,6 +4,7 @@ import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { esbDateHistogramInterval } from 'src/constant/config';
+import { calculateGraphAvg } from 'src/util/graph-average';
 import { getWeekDaysCount } from 'src/util/weekend-calculations';
 import { Config } from 'sst/node/config';
 
@@ -31,7 +32,6 @@ export async function prWaitTimeGraphData(
 
     // By default graph interval is day
     let graphIntervals: esb.DateHistogramAggregation;
-    let graphIntervalSize: number;
 
     switch (intervals) {
       case esbDateHistogramInterval.day:
@@ -43,7 +43,6 @@ export async function prWaitTimeGraphData(
           .calendarInterval(intervals)
           .extendedBounds(startDate, endDate)
           .minDocCount(0);
-        graphIntervalSize = intervals == esbDateHistogramInterval.day ? 1 : 12;
         break;
       case esbDateHistogramInterval['2d']:
       case esbDateHistogramInterval['3d']:
@@ -54,7 +53,6 @@ export async function prWaitTimeGraphData(
           .fixedInterval(intervals)
           .extendedBounds(startDate, endDate)
           .minDocCount(0);
-        graphIntervalSize = intervals == esbDateHistogramInterval['2d'] ? 2 : 3;
         break;
       default:
         graphIntervals = esb
@@ -64,7 +62,6 @@ export async function prWaitTimeGraphData(
           .calendarInterval(esbDateHistogramInterval.month)
           .extendedBounds(startDate, endDate)
           .minDocCount(0);
-        graphIntervalSize = 12;
     }
 
     prWaitTimeGraphQuery
@@ -77,7 +74,7 @@ export async function prWaitTimeGraphData(
               .bucketScriptAggregation('combined_avg')
               .bucketsPath({ avgPrCount: 'pr_count', sumPrReviewTime: 'pr_time_in_seconds' })
               .gapPolicy('insert_zeros')
-              .script(`params.avgPrCount == 0 ? 0 :(params.sumPrReviewTime /${graphIntervalSize} )`)
+              .script(`params.avgPrCount == 0 ? 0 :(params.sumPrReviewTime / params.avgPrCount )`)
           )
       )
       .toJSON();
@@ -88,10 +85,9 @@ export async function prWaitTimeGraphData(
         Github.Enums.IndexName.GitPull,
         prWaitTimeGraphQuery
       );
-
     return data.commentsPerDay.buckets.map((item) => ({
       date: item.key_as_string as string,
-      value: parseFloat((item.combined_avg.value / 3600).toFixed(2)),
+      value: parseFloat((calculateGraphAvg(intervals, item) / 3600).toFixed(2)),
     }));
   } catch (e) {
     logger.error('prWaitTimeGraph.error', e);
