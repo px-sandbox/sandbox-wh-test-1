@@ -4,7 +4,7 @@ import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import { prWaitTimeAvg, prWaitTimeGraphData } from '../matrics/getPrWaitTime';
 import { prCommentsGraphSchema } from './validations';
 
-const prWaitTimeGraph = async function getPrCommentsGraph(
+const prWaitTimeGraph = async function getPrWaitTimeGraph(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const startDate: string = event.queryStringParameters?.startDate || '';

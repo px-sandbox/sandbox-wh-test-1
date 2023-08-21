@@ -36,6 +36,7 @@
     "node-rsa": "^1.1.1",
     "octokit": "^2.0.14",
     "universal-github-app-jwt": "2.0.1",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "@octokit/plugin-throttling": "^7.0.0"
   }
 }

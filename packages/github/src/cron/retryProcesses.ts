@@ -2,6 +2,8 @@ import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { RetryTableMapping } from '../model/retryTableMapping';
+import { ghRequest } from 'src/lib/request-defaults';
+import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 
 async function processIt(record: any): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId } = record;
@@ -15,15 +17,27 @@ async function processIt(record: any): Promise<void> {
 
 export async function handler(): Promise<void> {
   logger.info(`RetryProcessHandler invoked at: ${new Date().toISOString()}`);
+  const installationAccessToken = await getInstallationAccessToken();
+  const octokit = ghRequest.request.defaults({
+    headers: {
+      Authorization: `Bearer ${installationAccessToken.body.token}`,
+    },
+  });
+  const githubRetryLimit = await octokit('GET /rate_limit');
+  if (githubRetryLimit.data && githubRetryLimit.data.rate.remaining > 3) {
+    const itemsToPick = githubRetryLimit.data.rate.remaining / 3;
+    const processes = await new DynamoDbDocClient().scan(
+      new RetryTableMapping().prepareScanParams(itemsToPick)
+    );
 
-  const processes = await new DynamoDbDocClient().scan(
-    new RetryTableMapping().prepareScanParams(1000)
-  );
+    if (processes.length === 0) {
+      logger.info(`RetryProcessHandler no processes found at: ${new Date().toISOString()}`);
+      return;
+    }
 
-  if (processes.length === 0) {
-    logger.info(`RetryProcessHandler no processes found at: ${new Date().toISOString()}`);
+    await Promise.all(processes.map((record: any) => processIt(record)));
+  } else {
+    logger.info('NO_REMANING_RATE_LIMIT', { githubRetryLimit: githubRetryLimit.data });
     return;
   }
-
-  await Promise.all(processes.map((record: any) => processIt(record)));
 }

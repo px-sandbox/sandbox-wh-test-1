@@ -1,19 +1,7 @@
-import { Api, Table, Config, Queue, Function, Cron, StackContext } from 'sst/constructs';
+import { StackContext, Api, Table, Config, Queue, Function, Cron } from 'sst/constructs';
+import { Duration } from 'aws-cdk-lib';
 
-export function gh({ stack }: StackContext): {
-  ghAPI: Api<{
-    universal: {
-      type: 'lambda';
-      responseTypes: 'simple'[];
-      function: Function;
-    };
-    admin: {
-      type: 'lambda';
-      responseTypes: 'simple'[];
-      function: Function;
-    };
-  }>;
-} {
+export function gh({ stack }: StackContext) {
   // Set GITHUB config params
   const GITHUB_APP_ID = new Config.Secret(stack, 'GITHUB_APP_ID');
   const GITHUB_APP_PRIVATE_KEY_PEM = new Config.Secret(stack, 'GITHUB_APP_PRIVATE_KEY_PEM');
@@ -260,12 +248,18 @@ export function gh({ stack }: StackContext): {
     },
   });
 
-  const collectPRData = new Queue(stack, 'gh_historical_pr');
+  const collectPRData = new Queue(stack, 'gh_historical_pr', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
 
   collectPRData.addConsumer(stack, {
     function: new Function(stack, 'histPRFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historicalPr.handler',
-      timeout: '30 seconds',
+      timeout: '300 seconds',
       runtime: 'nodejs18.x',
       bind: [collectPRData],
     }),
@@ -276,7 +270,13 @@ export function gh({ stack }: StackContext): {
     },
   });
 
-  const collectReviewsData = new Queue(stack, 'gh_historical_reviews');
+  const collectReviewsData = new Queue(stack, 'gh_historical_reviews', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
 
   collectReviewsData.addConsumer(stack, {
     function: new Function(stack, 'histPrReviewFunc', {
@@ -292,11 +292,17 @@ export function gh({ stack }: StackContext): {
     },
   });
 
-  const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number');
+  const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
   collecthistoricalPrByumber.addConsumer(stack, {
     function: new Function(stack, 'histPrByNumberFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historicalPrByNumber.handler',
-      timeout: '20 seconds',
+      timeout: '300 seconds',
       runtime: 'nodejs18.x',
       bind: [collecthistoricalPrByumber],
     }),
@@ -307,11 +313,17 @@ export function gh({ stack }: StackContext): {
     },
   });
 
-  const collectCommitsData = new Queue(stack, 'gh_historical_commits');
+  const collectCommitsData = new Queue(stack, 'gh_historical_commits', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
   collectCommitsData.addConsumer(stack, {
     function: new Function(stack, 'histCommitFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historicalCommits.handler',
-      timeout: '30 seconds',
+      timeout: '300 seconds',
       runtime: 'nodejs18.x',
       bind: [collectCommitsData],
     }),
@@ -323,14 +335,20 @@ export function gh({ stack }: StackContext): {
     },
   });
 
-  const historicalBranch = new Queue(stack, 'gh_historical_branch');
+  const historicalBranch = new Queue(stack, 'gh_historical_branch', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
 
   historicalBranch.addConsumer(stack, {
     function: new Function(stack, 'histBranchFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historicalBranch.handler',
       bind: [historicalBranch],
       runtime: 'nodejs18.x',
-      timeout: '30 seconds',
+      timeout: '300 seconds',
     }),
     cdk: {
       eventSource: {
@@ -340,7 +358,13 @@ export function gh({ stack }: StackContext): {
     },
   });
 
-  const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits');
+  const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
   collectPRCommitsData.addConsumer(stack, {
     function: new Function(stack, 'histPRCommitFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historicalPrCommits.handler',
@@ -355,11 +379,17 @@ export function gh({ stack }: StackContext): {
     },
   });
 
-  const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments');
+  const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
   collectPRReviewCommentsData.addConsumer(stack, {
     function: new Function(stack, 'histPRReviewCommentsFunc', {
       handler: 'packages/github/src/sqs/handlers/historical/historicalPrComments.handler',
-      timeout: '30 seconds',
+      timeout: '300 seconds',
       runtime: 'nodejs18.x',
       bind: [collectPRReviewCommentsData],
     }),
@@ -598,6 +628,9 @@ export function gh({ stack }: StackContext): {
       historicalBranch,
       collectPRCommitsData,
       collectPRReviewCommentsData,
+      GITHUB_APP_PRIVATE_KEY_PEM,
+      GITHUB_APP_ID,
+      GITHUB_SG_INSTALLATION_ID,
     ],
   });
 
@@ -732,7 +765,7 @@ export function gh({ stack }: StackContext): {
 
   // Initialize cron that runs every hour to fetch failed processes from `retryProcessTable` Table and process them out
   const cron = new Cron(stack, 'failed-process-retry-cron', {
-    schedule: 'cron(0 * ? * * *)',
+    schedule: 'cron(0/30 * ? * * *)',
     job: processRetryFunction,
   });
   console.info(`Cron job created: ${cron}`);

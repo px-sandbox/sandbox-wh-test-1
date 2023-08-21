@@ -3,6 +3,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { logger } from 'core';
+import { calculateGraphAvg } from 'src/util/graph-average';
 import { Config } from 'sst/node/config';
 import { esbDateHistogramInterval } from '../constant/config';
 import { getWeekDaysCount } from '../util/weekendCalculations';
@@ -35,7 +36,6 @@ export async function prWaitTimeGraphData(
     switch (intervals) {
       case esbDateHistogramInterval.day:
       case esbDateHistogramInterval.month:
-      case esbDateHistogramInterval.year:
         graphIntervals = esb
           .dateHistogramAggregation('commentsPerDay')
           .field('body.createdAt')
@@ -63,6 +63,7 @@ export async function prWaitTimeGraphData(
           .extendedBounds(startDate, endDate)
           .minDocCount(0);
     }
+
     prWaitTimeGraphQuery
       .agg(
         graphIntervals
@@ -73,7 +74,7 @@ export async function prWaitTimeGraphData(
               .bucketScriptAggregation('combined_avg')
               .bucketsPath({ avgPrCount: 'pr_count', sumPrReviewTime: 'pr_time_in_seconds' })
               .gapPolicy('insert_zeros')
-              .script('params.avgPrCount == 0 ? 0 :(params.sumPrReviewTime / params.avgPrCount)')
+              .script(`params.avgPrCount == 0 ? 0 :(params.sumPrReviewTime / params.avgPrCount )`)
           )
       )
       .toJSON();
@@ -84,10 +85,9 @@ export async function prWaitTimeGraphData(
         Github.Enums.IndexName.GitPull,
         prWaitTimeGraphQuery
       );
-
     return data.commentsPerDay.buckets.map((item) => ({
       date: item.key_as_string as string,
-      value: parseFloat((item.combined_avg.value / 3600).toFixed(2)),
+      value: parseFloat((calculateGraphAvg(intervals, item) / 3600).toFixed(2)),
     }));
   } catch (e) {
     logger.error('prWaitTimeGraph.error', e);

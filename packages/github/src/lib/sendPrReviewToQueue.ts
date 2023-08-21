@@ -9,6 +9,7 @@ import { getWorkingTime } from '../util/timezoneCalculation';
 import { ghRequest } from './requestDefaults';
 import { getPullRequestById } from './getPullRequest';
 import { getTimezoneOfUser } from './getUserTimezone';
+import { getOctokitResp } from 'src/util/octokit-response';
 
 export async function pRReviewOnQueue(
   prReview: Github.ExternalType.Webhook.PRReview,
@@ -30,7 +31,7 @@ export async function pRReviewOnQueue(
 
     // Get pull request details through Github Api and update the same into index.
     const responseData = await octokit(`GET /repos/${owner}/${repo}/pulls/${pullNumber}`);
-
+    const octokitRespData = getOctokitResp(responseData);
     /**
      * Search pull request index and check if reviewed_at and approved_at is null or not. If null then
      * update the value to store the first reviewed_at and approved_at time.
@@ -76,7 +77,7 @@ export async function pRReviewOnQueue(
       ),
       new SQSClient().sendMessage(
         {
-          ...responseData.data,
+          ...octokitRespData,
           reviewed_at,
           approved_at,
           review_seconds,
