@@ -126,10 +126,10 @@ export async function prWaitTimeAvg(
       body: prWaitTimeAvgQuery,
     });
 
-    const totalDoc = Number((data.body.aggregations.total_time.value / 3600).toFixed(2));
+    const totalTime = Number((data.body.aggregations.total_time.value / 3600).toFixed(2));
     const totalPr = Number(data.body.aggregations.pr_count.value);
     // const weekDaysCount = getWeekDaysCount(startDate, endDate);
-    return { value: totalDoc == 0 ? 0 : totalDoc / totalPr };
+    return { value: totalTime == 0 ? 0 : totalTime / totalPr };
   } catch (e) {
     logger.error('prWaitTimeAvg.error', e);
     throw e;
