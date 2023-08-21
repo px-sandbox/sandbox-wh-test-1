@@ -9,7 +9,7 @@ interface Handler {
   (event: APIGatewayProxyEvent, context?: Context): Promise<APIGatewayProxyResult>;
 }
 
-const APIHandler = (handler: Handler, validation?: any) => {
+const APIHandler = (handler: Handler, validation?: any): middy.MiddyfiedHandler => {
   if (validation) {
     return middy(handler)
       .use(jsonBodyParser())

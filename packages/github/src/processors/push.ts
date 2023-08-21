@@ -1,9 +1,9 @@
+import moment from 'moment';
 import { Github } from 'abstraction';
-import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import moment from 'moment';
-import { DataProcessor } from './data-processor';
+import { mappingPrefixes } from '../constant/config';
+import { DataProcessor } from './dataProcessor';
 
 export class PushProcessor extends DataProcessor<
   Github.ExternalType.Webhook.Push,

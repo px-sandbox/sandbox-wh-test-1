@@ -3,11 +3,11 @@ import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { ghRequest } from 'src/lib/request-defaults';
+import { ghRequest } from 'src/lib/requestDefaults';
 import { CommitProcessor } from 'src/processors/commit';
-import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
-import { searchedDataFormator } from 'src/util/response-formatter';
-import { logProcessToRetry } from 'src/util/retry-process';
+import { getInstallationAccessToken } from 'src/util/installationAccessTokenGenerator';
+import { searchedDataFormator } from 'src/util/responseFormatter';
+import { logProcessToRetry } from 'src/util/retryProcess';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 

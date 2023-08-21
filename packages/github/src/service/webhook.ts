@@ -3,12 +3,12 @@ import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { logger } from 'core';
-import { getCommits } from 'src/lib/git-commit-list';
-import { pRReviewCommentOnQueue } from 'src/lib/send-pr-review-comment-to-queue';
-import { pRReviewOnQueue } from 'src/lib/send-pr-review-to-queue';
-import { pROnQueue } from 'src/lib/send-pull-to-queue';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import { getCommits } from '../lib/gitCommitList';
+import { pRReviewCommentOnQueue } from '../lib/sendPrReviewCommentToQueue';
+import { pRReviewOnQueue } from '../lib/sendPrReviewToQueue';
+import { pROnQueue } from '../lib/sendPullToQueue';
 
 export const webhookData = async function getWebhookData(
   event: APIGatewayProxyEvent

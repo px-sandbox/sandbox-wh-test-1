@@ -1,7 +1,7 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { savePushDetails } from 'src/lib/save-push-details';
-import { logProcessToRetry } from 'src/util/retry-process';
+import { savePushDetails } from 'src/lib/savePushDetails';
+import { logProcessToRetry } from 'src/util/retryProcess';
 import { Queue } from 'sst/node/queue';
 
 export const handler = async function pushIndexDataReciever(event: SQSEvent): Promise<void> {

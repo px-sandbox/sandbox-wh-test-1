@@ -1,7 +1,7 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { saveCommitDetails } from 'src/lib/save-commit-details';
-import { logProcessToRetry } from 'src/util/retry-process';
+import { saveCommitDetails } from 'src/lib/saveCommitDetails';
+import { logProcessToRetry } from 'src/util/retryProcess';
 import { Queue } from 'sst/node/queue';
 
 export const handler = async function commitIndexDataReciever(event: SQSEvent): Promise<void> {

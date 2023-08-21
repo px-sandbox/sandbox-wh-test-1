@@ -1,6 +1,6 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { saveBranchDetails } from 'src/lib/save-branch-details';
+import { saveBranchDetails } from 'src/lib/saveBranchDetails';
 
 export const handler = async function branchIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

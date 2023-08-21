@@ -1,6 +1,6 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { saveRepoDetails } from 'src/lib/save-repo-details';
+import { saveRepoDetails } from 'src/lib/saveRepoDetails';
 
 export const handler = async function repoIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

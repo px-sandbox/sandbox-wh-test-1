@@ -1,7 +1,7 @@
 import { Github } from 'abstraction';
-import { mappingPrefixes } from 'src/constant/config';
 import { v4 as uuid } from 'uuid';
-import { DataProcessor } from './data-processor';
+import { mappingPrefixes } from '../constant/config';
+import { DataProcessor } from './dataProcessor';
 
 export class Organization extends DataProcessor<
   Github.ExternalType.Api.Organization,

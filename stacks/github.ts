@@ -121,7 +121,7 @@ export function gh({ stack }: StackContext): {
   const pRIndexDataQueue = new Queue(stack, 'gh_pr_index');
   pRIndexDataQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_pr_index_func', {
-      handler: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
+      handler: 'packages/github/src/sqs/handlers/indexer/pullRequest.handler',
       bind: [pRIndexDataQueue],
     }),
     cdk: {
@@ -133,7 +133,7 @@ export function gh({ stack }: StackContext): {
   const pRFormatDataQueue = new Queue(stack, 'gh_pr_format');
   pRFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_pr_format_func', {
-      handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
+      handler: 'packages/github/src/sqs/handlers/formatter/pullRequest.handler',
       timeout: '30 seconds',
       bind: [pRFormatDataQueue, pRIndexDataQueue],
     }),
@@ -202,7 +202,7 @@ export function gh({ stack }: StackContext): {
   const pRReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index');
   pRReviewCommentIndexDataQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_pr_review_comment_index_func', {
-      handler: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
+      handler: 'packages/github/src/sqs/handlers/indexer/pullRequestReviewComment.handler',
       bind: [pRReviewCommentIndexDataQueue],
     }),
     cdk: {
@@ -214,7 +214,7 @@ export function gh({ stack }: StackContext): {
   const pRReviewCommentFormatDataQueue = new Queue(stack, 'gh_pr_review_comment_format');
   pRReviewCommentFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_pr_review_comment_format_func', {
-      handler: 'packages/github/src/sqs/handlers/formatter/pull-request-review-comment.handler',
+      handler: 'packages/github/src/sqs/handlers/formatter/pullRequestReviewComment.handler',
       bind: [pRReviewCommentFormatDataQueue, pRReviewCommentIndexDataQueue],
     }),
     cdk: {
@@ -226,7 +226,7 @@ export function gh({ stack }: StackContext): {
 
   const afterRepoSaveQueue = new Queue(stack, 'gh_after_repo_save', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/save-branches.handler',
+      function: 'packages/github/src/sqs/handlers/saveBranches.handler',
       cdk: {
         eventSource: {
           batchSize: 1,
@@ -237,7 +237,7 @@ export function gh({ stack }: StackContext): {
   const pRReviewIndexDataQueue = new Queue(stack, 'gh_pr_review_index');
   pRReviewIndexDataQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_pr_review_index_func', {
-      handler: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
+      handler: 'packages/github/src/sqs/handlers/indexer/pullRequestReview.handler',
       bind: [pRReviewIndexDataQueue],
     }),
     cdk: {
@@ -250,7 +250,7 @@ export function gh({ stack }: StackContext): {
   const pRReviewFormatDataQueue = new Queue(stack, 'gh_pr_review_format');
   pRReviewFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_pr_review_format_func', {
-      handler: 'packages/github/src/sqs/handlers/formatter/pull-request-review.handler',
+      handler: 'packages/github/src/sqs/handlers/formatter/pullRequestReview.handler',
       bind: [pRReviewFormatDataQueue, pRReviewIndexDataQueue],
     }),
     cdk: {
@@ -264,7 +264,7 @@ export function gh({ stack }: StackContext): {
 
   collectPRData.addConsumer(stack, {
     function: new Function(stack, 'histPRFunc', {
-      handler: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
+      handler: 'packages/github/src/sqs/handlers/historical/historicalPr.handler',
       timeout: '30 seconds',
       runtime: 'nodejs18.x',
       bind: [collectPRData],
@@ -280,7 +280,7 @@ export function gh({ stack }: StackContext): {
 
   collectReviewsData.addConsumer(stack, {
     function: new Function(stack, 'histPrReviewFunc', {
-      handler: 'packages/github/src/sqs/handlers/historical/historical-reviews.handler',
+      handler: 'packages/github/src/sqs/handlers/historical/historicalReviews.handler',
       timeout: '30 seconds',
       runtime: 'nodejs18.x',
       bind: [collectReviewsData],
@@ -295,7 +295,7 @@ export function gh({ stack }: StackContext): {
   const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number');
   collecthistoricalPrByumber.addConsumer(stack, {
     function: new Function(stack, 'histPrByNumberFunc', {
-      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-by-number.handler',
+      handler: 'packages/github/src/sqs/handlers/historical/historicalPrByNumber.handler',
       timeout: '20 seconds',
       runtime: 'nodejs18.x',
       bind: [collecthistoricalPrByumber],
@@ -310,7 +310,7 @@ export function gh({ stack }: StackContext): {
   const collectCommitsData = new Queue(stack, 'gh_historical_commits');
   collectCommitsData.addConsumer(stack, {
     function: new Function(stack, 'histCommitFunc', {
-      handler: 'packages/github/src/sqs/handlers/historical/historical-commits.handler',
+      handler: 'packages/github/src/sqs/handlers/historical/historicalCommits.handler',
       timeout: '30 seconds',
       runtime: 'nodejs18.x',
       bind: [collectCommitsData],
@@ -327,7 +327,7 @@ export function gh({ stack }: StackContext): {
 
   historicalBranch.addConsumer(stack, {
     function: new Function(stack, 'histBranchFunc', {
-      handler: 'packages/github/src/sqs/handlers/historical/historical-branch.handler',
+      handler: 'packages/github/src/sqs/handlers/historical/historicalBranch.handler',
       bind: [historicalBranch],
       runtime: 'nodejs18.x',
       timeout: '30 seconds',
@@ -343,7 +343,7 @@ export function gh({ stack }: StackContext): {
   const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits');
   collectPRCommitsData.addConsumer(stack, {
     function: new Function(stack, 'histPRCommitFunc', {
-      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commits.handler',
+      handler: 'packages/github/src/sqs/handlers/historical/historicalPrCommits.handler',
       timeout: '30 seconds',
       runtime: 'nodejs18.x',
       bind: [collectPRCommitsData],
@@ -358,7 +358,7 @@ export function gh({ stack }: StackContext): {
   const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments');
   collectPRReviewCommentsData.addConsumer(stack, {
     function: new Function(stack, 'histPRReviewCommentsFunc', {
-      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
+      handler: 'packages/github/src/sqs/handlers/historical/historicalPrComments.handler',
       timeout: '30 seconds',
       runtime: 'nodejs18.x',
       bind: [collectPRReviewCommentsData],
@@ -571,7 +571,7 @@ export function gh({ stack }: StackContext): {
   ]);
 
   const processRetryFunction = new Function(stack, 'retry-failed-processor', {
-    handler: 'packages/github/src/cron/retry-processes.handler',
+    handler: 'packages/github/src/cron/retryProcesses.handler',
     bind: [
       retryProcessTable,
       userIndexDataQueue,
@@ -661,24 +661,24 @@ export function gh({ stack }: StackContext): {
       // GET Metadata route
       'GET /github/metadata': {
         function: {
-          handler: 'packages/github/src/service/get-metadata.handler',
+          handler: 'packages/github/src/service/getMetadata.handler',
           timeout: '15 minutes',
         },
         authorizer: 'admin',
       },
       // GET github installation access token
       'GET /github/installation-access-token': {
-        function: 'packages/github/src/service/installation-access-token.handler',
+        function: 'packages/github/src/service/installationAccessToken.handler',
         authorizer: 'admin',
       },
       // GET github Oauth token
       'GET /github/auth-token': {
-        function: 'packages/github/src/service/jwt-token.getOauthToken',
+        function: 'packages/github/src/service/jwtToken.getOauthToken',
         authorizer: 'admin',
       },
       // GET Github app installations
       'GET /github/app/installations': {
-        function: 'packages/github/src/service/github-app-installations.handler',
+        function: 'packages/github/src/service/githubAppInstallations.handler',
         authorizer: 'admin',
       },
       // POST Webhook handler
@@ -688,44 +688,44 @@ export function gh({ stack }: StackContext): {
       },
       // GET GithubUser data
       'GET /github/user/{githubUserId}': {
-        function: 'packages/github/src/service/git-users.handler',
+        function: 'packages/github/src/service/gitUsers.handler',
         authorizer: 'universal',
       },
       // GET GithubRepo data
       'GET /github/repositories': {
-        function: 'packages/github/src/service/get-repos.handler',
+        function: 'packages/github/src/service/getRepos.handler',
         authorizer: 'universal',
       },
       // GET PR comments graph data
       'GET /github/graph/number-comments-added-to-prs': {
-        function: 'packages/github/src/service/get-pr-comments.handler',
+        function: 'packages/github/src/service/getPrComments.handler',
         authorizer: 'universal',
       },
       // GET Graph for frequency of code commits
       'GET /github/graph/code-commit-frequency': {
-        function: 'packages/github/src/service/get-frequency-code-commit.handler',
+        function: 'packages/github/src/service/getFrequencyCodeCommit.handler',
         authorizer: 'universal',
       },
       // GET Graph for number of PRs
       'GET /github/graph/number-pr-raised': {
-        function: 'packages/github/src/service/number-of-pr-raised.handler',
+        function: 'packages/github/src/service/numberOfPrRaised.handler',
         authorizer: 'universal',
       },
 
       // GET Graph for PRs review time
       'GET /github/graph/pr-wait-time': {
-        function: 'packages/github/src/service/pr-wait-time.handler',
+        function: 'packages/github/src/service/prWaitTime.handler',
         authorizer: 'universal',
       },
 
       // GET Historical Data
       'GET /github/history': {
-        function: 'packages/github/src/service/history-data.handler',
+        function: 'packages/github/src/service/historyData.handler',
       },
 
       // GET github data ingestion failed retry
       'GET /github/retry/failed': {
-        function: 'packages/github/src/cron/retry-processes.handler',
+        function: 'packages/github/src/cron/retryProcesses.handler',
       },
     },
   });

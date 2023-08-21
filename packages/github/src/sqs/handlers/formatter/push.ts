@@ -1,7 +1,7 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { PushProcessor } from 'src/processors/push';
-import { logProcessToRetry } from 'src/util/retry-process';
+import { logProcessToRetry } from 'src/util/retryProcess';
 import { Queue } from 'sst/node/queue';
 
 export const handler = async function pushFormattedDataReciever(event: SQSEvent): Promise<void> {

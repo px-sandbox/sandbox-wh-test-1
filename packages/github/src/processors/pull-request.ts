@@ -1,15 +1,15 @@
+import moment from 'moment';
+import esb from 'elastic-builder';
 import { Github } from 'abstraction';
-import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
-import moment from 'moment';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import esb from 'elastic-builder';
-import { searchedDataFormator } from 'src/util/response-formatter';
-import { DataProcessor } from './data-processor';
+import { mappingPrefixes } from '../constant/config';
+import { searchedDataFormator } from '../util/responseFormatter';
+import { DataProcessor } from './dataProcessor';
 
 const delayAr = [0, 1, 1, 2, 3, 5, 8];
 export class PRProcessor extends DataProcessor<
