@@ -87,7 +87,7 @@ export async function prWaitTimeGraphData(
       );
     return data.commentsPerDay.buckets.map((item) => ({
       date: item.key_as_string as string,
-      value: parseFloat((calculateGraphAvg(intervals, item) / 3600).toFixed(2)),
+      value: parseFloat((item.combined_avg.value / 3600).toFixed(2)),
     }));
   } catch (e) {
     logger.error('prWaitTimeGraph.error', e);
@@ -117,6 +117,7 @@ export async function prWaitTimeAvg(
           ])
       )
       .agg(esb.sumAggregation('total_time', 'body.reviewSeconds'))
+      .agg(esb.valueCountAggregation('pr_count', 'body.githubPullId'))
       .size(0)
       .toJSON();
     logger.info('NUMBER_OF_PR_WAIT_TIME_AVG_ESB_QUERY', prWaitTimeAvgQuery);
@@ -126,8 +127,9 @@ export async function prWaitTimeAvg(
     });
 
     const totalDoc = Number((data.body.aggregations.total_time.value / 3600).toFixed(2));
-    const weekDaysCount = getWeekDaysCount(startDate, endDate);
-    return { value: totalDoc / weekDaysCount };
+    const totalPr = Number(data.body.aggregations.pr_count.value);
+    // const weekDaysCount = getWeekDaysCount(startDate, endDate);
+    return { value: totalDoc == 0 ? 0 : totalDoc / totalPr };
   } catch (e) {
     logger.error('prWaitTimeAvg.error', e);
     throw e;
