@@ -41,6 +41,7 @@ export class RepositoryProcessor extends DataProcessor<
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
         githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
+        isDeleted: this.ghApiData.action == 'deleted' ? true : false,
       },
     };
     return repoObj;

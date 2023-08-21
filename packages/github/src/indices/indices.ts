@@ -87,6 +87,7 @@ const indices = [
         createdAtDay: { type: 'keyword' },
         computationDate: { type: 'date', format: 'yyyy-MM-dd' },
         githubDate: { type: 'date', format: 'yyyy-MM-dd' },
+        isDeleted: { type: 'boolean' },
       },
     },
   },
