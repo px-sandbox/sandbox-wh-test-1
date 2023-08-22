@@ -5,11 +5,9 @@ import jsonBodyParser from '@middy/http-json-body-parser';
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
 import { ValidationErrorResponse } from './internal/validation-error-response';
 
-interface Handler {
-  (event: APIGatewayProxyEvent, context?: Context): Promise<APIGatewayProxyResult>;
-}
+type Handler = (event: APIGatewayProxyEvent, context?: Context) => Promise<APIGatewayProxyResult>;
 
-const APIHandler = (handler: Handler, validation?: any): middy.MiddyfiedHandler => {
+const APIHandler = (handler: Handler, validation?: unknown): middy.MiddyfiedHandler => {
   if (validation) {
     return middy(handler)
       .use(jsonBodyParser())
