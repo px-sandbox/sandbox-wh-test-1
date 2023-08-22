@@ -4,7 +4,11 @@ import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
 import { RetryTableMapping } from '../model/retry-table-mapping';
 
-export async function logProcessToRetry(record: SQSRecord, queue: string, error: any) {
+export async function logProcessToRetry(
+  record: SQSRecord,
+  queue: string,
+  error: any
+): Promise<void> {
   try {
     const {
       body,
@@ -27,7 +31,7 @@ export async function logProcessToRetry(record: SQSRecord, queue: string, error:
     );
   } catch (err) {
     logger.error(
-      JSON.stringify({ message: 'logProcessToRetry.failed', body: { record, queue, err } })
+      JSON.stringify({ message: 'logProcessToRetry.failed', body: { record, queue, err, error } })
     );
   }
 }

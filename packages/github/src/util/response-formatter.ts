@@ -14,7 +14,7 @@ export interface IRepo {
   topics: string;
 }
 
-export const searchedDataFormator = async (data: any) => {
+export const searchedDataFormator = async (data: any): Promise<Array<any>> => {
   if (data?.hits?.max_score != null) {
     return data.hits.hits
       .filter(
@@ -29,7 +29,7 @@ export const searchedDataFormator = async (data: any) => {
   return [];
 };
 
-export const formatUserDataResponse = (data: IformatUserDataResponse) => ({
+export const formatUserDataResponse = (data: IformatUserDataResponse): { [key: string]: any } => ({
   id: data._id,
   githubId: data.id,
   userName: data.userName,
@@ -37,7 +37,9 @@ export const formatUserDataResponse = (data: IformatUserDataResponse) => ({
   organizationId: data.organizationId,
 });
 
-export const formatRepoDataResponse = (data: Array<IRepo>) =>
+export const formatRepoDataResponse = (
+  data: Array<IRepo>
+): Array<{ id: number; githubId: number; name: string; topics: string }> =>
   data.map((repo: IRepo) => ({
     id: repo._id,
     githubId: repo.id,

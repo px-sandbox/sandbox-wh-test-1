@@ -20,7 +20,7 @@ function getOffsetTime(offset: string): Offset {
   };
 }
 
-function getTimeWithOffset(date: moment.Moment, offset: Offset) {
+function getTimeWithOffset(date: moment.Moment, offset: Offset): moment.Moment {
   switch (offset.radical) {
     case '-':
       date.subtract(offset.hours, 'hours').subtract(offset.minutes, 'minutes');
@@ -28,12 +28,15 @@ function getTimeWithOffset(date: moment.Moment, offset: Offset) {
     case '+':
       date.add(offset.hours, 'hours').add(offset.minutes, 'minutes');
       break;
+    default:
+      // Handle the default case here
+      break;
   }
 
   return date;
 }
 
-function regulariseDate(date: moment.Moment) {
+function regulariseDate(date: moment.Moment): moment.Moment {
   if (date.day() === 6) {
     // Saturday
     return moment(date).add(2, 'd').hour(9).minute(30).second(0).millisecond(0);
@@ -53,7 +56,7 @@ function regulariseDate(date: moment.Moment) {
   return maxBoundary;
 }
 
-function getDays(startDate: moment.Moment, endDate: moment.Moment) {
+function getDays(startDate: moment.Moment, endDate: moment.Moment): number {
   return moment(endDate.format('YYYY-MM-DD'), 'YYYY-MM-DD').diff(
     moment(startDate.format('YYYY-MM-DD'), 'YYYY-MM-DD'),
     'd'
@@ -68,18 +71,25 @@ function getDays(startDate: moment.Moment, endDate: moment.Moment) {
  * @returns number that represents time  in seconds
  */
 
-export function getWorkingTime(startDate: moment.Moment, endDate: moment.Moment, offset: string) {
+export function getWorkingTime(
+  startDate: moment.Moment,
+  endDate: moment.Moment,
+  offset: string
+): number {
   const offsetTime = getOffsetTime(offset);
 
-  startDate = regulariseDate(getTimeWithOffset(startDate, offsetTime));
+  const newStartDate = regulariseDate(getTimeWithOffset(startDate, offsetTime));
 
-  endDate = regulariseDate(getTimeWithOffset(endDate, offsetTime));
+  const newEndDate = regulariseDate(getTimeWithOffset(endDate, offsetTime));
 
-  const totalDays = getDays(startDate, endDate);
+  const totalDays = getDays(newStartDate, newEndDate);
 
-  const weekends = getWeekenedCount(startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD'));
+  const weekends = getWeekenedCount(
+    newStartDate.format('YYYY-MM-DD'),
+    newEndDate.format('YYYY-MM-DD')
+  );
 
-  const totalTime = endDate.diff(startDate, 'seconds');
+  const totalTime = newEndDate.diff(newStartDate, 'seconds');
   const offhoursTime = (totalDays - weekends) * 15 * 60 * 60;
   const weekendTime = weekends * 24 * 60 * 60;
 
