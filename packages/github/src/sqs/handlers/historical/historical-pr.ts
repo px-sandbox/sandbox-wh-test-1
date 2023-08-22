@@ -29,13 +29,13 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<vo
 };
 
 async function getPrList(record: any) {
-  let messageBody = JSON.parse(record.body);
+  const messageBody = JSON.parse(record.body);
   logger.info(JSON.stringify(messageBody));
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
     return;
   }
-  let { page = 1 } = messageBody;
+  const { page = 1 } = messageBody;
   const { owner, name } = messageBody;
   logger.info(`page: ${page}`);
   try {
@@ -68,7 +68,7 @@ async function getPrList(record: any) {
     logger.info(`total prs: ${octokitRespData.length}`);
     if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR');
-      return;
+      return true;
     } else {
       messageBody.page = page + 1;
       logger.info(`messageBody: ${JSON.stringify(messageBody)}`);

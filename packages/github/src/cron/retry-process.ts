@@ -38,6 +38,5 @@ export async function handler(): Promise<void> {
     await Promise.all(processes.map((record: any) => processIt(record)));
   } else {
     logger.info('NO_REMANING_RATE_LIMIT', { githubRetryLimit: githubRetryLimit.data });
-    return;
   }
 }

@@ -32,7 +32,7 @@ export const handler = async function collectPRCommitData(event: SQSEvent): Prom
   );
 };
 async function getPRCommits(record: any) {
-  let messageBody = JSON.parse(record.body);
+  const messageBody = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
     return;
@@ -57,7 +57,7 @@ async function getPRCommits(record: any) {
 
     if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR_COMMITS');
-      return;
+      return true;
     } else {
       messageBody.page = page + 1;
       logger.error(`message-body: ${JSON.stringify(messageBody)}`);

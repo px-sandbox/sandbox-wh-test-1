@@ -36,7 +36,7 @@ export const handler = async function collectPRCommentsData(event: SQSEvent): Pr
   );
 };
 async function getPrComments(record: any) {
-  let messageBody = JSON.parse(record.body);
+  const messageBody = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
     return;
@@ -69,7 +69,7 @@ async function getPrComments(record: any) {
     logger.info(`total pr comments proccessed: ${queueProcessed.length}`);
     if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR_COMMENT');
-      return;
+      return true;
     } else {
       messageBody.page = page + 1;
       logger.info(`message_body_pr_comments: ${JSON.stringify(messageBody)}`);

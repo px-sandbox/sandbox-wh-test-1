@@ -35,7 +35,7 @@ export const handler = async function collectPrReviewsData(event: SQSEvent): Pro
 };
 
 async function getPrReviews(record: any) {
-  let messageBody = JSON.parse(record.body);
+  const messageBody = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
     return;
@@ -97,8 +97,8 @@ async function getPrReviews(record: any) {
       }
       await new SQSClient().sendMessage(
         {
-          submittedAt: submittedAt,
-          approvedAt: approvedAt,
+          submittedAt,
+          approvedAt,
           owner: messageBody.head.repo.owner.login,
           repoName: messageBody.head.repo.name,
           prNumber: messageBody.number,
@@ -110,7 +110,7 @@ async function getPrReviews(record: any) {
 
     if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR_REVIEW');
-      return;
+      return true;
     } else {
       messageBody.page = page + 1;
       logger.info(`message_body_pr_reviews: ${JSON.stringify(messageBody)}`);

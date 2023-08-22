@@ -33,7 +33,7 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
   );
 };
 async function getRepoCommits(record: any) {
-  let messageBody = JSON.parse(record.body);
+  const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId, branchName } = messageBody;
   logger.info(`page: ${page}`);
   try {
@@ -51,8 +51,8 @@ async function getRepoCommits(record: any) {
           pushedBranch: null,
           repository: {
             id: githubRepoId,
-            name: name,
-            owner: owner,
+            name,
+            owner,
           },
           timestamp: new Date(),
         },
@@ -66,7 +66,7 @@ async function getRepoCommits(record: any) {
 
     if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR');
-      return;
+      return true;
     } else {
       messageBody.page = page + 1;
       logger.info(`message_body_pr_commits: ${JSON.stringify(messageBody)}`);

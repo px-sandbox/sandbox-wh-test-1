@@ -36,7 +36,7 @@ export const handler = async function collectBranchData(event: SQSEvent): Promis
   );
 };
 async function getRepoBranches(record: any) {
-  let messageBody = JSON.parse(record.body);
+  const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId } = messageBody;
   try {
     let branches = [];
@@ -58,9 +58,9 @@ async function getRepoBranches(record: any) {
       new SQSClient().sendMessage(
         {
           branchName: branch,
-          owner: owner,
-          name: name,
-          githubRepoId: githubRepoId,
+          owner,
+          name,
+          githubRepoId,
           page: 1,
         },
         Queue.gh_historical_commits.queueUrl
@@ -69,7 +69,7 @@ async function getRepoBranches(record: any) {
     await Promise.all(queueProcessed);
     if (branches.length < 100) {
       logger.info('LAST_100_RECORD_PR');
-      return;
+      return true;
     } else {
       messageBody.page = page + 1;
       logger.info(`message_body_repo: ${messageBody}`);
