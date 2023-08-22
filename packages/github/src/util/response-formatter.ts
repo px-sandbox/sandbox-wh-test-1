@@ -16,10 +16,15 @@ export interface IRepo {
 
 export const searchedDataFormator = async (data: any) => {
   if (data?.hits?.max_score != null) {
-    return data.hits.hits.map((hit: any) => ({
-      _id: hit._id,
-      ...hit._source.body,
-    }));
+    return data.hits.hits
+      .filter(
+        (hit: any) =>
+          typeof hit._source.body.isDeleted === 'undefined' || hit._source.body.isDeleted === false
+      )
+      .map((hit: any) => ({
+        _id: hit._id,
+        ...hit._source.body,
+      }));
   }
   return [];
 };
