@@ -33,6 +33,7 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
         createdAtDay: moment(createdAt).format('dddd'),
         computationalDate: await this.calculateComputationalDate(createdAt),
         githubDate: moment(createdAt).format('YYYY-MM-DD'),
+        isDeleted: !!this.ghApiData.deleted_at,
       },
     };
     return userObj;
