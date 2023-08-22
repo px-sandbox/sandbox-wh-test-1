@@ -67,11 +67,11 @@ async function getRepoCommits(record: any) {
     if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR');
       return true;
-    } else {
+    } 
       messageBody.page = page + 1;
       logger.info(`message_body_pr_commits: ${JSON.stringify(messageBody)}`);
       await getRepoCommits({ body: JSON.stringify(messageBody) });
-    }
+    
   } catch (error) {
     logger.error(JSON.stringify({ message: 'historical.commits.error', error }));
     await logProcessToRetry(record, Queue.gh_historical_commits.queueUrl, error);

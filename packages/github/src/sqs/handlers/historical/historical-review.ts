@@ -111,12 +111,12 @@ async function getPrReviews(record: any) {
     if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR_REVIEW');
       return true;
-    } else {
+    } 
       messageBody.page = page + 1;
       logger.info(`message_body_pr_reviews: ${JSON.stringify(messageBody)}`);
       // await new SQSClient().sendMessage(messageBody, Queue.gh_historical_reviews.queueUrl);
       await getPrReviews({ body: JSON.stringify(messageBody) });
-    }
+    
   } catch (error) {
     logger.error(`historical.reviews.error: ${JSON.stringify(error)}`);
     await logProcessToRetry(record, Queue.gh_historical_reviews.queueUrl, error);

@@ -70,11 +70,11 @@ async function getRepoBranches(record: any) {
     if (branches.length < 100) {
       logger.info('LAST_100_RECORD_PR');
       return true;
-    } else {
+    } 
       messageBody.page = page + 1;
       logger.info(`message_body_repo: ${messageBody}`);
       await getRepoBranches({ body: JSON.stringify(messageBody) });
-    }
+    
   } catch (error) {
     logger.error(`historical.repoBranches.error: ${JSON.stringify(error)}`);
     await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error);

@@ -70,12 +70,12 @@ async function getPrComments(record: any) {
     if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR_COMMENT');
       return true;
-    } else {
+    } 
       messageBody.page = page + 1;
       logger.info(`message_body_pr_comments: ${JSON.stringify(messageBody)}`);
       // await new SQSClient().sendMessage(messageBody, Queue.gh_historical_pr_comments.queueUrl);
       await getPrComments({ body: JSON.stringify(messageBody) });
-    }
+    
   } catch (error) {
     logger.error(`historical.comments.error: ${JSON.stringify(error)}`);
     await logProcessToRetry(record, Queue.gh_historical_pr_comments.queueUrl, error);
