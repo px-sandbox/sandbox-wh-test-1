@@ -8,8 +8,8 @@ import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { mappingPrefixes } from '../constant/config';
-import { searchedDataFormator } from '../util/responseFormatter';
-import { DataProcessor } from './dataProcessor';
+import { searchedDataFormator } from '../util/response-formatter';
+import { DataProcessor } from './data-processor';
 
 const delayAr = [0, 1, 1, 2, 3, 5, 8];
 export class PRProcessor extends DataProcessor<

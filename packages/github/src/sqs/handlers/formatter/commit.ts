@@ -1,16 +1,16 @@
+import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import esb from 'elastic-builder';
-import { ghRequest } from 'src/lib/requestDefaults';
-import { CommitProcessor } from 'src/processors/commit';
-import { getInstallationAccessToken } from 'src/util/installationAccessTokenGenerator';
-import { getOctokitResp } from 'src/util/octokit-response';
-import { searchedDataFormator } from 'src/util/responseFormatter';
-import { logProcessToRetry } from 'src/util/retryProcess';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import { ghRequest } from '../../../lib/request-default';
+import { CommitProcessor } from '../../../processors/commit';
+import { getInstallationAccessToken } from '../../../util/installation-access-token';
+import { getOctokitResp } from '../../../util/octokit-response';
+import { searchedDataFormator } from '../../../util/response-formatter';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function commitFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

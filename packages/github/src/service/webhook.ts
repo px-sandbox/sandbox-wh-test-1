@@ -5,10 +5,10 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
-import { getCommits } from '../lib/gitCommitList';
-import { pRReviewCommentOnQueue } from '../lib/sendPrReviewCommentToQueue';
-import { pRReviewOnQueue } from '../lib/sendPrReviewToQueue';
-import { pROnQueue } from '../lib/sendPullToQueue';
+import { getCommits } from '../lib/git-commit-list';
+import { pRReviewCommentOnQueue } from '../lib/pr-review-comment-queue';
+import { pRReviewOnQueue } from '../lib/pr-review-queue';
+import { pROnQueue } from '../lib/pull-request-queue';
 
 export const webhookData = async function getWebhookData(
   event: APIGatewayProxyEvent

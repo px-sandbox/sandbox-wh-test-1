@@ -3,7 +3,7 @@ import { Github } from 'abstraction';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
-import { DataProcessor } from './dataProcessor';
+import { DataProcessor } from './data-processor';
 
 export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, Github.Type.User> {
   constructor(data: Github.ExternalType.Api.User) {

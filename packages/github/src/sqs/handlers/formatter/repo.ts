@@ -1,7 +1,7 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { RepositoryProcessor } from 'src/processors/repo';
 import { Queue } from 'sst/node/queue';
+import { RepositoryProcessor } from '../../../processors/repo';
 
 export const handler = async function repoFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

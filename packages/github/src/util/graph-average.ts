@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { esbDateHistogramInterval } from 'src/constant/config';
+import { esbDateHistogramInterval } from '../constant/config';
 
 export function calculateGraphAvg(interval: string, data: any): number {
   const prTimeInSeconds = data.pr_time_in_seconds.value;

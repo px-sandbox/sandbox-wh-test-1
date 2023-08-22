@@ -1,8 +1,8 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { saveCommitDetails } from 'src/lib/saveCommitDetails';
-import { logProcessToRetry } from 'src/util/retryProcess';
 import { Queue } from 'sst/node/queue';
+import { saveCommitDetails } from '../../../lib/save-commit';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function commitIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

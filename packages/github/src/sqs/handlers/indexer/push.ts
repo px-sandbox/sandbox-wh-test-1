@@ -1,8 +1,8 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { savePushDetails } from 'src/lib/savePushDetails';
-import { logProcessToRetry } from 'src/util/retryProcess';
 import { Queue } from 'sst/node/queue';
+import { savePushDetails } from '../../../lib/save-push';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function pushIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

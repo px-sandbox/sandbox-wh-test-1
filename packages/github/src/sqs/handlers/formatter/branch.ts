@@ -1,7 +1,7 @@
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { BranchProcessor } from 'src/processors/branch';
 import { Queue } from 'sst/node/queue';
+import { BranchProcessor } from '../../../processors/branch';
 
 export const handler = async function branchFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
