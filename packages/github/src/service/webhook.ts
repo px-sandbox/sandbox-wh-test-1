@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import crypto from 'crypto';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
@@ -126,6 +127,9 @@ export const webhookData = async function getWebhookData(
             action: data.action,
             deleted_at: new Date(eventTime),
           };
+          break;
+        default:
+          // handle default case here
           break;
       }
       logger.info('-------User event --------');

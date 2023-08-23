@@ -5,12 +5,16 @@ const MyOctokit = Octokit.plugin(throttling);
 
 export const ghRequest = new MyOctokit({
   throttle: {
-    onRateLimit: (retryAfter: any, options: any, octokit: any, retryCount: any) => {
-      throw new Error(`Request quota exhausted for request ${options.method} ${options.url}`);
+    onRateLimit: (retryAfter: number, options: any, octokit: unknown, retryCount: number) => {
+      throw new Error(
+        `Request quota exhausted for request ${options?.method} ${options?.url} \nRetry Count: ${retryCount} \nRetry After: ${retryAfter} \nOcotkit: ${octokit}`
+      );
     },
-    onSecondaryRateLimit: (retryAfter: any, options: any, octokit: any) => {
+    onSecondaryRateLimit: (retryAfter: number, options: any, octokit: unknown) => {
       // does not retry, only logs a warning
-      throw new Error(`Request quota exhausted for request ${options.method} ${options.url}`);
+      throw new Error(
+        `Request quota exhausted for request ${options?.method} ${options?.url} \nRetry After: ${retryAfter} \nOcotkit: ${octokit}`
+      );
     },
   },
   headers: {

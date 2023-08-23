@@ -14,26 +14,12 @@ const octokit = ghRequest.request.defaults({
   },
 });
 
-export const handler = async function collectPRData(event: SQSEvent): Promise<void> {
-  logger.info(`total event records: ${event.Records.length}`);
-  await Promise.all(
-    event.Records.filter((record: any) => {
-      const body = JSON.parse(record.body);
-
-      if (body.owner && body.name) {
-        return true;
-      }
-      return false;
-    }).map(async (record: any) => await getPrList(record))
-  );
-};
-
-async function getPrList(record: any) {
+async function getPrList(record: any): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   logger.info(JSON.stringify(messageBody));
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
-    return;
+    return false;
   }
   const { page = 1 } = messageBody;
   const { owner, name } = messageBody;
@@ -69,13 +55,26 @@ async function getPrList(record: any) {
     if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR');
       return true;
-    } 
-      messageBody.page = page + 1;
-      logger.info(`messageBody: ${JSON.stringify(messageBody)}`);
-      await getPrList({ body: JSON.stringify(messageBody) });
-    
+    }
+    messageBody.page = page + 1;
+    logger.info(`messageBody: ${JSON.stringify(messageBody)}`);
+    await getPrList({ body: JSON.stringify(messageBody) });
   } catch (error) {
     logger.error(`historical.PR.error: ${JSON.stringify(error)}`);
     await logProcessToRetry(record, Queue.gh_historical_pr.queueUrl, error);
   }
 }
+
+export const handler = async function collectPRData(event: SQSEvent): Promise<void> {
+  logger.info(`total event records: ${event.Records.length}`);
+  await Promise.all(
+    event.Records.filter((record: any) => {
+      const body = JSON.parse(record.body);
+
+      if (body.owner && body.name) {
+        return true;
+      }
+      return false;
+    }).map(async (record: any) => getPrList(record))
+  );
+};

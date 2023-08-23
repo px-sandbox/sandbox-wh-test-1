@@ -13,29 +13,32 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
-export const handler = async function collectPRCommitData(event: SQSEvent): Promise<any> {
-  await Promise.all(
-    event.Records.filter((record: any) => {
-      const body = JSON.parse(record.body);
-      if (body.head && body.head.repo) {
-        return true;
-      }
-
-      logger.info(`
-      PR with no repo: ${body}
-      `);
-
-      return false;
-    }).map(async (record: any) => {
-      await getPRCommits(record);
-    })
+async function saveCommit(commitData: any, messageBody: any): Promise<void> {
+  const modifiedCommitData = { ...commitData };
+  modifiedCommitData.isMergedCommit = false;
+  modifiedCommitData.mergedBranch = null;
+  modifiedCommitData.pushedBranch = null;
+  await new SQSClient().sendMessage(
+    {
+      commitId: modifiedCommitData.sha,
+      isMergedCommit: modifiedCommitData.isMergedCommit,
+      mergedBranch: modifiedCommitData.mergedBranch,
+      pushedBranch: modifiedCommitData.pushedBranch,
+      repository: {
+        id: messageBody.head.repo.owner.id,
+        name: messageBody.head.repo.name,
+        owner: messageBody.head.repo.owner.login,
+      },
+      timestamp: new Date(),
+    },
+    Queue.gh_commit_format.queueUrl
   );
-};
-async function getPRCommits(record: any) {
+}
+async function getPRCommits(record: any): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
-    return;
+    return false;
   }
   const {
     page = 1,
@@ -58,34 +61,30 @@ async function getPRCommits(record: any) {
     if (octokitRespData.length < 100) {
       logger.info('LAST_100_RECORD_PR_COMMITS');
       return true;
-    } 
-      messageBody.page = page + 1;
-      logger.error(`message-body: ${JSON.stringify(messageBody)}`);
-      await getPRCommits({ body: JSON.stringify(messageBody) });
-    
+    }
+    messageBody.page = page + 1;
+    logger.error(`message-body: ${JSON.stringify(messageBody)}`);
+    await getPRCommits({ body: JSON.stringify(messageBody) });
   } catch (error) {
     logger.error(`historical.PR.commits.error: ${JSON.stringify(error)}`);
     await logProcessToRetry(record, Queue.gh_historical_pr_commits.queueUrl, error);
   }
 }
+export const handler = async function collectPRCommitData(event: SQSEvent): Promise<any> {
+  await Promise.all(
+    event.Records.filter((record: any) => {
+      const body = JSON.parse(record.body);
+      if (body.head && body.head.repo) {
+        return true;
+      }
 
-async function saveCommit(commitData: any, messageBody: any) {
-  commitData.isMergedCommit = false;
-  commitData.mergedBranch = null;
-  commitData.pushedBranch = null;
-  await new SQSClient().sendMessage(
-    {
-      commitId: commitData.sha,
-      isMergedCommit: commitData.isMergedCommit,
-      mergedBranch: commitData.mergedBranch,
-      pushedBranch: commitData.pushedBranch,
-      repository: {
-        id: messageBody.head.repo.owner.id,
-        name: messageBody.head.repo.name,
-        owner: messageBody.head.repo.owner.login,
-      },
-      timestamp: new Date(),
-    },
-    Queue.gh_commit_format.queueUrl
+      logger.info(`
+      PR with no repo: ${body}
+      `);
+
+      return false;
+    }).map(async (record: any) => {
+      await getPRCommits(record);
+    })
   );
-}
+};

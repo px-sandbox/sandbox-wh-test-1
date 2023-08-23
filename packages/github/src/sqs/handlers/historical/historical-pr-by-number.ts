@@ -11,6 +11,24 @@ import { logProcessToRetry } from '../../../util/retry-process';
 import { getWorkingTime } from '../../../util/timezone-calculation';
 import { getOctokitResp } from '../../../util/octokit-response';
 
+async function processQueueOnMergedPR(octokitRespData: any, messageBody: any): Promise<void> {
+  await new SQSClient().sendMessage(
+    {
+      commitId: octokitRespData.merge_commit_sha,
+      isMergedCommit: octokitRespData.merged,
+      mergedBranch: null,
+      pushedBranch: octokitRespData?.head?.ref,
+      repository: {
+        id: messageBody.repoId,
+        name: messageBody.repoName,
+        owner: messageBody.owner,
+      },
+      timestamp: new Date(),
+    },
+    Queue.gh_commit_format.queueUrl,
+    octokitRespData.merge_commit_sha
+  );
+}
 export const handler = async function collectPrByNumberData(event: SQSEvent): Promise<void> {
   const installationAccessToken = await getInstallationAccessToken();
   const octokit = ghRequest.request.defaults({
@@ -38,7 +56,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         ) {
           messageBody.submittedAt = messageBody.approved_at;
         }
-
+        // eslint-disable-next-line camelcase
         const review_seconds = await getWorkingTime(
           moment(octokitRespData.created_at),
           moment(messageBody.submittedAt),
@@ -50,29 +68,14 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
             ...octokitRespData,
             reviewed_at: messageBody.submittedAt,
             approved_at: messageBody.approvedAt,
-            review_seconds,
+            review_seconds, // eslint-disable-line camelcase
           },
           Queue.gh_pr_format.queueUrl
         );
 
         // setting the `isMergedCommit` for commit
         if (octokitRespData.merged === true) {
-          await new SQSClient().sendMessage(
-            {
-              commitId: octokitRespData.merge_commit_sha,
-              isMergedCommit: octokitRespData.merged,
-              mergedBranch: null,
-              pushedBranch: octokitRespData?.head?.ref,
-              repository: {
-                id: messageBody.repoId,
-                name: messageBody.repoName,
-                owner: messageBody.owner,
-              },
-              timestamp: new Date(),
-            },
-            Queue.gh_commit_format.queueUrl,
-            octokitRespData.merge_commit_sha
-          );
+          await processQueueOnMergedPR(octokitRespData, messageBody);
         }
       } catch (error) {
         await logProcessToRetry(record, Queue.gh_historical_pr_by_number.queueUrl, error);

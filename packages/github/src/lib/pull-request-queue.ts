@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import moment from 'moment';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
