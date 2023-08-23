@@ -1,4 +1,4 @@
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { RepositoryProcessor } from '../../../processors/repo';
@@ -6,7 +6,7 @@ import { RepositoryProcessor } from '../../../processors/repo';
 export const handler = async function repoFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(
-    event.Records.map(async (record: any) => {
+    event.Records.map(async (record: SQSRecord) => {
       try {
         const messageBody = JSON.parse(record.body);
         logger.info('REPO_SQS_RECIEVER_HANDLER', { messageBody });

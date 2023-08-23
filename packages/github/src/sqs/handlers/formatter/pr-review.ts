@@ -1,4 +1,4 @@
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { PRReviewProcessor } from '../../../processors/pr-review';
@@ -10,7 +10,7 @@ export const handler = async function pRReviewFormattedDataReciever(
   logger.info(`Records Length: ${event.Records.length}`);
 
   await Promise.all(
-    event.Records.map(async (record: any) => {
+    event.Records.map(async (record: SQSRecord) => {
       try {
         const messageBody = JSON.parse(record.body);
         logger.info('PULL_REQUEST_REVIEW_SQS_RECIEVER_HANDLER', { messageBody });
@@ -24,7 +24,7 @@ export const handler = async function pRReviewFormattedDataReciever(
         const data = await prReviewProcessor.processor();
         await prReviewProcessor.sendDataToQueue(data, Queue.gh_pr_review_index.queueUrl);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_pr_review_format.queueUrl, error);
+        await logProcessToRetry(record, Queue.gh_pr_review_format.queueUrl, error as Error);
         logger.error('pRReviewFormattedDataReciever.error', error);
       }
     })

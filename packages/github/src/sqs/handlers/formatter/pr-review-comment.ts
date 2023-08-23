@@ -1,4 +1,4 @@
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { PRReviewCommentProcessor } from '../../../processors/pr-review-comment';
@@ -10,7 +10,7 @@ export const handler = async function pRReviewCommentFormattedDataReciever(
   logger.info(`Records Length: ${event.Records.length}`);
 
   await Promise.all(
-    event.Records.map(async (record: any) => {
+    event.Records.map(async (record: SQSRecord) => {
       try {
         const messageBody = JSON.parse(record.body);
         logger.info('PULL_REQUEST_REVIEW_COMMENT_SQS_RECIEVER_HANDLER', { messageBody });
@@ -34,7 +34,7 @@ export const handler = async function pRReviewCommentFormattedDataReciever(
           Queue.gh_pr_review_comment_index.queueUrl
         );
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_pr_review_comment_format.queueUrl, error);
+        await logProcessToRetry(record, Queue.gh_pr_review_comment_format.queueUrl, error as Error);
         logger.error('pRReviewCommentFormattedDataReciever.error', error);
       }
     })

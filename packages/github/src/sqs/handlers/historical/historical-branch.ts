@@ -1,5 +1,5 @@
 import { SQSClient } from '@pulse/event-handler';
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { ghRequest } from '../../../lib/request-default';
@@ -13,7 +13,7 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
-async function getRepoBranches(record: any): Promise<boolean | undefined> {
+async function getRepoBranches(record: SQSRecord | { body: string }): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId } = messageBody;
   try {
@@ -54,12 +54,16 @@ async function getRepoBranches(record: any): Promise<boolean | undefined> {
     await getRepoBranches({ body: JSON.stringify(messageBody) });
   } catch (error) {
     logger.error(`historical.repoBranches.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error);
+    await logProcessToRetry(
+      record as SQSRecord,
+      Queue.gh_historical_branch.queueUrl,
+      error as Error
+    );
   }
 }
 export const handler = async function collectBranchData(event: SQSEvent): Promise<void> {
   await Promise.all(
-    event.Records.filter((record: any) => {
+    event.Records.filter((record: SQSRecord) => {
       const body = JSON.parse(record.body);
       if (body.owner && body.name) {
         return true;
