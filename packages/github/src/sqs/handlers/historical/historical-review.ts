@@ -1,8 +1,9 @@
 import moment from 'moment';
 import { SQSClient } from '@pulse/event-handler';
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { OctokitResponse } from '@octokit/types';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { logProcessToRetry } from '../../../util/retry-process';
@@ -15,7 +16,10 @@ const octokit = ghRequest.request.defaults({
   },
 });
 
-async function processReviewQueueForPageOne(prReviews: any, messageBody: any): Promise<void> {
+async function processReviewQueueForPageOne(
+  prReviews: OctokitResponse<any>,
+  messageBody: any
+): Promise<void> {
   let submittedAt = null;
   let approvedAt = null;
   const reviewAt = await prReviews.data.find(
@@ -57,7 +61,7 @@ async function processReviewQueueForPageOne(prReviews: any, messageBody: any): P
   );
 }
 
-async function getPrReviews(record: any): Promise<boolean | undefined> {
+async function getPrReviews(record: SQSRecord | { body: string }): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
@@ -76,7 +80,7 @@ async function getPrReviews(record: any): Promise<boolean | undefined> {
     );
     const octokitRespData = getOctokitResp(prReviews);
     let queueProcessed = [];
-    queueProcessed = octokitRespData.map((reviews: any) =>
+    queueProcessed = octokitRespData.map((reviews: unknown) =>
       new SQSClient().sendMessage(
         {
           review: reviews,
@@ -103,13 +107,17 @@ async function getPrReviews(record: any): Promise<boolean | undefined> {
     await getPrReviews({ body: JSON.stringify(messageBody) });
   } catch (error) {
     logger.error(`historical.reviews.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(record, Queue.gh_historical_reviews.queueUrl, error);
+    await logProcessToRetry(
+      record as SQSRecord,
+      Queue.gh_historical_reviews.queueUrl,
+      error as Error
+    );
   }
 }
 
 export const handler = async function collectPrReviewsData(event: SQSEvent): Promise<any> {
   await Promise.all(
-    event.Records.filter((record: any) => {
+    event.Records.filter((record: SQSRecord) => {
       const body = JSON.parse(record.body);
       if (body.head && body.head.repo) {
         return true;
@@ -120,7 +128,7 @@ export const handler = async function collectPrReviewsData(event: SQSEvent): Pro
       `);
 
       return false;
-    }).map(async (record: any) => {
+    }).map(async (record: SQSRecord) => {
       await getPrReviews(record);
     })
   );

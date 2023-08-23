@@ -5,7 +5,7 @@ import { saveRepoDetails } from '../../../lib/save-repo';
 export const handler = async function repoIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(
-    event.Records.map(async (record: any) => {
+    event.Records.map(async (record: { body: string }) => {
       try {
         const messageBody = JSON.parse(record.body);
 

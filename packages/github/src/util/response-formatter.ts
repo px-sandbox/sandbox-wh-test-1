@@ -29,7 +29,9 @@ export const searchedDataFormator = async (data: any): Promise<Array<any>> => {
   return [];
 };
 
-export const formatUserDataResponse = (data: IformatUserDataResponse): { [key: string]: any } => ({
+export const formatUserDataResponse = (
+  data: IformatUserDataResponse
+): { [key: string]: unknown } => ({
   id: data._id,
   githubId: data.id,
   userName: data.userName,
