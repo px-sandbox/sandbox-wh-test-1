@@ -1,5 +1,5 @@
 import { SQSClient } from '@pulse/event-handler';
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { ghRequest } from '../../../lib/request-default';
@@ -13,7 +13,7 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
-async function getPrComments(record: any): Promise<boolean | undefined> {
+async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
@@ -51,19 +51,18 @@ async function getPrComments(record: any): Promise<boolean | undefined> {
     }
     messageBody.page = page + 1;
     logger.info(`message_body_pr_comments: ${JSON.stringify(messageBody)}`);
-    // await new SQSClient().sendMessage(messageBody, Queue.gh_historical_pr_comments.queueUrl);
-    await getPrComments({ body: JSON.stringify(messageBody) });
+    await getPrComments({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
     logger.error(`historical.comments.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(record, Queue.gh_historical_pr_comments.queueUrl, error);
+    await logProcessToRetry(record, Queue.gh_historical_pr_comments.queueUrl, error as Error);
   }
 }
 
-export const handler = async function collectPRCommentsData(event: SQSEvent): Promise<any> {
+export const handler = async function collectPRCommentsData(event: SQSEvent): Promise<undefined> {
   await Promise.all(
-    event.Records.filter((record: any) => {
+    event.Records.filter((record) => {
       const body = JSON.parse(record.body);
-      if (body.head && body.head.repo) {
+      if (body.head?.repo) {
         logger.info(
           `PR with repo: ${body}
       `
@@ -76,7 +75,7 @@ export const handler = async function collectPRCommentsData(event: SQSEvent): Pr
       `);
 
       return false;
-    }).map(async (record: any) => {
+    }).map(async (record) => {
       await getPrComments(record);
     })
   );

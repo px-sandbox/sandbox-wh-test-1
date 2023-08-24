@@ -1,11 +1,12 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
+import { Github } from 'abstraction';
 import { RetryTableMapping } from '../model/retry-table-mapping';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
-async function processIt(record: any): Promise<void> {
+async function processIt(record: Github.Type.ProcessItRecord): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId } = record;
 
   // send to queue
@@ -35,7 +36,9 @@ export async function handler(): Promise<void> {
       return;
     }
 
-    await Promise.all(processes.map((record: any) => processIt(record)));
+    await Promise.all(
+      processes.map((record: unknown) => processIt(record as Github.Type.ProcessItRecord))
+    );
   } else {
     logger.info('NO_REMANING_RATE_LIMIT', { githubRetryLimit: githubRetryLimit.data });
   }

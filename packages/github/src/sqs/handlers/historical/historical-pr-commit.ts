@@ -1,5 +1,5 @@
 import { SQSClient } from '@pulse/event-handler';
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { ghRequest } from '../../../lib/request-default';
@@ -34,7 +34,7 @@ async function saveCommit(commitData: any, messageBody: any): Promise<void> {
     Queue.gh_commit_format.queueUrl
   );
 }
-async function getPRCommits(record: any): Promise<boolean | undefined> {
+async function getPRCommits(record: SQSRecord): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
@@ -64,17 +64,19 @@ async function getPRCommits(record: any): Promise<boolean | undefined> {
     }
     messageBody.page = page + 1;
     logger.error(`message-body: ${JSON.stringify(messageBody)}`);
-    await getPRCommits({ body: JSON.stringify(messageBody) });
+    await getPRCommits({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
     logger.error(`historical.PR.commits.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(record, Queue.gh_historical_pr_commits.queueUrl, error);
+    await logProcessToRetry(record, Queue.gh_historical_pr_commits.queueUrl, error as Error);
   }
 }
-export const handler = async function collectPRCommitData(event: SQSEvent): Promise<any> {
+export const handler = async function collectPRCommitData(
+  event: SQSEvent
+): Promise<void | boolean> {
   await Promise.all(
-    event.Records.filter((record: any) => {
+    event.Records.filter((record) => {
       const body = JSON.parse(record.body);
-      if (body.head && body.head.repo) {
+      if (body.head?.repo) {
         return true;
       }
 
@@ -83,7 +85,7 @@ export const handler = async function collectPRCommitData(event: SQSEvent): Prom
       `);
 
       return false;
-    }).map(async (record: any) => {
+    }).map(async (record) => {
       await getPRCommits(record);
     })
   );

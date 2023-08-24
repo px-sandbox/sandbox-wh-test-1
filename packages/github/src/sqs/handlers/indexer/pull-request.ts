@@ -1,4 +1,4 @@
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { savePRDetails } from '../../../lib/save-pull-request';
@@ -7,7 +7,7 @@ import { logProcessToRetry } from '../../../util/retry-process';
 export const handler = async function pRIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(
-    event.Records.map(async (record: any) => {
+    event.Records.map(async (record: SQSRecord) => {
       try {
         const messageBody = JSON.parse(record.body);
 
@@ -15,7 +15,7 @@ export const handler = async function pRIndexDataReciever(event: SQSEvent): Prom
 
         await savePRDetails(messageBody);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_pr_index.queueUrl, error);
+        await logProcessToRetry(record, Queue.gh_pr_index.queueUrl, error as Error);
         logger.error('pRIndexDataReciever.error', { error });
       }
     })

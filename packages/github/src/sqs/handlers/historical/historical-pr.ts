@@ -1,5 +1,5 @@
 import { SQSClient } from '@pulse/event-handler';
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { ghRequest } from '../../../lib/request-default';
@@ -14,7 +14,7 @@ const octokit = ghRequest.request.defaults({
   },
 });
 
-async function getPrList(record: any): Promise<boolean | undefined> {
+async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   logger.info(JSON.stringify(messageBody));
   if (!messageBody && !messageBody.head) {
@@ -25,7 +25,6 @@ async function getPrList(record: any): Promise<boolean | undefined> {
   const { owner, name } = messageBody;
   logger.info(`page: ${page}`);
   try {
-    // const last_one_year_date = moment().subtract(1, 'year').toISOString();
     const responseData = await octokit(
       `GET /repos/${owner}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
     );
@@ -42,10 +41,10 @@ async function getPrList(record: any): Promise<boolean | undefined> {
 
     let processes = [];
     processes = [
-      ...octokitRespData.map((prData: any) =>
+      ...octokitRespData.map((prData: unknown) =>
         new SQSClient().sendMessage(prData, Queue.gh_historical_reviews.queueUrl)
       ),
-      ...octokitRespData.map((prData: any) =>
+      ...octokitRespData.map((prData: unknown) =>
         new SQSClient().sendMessage(prData, Queue.gh_historical_pr_comments.queueUrl)
       ),
     ];
@@ -58,23 +57,23 @@ async function getPrList(record: any): Promise<boolean | undefined> {
     }
     messageBody.page = page + 1;
     logger.info(`messageBody: ${JSON.stringify(messageBody)}`);
-    await getPrList({ body: JSON.stringify(messageBody) });
+    await getPrList({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
     logger.error(`historical.PR.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(record, Queue.gh_historical_pr.queueUrl, error);
+    await logProcessToRetry(record, Queue.gh_historical_pr.queueUrl, error as Error);
   }
 }
 
-export const handler = async function collectPRData(event: SQSEvent): Promise<void> {
+export const handler = async function collectPRData(event: SQSEvent): Promise<undefined> {
   logger.info(`total event records: ${event.Records.length}`);
   await Promise.all(
-    event.Records.filter((record: any) => {
+    event.Records.filter((record) => {
       const body = JSON.parse(record.body);
 
       if (body.owner && body.name) {
         return true;
       }
       return false;
-    }).map(async (record: any) => getPrList(record))
+    }).map(async (record) => getPrList(record))
   );
 };

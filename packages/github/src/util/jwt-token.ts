@@ -18,7 +18,7 @@ function getPrivateKey(pem: string): string {
 }
 
 export async function getOauthCode(): Promise<JWTResponse> {
-  const privateKey = getPrivateKey(Config.GITHUB_APP_PRIVATE_KEY_PEM as string);
+  const privateKey = getPrivateKey(Config.GITHUB_APP_PRIVATE_KEY_PEM);
   try {
     const { token, expiration } = await githubAppJwt({
       id: parseInt(Config.GITHUB_APP_ID, 10),

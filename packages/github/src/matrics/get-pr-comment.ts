@@ -13,12 +13,12 @@ export async function prCommentsGraphData(
   repoIds: string[]
 ): Promise<{ date: string; value: number }[]> {
   try {
-    const esClientObj = await new ElasticSearchClient({
+    const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const prCommentGraphQuery = await esb.requestBodySearch().size(0);
+    const prCommentGraphQuery = esb.requestBodySearch().size(0);
     prCommentGraphQuery.query(
       esb
         .boolQuery()
@@ -101,12 +101,12 @@ export async function prCommentsAvg(
   repoIds: string[]
 ): Promise<string | null> {
   try {
-    const esClientObj = await new ElasticSearchClient({
+    const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const prCommentAvgQuery = await esb.requestBodySearch().size(0);
+    const prCommentAvgQuery = esb.requestBodySearch().size(0);
     prCommentAvgQuery
       .query(
         esb
