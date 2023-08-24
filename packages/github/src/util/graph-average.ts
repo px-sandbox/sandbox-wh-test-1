@@ -1,8 +1,11 @@
 import moment from 'moment';
-import { CalculateGraphAvgData } from 'abstraction/github/type/graph';
+import { Github } from 'abstraction';
 import { esbDateHistogramInterval } from '../constant/config';
 
-export function calculateGraphAvg(interval: string, data: CalculateGraphAvgData): number {
+export function calculateGraphAvg(
+  interval: string,
+  data: Github.Type.CalculateGraphAvgData
+): number {
   const prTimeInSeconds = data.pr_time_in_seconds.value;
 
   if (prTimeInSeconds === 0) {

@@ -12,6 +12,8 @@ import { IPrCommentAggregationResponse, GraphAvgCal } from './aggregations/pr-co
 import { GraphResponse } from './aggregations/graph-response';
 import { actions } from './actions';
 import { ProcessItRecord } from './retry-process';
+import { CommentState, MessageBody } from './historical-review';
+import { CalculateGraphAvgData } from './graph';
 
 export {
   Branch,
@@ -36,4 +38,7 @@ export {
   GraphAvgCal,
   actions,
   ProcessItRecord,
+  CommentState,
+  MessageBody,
+  CalculateGraphAvgData,
 };

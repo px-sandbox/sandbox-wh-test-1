@@ -4,7 +4,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { OctokitResponse } from '@octokit/types';
-import { CommentState, MessageBody } from 'abstraction/github/type/historical-review';
+import { Github } from 'abstraction';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { logProcessToRetry } from '../../../util/retry-process';
@@ -18,16 +18,16 @@ const octokit = ghRequest.request.defaults({
 });
 
 async function processReviewQueueForPageOne(
-  prReviews: OctokitResponse<CommentState[]>,
-  messageBody: MessageBody
+  prReviews: OctokitResponse<Github.Type.CommentState[]>,
+  messageBody: Github.Type.MessageBody
 ): Promise<void> {
   let submittedAt = null;
   let approvedAt = null;
   const reviewAt = await prReviews.data.find(
-    (commentState: CommentState) => commentState.state === 'COMMENTED'
+    (commentState: Github.Type.CommentState) => commentState.state === 'COMMENTED'
   );
   const approvedTime = await prReviews.data.find(
-    (commentState: CommentState) => commentState.state === 'APPROVED'
+    (commentState: Github.Type.CommentState) => commentState.state === 'APPROVED'
   );
 
   const minimumActionDates = [
@@ -104,11 +104,7 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
     await getPrReviews({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
     logger.error(`historical.reviews.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(
-      record as SQSRecord,
-      Queue.gh_historical_reviews.queueUrl,
-      error as Error
-    );
+    await logProcessToRetry(record, Queue.gh_historical_reviews.queueUrl, error as Error);
   }
 }
 
