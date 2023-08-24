@@ -1,4 +1,4 @@
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { savePRReviewComment } from '../../../lib/save-pr-review-comment';
@@ -8,7 +8,7 @@ export const handler = async function pullRequestReviewCommentIndexDataReciever(
   event: SQSEvent
 ): Promise<void> {
   await Promise.all(
-    event.Records.map(async (record: any) => {
+    event.Records.map(async (record: SQSRecord) => {
       try {
         const messageBody = JSON.parse(record.body);
 
@@ -16,7 +16,7 @@ export const handler = async function pullRequestReviewCommentIndexDataReciever(
 
         await savePRReviewComment(messageBody);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_pr_review_comment_index.queueUrl, error);
+        await logProcessToRetry(record, Queue.gh_pr_review_comment_index.queueUrl, error as Error);
         logger.error('pRReviewCommentIndexDataReciever.error', { error });
       }
     })

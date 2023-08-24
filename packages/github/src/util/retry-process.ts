@@ -7,7 +7,7 @@ import { RetryTableMapping } from '../model/retry-table-mapping';
 export async function logProcessToRetry(
   record: SQSRecord,
   queue: string,
-  error: any
+  error: Error
 ): Promise<void> {
   try {
     const {

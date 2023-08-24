@@ -1,11 +1,14 @@
 import { logger } from 'core';
 
+export type HitSource = {
+  [key: string]: unknown;
+};
 export class ElasticSearchFormator {
-  public async exportActualResult(result: any): Promise<void> {
+  public async exportActualResult(result: any): Promise<HitSource[]> {
     try {
-      const filteredArray: any = [];
+      const filteredArray: HitSource[] = [];
 
-      result.hits.hits.forEach((hit: { _source: any }) => {
+      result.hits.hits.forEach((hit: { _source: Record<string, unknown> }) => {
         if (hit) {
           const data = hit._source;
           if (Object.keys(data).length) {
