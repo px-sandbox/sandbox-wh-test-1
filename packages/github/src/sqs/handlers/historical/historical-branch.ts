@@ -13,7 +13,7 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
-async function getRepoBranches(record: SQSRecord | { body: string }): Promise<boolean | undefined> {
+async function getRepoBranches(record: SQSRecord): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId } = messageBody;
   try {
@@ -26,13 +26,13 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
       );
       const octokitRespData = getOctokitResp(githubBranches);
       logger.info('GET_API_BRANCH_DATA', octokitRespData);
-      const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/; // eslint-disable-line no-useless-escape
+      const branchNameRegx = /\b(^dev)\w*[/0-9a-zA-Z]*\w*\b/; // eslint-disable-line no-useless-escape
       branches = octokitRespData
-        .filter((branchName: any) => branchNameRegx.test(branchName.name))
-        .map((branch: any) => branch.name);
+        .filter((branchName: { name: string }) => branchNameRegx.test(branchName.name))
+        .map((branch: { name: string }) => branch.name);
     }
     logger.info(`Proccessing data for repo: ${branches}`);
-    const queueProcessed = branches.map((branch: any) =>
+    const queueProcessed = branches.map((branch: unknown) =>
       new SQSClient().sendMessage(
         {
           branchName: branch,
@@ -51,14 +51,10 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
     }
     messageBody.page = page + 1;
     logger.info(`message_body_repo: ${messageBody}`);
-    await getRepoBranches({ body: JSON.stringify(messageBody) });
+    await getRepoBranches({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
     logger.error(`historical.repoBranches.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(
-      record as SQSRecord,
-      Queue.gh_historical_branch.queueUrl,
-      error as Error
-    );
+    await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error as Error);
   }
 }
 export const handler = async function collectBranchData(event: SQSEvent): Promise<void> {
@@ -73,7 +69,7 @@ export const handler = async function collectBranchData(event: SQSEvent): Promis
       `);
 
       return false;
-    }).map(async (record: any) => {
+    }).map(async (record) => {
       try {
         await getRepoBranches(record);
       } catch (error) {

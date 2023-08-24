@@ -13,15 +13,24 @@ export interface IRepo {
   name: string;
   topics: string;
 }
-
-export const searchedDataFormator = async (data: any): Promise<Array<any>> => {
+export type Hit = {
+  _id: string;
+  _source: {
+    body: {
+      isDeleted?: boolean;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
+};
+export const searchedDataFormator = async (data: any): Promise<Hit[]> => {
   if (data?.hits?.max_score != null) {
     return data.hits.hits
       .filter(
-        (hit: any) =>
+        (hit: Hit) =>
           typeof hit._source.body.isDeleted === 'undefined' || hit._source.body.isDeleted === false
       )
-      .map((hit: any) => ({
+      .map((hit: Hit) => ({
         _id: hit._id,
         ...hit._source.body,
       }));

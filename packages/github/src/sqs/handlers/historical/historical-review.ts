@@ -4,6 +4,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { OctokitResponse } from '@octokit/types';
+import { CommentState, MessageBody } from 'abstraction/github/type/historical-review';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { logProcessToRetry } from '../../../util/retry-process';
@@ -17,16 +18,16 @@ const octokit = ghRequest.request.defaults({
 });
 
 async function processReviewQueueForPageOne(
-  prReviews: OctokitResponse<any>,
-  messageBody: any
+  prReviews: OctokitResponse<CommentState[]>,
+  messageBody: MessageBody
 ): Promise<void> {
   let submittedAt = null;
   let approvedAt = null;
   const reviewAt = await prReviews.data.find(
-    (commentState: any) => commentState.state === 'COMMENTED'
+    (commentState: CommentState) => commentState.state === 'COMMENTED'
   );
   const approvedTime = await prReviews.data.find(
-    (commentState: any) => commentState.state === 'APPROVED'
+    (commentState: CommentState) => commentState.state === 'APPROVED'
   );
 
   const minimumActionDates = [
@@ -37,11 +38,8 @@ async function processReviewQueueForPageOne(
     .filter((item) => !!item)
     .map((date) => moment(date).unix());
 
-  if (minimumActionDates.length === 0) {
-    submittedAt = null;
-  } else {
-    submittedAt = moment.unix(Math.min(...minimumActionDates));
-  }
+  submittedAt =
+    minimumActionDates.length === 0 ? null : moment.unix(Math.min(...minimumActionDates));
 
   if (approvedTime) {
     if (!messageBody.approved_at) {
@@ -61,7 +59,7 @@ async function processReviewQueueForPageOne(
   );
 }
 
-async function getPrReviews(record: SQSRecord | { body: string }): Promise<boolean | undefined> {
+async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
     logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
@@ -103,8 +101,7 @@ async function getPrReviews(record: SQSRecord | { body: string }): Promise<boole
     }
     messageBody.page = page + 1;
     logger.info(`message_body_pr_reviews: ${JSON.stringify(messageBody)}`);
-    // await new SQSClient().sendMessage(messageBody, Queue.gh_historical_reviews.queueUrl);
-    await getPrReviews({ body: JSON.stringify(messageBody) });
+    await getPrReviews({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
     logger.error(`historical.reviews.error: ${JSON.stringify(error)}`);
     await logProcessToRetry(
@@ -115,11 +112,11 @@ async function getPrReviews(record: SQSRecord | { body: string }): Promise<boole
   }
 }
 
-export const handler = async function collectPrReviewsData(event: SQSEvent): Promise<any> {
+export const handler = async function collectPrReviewsData(event: SQSEvent): Promise<void> {
   await Promise.all(
     event.Records.filter((record: SQSRecord) => {
       const body = JSON.parse(record.body);
-      if (body.head && body.head.repo) {
+      if (body.head?.repo) {
         return true;
       }
 
