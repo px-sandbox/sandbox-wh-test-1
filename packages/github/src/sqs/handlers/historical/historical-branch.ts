@@ -77,7 +77,7 @@ export const handler = async function collectBranchData(event: SQSEvent): Promis
       try {
         await getRepoBranches(record);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error);
+        await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error as Error);
         logger.error(JSON.stringify({ message: 'collectBranchData.failed', record, error }));
       }
     })
