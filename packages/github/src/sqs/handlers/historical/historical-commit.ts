@@ -1,5 +1,5 @@
 import { SQSClient } from '@pulse/event-handler';
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { ghRequest } from '../../../lib/request-default';
@@ -13,7 +13,7 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
-async function getRepoCommits(record: any): Promise<boolean | undefined> {
+async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId, branchName } = messageBody;
   logger.info(`page: ${page}`);
@@ -23,6 +23,7 @@ async function getRepoCommits(record: any): Promise<boolean | undefined> {
     );
     const octokitRespData = getOctokitResp(commitDataOnPr);
     let queueProcessed = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     queueProcessed = octokitRespData.map((commitData: any) =>
       new SQSClient().sendMessage(
         {
@@ -51,16 +52,16 @@ async function getRepoCommits(record: any): Promise<boolean | undefined> {
     }
     messageBody.page = page + 1;
     logger.info(`message_body_pr_commits: ${JSON.stringify(messageBody)}`);
-    await getRepoCommits({ body: JSON.stringify(messageBody) });
+    await getRepoCommits({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
     logger.error(JSON.stringify({ message: 'historical.commits.error', error }));
-    await logProcessToRetry(record, Queue.gh_historical_commits.queueUrl, error);
+    await logProcessToRetry(record, Queue.gh_historical_commits.queueUrl, error as Error);
   }
 }
 export const handler = async function collectCommitData(event: SQSEvent): Promise<void> {
   logger.info(`total event records: ${event.Records.length}`);
   await Promise.all(
-    event.Records.filter((record: any) => {
+    event.Records.filter((record) => {
       const body = JSON.parse(record.body);
       if (body.owner && body.name && body.branchName) {
         return true;
@@ -71,7 +72,7 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
       `);
 
       return false;
-    }).map(async (record: any) => {
+    }).map(async (record) => {
       await getRepoCommits(record);
     })
   );

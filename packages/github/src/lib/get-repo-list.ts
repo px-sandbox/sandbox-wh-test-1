@@ -28,8 +28,8 @@ async function getReposList(
     const newCounter = counter + reposPerPage.length;
 
     await Promise.all(
-      reposPerPage.map(
-        async (repo) => await new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl)
+      reposPerPage.map(async (repo) =>
+        new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl)
       )
     );
 
@@ -38,7 +38,8 @@ async function getReposList(
       return newCounter;
     }
     return getReposList(octokit, organizationName, page + 1, newCounter);
-  } catch (error: Error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
     logger.error('getReposList.error', {
       organizationName,
       error,

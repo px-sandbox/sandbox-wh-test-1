@@ -45,6 +45,7 @@ async function getBranchList(
       return newCounter;
     }
     return getBranchList(octokit, repoId, repoName, repoOwner, page + 1, newCounter);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     logger.error('getBranchList.error', { repoName, repoOwner, page, error });
 

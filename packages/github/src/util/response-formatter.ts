@@ -23,6 +23,7 @@ export type Hit = {
     [key: string]: unknown;
   };
 };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const searchedDataFormator = async (data: any): Promise<Hit[]> => {
   if (data?.hits?.max_score != null) {
     return data.hits.hits
