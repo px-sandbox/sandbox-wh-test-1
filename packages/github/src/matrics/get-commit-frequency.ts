@@ -14,12 +14,12 @@ export async function frequencyOfCodeCommitGraph(
   repoIds: string[]
 ): Promise<GraphResponse[]> {
   try {
-    const esClientObj = await new ElasticSearchClient({
+    const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const frquencyOfCodeCommitGraphQuery = await esb.requestBodySearch().size(0);
+    const frquencyOfCodeCommitGraphQuery = esb.requestBodySearch().size(0);
     frquencyOfCodeCommitGraphQuery.query(
       esb
         .boolQuery()
@@ -88,12 +88,12 @@ export async function frequencyOfCodeCommitAvg(
   repoIds: string[]
 ): Promise<{ value: number } | null> {
   try {
-    const esClientObj = await new ElasticSearchClient({
+    const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const prCommentAvgQuery = await esb.requestBodySearch().size(0);
+    const prCommentAvgQuery = esb.requestBodySearch().size(0);
     prCommentAvgQuery
       .query(
         esb

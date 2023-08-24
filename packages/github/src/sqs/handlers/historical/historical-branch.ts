@@ -13,7 +13,7 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
-async function getRepoBranches(record: SQSRecord): Promise<boolean | undefined> {
+async function getRepoBranches(record: SQSRecord | { body: string }): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId } = messageBody;
   try {
@@ -26,13 +26,13 @@ async function getRepoBranches(record: SQSRecord): Promise<boolean | undefined> 
       );
       const octokitRespData = getOctokitResp(githubBranches);
       logger.info('GET_API_BRANCH_DATA', octokitRespData);
-      const branchNameRegx = /\b(^dev)\w*[/0-9a-zA-Z]*\w*\b/; // eslint-disable-line no-useless-escape
+      const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/; // eslint-disable-line no-useless-escape
       branches = octokitRespData
         .filter((branchName: { name: string }) => branchNameRegx.test(branchName.name))
         .map((branch: { name: string }) => branch.name);
     }
     logger.info(`Proccessing data for repo: ${branches}`);
-    const queueProcessed = branches.map((branch: unknown) =>
+    const queueProcessed = branches.map((branch: { name: string }) =>
       new SQSClient().sendMessage(
         {
           branchName: branch,
@@ -51,10 +51,14 @@ async function getRepoBranches(record: SQSRecord): Promise<boolean | undefined> 
     }
     messageBody.page = page + 1;
     logger.info(`message_body_repo: ${messageBody}`);
-    await getRepoBranches({ body: JSON.stringify(messageBody) } as SQSRecord);
+    await getRepoBranches({ body: JSON.stringify(messageBody) });
   } catch (error) {
     logger.error(`historical.repoBranches.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error as Error);
+    await logProcessToRetry(
+      record as SQSRecord,
+      Queue.gh_historical_branch.queueUrl,
+      error as Error
+    );
   }
 }
 export const handler = async function collectBranchData(event: SQSEvent): Promise<void> {
