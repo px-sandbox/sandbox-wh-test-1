@@ -12,7 +12,7 @@ export class RepositoryProcessor extends DataProcessor<
   constructor(data: Github.ExternalType.Api.Repository) {
     super(data);
   }
-  async processor(): Promise<Github.Type.RepoFormatter> {
+  public async processor(): Promise<Github.Type.RepoFormatter> {
     const parentId: string = await this.getParentId(`${mappingPrefixes.repo}_${this.ghApiData.id}`);
     const action = [
       {
@@ -41,7 +41,7 @@ export class RepositoryProcessor extends DataProcessor<
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
         githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
-        isDeleted: this.ghApiData.action == 'deleted',
+        isDeleted: this.ghApiData.action === 'deleted',
       },
     };
     return repoObj;

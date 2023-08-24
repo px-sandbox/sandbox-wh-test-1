@@ -12,13 +12,12 @@ export class PushProcessor extends DataProcessor<
   constructor(data: Github.ExternalType.Webhook.Push) {
     super(data);
   }
-  async processor(): Promise<Github.Type.Push> {
+  public async processor(): Promise<Github.Type.Push> {
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.commit}_${this.ghApiData.id}`
     );
-    const commitsArr: Array<string> = [];
-    this.ghApiData.commits.map((data: { id: string }) => {
-      commitsArr.push(`${mappingPrefixes.commit}_${data.id}`);
+    const commitsArr: Array<string> = this.ghApiData.commits.map((data: { id: string }) => {
+      return `${mappingPrefixes.commit}_${data.id}`;
     });
     const action = [
       {

@@ -10,6 +10,7 @@ import { PRReviewComment } from './pull-request-review-comment';
 import { PRReview } from './pull-request-review';
 import { IPrCommentAggregationResponse, GraphAvgCal } from './aggregations/pr-comments';
 import { GraphResponse } from './aggregations/graph-response';
+import { actions } from './actions';
 
 export {
   Branch,
@@ -32,4 +33,5 @@ export {
   IPrCommentAggregationResponse,
   GraphResponse,
   GraphAvgCal,
+  actions,
 };

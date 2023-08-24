@@ -3,10 +3,8 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { logger } from 'core';
-import { calculateGraphAvg } from 'src/util/graph-average';
 import { Config } from 'sst/node/config';
 import { esbDateHistogramInterval } from '../constant/config';
-import { getWeekDaysCount } from '../util/weekend-calculations';
 
 export async function prWaitTimeGraphData(
   startDate: string,
@@ -129,7 +127,7 @@ export async function prWaitTimeAvg(
     const totalTime = Number((data.body.aggregations.total_time.value / 3600).toFixed(2));
     const totalPr = Number(data.body.aggregations.pr_count.value);
     // const weekDaysCount = getWeekDaysCount(startDate, endDate);
-    return { value: totalTime == 0 ? 0 : totalTime / totalPr };
+    return { value: totalTime === 0 ? 0 : totalTime / totalPr };
   } catch (e) {
     logger.error('prWaitTimeAvg.error', e);
     throw e;

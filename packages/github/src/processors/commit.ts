@@ -12,20 +12,22 @@ export class CommitProcessor extends DataProcessor<
   constructor(data: Github.ExternalType.Api.Commit) {
     super(data);
   }
-  async processor(): Promise<Github.Type.Commits> {
+  public async processor(): Promise<Github.Type.Commits> {
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`
     );
-    const filesArr: Array<Github.Type.CommitedFiles> = [];
-    this.ghApiData.files.map((data: Github.Type.CommitedFiles) => {
-      filesArr.push({
-        filename: data.filename,
-        additions: data.additions,
-        changes: data.changes,
-        deletions: data.deletions,
-        status: data.status,
-      });
-    });
+    const filesArr: Array<Github.Type.CommitedFiles> = this.ghApiData.files.map(
+      (data: Github.Type.CommitedFiles) => {
+        const fileData = {
+          filename: data.filename,
+          additions: data.additions,
+          changes: data.changes,
+          deletions: data.deletions,
+          status: data.status,
+        };
+        return fileData;
+      }
+    );
 
     const orgObj = {
       id: parentId || uuid(),

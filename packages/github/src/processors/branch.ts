@@ -12,7 +12,7 @@ export class BranchProcessor extends DataProcessor<
   constructor(data: Github.ExternalType.Api.Branch) {
     super(data);
   }
-  async processor(): Promise<Github.Type.Branch> {
+  public async processor(): Promise<Github.Type.Branch> {
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.branch}_${this.ghApiData.id}`
     );

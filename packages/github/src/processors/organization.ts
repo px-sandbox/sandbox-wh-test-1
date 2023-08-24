@@ -10,7 +10,7 @@ export class Organization extends DataProcessor<
   constructor(data: Github.ExternalType.Api.Organization) {
     super(data);
   }
-  async processor(): Promise<Github.Type.Organization> {
+  public async processor(): Promise<Github.Type.Organization> {
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.organization}_${this.ghApiData.id}`
     );

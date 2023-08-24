@@ -23,7 +23,7 @@ export class PRReviewCommentProcessor extends DataProcessor<
     this.repoId = repoId;
     this.action = action;
   }
-  async processor(): Promise<Github.Type.PRReviewComment> {
+  public async processor(): Promise<Github.Type.PRReviewComment> {
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`
     );
@@ -65,7 +65,7 @@ export class PRReviewCommentProcessor extends DataProcessor<
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
         githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
-        isDeleted: this.ghApiData.action == 'deleted',
+        isDeleted: this.ghApiData.action === 'deleted',
       },
     };
     return pRReviewCommentObj;

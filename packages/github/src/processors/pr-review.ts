@@ -23,7 +23,7 @@ export class PRReviewProcessor extends DataProcessor<
     this.repoId = repoId;
     this.action = action;
   }
-  async processor(): Promise<Github.Type.PRReview> {
+  public async processor(): Promise<Github.Type.PRReview> {
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.pRReview}_${this.ghApiData.id}`
     );
