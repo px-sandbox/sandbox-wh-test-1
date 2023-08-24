@@ -9,6 +9,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 
 export async function savePRReviewComment(data: Github.Type.PRReviewComment): Promise<void> {
   try {
+    const updatedData = { ...data };
     await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -23,10 +24,10 @@ export async function savePRReviewComment(data: Github.Type.PRReviewComment): Pr
     const [formattedData] = await searchedDataFormator(userData);
     if (formattedData) {
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
-      data.body.action = [...formattedData.action, ...data.body.action];
-      data.body.createdAt = formattedData.createdAt;
+      updatedData.body.action = [...formattedData.action, ...data.body.action];
+      updatedData.body.createdAt = formattedData.createdAt;
     }
-    await esClientObj.putDocument(Github.Enums.IndexName.GitPRReviewComment, data);
+    await esClientObj.putDocument(Github.Enums.IndexName.GitPRReviewComment, updatedData);
     logger.info('savePRReviewComment.successful');
   } catch (error: unknown) {
     logger.error('savePRReviewComment.error', {

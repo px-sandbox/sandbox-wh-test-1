@@ -9,6 +9,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 
 export async function saveCommitDetails(data: Github.Type.Commits): Promise<void> {
   try {
+    const updatedData = { ...data };
     await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
 
     const esClientObj = await new ElasticSearchClient({
@@ -22,13 +23,13 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
     const [formattedData] = await searchedDataFormator(commitData);
 
     if (formattedData) {
-      data.body.createdAt = formattedData.createdAt;
+      updatedData.body.createdAt = formattedData.createdAt;
     }
 
     const {
       body: { committedAt, ...restbody },
       id,
-    } = data;
+    } = updatedData;
 
     const commitIndexData = {
       id,

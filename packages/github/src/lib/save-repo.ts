@@ -11,6 +11,7 @@ import { ParamsMapping } from '../model/params-mapping';
 
 export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<void> {
   try {
+    const updatedData = { ...data };
     await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -22,13 +23,13 @@ export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<
     const [formattedData] = await searchedDataFormator(userData);
     if (formattedData) {
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
-      data.body.action = [...formattedData.action, ...data.body.action];
-      data.body.createdAt = formattedData.createdAt;
+      updatedData.body.action = [...formattedData.action, ...data.body.action];
+      updatedData.body.createdAt = formattedData.createdAt;
     }
-    await esClientObj.putDocument(Github.Enums.IndexName.GitRepo, data);
-    const lastAction = data.body.action.slice(-1).pop();
+    await esClientObj.putDocument(Github.Enums.IndexName.GitRepo, updatedData);
+    const lastAction = updatedData.body.action.slice(-1).pop();
     if (lastAction && lastAction.action !== 'deleted') {
-      await new SQSClient().sendMessage(data, Queue.gh_after_repo_save.queueUrl);
+      await new SQSClient().sendMessage(updatedData, Queue.gh_after_repo_save.queueUrl);
     }
     logger.info('saveRepoDetails.successful');
   } catch (error: unknown) {

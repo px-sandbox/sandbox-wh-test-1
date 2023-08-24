@@ -9,6 +9,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 
 export async function savePushDetails(data: Github.Type.Push): Promise<void> {
   try {
+    const updatedData = { ...data };
     await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -21,9 +22,9 @@ export async function savePushDetails(data: Github.Type.Push): Promise<void> {
     if (formattedData) {
       // TODO: remove actions from push
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
-      data.body.action = [...formattedData.action, ...data.body.action];
+      updatedData.body.action = [...formattedData.action, ...data.body.action];
     }
-    await esClientObj.putDocument(Github.Enums.IndexName.GitPush, data);
+    await esClientObj.putDocument(Github.Enums.IndexName.GitPush, updatedData);
     logger.info('savePushDetails.successful');
   } catch (error: unknown) {
     logger.error('savePushDetails.error', {

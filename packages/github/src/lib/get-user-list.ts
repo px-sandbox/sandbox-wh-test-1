@@ -30,8 +30,8 @@ async function getUserList(
     const newCounter = counter + membersPerPage.length;
 
     await Promise.all(
-      membersPerPage.map(
-        async (member) => await new SQSClient().sendMessage(member, Queue.gh_users_format.queueUrl)
+      membersPerPage.map(async (member) =>
+        new SQSClient().sendMessage(member, Queue.gh_users_format.queueUrl)
       )
     );
 

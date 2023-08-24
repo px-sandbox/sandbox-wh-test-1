@@ -28,8 +28,8 @@ async function getReposList(
     const newCounter = counter + reposPerPage.length;
 
     await Promise.all(
-      reposPerPage.map(
-        async (repo) => await new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl)
+      reposPerPage.map(async (repo) =>
+        new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl)
       )
     );
 
