@@ -12,15 +12,17 @@ export const ghRequest = new MyOctokit({
       options: OptionsType,
       octokit: unknown,
       retryCount: number
-    ) => {
+    ): void => {
       throw new Error(
-        `Request quota exhausted for request ${options?.method} ${options?.url} \nRetry Count: ${retryCount} \nRetry After: ${retryAfter} \nOcotkit: ${octokit}`
+        `Request quota exhausted for request ${options?.method} ${options?.url}` +
+          `\nRetry Count: ${retryCount} \nRetry After: ${retryAfter} \nOcotkit: ${octokit}`
       );
     },
-    onSecondaryRateLimit: (retryAfter: number, options: OptionsType, octokit: unknown) => {
+    onSecondaryRateLimit: (retryAfter: number, options: OptionsType, octokit: unknown): void => {
       // does not retry, only logs a warning
       throw new Error(
-        `Request quota exhausted for request ${options?.method} ${options?.url} \nRetry After: ${retryAfter} \nOcotkit: ${octokit}`
+        `Request quota exhausted for request ${options?.method} ${options?.url}` +
+          `\nRetry After: ${retryAfter} \nOcotkit: ${octokit}`
       );
     },
   },

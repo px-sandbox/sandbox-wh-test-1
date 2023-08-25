@@ -16,9 +16,9 @@ export class PushProcessor extends DataProcessor<
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.commit}_${this.ghApiData.id}`
     );
-    const commitsArr: Array<string> = this.ghApiData.commits.map((data: { id: string }) => {
-      return `${mappingPrefixes.commit}_${data.id}`;
-    });
+    const commitsArr: Array<string> = this.ghApiData.commits.map(
+      (data: { id: string }) => `${mappingPrefixes.commit}_${data.id}`
+    );
     const action = [
       {
         action: this.ghApiData.action ?? 'initialized',

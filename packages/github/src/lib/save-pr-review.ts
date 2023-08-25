@@ -9,6 +9,7 @@ import { ParamsMapping } from '../model/params-mapping';
 
 export async function savePRReview(data: Github.Type.PRReview): Promise<void> {
   try {
+    const updatedData = { ...data };
     await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -20,10 +21,10 @@ export async function savePRReview(data: Github.Type.PRReview): Promise<void> {
     const [formattedData] = await searchedDataFormator(userData);
     if (formattedData) {
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
-      data.body.action = [...formattedData.action, ...data.body.action];
-      data.body.submittedAt = formattedData.submittedAt;
+      updatedData.body.action = [...formattedData.action, ...data.body.action];
+      updatedData.body.submittedAt = formattedData.submittedAt;
     }
-    await esClientObj.putDocument(Github.Enums.IndexName.GitPRReview, data);
+    await esClientObj.putDocument(Github.Enums.IndexName.GitPRReview, updatedData);
     logger.info('savePRReview.successful');
   } catch (error: unknown) {
     logger.error('savePRReview.error', {

@@ -7,6 +7,47 @@ import { Config } from 'sst/node/config';
 import { esbDateHistogramInterval } from '../constant/config';
 import { getWeekDaysCount } from '../util/weekend-calculations';
 
+function processGraphInterval(
+  intervals: string,
+  startDate: string,
+  endDate: string
+): esb.DateHistogramAggregation {
+  // By default graph interval is day
+  let graphIntervals: esb.DateHistogramAggregation;
+
+  switch (intervals) {
+    case esbDateHistogramInterval.day:
+    case esbDateHistogramInterval.month:
+    case esbDateHistogramInterval.year:
+      graphIntervals = esb
+        .dateHistogramAggregation('commentsPerDay')
+        .field('body.createdAt')
+        .format('yyyy-MM-dd')
+        .calendarInterval(intervals)
+        .extendedBounds(startDate, endDate)
+        .minDocCount(0);
+      break;
+    case esbDateHistogramInterval['2d']:
+    case esbDateHistogramInterval['3d']:
+      graphIntervals = esb
+        .dateHistogramAggregation('commentsPerDay')
+        .field('body.createdAt')
+        .format('yyyy-MM-dd')
+        .fixedInterval(intervals)
+        .extendedBounds(startDate, endDate)
+        .minDocCount(0);
+      break;
+    default:
+      graphIntervals = esb
+        .dateHistogramAggregation('commentsPerDay')
+        .field('body.createdAt')
+        .format('yyyy-MM-dd')
+        .calendarInterval(esbDateHistogramInterval.month)
+        .extendedBounds(startDate, endDate)
+        .minDocCount(0);
+  }
+  return graphIntervals;
+}
 export async function numberOfPrRaisedGraph(
   startDate: string,
   endDate: string,
@@ -28,41 +69,7 @@ export async function numberOfPrRaisedGraph(
           esb.termsQuery('body.repoId', repoIds),
         ])
     );
-
-    // By default graph interval is day
-    let graphIntervals: esb.DateHistogramAggregation;
-
-    switch (intervals) {
-      case esbDateHistogramInterval.day:
-      case esbDateHistogramInterval.month:
-      case esbDateHistogramInterval.year:
-        graphIntervals = esb
-          .dateHistogramAggregation('commentsPerDay')
-          .field('body.createdAt')
-          .format('yyyy-MM-dd')
-          .calendarInterval(intervals)
-          .extendedBounds(startDate, endDate)
-          .minDocCount(0);
-        break;
-      case esbDateHistogramInterval['2d']:
-      case esbDateHistogramInterval['3d']:
-        graphIntervals = esb
-          .dateHistogramAggregation('commentsPerDay')
-          .field('body.createdAt')
-          .format('yyyy-MM-dd')
-          .fixedInterval(intervals)
-          .extendedBounds(startDate, endDate)
-          .minDocCount(0);
-        break;
-      default:
-        graphIntervals = esb
-          .dateHistogramAggregation('commentsPerDay')
-          .field('body.createdAt')
-          .format('yyyy-MM-dd')
-          .calendarInterval(esbDateHistogramInterval.month)
-          .extendedBounds(startDate, endDate)
-          .minDocCount(0);
-    }
+    const graphIntervals = processGraphInterval(intervals, startDate, endDate);
     numberOfPrRaisedGraphQuery.agg(graphIntervals).toJSON();
 
     logger.info('NUMBER_OF_PR_RAISED_GRAPH_ESB_QUERY', numberOfPrRaisedGraphQuery);
