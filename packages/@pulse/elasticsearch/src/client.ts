@@ -1,5 +1,4 @@
 import { Client, RequestParams } from '@elastic/elasticsearch';
-// eslint-disable-next-line import/no-unresolved
 import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
 import { logger } from 'core';
 import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';

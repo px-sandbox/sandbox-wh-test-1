@@ -11,7 +11,7 @@ import { PRReview } from './pull-request-review';
 import { IPrCommentAggregationResponse, GraphAvgCal } from './aggregations/pr-comments';
 import { GraphResponse } from './aggregations/graph-response';
 import { actions } from './actions';
-import { ProcessItRecord } from './retry-process';
+import { QueueMessage } from './retry-process';
 import { CommentState, MessageBody } from './historical-review';
 import { CalculateGraphAvgData } from './graph';
 
@@ -37,7 +37,7 @@ export {
   GraphResponse,
   GraphAvgCal,
   actions,
-  ProcessItRecord,
+  QueueMessage,
   CommentState,
   MessageBody,
   CalculateGraphAvgData,

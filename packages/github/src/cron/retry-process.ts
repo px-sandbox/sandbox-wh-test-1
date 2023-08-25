@@ -6,7 +6,7 @@ import { RetryTableMapping } from '../model/retry-table-mapping';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
-async function processIt(record: Github.Type.ProcessItRecord): Promise<void> {
+async function processIt(record: Github.Type.QueueMessage): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId } = record;
 
   // send to queue

@@ -1,4 +1,4 @@
-export type ProcessItRecord = {
+export type QueueMessage = {
   processId: string;
   messageBody: string;
   queue: string;

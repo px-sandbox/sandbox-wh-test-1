@@ -73,7 +73,7 @@ module.exports = {
   "settings": {
     "import/resolver": {
       "node": {
-        "extensions": ['.js', '.ts', '.json'],
+        "extensions": ['.js', '.ts', '.json', ".d.ts"],
       },
     },
     "import/parsers": {
