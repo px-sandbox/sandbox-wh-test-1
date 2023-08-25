@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import moment from 'moment';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
@@ -13,9 +12,9 @@ export async function pROnQueue(
   action: string
 ): Promise<void> {
   try {
-    let reviewed_at = null;
-    let approved_at = null;
-    let review_seconds = 0;
+    let reviewedAt = null;
+    let approvedAt = null;
+    let reviewSeconds = 0;
     const [pullData] = await getPullRequestById(pull.id);
     logger.info('ES : PR Data ', pullData);
     if (pullData) {
@@ -24,11 +23,11 @@ export async function pROnQueue(
         return;
       }
       if (pullData.reviewedAt) {
-        reviewed_at = pullData.reviewedAt;
-        review_seconds = pullData.reviewSeconds;
+        reviewedAt = pullData.reviewedAt;
+        reviewSeconds = pullData.reviewSeconds;
       }
       if (pullData.approvedAt) {
-        approved_at = pullData.approvedAt;
+        approvedAt = pullData.approvedAt;
       }
       if (
         pull.merged === true &&
@@ -36,9 +35,9 @@ export async function pROnQueue(
         pullData.reviewedAt === null
       ) {
         if (pull.user.id !== pull.merged_by?.id) {
-          reviewed_at = pull.merged_at;
+          reviewedAt = pull.merged_at;
           const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
-          review_seconds = getWorkingTime(
+          reviewSeconds = getWorkingTime(
             moment(pull.created_at),
             moment(pull.merged_at),
             createdTimezone
@@ -47,7 +46,13 @@ export async function pROnQueue(
       }
     }
     await new SQSClient().sendMessage(
-      { ...pull, reviewed_at, approved_at, review_seconds, action },
+      {
+        ...pull,
+        reviewed_at: reviewedAt,
+        approved_at: approvedAt,
+        review_seconds: reviewSeconds,
+        action,
+      },
       Queue.gh_pr_format.queueUrl
     );
   } catch (error: unknown) {

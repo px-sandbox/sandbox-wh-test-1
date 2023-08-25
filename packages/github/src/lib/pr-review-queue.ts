@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import moment from 'moment';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
@@ -41,28 +40,22 @@ async function setReviewTime(
   } & Github.Type.PullRequestBody,
   prReview: Github.ExternalType.Webhook.PRReview
 ): Promise<{ approved_at: string | null; reviewed_at: string | null; review_seconds: number }> {
-  let approved_at = pullData.approvedAt;
-  let reviewed_at = pullData.reviewedAt;
-  let review_seconds = pullData.reviewSeconds;
+  let { approvedAt, reviewedAt, reviewSeconds } = pullData;
 
   if (
-    !reviewed_at &&
+    !reviewedAt &&
     pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReview.user.id}` &&
     prReview.user.type !== Github.Enums.UserType.BOT
   ) {
-    reviewed_at = prReview.submitted_at;
+    reviewedAt = prReview.submitted_at;
     const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
-    review_seconds = getWorkingTime(
-      moment(pullData.createdAt),
-      moment(reviewed_at),
-      createdTimezone
-    );
+    reviewSeconds = getWorkingTime(moment(pullData.createdAt), moment(reviewedAt), createdTimezone);
   }
 
-  if (!approved_at && prReview.state === Github.Enums.ReviewState.APPROVED) {
-    approved_at = prReview.submitted_at;
+  if (!approvedAt && prReview.state === Github.Enums.ReviewState.APPROVED) {
+    approvedAt = prReview.submitted_at;
   }
-  return { approved_at, reviewed_at, review_seconds };
+  return { approved_at: approvedAt, reviewed_at: reviewedAt, review_seconds: reviewSeconds };
 }
 
 export async function pRReviewOnQueue(
@@ -91,7 +84,11 @@ export async function pRReviewOnQueue(
     }
 
     const octokitRespData = await getPullRequestDetails(repo, owner, pullNumber);
-    const { approved_at, reviewed_at, review_seconds } = await setReviewTime(pullData, prReview);
+    const {
+      approved_at: approvedAt,
+      reviewed_at: reviewedAt,
+      review_seconds: reviewSeconds,
+    } = await setReviewTime(pullData, prReview);
 
     await Promise.all([
       new SQSClient().sendMessage(
@@ -101,9 +98,9 @@ export async function pRReviewOnQueue(
       new SQSClient().sendMessage(
         {
           ...octokitRespData,
-          reviewed_at,
-          approved_at,
-          review_seconds,
+          reviewedAt,
+          approvedAt,
+          reviewSeconds,
           action: Github.Enums.Comments.REVIEW_COMMENTED,
         },
         Queue.gh_pr_format.queueUrl

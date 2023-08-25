@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import crypto from 'crypto';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
@@ -54,26 +53,26 @@ async function processBranchEvent(
 ): Promise<void> {
   const {
     ref: name,
-    repository: { id: repo_id, pushed_at: event_at },
+    repository: { id: repoId, pushed_at: eventAt },
   } = data;
   let obj = {};
 
   if (event.headers['x-github-event'] === 'create') {
     obj = {
       name,
-      id: Buffer.from(`${repo_id}_${name}`, 'binary').toString('base64'),
+      id: Buffer.from(`${repoId}_${name}`, 'binary').toString('base64'),
       action: Github.Enums.Branch.Created,
-      repo_id,
-      created_at: event_at,
+      repo_id: repoId,
+      created_at: eventAt,
     };
   }
   if (event.headers['x-github-event'] === 'delete') {
     obj = {
       name,
-      id: Buffer.from(`${repo_id}_${name}`, 'binary').toString('base64'),
+      id: Buffer.from(`${repoId}_${name}`, 'binary').toString('base64'),
       action: Github.Enums.Branch.Deleted,
-      repo_id,
-      deleted_at: event_at,
+      repo_id: repoId,
+      deleted_at: eventAt,
     };
   }
   logger.info('-------Branch event --------');

@@ -57,8 +57,8 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         ) {
           messageBody.submittedAt = messageBody.approved_at;
         }
-        // eslint-disable-next-line camelcase
-        const review_seconds = getWorkingTime(
+
+        const reviewSeconds = getWorkingTime(
           moment(octokitRespData.created_at),
           moment(messageBody.submittedAt),
           createdTimezone
@@ -69,7 +69,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
             ...octokitRespData,
             reviewed_at: messageBody.submittedAt,
             approved_at: messageBody.approvedAt,
-            review_seconds, // eslint-disable-line camelcase
+            review_seconds: reviewSeconds,
           },
           Queue.gh_pr_format.queueUrl
         );

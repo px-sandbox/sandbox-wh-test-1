@@ -28,10 +28,11 @@ const githubUser = async function getUserData(
     logger.error('GET_GITHUB_USER_DETAILS', { error });
   }
   let body = null;
-  let statusCode = HttpStatusCode[404];
+  const { '200': ok, '404': notFound } = HttpStatusCode;
+  let statusCode = notFound;
   if (response[0]) {
     body = formatUserDataResponse(response[0]);
-    statusCode = HttpStatusCode[200]; // eslint-disable-line prefer-destructuring
+    statusCode = ok;
   }
   return responseParser
     .setBody(body)

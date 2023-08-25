@@ -38,10 +38,11 @@ const gitRepos = async function getRepoData(
     logger.error('GET_GITHUB_REPO_DETAILS', { error });
   }
   let body = null;
-  let statusCode = HttpStatusCode[404];
+  const { '200': ok, '404': notFound } = HttpStatusCode;
+  let statusCode = notFound;
   if (response) {
     body = formatRepoDataResponse(response);
-    statusCode = HttpStatusCode[200]; // eslint-disable-line prefer-destructuring
+    statusCode = ok;
   }
   return responseParser
     .setBody(body)
