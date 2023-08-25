@@ -40,6 +40,7 @@ async function getUserList(
       return newCounter;
     }
     return getUserList(octokit, organizationName, page + 1, newCounter);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     logger.error('getUserList.error', {
       organizationName,

@@ -13,6 +13,7 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function saveCommit(commitData: any, messageBody: any): Promise<void> {
   const modifiedCommitData = { ...commitData };
   modifiedCommitData.isMergedCommit = false;
@@ -56,6 +57,7 @@ async function getPRCommits(record: SQSRecord): Promise<boolean | undefined> {
       `GET /repos/${owner.login}/${name}/pulls/${number}/commits?per_page=100&page=${page}`
     );
     const octokitRespData = getOctokitResp(commentsDataOnPr);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await Promise.all(octokitRespData.map((commit: any) => saveCommit(commit, messageBody)));
 
     if (octokitRespData.length < 100) {

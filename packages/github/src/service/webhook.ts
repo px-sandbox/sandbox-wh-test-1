@@ -23,7 +23,7 @@ interface ReviewProcessType {
   repository: { id: number; name: string; owner: { login: string } };
   action: string;
 }
-function generateHMACToken(payload: any): Buffer {
+function generateHMACToken(payload: crypto.BinaryLike): Buffer {
   const hmac = Buffer.from(
     'sha256' +
       `=${crypto.createHmac('sha256', Config.GITHUB_WEBHOOK_SECRET).update(payload).digest('hex')}`
@@ -133,6 +133,7 @@ async function processPRReviewEvent(data: ReviewProcessType): Promise<void> {
 }
 async function processWebhookEvent(
   eventType: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any,
   eventTime: number,
   event: APIGatewayProxyEvent
@@ -185,15 +186,16 @@ export const webhookData = async function getWebhookData(
   event: APIGatewayProxyEvent
 ): Promise<void | APIGatewayProxyResult> {
   logger.info('method invoked', { event });
-  const payload: any = event.body || {};
-  const data = JSON.parse(event.body || '{}');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payload: any = event.body ?? {};
+  const data = JSON.parse(event.body ?? '{}');
   if (!data.organization) return;
 
   const { id: orgId } = data.organization;
   logger.info('Organization : ', { login: data.organization.login });
   if (orgId !== Number(Config.GIT_ORGANIZATION_ID)) return;
 
-  const sig = Buffer.from(event.headers['x-hub-signature-256'] || '');
+  const sig = Buffer.from(event.headers['x-hub-signature-256'] ?? '');
   const hmac = generateHMACToken(payload);
 
   logger.info('SIG - HMAC (CryptoJS): ', hmac.toString());

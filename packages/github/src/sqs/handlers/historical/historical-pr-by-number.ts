@@ -11,6 +11,7 @@ import { logProcessToRetry } from '../../../util/retry-process';
 import { getWorkingTime } from '../../../util/timezone-calculation';
 import { getOctokitResp } from '../../../util/octokit-response';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function processQueueOnMergedPR(octokitRespData: any, messageBody: any): Promise<void> {
   await new SQSClient().sendMessage(
     {
@@ -37,7 +38,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
     },
   });
   await Promise.all(
-    event.Records.map(async (record: any) => {
+    event.Records.map(async (record) => {
       const messageBody = JSON.parse(record.body);
 
       logger.info('HISTORY_PULL_REQUEST_DATA', { body: messageBody });
@@ -57,7 +58,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
           messageBody.submittedAt = messageBody.approved_at;
         }
         // eslint-disable-next-line camelcase
-        const review_seconds = await getWorkingTime(
+        const review_seconds = getWorkingTime(
           moment(octokitRespData.created_at),
           moment(messageBody.submittedAt),
           createdTimezone
@@ -78,7 +79,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
           await processQueueOnMergedPR(octokitRespData, messageBody);
         }
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_historical_pr_by_number.queueUrl, error);
+        await logProcessToRetry(record, Queue.gh_historical_pr_by_number.queueUrl, error as Error);
         logger.error(`historical.pr.number.error: ${JSON.stringify(error)}`);
       }
     })
