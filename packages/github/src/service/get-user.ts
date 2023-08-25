@@ -31,7 +31,7 @@ const githubUser = async function getUserData(
   let statusCode = HttpStatusCode[404];
   if (response[0]) {
     body = formatUserDataResponse(response[0]);
-    statusCode = HttpStatusCode[200];
+    statusCode = HttpStatusCode[200]; // eslint-disable-line prefer-destructuring
   }
   return responseParser
     .setBody(body)

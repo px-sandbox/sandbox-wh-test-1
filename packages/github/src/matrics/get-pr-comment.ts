@@ -6,6 +6,46 @@ import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { esbDateHistogramInterval } from '../constant/config';
 
+function processGraphInterval(
+  intervals: string,
+  startDate: string,
+  endDate: string
+): esb.DateHistogramAggregation {
+  // By default graph interval is day
+  let graphIntervals: esb.DateHistogramAggregation;
+  switch (intervals) {
+    case esbDateHistogramInterval.day:
+    case esbDateHistogramInterval.month:
+    case esbDateHistogramInterval.year:
+      graphIntervals = esb
+        .dateHistogramAggregation('commentsPerDay')
+        .field('body.createdAt')
+        .format('yyyy-MM-dd')
+        .calendarInterval(intervals)
+        .extendedBounds(startDate, endDate)
+        .minDocCount(0);
+      break;
+    case esbDateHistogramInterval['2d']:
+    case esbDateHistogramInterval['3d']:
+      graphIntervals = esb
+        .dateHistogramAggregation('commentsPerDay')
+        .field('body.createdAt')
+        .format('yyyy-MM-dd')
+        .fixedInterval(intervals)
+        .extendedBounds(startDate, endDate)
+        .minDocCount(0);
+      break;
+    default:
+      graphIntervals = esb
+        .dateHistogramAggregation('commentsPerDay')
+        .field('body.createdAt')
+        .format('yyyy-MM-dd')
+        .calendarInterval(esbDateHistogramInterval.month)
+        .extendedBounds(startDate, endDate)
+        .minDocCount(0);
+  }
+  return graphIntervals;
+}
 export async function prCommentsGraphData(
   startDate: string,
   endDate: string,
@@ -28,40 +68,8 @@ export async function prCommentsGraphData(
         ])
     );
 
-    // By default graph interval is day
-    let graphIntervals: esb.DateHistogramAggregation;
+    const graphIntervals = processGraphInterval(intervals, startDate, endDate);
 
-    switch (intervals) {
-      case esbDateHistogramInterval.day:
-      case esbDateHistogramInterval.month:
-      case esbDateHistogramInterval.year:
-        graphIntervals = esb
-          .dateHistogramAggregation('commentsPerDay')
-          .field('body.createdAt')
-          .format('yyyy-MM-dd')
-          .calendarInterval(intervals)
-          .extendedBounds(startDate, endDate)
-          .minDocCount(0);
-        break;
-      case esbDateHistogramInterval['2d']:
-      case esbDateHistogramInterval['3d']:
-        graphIntervals = esb
-          .dateHistogramAggregation('commentsPerDay')
-          .field('body.createdAt')
-          .format('yyyy-MM-dd')
-          .fixedInterval(intervals)
-          .extendedBounds(startDate, endDate)
-          .minDocCount(0);
-        break;
-      default:
-        graphIntervals = esb
-          .dateHistogramAggregation('commentsPerDay')
-          .field('body.createdAt')
-          .format('yyyy-MM-dd')
-          .calendarInterval(esbDateHistogramInterval.month)
-          .extendedBounds(startDate, endDate)
-          .minDocCount(0);
-    }
     prCommentGraphQuery
       .agg(
         graphIntervals
@@ -95,6 +103,58 @@ export async function prCommentsGraphData(
   }
 }
 
+function getPRCommentAvgQuery(
+  startDate: string,
+  endDate: string,
+  repoIds: string[]
+): esb.RequestBodySearch {
+  const prCommentAvgQuery = esb.requestBodySearch().size(0);
+  prCommentAvgQuery
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
+          esb.termsQuery('body.repoId', repoIds),
+        ])
+    )
+    .agg(
+      esb
+        .scriptedMetricAggregation('pr_comment_avg')
+        .initScript('state.transactions = []')
+        .mapScript(`state.transactions.add(doc['body.pullId.keyword'].value)`)
+        .combineScript(`double comments = 0;
+      Map prMap = new HashMap();
+      for(t in state.transactions){
+        comments += 1;
+        if(prMap.get(t) == null ){
+          prMap.put(t, 1);
+        } else {
+          prMap.put(t, prMap.get(t) + 1);
+        }
+      }
+      Map result = new HashMap();
+      result.put('comments', comments);
+      result.put('prs', prMap);
+      return result;`).reduceScript(` double totalComments = 0;
+      Map totalPRMap = new HashMap();
+    
+      for(t in states){
+        totalComments += t.get('comments');
+        Map m = t.get('prs');
+        for(pr in m.keySet()){
+          if(totalPRMap.get(pr) == null){
+            totalPRMap.put(pr, 1);
+          }
+        }
+      }
+      double totalPRs = totalPRMap.size();
+    
+      return totalPRs == 0 ? 0 : totalComments/totalPRs;`)
+    )
+    .toJSON();
+  return prCommentAvgQuery;
+}
 export async function prCommentsAvg(
   startDate: string,
   endDate: string,
@@ -106,40 +166,8 @@ export async function prCommentsAvg(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const prCommentAvgQuery = esb.requestBodySearch().size(0);
-    prCommentAvgQuery
-      .query(
-        esb
-          .boolQuery()
-          .must([
-            esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-            esb.termsQuery('body.repoId', repoIds),
-          ])
-      )
-      .agg(
-        esb
-          .scriptedMetricAggregation('pr_comment_avg')
-          .initScript('state.transactions = []')
-          .mapScript(`state.transactions.add(doc['body.pullId.keyword'].value)`)
-          .combineScript(
-            `double comments = 0;Map prMap = new HashMap();for(t in state.transactions){comments += 1;if(prMap.get(t) == null ){prMap.put(t, 1);}else{prMap.put(t, prMap.get(t) + 1);}}Map result = new HashMap(); result.put('comments', comments);result.put('prs', prMap);return result;`
-          ).reduceScript(` double totalComments = 0;
-          Map totalPRMap = new HashMap();
-        
-          for(t in states){
-            totalComments += t.get('comments');
-            Map m = t.get('prs');
-            for(pr in m.keySet()){
-              if(totalPRMap.get(pr) == null){
-                totalPRMap.put(pr, 1);
-              }
-            }
-          }
-          double totalPRs = totalPRMap.size();
-        
-          return totalPRs == 0 ? 0 : totalComments/totalPRs;`)
-      )
-      .toJSON();
+
+    const prCommentAvgQuery = getPRCommentAvgQuery(startDate, endDate, repoIds);
     logger.info('PR_COMMENT_AVG_ESB_QUERY', prCommentAvgQuery);
     const data: { pr_comment_avg: string } = await esClientObj.queryAggs<{
       pr_comment_avg: string;

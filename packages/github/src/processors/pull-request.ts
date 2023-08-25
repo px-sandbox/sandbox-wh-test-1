@@ -124,47 +124,12 @@ export class PRProcessor extends DataProcessor<
     ];
   }
 
-  /**
-   * ----------------------------------------------------------
-   * PULL REQUEST PROCESSOR
-   * ----------------------------------------------------------
-   * On PR closed check if the PR is merged or not.
-   * If merged then check merged commit id exists or not.
-   * If not exists then hold for few seconds and check again.
-   * If not found commit id till 6th attempt then throw error.
-   * If commit id exists then update commit and proceed with PR.
-   */
-  public async processor(): Promise<Github.Type.PullRequest> {
-    if (
-      this.ghApiData.action === Github.Enums.PullRequest.Closed &&
-      this.ghApiData.merged === true
-    ) {
-      await this.processMergedPR();
-    }
-
-    /**
-     * On PR's review requested action, we need to delay few seconds to check PR already exists.
-     */
-    if (this.ghApiData.action === Github.Enums.PullRequest.ReviewRequested) {
-      await this.processPROnRequestedReviewers();
-    }
-
-    const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
-    const reqReviewersData: Array<Github.Type.RequestedReviewers> =
-      this.ghApiData.requested_reviewers.map((reqReviewer) => {
-        const rRData = {
-          userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
-        };
-        return rRData;
-      });
-
-    const labelsData: Array<Github.Type.Labels> = this.ghApiData.labels.map((label) => {
-      const lbData = {
-        name: label.name,
-      };
-      return lbData;
-    });
-    const action = this.setAction();
+  private async setPullObj(
+    parentId: string,
+    reqReviewersData: Array<Github.Type.RequestedReviewers>,
+    labelsData: Array<Github.Type.Labels>,
+    action: Github.Type.actions
+  ): Promise<Github.Type.PullRequest> {
     const pullObj = {
       id: parentId || uuid(),
       body: {
@@ -213,6 +178,51 @@ export class PRProcessor extends DataProcessor<
         githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
       },
     };
+    return pullObj;
+  }
+
+  /**
+   * ----------------------------------------------------------
+   * PULL REQUEST PROCESSOR
+   * ----------------------------------------------------------
+   * On PR closed check if the PR is merged or not.
+   * If merged then check merged commit id exists or not.
+   * If not exists then hold for few seconds and check again.
+   * If not found commit id till 6th attempt then throw error.
+   * If commit id exists then update commit and proceed with PR.
+   */
+  public async processor(): Promise<Github.Type.PullRequest> {
+    if (
+      this.ghApiData.action === Github.Enums.PullRequest.Closed &&
+      this.ghApiData.merged === true
+    ) {
+      await this.processMergedPR();
+    }
+
+    /**
+     * On PR's review requested action, we need to delay few seconds to check PR already exists.
+     */
+    if (this.ghApiData.action === Github.Enums.PullRequest.ReviewRequested) {
+      await this.processPROnRequestedReviewers();
+    }
+
+    const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
+    const reqReviewersData: Array<Github.Type.RequestedReviewers> =
+      this.ghApiData.requested_reviewers.map((reqReviewer) => {
+        const rRData = {
+          userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
+        };
+        return rRData;
+      });
+
+    const labelsData: Array<Github.Type.Labels> = this.ghApiData.labels.map((label) => {
+      const lbData = {
+        name: label.name,
+      };
+      return lbData;
+    });
+    const action = this.setAction();
+    const pullObj = await this.setPullObj(parentId, reqReviewersData, labelsData, action);
     return pullObj;
   }
 }

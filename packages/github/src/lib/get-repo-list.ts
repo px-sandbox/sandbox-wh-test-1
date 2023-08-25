@@ -38,7 +38,7 @@ async function getReposList(
       return newCounter;
     }
     return getReposList(octokit, organizationName, page + 1, newCounter);
-  } catch (error: Error) {
+  } catch (error: any) {
     logger.error('getReposList.error', {
       organizationName,
       error,

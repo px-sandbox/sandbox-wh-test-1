@@ -27,7 +27,7 @@ export abstract class DataProcessor<T, S> {
     return ddbRes?.parentId;
   }
 
-  public async sendDataToQueue<T>(data: T, url: string): Promise<void> {
+  public async sendDataToQueue<U>(data: U, url: string): Promise<void> {
     await new SQSClient().sendMessage(data, url);
   }
 

@@ -23,7 +23,7 @@ export type Hit = {
     [key: string]: unknown;
   };
 };
-export const searchedDataFormator = async (data: any): Promise<Hit[]> => {
+export const searchedDataFormator = async (data: any): Promise<any> => {
   if (data?.hits?.max_score != null) {
     return data.hits.hits
       .filter(
