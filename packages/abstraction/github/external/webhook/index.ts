@@ -3,8 +3,8 @@ import { Repository } from './repository';
 import { User } from './user';
 import { Commit, Commits } from './commit';
 import { PullRequest } from './pull-request';
-import { PRReviewComment } from './pull-request-review-comment';
+import { PRReviewComment } from './pr-review-comment';
 import { Push } from './push';
-import { PRReview } from './pull-request-review';
+import { PRReview } from './pr-review';
 
 export { Branch, Repository, User, Commits, Commit, Push, PullRequest, PRReviewComment, PRReview };

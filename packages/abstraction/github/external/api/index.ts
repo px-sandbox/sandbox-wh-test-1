@@ -1,5 +1,5 @@
 import { Branch } from './branch';
-import { BranchList } from './branchList';
+import { BranchList } from './branch-list';
 import { Repository } from './repository';
 import { User } from './user';
 import { Organization } from './organisation';

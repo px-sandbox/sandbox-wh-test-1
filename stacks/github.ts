@@ -648,7 +648,7 @@ export function gh({ stack }: StackContext) {
         type: 'lambda',
         responseTypes: ['simple'],
         function: new Function(stack, 'Admin-Authorizer', {
-          handler: 'packages/auth/src/adminAuth.handler',
+          handler: 'packages/auth/src/admin-auth.handler',
           bind: [AUTH_PUBLIC_KEY],
         }),
       },
