@@ -10,12 +10,11 @@
     "lint": "eslint . --ext .ts"
   },
   "devDependencies": {
-    "@types/aws-sdk": "^2.7.0",
     "@types/node": "^18.15.10"
   },
   "dependencies": {
     "@elastic/elasticsearch": "7.13.0",
-    "aws-sdk": "^2.1311.0",
+    "aws-sdk": "^2.1444.0",
     "core": "workspace:0.0.1"
   }
 }
