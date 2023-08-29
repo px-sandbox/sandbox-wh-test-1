@@ -1,4 +1,4 @@
-import { SQS } from 'aws-sdk';
+import AWS_SQS, { SQS } from '@aws-sdk/client-sqs';
 import { logger } from 'core';
 import { ISQSClient } from '../types';
 
@@ -16,7 +16,7 @@ export class SQSClient implements ISQSClient {
   ): Promise<void> {
     const queueName = queueUrl.split('/').slice(-1).toString();
     try {
-      let queueObj: SQS.SendMessageRequest = {
+      let queueObj: AWS_SQS.SendMessageCommandInput = {
         MessageBody: JSON.stringify(message),
         QueueUrl: queueUrl,
       };
@@ -28,7 +28,7 @@ export class SQSClient implements ISQSClient {
           MessageDeduplicationId: messageGroupId,
         };
       }
-      await this.sqs.sendMessage(queueObj).promise();
+      await this.sqs.sendMessage(queueObj);
       // logger.info({
       //   message: 'SQS_SEND_MESSAGE_RESPONSE',
       //   res,
