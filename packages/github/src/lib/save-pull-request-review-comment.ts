@@ -25,6 +25,7 @@ export async function savePRReviewComment(data: Github.Type.PRReviewComment): Pr
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
       data.body.action = [...formattedData.action, ...data.body.action];
       data.body.createdAt = formattedData.createdAt;
+      data.id = formattedData._id;
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPRReviewComment, data);
     logger.info('savePRReviewComment.successful');
