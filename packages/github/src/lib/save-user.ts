@@ -23,6 +23,7 @@ export async function saveUserDetails(data: Github.Type.User): Promise<void> {
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
       updatedData.body.action = [...formattedData.action, ...data.body.action];
       updatedData.body.createdAt = formattedData.createdAt;
+      updatedData.id = formattedData._id;
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitUsers, updatedData);
     logger.info('saveUserDetails.successful');

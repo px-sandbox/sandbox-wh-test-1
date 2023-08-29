@@ -23,6 +23,7 @@ export async function savePRDetails(data: Github.Type.PullRequest): Promise<void
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
       updatedData.body.action = [...formattedData.action, ...data.body.action];
       updatedData.body.createdAt = formattedData.createdAt;
+      updatedData.id = formattedData._id;
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPull, updatedData);
     logger.info('savePRDetails.successful');

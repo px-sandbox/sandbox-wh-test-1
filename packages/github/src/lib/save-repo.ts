@@ -25,6 +25,7 @@ export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
       updatedData.body.action = [...formattedData.action, ...data.body.action];
       updatedData.body.createdAt = formattedData.createdAt;
+      updatedData.id = formattedData._id;
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitRepo, updatedData);
     const lastAction = updatedData.body.action.slice(-1).pop();
