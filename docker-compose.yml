@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
@@ -6,7 +6,7 @@ services:
     environment:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
     ulimits:
       memlock:
         soft: -1
@@ -15,6 +15,9 @@ services:
       - esdata:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
     networks:
       - esnet
 
@@ -25,19 +28,25 @@ services:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
     ports:
       - 5601:5601
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
     networks:
       - esnet
 
   dynamodb:
-    image:  amazon/dynamodb-local
+    image: amazon/dynamodb-local
     container_name: dynamodb
     hostname: dynamodb
     restart: always
     volumes:
-      -  ./dynamodb_vol:/home/dynamodblocal/data
+      - ./dynamodb_vol:/home/dynamodblocal/data
     ports:
       - 8000:8000
-    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    command: '-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/'
 
 volumes:
   esdata:

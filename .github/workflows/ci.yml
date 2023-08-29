@@ -17,16 +17,3 @@ jobs:
       excluded_jobs: docker
     secrets: inherit
     permissions: write-all
-######################### IGNORE BELOW, OLD CI-CHECKS #############################
-
-# name: CI checks
-
-# on:
-#   pull_request: {}
-#   workflow_dispatch:
-
-# jobs:
-#   call-workflow:
-#     uses: studiographene/studiographene-reactjs-scans/.github/workflows/ci.yml@feature/pnpm
-#     with:
-#       project_name: pulse-data-integration
