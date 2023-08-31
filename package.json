@@ -53,7 +53,7 @@
     "errorMsg": "Please follow the branch naming convention, eg: feature/SG-1"
   },
   "engines": {
-    "node": ">=14.18.0",
+    "node": ">=16.17.1",
     "pnpm": ">=7.29.2"
   }
 }
