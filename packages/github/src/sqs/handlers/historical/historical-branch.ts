@@ -1,12 +1,11 @@
-import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { ghRequest } from 'src/lib/request-defaults';
-import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
-import { getOctokitResp } from 'src/util/octokit-response';
-import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
+import { ghRequest } from '../../../lib/request-default';
+import { getInstallationAccessToken } from '../../../util/installation-access-token';
+import { getOctokitResp } from '../../../util/octokit-response';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
@@ -14,30 +13,8 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
-export const handler = async function collectBranchData(event: SQSEvent): Promise<void> {
-  await Promise.all(
-    event.Records.filter((record: any) => {
-      const body = JSON.parse(record.body);
-      if (body.owner && body.name) {
-        return true;
-      }
-      logger.info(`
-      HISTORICAL_BRANCH_MESSAGE_BODY: ${body}
-      `);
-
-      return false;
-    }).map(async (record: any) => {
-      try {
-        await getRepoBranches(record);
-      } catch (error) {
-        await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error);
-        logger.error(JSON.stringify({ message: 'collectBranchData.failed', record, error }));
-      }
-    })
-  );
-};
-async function getRepoBranches(record: any) {
-  let messageBody = JSON.parse(record.body);
+async function getRepoBranches(record: SQSRecord | { body: string }): Promise<boolean | undefined> {
+  const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId } = messageBody;
   try {
     let branches = [];
@@ -49,19 +26,19 @@ async function getRepoBranches(record: any) {
       );
       const octokitRespData = getOctokitResp(githubBranches);
       logger.info('GET_API_BRANCH_DATA', octokitRespData);
-      const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/;
+      const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/; // eslint-disable-line no-useless-escape
       branches = octokitRespData
-        .filter((branchName: any) => branchNameRegx.test(branchName.name))
-        .map((branch: any) => branch.name);
+        .filter((branchName: { name: string }) => branchNameRegx.test(branchName.name))
+        .map((branch: { name: string }) => branch.name);
     }
     logger.info(`Proccessing data for repo: ${branches}`);
-    const queueProcessed = branches.map((branch: any) =>
+    const queueProcessed = branches.map((branch: { name: string }) =>
       new SQSClient().sendMessage(
         {
           branchName: branch,
-          owner: owner,
-          name: name,
-          githubRepoId: githubRepoId,
+          owner,
+          name,
+          githubRepoId,
           page: 1,
         },
         Queue.gh_historical_commits.queueUrl
@@ -70,14 +47,39 @@ async function getRepoBranches(record: any) {
     await Promise.all(queueProcessed);
     if (branches.length < 100) {
       logger.info('LAST_100_RECORD_PR');
-      return;
-    } else {
-      messageBody.page = page + 1;
-      logger.info(`message_body_repo: ${messageBody}`);
-      await getRepoBranches({ body: JSON.stringify(messageBody) });
+      return true;
     }
+    messageBody.page = page + 1;
+    logger.info(`message_body_repo: ${messageBody}`);
+    await getRepoBranches({ body: JSON.stringify(messageBody) });
   } catch (error) {
     logger.error(`historical.repoBranches.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error);
+    await logProcessToRetry(
+      record as SQSRecord,
+      Queue.gh_historical_branch.queueUrl,
+      error as Error
+    );
   }
 }
+export const handler = async function collectBranchData(event: SQSEvent): Promise<void> {
+  await Promise.all(
+    event.Records.filter((record: SQSRecord) => {
+      const body = JSON.parse(record.body);
+      if (body.owner && body.name) {
+        return true;
+      }
+      logger.info(`
+      HISTORICAL_BRANCH_MESSAGE_BODY: ${body}
+      `);
+
+      return false;
+    }).map(async (record) => {
+      try {
+        await getRepoBranches(record);
+      } catch (error) {
+        await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error as Error);
+        logger.error(JSON.stringify({ message: 'collectBranchData.failed', record, error }));
+      }
+    })
+  );
+};

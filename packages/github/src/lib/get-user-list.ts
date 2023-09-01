@@ -2,31 +2,9 @@ import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
 import { Queue } from 'sst/node/queue';
-import { ghRequest } from './request-defaults';
-
-export async function getUsers(
-  octokit: RequestInterface<
-    object & {
-      headers: {
-        authorization: string | undefined;
-      };
-    }
-  >,
-  organizationName: string
-): Promise<number> {
-  let userCount: number;
-  try {
-    userCount = await getUserList(octokit, organizationName);
-    return userCount;
-  } catch (error: unknown) {
-    logger.error({
-      error,
-    });
-    throw error;
-  }
-}
+import { getInstallationAccessToken } from '../util/installation-access-token';
+import { ghRequest } from './request-default';
 
 async function getUserList(
   octokit: RequestInterface<
@@ -49,19 +27,20 @@ async function getUserList(
     );
     const membersPerPage: Github.ExternalType.Api.User[] = responseData.data;
     logger.info('Response', membersPerPage);
-    counter += membersPerPage.length;
+    const newCounter = counter + membersPerPage.length;
 
     await Promise.all(
-      membersPerPage.map(
-        async (member) => await new SQSClient().sendMessage(member, Queue.gh_users_format.queueUrl)
+      membersPerPage.map(async (member) =>
+        new SQSClient().sendMessage(member, Queue.gh_users_format.queueUrl)
       )
     );
 
     if (membersPerPage.length < perPage) {
       logger.info('getUserList.successful');
-      return counter;
+      return newCounter;
     }
-    return getUserList(octokit, organizationName, ++page, counter);
+    return getUserList(octokit, organizationName, page + 1, newCounter);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     logger.error('getUserList.error', {
       organizationName,
@@ -83,6 +62,28 @@ async function getUserList(
 
       return getUserList(octokitObj, organizationName, page, counter);
     }
+    throw error;
+  }
+}
+
+export async function getUsers(
+  octokit: RequestInterface<
+    object & {
+      headers: {
+        authorization: string | undefined;
+      };
+    }
+  >,
+  organizationName: string
+): Promise<number> {
+  let userCount: number;
+  try {
+    userCount = await getUserList(octokit, organizationName);
+    return userCount;
+  } catch (error: unknown) {
+    logger.error({
+      error,
+    });
     throw error;
   }
 }

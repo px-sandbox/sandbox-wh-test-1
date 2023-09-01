@@ -1,8 +1,8 @@
+import moment from 'moment';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
-import { ParamsMapping } from 'src/model/params-mapping';
-import moment from 'moment';
+import { ParamsMapping } from '../model/params-mapping';
 
 export abstract class DataProcessor<T, S> {
   protected ghApiData: T;
@@ -27,7 +27,7 @@ export abstract class DataProcessor<T, S> {
     return ddbRes?.parentId;
   }
 
-  public async sendDataToQueue<T>(data: T, url: string): Promise<void> {
+  public async sendDataToQueue<U>(data: U, url: string): Promise<void> {
     await new SQSClient().sendMessage(data, url);
   }
 

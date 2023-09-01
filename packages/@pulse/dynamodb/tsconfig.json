@@ -1,6 +1,12 @@
 {
-  "extends": "@tsconfig/node16/tsconfig.json",
+  "extends": "../../../tsconfig.json",
   "compilerOptions": {
-    "module": "esnext"
-  }
+    "outDir": "./dist",
+    "rootDir": "./",
+    "baseUrl": ".",
+    "paths": {
+      "core/*": ["node_modules/core/src/*"]
+    }
+  },
+  "exclude": ["node_modules"]
 }

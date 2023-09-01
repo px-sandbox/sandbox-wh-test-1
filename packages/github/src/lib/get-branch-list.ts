@@ -2,8 +2,9 @@ import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
-import { ghRequest } from './request-defaults';
+import { Github } from 'abstraction';
+import { getInstallationAccessToken } from '../util/installation-access-token';
+import { ghRequest } from './request-default';
 
 async function getBranchList(
   octokit: RequestInterface<
@@ -27,22 +28,24 @@ async function getBranchList(
       `GET /repos/${repoOwner}/${repoName}/branches?per_page=${perPage}&page=${page}`
     );
 
-    const branchesPerPage = responseData.data as Array<any>;
+    const branchesPerPage = responseData.data as Github.ExternalType.Api.BranchList;
 
-    counter += branchesPerPage.length;
+    const newCounter = counter + branchesPerPage.length;
     await Promise.all([
       branchesPerPage.map(async (branch) => {
-        branch.id = Buffer.from(`${repoId}_${branch.name}`, 'binary').toString('base64');
-        branch.repo_id = repoId;
+        const branchInfo = { ...branch };
+        branchInfo.id = Buffer.from(`${repoId}_${branchInfo.name}`, 'binary').toString('base64');
+        branchInfo.repo_id = repoId;
         await new SQSClient().sendMessage(branch, Queue.gh_branch_format.queueUrl);
       }),
     ]);
 
     if (branchesPerPage.length < perPage) {
       logger.info('getBranchList.successfull');
-      return counter;
+      return newCounter;
     }
-    return getBranchList(octokit, repoId, repoName, repoOwner, ++page, counter);
+    return getBranchList(octokit, repoId, repoName, repoOwner, page + 1, newCounter);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     logger.error('getBranchList.error', { repoName, repoOwner, page, error });
 

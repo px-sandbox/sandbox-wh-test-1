@@ -1,4 +1,4 @@
-import { IndexName } from './esIndex';
+import { IndexName } from './es-index';
 import { Event } from './webhook-event';
 import { Repo, Branch, Organization, Comments, PullRequest } from './webhook-action';
 import { SearchKey } from './search-keys';

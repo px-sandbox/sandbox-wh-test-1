@@ -1,8 +1,8 @@
+import moment from 'moment';
 import { Github } from 'abstraction';
-import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import moment from 'moment';
+import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 
 export class RepositoryProcessor extends DataProcessor<
@@ -12,7 +12,7 @@ export class RepositoryProcessor extends DataProcessor<
   constructor(data: Github.ExternalType.Api.Repository) {
     super(data);
   }
-  async processor(): Promise<Github.Type.RepoFormatter> {
+  public async processor(): Promise<Github.Type.RepoFormatter> {
     const parentId: string = await this.getParentId(`${mappingPrefixes.repo}_${this.ghApiData.id}`);
     const action = [
       {
@@ -41,7 +41,7 @@ export class RepositoryProcessor extends DataProcessor<
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
         githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
-        isDeleted: this.ghApiData.action == 'deleted' ? true : false,
+        isDeleted: this.ghApiData.action === 'deleted',
       },
     };
     return repoObj;
