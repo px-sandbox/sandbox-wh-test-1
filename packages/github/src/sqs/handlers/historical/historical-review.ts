@@ -121,8 +121,6 @@ export const handler = async function collectPrReviewsData(event: SQSEvent): Pro
       `);
 
       return false;
-    }).map(async (record: SQSRecord) => {
-      await getPrReviews(record);
-    })
+    }).map(async (record: SQSRecord) => getPrReviews(record))
   );
 };

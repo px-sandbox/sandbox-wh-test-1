@@ -76,8 +76,6 @@ export const handler = async function collectPRCommentsData(event: SQSEvent): Pr
       `);
 
       return false;
-    }).map(async (record) => {
-      await getPrComments(record);
-    })
+    }).map(async (record) => getPrComments(record))
   );
 };

@@ -87,8 +87,6 @@ export const handler = async function collectPRCommitData(
       `);
 
       return false;
-    }).map(async (record) => {
-      await getPRCommits(record);
-    })
+    }).map(async (record) => getPRCommits(record))
   );
 };

@@ -764,11 +764,10 @@ export function gh({ stack }: StackContext) {
   });
 
   // Initialize cron that runs every hour to fetch failed processes from `retryProcessTable` Table and process them out
-  const cron = new Cron(stack, 'failed-process-retry-cron', {
+  new Cron(stack, 'failed-process-retry-cron', {
     schedule: 'cron(0/30 * ? * * *)',
     job: processRetryFunction,
   });
-  console.info(`Cron job created: ${cron}`);
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,

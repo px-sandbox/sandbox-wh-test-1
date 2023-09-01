@@ -82,7 +82,7 @@ async function processBranchEvent(
 async function processOrgEvent(
   data: Github.ExternalType.Webhook.User,
   eventTime: number
-): Promise<void> {
+): Promise<void | boolean> {
   let obj = {};
   switch (data.action?.toLowerCase()) {
     case Github.Enums.Organization.MemberAdded:
@@ -100,8 +100,10 @@ async function processOrgEvent(
       break;
     default:
       // handle default case here
+      logger.info(`No case found for ${data.action} in organization event`);
       break;
   }
+  if (Object.keys(obj).length === 0) return false;
   logger.info('-------User event --------');
   logger.info(obj);
   await new SQSClient().sendMessage(obj, Queue.gh_users_format.queueUrl);
@@ -163,6 +165,7 @@ async function processWebhookEvent(
       await processPRReviewEvent(data);
       break;
     default:
+      logger.info(`No case found for ${eventType} in webhook event`);
       break;
   }
 }

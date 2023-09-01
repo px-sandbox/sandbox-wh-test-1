@@ -208,19 +208,13 @@ export class PRProcessor extends DataProcessor<
 
     const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
     const reqReviewersData: Array<Github.Type.RequestedReviewers> =
-      this.ghApiData.requested_reviewers.map((reqReviewer) => {
-        const rRData = {
-          userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
-        };
-        return rRData;
-      });
+      this.ghApiData.requested_reviewers.map((reqReviewer) => ({
+        userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
+      }));
 
-    const labelsData: Array<Github.Type.Labels> = this.ghApiData.labels.map((label) => {
-      const lbData = {
-        name: label.name,
-      };
-      return lbData;
-    });
+    const labelsData: Array<Github.Type.Labels> = this.ghApiData.labels.map((label) => ({
+      name: label.name,
+    }));
     const action = this.setAction();
     const pullObj = await this.setPullObj(parentId, reqReviewersData, labelsData, action);
     return pullObj;

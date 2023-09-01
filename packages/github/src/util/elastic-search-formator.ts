@@ -1,16 +1,10 @@
 import { logger } from 'core';
+import { Other } from 'abstraction';
 
-export type HitSource = {
-  [key: string]: unknown;
-};
-
-export type Result = {
-  hits: { hits: { _source: Record<string, unknown> }[] };
-};
 export class ElasticSearchFormator {
-  public async exportActualResult(result: Result): Promise<HitSource[]> {
+  public async exportActualResult(result: Other.Type.Result): Promise<Other.Type.HitSource[]> {
     try {
-      const filteredArray: HitSource[] = [];
+      const filteredArray: Other.Type.HitSource[] = [];
 
       result.hits.hits.forEach((hit: { _source: Record<string, unknown> }) => {
         if (hit) {

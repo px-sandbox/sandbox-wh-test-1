@@ -72,8 +72,6 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
       `);
 
       return false;
-    }).map(async (record) => {
-      await getRepoCommits(record);
-    })
+    }).map(async (record) => getRepoCommits(record))
   );
 };

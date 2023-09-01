@@ -3,6 +3,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { OctokitResponse } from '@octokit/types';
 import { mappingPrefixes } from '../constant/config';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 import { getWorkingTime } from '../util/timezone-calculation';
@@ -18,11 +19,11 @@ async function getGithubApiToken(): Promise<string> {
 }
 
 // Get pull request details through Github Api and update the same into index.
-async function getPullRequestDetails(
+async function getPullRequestDetails<T>(
   repo: string,
   owner: string,
   pullNumber: number
-): Promise<object> {
+): Promise<OctokitResponse<T>> {
   const octokit = ghRequest.request.defaults({
     headers: {
       Authorization: await getGithubApiToken(),

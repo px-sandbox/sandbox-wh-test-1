@@ -17,16 +17,13 @@ export class CommitProcessor extends DataProcessor<
       `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`
     );
     const filesArr: Array<Github.Type.CommitedFiles> = this.ghApiData.files.map(
-      (data: Github.Type.CommitedFiles) => {
-        const fileData = {
-          filename: data.filename,
-          additions: data.additions,
-          changes: data.changes,
-          deletions: data.deletions,
-          status: data.status,
-        };
-        return fileData;
-      }
+      (data: Github.Type.CommitedFiles) => ({
+        filename: data.filename,
+        additions: data.additions,
+        changes: data.changes,
+        deletions: data.deletions,
+        status: data.status,
+      })
     );
 
     const orgObj = {
