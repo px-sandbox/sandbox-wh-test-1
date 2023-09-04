@@ -1,22 +1,26 @@
 import { StackContext, Api, Table, Config, Queue, Function, Cron } from 'sst/constructs';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, Stack } from 'aws-cdk-lib';
 
-export function gh({ stack }: StackContext) {
+function initializeSecrets(stack: Stack): Record<string, Config.Secret> {
+  const ghSecret = {} as Record<string, Config.Secret>;
   // Set GITHUB config params
-  const GITHUB_APP_ID = new Config.Secret(stack, 'GITHUB_APP_ID');
-  const GITHUB_APP_PRIVATE_KEY_PEM = new Config.Secret(stack, 'GITHUB_APP_PRIVATE_KEY_PEM');
-  const GITHUB_BASE_URL = new Config.Secret(stack, 'GITHUB_BASE_URL');
-  const GITHUB_SG_INSTALLATION_ID = new Config.Secret(stack, 'GITHUB_SG_INSTALLATION_ID');
-  const GITHUB_WEBHOOK_SECRET = new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET');
-  const GITHUB_SG_ACCESS_TOKEN = new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN');
-  const AUTH_PUBLIC_KEY = new Config.Secret(stack, 'AUTH_PUBLIC_KEY');
-  const OPENSEARCH_NODE = new Config.Secret(stack, 'OPENSEARCH_NODE');
-  const OPENSEARCH_USERNAME = new Config.Secret(stack, 'OPENSEARCH_USERNAME');
-  const OPENSEARCH_PASSWORD = new Config.Secret(stack, 'OPENSEARCH_PASSWORD');
-  const GIT_ORGANIZATION_ID = new Config.Secret(stack, 'GIT_ORGANIZATION_ID');
+  ghSecret.GITHUB_APP_ID = new Config.Secret(stack, 'GITHUB_APP_ID');
+  ghSecret.GITHUB_APP_PRIVATE_KEY_PEM = new Config.Secret(stack, 'GITHUB_APP_PRIVATE_KEY_PEM');
+  ghSecret.GITHUB_BASE_URL = new Config.Secret(stack, 'GITHUB_BASE_URL');
+  ghSecret.GITHUB_SG_INSTALLATION_ID = new Config.Secret(stack, 'GITHUB_SG_INSTALLATION_ID');
+  ghSecret.GITHUB_WEBHOOK_SECRET = new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET');
+  ghSecret.GITHUB_SG_ACCESS_TOKEN = new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN');
+  ghSecret.AUTH_PUBLIC_KEY = new Config.Secret(stack, 'AUTH_PUBLIC_KEY');
+  ghSecret.OPENSEARCH_NODE = new Config.Secret(stack, 'OPENSEARCH_NODE');
+  ghSecret.OPENSEARCH_USERNAME = new Config.Secret(stack, 'OPENSEARCH_USERNAME');
+  ghSecret.OPENSEARCH_PASSWORD = new Config.Secret(stack, 'OPENSEARCH_PASSWORD');
+  ghSecret.GIT_ORGANIZATION_ID = new Config.Secret(stack, 'GIT_ORGANIZATION_ID');
+  return ghSecret;
+}
 
-  // Create Table
-  const table = new Table(stack, 'GithubMapping', {
+function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
+  const tables = {} as Record<string, Table>;
+  tables.githubMappingTable = new Table(stack, 'GithubMapping', {
     fields: {
       parentId: 'string',
       githubId: 'string',
@@ -26,13 +30,51 @@ export function gh({ stack }: StackContext) {
     },
     primaryIndex: { partitionKey: 'parentId' },
   });
-
-  const retryProcessTable = new Table(stack, 'process-retry', {
+  tables.retryProcessTable = new Table(stack, 'process-retry', {
     fields: {
       processId: 'string',
     },
     primaryIndex: { partitionKey: 'processId' },
   });
+  return tables;
+}
+
+function intializeCron(
+  stack: Stack,
+  processRetryFunction: Function,
+  ghCopilotFunction: Function
+): void {
+  // Initialized cron job for every 1 hour to fetch failed processes from `retryProcessTable` Table and process them out
+  // Cron Expression : cron(Minutes Hours Day-of-month Month Day-of-week Year)
+  new Cron(stack, 'failed-process-retry-cron', {
+    schedule: 'cron(0/30 * ? * * *)',
+    job: processRetryFunction,
+  });
+
+  new Cron(stack, 'github-copilot-cron', {
+    schedule: 'cron(0/60 * ? * * *)',
+    job: ghCopilotFunction,
+  });
+}
+
+export function gh({ stack }: StackContext) {
+  // Destructure secrets
+  const {
+    GITHUB_APP_ID,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_BASE_URL,
+    GITHUB_SG_INSTALLATION_ID,
+    GITHUB_WEBHOOK_SECRET,
+    GITHUB_SG_ACCESS_TOKEN,
+    AUTH_PUBLIC_KEY,
+    OPENSEARCH_NODE,
+    OPENSEARCH_USERNAME,
+    OPENSEARCH_PASSWORD,
+    GIT_ORGANIZATION_ID,
+  } = initializeSecrets(stack);
+
+  // Initialize DynamoDB Tables
+  const { githubMappingTable, retryProcessTable } = initializeDynamoDBTables(stack);
 
   // create queues
   const userIndexDataQueue = new Queue(stack, 'gh_users_index', {
@@ -248,6 +290,30 @@ export function gh({ stack }: StackContext) {
     },
   });
 
+  const ghCopilotIndexDataQueue = new Queue(stack, 'gh_copilot_index', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/indexer/gh-copilot.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 5,
+        },
+      },
+    },
+  });
+  const ghCopilotFormatDataQueue = new Queue(stack, 'gh_copilot_format', {
+    consumer: {
+      function: {
+        handler: 'packages/github/src/sqs/handlers/formatter/gh-copilot.handler',
+        bind: [ghCopilotIndexDataQueue],
+      },
+      cdk: {
+        eventSource: {
+          batchSize: 5,
+        },
+      },
+    },
+  });
+
   const collectPRData = new Queue(stack, 'gh_historical_pr', {
     cdk: {
       queue: {
@@ -401,11 +467,26 @@ export function gh({ stack }: StackContext) {
   });
 
   // bind tables and config to queue
-  userFormatDataQueue.bind([table, retryProcessTable, userIndexDataQueue, GIT_ORGANIZATION_ID]);
-  repoFormatDataQueue.bind([table, retryProcessTable, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
-  branchFormatDataQueue.bind([table, retryProcessTable, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
+  userFormatDataQueue.bind([
+    githubMappingTable,
+    retryProcessTable,
+    userIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
+  repoFormatDataQueue.bind([
+    githubMappingTable,
+    retryProcessTable,
+    repoIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
+  branchFormatDataQueue.bind([
+    githubMappingTable,
+    retryProcessTable,
+    branchIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
   commitFormatDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     commitIndexDataQueue,
     GIT_ORGANIZATION_ID,
@@ -417,7 +498,7 @@ export function gh({ stack }: StackContext) {
     OPENSEARCH_PASSWORD,
   ]);
   pRFormatDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     pRIndexDataQueue,
     GIT_ORGANIZATION_ID,
@@ -426,37 +507,42 @@ export function gh({ stack }: StackContext) {
     OPENSEARCH_PASSWORD,
     commitFormatDataQueue,
   ]);
-  pushFormatDataQueue.bind([table, retryProcessTable, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pushFormatDataQueue.bind([
+    githubMappingTable,
+    retryProcessTable,
+    pushIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
   pRReviewCommentFormatDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     pRReviewCommentIndexDataQueue,
     GIT_ORGANIZATION_ID,
   ]);
 
   pushIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
   commitIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
   userIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
   repoIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -464,34 +550,34 @@ export function gh({ stack }: StackContext) {
     afterRepoSaveQueue,
   ]);
   branchIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
   pRIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
   pRReviewCommentIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
   pRReviewFormatDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     pRReviewIndexDataQueue,
     GIT_ORGANIZATION_ID,
   ]);
   pRReviewIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -507,7 +593,7 @@ export function gh({ stack }: StackContext) {
   ]);
 
   collectPRData.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -521,7 +607,7 @@ export function gh({ stack }: StackContext) {
     collectPRReviewCommentsData,
   ]);
   collecthistoricalPrByumber.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -534,7 +620,7 @@ export function gh({ stack }: StackContext) {
     commitFormatDataQueue,
   ]);
   collectReviewsData.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -548,7 +634,7 @@ export function gh({ stack }: StackContext) {
   ]);
 
   collectCommitsData.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -562,7 +648,7 @@ export function gh({ stack }: StackContext) {
   ]);
 
   collectPRCommitsData.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -575,7 +661,7 @@ export function gh({ stack }: StackContext) {
   ]);
 
   collectPRReviewCommentsData.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -588,7 +674,7 @@ export function gh({ stack }: StackContext) {
   ]);
 
   historicalBranch.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -628,6 +714,17 @@ export function gh({ stack }: StackContext) {
       historicalBranch,
       collectPRCommitsData,
       collectPRReviewCommentsData,
+      GITHUB_APP_PRIVATE_KEY_PEM,
+      GITHUB_APP_ID,
+      GITHUB_SG_INSTALLATION_ID,
+    ],
+  });
+
+  const ghCopilotFunction = new Function(stack, 'github-copilot', {
+    handler: 'packages/github/src/cron/github-copilot.handler',
+    bind: [
+      ghCopilotFormatDataQueue,
+      ghCopilotIndexDataQueue,
       GITHUB_APP_PRIVATE_KEY_PEM,
       GITHUB_APP_ID,
       GITHUB_SG_INSTALLATION_ID,
@@ -676,7 +773,7 @@ export function gh({ stack }: StackContext) {
           OPENSEARCH_PASSWORD,
           OPENSEARCH_USERNAME,
           GIT_ORGANIZATION_ID,
-          table,
+          githubMappingTable,
           retryProcessTable,
           afterRepoSaveQueue,
           collectPRData,
@@ -763,11 +860,8 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  // Initialize cron that runs every hour to fetch failed processes from `retryProcessTable` Table and process them out
-  new Cron(stack, 'failed-process-retry-cron', {
-    schedule: 'cron(0/30 * ? * * *)',
-    job: processRetryFunction,
-  });
+  // Initialize cron
+  intializeCron(stack, processRetryFunction, ghCopilotFunction);
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,

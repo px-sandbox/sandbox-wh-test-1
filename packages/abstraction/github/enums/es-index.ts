@@ -8,4 +8,5 @@ export enum IndexName {
   GitPRReview = 'git_pull_request_review',
   GitRepo = 'git_repo',
   GitOrganization = 'git_organization',
+  GitCopilot = 'git_copilot',
 }
