@@ -32,7 +32,7 @@ const gitRepos = async function getRepoData(
     if (gitRepoName) {
       data = await esClient.search(Github.Enums.IndexName.GitRepo, 'name', gitRepoName);
     }
-    [response] = await searchedDataFormator(data);
+    response = await searchedDataFormator(data);
     logger.info({ level: 'info', message: 'github repo data', data: response });
   } catch (error) {
     logger.error('GET_GITHUB_REPO_DETAILS', { error });
