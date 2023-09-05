@@ -857,6 +857,10 @@ export function gh({ stack }: StackContext) {
       'GET /github/retry/failed': {
         function: 'packages/github/src/cron/retry-process.handler',
       },
+
+      // GET create all ES indices
+      'GET /github/create-indices': {
+        function: 'packages/github/src/service/create-indices.handler',
     },
   });
 
