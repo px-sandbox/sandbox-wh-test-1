@@ -15,7 +15,6 @@ async function initializeOctokit(): Promise<
     }
   >
 > {
-  // Generate new installation access token to make request
   const installationAccessToken = await getInstallationAccessToken();
   const octokit = ghRequest.request.defaults({
     headers: {
@@ -64,11 +63,12 @@ async function getGHCopilotReports(
     logger.error('getGHCopilotReports.error', { pageNo, error });
 
     if (error.status === 401) {
-      const octokit = await initializeOctokit();
-      return getGHCopilotReports(octokit, pageNo, counter);
+      // Generate new installation access token to make request
+      const octokitInstance = await initializeOctokit();
+      return getGHCopilotReports(octokitInstance, pageNo, counter);
     }
     if (error.status === 403) {
-      const resetTime = new Date(parseInt(error.headers['X-Ratelimit-Reset']) * 1000);
+      const resetTime = new Date(parseInt(error.headers['X-Ratelimit-Reset'], 10) * 1000);
       const secondsUntilReset = Math.max(resetTime.getTime() - Date.now(), 0) / 1000;
       logger.warn(
         `GitHub API rate limit exceeded. Waiting ${secondsUntilReset} seconds until reset.`
