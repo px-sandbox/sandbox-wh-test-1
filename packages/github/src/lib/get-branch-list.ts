@@ -36,7 +36,7 @@ async function getBranchList(
         const branchInfo = { ...branch };
         branchInfo.id = Buffer.from(`${repoId}_${branchInfo.name}`, 'binary').toString('base64');
         branchInfo.repo_id = repoId;
-        await new SQSClient().sendMessage(branch, Queue.gh_branch_format.queueUrl);
+        await new SQSClient().sendMessage(branchInfo, Queue.gh_branch_format.queueUrl);
       }),
     ]);
 

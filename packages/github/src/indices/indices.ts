@@ -322,6 +322,21 @@ const indices = [
       },
     },
   },
+  {
+    name: Github.Enums.IndexName.GitCopilot,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        dataTimestamp: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        isUsedInLastHour: { type: 'boolean' },
+        editor: { type: 'text' },
+        editorVersion: { type: 'text' },
+        featureUsed: { type: 'text' },
+        featureVersion: { type: 'text' },
+        userId: { type: 'keyword' },
+      },
+    },
+  },
 ];
 
 export async function createAllIndices(): Promise<void> {
