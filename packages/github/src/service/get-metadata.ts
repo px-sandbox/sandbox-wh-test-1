@@ -1,11 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { fetchAndSaveOrganizationDetails } from 'src/lib/fetch-and-save-org-details';
-import { getRepos } from 'src/lib/get-repos-list';
-import { getUsers } from 'src/lib/get-user-list';
-import { createAllIndices } from 'src/indices/indices';
-import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
-import { ghRequest } from '../lib/request-defaults';
+import { fetchAndSaveOrganizationDetails } from '../lib/update-organization';
+import { getRepos } from '../lib/get-repo-list';
+import { getUsers } from '../lib/get-user-list';
+import { createAllIndices } from '../indices/indices';
+import { getInstallationAccessToken } from '../util/installation-access-token';
+import { ghRequest } from '../lib/request-default';
 
 const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const organizationName: string = event?.queryStringParameters?.orgName || '';

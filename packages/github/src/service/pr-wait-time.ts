@@ -1,7 +1,7 @@
 import { transpileSchema } from '@middy/validator/transpile';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { prWaitTimeAvg, prWaitTimeGraphData } from 'src/matrics/get-pr-wait-time';
+import { prWaitTimeAvg, prWaitTimeGraphData } from '../matrics/get-pr-wait-time';
 import { prCommentsGraphSchema } from './validations';
 
 const prWaitTimeGraph = async function getPrWaitTimeGraph(

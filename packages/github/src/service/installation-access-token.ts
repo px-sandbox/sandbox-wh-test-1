@@ -1,6 +1,6 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
+import { getInstallationAccessToken } from '../util/installation-access-token';
 
 export async function getGithubAccessToken(): Promise<APIGatewayProxyResult> {
   try {

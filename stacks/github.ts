@@ -1,22 +1,26 @@
 import { StackContext, Api, Table, Config, Queue, Function, Cron } from 'sst/constructs';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, Stack } from 'aws-cdk-lib';
 
-export function gh({ stack }: StackContext) {
+function initializeSecrets(stack: Stack): Record<string, Config.Secret> {
+  const ghSecret = {} as Record<string, Config.Secret>;
   // Set GITHUB config params
-  const GITHUB_APP_ID = new Config.Secret(stack, 'GITHUB_APP_ID');
-  const GITHUB_APP_PRIVATE_KEY_PEM = new Config.Secret(stack, 'GITHUB_APP_PRIVATE_KEY_PEM');
-  const GITHUB_BASE_URL = new Config.Secret(stack, 'GITHUB_BASE_URL');
-  const GITHUB_SG_INSTALLATION_ID = new Config.Secret(stack, 'GITHUB_SG_INSTALLATION_ID');
-  const GITHUB_WEBHOOK_SECRET = new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET');
-  const GITHUB_SG_ACCESS_TOKEN = new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN');
-  const AUTH_PUBLIC_KEY = new Config.Secret(stack, 'AUTH_PUBLIC_KEY');
-  const OPENSEARCH_NODE = new Config.Secret(stack, 'OPENSEARCH_NODE');
-  const OPENSEARCH_USERNAME = new Config.Secret(stack, 'OPENSEARCH_USERNAME');
-  const OPENSEARCH_PASSWORD = new Config.Secret(stack, 'OPENSEARCH_PASSWORD');
-  const GIT_ORGANIZATION_ID = new Config.Secret(stack, 'GIT_ORGANIZATION_ID');
+  ghSecret.GITHUB_APP_ID = new Config.Secret(stack, 'GITHUB_APP_ID');
+  ghSecret.GITHUB_APP_PRIVATE_KEY_PEM = new Config.Secret(stack, 'GITHUB_APP_PRIVATE_KEY_PEM');
+  ghSecret.GITHUB_BASE_URL = new Config.Secret(stack, 'GITHUB_BASE_URL');
+  ghSecret.GITHUB_SG_INSTALLATION_ID = new Config.Secret(stack, 'GITHUB_SG_INSTALLATION_ID');
+  ghSecret.GITHUB_WEBHOOK_SECRET = new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET');
+  ghSecret.GITHUB_SG_ACCESS_TOKEN = new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN');
+  ghSecret.AUTH_PUBLIC_KEY = new Config.Secret(stack, 'AUTH_PUBLIC_KEY');
+  ghSecret.OPENSEARCH_NODE = new Config.Secret(stack, 'OPENSEARCH_NODE');
+  ghSecret.OPENSEARCH_USERNAME = new Config.Secret(stack, 'OPENSEARCH_USERNAME');
+  ghSecret.OPENSEARCH_PASSWORD = new Config.Secret(stack, 'OPENSEARCH_PASSWORD');
+  ghSecret.GIT_ORGANIZATION_ID = new Config.Secret(stack, 'GIT_ORGANIZATION_ID');
+  return ghSecret;
+}
 
-  // Create Table
-  const table = new Table(stack, 'GithubMapping', {
+function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
+  const tables = {} as Record<string, Table>;
+  tables.githubMappingTable = new Table(stack, 'GithubMapping', {
     fields: {
       parentId: 'string',
       githubId: 'string',
@@ -26,18 +30,56 @@ export function gh({ stack }: StackContext) {
     },
     primaryIndex: { partitionKey: 'parentId' },
   });
-
-  const retryProcessTable = new Table(stack, 'process-retry', {
+  tables.retryProcessTable = new Table(stack, 'process-retry', {
     fields: {
       processId: 'string',
     },
     primaryIndex: { partitionKey: 'processId' },
   });
+  return tables;
+}
+
+function intializeCron(
+  stack: Stack,
+  processRetryFunction: Function,
+  ghCopilotFunction: Function
+): void {
+  // Initialized cron job for every 1 hour to fetch failed processes from `retryProcessTable` Table and process them out
+  // Cron Expression : cron(Minutes Hours Day-of-month Month Day-of-week Year)
+  new Cron(stack, 'failed-process-retry-cron', {
+    schedule: 'cron(0/30 * ? * * *)',
+    job: processRetryFunction,
+  });
+
+  new Cron(stack, 'github-copilot-cron', {
+    schedule: 'cron(0/60 * ? * * *)',
+    job: ghCopilotFunction,
+  });
+}
+
+export function gh({ stack }: StackContext) {
+  // Destructure secrets
+  const {
+    GITHUB_APP_ID,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_BASE_URL,
+    GITHUB_SG_INSTALLATION_ID,
+    GITHUB_WEBHOOK_SECRET,
+    GITHUB_SG_ACCESS_TOKEN,
+    AUTH_PUBLIC_KEY,
+    OPENSEARCH_NODE,
+    OPENSEARCH_USERNAME,
+    OPENSEARCH_PASSWORD,
+    GIT_ORGANIZATION_ID,
+  } = initializeSecrets(stack);
+
+  // Initialize DynamoDB Tables
+  const { githubMappingTable, retryProcessTable } = initializeDynamoDBTables(stack);
 
   // create queues
   const userIndexDataQueue = new Queue(stack, 'gh_users_index', {
     consumer: {
-      function: 'packages/github/src/sqs/handlers/indexer/users.handler',
+      function: 'packages/github/src/sqs/handlers/indexer/user.handler',
       cdk: {
         eventSource: {
           batchSize: 5,
@@ -48,7 +90,7 @@ export function gh({ stack }: StackContext) {
   const userFormatDataQueue = new Queue(stack, 'gh_users_format', {
     consumer: {
       function: {
-        handler: 'packages/github/src/sqs/handlers/formatter/users.handler',
+        handler: 'packages/github/src/sqs/handlers/formatter/user.handler',
         bind: [userIndexDataQueue],
       },
       cdk: {
@@ -190,7 +232,7 @@ export function gh({ stack }: StackContext) {
   const pRReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index');
   pRReviewCommentIndexDataQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_pr_review_comment_index_func', {
-      handler: 'packages/github/src/sqs/handlers/indexer/pull-request-review-comment.handler',
+      handler: 'packages/github/src/sqs/handlers/indexer/pr-review-comment.handler',
       bind: [pRReviewCommentIndexDataQueue],
     }),
     cdk: {
@@ -202,7 +244,7 @@ export function gh({ stack }: StackContext) {
   const pRReviewCommentFormatDataQueue = new Queue(stack, 'gh_pr_review_comment_format');
   pRReviewCommentFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_pr_review_comment_format_func', {
-      handler: 'packages/github/src/sqs/handlers/formatter/pull-request-review-comment.handler',
+      handler: 'packages/github/src/sqs/handlers/formatter/pr-review-comment.handler',
       bind: [pRReviewCommentFormatDataQueue, pRReviewCommentIndexDataQueue],
     }),
     cdk: {
@@ -225,7 +267,7 @@ export function gh({ stack }: StackContext) {
   const pRReviewIndexDataQueue = new Queue(stack, 'gh_pr_review_index');
   pRReviewIndexDataQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_pr_review_index_func', {
-      handler: 'packages/github/src/sqs/handlers/indexer/pull-request-review.handler',
+      handler: 'packages/github/src/sqs/handlers/indexer/pr-review.handler',
       bind: [pRReviewIndexDataQueue],
     }),
     cdk: {
@@ -238,12 +280,36 @@ export function gh({ stack }: StackContext) {
   const pRReviewFormatDataQueue = new Queue(stack, 'gh_pr_review_format');
   pRReviewFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_pr_review_format_func', {
-      handler: 'packages/github/src/sqs/handlers/formatter/pull-request-review.handler',
+      handler: 'packages/github/src/sqs/handlers/formatter/pr-review.handler',
       bind: [pRReviewFormatDataQueue, pRReviewIndexDataQueue],
     }),
     cdk: {
       eventSource: {
         batchSize: 5,
+      },
+    },
+  });
+
+  const ghCopilotIndexDataQueue = new Queue(stack, 'gh_copilot_index', {
+    consumer: {
+      function: 'packages/github/src/sqs/handlers/indexer/gh-copilot.handler',
+      cdk: {
+        eventSource: {
+          batchSize: 5,
+        },
+      },
+    },
+  });
+  const ghCopilotFormatDataQueue = new Queue(stack, 'gh_copilot_format', {
+    consumer: {
+      function: {
+        handler: 'packages/github/src/sqs/handlers/formatter/gh-copilot.handler',
+        bind: [ghCopilotIndexDataQueue],
+      },
+      cdk: {
+        eventSource: {
+          batchSize: 5,
+        },
       },
     },
   });
@@ -280,7 +346,7 @@ export function gh({ stack }: StackContext) {
 
   collectReviewsData.addConsumer(stack, {
     function: new Function(stack, 'histPrReviewFunc', {
-      handler: 'packages/github/src/sqs/handlers/historical/historical-reviews.handler',
+      handler: 'packages/github/src/sqs/handlers/historical/historical-review.handler',
       timeout: '30 seconds',
       runtime: 'nodejs18.x',
       bind: [collectReviewsData],
@@ -322,7 +388,7 @@ export function gh({ stack }: StackContext) {
   });
   collectCommitsData.addConsumer(stack, {
     function: new Function(stack, 'histCommitFunc', {
-      handler: 'packages/github/src/sqs/handlers/historical/historical-commits.handler',
+      handler: 'packages/github/src/sqs/handlers/historical/historical-commit.handler',
       timeout: '300 seconds',
       runtime: 'nodejs18.x',
       bind: [collectCommitsData],
@@ -367,7 +433,7 @@ export function gh({ stack }: StackContext) {
   });
   collectPRCommitsData.addConsumer(stack, {
     function: new Function(stack, 'histPRCommitFunc', {
-      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commits.handler',
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commit.handler',
       timeout: '30 seconds',
       runtime: 'nodejs18.x',
       bind: [collectPRCommitsData],
@@ -388,7 +454,7 @@ export function gh({ stack }: StackContext) {
   });
   collectPRReviewCommentsData.addConsumer(stack, {
     function: new Function(stack, 'histPRReviewCommentsFunc', {
-      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comments.handler',
+      handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comment.handler',
       timeout: '300 seconds',
       runtime: 'nodejs18.x',
       bind: [collectPRReviewCommentsData],
@@ -401,11 +467,26 @@ export function gh({ stack }: StackContext) {
   });
 
   // bind tables and config to queue
-  userFormatDataQueue.bind([table, retryProcessTable, userIndexDataQueue, GIT_ORGANIZATION_ID]);
-  repoFormatDataQueue.bind([table, retryProcessTable, repoIndexDataQueue, GIT_ORGANIZATION_ID]);
-  branchFormatDataQueue.bind([table, retryProcessTable, branchIndexDataQueue, GIT_ORGANIZATION_ID]);
+  userFormatDataQueue.bind([
+    githubMappingTable,
+    retryProcessTable,
+    userIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
+  repoFormatDataQueue.bind([
+    githubMappingTable,
+    retryProcessTable,
+    repoIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
+  branchFormatDataQueue.bind([
+    githubMappingTable,
+    retryProcessTable,
+    branchIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
   commitFormatDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     commitIndexDataQueue,
     GIT_ORGANIZATION_ID,
@@ -417,7 +498,7 @@ export function gh({ stack }: StackContext) {
     OPENSEARCH_PASSWORD,
   ]);
   pRFormatDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     pRIndexDataQueue,
     GIT_ORGANIZATION_ID,
@@ -426,37 +507,42 @@ export function gh({ stack }: StackContext) {
     OPENSEARCH_PASSWORD,
     commitFormatDataQueue,
   ]);
-  pushFormatDataQueue.bind([table, retryProcessTable, pushIndexDataQueue, GIT_ORGANIZATION_ID]);
+  pushFormatDataQueue.bind([
+    githubMappingTable,
+    retryProcessTable,
+    pushIndexDataQueue,
+    GIT_ORGANIZATION_ID,
+  ]);
   pRReviewCommentFormatDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     pRReviewCommentIndexDataQueue,
     GIT_ORGANIZATION_ID,
   ]);
 
   pushIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
   commitIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
   userIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
   repoIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -464,34 +550,34 @@ export function gh({ stack }: StackContext) {
     afterRepoSaveQueue,
   ]);
   branchIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
   pRIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
   pRReviewCommentIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
   pRReviewFormatDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     pRReviewIndexDataQueue,
     GIT_ORGANIZATION_ID,
   ]);
   pRReviewIndexDataQueue.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -507,7 +593,7 @@ export function gh({ stack }: StackContext) {
   ]);
 
   collectPRData.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -521,7 +607,7 @@ export function gh({ stack }: StackContext) {
     collectPRReviewCommentsData,
   ]);
   collecthistoricalPrByumber.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -534,7 +620,7 @@ export function gh({ stack }: StackContext) {
     commitFormatDataQueue,
   ]);
   collectReviewsData.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -548,7 +634,7 @@ export function gh({ stack }: StackContext) {
   ]);
 
   collectCommitsData.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -562,7 +648,7 @@ export function gh({ stack }: StackContext) {
   ]);
 
   collectPRCommitsData.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -575,7 +661,7 @@ export function gh({ stack }: StackContext) {
   ]);
 
   collectPRReviewCommentsData.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -588,7 +674,7 @@ export function gh({ stack }: StackContext) {
   ]);
 
   historicalBranch.bind([
-    table,
+    githubMappingTable,
     retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -601,7 +687,7 @@ export function gh({ stack }: StackContext) {
   ]);
 
   const processRetryFunction = new Function(stack, 'retry-failed-processor', {
-    handler: 'packages/github/src/cron/retry-processes.handler',
+    handler: 'packages/github/src/cron/retry-process.handler',
     bind: [
       retryProcessTable,
       userIndexDataQueue,
@@ -634,6 +720,17 @@ export function gh({ stack }: StackContext) {
     ],
   });
 
+  const ghCopilotFunction = new Function(stack, 'github-copilot', {
+    handler: 'packages/github/src/cron/github-copilot.handler',
+    bind: [
+      ghCopilotFormatDataQueue,
+      ghCopilotIndexDataQueue,
+      GITHUB_APP_PRIVATE_KEY_PEM,
+      GITHUB_APP_ID,
+      GITHUB_SG_INSTALLATION_ID,
+    ],
+  });
+
   const ghAPI = new Api(stack, 'api', {
     authorizers: {
       universal: {
@@ -648,7 +745,7 @@ export function gh({ stack }: StackContext) {
         type: 'lambda',
         responseTypes: ['simple'],
         function: new Function(stack, 'Admin-Authorizer', {
-          handler: 'packages/auth/src/adminAuth.handler',
+          handler: 'packages/auth/src/admin-auth.handler',
           bind: [AUTH_PUBLIC_KEY],
         }),
       },
@@ -676,7 +773,7 @@ export function gh({ stack }: StackContext) {
           OPENSEARCH_PASSWORD,
           OPENSEARCH_USERNAME,
           GIT_ORGANIZATION_ID,
-          table,
+          githubMappingTable,
           retryProcessTable,
           afterRepoSaveQueue,
           collectPRData,
@@ -711,7 +808,7 @@ export function gh({ stack }: StackContext) {
       },
       // GET Github app installations
       'GET /github/app/installations': {
-        function: 'packages/github/src/service/github-app-installations.handler',
+        function: 'packages/github/src/service/github-app-installation-list.handler',
         authorizer: 'admin',
       },
       // POST Webhook handler
@@ -721,27 +818,27 @@ export function gh({ stack }: StackContext) {
       },
       // GET GithubUser data
       'GET /github/user/{githubUserId}': {
-        function: 'packages/github/src/service/git-users.handler',
+        function: 'packages/github/src/service/get-user.handler',
         authorizer: 'universal',
       },
       // GET GithubRepo data
       'GET /github/repositories': {
-        function: 'packages/github/src/service/get-repos.handler',
+        function: 'packages/github/src/service/get-repo.handler',
         authorizer: 'universal',
       },
       // GET PR comments graph data
       'GET /github/graph/number-comments-added-to-prs': {
-        function: 'packages/github/src/service/get-pr-comments.handler',
+        function: 'packages/github/src/service/get-pr-comment.handler',
         authorizer: 'universal',
       },
       // GET Graph for frequency of code commits
       'GET /github/graph/code-commit-frequency': {
-        function: 'packages/github/src/service/get-frequency-code-commit.handler',
+        function: 'packages/github/src/service/get-commit-frequency.handler',
         authorizer: 'universal',
       },
       // GET Graph for number of PRs
       'GET /github/graph/number-pr-raised': {
-        function: 'packages/github/src/service/number-of-pr-raised.handler',
+        function: 'packages/github/src/service/pr-raised-count.handler',
         authorizer: 'universal',
       },
 
@@ -758,16 +855,18 @@ export function gh({ stack }: StackContext) {
 
       // GET github data ingestion failed retry
       'GET /github/retry/failed': {
-        function: 'packages/github/src/cron/retry-processes.handler',
+        function: 'packages/github/src/cron/retry-process.handler',
+      },
+
+      // GET create all ES indices
+      'GET /github/create-indices': {
+        function: 'packages/github/src/service/create-indices.handler',
       },
     },
   });
 
-  // Initialize cron that runs every hour to fetch failed processes from `retryProcessTable` Table and process them out
-  new Cron(stack, 'failed-process-retry-cron', {
-    schedule: 'cron(0/30 * ? * * *)',
-    job: processRetryFunction,
-  });
+  // Initialize cron
+  intializeCron(stack, processRetryFunction, ghCopilotFunction);
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,

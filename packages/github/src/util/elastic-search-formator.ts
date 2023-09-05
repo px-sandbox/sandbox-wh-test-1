@@ -1,18 +1,19 @@
 import { logger } from 'core';
+import { Other } from 'abstraction';
 
 export class ElasticSearchFormator {
-  public async exportActualResult(result: any): Promise<void> {
+  public async exportActualResult(result: Other.Type.Result): Promise<Other.Type.HitSource[]> {
     try {
-      const filteredArray: any = [];
-      const dataLength = result.hits.hits.length;
-      for (let i = 0; i < dataLength; i += 1) {
-        if (result.hits.hits[i]) {
-          const data = result.hits.hits[i]._source;
+      const filteredArray: Other.Type.HitSource[] = [];
+
+      result.hits.hits.forEach((hit: { _source: Record<string, unknown> }) => {
+        if (hit) {
+          const data = hit._source;
           if (Object.keys(data).length) {
             filteredArray.push(data);
           }
         }
-      }
+      });
       return filteredArray;
     } catch (error) {
       logger.error({

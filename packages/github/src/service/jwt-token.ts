@@ -1,6 +1,6 @@
 import { HttpStatusCode, logger, responseParser } from 'core';
 import { APIGatewayProxyResult } from 'aws-lambda';
-import { getOauthCode } from 'src/util/jwt-token';
+import { getOauthCode } from '../util/jwt-token';
 
 export async function getOauthToken(): Promise<APIGatewayProxyResult> {
   try {

@@ -322,28 +322,35 @@ const indices = [
       },
     },
   },
+  {
+    name: Github.Enums.IndexName.GitCopilot,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        dataTimestamp: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        isUsedInLastHour: { type: 'boolean' },
+        editor: { type: 'text' },
+        editorVersion: { type: 'text' },
+        featureUsed: { type: 'text' },
+        featureVersion: { type: 'text' },
+        userId: { type: 'keyword' },
+      },
+    },
+  },
 ];
 
 export async function createAllIndices(): Promise<void> {
-  // logger.info({
-  //   message: 'ELASTICSEARCH_INIT_DETAILS',
-  //   data: {
-  //     host: Config.OPENSEARCH_NODE,
-  //     password: Config.OPENSEARCH_PASSWORD,
-  //     username: Config.OPENSEARCH_USERNAME,
-  //   },
-  // });
   const esClient = await new ElasticSearchClient({
     host: Config.OPENSEARCH_NODE,
     username: Config.OPENSEARCH_USERNAME ?? '',
     password: Config.OPENSEARCH_PASSWORD ?? '',
   }).getClient();
-  for (const { name, mappings } of indices) {
+  indices.map(async ({ name, mappings }) => {
     try {
       const { statusCode } = await esClient.indices.exists({ index: name });
       if (statusCode === 200) {
         logger.info(`Index '${name}' already exists.`);
-        continue;
+        return;
       }
       await esClient.indices.create({ index: name, body: { mappings } });
       logger.info(`Index '${name}' created.`);
@@ -351,5 +358,5 @@ export async function createAllIndices(): Promise<void> {
       logger.info(`Error creating index '${name}':`, error);
       throw new Error('INDEX_CREATING_ERROR');
     }
-  }
+  });
 }

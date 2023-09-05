@@ -1,15 +1,15 @@
+import moment from 'moment';
+import esb from 'elastic-builder';
 import { Github } from 'abstraction';
-import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
-import moment from 'moment';
-import { DataProcessor } from './data-processor';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import esb from 'elastic-builder';
-import { searchedDataFormator } from 'src/util/response-formatter';
+import { mappingPrefixes } from '../constant/config';
+import { searchedDataFormator } from '../util/response-formatter';
+import { DataProcessor } from './data-processor';
 
 const delayAr = [0, 1, 1, 2, 3, 5, 8];
 export class PRProcessor extends DataProcessor<
@@ -27,13 +27,13 @@ export class PRProcessor extends DataProcessor<
     });
   }
 
-  private async delay(time: number) {
+  private async delay(time: number): Promise<void> {
     return new Promise((resolve) => {
       setTimeout(resolve, time);
       logger.info('Delay time : ', { delayTime: time });
     });
   }
-  async isCommitExist(attempt: number): Promise<boolean> {
+  private async isCommitExist(attempt: number): Promise<boolean> {
     if (attempt < 7) {
       // Set delay time in fibonacci series for 6 attempts to check commit id in dynamoDb.
       await this.delay(delayAr[attempt] * 1000);
@@ -52,7 +52,7 @@ export class PRProcessor extends DataProcessor<
     return false;
   }
 
-  async isPRExist(attempt: number): Promise<boolean> {
+  private async isPRExist(attempt: number): Promise<boolean> {
     if (attempt < 7) {
       // Set delay time in fibonacci series for 6 attempts to check PR ID in dynamoDb.
       await this.delay(delayAr[attempt] * 1000);
@@ -70,85 +70,66 @@ export class PRProcessor extends DataProcessor<
     return false;
   }
 
-  async processor(): Promise<Github.Type.PullRequest> {
-    /**
-     * On PR closed check if the PR is merged or not.
-     * If merged then check merged commit id exists or not.
-     * If not exists then hold for few seconds and check again.
-     * If not found commit id till 6th attempt then throw error.
-     * If commit id exists then update commit and proceed with PR.
-     */
-    if (
-      this.ghApiData.action === Github.Enums.PullRequest.Closed &&
-      this.ghApiData.merged === true
-    ) {
-      const commitParentId = await this.isCommitExist(1);
+  private async processMergedPR(): Promise<void> {
+    const commitParentId = await this.isCommitExist(1);
 
-      if (commitParentId) {
-        const matchQry = esb
-          .matchQuery('body.id', `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`)
-          .toJSON();
-        const searchMergeCommit = await this.esClient.searchWithEsb(
-          Github.Enums.IndexName.GitCommits,
-          matchQry
-        );
+    if (commitParentId) {
+      const matchQry = esb
+        .matchQuery('body.id', `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`)
+        .toJSON();
+      const searchMergeCommit = await this.esClient.searchWithEsb(
+        Github.Enums.IndexName.GitCommits,
+        matchQry
+      );
 
-        const [mergeCommitDetail] = await searchedDataFormator(searchMergeCommit);
-        logger.info('MERGE_COMMIT_DETAILS', mergeCommitDetail);
-        await new SQSClient().sendMessage(
-          {
-            commitId: this.ghApiData.merge_commit_sha,
-            isMergedCommit: this.ghApiData.merged,
-            mergedBranch: this.ghApiData.base.ref,
-            pushedBranch: this.ghApiData.head.ref,
-            repository: {
-              id: this.ghApiData.head.repo.id,
-              name: this.ghApiData.head.repo.name,
-              owner: this.ghApiData.head.repo.owner.login,
-            },
-            timestamp: mergeCommitDetail.committedAt,
+      const [mergeCommitDetail] = await searchedDataFormator(searchMergeCommit);
+      logger.info('MERGE_COMMIT_DETAILS', mergeCommitDetail);
+      await new SQSClient().sendMessage(
+        {
+          commitId: this.ghApiData.merge_commit_sha,
+          isMergedCommit: this.ghApiData.merged,
+          mergedBranch: this.ghApiData.base.ref,
+          pushedBranch: this.ghApiData.head.ref,
+          repository: {
+            id: this.ghApiData.head.repo.id,
+            name: this.ghApiData.head.repo.name,
+            owner: this.ghApiData.head.repo.owner.login,
           },
-          Queue.gh_commit_format.queueUrl,
-          `${this.ghApiData.merge_commit_sha}+merge`
-        );
-      } else {
-        logger.error('MERGE_COMMIT_NOT_FOUND', this.ghApiData);
-        throw new Error('ATTEMPT EXCEED : MERGE_COMMIT_NOT_FOUND');
-      }
+          timestamp: mergeCommitDetail.committedAt,
+        },
+        Queue.gh_commit_format.queueUrl,
+        `${this.ghApiData.merge_commit_sha}+merge`
+      );
+    } else {
+      logger.error('MERGE_COMMIT_NOT_FOUND', this.ghApiData);
+      throw new Error('ATTEMPT EXCEED : MERGE_COMMIT_NOT_FOUND');
     }
+  }
 
-    /**
-     * On PR's review requested action, we need to delay few seconds to check PR already exists.
-     */
-    if (this.ghApiData.action === Github.Enums.PullRequest.ReviewRequested) {
-      const pullExist = await this.isPRExist(1);
-      if (!pullExist) {
-        logger.error('PULL_REQUEST_NOT_FOUND', this.ghApiData);
-        throw new Error('ATTEMPT EXCEED : PULL_REQUEST_NOT_FOUND');
-      }
+  private async processPROnRequestedReviewers(): Promise<void> {
+    const pullExist = await this.isPRExist(1);
+    if (!pullExist) {
+      logger.error('PULL_REQUEST_NOT_FOUND', this.ghApiData);
+      throw new Error('ATTEMPT EXCEED : PULL_REQUEST_NOT_FOUND');
     }
+  }
 
-    const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
-    const reqReviewersData: Array<Github.Type.RequestedReviewers> = [];
-    this.ghApiData.requested_reviewers.map((reqReviewer) => {
-      reqReviewersData.push({
-        userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
-      });
-    });
-
-    const labelsData: Array<Github.Type.Labels> = [];
-    this.ghApiData.labels.map((label) => {
-      labelsData.push({
-        name: label.name,
-      });
-    });
-    const action = [
+  private setAction(): Github.Type.actions {
+    return [
       {
         action: this.ghApiData.action ?? 'initialized',
         actionTime: new Date().toISOString(),
         actionDay: moment().format('dddd'),
       },
     ];
+  }
+
+  private async setPullObj(
+    parentId: string,
+    reqReviewersData: Array<Github.Type.RequestedReviewers>,
+    labelsData: Array<Github.Type.Labels>,
+    action: Github.Type.actions
+  ): Promise<Github.Type.PullRequest> {
     const pullObj = {
       id: parentId || uuid(),
       body: {
@@ -197,6 +178,45 @@ export class PRProcessor extends DataProcessor<
         githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
       },
     };
+    return pullObj;
+  }
+
+  /**
+   * ----------------------------------------------------------
+   * PULL REQUEST PROCESSOR
+   * ----------------------------------------------------------
+   * On PR closed check if the PR is merged or not.
+   * If merged then check merged commit id exists or not.
+   * If not exists then hold for few seconds and check again.
+   * If not found commit id till 6th attempt then throw error.
+   * If commit id exists then update commit and proceed with PR.
+   */
+  public async processor(): Promise<Github.Type.PullRequest> {
+    if (
+      this.ghApiData.action === Github.Enums.PullRequest.Closed &&
+      this.ghApiData.merged === true
+    ) {
+      await this.processMergedPR();
+    }
+
+    /**
+     * On PR's review requested action, we need to delay few seconds to check PR already exists.
+     */
+    if (this.ghApiData.action === Github.Enums.PullRequest.ReviewRequested) {
+      await this.processPROnRequestedReviewers();
+    }
+
+    const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
+    const reqReviewersData: Array<Github.Type.RequestedReviewers> =
+      this.ghApiData.requested_reviewers.map((reqReviewer) => ({
+        userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
+      }));
+
+    const labelsData: Array<Github.Type.Labels> = this.ghApiData.labels.map((label) => ({
+      name: label.name,
+    }));
+    const action = this.setAction();
+    const pullObj = await this.setPullObj(parentId, reqReviewersData, labelsData, action);
     return pullObj;
   }
 }
