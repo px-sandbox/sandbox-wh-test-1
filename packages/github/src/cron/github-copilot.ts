@@ -6,6 +6,24 @@ import { Github } from 'abstraction';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
+async function initializeOctokit(): Promise<
+  RequestInterface<
+    object & {
+      headers: {
+        Authorization: string | undefined;
+      };
+    }
+  >
+> {
+  // Generate new installation access token to make request
+  const installationAccessToken = await getInstallationAccessToken();
+  const octokit = ghRequest.request.defaults({
+    headers: {
+      Authorization: `Bearer ${installationAccessToken.body.token}`,
+    },
+  });
+  return octokit;
+}
 async function getGHCopilotReports(
   octokit: RequestInterface<
     object & {
@@ -26,7 +44,7 @@ async function getGHCopilotReports(
     );
     const reportsPerPage = ghCopilotResp.data as {
       total_seats: number;
-      seats: Github.ExternalType.Api.GHCopilotReports[];
+      seats: Github.ExternalType.Api.GHCopilotReport[];
     };
 
     const newCounter = counter + reportsPerPage.seats.length;
@@ -46,7 +64,15 @@ async function getGHCopilotReports(
     logger.error('getGHCopilotReports.error', { pageNo, error });
 
     if (error.status === 401) {
+      const octokit = await initializeOctokit();
       return getGHCopilotReports(octokit, pageNo, counter);
+    }
+    if (error.status === 403) {
+      const resetTime = new Date(parseInt(error.headers['X-Ratelimit-Reset']) * 1000);
+      const secondsUntilReset = Math.max(resetTime.getTime() - Date.now(), 0) / 1000;
+      logger.warn(
+        `GitHub API rate limit exceeded. Waiting ${secondsUntilReset} seconds until reset.`
+      );
     }
     throw error;
   }
@@ -54,12 +80,7 @@ async function getGHCopilotReports(
 
 export async function handler(): Promise<void> {
   try {
-    const installationAccessToken = await getInstallationAccessToken();
-    const octokit = ghRequest.request.defaults({
-      headers: {
-        Authorization: `Bearer ${installationAccessToken.body.token}`,
-      },
-    });
+    const octokit = await initializeOctokit();
     await getGHCopilotReports(octokit);
   } catch (error: unknown) {
     logger.error({
