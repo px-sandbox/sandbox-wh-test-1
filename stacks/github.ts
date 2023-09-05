@@ -861,6 +861,7 @@ export function gh({ stack }: StackContext) {
       // GET create all ES indices
       'GET /github/create-indices': {
         function: 'packages/github/src/service/create-indices.handler',
+      },
     },
   });
 
