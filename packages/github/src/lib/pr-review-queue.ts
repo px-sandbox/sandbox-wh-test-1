@@ -42,7 +42,6 @@ async function setReviewTime(
   prReview: Github.ExternalType.Webhook.PRReview
 ): Promise<{ approved_at: string | null; reviewed_at: string | null; review_seconds: number }> {
   let { approvedAt, reviewedAt, reviewSeconds } = pullData;
-
   if (
     !reviewedAt &&
     pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReview.user.id}` &&
@@ -99,9 +98,9 @@ export async function pRReviewOnQueue(
       new SQSClient().sendMessage(
         {
           ...octokitRespData,
-          reviewedAt,
-          approvedAt,
-          reviewSeconds,
+          reviewed_at: reviewedAt,
+          approved_at: approvedAt,
+          review_seconds: reviewSeconds,
           action: Github.Enums.Comments.REVIEW_COMMENTED,
         },
         Queue.gh_pr_format.queueUrl
