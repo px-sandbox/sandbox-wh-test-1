@@ -337,6 +337,23 @@ const indices = [
       },
     },
   },
+  {
+    name: Github.Enums.IndexName.GitActiveBranches,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        repoId: { type: 'keyword' },
+        organizationId: { type: 'keyword' },
+        branches: {
+          properties: {
+            name: { type: 'text' },
+          },
+        },
+        branchesCount: { type: 'integer' },
+        createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+      },
+    },
+  },
 ];
 
 export async function createAllIndices(): Promise<void> {

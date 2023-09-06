@@ -862,6 +862,11 @@ export function gh({ stack }: StackContext) {
       'GET /github/create-indices': {
         function: 'packages/github/src/service/create-indices.handler',
       },
+      // GET github active number of branches
+      'GET /github/graph/number-of-branches': {
+        function: 'packages/github/src/service/active-branches.handler',
+        authorizer: 'universal',
+      },
     },
   });
 
