@@ -5,7 +5,7 @@ import { Github } from 'abstraction';
 import { Queue } from 'sst/node/queue';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { ActiveBranchProcessor } from 'src/processors/active-branch';
+import { ActiveBranchProcessor } from '../../../processors/active-branch';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 async function countBranchesAndSendToSQS(
@@ -68,8 +68,7 @@ async function countBranchesAndSendToSQS(
     const data = await branchProcessor.processor();
 
     await branchProcessor.sendDataToQueue(data, Queue.gh_active_branch_counter_index.queueUrl);
-    console.log('DATA SEND TO Index SQS SUCCESSFULLY....', JSON.stringify(data));
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(`
     countBranchesAndSendToSQS.error for ${JSON.stringify(repo)} at ${date}
     Error: ${JSON.stringify(error)}

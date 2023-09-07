@@ -33,4 +33,3 @@ const handler = APIHandler(activeBranches, {
   eventSchema: transpileSchema(prCommentsGraphSchema),
 });
 export { handler, activeBranches };
-

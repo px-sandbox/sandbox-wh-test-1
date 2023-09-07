@@ -1,5 +1,6 @@
 import { ElasticSearchClient, SearchResponse, Hit } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
@@ -25,28 +26,18 @@ async function getReposAndSendToSQS(
       },
     } = (await esClient.getClient().search({
       index: Github.Enums.IndexName.GitRepo,
-      size: perPage,
-      from: (pageNo - 1) * perPage,
-      body: {
-        query: {
-          // bool: {
-          //   must: [
-          //     {
-          //       match: {
-          //         isDeleted: false,
-          //       },
-          //     },
-          //   ],
-          // },
-          match_all: {},
-        },
-      },
+      body: esb
+        .requestBodySearch()
+        .size(perPage)
+        .from((pageNo - 1) * perPage)
+        .query(esb.boolQuery().must(esb.termQuery('body.isDeleted', false)))
+        .toJSON(),
     })) as { body: SearchResponse<{ body: Github.Type.Repository }> };
 
     await Promise.all(
       repos.map((repo: Hit<{ body: Github.Type.Repository }>) => {
         if (repo._source && repo._source.body) {
-          new SQSClient().sendMessage(
+          return new SQSClient().sendMessage(
             {
               repo: repo._source.body as Github.Type.Repository,
               date: currentDate,
@@ -54,11 +45,12 @@ async function getReposAndSendToSQS(
             Queue.gh_active_branch_counter_format.queueUrl
           );
         }
+        return Promise.resolve();
       })
     );
 
     return repos.length;
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(`
     getReposAndSendToSQS.error at page: ${pageNo}
     Error: ${JSON.stringify(error)}
@@ -75,9 +67,10 @@ export async function handler(): Promise<void> {
     let pageNo = 1;
     const perPage = 100;
     do {
+      // eslint-disable-next-line no-await-in-loop
       processingCount = await getReposAndSendToSQS(today, pageNo, perPage);
-      console.log(`processingCount: ${processingCount}`);
-      pageNo++;
+      logger.info(`processingCount: ${processingCount}`);
+      pageNo += 1;
     } while (processingCount === perPage);
 
     logger.info(

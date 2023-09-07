@@ -8,3 +8,10 @@ export interface ActiveBranches {
     createdAt: string;
   };
 }
+
+export interface RawActiveBRanches {
+  repoId: string;
+  organizationId: string;
+  createdAt: string;
+  branchesCount: number;
+}

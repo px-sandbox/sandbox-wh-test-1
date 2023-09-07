@@ -1,9 +1,9 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { saveActiveBranch } from '../../../lib/save-active-branches';
 import { Github } from 'abstraction';
-import { logProcessToRetry } from 'src/util/retry-process';
+import { logProcessToRetry } from '../../../util/retry-process';
+import { saveActiveBranch } from '../../../lib/save-active-branches';
 
 export async function handler(event: SQSEvent): Promise<void> {
   await Promise.all(
