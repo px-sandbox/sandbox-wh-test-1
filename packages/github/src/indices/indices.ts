@@ -342,13 +342,9 @@ const indices = [
     _id: { type: 'uuid' },
     mappings: {
       properties: {
+        id: { type: 'keyword' },
         repoId: { type: 'keyword' },
         organizationId: { type: 'keyword' },
-        branches: {
-          properties: {
-            name: { type: 'text' },
-          },
-        },
         branchesCount: { type: 'integer' },
         createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
       },
@@ -369,6 +365,7 @@ export async function createAllIndices(): Promise<void> {
         logger.info(`Index '${name}' already exists.`);
         return;
       }
+
       await esClient.indices.create({ index: name, body: { mappings } });
       logger.info(`Index '${name}' created.`);
     } catch (error) {

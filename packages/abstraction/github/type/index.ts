@@ -15,6 +15,7 @@ import { QueueMessage } from './retry-process';
 import { CommentState, MessageBody } from './historical-review';
 import { CalculateGraphAvgData } from './graph';
 import { GHCopilotReport } from './gh-copilot';
+import { ActiveBranches } from './active-branches';
 
 export {
   Branch,
@@ -43,4 +44,5 @@ export {
   MessageBody,
   CalculateGraphAvgData,
   GHCopilotReport,
+  ActiveBranches,
 };
