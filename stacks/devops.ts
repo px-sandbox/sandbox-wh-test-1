@@ -4,8 +4,8 @@ import { gh } from './github';
 export function devops({ stack }: StackContext): void | Promise<void> {
   const { ghAPI } = use(gh);
 
-  const config = new Config.Parameter(stack, 'GITHUB_HTTP_API_ID', {
+  // eslint-disable-next-line no-new
+  new Config.Parameter(stack, 'GITHUB_HTTP_API_ID', {
     value: ghAPI.httpApiId,
   });
-  console.log('Config Params created :', config);
 }

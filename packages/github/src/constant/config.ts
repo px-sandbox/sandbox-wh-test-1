@@ -8,6 +8,7 @@ export const mappingPrefixes = {
   pRReviewComment: 'gh_pr_review_comment',
   push: 'gh_push',
   pRReview: 'gh_pr_review',
+  branch_count: 'gh_branch_count',
 };
 export const esbDateHistogramInterval = {
   day: 'day',

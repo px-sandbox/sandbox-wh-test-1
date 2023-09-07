@@ -28,6 +28,7 @@ const activeBranches = async function getActiveBranches(
     throw new Error(`Something went wrong: ${e}`);
   }
 };
+
 const handler = APIHandler(activeBranches, {
   eventSchema: transpileSchema(prCommentsGraphSchema),
 });
