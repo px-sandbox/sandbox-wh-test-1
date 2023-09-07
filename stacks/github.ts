@@ -793,7 +793,7 @@ export function gh({ stack }: StackContext) {
       },
     },
     defaults: {
-      // authorizer: 'universal',
+      authorizer: 'universal',
       function: {
         timeout: '30 seconds',
         bind: [
