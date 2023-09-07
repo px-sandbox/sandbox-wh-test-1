@@ -592,6 +592,9 @@ export function gh({ stack }: StackContext) {
     branchIndexDataQueue,
   ]);
 
+  ghCopilotFormatDataQueue.bind([ghCopilotIndexDataQueue, GIT_ORGANIZATION_ID]);
+  ghCopilotIndexDataQueue.bind([OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+
   collectPRData.bind([
     githubMappingTable,
     retryProcessTable,

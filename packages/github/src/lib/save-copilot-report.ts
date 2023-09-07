@@ -15,9 +15,9 @@ export async function saveGHCopilotReport(data: Github.Type.GHCopilotReport): Pr
     await esClientObj.putDocument(Github.Enums.IndexName.GitCopilot, updatedData);
     logger.info('saveGHCopilotReport.successful');
   } catch (error: unknown) {
-    logger.error('saveGHCopilotReport.error', {
-      error,
-    });
+    logger.error(
+      `saveGHCopilotReport.error :${error instanceof Error ? error.message : JSON.stringify(error)}`
+    );
     throw error;
   }
 }
