@@ -1,6 +1,8 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, logger, responseParser } from 'core';
-import { activeBranchGraphData, activeBranchesAvg } from 'src/matrics/get-active-no-of-branches';
+import { HttpStatusCode, logger, responseParser, APIHandler } from 'core';
+import { transpileSchema } from '@middy/validator/transpile';
+import { activeBranchGraphData, activeBranchesAvg } from '../matrics/get-active-no-of-branches';
+import { prCommentsGraphSchema } from './validations';
 
 const activeBranches = async function getActiveBranches(
   event: APIGatewayProxyEvent
@@ -26,3 +28,9 @@ const activeBranches = async function getActiveBranches(
     throw new Error(`Something went wrong: ${e}`);
   }
 };
+
+const handler = APIHandler(activeBranches, {
+  eventSchema: transpileSchema(prCommentsGraphSchema),
+});
+export { handler, activeBranches };
+

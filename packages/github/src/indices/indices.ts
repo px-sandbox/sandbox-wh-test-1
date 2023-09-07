@@ -345,6 +345,8 @@ const indices = [
         id: { type: 'keyword' },
         repoId: { type: 'keyword' },
         organizationId: { type: 'keyword' },
+        repoId: { type: 'keyword' },
+        organizationId: { type: 'keyword' },
         branchesCount: { type: 'integer' },
         createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
       },

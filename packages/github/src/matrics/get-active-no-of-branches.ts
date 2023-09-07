@@ -73,7 +73,7 @@ export async function activeBranchGraphData(
     activeBranchGraphQuery
       .agg(
         graphIntervals
-          .agg(esb.valueCountAggregation('repo_count', 'body.repoId'))
+          .agg(esb.valueCountAggregation('repo_count', 'body.repoId.keyword'))
           .agg(esb.sumAggregation('branch_count', 'body.branchCount'))
           .agg(
             esb
@@ -121,7 +121,7 @@ export async function activeBranchesAvg(
             esb.termsQuery('body.repoId', repoIds),
           ])
       )
-      .agg(esb.valueCountAggregation('repo_count', 'body.repoId'))
+      .agg(esb.valueCountAggregation('repo_count', 'body.repoId.keyword'))
       .agg(esb.sumAggregation('branch_count', 'body.branchCount'))
       .size(0)
       .toJSON();
