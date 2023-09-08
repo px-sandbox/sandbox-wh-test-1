@@ -1,8 +1,8 @@
-import { BranchProcessor } from '../branch';
 import { Github } from 'abstraction';
 import { Config } from 'sst/node/config';
 import moment from 'moment';
 import { expect, it, vi, describe } from 'vitest';
+import { BranchProcessor } from '../branch';
 
 const mockData = {
   id: '123',
@@ -30,11 +30,6 @@ const mockData1 = {
   protected: false,
 } as Github.ExternalType.Api.Branch;
 
-const mockMappingPrefixes = {
-  branch: 'gh_branch',
-  organization: 'my-organization',
-  repo: 'my-repo',
-};
 vi.mock('src/constant/config', (mockMappingPrefixes) => ({
   mappingPrefixes: mockMappingPrefixes,
 }));
@@ -45,9 +40,7 @@ const mockGetParentId = vi.fn().mockResolvedValue('94cc22e3-824b-48d5-8df7-12a9c
 vi.mock('src/constant/config', () => ({
   mappingPrefixes: 'gh_branch',
 }));
-
-const mockNoParentId = vi.fn().mockResolvedValue('');
-
+// eslint-disable-next-line max-lines-per-function
 describe('Branch', async () => {
   // Create a new instance of the BranchProcessor class with the mock data
   it('should process the branch data correctly', async () => {
