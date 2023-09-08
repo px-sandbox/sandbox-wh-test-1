@@ -32,7 +32,7 @@ export class PRProcessor extends DataProcessor<
       const pull = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
       logger.info('PULL REQUEST ID : ', this.ghApiData.id);
 
-      // If commit exist then it will return true otherwise it will attempt again to check commit id.
+      // If pull exist then it will return true otherwise it will attempt again to check pull id.
       if (pull) {
         return true;
       }
