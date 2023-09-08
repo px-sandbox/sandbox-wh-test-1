@@ -1,14 +1,11 @@
 import moment from 'moment';
-import esb from 'elastic-builder';
 import { Github } from 'abstraction';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { mappingPrefixes } from '../constant/config';
-import { searchedDataFormator } from '../util/response-formatter';
 import { DataProcessor } from './data-processor';
 
 const delayAr = [0, 1, 1, 2, 3, 5, 8];
@@ -16,15 +13,8 @@ export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
   Github.Type.PullRequest
 > {
-  private esClient: ElasticSearchClient;
   constructor(data: Github.ExternalType.Webhook.PullRequest) {
     super(data);
-
-    this.esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
   }
 
   private async delay(time: number): Promise<void> {
@@ -33,24 +23,24 @@ export class PRProcessor extends DataProcessor<
       logger.info('Delay time : ', { delayTime: time });
     });
   }
-  private async isCommitExist(attempt: number): Promise<boolean> {
-    if (attempt < 7) {
-      // Set delay time in fibonacci series for 6 attempts to check commit id in dynamoDb.
-      await this.delay(delayAr[attempt] * 1000);
-      const commit = await this.getParentId(
-        `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`
-      );
-      logger.info('MERGE COMMIT ID : ', { commit: this.ghApiData.merge_commit_sha });
+  // private async isCommitExist(attempt: number): Promise<boolean> {
+  //   if (attempt < 7) {
+  //     // Set delay time in fibonacci series for 6 attempts to check commit id in dynamoDb.
+  //     await this.delay(delayAr[attempt] * 1000);
+  //     const commit = await this.getParentId(
+  //       `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`
+  //     );
+  //     logger.info('MERGE COMMIT ID : ', { commit: this.ghApiData.merge_commit_sha });
 
-      // If commit exist then it will return true otherwise it will attempt again to check commit id.
-      if (commit) {
-        return true;
-      }
-      logger.info('NEXT ATTEMPT : ', { attempt: attempt + 1 });
-      return this.isCommitExist(attempt + 1);
-    }
-    return false;
-  }
+  //     // If commit exist then it will return true otherwise it will attempt again to check commit id.
+  //     if (commit) {
+  //       return true;
+  //     }
+  //     logger.info('NEXT ATTEMPT : ', { attempt: attempt + 1 });
+  //     return this.isCommitExist(attempt + 1);
+  //   }
+  //   return false;
+  // }
 
   private async isPRExist(attempt: number): Promise<boolean> {
     if (attempt < 7) {
@@ -70,41 +60,41 @@ export class PRProcessor extends DataProcessor<
     return false;
   }
 
-  private async processMergedPR(): Promise<void> {
-    const commitParentId = await this.isCommitExist(1);
+  // private async processMergedPR(): Promise<void> {
+  //   const commitParentId = await this.isCommitExist(1);
 
-    if (commitParentId) {
-      const matchQry = esb
-        .matchQuery('body.id', `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`)
-        .toJSON();
-      const searchMergeCommit = await this.esClient.searchWithEsb(
-        Github.Enums.IndexName.GitCommits,
-        matchQry
-      );
+  //   if (commitParentId) {
+  //     const matchQry = esb
+  //       .matchQuery('body.id', `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`)
+  //       .toJSON();
+  //     const searchMergeCommit = await this.esClient.searchWithEsb(
+  //       Github.Enums.IndexName.GitCommits,
+  //       matchQry
+  //     );
 
-      const [mergeCommitDetail] = await searchedDataFormator(searchMergeCommit);
-      logger.info('MERGE_COMMIT_DETAILS', mergeCommitDetail);
-      await new SQSClient().sendMessage(
-        {
-          commitId: this.ghApiData.merge_commit_sha,
-          isMergedCommit: this.ghApiData.merged,
-          mergedBranch: this.ghApiData.base.ref,
-          pushedBranch: this.ghApiData.head.ref,
-          repository: {
-            id: this.ghApiData.head.repo.id,
-            name: this.ghApiData.head.repo.name,
-            owner: this.ghApiData.head.repo.owner.login,
-          },
-          timestamp: mergeCommitDetail.committedAt,
-        },
-        Queue.gh_commit_format.queueUrl,
-        `${this.ghApiData.merge_commit_sha}+merge`
-      );
-    } else {
-      logger.error('MERGE_COMMIT_NOT_FOUND', this.ghApiData);
-      throw new Error('ATTEMPT EXCEED : MERGE_COMMIT_NOT_FOUND');
-    }
-  }
+  //     const [mergeCommitDetail] = await searchedDataFormator(searchMergeCommit);
+  //     logger.info('MERGE_COMMIT_DETAILS', mergeCommitDetail);
+  //     await new SQSClient().sendMessage(
+  //       {
+  //         commitId: this.ghApiData.merge_commit_sha,
+  //         isMergedCommit: this.ghApiData.merged,
+  //         mergedBranch: this.ghApiData.base.ref,
+  //         pushedBranch: this.ghApiData.head.ref,
+  //         repository: {
+  //           id: this.ghApiData.head.repo.id,
+  //           name: this.ghApiData.head.repo.name,
+  //           owner: this.ghApiData.head.repo.owner.login,
+  //         },
+  //         timestamp: mergeCommitDetail.committedAt,
+  //       },
+  //       Queue.gh_commit_format.queueUrl,
+  //       `${this.ghApiData.merge_commit_sha}+merge`
+  //     );
+  //   } else {
+  //     logger.error('MERGE_COMMIT_NOT_FOUND', this.ghApiData);
+  //     throw new Error('ATTEMPT EXCEED : MERGE_COMMIT_NOT_FOUND');
+  //   }
+  // }
 
   private async processPROnRequestedReviewers(): Promise<void> {
     const pullExist = await this.isPRExist(1);
@@ -196,7 +186,21 @@ export class PRProcessor extends DataProcessor<
       this.ghApiData.action === Github.Enums.PullRequest.Closed &&
       this.ghApiData.merged === true
     ) {
-      await this.processMergedPR();
+      logger.info('PROCESS_MERGED_PR', this.ghApiData);
+      await new SQSClient().sendMessage(
+        {
+          commitId: this.ghApiData.merge_commit_sha,
+          isMergedCommit: this.ghApiData.merged,
+          mergedBranch: this.ghApiData.base.ref,
+          pushedBranch: this.ghApiData.head.ref,
+          repository: {
+            id: this.ghApiData.head.repo.id,
+            name: this.ghApiData.head.repo.name,
+            owner: this.ghApiData.head.repo.owner.login,
+          },
+        },
+        Queue.gh_merge_commit_process.queueUrl
+      );
     }
 
     /**
