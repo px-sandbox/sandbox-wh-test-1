@@ -316,7 +316,7 @@ export function gh({ stack }: StackContext) {
   });
 
   // eslint-disable-next-line no-new
-  new Queue(stack, 'gh_copilot_format', {
+  const ghCopilotFormatDataQueue = new Queue(stack, 'gh_copilot_format', {
     consumer: {
       function: {
         handler: 'packages/github/src/sqs/handlers/formatter/gh-copilot.handler',
