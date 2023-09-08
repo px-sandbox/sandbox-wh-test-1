@@ -12,10 +12,14 @@ export class ActiveBranchProcessor extends DataProcessor<
   }
 
   public async processor(): Promise<Github.Type.ActiveBranches> {
+    const bodyId = `${mappingPrefixes.branch_count}_${this.ghApiData.repoId}_${this.ghApiData.createdAt}`;
+
+    const parentId: string = await this.getParentId(bodyId);
+
     return {
-      id: uuid(),
+      id: parentId || uuid(),
       body: {
-        id: `${mappingPrefixes.branch_count}_${this.ghApiData.repoId}_${this.ghApiData.createdAt}`,
+        id: bodyId,
         repoId: this.ghApiData.repoId,
         organizationId: this.ghApiData.organizationId,
         createdAt: this.ghApiData.createdAt,
