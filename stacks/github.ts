@@ -65,7 +65,9 @@ function intializeCron(
   // initialize a cron that runs every night at 23:30 UTC
   // eslint-disable-next-line no-new
   new Cron(stack, 'branch-counter-cron', {
-    schedule: 'cron(30 23 ? * * *)',
+    // schedule: 'cron(30 23 ? * * *)',
+    // run every 5 minutes for testing
+    schedule: 'cron(0/5 * ? * * *)',
     job: ghBranchCounterFunction,
   });
 }
@@ -342,16 +344,23 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  const branchCounterIndexQueue = new Queue(stack, 'gh_active_branch_counter_index', {
-    consumer: {
-      function: new Function(stack, 'gh_active_branch_counter_index_func', {
-        handler: 'packages/github/src/sqs/handlers/indexer/active-branch.handler',
-        bind: [retryProcessTable],
-      }),
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const branchCounterIndexQueue = new Queue(stack, 'gh_active_branch_counter_index');
+
+  branchCounterIndexQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_active_branch_counter_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/active-branch.handler',
+      bind: [
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        retryProcessTable,
+        githubMappingTable,
+        branchCounterIndexQueue,
+      ],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
@@ -361,7 +370,15 @@ export function gh({ stack }: StackContext) {
   branchCounterFormatterQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_active_branch_counter_format_func', {
       handler: 'packages/github/src/sqs/handlers/formatter/active-branch.handler',
-      bind: [branchCounterFormatterQueue, branchCounterIndexQueue, retryProcessTable],
+      bind: [
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        branchCounterFormatterQueue,
+        branchCounterIndexQueue,
+        retryProcessTable,
+        githubMappingTable,
+      ],
     }),
 
     cdk: {
@@ -524,10 +541,6 @@ export function gh({ stack }: StackContext) {
   });
 
   // bind tables and config to queue
-
-  branchCounterFormatterQueue.bind([OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-
-  branchCounterIndexQueue.bind([OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
   userFormatDataQueue.bind([
     githubMappingTable,
