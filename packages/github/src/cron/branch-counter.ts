@@ -6,6 +6,7 @@ import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
 import { Github } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 
 // get all repos from ES which are not deleted and send to SQS
 async function getReposAndSendToSQS(
@@ -20,19 +21,31 @@ async function getReposAndSendToSQS(
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
 
+    const body = esb
+      .requestBodySearch()
+      .size(perPage)
+      .from((pageNo - 1) * perPage)
+      .query(
+        esb
+          .boolQuery()
+          .should([
+            esb.termQuery('body.isDeleted', false),
+            esb.boolQuery().mustNot(esb.existsQuery('body.isDeleted')),
+          ])
+          .minimumShouldMatch(1)
+      )
+      .toJSON();
+
     const {
       body: {
         hits: { hits: repos },
       },
     } = (await esClient.getClient().search({
       index: Github.Enums.IndexName.GitRepo,
-      body: esb
-        .requestBodySearch()
-        .size(perPage)
-        .from((pageNo - 1) * perPage)
-        .query(esb.boolQuery().must(esb.termQuery('body.isDeleted', false)))
-        .toJSON(),
+      body,
     })) as { body: SearchResponse<{ body: Github.Type.Repository }> };
+
+    console.log(`BODY: ${JSON.stringify(body)}`);
 
     await Promise.all(
       repos.map((repo: Hit<{ body: Github.Type.Repository }>) => {
@@ -59,9 +72,12 @@ async function getReposAndSendToSQS(
   }
 }
 
-export async function handler(): Promise<void> {
+export async function handler(event: APIGatewayProxyEvent): Promise<void> {
   try {
-    const today = moment().format('YYYY-MM-DD');
+    const today =
+      event && event.queryStringParameters?.date
+        ? event.queryStringParameters?.date
+        : moment().format('YYYY-MM-DD');
 
     let processingCount = 0;
     let pageNo = 1;
