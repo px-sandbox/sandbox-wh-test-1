@@ -74,7 +74,7 @@ export async function activeBranchGraphData(
       .agg(
         graphIntervals
           .agg(esb.valueCountAggregation('repo_count', 'body.repoId.keyword'))
-          .agg(esb.sumAggregation('branch_count', 'body.branchCount'))
+          .agg(esb.sumAggregation('branch_count', 'body.branchesCount'))
           .agg(
             esb
               .bucketScriptAggregation('combined_avg')
@@ -122,12 +122,12 @@ export async function activeBranchesAvg(
           ])
       )
       .agg(esb.valueCountAggregation('repo_count', 'body.repoId.keyword'))
-      .agg(esb.sumAggregation('branch_count', 'body.branchCount'))
+      .agg(esb.sumAggregation('branch_count', 'body.branchesCount'))
       .size(0)
       .toJSON();
     logger.info('ACTIVE_BRANCHES_AVG_ESB_QUERY', activeBranchesAvgQuery);
     const data = await esClientObj.getClient().search({
-      index: Github.Enums.IndexName.GitPull,
+      index: Github.Enums.IndexName.GitActiveBranches,
       body: activeBranchesAvgQuery,
     });
 

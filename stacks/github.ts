@@ -65,7 +65,9 @@ function intializeCron(
   // initialize a cron that runs every night at 23:30 UTC
   // eslint-disable-next-line no-new
   new Cron(stack, 'branch-counter-cron', {
-    schedule: 'cron(30 23 ? * * *)',
+    // schedule: 'cron(30 23 ? * * *)',
+    // run every 5 minutes for testing
+    schedule: 'cron(0/5 * ? * * *)',
     job: ghBranchCounterFunction,
   });
 }
@@ -162,32 +164,6 @@ export function gh({ stack }: StackContext): void {
     },
   });
 
-  const pRIndexDataQueue = new Queue(stack, 'gh_pr_index');
-  pRIndexDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'gh_pr_index_func', {
-      handler: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
-      bind: [pRIndexDataQueue],
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
-  const pRFormatDataQueue = new Queue(stack, 'gh_pr_format');
-  pRFormatDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'gh_pr_format_func', {
-      handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
-      timeout: '30 seconds',
-      bind: [pRFormatDataQueue, pRIndexDataQueue],
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
-
   const commitIndexDataQueue = new Queue(stack, 'gh_commit_index');
   commitIndexDataQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_commit_index_func', {
@@ -211,6 +187,45 @@ export function gh({ stack }: StackContext): void {
     function: new Function(stack, 'gh_commit_format_func', {
       handler: 'packages/github/src/sqs/handlers/formatter/commit.handler',
       bind: [commitFormatDataQueue, commitIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+
+  const ghMergedCommitProcessQueue = new Queue(stack, 'gh_merge_commit_process');
+  ghMergedCommitProcessQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_merge_commit_process_func', {
+      handler: 'packages/github/src/sqs/handlers/merge-commit.handler',
+      bind: [ghMergedCommitProcessQueue, commitFormatDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+
+  const pRIndexDataQueue = new Queue(stack, 'gh_pr_index');
+  pRIndexDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
+      bind: [pRIndexDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+  const pRFormatDataQueue = new Queue(stack, 'gh_pr_format');
+  pRFormatDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_pr_format_func', {
+      handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
+      timeout: '30 seconds',
+      bind: [pRFormatDataQueue, pRIndexDataQueue, ghMergedCommitProcessQueue],
     }),
     cdk: {
       eventSource: {
@@ -315,7 +330,6 @@ export function gh({ stack }: StackContext): void {
     },
   });
 
-  // eslint-disable-next-line no-new
   const ghCopilotFormatDataQueue = new Queue(stack, 'gh_copilot_format', {
     consumer: {
       function: {
@@ -330,16 +344,23 @@ export function gh({ stack }: StackContext): void {
     },
   });
 
-  const branchCounterIndexQueue = new Queue(stack, 'gh_active_branch_counter_index', {
-    consumer: {
-      function: new Function(stack, 'gh_active_branch_counter_index_func', {
-        handler: 'packages/github/src/sqs/handlers/indexer/active-branch.handler',
-        bind: [retryProcessTable],
-      }),
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const branchCounterIndexQueue = new Queue(stack, 'gh_active_branch_counter_index');
+
+  branchCounterIndexQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_active_branch_counter_index_func', {
+      handler: 'packages/github/src/sqs/handlers/indexer/active-branch.handler',
+      bind: [
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        retryProcessTable,
+        githubMappingTable,
+        branchCounterIndexQueue,
+      ],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
@@ -349,7 +370,15 @@ export function gh({ stack }: StackContext): void {
   branchCounterFormatterQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_active_branch_counter_format_func', {
       handler: 'packages/github/src/sqs/handlers/formatter/active-branch.handler',
-      bind: [branchCounterFormatterQueue, branchCounterIndexQueue, retryProcessTable],
+      bind: [
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        branchCounterFormatterQueue,
+        branchCounterIndexQueue,
+        retryProcessTable,
+        githubMappingTable,
+      ],
     }),
 
     cdk: {
@@ -513,10 +542,6 @@ export function gh({ stack }: StackContext): void {
 
   // bind tables and config to queue
 
-  branchCounterFormatterQueue.bind([OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-
-  branchCounterIndexQueue.bind([OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-
   userFormatDataQueue.bind([
     githubMappingTable,
     retryProcessTable,
@@ -555,6 +580,16 @@ export function gh({ stack }: StackContext): void {
     OPENSEARCH_NODE,
     OPENSEARCH_USERNAME,
     OPENSEARCH_PASSWORD,
+    ghMergedCommitProcessQueue,
+  ]);
+  ghMergedCommitProcessQueue.bind([
+    githubMappingTable,
+    retryProcessTable,
+    GIT_ORGANIZATION_ID,
+    OPENSEARCH_NODE,
+    OPENSEARCH_USERNAME,
+    OPENSEARCH_PASSWORD,
+    ghMergedCommitProcessQueue,
     commitFormatDataQueue,
   ]);
   pushFormatDataQueue.bind([
@@ -777,7 +812,13 @@ export function gh({ stack }: StackContext): void {
 
   const ghCopilotFunction = new Function(stack, 'github-copilot', {
     handler: 'packages/github/src/cron/github-copilot.handler',
-    bind: [],
+    bind: [
+      ghCopilotFormatDataQueue,
+      ghCopilotIndexDataQueue,
+      GITHUB_APP_PRIVATE_KEY_PEM,
+      GITHUB_APP_ID,
+      GITHUB_SG_INSTALLATION_ID,
+    ],
   });
 
   const ghBranchCounterFunction = new Function(stack, 'branch-counter', {
