@@ -927,6 +927,12 @@ export function gh({ stack }: StackContext) {
       'GET /github/graph/number-of-branches-by-repo': {
         function: 'packages/github/src/cron/branch-counter.handler',
       },
+
+      // GET Graph for avg lines of code per day per developer
+      'GET /github/graph/lines-of-code': {
+        function: 'packages/github/src/service/get-lines-of-code.handler',
+        authorizer: 'universal',
+      },
     },
   });
 
