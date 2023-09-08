@@ -16,8 +16,7 @@ const esClient = new ElasticSearchClient({
   password: Config.OPENSEARCH_PASSWORD ?? '',
 });
 export const handler = async function processMergeCommit(event: SQSEvent): Promise<void> {
-  logger.info(`processMergeCommit - Records Length: ${event.Records.length}`);
-  console.log(event.Records);
+  logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
       try {
