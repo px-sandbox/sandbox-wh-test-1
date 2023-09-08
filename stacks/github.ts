@@ -197,7 +197,7 @@ export function gh({ stack }: StackContext) {
   ghMergedCommitProcessQueue.addConsumer(stack, {
     function: new Function(stack, 'gh_merge_commit_process_func', {
       handler: 'packages/github/src/sqs/handlers/merge-commit.handler',
-      bind: [commitFormatDataQueue],
+      bind: [ghMergedCommitProcessQueue, commitFormatDataQueue],
     }),
     cdk: {
       eventSource: {
@@ -576,6 +576,7 @@ export function gh({ stack }: StackContext) {
     OPENSEARCH_NODE,
     OPENSEARCH_USERNAME,
     OPENSEARCH_PASSWORD,
+    ghMergedCommitProcessQueue,
     commitFormatDataQueue,
   ]);
   pushFormatDataQueue.bind([
