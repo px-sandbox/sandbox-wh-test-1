@@ -328,8 +328,7 @@ export function gh({ stack }: StackContext) {
     },
   });
 
-  // eslint-disable-next-line no-new
-  new Queue(stack, 'gh_copilot_format', {
+  const ghCopilotFormatDataQueue = new Queue(stack, 'gh_copilot_format', {
     consumer: {
       function: {
         handler: 'packages/github/src/sqs/handlers/formatter/gh-copilot.handler',
@@ -799,7 +798,13 @@ export function gh({ stack }: StackContext) {
 
   const ghCopilotFunction = new Function(stack, 'github-copilot', {
     handler: 'packages/github/src/cron/github-copilot.handler',
-    bind: [],
+    bind: [
+      ghCopilotFormatDataQueue,
+      ghCopilotIndexDataQueue,
+      GITHUB_APP_PRIVATE_KEY_PEM,
+      GITHUB_APP_ID,
+      GITHUB_SG_INSTALLATION_ID,
+    ],
   });
 
   const ghBranchCounterFunction = new Function(stack, 'branch-counter', {
