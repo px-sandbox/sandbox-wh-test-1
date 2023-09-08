@@ -7,6 +7,19 @@ import { Config } from 'sst/node/config';
 import { esbDateHistogramInterval } from '../constant/config';
 import { getWeekDaysCount } from '../util/weekend-calculations';
 
+// script for sum of file changes
+const sumScript = new Script().inline(`def files = params._source.body.changes;
+            if (files.size()>0){
+              def changesValue = 0;
+              for(item in files){
+                if(!(item.filename =~ /\w*-lock.json/)){
+                  changesValue += item.changes;
+                }
+              }
+              if (changesValue != null) {
+                return changesValue;
+              }}`);
+
 function processGraphInterval(
   intervals: string,
   startDate: string,
@@ -62,24 +75,16 @@ export async function linesOfCodeGraph(
     const linesOfCodeGraphQuery = esb.requestBodySearch().size(0);
 
     linesOfCodeGraphQuery.query(
-      esb.boolQuery().must([
-        esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-        esb.termsQuery('body.repoId', repoIds),
-        // esb.termsQuery('body.isMergedCommit', 'false'),
-      ])
+      esb
+        .boolQuery()
+        .must([
+          esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
+          esb.termsQuery('body.repoId', repoIds),
+          esb.termsQuery('body.isMergedCommit', 'false'),
+        ])
     );
     const graphIntervals = processGraphInterval(intervals, startDate, endDate);
-    const sumScript = new Script().inline(`def files = params._source.body.changes;
-            if (files.size()>0){
-              def changesValue = 0;
-              for(item in files){
-                if(!(item.filename =~ /\w*-lock./)){
-                  changesValue += item.changes;
-                }
-              }
-              if (changesValue != null) {
-                return changesValue;
-              }}`);
+
     linesOfCodeGraphQuery
       .agg(
         graphIntervals
@@ -100,7 +105,6 @@ export async function linesOfCodeGraph(
         Github.Enums.IndexName.GitCommits,
         linesOfCodeGraphQuery
       );
-    logger.info('LINE_OF_CODES_GRAPH_ESB_RESPONSE', data);
     return data.commentsPerDay.buckets.map((item) => ({
       date: item.key_as_string,
       value: parseFloat(item.combined_avg.value.toFixed(2)),
@@ -123,17 +127,6 @@ export async function linesOfCodeAvg(
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
     const prCommentAvgQuery = esb.requestBodySearch().size(0);
-    const sumScript = new Script().inline(`def files = params._source.body.changes;
-            if (files.size()>0){
-              def changesValue = 0;
-              for(item in files){
-                if(!(item.filename =~ /\w*-lock./)){
-                  changesValue += item.changes;
-                }
-              }
-              if (changesValue != null) {
-                return changesValue;
-              }}`);
     prCommentAvgQuery
       .query(
         esb
@@ -153,14 +146,11 @@ export async function linesOfCodeAvg(
       index: Github.Enums.IndexName.GitCommits,
       body: prCommentAvgQuery,
     });
-    const totalChanges = Number(data.body.aggregations.file_changes_matric.value);
+    const totalChanges = Number(data.body.aggregations.file_changes_sum.value);
     const totalAuthor = Number(data.body.aggregations.authorId.value);
-    console.log('totalChanges', totalChanges);
-    console.log('totalAuthor', totalAuthor);
-    // const weekDaysCount = getWeekDaysCount(startDate, endDate);
-    // const totalPerAuthor = totalChanges / totalAuthor;
-    // console.log('totalPerAuthor', totalPerAuthor);
-    return { value: 0 };
+    const weekDaysCount = getWeekDaysCount(startDate, endDate);
+    const totalPerAuthor = totalChanges == 0 ? 0 : totalChanges / totalAuthor;
+    return { value: parseFloat((totalPerAuthor / weekDaysCount).toFixed(2)) };
   } catch (e) {
     logger.error('linesOfCodeGraphAvg.error', e);
     throw e;

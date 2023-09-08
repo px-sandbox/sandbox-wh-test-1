@@ -13,16 +13,12 @@ const linesOfCode = async function getLinesOfCode(
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [''];
 
   try {
-    // const test = await linesOfCodeGraph(startDate, endDate, interval, repoIds);
-    // const test2 = await linesOfCodeAvg(startDate, endDate, repoIds);
-    // console.log('test', test);
-    // console.log('test2', test2);
-    const [frequencyOfCodeCommitsGraphData, frequencyOfCodeCommitsAvg] = await Promise.all([
+    const [linesOfCodeGraphData, linesOfCodeAvgData] = await Promise.all([
       linesOfCodeGraph(startDate, endDate, interval, repoIds),
       linesOfCodeAvg(startDate, endDate, repoIds),
     ]);
     return responseParser
-      .setBody({ graphData: frequencyOfCodeCommitsGraphData, headline: frequencyOfCodeCommitsAvg })
+      .setBody({ graphData: linesOfCodeGraphData, headline: linesOfCodeAvgData })
       .setMessage('lines of code data')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')
