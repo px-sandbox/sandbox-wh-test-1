@@ -41,6 +41,7 @@ async function getGHCopilotReports(
     const ghCopilotResp = await octokit(
       `GET /org/${org}/copilot/billing/seats?page=${pageNo}&per_page=${perPage}}`
     );
+
     const reportsPerPage = ghCopilotResp.data as {
       total_seats: number;
       seats: Github.ExternalType.Api.GHCopilotReport[];
