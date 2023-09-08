@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Organization } from '../organization';
 import { Github } from 'abstraction';
+import { Organization } from '../organization';
 
+// eslint-disable-next-line max-lines-per-function
 describe('Organization', () => {
   const mockData: Github.ExternalType.Api.Organization = {
     id: 'gh_org_123',
@@ -41,9 +42,6 @@ describe('Organization', () => {
   const mockMappingPrefixes = {
     organization: 'gh_org',
   };
-  const mockParamsMapping = {
-    myParam: 'gh_param',
-  };
   vi.mock('src/constant/config', () => ({
     mappingPrefixes: 'gh_org',
   }));
@@ -73,6 +71,7 @@ describe('Organization', () => {
     expect(result.body.updatedAt).toEqual('2022-01-01T00:00:00Z');
     expect(result.body.deletedAt).toEqual(false);
   });
+
   it('generates uuid incase no parentId is found', async () => {
     // Create a new instance of the Organization class with the mock data
     const org = new Organization(mockData);

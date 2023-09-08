@@ -1,9 +1,8 @@
-import { RepositoryProcessor } from '../repo';
 import { Github } from 'abstraction';
-import { Config } from 'sst/node/config';
 import moment from 'moment';
-import { vi, describe, it, expect } from 'vitest';
-import { logger } from 'core';
+import { Config } from 'sst/node/config';
+import { describe, expect, it, vi } from 'vitest';
+import { RepositoryProcessor } from '../repo';
 
 const mockData = {
   id: '123',
@@ -37,10 +36,6 @@ const mockDataWithoutActions = {
   updated_at: '2022-01-01T00:00:00Z',
   action: 'initialized',
 } as Github.ExternalType.Api.Repository;
-const mockMappingPrefixes = {
-  repo: 'my-repo',
-  organization: 'my-organization',
-};
 
 const mockGetParentId = vi.fn().mockResolvedValue('93f855b4-15ca-4d81-bfb3-c8ee38abfdfd');
 vi.mock('src/constant/config', () => ({
@@ -49,7 +44,7 @@ vi.mock('src/constant/config', () => ({
 vi.mock('src/model/params-mapping', (mockParamsMapping) => ({
   ParamsMapping: mockParamsMapping,
 }));
-
+// eslint-disable-next-line max-lines-per-function
 describe('Repository', () => {
   // Test case 1: Test the processor method with valid data
   it('should process the repository data correctly', async () => {
@@ -155,7 +150,7 @@ describe('Repository', () => {
     } as Github.ExternalType.Api.Repository);
     processor.getParentId = mockGetParentId;
     // Call the processor method and check that it throws an error
-    await expect(processor.processor()).toBeFalsy(), /Invalid data/;
+    await expect(processor.processor()).toBeFalsy();
 
     // Check that the getParentId method was called with the correct arguments
   });

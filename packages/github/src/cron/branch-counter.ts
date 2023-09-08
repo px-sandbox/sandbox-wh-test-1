@@ -45,7 +45,7 @@ async function getReposAndSendToSQS(
       body,
     })) as { body: SearchResponse<{ body: Github.Type.Repository }> };
 
-    console.log(`BODY: ${JSON.stringify(body)}`);
+    logger.info(`BODY: ${JSON.stringify(body)}`);
 
     await Promise.all(
       repos.map((repo: Hit<{ body: Github.Type.Repository }>) => {

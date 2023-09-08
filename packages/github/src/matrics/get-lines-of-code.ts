@@ -1,7 +1,7 @@
 import esb, { Script } from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
-import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github/type';
+import { IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { esbDateHistogramInterval } from '../constant/config';
@@ -12,7 +12,7 @@ const sumScript = new Script().inline(`def files = params._source.body.changes;
             if (files.size()>0){
               def changesValue = 0;
               for(item in files){
-                if(!(item.filename =~ /\w*-lock.json/)){
+                if(!(item.filename =~ /w*-lock.*/)){
                   changesValue += item.changes;
                 }
               }
@@ -149,7 +149,7 @@ export async function linesOfCodeAvg(
     const totalChanges = Number(data.body.aggregations.file_changes_sum.value);
     const totalAuthor = Number(data.body.aggregations.authorId.value);
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
-    const totalPerAuthor = totalChanges == 0 ? 0 : totalChanges / totalAuthor;
+    const totalPerAuthor = totalChanges === 0 ? 0 : totalChanges / totalAuthor;
     return { value: parseFloat((totalPerAuthor / weekDaysCount).toFixed(2)) };
   } catch (e) {
     logger.error('linesOfCodeGraphAvg.error', e);

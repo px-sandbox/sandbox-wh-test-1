@@ -27,18 +27,12 @@ const mockDataNoUser = {
   deleted_at: '2023-08-29T13:01:00Z',
   action: 'deleted',
 } as Github.ExternalType.Api.User;
-
+// eslint-disable-next-line max-lines-per-function
 describe('Users', () => {
   beforeEach(() => {
     // tell vitest we use mocked time
     vi.useFakeTimers();
   });
-  const mockMappingPrefixes = {
-    users: 'gh_user',
-  };
-  const mockParamsMapping = {
-    myParam: 'gh_param',
-  };
   vi.mock('src/constant/config', () => ({
     mappingPrefixes: 'gh_users',
   }));

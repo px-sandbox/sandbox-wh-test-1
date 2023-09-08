@@ -47,19 +47,13 @@ const mockData = {
   ],
   action: 'initialized',
 } as Github.ExternalType.Api.Commit;
-
+// eslint-disable-next-line max-lines-per-function
 describe('CommitProcessor', () => {
   beforeEach(() => {
     // tell vi we use mocked time
     vi.useFakeTimers();
   });
 
-  const mockMappingPrefixes = {
-    commit: 'gh_commit',
-  };
-  const mockParamsMapping = {
-    myParam: 'gh_param',
-  };
   vi.mock('src/constant/config', () => ({
     mappingPrefixes: 'gh_commit',
   }));

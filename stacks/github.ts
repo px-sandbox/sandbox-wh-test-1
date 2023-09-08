@@ -71,7 +71,7 @@ function intializeCron(
 }
 
 // eslint-disable-next-line max-lines-per-function
-export function gh({ stack }: StackContext) {
+export function gh({ stack }: StackContext): void {
   // Destructure secrets
   const {
     GITHUB_APP_ID,
