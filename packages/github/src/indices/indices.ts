@@ -345,8 +345,6 @@ const indices = [
         id: { type: 'keyword' },
         repoId: { type: 'keyword' },
         organizationId: { type: 'keyword' },
-        repoId: { type: 'keyword' },
-        organizationId: { type: 'keyword' },
         branchesCount: { type: 'integer' },
         createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
       },
@@ -354,25 +352,35 @@ const indices = [
   },
 ];
 
-export async function createAllIndices(): Promise<void> {
-  const esClient = await new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-  }).getClient();
-  indices.map(async ({ name, mappings }) => {
-    try {
-      const { statusCode } = await esClient.indices.exists({ index: name });
-      if (statusCode === 200) {
-        logger.info(`Index '${name}' already exists.`);
-        return;
-      }
+async function createMapping(name: string, mappings: unknown) {
+  try {
+    const esClient = new ElasticSearchClient({
+      host: Config.OPENSEARCH_NODE,
+      username: Config.OPENSEARCH_USERNAME ?? '',
+      password: Config.OPENSEARCH_PASSWORD ?? '',
+    }).getClient();
 
-      await esClient.indices.create({ index: name, body: { mappings } });
-      logger.info(`Index '${name}' created.`);
-    } catch (error) {
-      logger.info(`Error creating index '${name}':`, error);
-      throw new Error('INDEX_CREATING_ERROR');
+    const { statusCode } = await esClient.indices.exists({ index: name });
+    if (statusCode === 200) {
+      logger.info(`Index '${name}' already exists.`);
+      return;
     }
-  });
+
+    logger.info(`Creating mapping for index '${name}'...`);
+
+    await esClient.indices.create({ index: name, body: { mappings } });
+
+    logger.info(`Created mapping for '${name}' suuceeful`);
+  } catch (error) {
+    logger.error(`Error creating mapping for '${name}':`, error);
+    throw error;
+  }
+}
+
+export async function createAllIndices(): Promise<void> {
+  logger.info('Creating all indices...');
+
+  await Promise.all(indices.map(async ({ name, mappings }) => createMapping(name, mappings)));
+
+  logger.info('All indices created successfully');
 }
