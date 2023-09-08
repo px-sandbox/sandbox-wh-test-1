@@ -1,4 +1,8 @@
-import { Client } from '@elastic/elasticsearch';
+import { Client, estypes } from '@elastic/elasticsearch';
+
+export type SearchResponse<T> = estypes.SearchResponse<T>;
+export type EqlHits = estypes.EqlHits;
+export type Hit<T> = estypes.Hit<T>;
 
 export type ElasticSearchDocument = {
   id: string;

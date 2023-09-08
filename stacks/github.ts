@@ -41,22 +41,36 @@ function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
 
 function intializeCron(
   stack: Stack,
+  // eslint-disable-next-line @typescript-eslint/ban-types
   processRetryFunction: Function,
-  ghCopilotFunction: Function
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  ghCopilotFunction: Function,
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  ghBranchCounterFunction: Function
 ): void {
   // Initialized cron job for every 1 hour to fetch failed processes from `retryProcessTable` Table and process them out
   // Cron Expression : cron(Minutes Hours Day-of-month Month Day-of-week Year)
+  // eslint-disable-next-line no-new
   new Cron(stack, 'failed-process-retry-cron', {
     schedule: 'cron(0/30 * ? * * *)',
     job: processRetryFunction,
   });
 
+  // eslint-disable-next-line no-new
   new Cron(stack, 'github-copilot-cron', {
     schedule: 'cron(0/60 * ? * * *)',
     job: ghCopilotFunction,
   });
+
+  // initialize a cron that runs every night at 23:30 UTC
+  // eslint-disable-next-line no-new
+  new Cron(stack, 'branch-counter-cron', {
+    schedule: 'cron(30 23 ? * * *)',
+    job: ghBranchCounterFunction,
+  });
 }
 
+// eslint-disable-next-line max-lines-per-function
 export function gh({ stack }: StackContext) {
   // Destructure secrets
   const {
@@ -300,7 +314,9 @@ export function gh({ stack }: StackContext) {
       },
     },
   });
-  const ghCopilotFormatDataQueue = new Queue(stack, 'gh_copilot_format', {
+
+  // eslint-disable-next-line no-new
+  new Queue(stack, 'gh_copilot_format', {
     consumer: {
       function: {
         handler: 'packages/github/src/sqs/handlers/formatter/gh-copilot.handler',
@@ -310,6 +326,35 @@ export function gh({ stack }: StackContext) {
         eventSource: {
           batchSize: 5,
         },
+      },
+    },
+  });
+
+  const branchCounterIndexQueue = new Queue(stack, 'gh_active_branch_counter_index', {
+    consumer: {
+      function: new Function(stack, 'gh_active_branch_counter_index_func', {
+        handler: 'packages/github/src/sqs/handlers/indexer/active-branch.handler',
+        bind: [retryProcessTable],
+      }),
+      cdk: {
+        eventSource: {
+          batchSize: 5,
+        },
+      },
+    },
+  });
+
+  const branchCounterFormatterQueue = new Queue(stack, 'gh_active_branch_counter_format');
+
+  branchCounterFormatterQueue.addConsumer(stack, {
+    function: new Function(stack, 'gh_active_branch_counter_format_func', {
+      handler: 'packages/github/src/sqs/handlers/formatter/active-branch.handler',
+      bind: [branchCounterFormatterQueue, branchCounterIndexQueue, retryProcessTable],
+    }),
+
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
     },
   });
@@ -467,6 +512,11 @@ export function gh({ stack }: StackContext) {
   });
 
   // bind tables and config to queue
+
+  branchCounterFormatterQueue.bind([OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+
+  branchCounterIndexQueue.bind([OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+
   userFormatDataQueue.bind([
     githubMappingTable,
     retryProcessTable,
@@ -717,6 +767,8 @@ export function gh({ stack }: StackContext) {
       historicalBranch,
       collectPRCommitsData,
       collectPRReviewCommentsData,
+      branchCounterIndexQueue,
+      branchCounterFormatterQueue,
       GITHUB_APP_PRIVATE_KEY_PEM,
       GITHUB_APP_ID,
       GITHUB_SG_INSTALLATION_ID,
@@ -725,13 +777,12 @@ export function gh({ stack }: StackContext) {
 
   const ghCopilotFunction = new Function(stack, 'github-copilot', {
     handler: 'packages/github/src/cron/github-copilot.handler',
-    bind: [
-      ghCopilotFormatDataQueue,
-      ghCopilotIndexDataQueue,
-      GITHUB_APP_PRIVATE_KEY_PEM,
-      GITHUB_APP_ID,
-      GITHUB_SG_INSTALLATION_ID,
-    ],
+    bind: [],
+  });
+
+  const ghBranchCounterFunction = new Function(stack, 'branch-counter', {
+    handler: 'packages/github/src/cron/branch-counter.handler',
+    bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchCounterFormatterQueue],
   });
 
   const ghAPI = new Api(stack, 'api', {
@@ -766,6 +817,7 @@ export function gh({ stack }: StackContext) {
           pRReviewCommentFormatDataQueue,
           pushFormatDataQueue,
           pRReviewFormatDataQueue,
+          branchCounterFormatterQueue,
           GITHUB_BASE_URL,
           GITHUB_APP_ID,
           GITHUB_APP_PRIVATE_KEY_PEM,
@@ -865,16 +917,21 @@ export function gh({ stack }: StackContext) {
       'GET /github/create-indices': {
         function: 'packages/github/src/service/create-indices.handler',
       },
+
       // GET github active number of branches
       'GET /github/graph/number-of-branches': {
         function: 'packages/github/src/service/active-branches.handler',
         authorizer: 'universal',
       },
+
+      'GET /github/graph/number-of-branches-by-repo': {
+        function: 'packages/github/src/cron/branch-counter.handler',
+      },
     },
   });
 
   // Initialize cron
-  intializeCron(stack, processRetryFunction, ghCopilotFunction);
+  intializeCron(stack, processRetryFunction, ghCopilotFunction, ghBranchCounterFunction);
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,
