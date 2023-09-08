@@ -779,7 +779,7 @@ export function gh({ stack }: StackContext) {
 
   const ghBranchCounterFunction = new Function(stack, 'branch-counter', {
     handler: 'packages/github/src/cron/branch-counter.handler',
-    bind: [],
+    bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchCounterFormatterQueue],
   });
 
   const ghAPI = new Api(stack, 'api', {
