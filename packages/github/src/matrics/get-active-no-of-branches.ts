@@ -127,7 +127,7 @@ export async function activeBranchesAvg(
       .toJSON();
     logger.info('ACTIVE_BRANCHES_AVG_ESB_QUERY', activeBranchesAvgQuery);
     const data = await esClientObj.getClient().search({
-      index: Github.Enums.IndexName.GitPull,
+      index: Github.Enums.IndexName.GitActiveBranches,
       body: activeBranchesAvgQuery,
     });
 
