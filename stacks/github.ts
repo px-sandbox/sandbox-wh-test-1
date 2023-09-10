@@ -72,8 +72,15 @@ function intializeCron(
   });
 }
 
-// eslint-disable-next-line max-lines-per-function
-export function gh({ stack }: StackContext): void {
+// eslint-disable-next-line max-lines-per-function,
+export function gh({ stack }: StackContext): {
+  ghAPI: Api<{
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    universal: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
+  }>;
+} {
   // Destructure secrets
   const {
     GITHUB_APP_ID,
@@ -804,6 +811,7 @@ export function gh({ stack }: StackContext): void {
       collectPRReviewCommentsData,
       branchCounterIndexQueue,
       branchCounterFormatterQueue,
+      ghMergedCommitProcessQueue,
       GITHUB_APP_PRIVATE_KEY_PEM,
       GITHUB_APP_ID,
       GITHUB_SG_INSTALLATION_ID,
