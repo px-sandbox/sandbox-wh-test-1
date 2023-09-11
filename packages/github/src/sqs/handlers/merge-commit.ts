@@ -39,6 +39,7 @@ export const handler = async function processMergeCommit(event: SQSEvent): Promi
             Queue.gh_merge_commit_process.queueUrl,
             new Error('mergeCommitDetail not found')
           );
+          return false;
         }
         logger.info('MERGE_COMMIT_DETAILS', mergeCommitDetail);
         messageBody.timestamp = mergeCommitDetail.committedAt;
