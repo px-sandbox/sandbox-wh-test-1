@@ -12,6 +12,38 @@ import { getOctokitResp } from '../../../util/octokit-response';
 import { searchedDataFormator } from '../../../util/response-formatter';
 import { logProcessToRetry } from '../../../util/retry-process';
 
+const installationAccessToken = await getInstallationAccessToken();
+const octokit = ghRequest.request.defaults({
+  headers: {
+    Authorization: `Bearer ${installationAccessToken.body.token}`,
+  },
+});
+
+async function processFileChanges<T>(
+  files: Array<T>,
+  filesLink: string | undefined
+): Promise<Array<T>> {
+  let nextFilesLink = filesLink;
+  let filesChanges = files;
+  try {
+    if (!nextFilesLink) {
+      return filesChanges;
+    }
+    const nextLinkRegex = /<([^>]+)>;\s*rel="next"/;
+    const nextLinkMatch = nextFilesLink.match(nextLinkRegex);
+    if (!nextLinkMatch) {
+      return filesChanges;
+    }
+    const response = await octokit(`GET ${nextLinkMatch[1]}`);
+    filesChanges = [...files, ...response.data.files];
+    nextFilesLink = response.headers.link;
+    return processFileChanges(filesChanges, nextFilesLink);
+  } catch (error) {
+    logger.error('ERROR_IN_PROCESS_FILE_CHANGES_COMMIT', error);
+    throw error;
+  }
+}
+
 export const handler = async function commitFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
 
@@ -46,17 +78,16 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           logger.info('COMMIT_FOUND_IN_ELASTICSEARCH', { commit });
           return false;
         }
-        const installationAccessToken = await getInstallationAccessToken();
-        const octokit = ghRequest.request.defaults({
-          headers: {
-            Authorization: `Bearer ${installationAccessToken.body.token}`,
-          },
-        });
-
         const responseData = await octokit(
           `GET /repos/${repoOwner}/${repoName}/commits/${commitId}`
         );
+        const filesLink = responseData.headers.link;
+        if (filesLink) {
+          const files = await processFileChanges(responseData.data.files, filesLink);
+          responseData.data.files = files;
+        }
 
+        logger.info(`FILE_COUNT: ${responseData.data.files.length}`);
         const commitProcessor = new CommitProcessor({
           ...getOctokitResp(responseData),
           commits: {
