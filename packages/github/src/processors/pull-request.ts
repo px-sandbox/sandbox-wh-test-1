@@ -8,46 +8,12 @@ import { logger } from 'core';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 
-const delayAr = [0, 1, 1, 2, 3, 5, 8];
 export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
   Github.Type.PullRequest
 > {
   constructor(data: Github.ExternalType.Webhook.PullRequest) {
     super(data);
-  }
-
-  private async delay(time: number): Promise<void> {
-    return new Promise((resolve) => {
-      setTimeout(resolve, time);
-      logger.info('Delay time : ', { delayTime: time });
-    });
-  }
-
-  private async isPRExist(attempt: number): Promise<boolean> {
-    if (attempt < 7) {
-      // Set delay time in fibonacci series for 6 attempts to check PR ID in dynamoDb.
-      await this.delay(delayAr[attempt] * 1000);
-
-      const pull = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
-      logger.info('PULL REQUEST ID : ', this.ghApiData.id);
-
-      // If pull exist then it will return true otherwise it will attempt again to check pull id.
-      if (pull) {
-        return true;
-      }
-      logger.info('NEXT ATTEMPT : ', { attempt: attempt + 1 });
-      return this.isPRExist(attempt + 1);
-    }
-    return false;
-  }
-
-  private async processPROnRequestedReviewers(): Promise<void> {
-    const pullExist = await this.isPRExist(1);
-    if (!pullExist) {
-      logger.error('PULL_REQUEST_NOT_FOUND', this.ghApiData);
-      throw new Error('ATTEMPT EXCEED : PULL_REQUEST_NOT_FOUND');
-    }
   }
 
   private setAction(): Github.Type.actions {
@@ -148,14 +114,6 @@ export class PRProcessor extends DataProcessor<
         Queue.gh_merge_commit_process.queueUrl
       );
     }
-
-    /**
-     * On PR's review requested action, we need to delay few seconds to check PR already exists.
-     */
-    if (this.ghApiData.action === Github.Enums.PullRequest.ReviewRequested) {
-      await this.processPROnRequestedReviewers();
-    }
-
     const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
     const reqReviewersData: Array<Github.Type.RequestedReviewers> =
       this.ghApiData.requested_reviewers.map((reqReviewer) => ({

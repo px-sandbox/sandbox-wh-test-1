@@ -1,11 +1,11 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { logProcessToRetry } from '../../../util/retry-process';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
-import { logProcessToRetry } from 'src/util/retry-process';
 
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
@@ -57,7 +57,6 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           repoOwner,
           createdAt,
         } = messageBody;
-        console.log('githubCommitId', githubCommitId);
         const responseData = await octokit(
           `GET /repos/${repoOwner}/${repoName}/commits/${githubCommitId}`
         );

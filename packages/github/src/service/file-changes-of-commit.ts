@@ -3,13 +3,12 @@ import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const orgName = event?.queryStringParameters?.orgName || '';
-  const indexSize = event?.queryStringParameters?.indexSize || 10000;
   const repoName = event?.queryStringParameters?.repoName || '';
   try {
     const esClientObj = await new ElasticSearchClient({
@@ -33,7 +32,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       commitLength: commits.length,
     });
     await Promise.all(
-      commits.map(async (commit: any) => {
+      commits.map(async (commit: Github.Type.Commits) => {
         new SQSClient().sendMessage(
           { ...commit, repoName, repoOwner: orgName },
           Queue.gh_commit_file_changes.queueUrl
