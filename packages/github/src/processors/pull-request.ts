@@ -91,28 +91,14 @@ export class PRProcessor extends DataProcessor<
     return false;
   }
 
-  // eslint-disable-next-line complexity
   private async processPRAction(): Promise<void> {
     switch (this.ghApiData.action) {
       case Github.Enums.PullRequest.ReviewRequested:
       case Github.Enums.PullRequest.ReviewRequestRemoved:
       case Github.Enums.PullRequest.Edited:
       case Github.Enums.PullRequest.Reopened:
-      case Github.Enums.PullRequest.Assigned:
-      case Github.Enums.PullRequest.Unassigned:
       case Github.Enums.PullRequest.Labeled:
       case Github.Enums.PullRequest.Unlabeled:
-      case Github.Enums.PullRequest.Locked:
-      case Github.Enums.PullRequest.Unlocked:
-      case Github.Enums.PullRequest.ReadyForReview:
-      case Github.Enums.PullRequest.Demilestoned:
-      case Github.Enums.PullRequest.Milestoned:
-      case Github.Enums.PullRequest.ConvertedToDraft:
-      case Github.Enums.PullRequest.AutoMergeEnabled:
-      case Github.Enums.PullRequest.AutoMergeDisabled:
-      case Github.Enums.PullRequest.Synchronize:
-      case Github.Enums.PullRequest.Dequeued:
-      case Github.Enums.PullRequest.Enqueued:
       case Github.Enums.PullRequest.Closed:
         {
           const pr = await this.isPRExist();
