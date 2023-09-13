@@ -82,6 +82,51 @@ export class PRProcessor extends DataProcessor<
     };
     return pullObj;
   }
+  private async isPRExist(): Promise<boolean> {
+    const pull = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
+    logger.info('PULL REQUEST ID : ', this.ghApiData.id);
+    if (pull) {
+      return true;
+    }
+    return false;
+  }
+
+  // eslint-disable-next-line complexity
+  private async processPRAction(): Promise<void> {
+    switch (this.ghApiData.action) {
+      case Github.Enums.PullRequest.ReviewRequested:
+      case Github.Enums.PullRequest.ReviewRequestRemoved:
+      case Github.Enums.PullRequest.Edited:
+      case Github.Enums.PullRequest.Reopened:
+      case Github.Enums.PullRequest.Assigned:
+      case Github.Enums.PullRequest.Unassigned:
+      case Github.Enums.PullRequest.Labeled:
+      case Github.Enums.PullRequest.Unlabeled:
+      case Github.Enums.PullRequest.Locked:
+      case Github.Enums.PullRequest.Unlocked:
+      case Github.Enums.PullRequest.ReadyForReview:
+      case Github.Enums.PullRequest.Demilestoned:
+      case Github.Enums.PullRequest.Milestoned:
+      case Github.Enums.PullRequest.ConvertedToDraft:
+      case Github.Enums.PullRequest.AutoMergeEnabled:
+      case Github.Enums.PullRequest.AutoMergeDisabled:
+      case Github.Enums.PullRequest.Synchronize:
+      case Github.Enums.PullRequest.Dequeued:
+      case Github.Enums.PullRequest.Enqueued:
+      case Github.Enums.PullRequest.Closed:
+        {
+          const pr = await this.isPRExist();
+          if (!pr) {
+            logger.info('PR_NOT_FOUND', this.ghApiData.id);
+            throw new Error('PR_NOT_FOUND');
+          }
+        }
+        break;
+      default:
+        logger.info('PROCESS_NEW_PR', this.ghApiData.id);
+        break;
+    }
+  }
 
   /**
    * ----------------------------------------------------------
@@ -94,6 +139,7 @@ export class PRProcessor extends DataProcessor<
    * If commit id exists then update commit and proceed with PR.
    */
   public async processor(): Promise<Github.Type.PullRequest> {
+    await this.processPRAction();
     if (
       this.ghApiData.action === Github.Enums.PullRequest.Closed &&
       this.ghApiData.merged === true
@@ -114,6 +160,7 @@ export class PRProcessor extends DataProcessor<
         Queue.gh_merge_commit_process.queueUrl
       );
     }
+
     const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
     const reqReviewersData: Array<Github.Type.RequestedReviewers> =
       this.ghApiData.requested_reviewers.map((reqReviewer) => ({
