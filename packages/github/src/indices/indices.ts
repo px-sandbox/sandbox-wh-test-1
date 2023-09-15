@@ -401,6 +401,7 @@ const indices = [
               format: 'strict_date_optional_time',
             },
             isUsedInLastHour: { type: 'boolean' },
+            lastUsedAt: { type: 'date', format: 'strict_date_optional_time' },
             editor: { type: 'text' },
             editorVersion: { type: 'text' },
             featureUsed: { type: 'text' },
