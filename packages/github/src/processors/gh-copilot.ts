@@ -18,6 +18,7 @@ export class GHCopilotProcessor extends DataProcessor<
       id: uuid(),
       body: {
         dataTimestamp: new Date().toISOString(),
+        lastUsedAt: lastActivityAt ?? null,
         isUsedInLastHour: lastActivityAt
           ? moment.utc(lastActivityAt).isAfter(moment.utc().subtract(1, 'hour'))
           : false,
