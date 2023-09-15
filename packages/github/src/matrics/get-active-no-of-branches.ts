@@ -73,7 +73,7 @@ export async function activeBranchGraphData(
     activeBranchGraphQuery
       .agg(
         graphIntervals
-          .agg(esb.valueCountAggregation('repo_count', 'body.repoId.keyword'))
+          .agg(esb.valueCountAggregation('repo_count', 'body.repoId'))
           .agg(esb.sumAggregation('branch_count', 'body.branchesCount'))
           .agg(
             esb
