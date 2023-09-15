@@ -2,6 +2,7 @@ export interface GHCopilotReport {
   id: string;
   body: {
     dataTimestamp: string;
+    lastUsedAt: string;
     isUsedInLastHour: boolean;
     editor: string | null;
     editorVersion: string | null;

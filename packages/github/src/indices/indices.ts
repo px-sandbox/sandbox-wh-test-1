@@ -328,6 +328,7 @@ const indices = [
     mappings: {
       properties: {
         dataTimestamp: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        lastUsedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         isUsedInLastHour: { type: 'boolean' },
         editor: { type: 'text' },
         editorVersion: { type: 'text' },
