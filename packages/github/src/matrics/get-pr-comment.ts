@@ -122,7 +122,7 @@ function getPRCommentAvgQuery(
       esb
         .scriptedMetricAggregation('pr_comment_avg')
         .initScript('state.transactions = []')
-        .mapScript(`state.transactions.add(doc['body.pullId.keyword'].value)`)
+        .mapScript(`state.transactions.add(doc['body.pullId'].value)`)
         .combineScript(`double comments = 0;
       Map prMap = new HashMap();
       for(t in state.transactions){
