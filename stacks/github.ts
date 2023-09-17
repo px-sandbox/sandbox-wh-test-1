@@ -58,7 +58,7 @@ function intializeCron(
 
   // eslint-disable-next-line no-new
   new Cron(stack, 'github-copilot-cron', {
-    schedule: 'cron(0/60 * ? * * *)',
+    schedule: 'cron(0 * ? * * *)',
     job: ghCopilotFunction,
   });
 
