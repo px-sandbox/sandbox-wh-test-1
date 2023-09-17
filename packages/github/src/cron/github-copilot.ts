@@ -48,16 +48,18 @@ async function getGHCopilotReports(
     };
 
     const newCounter = counter + reportsPerPage.seats.length;
+
     await Promise.all([
-      reportsPerPage.seats.map(async (seat) => {
-        await new SQSClient().sendMessage(seat, Queue.gh_copilot_format.queueUrl);
-      }),
+      reportsPerPage.seats.map((seat) =>
+        new SQSClient().sendMessage(seat, Queue.gh_copilot_format.queueUrl)
+      ),
     ]);
 
-    if (reportsPerPage.seats.length < perPage) {
-      logger.info('getGHCopilotReports.successfull');
+    if (newCounter < perPage) {
+      logger.info(`getGHCopilotReports.successfull for ${newCounter + pageNo * perPage} records`);
       return newCounter;
     }
+
     return getGHCopilotReports(octokit, pageNo + 1, newCounter);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
