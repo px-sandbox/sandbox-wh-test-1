@@ -49,11 +49,11 @@ async function getGHCopilotReports(
 
     const newCounter = counter + reportsPerPage.seats.length;
 
-    await Promise.all([
+    await Promise.all(
       reportsPerPage.seats.map((seat) =>
         new SQSClient().sendMessage(seat, Queue.gh_copilot_format.queueUrl)
-      ),
-    ]);
+      )
+    );
 
     if (newCounter < perPage) {
       logger.info(`getGHCopilotReports.successfull for ${newCounter + pageNo * perPage} records`);
