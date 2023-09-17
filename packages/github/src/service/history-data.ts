@@ -3,9 +3,9 @@ import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const historyType = event?.queryStringParameters?.type || '';
@@ -17,12 +17,14 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    let data = await esClientObj.search(Github.Enums.IndexName.GitRepo, 'name', `${repo}`);
+
+    const data = await esClientObj.search(Github.Enums.IndexName.GitRepo, 'name', repo);
+
     const [repoData] = await searchedDataFormator(data);
     logger.info({ level: 'info', message: 'github repo data', repoData });
 
     let queueUrl = '';
-    if (historyType == 'commits') {
+    if (historyType === 'commits') {
       repoData.reqBranch = branch;
       queueUrl = Queue.gh_historical_branch.queueUrl;
     } else {

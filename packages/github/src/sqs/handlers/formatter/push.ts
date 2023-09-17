@@ -1,13 +1,13 @@
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { PushProcessor } from 'src/processors/push';
-import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
+import { PushProcessor } from '../../../processors/push';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function pushFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(
-    event.Records.map(async (record: any) => {
+    event.Records.map(async (record: SQSRecord) => {
       try {
         const messageBody = JSON.parse(record.body);
         logger.info('PUSH_SQS_RECIEVER_HANDLER_FORMATER', { messageBody });
@@ -21,7 +21,7 @@ export const handler = async function pushFormattedDataReciever(event: SQSEvent)
         const data = await pushProcessor.processor();
         await pushProcessor.sendDataToQueue(data, Queue.gh_push_index.queueUrl);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_push_format.queueUrl, error);
+        await logProcessToRetry(record, Queue.gh_push_format.queueUrl, error as Error);
         logger.error('pushFormattedDataReciever.error', error);
       }
     })

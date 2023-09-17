@@ -19,10 +19,12 @@ export const handler = async (
     if (authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7, authHeader.length);
       const publicKey = Buffer.from(Config.AUTH_PUBLIC_KEY, 'base64').toString();
-      const user: any = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
+      const user: jwt.JwtPayload = jwt.verify(token, publicKey, {
+        algorithms: ['RS256'],
+      }) as jwt.JwtPayload;
       return {
         isAuthorized: true,
-        context: { user },
+        context: { user: JSON.stringify(user) },
       };
     }
     return {

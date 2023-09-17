@@ -1,2 +1,2 @@
-export * from './httpStatusCode';
-export * from './responseCode';
+export * from './http-status-code';
+export * from './response-code';

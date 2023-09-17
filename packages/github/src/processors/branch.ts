@@ -1,8 +1,8 @@
+import moment from 'moment';
 import { Github } from 'abstraction';
-import { mappingPrefixes } from 'src/constant/config';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import moment from 'moment';
+import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 
 export class BranchProcessor extends DataProcessor<
@@ -12,7 +12,7 @@ export class BranchProcessor extends DataProcessor<
   constructor(data: Github.ExternalType.Api.Branch) {
     super(data);
   }
-  async processor(): Promise<Github.Type.Branch> {
+  public async processor(): Promise<Github.Type.Branch> {
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.branch}_${this.ghApiData.id}`
     );

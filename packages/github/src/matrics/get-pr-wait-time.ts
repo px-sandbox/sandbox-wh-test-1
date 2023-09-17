@@ -1,13 +1,51 @@
+import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { logger } from 'core';
-import esb from 'elastic-builder';
-import { esbDateHistogramInterval } from 'src/constant/config';
-import { calculateGraphAvg } from 'src/util/graph-average';
-import { getWeekDaysCount } from 'src/util/weekend-calculations';
 import { Config } from 'sst/node/config';
+import { esbDateHistogramInterval } from '../constant/config';
 
+function processGraphInterval(
+  intervals: string,
+  startDate: string,
+  endDate: string
+): esb.DateHistogramAggregation {
+  // By default graph interval is day
+  let graphIntervals: esb.DateHistogramAggregation;
+
+  switch (intervals) {
+    case esbDateHistogramInterval.day:
+    case esbDateHistogramInterval.month:
+      graphIntervals = esb
+        .dateHistogramAggregation('commentsPerDay')
+        .field('body.createdAt')
+        .format('yyyy-MM-dd')
+        .calendarInterval(intervals)
+        .extendedBounds(startDate, endDate)
+        .minDocCount(0);
+      break;
+    case esbDateHistogramInterval['2d']:
+    case esbDateHistogramInterval['3d']:
+      graphIntervals = esb
+        .dateHistogramAggregation('commentsPerDay')
+        .field('body.createdAt')
+        .format('yyyy-MM-dd')
+        .fixedInterval(intervals)
+        .extendedBounds(startDate, endDate)
+        .minDocCount(0);
+      break;
+    default:
+      graphIntervals = esb
+        .dateHistogramAggregation('commentsPerDay')
+        .field('body.createdAt')
+        .format('yyyy-MM-dd')
+        .calendarInterval(esbDateHistogramInterval.month)
+        .extendedBounds(startDate, endDate)
+        .minDocCount(0);
+  }
+  return graphIntervals;
+}
 export async function prWaitTimeGraphData(
   startDate: string,
   endDate: string,
@@ -30,39 +68,7 @@ export async function prWaitTimeGraphData(
         ])
     );
 
-    // By default graph interval is day
-    let graphIntervals: esb.DateHistogramAggregation;
-
-    switch (intervals) {
-      case esbDateHistogramInterval.day:
-      case esbDateHistogramInterval.month:
-        graphIntervals = esb
-          .dateHistogramAggregation('commentsPerDay')
-          .field('body.createdAt')
-          .format('yyyy-MM-dd')
-          .calendarInterval(intervals)
-          .extendedBounds(startDate, endDate)
-          .minDocCount(0);
-        break;
-      case esbDateHistogramInterval['2d']:
-      case esbDateHistogramInterval['3d']:
-        graphIntervals = esb
-          .dateHistogramAggregation('commentsPerDay')
-          .field('body.createdAt')
-          .format('yyyy-MM-dd')
-          .fixedInterval(intervals)
-          .extendedBounds(startDate, endDate)
-          .minDocCount(0);
-        break;
-      default:
-        graphIntervals = esb
-          .dateHistogramAggregation('commentsPerDay')
-          .field('body.createdAt')
-          .format('yyyy-MM-dd')
-          .calendarInterval(esbDateHistogramInterval.month)
-          .extendedBounds(startDate, endDate)
-          .minDocCount(0);
-    }
+    const graphIntervals = processGraphInterval(intervals, startDate, endDate);
 
     prWaitTimeGraphQuery
       .agg(
@@ -129,7 +135,7 @@ export async function prWaitTimeAvg(
     const totalTime = Number((data.body.aggregations.total_time.value / 3600).toFixed(2));
     const totalPr = Number(data.body.aggregations.pr_count.value);
     // const weekDaysCount = getWeekDaysCount(startDate, endDate);
-    return { value: totalTime == 0 ? 0 : totalTime / totalPr };
+    return { value: totalTime === 0 ? 0 : totalTime / totalPr };
   } catch (e) {
     logger.error('prWaitTimeAvg.error', e);
     throw e;

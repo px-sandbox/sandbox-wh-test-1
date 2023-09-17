@@ -49,7 +49,7 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
     return this.ddbDocClient;
   }
 
-  public async find(getParams: QueryCommandInput): Promise<Record<string, any> | undefined> {
+  public async find(getParams: QueryCommandInput): Promise<Record<string, unknown> | undefined> {
     const ddbRes = await this.getDdbDocClient().send(new QueryCommand(getParams));
     return ddbRes.Items ? ddbRes.Items[0] : undefined;
   }
@@ -58,10 +58,10 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
     await this.getDdbDocClient().send(new PutCommand(putParams));
   }
 
-  public async scan(scanParams: ScanCommandInput): Promise<Array<any>> {
+  public async scan(scanParams: ScanCommandInput): Promise<Array<unknown>> {
     const ddbRes = await this.getDdbDocClient().send(new ScanCommand(scanParams));
 
-    return ddbRes.Items && ddbRes.Items.length ? ddbRes.Items : [];
+    return ddbRes?.Items?.length ? ddbRes.Items : [];
   }
 
   public async delete(deleteParams: DeleteCommandInput): Promise<void> {

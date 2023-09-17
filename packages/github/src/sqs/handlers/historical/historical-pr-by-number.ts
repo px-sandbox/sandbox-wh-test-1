@@ -1,16 +1,35 @@
+import moment from 'moment';
 import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import moment from 'moment';
-import { mappingPrefixes } from 'src/constant/config';
-import { getTimezoneOfUser } from 'src/lib/get-user-timezone';
-import { ghRequest } from 'src/lib/request-defaults';
-import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
-import { getOctokitResp } from 'src/util/octokit-response';
-import { logProcessToRetry } from 'src/util/retry-process';
-import { getWorkingTime } from 'src/util/timezone-calculation';
 import { Queue } from 'sst/node/queue';
+import { mappingPrefixes } from '../../../constant/config';
+import { getTimezoneOfUser } from '../../../lib/get-user-timezone';
+import { ghRequest } from '../../../lib/request-default';
+import { getInstallationAccessToken } from '../../../util/installation-access-token';
+import { logProcessToRetry } from '../../../util/retry-process';
+import { getWorkingTime } from '../../../util/timezone-calculation';
+import { getOctokitResp } from '../../../util/octokit-response';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function processQueueOnMergedPR(octokitRespData: any, messageBody: any): Promise<void> {
+  await new SQSClient().sendMessage(
+    {
+      commitId: octokitRespData.merge_commit_sha,
+      isMergedCommit: octokitRespData.merged,
+      mergedBranch: null,
+      pushedBranch: octokitRespData?.head?.ref,
+      repository: {
+        id: messageBody.repoId,
+        name: messageBody.repoName,
+        owner: messageBody.owner,
+      },
+      timestamp: new Date(),
+    },
+    Queue.gh_commit_format.queueUrl,
+    octokitRespData.merge_commit_sha
+  );
+}
 export const handler = async function collectPrByNumberData(event: SQSEvent): Promise<void> {
   const installationAccessToken = await getInstallationAccessToken();
   const octokit = ghRequest.request.defaults({
@@ -19,7 +38,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
     },
   });
   await Promise.all(
-    event.Records.map(async (record: any) => {
+    event.Records.map(async (record) => {
       const messageBody = JSON.parse(record.body);
 
       logger.info('HISTORY_PULL_REQUEST_DATA', { body: messageBody });
@@ -39,7 +58,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
           messageBody.submittedAt = messageBody.approved_at;
         }
 
-        const review_seconds = await getWorkingTime(
+        const reviewSeconds = getWorkingTime(
           moment(octokitRespData.created_at),
           moment(messageBody.submittedAt),
           createdTimezone
@@ -50,32 +69,17 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
             ...octokitRespData,
             reviewed_at: messageBody.submittedAt,
             approved_at: messageBody.approvedAt,
-            review_seconds: review_seconds,
+            review_seconds: reviewSeconds,
           },
           Queue.gh_pr_format.queueUrl
         );
 
         // setting the `isMergedCommit` for commit
         if (octokitRespData.merged === true) {
-          await new SQSClient().sendMessage(
-            {
-              commitId: octokitRespData.merge_commit_sha,
-              isMergedCommit: octokitRespData.merged,
-              mergedBranch: null,
-              pushedBranch: octokitRespData?.head?.ref,
-              repository: {
-                id: messageBody.repoId,
-                name: messageBody.repoName,
-                owner: messageBody.owner,
-              },
-              timestamp: new Date(),
-            },
-            Queue.gh_commit_format.queueUrl,
-            octokitRespData.merge_commit_sha
-          );
+          await processQueueOnMergedPR(octokitRespData, messageBody);
         }
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_historical_pr_by_number.queueUrl, error);
+        await logProcessToRetry(record, Queue.gh_historical_pr_by_number.queueUrl, error as Error);
         logger.error(`historical.pr.number.error: ${JSON.stringify(error)}`);
       }
     })

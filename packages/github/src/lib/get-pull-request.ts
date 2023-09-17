@@ -1,9 +1,9 @@
 import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
-import { mappingPrefixes } from 'src/constant/config';
-import { searchedDataFormator } from 'src/util/response-formatter';
 import { Github } from 'abstraction';
+import { mappingPrefixes } from '../constant/config';
+import { searchedDataFormator } from '../util/response-formatter';
 
 export async function getPullRequestById(
   pullId: number

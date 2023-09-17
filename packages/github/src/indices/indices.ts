@@ -9,29 +9,38 @@ const indices = [
     _id: { type: 'uuid' },
     mappings: {
       properties: {
-        id: { type: 'keyword' },
-        githubUserId: { type: 'keyword' },
-        userName: { type: 'keyword' },
-        fullName: { type: 'text' },
-        email: { type: 'keyword' },
-        avatarUrl: { type: 'text' },
-        type: { type: 'text' },
-        createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        updatedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        company: { type: 'text' },
-        deletedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        organizationId: { type: 'keyword' },
-        action: {
+        body: {
+          type: 'object',
           properties: {
-            action: { type: 'keyword' },
-            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-            actionDay: { type: 'keyword' },
+            id: { type: 'keyword' },
+            githubUserId: { type: 'keyword' },
+            userName: { type: 'keyword' },
+            fullName: { type: 'text' },
+            email: { type: 'keyword' },
+            avatarUrl: { type: 'text' },
+            type: { type: 'text' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            updatedAt: { type: 'date', format: 'strict_date_optional_time' },
+            company: { type: 'text' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+            organizationId: { type: 'keyword' },
+            action: {
+              properties: {
+                action: { type: 'keyword' },
+                actionTime: {
+                  type: 'date',
+                  format: 'strict_date_optional_time',
+                },
+                actionDay: { type: 'keyword' },
+              },
+            },
+            createdAtDay: { type: 'keyword' },
+            computationDate: { type: 'date', format: 'yyyy-MM-dd' },
+            githubDate: { type: 'date', format: 'yyyy-MM-dd' },
+            timezone: { type: 'keyword' },
+            isDeleted: { type: 'boolean' },
           },
         },
-        createdAtDay: { type: 'keyword' },
-        computationDate: { type: 'date', format: 'yyyy-MM-dd' },
-        githubDate: { type: 'date', format: 'yyyy-MM-dd' },
-        timezone: { type: 'keyword' },
       },
     },
   },
@@ -40,21 +49,26 @@ const indices = [
     _id: { type: 'uuid' },
     mappings: {
       properties: {
-        id: { type: 'keyword' },
-        githubOrganizationId: { type: 'keyword' },
-        name: { type: 'text' },
-        description: { type: 'text' },
-        company: { type: 'text' },
-        location: { type: 'text' },
-        email: { type: 'text' },
-        isVerified: { type: 'boolean' },
-        hasOrganizationProjects: { type: 'boolean' },
-        hasRepositoryProjects: { type: 'boolean' },
-        publicRepos: { type: 'integer' },
-        totalPrivateRepos: { type: 'integer' },
-        createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        updatedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        deletedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'keyword' },
+            githubOrganizationId: { type: 'keyword' },
+            name: { type: 'text' },
+            description: { type: 'text' },
+            company: { type: 'text' },
+            location: { type: 'text' },
+            email: { type: 'text' },
+            isVerified: { type: 'boolean' },
+            hasOrganizationProjects: { type: 'boolean' },
+            hasRepositoryProjects: { type: 'boolean' },
+            publicRepos: { type: 'integer' },
+            totalPrivateRepos: { type: 'integer' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            updatedAt: { type: 'date', format: 'strict_date_optional_time' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+          },
+        },
       },
     },
   },
@@ -63,31 +77,39 @@ const indices = [
     _id: { type: 'uuid' },
     mappings: {
       properties: {
-        id: { type: 'keyword' },
-        githubRepoId: { type: 'keyword' },
-        name: { type: 'text' },
-        owner: { type: 'keyword' },
-        description: { type: 'text' },
-        isPrivate: { type: 'boolean' },
-        createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        updatedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        pushedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        visibility: { type: 'text' },
-        openIssuesCount: { type: 'integer' },
-        topics: { type: 'text' },
-        organizationId: { type: 'keyword' },
-        deletedAt: { type: 'date' },
-        action: {
+        body: {
+          type: 'object',
           properties: {
-            action: { type: 'keyword' },
-            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-            actionDay: { type: 'keyword' },
+            id: { type: 'keyword' },
+            githubRepoId: { type: 'keyword' },
+            name: { type: 'text' },
+            owner: { type: 'keyword' },
+            description: { type: 'text' },
+            isPrivate: { type: 'boolean' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            updatedAt: { type: 'date', format: 'strict_date_optional_time' },
+            pushedAt: { type: 'date', format: 'strict_date_optional_time' },
+            visibility: { type: 'text' },
+            openIssuesCount: { type: 'integer' },
+            topics: { type: 'text' },
+            organizationId: { type: 'keyword' },
+            deletedAt: { type: 'date' },
+            action: {
+              properties: {
+                action: { type: 'keyword' },
+                actionTime: {
+                  type: 'date',
+                  format: 'strict_date_optional_time',
+                },
+                actionDay: { type: 'keyword' },
+              },
+            },
+            createdAtDay: { type: 'keyword' },
+            computationDate: { type: 'date', format: 'yyyy-MM-dd' },
+            githubDate: { type: 'date', format: 'yyyy-MM-dd' },
+            isDeleted: { type: 'boolean' },
           },
         },
-        createdAtDay: { type: 'keyword' },
-        computationDate: { type: 'date', format: 'yyyy-MM-dd' },
-        githubDate: { type: 'date', format: 'yyyy-MM-dd' },
-        isDeleted: { type: 'boolean' },
       },
     },
   },
@@ -96,26 +118,34 @@ const indices = [
     _id: { type: 'uuid' },
     mappings: {
       properties: {
-        id: { type: 'keyword' },
-        githubBranchId: { type: 'keyword' },
-        name: { type: 'text' },
-        createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        updatedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        pushedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        repoId: { type: 'keyword' },
-        organizationId: { type: 'keyword' },
-        deletedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        isDeleted: { type: 'boolean' },
-        action: {
+        body: {
+          type: 'object',
           properties: {
-            action: { type: 'keyword' },
-            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-            actionDay: { type: 'keyword' },
+            id: { type: 'keyword' },
+            githubBranchId: { type: 'keyword' },
+            name: { type: 'text' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            updatedAt: { type: 'date', format: 'strict_date_optional_time' },
+            pushedAt: { type: 'date', format: 'strict_date_optional_time' },
+            repoId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+            isDeleted: { type: 'boolean' },
+            action: {
+              properties: {
+                action: { type: 'keyword' },
+                actionTime: {
+                  type: 'date',
+                  format: 'strict_date_optional_time',
+                },
+                actionDay: { type: 'keyword' },
+              },
+            },
+            createdAtDay: { type: 'keyword' },
+            computationDate: { type: 'date', format: 'yyyy-MM-dd' },
+            githubDate: { type: 'date', format: 'yyyy-MM-dd' },
           },
         },
-        createdAtDay: { type: 'keyword' },
-        computationDate: { type: 'date', format: 'yyyy-MM-dd' },
-        githubDate: { type: 'date', format: 'yyyy-MM-dd' },
       },
     },
   },
@@ -124,61 +154,70 @@ const indices = [
     _id: { type: 'uuid' },
     mappings: {
       properties: {
-        id: { type: 'keyword' },
-        githubCommitId: { type: 'keyword' },
-        isMergedCommit: { type: 'boolean' },
-        pushedBranch: { type: 'text' },
-        mergedBranch: { type: 'text' },
-        message: { type: 'text' },
-        authorId: { type: 'keyword' },
-        committedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        changes: {
+        body: {
+          type: 'object',
           properties: {
-            filename: { type: 'text' },
-            additions: { type: 'integer' },
-            deletions: { type: 'integer' },
-            changes: { type: 'integer' },
-            status: { type: 'text' },
+            id: { type: 'keyword' },
+            githubCommitId: { type: 'keyword' },
+            isMergedCommit: { type: 'boolean' },
+            pushedBranch: { type: 'text' },
+            mergedBranch: { type: 'text' },
+            message: { type: 'text' },
+            authorId: { type: 'keyword' },
+            committedAt: { type: 'date', format: 'strict_date_optional_time' },
+            changes: {
+              properties: {
+                filename: { type: 'text' },
+                additions: { type: 'integer' },
+                deletions: { type: 'integer' },
+                changes: { type: 'integer' },
+                status: { type: 'text' },
+              },
+            },
+            totalChanges: { type: 'integer' },
+            repoId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            pushEventId: { type: 'keyword' },
+            deletedAt: { type: 'date' },
+            createdAtDay: { type: 'keyword' },
+            computationDate: { type: 'date', format: 'yyyy-MM-dd' },
+            githubDate: { type: 'date', format: 'yyyy-MM-dd' },
           },
         },
-        totalChanges: { type: 'integer' },
-        repoId: { type: 'keyword' },
-        organizationId: { type: 'keyword' },
-        pushEventId: { type: 'keyword' },
-        deletedAt: { type: 'date' },
-        createdAtDay: { type: 'keyword' },
-        computationDate: { type: 'date', format: 'yyyy-MM-dd' },
-        githubDate: { type: 'date', format: 'yyyy-MM-dd' },
       },
     },
   },
   {
     name: Github.Enums.IndexName.GitPush,
     _id: { type: 'uuid' },
-    body: {
-      mappings: {
-        properties: {
-          id: { type: 'keyword' },
-          githubPushId: { type: 'keyword' },
-          pusherId: { type: 'keyword' },
-          ref: { type: 'text' },
-          commits: {
-            properties: {
-              commitId: { type: 'keyword' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'keyword' },
+            githubPushId: { type: 'keyword' },
+            pusherId: { type: 'keyword' },
+            ref: { type: 'text' },
+            commits: {
+              type: 'keyword',
             },
-          },
-          organizationId: { type: 'keyword' },
-          action: {
-            properties: {
-              action: { type: 'keyword' },
-              actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-              actionDay: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            action: {
+              properties: {
+                action: { type: 'keyword' },
+                actionTime: {
+                  type: 'date',
+                  format: 'strict_date_optional_time',
+                },
+                actionDay: { type: 'keyword' },
+              },
             },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            createdAtDay: { type: 'keyword' },
+            computationDate: { type: 'date', format: 'yyyy-MM-dd' },
+            githubDate: { type: 'date', format: 'yyyy-MM-dd' },
           },
-          createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-          createdAtDay: { type: 'keyword' },
-          computationDate: { type: 'date', format: 'yyyy-MM-dd' },
-          githubDate: { type: 'date', format: 'yyyy-MM-dd' },
         },
       },
     },
@@ -188,63 +227,75 @@ const indices = [
     _id: { type: 'uuid' },
     mappings: {
       properties: {
-        id: { type: 'keyword' },
-        githubPullId: { type: 'keyword' },
-        pullNumber: { type: 'keyword' },
-        state: { type: 'text' },
-        title: { type: 'text' },
-        pRCreatedBy: { type: 'text' },
-        pullBody: { type: 'text' },
-        createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        updatedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        closedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        mergedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        reviewedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        approvedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        reviewTime: { type: 'integer' },
-        requestedReviewers: {
+        body: {
+          type: 'object',
           properties: {
-            login: { type: 'text' },
+            id: { type: 'keyword' },
+            githubPullId: { type: 'keyword' },
+            pullNumber: { type: 'keyword' },
+            state: { type: 'text' },
+            title: { type: 'text' },
+            pRCreatedBy: { type: 'text' },
+            pullBody: { type: 'text' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            updatedAt: { type: 'date', format: 'strict_date_optional_time' },
+            closedAt: { type: 'date', format: 'strict_date_optional_time' },
+            mergedAt: { type: 'date', format: 'strict_date_optional_time' },
+            reviewedAt: { type: 'date', format: 'strict_date_optional_time' },
+            approvedAt: { type: 'date', format: 'strict_date_optional_time' },
+            reviewTime: { type: 'integer' },
+            requestedReviewers: {
+              properties: {
+                userId: { type: 'keyword' },
+              },
+            },
+            labels: {
+              properties: {
+                name: { type: 'text' },
+              },
+            },
+            head: {
+              properties: {
+                label: { type: 'text' },
+                ref: { type: 'text' },
+              },
+            },
+            base: {
+              properties: {
+                label: { type: 'text' },
+                ref: { type: 'text' },
+              },
+            },
+            mergedBy: {
+              properties: {
+                userId: { type: 'keyword' },
+              },
+            },
+            merged: { type: 'boolean' },
+            mergedCommitId: { type: 'keyword' },
+            comments: { type: 'integer' },
+            reviewComments: { type: 'integer' },
+            commits: { type: 'integer' },
+            additions: { type: 'integer' },
+            deletions: { type: 'integer' },
+            changedFiles: { type: 'integer' },
+            repoId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            action: {
+              properties: {
+                action: { type: 'keyword' },
+                actionTime: {
+                  type: 'date',
+                  format: 'strict_date_optional_time',
+                },
+                actionDay: { type: 'keyword' },
+              },
+            },
+            createdAtDay: { type: 'keyword' },
+            computationDate: { type: 'date', format: 'yyyy-MM-dd' },
+            githubDate: { type: 'date', format: 'yyyy-MM-dd' },
           },
         },
-        labels: {
-          properties: {
-            name: { type: 'text' },
-          },
-        },
-        head: {
-          properties: {
-            label: { type: 'text' },
-            ref: { type: 'text' },
-          },
-        },
-        base: {
-          properties: {
-            label: { type: 'text' },
-            ref: { type: 'text' },
-          },
-        },
-        mergedBy: { type: 'text' },
-        merged: { type: 'boolean' },
-        mergedCommitId: { type: 'keyword' },
-        comments: { type: 'integer' },
-        reviewComments: { type: 'integer' },
-        commits: { type: 'integer' },
-        additions: { type: 'integer' },
-        deletions: { type: 'integer' },
-        changedFiles: { type: 'integer' },
-        repoId: { type: 'keyword' },
-        organizationId: { type: 'keyword' },
-        action: {
-          properties: {
-            action: { type: 'keyword' },
-            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-            actionDay: { type: 'keyword' },
-          },
-        },
-        createdAtDay: { type: 'keyword' },
-        computationDate: { type: 'date', format: 'yyyy-MM-dd' },
-        githubDate: { type: 'date', format: 'yyyy-MM-dd' },
       },
     },
   },
@@ -253,42 +304,51 @@ const indices = [
     _id: { type: 'uuid' },
     mappings: {
       properties: {
-        id: { type: 'keyword' },
-        githubPRReviewCommentId: { type: 'keyword' },
-        pRReviewId: { type: 'keyword' },
-        diffHunk: { type: 'text' },
-        path: { type: 'text' },
-        commitId: { type: 'keyword' },
-        commentedBy: { type: 'keyword' },
-        commentBody: { type: 'text' },
-        createdAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        updatedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        reactions: {
+        body: {
+          type: 'object',
           properties: {
-            totalCount: { type: 'integer' },
-            '+1': { type: 'integer' },
-            '-1': { type: 'integer' },
-            laugh: { type: 'integer' },
-            hooray: { type: 'integer' },
-            confused: { type: 'integer' },
-            heart: { type: 'integer' },
-            rocket: { type: 'integer' },
-            eyes: { type: 'integer' },
+            id: { type: 'keyword' },
+            githubPRReviewCommentId: { type: 'keyword' },
+            pRReviewId: { type: 'keyword' },
+            diffHunk: { type: 'text' },
+            path: { type: 'text' },
+            commitId: { type: 'keyword' },
+            commentedBy: { type: 'keyword' },
+            commentBody: { type: 'text' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            updatedAt: { type: 'date', format: 'strict_date_optional_time' },
+            reactions: {
+              properties: {
+                totalCount: { type: 'integer' },
+                '+1': { type: 'integer' },
+                '-1': { type: 'integer' },
+                laugh: { type: 'integer' },
+                hooray: { type: 'integer' },
+                confused: { type: 'integer' },
+                heart: { type: 'integer' },
+                rocket: { type: 'integer' },
+                eyes: { type: 'integer' },
+              },
+            },
+            pullId: { type: 'keyword' },
+            repoId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            action: {
+              properties: {
+                action: { type: 'keyword' },
+                actionTime: {
+                  type: 'date',
+                  format: 'strict_date_optional_time',
+                },
+                actionDay: { type: 'keyword' },
+              },
+            },
+            createdAtDay: { type: 'keyword' },
+            computationDate: { type: 'date', format: 'yyyy-MM-dd' },
+            githubDate: { type: 'date', format: 'yyyy-MM-dd' },
+            isDeleted: { type: 'boolean' },
           },
         },
-        pullId: { type: 'keyword' },
-        repoId: { type: 'keyword' },
-        organizationId: { type: 'keyword' },
-        action: {
-          properties: {
-            action: { type: 'keyword' },
-            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-            actionDay: { type: 'keyword' },
-          },
-        },
-        createdAtDay: { type: 'keyword' },
-        computationDate: { type: 'date', format: 'yyyy-MM-dd' },
-        githubDate: { type: 'date', format: 'yyyy-MM-dd' },
       },
     },
   },
@@ -297,57 +357,112 @@ const indices = [
     _id: { type: 'uuid' },
     mappings: {
       properties: {
-        id: { type: 'keyword' },
-        githubPRReviewId: { type: 'keyword' },
-        commitId: { type: 'keyword' },
-        reviewedBy: { type: 'keyword' },
-        reviewBody: { type: 'text' },
-        submittedAt: { type: 'text' },
-        state: { type: 'text' },
-        pullId: { type: 'keyword' },
-        repoId: { type: 'keyword' },
-        organizationId: { type: 'keyword' },
-        action: {
+        body: {
+          type: 'object',
           properties: {
-            action: { type: 'keyword' },
-            actionTime: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-            actionDay: { type: 'keyword' },
+            id: { type: 'keyword' },
+            githubPRReviewId: { type: 'keyword' },
+            commitId: { type: 'keyword' },
+            reviewedBy: { type: 'keyword' },
+            reviewBody: { type: 'text' },
+            submittedAt: { type: 'text' },
+            state: { type: 'text' },
+            pullId: { type: 'keyword' },
+            repoId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            action: {
+              properties: {
+                action: { type: 'keyword' },
+                actionTime: {
+                  type: 'date',
+                  format: 'strict_date_optional_time',
+                },
+                actionDay: { type: 'keyword' },
+              },
+            },
+            createdAtDay: { type: 'keyword' },
+            computationDate: { type: 'date', format: 'yyyy-MM-dd' },
+            githubDate: { type: 'date', format: 'yyyy-MM-dd' },
           },
         },
-        createdAtDay: { type: 'keyword' },
-        computationDate: { type: 'date', format: 'yyyy-MM-dd' },
-        githubDate: { type: 'date', format: 'yyyy-MM-dd' },
+      },
+    },
+  },
+  {
+    name: Github.Enums.IndexName.GitCopilot,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            dataTimestamp: {
+              type: 'date',
+              format: 'strict_date_optional_time',
+            },
+            isUsedInLastHour: { type: 'boolean' },
+            lastUsedAt: { type: 'date', format: 'strict_date_optional_time' },
+            editor: { type: 'text' },
+            editorVersion: { type: 'text' },
+            featureUsed: { type: 'text' },
+            featureVersion: { type: 'text' },
+            userId: { type: 'keyword' },
+          },
+        },
+      },
+    },
+  },
+  {
+    name: Github.Enums.IndexName.GitActiveBranches,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'keyword' },
+            repoId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            branchesCount: { type: 'integer' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+          },
+        },
       },
     },
   },
 ];
 
-export async function createAllIndices(): Promise<void> {
-  // logger.info({
-  //   message: 'ELASTICSEARCH_INIT_DETAILS',
-  //   data: {
-  //     host: Config.OPENSEARCH_NODE,
-  //     password: Config.OPENSEARCH_PASSWORD,
-  //     username: Config.OPENSEARCH_USERNAME,
-  //   },
-  // });
-  const esClient = await new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-  }).getClient();
-  for (const { name, mappings } of indices) {
-    try {
-      const { statusCode } = await esClient.indices.exists({ index: name });
-      if (statusCode === 200) {
-        logger.info(`Index '${name}' already exists.`);
-        continue;
-      }
-      await esClient.indices.create({ index: name, body: { mappings } });
-      logger.info(`Index '${name}' created.`);
-    } catch (error) {
-      logger.info(`Error creating index '${name}':`, error);
-      throw new Error('INDEX_CREATING_ERROR');
+async function createMapping(name: string, mappings: any): Promise<void> {
+  try {
+    const esClient = new ElasticSearchClient({
+      host: Config.OPENSEARCH_NODE,
+      username: Config.OPENSEARCH_USERNAME ?? '',
+      password: Config.OPENSEARCH_PASSWORD ?? '',
+    }).getClient();
+
+    const { statusCode } = await esClient.indices.exists({ index: name });
+    if (statusCode === 200) {
+      logger.info(`Index '${name}' already exists.`);
+      // update
+      await esClient.indices.putMapping({ index: name, body: mappings });
+      return;
     }
+
+    logger.info(`Creating mapping for index '${name}'...`);
+
+    await esClient.indices.create({ index: name, body: { mappings } });
+
+    logger.info(`Created mapping for '${name}' suuceeful`);
+  } catch (error) {
+    logger.error(`Error creating mapping for '${name}':`, error);
+    throw error;
   }
+}
+
+export async function createAllIndices(): Promise<void> {
+  logger.info('Creating all indices...');
+
+  await Promise.all(indices.map(async ({ name, mappings }) => createMapping(name, mappings)));
+
+  logger.info('All indices created successfully');
 }

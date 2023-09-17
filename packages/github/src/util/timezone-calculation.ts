@@ -1,5 +1,5 @@
-// import { prices, priceHH } from "./data";
 import moment from 'moment';
+import { logger } from 'core';
 import { getWeekenedCount } from './weekend-calculations';
 
 type Offset = {
@@ -20,7 +20,7 @@ function getOffsetTime(offset: string): Offset {
   };
 }
 
-function getTimeWithOffset(date: moment.Moment, offset: Offset) {
+function getTimeWithOffset(date: moment.Moment, offset: Offset): moment.Moment {
   switch (offset.radical) {
     case '-':
       date.subtract(offset.hours, 'hours').subtract(offset.minutes, 'minutes');
@@ -28,32 +28,36 @@ function getTimeWithOffset(date: moment.Moment, offset: Offset) {
     case '+':
       date.add(offset.hours, 'hours').add(offset.minutes, 'minutes');
       break;
+    default:
+      // Handle the default case here
+      logger.info(`No case found for offset.radical : ${offset.radical} in getTimeWithOffset`);
+      break;
   }
 
   return date;
 }
 
-function regulariseDate(date: moment.Moment) {
+function regulariseDate(date: moment.Moment): moment.Moment {
   if (date.day() === 6) {
-    //Saturday
+    // Saturday
     return moment(date).add(2, 'd').hour(9).minute(30).second(0).millisecond(0);
-  } else if (date.day() === 0) {
-    //Sunday
-    return moment(date).add(1, 'd').hour(9).minute(30).second(0).millisecond(0);
-  } else {
-    const minBoundary = moment(date).hour(9).minute(30).second(0).millisecond(0);
-    const maxBoundary = moment(date).hour(18).minute(30).second(0).millisecond(0);
-    if (date.isBetween(minBoundary, maxBoundary)) {
-      return date;
-    }
-    if (minBoundary.isSameOrAfter(date)) {
-      return minBoundary;
-    }
-    return maxBoundary;
   }
+  if (date.day() === 0) {
+    // Sunday
+    return moment(date).add(1, 'd').hour(9).minute(30).second(0).millisecond(0);
+  }
+  const minBoundary = moment(date).hour(9).minute(30).second(0).millisecond(0);
+  const maxBoundary = moment(date).hour(18).minute(30).second(0).millisecond(0);
+  if (date.isBetween(minBoundary, maxBoundary)) {
+    return date;
+  }
+  if (minBoundary.isSameOrAfter(date)) {
+    return minBoundary;
+  }
+  return maxBoundary;
 }
 
-function getDays(startDate: moment.Moment, endDate: moment.Moment) {
+function getDays(startDate: moment.Moment, endDate: moment.Moment): number {
   return moment(endDate.format('YYYY-MM-DD'), 'YYYY-MM-DD').diff(
     moment(startDate.format('YYYY-MM-DD'), 'YYYY-MM-DD'),
     'd'
@@ -68,18 +72,25 @@ function getDays(startDate: moment.Moment, endDate: moment.Moment) {
  * @returns number that represents time  in seconds
  */
 
-export function getWorkingTime(startDate: moment.Moment, endDate: moment.Moment, offset: string) {
+export function getWorkingTime(
+  startDate: moment.Moment,
+  endDate: moment.Moment,
+  offset: string
+): number {
   const offsetTime = getOffsetTime(offset);
 
-  startDate = regulariseDate(getTimeWithOffset(startDate, offsetTime));
+  const newStartDate = regulariseDate(getTimeWithOffset(startDate, offsetTime));
 
-  endDate = regulariseDate(getTimeWithOffset(endDate, offsetTime));
+  const newEndDate = regulariseDate(getTimeWithOffset(endDate, offsetTime));
 
-  const totalDays = getDays(startDate, endDate);
+  const totalDays = getDays(newStartDate, newEndDate);
 
-  const weekends = getWeekenedCount(startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD'));
+  const weekends = getWeekenedCount(
+    newStartDate.format('YYYY-MM-DD'),
+    newEndDate.format('YYYY-MM-DD')
+  );
 
-  const totalTime = endDate.diff(startDate, 'seconds');
+  const totalTime = newEndDate.diff(newStartDate, 'seconds');
   const offhoursTime = (totalDays - weekends) * 15 * 60 * 60;
   const weekendTime = weekends * 24 * 60 * 60;
 

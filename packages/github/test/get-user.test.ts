@@ -1,9 +1,10 @@
-import { getUser } from '../src/service/get-user';
+/* eslint-disable */
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
+import { githubUser } from '../src/service/get-user';
 
 let mockDynamoDBClient: ReturnType<typeof mockClient>;
 
@@ -28,7 +29,7 @@ describe('getProduct', () => {
       })
       .resolves({ Item: undefined });
 
-    const result = await getUser(event);
+    const result = await githubUser(event);
     expect(result.statusCode).toBe(404);
     expect(result.body).toEqual(
       JSON.stringify({
@@ -63,7 +64,7 @@ describe('getProduct', () => {
         Key: { email: 'r@sg.com' },
       })
       .resolves(ddbRes);
-    const result = await getUser(event);
+    const result = await githubUser(event);
     console.log(result);
     expect(result.statusCode).toBe(200);
     expect(result.body).toEqual(

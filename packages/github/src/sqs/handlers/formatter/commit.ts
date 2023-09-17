@@ -1,16 +1,16 @@
+import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import esb from 'elastic-builder';
-import { ghRequest } from 'src/lib/request-defaults';
-import { CommitProcessor } from 'src/processors/commit';
-import { getInstallationAccessToken } from 'src/util/installation-access-token-generator';
-import { getOctokitResp } from 'src/util/octokit-response';
-import { searchedDataFormator } from 'src/util/response-formatter';
-import { logProcessToRetry } from 'src/util/retry-process';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import { ghRequest } from '../../../lib/request-default';
+import { CommitProcessor } from '../../../processors/commit';
+import { getInstallationAccessToken } from '../../../util/installation-access-token';
+import { getOctokitResp } from '../../../util/octokit-response';
+import { searchedDataFormator } from '../../../util/response-formatter';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function commitFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
@@ -33,7 +33,7 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
          * Get commit details from Github API
          * ------------------------------------
          */
-        //CHECK DATA EXISTS IN ELASTICSEARCH
+        // CHECK DATA EXISTS IN ELASTICSEARCH
         const commitSearchQuery = esb.matchQuery('body.githubCommitId', commitId);
         const searchInEsb = await new ElasticSearchClient({
           host: Config.OPENSEARCH_NODE,

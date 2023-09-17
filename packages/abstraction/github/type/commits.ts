@@ -1,5 +1,3 @@
-import { actions } from './actions';
-
 export type CommitedFiles = {
   filename: string;
   additions: string;

@@ -20,7 +20,7 @@ export class RetryTableMapping {
     };
   }
 
-  public preparePutParams(processId: string, otherData: any): PutCommandInput {
+  public preparePutParams<T>(processId: string, otherData: T): PutCommandInput {
     return {
       TableName: this.tableName,
       Item: {
