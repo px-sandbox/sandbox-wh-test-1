@@ -74,7 +74,7 @@ export async function prCommentsGraphData(
       .agg(
         graphIntervals
           .agg(esb.valueCountAggregation('comment_count', 'body.githubPRReviewCommentId'))
-          .agg(esb.cardinalityAggregation('commented_pr', 'body.pullId.keyword'))
+          .agg(esb.cardinalityAggregation('commented_pr', 'body.pullId'))
           .agg(
             esb
               .bucketScriptAggregation('combined_avg')
