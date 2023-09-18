@@ -20,20 +20,10 @@ export async function savePRDetails(data: Github.Type.PullRequest): Promise<void
     const userData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPull, matchQry);
     const [formattedData] = await searchedDataFormator(userData);
     if (formattedData) {
-      const [currentAction] = [...data.body.action];
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
-
-      // check PR already exists or not
-      if (currentAction.action === Github.Enums.PullRequest.Opened) {
-        const { _id, ...updatedDataBody } = formattedData;
-        updatedData.body = updatedDataBody;
-        updatedData.id = _id;
-      } else {
-        updatedData.body.createdAt = formattedData.createdAt;
-        updatedData.id = formattedData._id;
-      }
-
       updatedData.body.action = [...formattedData.action, ...data.body.action];
+      updatedData.body.createdAt = formattedData.createdAt;
+      updatedData.id = formattedData._id;
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPull, updatedData);
     logger.info('savePRDetails.successful');
