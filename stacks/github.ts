@@ -1,7 +1,8 @@
-import { StackContext, Api, Table, Config, Queue, Function, Cron } from 'sst/constructs';
+import { StackContext, Api, Table, Config, Queue, Function, Cron, use } from 'sst/constructs';
 import { Duration, Stack } from 'aws-cdk-lib';
+import { commonConfig } from './common/config';
 
-function initializeSecrets(stack: Stack): Record<string, Config.Secret> {
+function initializeGHSecrets(stack: Stack): Record<string, Config.Secret> {
   const ghSecret = {} as Record<string, Config.Secret>;
   // Set GITHUB config params
   ghSecret.GITHUB_APP_ID = new Config.Secret(stack, 'GITHUB_APP_ID');
@@ -11,9 +12,6 @@ function initializeSecrets(stack: Stack): Record<string, Config.Secret> {
   ghSecret.GITHUB_WEBHOOK_SECRET = new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET');
   ghSecret.GITHUB_SG_ACCESS_TOKEN = new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN');
   ghSecret.AUTH_PUBLIC_KEY = new Config.Secret(stack, 'AUTH_PUBLIC_KEY');
-  ghSecret.OPENSEARCH_NODE = new Config.Secret(stack, 'OPENSEARCH_NODE');
-  ghSecret.OPENSEARCH_USERNAME = new Config.Secret(stack, 'OPENSEARCH_USERNAME');
-  ghSecret.OPENSEARCH_PASSWORD = new Config.Secret(stack, 'OPENSEARCH_PASSWORD');
   ghSecret.GIT_ORGANIZATION_ID = new Config.Secret(stack, 'GIT_ORGANIZATION_ID');
   return ghSecret;
 }
@@ -81,6 +79,7 @@ export function gh({ stack }: StackContext): {
     admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
   }>;
 } {
+  const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
   // Destructure secrets
   const {
     GITHUB_APP_ID,
@@ -90,11 +89,8 @@ export function gh({ stack }: StackContext): {
     GITHUB_WEBHOOK_SECRET,
     GITHUB_SG_ACCESS_TOKEN,
     AUTH_PUBLIC_KEY,
-    OPENSEARCH_NODE,
-    OPENSEARCH_USERNAME,
-    OPENSEARCH_PASSWORD,
     GIT_ORGANIZATION_ID,
-  } = initializeSecrets(stack);
+  } = initializeGHSecrets(stack);
 
   // Initialize DynamoDB Tables
   const { githubMappingTable, retryProcessTable } = initializeDynamoDBTables(stack);
