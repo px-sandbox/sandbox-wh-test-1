@@ -432,7 +432,7 @@ const indices = [
   },
 ];
 
-async function createMapping(name: string, mappings: any): Promise<void> {
+async function createMapping(name: string, mappings: Github.Type.IndexMapping): Promise<void> {
   try {
     const esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,

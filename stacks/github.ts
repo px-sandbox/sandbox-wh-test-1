@@ -1,6 +1,8 @@
 import { StackContext, Api, Table, Config, Queue, Function, Cron, use } from 'sst/constructs';
 import { Duration, Stack } from 'aws-cdk-lib';
 import { commonConfig } from './common/config';
+import { Stage } from './type/stack-config.js';
+
 
 function initializeGHSecrets(stack: Stack): Record<string, Config.Secret> {
   const ghSecret = {} as Record<string, Config.Secret>;
@@ -39,6 +41,7 @@ function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
 
 function intializeCron(
   stack: Stack,
+  stage: string,
   // eslint-disable-next-line @typescript-eslint/ban-types
   processRetryFunction: Function,
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -54,11 +57,13 @@ function intializeCron(
     job: processRetryFunction,
   });
 
-  // eslint-disable-next-line no-new
-  new Cron(stack, 'github-copilot-cron', {
-    schedule: 'cron(0 * ? * * *)',
-    job: ghCopilotFunction,
-  });
+  if (stage === Stage.LIVE) {
+    // eslint-disable-next-line no-new
+    new Cron(stack, 'github-copilot-cron', {
+      schedule: 'cron(0 * ? * * *)',
+      job: ghCopilotFunction,
+    });
+  }
 
   // initialize a cron that runs every night at 23:30 UTC
   // eslint-disable-next-line no-new
@@ -982,7 +987,13 @@ export function gh({ stack }: StackContext): {
   });
 
   // Initialize cron
-  intializeCron(stack, processRetryFunction, ghCopilotFunction, ghBranchCounterFunction);
+  intializeCron(
+    stack,
+    stack.stage,
+    processRetryFunction,
+    ghCopilotFunction,
+    ghBranchCounterFunction
+  );
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,
