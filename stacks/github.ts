@@ -42,7 +42,7 @@ function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
 
 function intializeCron(
   stack: Stack,
-  stackStage: string,
+  stage: string,
   // eslint-disable-next-line @typescript-eslint/ban-types
   processRetryFunction: Function,
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -58,7 +58,7 @@ function intializeCron(
     job: processRetryFunction,
   });
 
-  if (stackStage === Stage.LIVE) {
+  if (stage === Stage.LIVE) {
     // eslint-disable-next-line no-new
     new Cron(stack, 'github-copilot-cron', {
       schedule: 'cron(0 * ? * * *)',
