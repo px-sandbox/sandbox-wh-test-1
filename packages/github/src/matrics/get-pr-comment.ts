@@ -74,7 +74,7 @@ export async function prCommentsGraphData(
       .agg(
         graphIntervals
           .agg(esb.valueCountAggregation('comment_count', 'body.githubPRReviewCommentId'))
-          .agg(esb.cardinalityAggregation('commented_pr', 'body.pullId.keyword'))
+          .agg(esb.cardinalityAggregation('commented_pr', 'body.pullId'))
           .agg(
             esb
               .bucketScriptAggregation('combined_avg')
@@ -122,7 +122,7 @@ function getPRCommentAvgQuery(
       esb
         .scriptedMetricAggregation('pr_comment_avg')
         .initScript('state.transactions = []')
-        .mapScript(`state.transactions.add(doc['body.pullId.keyword'].value)`)
+        .mapScript(`state.transactions.add(doc['body.pullId'].value)`)
         .combineScript(`double comments = 0;
       Map prMap = new HashMap();
       for(t in state.transactions){

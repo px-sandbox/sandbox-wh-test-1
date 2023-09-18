@@ -39,7 +39,7 @@ async function getGHCopilotReports(
     const perPage = 100; // max allowed by github
     const org = Github.Enums.OrgConst.SG;
     const ghCopilotResp = await octokit(
-      `GET /org/${org}/copilot/billing/seats?page=${pageNo}&per_page=${perPage}}`
+      `GET /orgs/${org}/copilot/billing/seats?page=${pageNo}&per_page=${perPage}}`
     );
 
     const reportsPerPage = ghCopilotResp.data as {
@@ -48,16 +48,18 @@ async function getGHCopilotReports(
     };
 
     const newCounter = counter + reportsPerPage.seats.length;
-    await Promise.all([
-      reportsPerPage.seats.map(async (seat) => {
-        await new SQSClient().sendMessage(seat, Queue.gh_copilot_format.queueUrl);
-      }),
-    ]);
+
+    await Promise.all(
+      reportsPerPage.seats.map((seat) =>
+        new SQSClient().sendMessage(seat, Queue.gh_copilot_format.queueUrl)
+      )
+    );
 
     if (reportsPerPage.seats.length < perPage) {
-      logger.info('getGHCopilotReports.successfull');
+      logger.info(`getGHCopilotReports.successfull for ${newCounter} records`);
       return newCounter;
     }
+
     return getGHCopilotReports(octokit, pageNo + 1, newCounter);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
