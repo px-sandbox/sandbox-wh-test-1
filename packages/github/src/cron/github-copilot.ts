@@ -55,8 +55,8 @@ async function getGHCopilotReports(
       )
     );
 
-    if (newCounter < perPage) {
-      logger.info(`getGHCopilotReports.successfull for ${newCounter + pageNo * perPage} records`);
+    if (reportsPerPage.seats.length < perPage) {
+      logger.info(`getGHCopilotReports.successfull for ${newCounter} records`);
       return newCounter;
     }
 
