@@ -89,7 +89,7 @@ export async function linesOfCodeGraph(
       .agg(
         graphIntervals
           .agg(esb.sumAggregation('file_changes_sum').script(sumScript))
-          .agg(esb.cardinalityAggregation('authorId', 'body.authorId.keyword'))
+          .agg(esb.cardinalityAggregation('authorId', 'body.authorId'))
           .agg(
             esb
               .bucketScriptAggregation('combined_avg')
@@ -138,7 +138,7 @@ export async function linesOfCodeAvg(
           ])
       )
       .agg(esb.sumAggregation('file_changes_sum').script(sumScript))
-      .agg(esb.cardinalityAggregation('authorId', 'body.authorId.keyword'))
+      .agg(esb.cardinalityAggregation('authorId', 'body.authorId'))
       .size(0)
       .toJSON();
     logger.info('LINES_OF_CODE_AVG_ESB_QUERY', prCommentAvgQuery);
