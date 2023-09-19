@@ -16,6 +16,7 @@ import { CommentState, MessageBody } from './historical-review';
 import { CalculateGraphAvgData } from './graph';
 import { GHCopilotReport } from './gh-copilot';
 import { ActiveBranches, RawActiveBRanches } from './active-branches';
+import { IndexMapping } from './index-mapping';
 
 export {
   Branch,
@@ -46,4 +47,5 @@ export {
   GHCopilotReport,
   ActiveBranches,
   RawActiveBRanches,
+  IndexMapping,
 };

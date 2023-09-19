@@ -5,13 +5,13 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import { RequestInterface } from '@octokit/types';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { searchedDataFormator } from '../../../util/response-formatter';
 import { logProcessToRetry } from '../../../util/retry-process';
-import { RequestInterface } from '@octokit/types';
 
 async function processFileChanges<T>(
   files: Array<T>,

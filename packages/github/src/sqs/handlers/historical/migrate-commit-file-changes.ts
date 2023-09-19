@@ -1,14 +1,14 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { Config } from 'sst/node/config';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { Github } from 'abstraction';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
-import { Config } from 'sst/node/config';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github } from 'abstraction';
 import { searchedDataFormator } from '../../../util/response-formatter';
 
 const installationAccessToken = await getInstallationAccessToken();
@@ -50,7 +50,7 @@ async function getRepoNameById(repoId: string): Promise<string> {
   }).search(Github.Enums.IndexName.GitRepo, 'id', repoId);
   const [repoName] = await searchedDataFormator(repoData);
   if (!repoName) {
-    throw new Error('repoName not found for data: ' + repoId);
+    throw new Error(`repoName not found for data: ${repoId}`);
   }
   logger.info({ message: 'repoData', repoName: repoName.name });
   return repoName.name;
