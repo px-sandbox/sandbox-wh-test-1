@@ -568,6 +568,9 @@ export function gh({ stack }: StackContext): {
         githubMappingTable,
         retryProcessTable,
         GIT_ORGANIZATION_ID,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
       ],
     }),
     cdk: {

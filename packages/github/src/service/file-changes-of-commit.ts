@@ -5,24 +5,24 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import esb, { Script } from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const orgName = event?.queryStringParameters?.orgName || '';
-  const repoName = event?.queryStringParameters?.repoName || '';
   try {
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const repoData = await esClientObj.search(Github.Enums.IndexName.GitRepo, 'name', repoName);
-    const [repoId] = await searchedDataFormator(repoData);
-    logger.info({ message: 'repoData', repoData: repoId.id, repoName });
-    const commitData = await esClientObj.search(
+
+    const fileChangeQuery = esb
+      .scriptQuery(new Script('source', "doc['body.changes.changes'].size() >= 300"))
+      .toJSON();
+    const commitData = await esClientObj.searchWithEsb(
       Github.Enums.IndexName.GitCommits,
-      'repoId',
-      repoId.id
+      fileChangeQuery
     );
 
     const commits = await searchedDataFormator(commitData);
@@ -34,7 +34,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     await Promise.all(
       commits.map(async (commit: Github.Type.Commits) => {
         new SQSClient().sendMessage(
-          { ...commit, repoName, repoOwner: orgName },
+          { ...commit, repoOwner: orgName },
           Queue.gh_commit_file_changes.queueUrl
         );
       })
