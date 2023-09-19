@@ -1,3 +1,2 @@
-import * as Enums from './enums';
-
-export { Enums };
+export * as Enums from './enums';
+export * as Types from "./type";

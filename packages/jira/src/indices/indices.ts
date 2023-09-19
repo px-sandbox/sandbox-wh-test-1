@@ -186,7 +186,7 @@ async function createMapping(name: string, mappings: unknown): Promise<void> {
   }
 }
 
-export async function createAllJiraIndices(): Promise<void> {
+export async function createIndices(): Promise<void> {
   logger.info('Creating all indices...');
 
   await Promise.all(indices.map(async ({ name, mappings }) => createMapping(name, mappings)));

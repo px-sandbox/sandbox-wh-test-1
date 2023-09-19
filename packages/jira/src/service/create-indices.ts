@@ -1,10 +1,10 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { createAllJiraIndices } from '../indices/indices';
+import { createIndices } from '../indices/indices';
 
 export const handler = async (): Promise<APIGatewayProxyResult> => {
-  await createAllJiraIndices();
-  logger.info('createAllJiraIndices.created');
+  await createIndices();
+  logger.info('createIndices.created');
   return responseParser
     .setBody({ message: 'All Jira indices created successfully' })
     .setMessage('Created Jira Indices')

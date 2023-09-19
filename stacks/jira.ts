@@ -15,6 +15,9 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
       'GET /jira/create-indices': {
         function: 'packages/jira/src/service/create-indices.handler',
       },
+      'POST /jira/webhook': {
+        function: 'packages/jira/src/webhook/webhook.handler',
+      },
     },
   });
 
