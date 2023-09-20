@@ -5,95 +5,98 @@ import { Config } from 'sst/node/config';
 
 const indices = [
   {
-    name: Jira.Enums.IndexName.JiraIssue,
+    name: Jira.Enums.IndexName.JiraOrganization,
+    _id : { type : "uuid" },
+    mappings: {
+      properties: {
+        id : { type : "keyword" },
+        jiraOrganizationId: {type: "keyword"},
+        organizationName: { type: "text" },
+      },
+    },
+    
+  },
+  {
+    name: Jira.Enums.IndexName.JiraUsers,
+    _id : { type : "uuid" },
+    mappings: {
+      properties: {
+        id : { type : "keyword" },
+        jiraUserId: { type: "keyword" },
+        emailAddress: { type: "keyword" },
+        userName: { type: "text" },
+        avatarUrl: { type: "text" },
+        isActive : {type: "boolean"},
+        isDelete: { type: "boolean" },
+        deletedAt: { type: "date", format: 'yyyy-MM-dd HH:mm:ss' },
+        organizationId: {type: "keyword"}
+      },
+    },
+    
+  },
+  
+  {
+    name: Jira.Enums.IndexName.JiraProject,
     _id: { type: 'uuid' },
     mappings: {
       properties: {
         id: { type: 'keyword' },
-        issueKey: { type: 'keyword' },
-        issueId: { type: 'keyword' },
-        project: { type: 'text' },
+        jiraProjectId: { type: 'keyword' },
         projectKey: { type: 'keyword' },
-        projectId: { type: 'keyword' },
-        isFTP: { type: 'text' },
-        issueType: { type: 'keyword' },
-        isPrimary: { type: 'boolean' },
-        priority: { type: 'boolean' },
-        label: {
+        name: { type: 'text' },
+        projectTypeKey: { type: 'keyword' },
+        projectType: { type: 'text' },
+        projectLead: {
           properties: {
-            levelKey: { type: 'keyword' },
-          },
-        },
-
-        issuelinks: {
-          properties: {
-            issueKey: { type: 'keyword' },
-          },
-        },
-        assignee: {
-          properties: {
-            assigneeId: { type: 'keyword' },
+            projectLeadId: { type: 'keyword' },
             name: { type: 'text' },
             isActive: { type: 'boolean' },
           },
         },
-        reporter: {
+        category: {
           properties: {
-            reporterId: { type: 'keyword' },
+            categoryId: { type: 'keyword' },
             name: { type: 'text' },
-            isActive: { type: 'boolean' },
           },
         },
-        creator: {
-          properties: {
-            creatorId: { type: 'keyword' },
-            name: { type: 'text' },
-            isActive: { type: 'boolean' },
-          },
-        },
-        status: { type: 'keyword' },
-        subtasks: {
-          properties: {
-            subtaskKey: { type: 'keyword' },
-          },
-        },
-        transitionHistory: {
-          properties: {
-            statusChangedFrom: { type: 'text' },
-            statusChangedTo: { type: 'text' },
-            statusChangedOn: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-          },
-        },
-        sprint: {
-          properties: {
-            sprintId: { type: 'keyword' },
-            name: { type: 'keyword' },
-            state: { type: 'keyword' },
-            startDate: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-            endDate: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-          },
-        },
-        createdDate: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        lastViewed: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        lastUpdated: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         organizationID: { type: 'keyword' },
-        isDelete: { type: 'boolean' },
+        isDeleteted: { type: 'boolean' },
         deletedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
       },
-    },
+    }
   },
+  {
+    name: Jira.Enums.IndexName.JiraSprint,
+    _id : { type : "uuid" },  
+    mappings: {
+      properties: {
+        id : { type : "keyword" },
+        jiraSprintId: { type: "keyword" },
+        projectKey: { type: "keyword" },
+        sprintName: { type: "keyword" },
+        state: { type: "text" },
+        startDate: { type: "date" },
+        endDate: { type: "date" },
+        isDelete: { type: "boolean" },
+        deletedAt: { type: "date" },   
+        projectId: { type: "keyword" },
+        organizationID: {type: "keyword"},     
+      },
+    }, 
+  },
+
   {
     name: Jira.Enums.IndexName.JiraIssue,
     _id: { type: 'uuid' },
     mappings: {
       properties: {
         id: { type: 'keyword' },
+        jiraIssueId: { type: 'keyword' },
         issueKey: { type: 'keyword' },
-        issueId: { type: 'keyword' },
         project: { type: 'text' },
         projectKey: { type: 'keyword' },
-        projectId: { type: 'keyword' },
         isFTP: { type: 'text' },
+        reOpenCount: { type: 'integer' },
         issueType: { type: 'keyword' },
         isPrimary: { type: 'boolean' },
         priority: { type: 'boolean' },
@@ -144,7 +147,6 @@ const indices = [
         },
         sprint: {
           properties: {
-            sprintId: { type: 'keyword' },
             name: { type: 'keyword' },
             state: { type: 'keyword' },
             startDate: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
@@ -154,12 +156,16 @@ const indices = [
         createdDate: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         lastViewed: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
         lastUpdated: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
-        organizationID: { type: 'keyword' },
         isDelete: { type: 'boolean' },
         deletedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        sprintId: { type: 'keyword' },
+        projectId: { type: 'keyword' },
+        organizationID: { type: 'keyword' },
       },
     },
   },
+
+
 ];
 async function createMapping(name: string, mappings: unknown): Promise<void> {
   try {

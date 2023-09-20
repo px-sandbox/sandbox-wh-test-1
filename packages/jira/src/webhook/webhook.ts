@@ -17,6 +17,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     logger.info('webhook.handler.received', { organisation, body });
 
     const eventTime = moment(body.timestamp);
+    logger.info('webhook.handler.eventTime', { eventTime });
     const eventName = body.webhookEvent as Jira.Enums.events;
 
     switch (eventName) {
