@@ -13,7 +13,7 @@ export class jira {
   constructor() {
     this.clientId = Config.JIRA_CLIENT_ID;
     this.clientSecret = Config.JIRA_CLIENT_SECRET;
-    this.callbackUrl = Config.JIRA_CALLBACK_URL;
+    this.callbackUrl = 'https://lj8abzpxe1.execute-api.eu-west-1.amazonaws.com/jira/callback';
   }
   async initialize(): Promise<string> {
     const redirectUrl = await Url.format({
@@ -85,23 +85,20 @@ export class jira {
     }
   }
 
-  public async getOrganizationDetails(refreshToken: string): Promise<any> {
+  public async getOrganizationDetails(token: string): Promise<any> {
     const response = await axios.get('https://api.atlassian.com/oauth/token/accessible-resources', {
-      headers: { Authorization: `Bearer ${refreshToken}`, Accept: 'application/json' },
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
     });
     return response.data;
   }
 
-  public async getProjectDetails(
-    refreshToken: string,
-    projectId: string,
-    orgName: string
-  ): Promise<any> {
+  public async getProjectDetails(projectId: string, orgName: string): Promise<any> {
     try {
+      const token = await this.getRefreshToken(orgName);
       const reponse = await axios.get(
         `https://${orgName}.atlassian.net/rest/api/3/project/${projectId}`,
         {
-          headers: { Authorization: `Bearer ${refreshToken}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       return reponse.data;
@@ -111,16 +108,13 @@ export class jira {
     }
   }
 
-  public async getIssueDetails(
-    refreshToken: string,
-    issueId: string,
-    orgName: string
-  ): Promise<any> {
+  public async getIssueDetails(issueId: string, orgName: string): Promise<any> {
     try {
+      const token = await this.getRefreshToken(orgName);
       const response = await axios.get(
         `https://${orgName}.atlassian.net/rest/api/3/issue/${issueId}`,
         {
-          headers: { Authorization: `Bearer ${refreshToken}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       return response.data;
@@ -130,13 +124,59 @@ export class jira {
     }
   }
 
-  public getUserDetails(refreshToken: string, accountId: string, orgName: string): Promise<any> {
+  public getUserDetails(accountId: string, orgName: string): Promise<any> {
     try {
+      const token = await this.getRefreshToken(orgName);
       return axios.get(`https://${orgName}.atlassian.net/rest/api/3/user/accountId=${accountId}`, {
-        headers: { Authorization: `Bearer ${refreshToken}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
     } catch (error) {
       logger.error({ message: 'JIRA_USER_FETCH_FAILED', error });
+      throw error;
+    }
+  }
+
+  public async getAllUsers(orgName: string): Promise<any> {
+    try {
+      const token = await this.getRefreshToken(orgName);
+      const response = await axios.get(`https://${orgName}.atlassian.net/rest/api/3/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+    } catch (error) {
+      logger.error({ message: 'JIRA_ALL_USERS_FETCH_FAILED', error });
+      throw error;
+    }
+  }
+
+  public async getProjectAllProjectStatuses(orgName: string, projectId: string): Promise<any> {
+    try {
+      const token = await this.getRefreshToken(orgName);
+      const response = await axios.get(
+        `https://${orgName}.atlassian.net/rest/api/3/project/${projectId}/statuses`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      logger.error({ message: 'JIRA_ALL_PROJECT_STATUSES_FETCH_FAILED', error });
+      throw error;
+    }
+  }
+
+  public async getTasksDetails(orgName: string, taskId: string): Promise<any> {
+    try {
+      const token = await this.getRefreshToken(orgName);
+      const response = await axios.get(
+        `https://${orgName}.atlassian.net/rest/api/3/task/${taskId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      logger.error({ message: 'JIRA_TASK_FETCH_FAILED', error });
       throw error;
     }
   }

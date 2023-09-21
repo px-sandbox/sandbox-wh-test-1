@@ -16,7 +16,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
     defaults: {
       function: {
         timeout: '30 seconds',
-        bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET, JIRA_CALLBACK_URL, table ],
+        bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET, table ],
       },
     },
     routes: {
