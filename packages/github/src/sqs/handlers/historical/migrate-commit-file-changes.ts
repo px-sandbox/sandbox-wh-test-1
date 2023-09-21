@@ -4,6 +4,7 @@ import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
+import { processFileChanges } from '../../../util/process-commit-changes';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
@@ -18,30 +19,6 @@ const octokit = ghRequest.request.defaults({
   },
 });
 
-async function processFileChanges<T>(
-  files: Array<T>,
-  filesLink: string | undefined
-): Promise<Array<T>> {
-  let nextFilesLink = filesLink;
-  let filesChanges = files;
-  try {
-    if (!nextFilesLink) {
-      return filesChanges;
-    }
-    const nextLinkRegex = /<([^>]+)>;\s*rel="next"/;
-    const nextLinkMatch = nextFilesLink.match(nextLinkRegex);
-    if (!nextLinkMatch) {
-      return filesChanges;
-    }
-    const response = await octokit(`GET ${nextLinkMatch[1]}`);
-    filesChanges = [...files, ...response.data.files];
-    nextFilesLink = response.headers.link;
-    return processFileChanges(filesChanges, nextFilesLink);
-  } catch (error) {
-    logger.error('ERROR_IN_PROCESS_FILE_CHANGES_COMMIT', error);
-    throw error;
-  }
-}
 async function getRepoNameById(repoId: string): Promise<string> {
   const repoData = await new ElasticSearchClient({
     host: Config.OPENSEARCH_NODE,
@@ -84,7 +61,7 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
         );
         const filesLink = responseData.headers.link;
         if (filesLink) {
-          const files = await processFileChanges(responseData.data.files, filesLink);
+          const files = await processFileChanges(responseData.data.files, filesLink, octokit);
           responseData.data.files = files;
         }
 

@@ -1,11 +1,11 @@
-import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
+import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
-import { RequestInterface } from '@octokit/types';
+import { processFileChanges } from '../../../util/process-commit-changes';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
@@ -13,37 +13,6 @@ import { getOctokitResp } from '../../../util/octokit-response';
 import { searchedDataFormator } from '../../../util/response-formatter';
 import { logProcessToRetry } from '../../../util/retry-process';
 
-async function processFileChanges<T>(
-  files: Array<T>,
-  filesLink: string | undefined,
-  octokit: RequestInterface<
-    object & {
-      headers: {
-        Authorization: string;
-      };
-    }
-  >
-): Promise<Array<T>> {
-  let nextFilesLink = filesLink;
-  let filesChanges = files;
-  try {
-    if (!nextFilesLink) {
-      return filesChanges;
-    }
-    const nextLinkRegex = /<([^>]+)>;\s*rel="next"/;
-    const nextLinkMatch = nextFilesLink.match(nextLinkRegex);
-    if (!nextLinkMatch) {
-      return filesChanges;
-    }
-    const response = await octokit(`GET ${nextLinkMatch[1]}`);
-    filesChanges = [...files, ...response.data.files];
-    nextFilesLink = response.headers.link;
-    return processFileChanges(filesChanges, nextFilesLink, octokit);
-  } catch (error) {
-    logger.error('ERROR_IN_PROCESS_FILE_CHANGES_COMMIT', error);
-    throw error;
-  }
-}
 async function checkCommitExists(isMergedCommit: string, commitId: string): Promise<boolean> {
   const commitSearchQuery = esb.matchQuery('body.githubCommitId', commitId);
   const searchInEsb = await new ElasticSearchClient({
