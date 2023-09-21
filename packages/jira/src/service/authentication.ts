@@ -3,11 +3,10 @@ import { HttpStatusCode, logger, responseParser } from 'core';
 import { jira } from 'src/lib/jira';
 
 export const handler = async (): Promise<APIGatewayProxyResult> => {
-  // const redirectUrl = await new jira().initialize();
-  logger.info('inside handler');
+  const redirectUrl = await new jira().initialize();
   return responseParser
-    .setBody({ message:'' })
-    .setMessage('JIRA AUTHENTICATION SUCCESS')
+    .setBody({ link: redirectUrl })
+    .setMessage('JIRA AUTHENTICATION LINK')
     .setStatusCode(HttpStatusCode[200])
     .setResponseBodyCode('SUCCESS')
     .send();

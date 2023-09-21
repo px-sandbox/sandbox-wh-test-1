@@ -1,0 +1,20 @@
+{
+    "TableName": "charchitkandelwal-pulse-dx-jira-token",
+    "KeySchema": [
+      {
+        "AttributeName": "processId",
+        "KeyType": "HASH"
+      }
+    ],
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "processId",
+        "AttributeType": "S"
+      }
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 1,
+      "WriteCapacityUnits": 1
+    }
+  }
+  
