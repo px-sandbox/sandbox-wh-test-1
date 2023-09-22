@@ -551,6 +551,39 @@ export function gh({ stack }: StackContext): {
     },
   });
 
+  const commitFileChanges = new Queue(stack, 'gh_commit_file_changes', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
+  commitFileChanges.addConsumer(stack, {
+    function: new Function(stack, 'commitFileChangesFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/migrate-commit-file-changes.handler',
+      timeout: '300 seconds',
+      runtime: 'nodejs18.x',
+      bind: [
+        commitIndexDataQueue,
+        commitFileChanges,
+        GITHUB_SG_INSTALLATION_ID,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        githubMappingTable,
+        retryProcessTable,
+        GIT_ORGANIZATION_ID,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+      ],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+
   // bind tables and config to queue
 
   userFormatDataQueue.bind([
@@ -892,6 +925,7 @@ export function gh({ stack }: StackContext): {
           collectPRCommitsData,
           collectPRReviewCommentsData,
           historicalBranch,
+          commitFileChanges,
         ],
       },
     },
@@ -984,6 +1018,10 @@ export function gh({ stack }: StackContext): {
       // GET Graph for avg lines of code per day per developer
       'GET /github/graph/lines-of-code': {
         function: 'packages/github/src/service/get-lines-of-code.handler',
+        authorizer: 'universal',
+      },
+      'GET /github/file-changes-of-commit': {
+        function: 'packages/github/src/service/file-changes-of-commit.handler',
         authorizer: 'universal',
       },
     },
