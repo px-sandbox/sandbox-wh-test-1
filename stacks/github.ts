@@ -1,8 +1,7 @@
 import { StackContext, Api, Table, Config, Queue, Function, Cron, use } from 'sst/constructs';
 import { Duration, Stack } from 'aws-cdk-lib';
 import { commonConfig } from './common/config';
-import { Stage } from './type/stack-config.js';
-
+import { Stage } from './type/stack-config';
 
 function initializeGHSecrets(stack: Stack): Record<string, Config.Secret> {
   const ghSecret = {} as Record<string, Config.Secret>;

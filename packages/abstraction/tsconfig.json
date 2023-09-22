@@ -4,5 +4,8 @@
     "module": "esnext",
     "outDir": "./dist",
     "rootDir": "./"
-  }
+  },
+  "exclude": ["node_modules"]
 }
+
+
