@@ -6,35 +6,41 @@ import { Config } from 'sst/node/config';
 const indices = [
   {
     name: Jira.Enums.IndexName.JiraOrganization,
-    _id : { type : "uuid" },
+    _id: { type: 'uuid' },
     mappings: {
       properties: {
-        id : { type : "keyword" },
-        jiraOrganizationId: {type: "keyword"},
-        organizationName: { type: "text" },
+        id: { type: 'keyword' },
+        jiraOrganizationId: { type: 'keyword' },
+        organizationName: { type: 'text' },
       },
     },
-    
   },
   {
     name: Jira.Enums.IndexName.JiraUsers,
-    _id : { type : "uuid" },
+    _id: { type: 'uuid' },
     mappings: {
       properties: {
-        id : { type : "keyword" },
-        jiraUserId: { type: "keyword" },
-        emailAddress: { type: "keyword" },
-        userName: { type: "text" },
-        avatarUrl: { type: "text" },
-        isActive : {type: "boolean"},
-        isDelete: { type: "boolean" },
-        deletedAt: { type: "date", format: 'yyyy-MM-dd HH:mm:ss' },
-        organizationId: {type: "keyword"}
+        id: { type: 'keyword' },
+        jiraUserId: { type: 'keyword' },
+        emailAddress: { type: 'keyword' },
+        userName: { type: 'text' },
+        displayName: { type: 'text' },
+        avatarUrls: {
+          properties: {
+            avatarUrl48x48: { type: 'text' },
+            avatarUrl32x32: { type: 'text' },
+            avatarUrl24x24: { type: 'text' },
+            avatarUrl16x16: { type: 'text' },
+          },
+        },
+        isActive: { type: 'boolean' },
+        isDelete: { type: 'boolean' },
+        deletedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
+        organizationId: { type: 'keyword' },
       },
     },
-    
   },
-  
+
   {
     name: Jira.Enums.IndexName.JiraProject,
     _id: { type: 'uuid' },
@@ -63,26 +69,26 @@ const indices = [
         isDeleteted: { type: 'boolean' },
         deletedAt: { type: 'date', format: 'yyyy-MM-dd HH:mm:ss' },
       },
-    }
+    },
   },
   {
     name: Jira.Enums.IndexName.JiraSprint,
-    _id : { type : "uuid" },  
+    _id: { type: 'uuid' },
     mappings: {
       properties: {
-        id : { type : "keyword" },
-        jiraSprintId: { type: "keyword" },
-        projectKey: { type: "keyword" },
-        sprintName: { type: "keyword" },
-        state: { type: "text" },
-        startDate: { type: "date" },
-        endDate: { type: "date" },
-        isDelete: { type: "boolean" },
-        deletedAt: { type: "date" },   
-        projectId: { type: "keyword" },
-        organizationID: {type: "keyword"},     
+        id: { type: 'keyword' },
+        jiraSprintId: { type: 'keyword' },
+        projectKey: { type: 'keyword' },
+        sprintName: { type: 'keyword' },
+        state: { type: 'text' },
+        startDate: { type: 'date' },
+        endDate: { type: 'date' },
+        isDelete: { type: 'boolean' },
+        deletedAt: { type: 'date' },
+        projectId: { type: 'keyword' },
+        organizationID: { type: 'keyword' },
       },
-    }, 
+    },
   },
 
   {
@@ -164,8 +170,6 @@ const indices = [
       },
     },
   },
-
-
 ];
 async function createMapping(name: string, mappings: unknown): Promise<void> {
   try {

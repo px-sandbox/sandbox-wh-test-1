@@ -1,2 +1,3 @@
 export * as Enums from './enums';
-export * as Types from "./type";
+export * as Type from './type';
+export * as ExternalType from './external';
