@@ -1,13 +1,62 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, responseParser } from 'core';
-import { Jira } from '../lib/jira';
+import { HttpStatusCode, logger, responseParser } from 'core';
+import axios from 'axios';
+import { v4 as uuid } from 'uuid';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ParamsMapping } from 'src/model/prepare-params';
+import { Jira } from 'abstraction';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const code: string = event?.queryStringParameters?.code || '';
-  const refreshToken = await new Jira().callback(code);
+
+  const response = await axios.post('https://auth.atlassian.com/oauth/token', {
+    grant_type: 'authorization_code',
+    client_id: Config.JIRA_CLIENT_ID,
+    client_secret: Config.JIRA_CLIENT_SECRET,
+    code,
+    redirect_uri: Config.JIRA_REDIRECT_URI,
+  });
+
+  const _esClient = new ElasticSearchClient({
+    host: Config.OPENSEARCH_NODE,
+    username: Config.OPENSEARCH_USERNAME ?? '',
+    password: Config.OPENSEARCH_PASSWORD ?? '',
+  });
+
+  const _ddbClient = new DynamoDbDocClient();
+
+  const credId = uuid();
+
+  const accessibleOrgs: Array<any> = await axios.get(
+    'https://api.atlassian.com/oauth/token/accessible-resources',
+    {
+      headers: {
+        Authorization: `Bearer ${response.data.access_token}`,
+        Accept: 'application/json',
+      },
+    }
+  );
+
+  await Promise.all([
+    _ddbClient.put(new ParamsMapping().preparePutParams(credId, response.data)),
+    ...accessibleOrgs.map(({ id, ...org }) =>
+      _esClient.putDocument(Jira.Enums.IndexName.Organisation, {
+        id: uuid(),
+        body: {
+          id: `jira_org_${id}`,
+          orgId: id,
+          credId,
+          createdAt: new Date(),
+          ...org,
+        },
+      })
+    ),
+  ]);
+
   return responseParser
-    .setBody({ refreshToken })
-    .setMessage('JIRA CALBACK URL')
+    .setBody({})
+    .setMessage('Authentication Successfull')
     .setStatusCode(HttpStatusCode[200])
     .setResponseBodyCode('SUCCESS')
     .send();

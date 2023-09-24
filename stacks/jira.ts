@@ -24,11 +24,12 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   const JIRA_CLIENT_ID = new Config.Secret(stack, 'JIRA_CLIENT_ID');
   const JIRA_CLIENT_SECRET = new Config.Secret(stack, 'JIRA_CLIENT_SECRET');
   const JIRA_CALLBACK_URL = new Config.Secret(stack, 'JIRA_CALLBACK_URL');
-  const table = new Table(stack, 'jira-token', {
+
+  const table = new Table(stack, 'jira-creds', {
     fields: {
-      processId: 'string',
+      id: 'string',
     },
-    primaryIndex: { partitionKey: 'processId' },
+    primaryIndex: { partitionKey: 'id' },
   });
 
   // Initialize DynamoDB Tables for Jira
@@ -61,8 +62,8 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
       'POST /jira/webhook': {
         function: 'packages/jira/src/webhook/webhook.handler',
       },
-      'GET /jira/initialize': {
-        function: 'packages/jira/src/service/authentication.handler',
+      'GET /jira/auth': {
+        function: 'packages/jira/src/service/auth.handler',
       },
       'GET /jira/callback': {
         function: 'packages/jira/src/service/callback.handler',

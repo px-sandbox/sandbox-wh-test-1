@@ -4,5 +4,4 @@ export enum IndexName {
   JiraUsers = 'jira_users',
   JiraSprint = 'jira_sprint',
   JiraOrganization = 'jira_organization',
-
 }
