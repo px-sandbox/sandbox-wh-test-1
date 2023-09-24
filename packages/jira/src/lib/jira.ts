@@ -1,11 +1,12 @@
+import Url from 'url';
 import { Config } from 'sst/node/config';
 import axios from 'axios';
-import Url from 'url';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { ParamsMapping } from 'src/model/prepare-params';
 import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
-export class jira {
+import { ParamsMapping } from '../model/prepare-params';
+
+export class Jira {
   private clientId: string;
   private clientSecret: string;
   private callbackUrl: string;
@@ -15,7 +16,7 @@ export class jira {
     this.clientSecret = Config.JIRA_CLIENT_SECRET;
     this.callbackUrl = 'https://lj8abzpxe1.execute-api.eu-west-1.amazonaws.com/jira/callback';
   }
-  async initialize(): Promise<string> {
+  public async initialize(): Promise<string> {
     const redirectUrl = await Url.format({
       protocol: 'https',
       hostname: 'auth.atlassian.com',
@@ -46,7 +47,7 @@ export class jira {
         grant_type: 'authorization_code',
         client_id: this.clientId,
         client_secret: this.clientSecret,
-        code: code,
+        code,
         redirect_uri: this.callbackUrl,
       });
       const orgData: [{ id: number; name: string }] = await this.getOrganizationDetails(

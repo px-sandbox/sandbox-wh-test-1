@@ -1,5 +1,4 @@
 import { Jira } from 'abstraction';
-import moment from 'moment';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
@@ -31,7 +30,7 @@ export class SprintProcessor extends DataProcessor<
         originBoardId: this.jiraApiData.originBoardId,
         isDelete: false,
         deletedAt: null,
-        //add organization id
+        // add organization id
       },
     };
     return sprintObj;

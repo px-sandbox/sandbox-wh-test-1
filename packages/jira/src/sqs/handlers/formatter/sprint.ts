@@ -1,7 +1,7 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { SprintProcessor } from 'src/processors/sprint';
 import { Queue } from 'sst/node/queue';
+import { SprintProcessor } from '../../../processors/sprint';
 
 export const handler = async function sprintFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

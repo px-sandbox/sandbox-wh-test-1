@@ -1,6 +1,6 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { saveSprintDetails } from 'src/lib/save-sprint';
+import { saveSprintDetails } from '../../../lib/save-sprint';
 
 export const handler = async function sprintIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

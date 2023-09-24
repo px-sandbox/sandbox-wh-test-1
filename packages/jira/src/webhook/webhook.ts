@@ -5,6 +5,7 @@ import { Jira } from 'abstraction';
 import * as user from './users';
 
 import * as sprint from './sprints';
+
 async function processWebhookEvent(
   eventName: Jira.Enums.Event,
   eventTime: moment.Moment,
@@ -37,6 +38,7 @@ async function processWebhookEvent(
       break;
     case Jira.Enums.Event.SprintUpdated:
       await sprint.updateSprintEvent(body.sprint);
+      break;
     default:
       logger.info(`No case found for ${eventName} in Jira webhook event`);
       break;

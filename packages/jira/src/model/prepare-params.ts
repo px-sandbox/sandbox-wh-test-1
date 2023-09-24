@@ -1,5 +1,4 @@
-import { PutCommandInput, QueryCommandInput, ScanCommandInput } from '@aws-sdk/lib-dynamodb';
-import { Other } from 'abstraction';
+import { PutCommandInput, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
 
 export class ParamsMapping {
