@@ -30,5 +30,34 @@ export function initializeJiraQueue(stack: Stack, jiraDDB: Table): Queue[] {
   userFormatDataQueue.bind([jiraDDB, userIndexDataQueue]);
 
   userIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
-  return [userFormatDataQueue];
+
+  const sprintFormatDataQueue = new Queue(stack, 'jira_sprint_format', {
+    consumer: {
+      function: {
+        handler: 'packages/jira/src/sqs/handlers/formatter/sprint.handler',
+      },
+      cdk: {
+        eventSource: {
+          batchSize: 5,
+        },
+      },
+    },
+  });
+
+  const sprintIndexDataQueue = new Queue(stack, 'jira_sprint_index', {
+    consumer: {
+      function: {
+        handler: 'packages/jira/src/sqs/handlers/indexer/sprint.handler',
+      },
+      cdk: {
+        eventSource: {
+          batchSize: 5,
+        },
+      },
+    },
+  });
+  sprintFormatDataQueue.bind([jiraDDB, sprintIndexDataQueue]);
+  sprintIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+
+  return [userFormatDataQueue, sprintFormatDataQueue];
 }

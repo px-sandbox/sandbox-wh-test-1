@@ -4,6 +4,7 @@ import { logger } from 'core';
 import { Jira } from 'abstraction';
 import * as user from './users';
 
+import * as sprint from './sprints';
 async function processWebhookEvent(
   eventName: Jira.Enums.Event,
   eventTime: moment.Moment,
@@ -28,7 +29,14 @@ async function processWebhookEvent(
     case Jira.Enums.Event.UserDeleted:
       // do soft delete user
       break;
-
+    case Jira.Enums.Event.SprintCreated:
+      await sprint.createSprintEvent(body.sprint);
+      break;
+    case Jira.Enums.Event.SprintStarted:
+      await sprint.startSprintEvent(body.sprint);
+      break;
+    case Jira.Enums.Event.SprintUpdated:
+      await sprint.updateSprintEvent(body.sprint);
     default:
       logger.info(`No case found for ${eventName} in Jira webhook event`);
       break;

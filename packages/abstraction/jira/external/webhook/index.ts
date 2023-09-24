@@ -1,3 +1,3 @@
 import { User } from './user';
-
-export { User };
+import { Sprint } from './sprint';
+export { User, Sprint };
