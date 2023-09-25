@@ -6,4 +6,7 @@ export enum Event {
   UserCreated = 'user_created',
   UserUpdated = 'user_updated',
   UserDeleted = 'user_deleted',
+  SprintCreated = 'sprint_created',
+  SprintStarted = 'sprint_started',
+  SprintUpdated = 'sprint_updated',
 }
