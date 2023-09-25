@@ -9,7 +9,8 @@ import * as sprint from './sprints';
 async function processWebhookEvent(
   eventName: Jira.Enums.Event,
   eventTime: moment.Moment,
-  body: Jira.Type.Webhook
+  body: Jira.Type.Webhook,
+  organization: string
 ): Promise<void> {
   switch (eventName?.toLowerCase()) {
     case Jira.Enums.Event.ProjectCreated:
@@ -31,13 +32,19 @@ async function processWebhookEvent(
       // do soft delete user
       break;
     case Jira.Enums.Event.SprintCreated:
-      await sprint.createSprintEvent(body.sprint);
+      await sprint.createSprintEvent(body.sprint, organization);
       break;
     case Jira.Enums.Event.SprintStarted:
-      await sprint.startSprintEvent(body.sprint);
+      await sprint.startSprintEvent(body.sprint, organization);
       break;
     case Jira.Enums.Event.SprintUpdated:
-      await sprint.updateSprintEvent(body.sprint);
+      await sprint.updateSprintEvent(body.sprint, organization);
+      break;
+    case Jira.Enums.Event.SprintDeleted:
+      await sprint.deleteSprintEvent(body.sprint, organization);
+      break;
+    case Jira.Enums.Event.SprintClosed:
+      await sprint.closeSprintEvent(body.sprint, organization);
       break;
     default:
       logger.info(`No case found for ${eventName} in Jira webhook event`);
@@ -61,7 +68,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     logger.info('webhook.handler.eventTime', { eventTime });
 
     const eventName = body.webhookEvent as Jira.Enums.Event;
-    await processWebhookEvent(eventName, eventTime, body);
+    await processWebhookEvent(eventName, eventTime, body, organization);
   } catch (error) {
     logger.error('webhook.handler.error', { error, event });
   }

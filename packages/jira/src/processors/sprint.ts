@@ -15,6 +15,7 @@ export class SprintProcessor extends DataProcessor<
     const parentId: string = await this.getParentId(
       `${mappingPrefixes.sprint}_${this.jiraApiData.id}`
     );
+    const orgData = await this.getOrganizationId(this.jiraApiData.organisation);
 
     const sprintObj = {
       id: parentId || uuid(),
@@ -27,10 +28,11 @@ export class SprintProcessor extends DataProcessor<
         createdDate: this.jiraApiData.createdDate,
         startDate: this.jiraApiData.startDate,
         endDate: this.jiraApiData.endDate,
+        completeDate: this.jiraApiData.completeDate,
         originBoardId: this.jiraApiData.originBoardId,
-        isDelete: false,
-        deletedAt: null,
-        // add organization id
+        isDeleted: this.jiraApiData.isDeleted ?? false,
+        deletedAt: this.jiraApiData.deletedAt ?? null,
+        organizationId: orgData.body.id ?? null,
       },
     };
     return sprintObj;

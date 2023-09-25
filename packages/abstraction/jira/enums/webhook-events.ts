@@ -9,4 +9,6 @@ export enum Event {
   SprintCreated = 'sprint_created',
   SprintStarted = 'sprint_started',
   SprintUpdated = 'sprint_updated',
+  SprintDeleted = 'sprint_deleted',
+  SprintClosed = 'sprint_closed',
 }

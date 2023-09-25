@@ -9,7 +9,11 @@ export type Sprint = {
     createdDate: string;
     startDate: string;
     endDate: string;
+    completeDate: string;
     originBoardId: number;
+    organizationId: string;
+    isDeleted: boolean;
+    deletedAt: string;
   };
 };
 
