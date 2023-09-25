@@ -102,6 +102,7 @@ const indices = [
             state: { type: 'text' },
             startDate: { type: 'date' },
             endDate: { type: 'date' },
+            completeDate: { type: 'date' },
             isDelete: { type: 'boolean' },
             deletedAt: { type: 'date' },
             projectId: { type: 'keyword' },

@@ -56,7 +56,13 @@ export function initializeJiraQueue(stack: Stack, jiraDDB: Table): Queue[] {
       },
     },
   });
-  sprintFormatDataQueue.bind([jiraDDB, sprintIndexDataQueue]);
+  sprintFormatDataQueue.bind([
+    jiraDDB,
+    sprintIndexDataQueue,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
   sprintIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
   return [userFormatDataQueue, sprintFormatDataQueue];

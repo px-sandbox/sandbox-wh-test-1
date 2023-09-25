@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import axios from 'axios';
+import axios, { AxiosStatic, AxiosResponse } from 'axios';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
@@ -29,7 +29,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   const credId = uuid();
 
-  const accessibleOrgs: Array<any> = await axios.get(
+  const accessibleOrgs: AxiosResponse<Array<Jira.ExternalType.Api.Organization>> = await axios.get(
     'https://api.atlassian.com/oauth/token/accessible-resources',
     {
       headers: {
@@ -41,7 +41,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   await Promise.all([
     _ddbClient.put(new ParamsMapping().preparePutParams(credId, response.data)),
-    ...accessibleOrgs.map(({ id, ...org }) =>
+    ...accessibleOrgs.data.map(({ id, ...org }) =>
       _esClient.putDocument(Jira.Enums.IndexName.Organization, {
         id: uuid(),
         body: {
