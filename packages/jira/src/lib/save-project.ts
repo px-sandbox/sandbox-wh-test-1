@@ -9,7 +9,7 @@ import { ParamsMapping } from '../model/params-mapping';
 
 /**
  * Saves project details to DynamoDB and Elasticsearch.
- * @param data - The project data to be saved.
+ * @param data The project details to be saved.
  * @returns A Promise that resolves when the project details have been saved.
  * @throws An error if there was a problem saving the project details.
  */

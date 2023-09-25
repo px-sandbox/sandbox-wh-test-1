@@ -3,7 +3,7 @@ export enum Event {
   ProjectCreated = 'project_created',
   ProjectUpdated = 'project_updated',
   ProjectSoftDeleted = 'project_soft_deleted',
-  ProjectRestoredDeleted = 'project_restored_deleted',
+  ProjectRestoreDeleted = 'project_restored_deleted',
   UserCreated = 'user_created',
   UserUpdated = 'user_updated',
   UserDeleted = 'user_deleted',

@@ -3,9 +3,9 @@ import { logger } from 'core';
 import { saveProjectDetails } from '../../../lib/save-project';
 
 /**
- * Handles the project index data received from SQS.
- * @param event - The SQS event containing the project data.
- * @returns Promise that resolves when all project data has been saved.
+ * Handles the SQS event for project indexing data.
+ * @param event - The SQS event containing the project data to be indexed.
+ * @returns A Promise that resolves when all project data has been indexed.
  */
 export const handler = async function projectIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

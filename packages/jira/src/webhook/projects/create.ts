@@ -5,7 +5,7 @@ import { Queue } from 'sst/node/queue';
 
 /**
  * Sends a message to SQS when a project is created.
- * @param project - The project object received from the Jira webhook.
+ * @param project - The project that was created.
  * @returns A Promise that resolves when the message is sent to SQS.
  */
 export async function projectCreatedEvent(project: Jira.ExternalType.Webhook.Project): Promise<void> {
