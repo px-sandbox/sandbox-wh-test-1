@@ -18,12 +18,12 @@ export async function saveUserDetails(data: Jira.Type.User): Promise<void> {
     });
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
     logger.info('saveUserDetails.matchQry------->', { matchQry });
-    const userData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.JiraUsers, matchQry);
+    const userData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Users, matchQry);
     const [formattedData] = await searchedDataFormator(userData);
     if (formattedData) {
       updatedData.id = formattedData._id;
     }
-    await esClientObj.putDocument(Jira.Enums.IndexName.JiraUsers, updatedData);
+    await esClientObj.putDocument(Jira.Enums.IndexName.Users, updatedData);
     logger.info('saveUserDetails.successful');
   } catch (error: unknown) {
     logger.error('saveUserDetails.error', {

@@ -17,12 +17,12 @@ export async function saveSprintDetails(data: Jira.Types.Sprint): Promise<void> 
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
-    const sprintData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.JiraSprint, matchQry);
+    const sprintData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Sprint, matchQry);
     const [formattedData] = await searchedDataFormator(sprintData);
     if (formattedData) {
       updatedData.id = formattedData._id;
     }
-    await esClientObj.putDocument(Jira.Enums.IndexName.JiraSprint, updatedData);
+    await esClientObj.putDocument(Jira.Enums.IndexName.Sprint, updatedData);
     logger.info('saveSprintDetails.successful');
   } catch (error: unknown) {
     logger.error('saveSprintDetails.error', {
