@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import axios from 'axios';
+import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
@@ -41,7 +42,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   await Promise.all([
     _ddbClient.put(new ParamsMapping().preparePutParams(credId, response.data)),
     ...accessibleOrgs.map(({ id, ...org }) =>
-      _esClient.putDocument(Jira.Enums.IndexName.Organisation, {
+      _esClient.putDocument(Jira.Enums.IndexName.Organization, {
         id: uuid(),
         body: {
           id: `jira_org_${id}`,

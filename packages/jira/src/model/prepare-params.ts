@@ -2,7 +2,7 @@ import { PutCommandInput, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
 
 export class ParamsMapping {
-  private tableName = Table['jira-creds'].tableName;
+  private tableName = Table.jiraCreds.tableName;
 
   public preparePutParams<T>(id: string, otherData: T): PutCommandInput {
     return {

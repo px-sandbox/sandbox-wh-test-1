@@ -23,9 +23,9 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
   const JIRA_CLIENT_ID = new Config.Secret(stack, 'JIRA_CLIENT_ID');
   const JIRA_CLIENT_SECRET = new Config.Secret(stack, 'JIRA_CLIENT_SECRET');
-  const JIRA_CALLBACK_URL = new Config.Secret(stack, 'JIRA_CALLBACK_URL');
+  const JIRA_REDIRECT_URI = new Config.Secret(stack, 'JIRA_REDIRECT_URI');
 
-  const table = new Table(stack, 'jira-creds', {
+  const table = new Table(stack, 'jiraCreds', {
     fields: {
       id: 'string',
     },
@@ -49,7 +49,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
           OPENSEARCH_USERNAME,
           JIRA_CLIENT_ID,
           JIRA_CLIENT_SECRET,
-          JIRA_CALLBACK_URL,
+          JIRA_REDIRECT_URI,
           table,
         ],
       },
