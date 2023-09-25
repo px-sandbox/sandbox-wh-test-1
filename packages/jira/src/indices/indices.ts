@@ -63,12 +63,28 @@ const indices = [
             jiraProjectId: { type: 'keyword' },
             projectKey: { type: 'keyword' },
             name: { type: 'text' },
+            avatarUrls: {
+              properties: {
+                avatarUrl48x48: { type: 'text' },
+                avatarUrl32x32: { type: 'text' },
+                avatarUrl24x24: { type: 'text' },
+                avatarUrl16x16: { type: 'text' },
+              },
+            },
             projectTypeKey: { type: 'keyword' },
             projectType: { type: 'text' },
             projectLead: {
               properties: {
                 projectLeadId: { type: 'keyword' },
                 name: { type: 'text' },
+                avatarUrls: {
+                  properties: {
+                    avatarUrl48x48: { type: 'text' },
+                    avatarUrl32x32: { type: 'text' },
+                    avatarUrl24x24: { type: 'text' },
+                    avatarUrl16x16: { type: 'text' },
+                  },
+                },
                 isActive: { type: 'boolean' },
               },
             },

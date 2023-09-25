@@ -3,9 +3,9 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import axios from 'axios';
 import { logger } from 'core';
-import { JiraCredsMapping } from 'src/model/prepare-creds-params';
 import { Config } from 'sst/node/config';
 import { esResponseDataFormator } from 'util/es-response-formatter';
+import { JiraCredsMapping } from '../model/prepare-creds-params';
 import { getTokens } from './getToken';
 
 export class JiraClient {
@@ -21,8 +21,8 @@ export class JiraClient {
   }
 
   public static async getClient(
-    orgName: string //   : Promise<JiraClient>
-  ) {
+    orgName: string 
+  ): Promise<JiraClient> {
     // clients creation
     const _esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -55,7 +55,21 @@ export class JiraClient {
     return instance;
   }
 
-  public async getProjects() {}
+  public async getProjects(projectId: string, orgName: string): Promise<any> {
+    try {
+      const token =  this.accessToken;
+      const reponse = await axios.get(
+        `https://${orgName}.atlassian.net/rest/api/3/project/${projectId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return reponse.data;
+    } catch (error) {
+      logger.error({ message: 'JIRA_PROJECT_FETCH_FAILED', error });
+      throw error;
+    }
+  }
 
   public async getBoards(boardId: number) {
     try {
@@ -69,7 +83,7 @@ export class JiraClient {
     }
   }
 
-  public async getSprints(boardId: string) {}
+  public async getSprints(boardId: string):Promise<void> {}
 
-  public async getIssues() {}
+  public async getIssues():Promise<void> {}
 }

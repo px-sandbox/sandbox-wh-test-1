@@ -1,1 +1,3 @@
-export function test():void {}
+import {projectCreatedEvent as create} from './create';
+
+export {create};

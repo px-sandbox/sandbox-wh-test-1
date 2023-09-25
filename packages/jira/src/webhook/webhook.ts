@@ -1,11 +1,16 @@
+/* eslint-disable complexity */
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import moment from 'moment';
 import { logger } from 'core';
 import { Jira } from 'abstraction';
 import * as user from './users';
+import * as project from './projects';
 
 import * as sprint from './sprints';
 
+
+
+// Used to call appropriate function based on event name
 async function processWebhookEvent(
   eventName: Jira.Enums.Event,
   eventTime: moment.Moment,
@@ -14,7 +19,7 @@ async function processWebhookEvent(
 ): Promise<void> {
   switch (eventName?.toLowerCase()) {
     case Jira.Enums.Event.ProjectCreated:
-      // do stuff for saving
+      await project.create(body.project);
       break;
     case Jira.Enums.Event.ProjectUpdated:
       // do project update
@@ -51,6 +56,8 @@ async function processWebhookEvent(
       break;
   }
 }
+
+// Lambda handler which is invoked by Jira webhook
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
   try {
     logger.info('webhook.handler.invoked', { event });
