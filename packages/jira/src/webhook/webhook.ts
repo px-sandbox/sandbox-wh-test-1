@@ -1,4 +1,5 @@
 /* eslint-disable complexity */
+/* eslint-disable complexity */
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import moment from 'moment';
 import { logger } from 'core';
@@ -17,6 +18,15 @@ import * as sprint from './sprints';
  * @returns A Promise that resolves when the event is processed.
  */
 // eslint-disable-next-line
+
+/**
+ * Processes the webhook event based on the event name and performs the corresponding action.
+ * @param eventName - The name of the event.
+ * @param eventTime - The time when the event occurred.
+ * @param body - The webhook payload.
+ * @param organization - The name of the organization.
+ * @returns A Promise that resolves when the event is processed.
+ */
 async function processWebhookEvent(
   eventName: Jira.Enums.Event,
   eventTime: moment.Moment,
@@ -27,10 +37,12 @@ async function processWebhookEvent(
   switch (eventName?.toLowerCase()) {
     case Jira.Enums.Event.ProjectCreated:
       await project.create(body.project);
+      await project.create(body.project);
       break;
     case Jira.Enums.Event.ProjectUpdated:
       projectBody = {...(body.project), updatedAt: eventTime.format('YYYY-MM-DD HH:mm:ss')};
       await project.update(projectBody);
+      
       break;
     case Jira.Enums.Event.ProjectSoftDeleted:
       projectBody = {...(body.project), deletedAt: eventTime.format('YYYY-MM-DD HH:mm:ss'), isDeleted: true};

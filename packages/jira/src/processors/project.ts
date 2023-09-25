@@ -4,14 +4,12 @@ import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 
 /**
- * Data processor for Jira projects.
- * @template ExternalType - The external type of the data.
- * @template Type - The type of the processed data.
+ * Data processor for Jira project data.
  */
 export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Webhook.Project, Jira.Type.Project> {
   /**
-   * Constructor for the ProjectProcessor class.
-   * @param data - The data to be processed.
+   * Constructor for ProjectProcessor.
+   * @param data - The Jira project data to be processed.
    */
   constructor(data: Jira.ExternalType.Webhook.Project) {
     super(data);
