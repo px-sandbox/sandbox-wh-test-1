@@ -1,5 +1,4 @@
 /* eslint-disable complexity */
-/* eslint-disable complexity */
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import moment from 'moment';
 import { logger } from 'core';
