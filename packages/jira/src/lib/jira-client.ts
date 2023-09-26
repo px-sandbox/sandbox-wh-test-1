@@ -55,20 +55,8 @@ export class JiraClient {
     return instance;
   }
 
-  public async getProjects(projectId: string, orgName: string): Promise<any> {
-    try {
-      const token =  this.accessToken;
-      const reponse = await axios.get(
-        `https://${orgName}.atlassian.net/rest/api/3/project/${projectId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      return reponse.data;
-    } catch (error) {
-      logger.error({ message: 'JIRA_PROJECT_FETCH_FAILED', error });
-      throw error;
-    }
+  public async getProjects(): Promise<void> {
+    
   }
 
   public async getBoards(boardId: number) {
