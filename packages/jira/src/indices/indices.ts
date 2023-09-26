@@ -44,6 +44,7 @@ const indices = [
             isActive: { type: 'boolean' },
             isDelete: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
             organizationId: { type: 'keyword' },
           },
         },

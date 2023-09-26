@@ -13,6 +13,7 @@ export type UserBody = {
   isActive: boolean;
   isDeleted: boolean;
   deletedAt: string | null;
+  createdAt: string;
   organizationId: string | null;
 };
 export interface User {
