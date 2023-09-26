@@ -27,7 +27,6 @@ async function processWebhookEvent(
   switch (eventName?.toLowerCase()) {
     case Jira.Enums.Event.ProjectCreated:
       await project.create(body.project);
-      await project.create(body.project);
       break;
     case Jira.Enums.Event.ProjectUpdated:
       projectBody = {...(body.project), updatedAt: eventTime.format('YYYY-MM-DD HH:mm:ss')};

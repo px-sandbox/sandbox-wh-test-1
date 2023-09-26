@@ -85,5 +85,5 @@ export class JiraClient {
 
   public async getSprints(boardId: string):Promise<void> {}
 
-  public async getIssues():Promise<void> {}
+  // public async getIssues():Promise<void> {}
 }

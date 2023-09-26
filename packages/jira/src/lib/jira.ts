@@ -127,7 +127,7 @@ export class Jira {
 
   public getUserDetails(accountId: string, orgName: string): Promise<any> {
     try {
-      const token = await this.getRefreshToken(orgName);
+      const token =  this.getRefreshToken(orgName);
       return axios.get(`https://${orgName}.atlassian.net/rest/api/3/user/accountId=${accountId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
