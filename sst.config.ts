@@ -1,11 +1,10 @@
 import { SSTConfig } from 'sst';
 import { gh } from './stacks/github';
 import { devops } from './stacks/devops';
-import { jira } from './stacks/jira';
+import { jira } from './stacks/jira/jira';
 import { commonConfig } from './stacks/common/config';
 
 import { AppConfig, Stage } from './stacks/type/stack-config';
-
 
 export default {
   config(): { name: string; region: string } {

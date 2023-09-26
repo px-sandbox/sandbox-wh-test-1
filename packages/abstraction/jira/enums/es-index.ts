@@ -1,8 +1,7 @@
 export enum IndexName {
-  JiraIssue = 'jira_issue',
-  JiraProject = 'jira_project',
-  JiraUsers = 'jira_users',
-  JiraSprint = 'jira_sprint',
-  JiraOrganization = 'jira_organization',
-
+  Issue = 'jira_issue',
+  Project = 'jira_project',
+  Users = 'jira_users',
+  Sprint = 'jira_sprint',
+  Organization = 'jira_organization',
 }

@@ -5,7 +5,7 @@ import { Config } from 'sst/node/config';
 
 const indices = [
   {
-    name: Jira.Enums.IndexName.JiraOrganization,
+    name: Jira.Enums.IndexName.Organization,
     _id: { type: 'uuid' },
     mappings: {
       properties: {
@@ -21,7 +21,7 @@ const indices = [
     },
   },
   {
-    name: Jira.Enums.IndexName.JiraUsers,
+    name: Jira.Enums.IndexName.Users,
     _id: { type: 'uuid' },
     mappings: {
       properties: {
@@ -52,7 +52,7 @@ const indices = [
   },
 
   {
-    name: Jira.Enums.IndexName.JiraProject,
+    name: Jira.Enums.IndexName.Project,
     _id: { type: 'uuid' },
     mappings: {
       properties: {
@@ -87,7 +87,7 @@ const indices = [
     },
   },
   {
-    name: Jira.Enums.IndexName.JiraSprint,
+    name: Jira.Enums.IndexName.Sprint,
     _id: { type: 'uuid' },
     mappings: {
       properties: {
@@ -97,14 +97,17 @@ const indices = [
             id: { type: 'keyword' },
             jiraSprintId: { type: 'keyword' },
             projectKey: { type: 'keyword' },
-            sprintName: { type: 'keyword' },
+            self: { type: 'text' },
+            name: { type: 'keyword' },
             state: { type: 'text' },
             startDate: { type: 'date' },
             endDate: { type: 'date' },
+            completeDate: { type: 'date' },
             isDelete: { type: 'boolean' },
             deletedAt: { type: 'date' },
             projectId: { type: 'keyword' },
             organizationID: { type: 'keyword' },
+            createdDate: { type: 'date' },
           },
         },
       },
@@ -112,7 +115,7 @@ const indices = [
   },
 
   {
-    name: Jira.Enums.IndexName.JiraIssue,
+    name: Jira.Enums.IndexName.Issue,
     _id: { type: 'uuid' },
     mappings: {
       properties: {
