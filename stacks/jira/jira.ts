@@ -16,28 +16,31 @@ function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
     },
     primaryIndex: { partitionKey: 'parentId' },
   });
-  return tables;
-}
-
-// eslint-disable-next-line max-lines-per-function,
-export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any>> } {
-  const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
-  const JIRA_CLIENT_ID = new Config.Secret(stack, 'JIRA_CLIENT_ID');
-  const JIRA_CLIENT_SECRET = new Config.Secret(stack, 'JIRA_CLIENT_SECRET');
-  const JIRA_REDIRECT_URI = new Config.Secret(stack, 'JIRA_REDIRECT_URI');
-
-  const table = new Table(stack, 'jiraCreds', {
+  tables.jiraCredsTable = new Table(stack, 'jiraCreds', {
     fields: {
       id: 'string',
     },
     primaryIndex: { partitionKey: 'id' },
   });
 
-  // Initialize DynamoDB Tables for Jira
-  const { jiraMappingTable } = initializeDynamoDBTables(stack);
+  return tables;
+}
+
+// eslint-disable-next-line max-lines-per-function,
+export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any>> } {
+  const {
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    JIRA_CLIENT_ID,
+    JIRA_CLIENT_SECRET,
+    JIRA_REDIRECT_URI,
+  } = use(commonConfig);
+
+  const { jiraMappingTable, jiraCredsTable } = initializeDynamoDBTables(stack);
 
   // Initialize SQS Queues for Jira
-  const sprintQueues = initializeSprintQueue(stack, jiraMappingTable);
+  const sprintQueues = initializeSprintQueue(stack, { jiraMappingTable, jiraCredsTable });
   const projectQueues = initializeProjectQueue(stack, jiraMappingTable);
 
   const jiraApi = new Api(stack, 'jiraApi', {
@@ -52,8 +55,8 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
           OPENSEARCH_USERNAME,
           JIRA_CLIENT_ID,
           JIRA_CLIENT_SECRET,
+          jiraCredsTable,
           JIRA_REDIRECT_URI,
-          table,
         ],
       },
     },

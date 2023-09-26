@@ -2,6 +2,7 @@ import { Jira } from 'abstraction';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { JiraClient } from 'src/lib/jira-client';
 
 export class SprintProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Sprint,
@@ -16,12 +17,15 @@ export class SprintProcessor extends DataProcessor<
       `${mappingPrefixes.sprint}_${this.jiraApiData.id}`
     );
     const orgData = await this.getOrganizationId(this.jiraApiData.organisation);
+    const jiraClient = await JiraClient.getClient(this.jiraApiData.organisation);
+    const getProjectId = await jiraClient.getBoards(this.jiraApiData.originBoardId);
 
     const sprintObj = {
       id: parentId || uuid(),
       body: {
         id: `${mappingPrefixes.sprint}_${this.jiraApiData.id}`,
         jiraSprintId: `${this.jiraApiData.id}`,
+        projectKey: getProjectId.data.id,
         self: this.jiraApiData.self,
         name: this.jiraApiData.name,
         state: this.jiraApiData.state,

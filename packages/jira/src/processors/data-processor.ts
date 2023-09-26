@@ -1,10 +1,10 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
-import { ParamsMapping } from '../model/params-mapping';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
 import { Jira } from 'abstraction';
+import { ParamsMapping } from '../model/params-mapping';
 
 export abstract class DataProcessor<T, S> {
   protected jiraApiData: T;

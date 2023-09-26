@@ -1,10 +1,11 @@
-import Url from 'url';
-import { Config } from 'sst/node/config';
-import axios from 'axios';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { ParamsMapping } from 'src/model/prepare-params';
+import axios from 'axios';
+import { logger } from 'core';
+import { JiraCredsMapping } from 'src/model/prepare-creds-params';
+import { Config } from 'sst/node/config';
+import { esResponseDataFormator } from 'util/es-response-formatter';
 import { getTokens } from './getToken';
 
 export class JiraClient {
@@ -32,37 +33,41 @@ export class JiraClient {
     const _ddbClient = new DynamoDbDocClient();
 
     // get organisation from elasticsearch
-    const [organisation]: Array<Jira.Types.Organization> = await _esClient.search(
-      Jira.Enums.IndexName.Organisation,
-      'organisations',
-      orgName
-    );
-
+    const organisation = await _esClient.search(Jira.Enums.IndexName.Organization, 'name', orgName);
+    const [orgId] = await esResponseDataFormator(organisation);
     if (!organisation) {
       throw new Error(`Organisation ${orgName} not found`);
     }
 
     // get creds for this organisation
-    const creds = await _ddbClient.find(
-      new ParamsMapping().prepareGetParams(organisation.body.credId)
-    );
+    const creds = await _ddbClient.find(new JiraCredsMapping().prepareGetParams(orgId.credId));
 
     if (!creds) {
       throw new Error(`Credential for given Organisation ${orgName} is not found`);
     }
 
-    const { refresh_token: refreshToken } = creds.tokenObj;
+    const { refresh_token: refreshToken } = creds as Jira.ExternalType.Api.Credentials;
 
     const { access_token: accessToken } = await getTokens(refreshToken);
 
-    const instance = new JiraClient(organisation.body.orgId, accessToken, refreshToken);
+    const instance = new JiraClient(orgId.orgId, accessToken, refreshToken);
 
     return instance;
   }
 
   public async getProjects() {}
 
-  public async getBoards() {}
+  public async getBoards(boardId: number) {
+    try {
+      const token = this.accessToken;
+      return axios.get(`${this.baseUrl}/rest/agile/1.0/board/${boardId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (error) {
+      logger.error({ message: 'JIRA_USER_FETCH_FAILED', error });
+      throw error;
+    }
+  }
 
   public async getSprints(boardId: string) {}
 

@@ -1,9 +1,17 @@
-import { Queue, Table, use } from 'sst/constructs';
 import { Stack } from 'aws-cdk-lib';
+import { Queue, use } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
+import { JiraTables } from '../../type/tables';
 
-export function initializeSprintQueue(stack: Stack, jiraDDB: Table): Queue[] {
-  const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
+export function initializeSprintQueue(stack: Stack, jiraDDB: JiraTables): Queue[] {
+  const {
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    JIRA_CLIENT_ID,
+    JIRA_CLIENT_SECRET,
+    JIRA_REDIRECT_URI,
+  } = use(commonConfig);
 
   const sprintMigrateQueue = new Queue(stack, 'jira_sprint_migrate', {
     consumer: {
@@ -43,7 +51,7 @@ export function initializeSprintQueue(stack: Stack, jiraDDB: Table): Queue[] {
   });
 
   sprintMigrateQueue.bind([
-    jiraDDB,
+    jiraDDB.jiraMappingTable,
     sprintFormatDataQueue,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -51,14 +59,22 @@ export function initializeSprintQueue(stack: Stack, jiraDDB: Table): Queue[] {
   ]);
 
   sprintFormatDataQueue.bind([
-    jiraDDB,
+    jiraDDB.jiraCredsTable,
+    jiraDDB.jiraMappingTable,
     sprintIndexDataQueue,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
+    JIRA_CLIENT_ID,
+    JIRA_CLIENT_SECRET,
   ]);
-
-  sprintIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  sprintIndexDataQueue.bind([
+    jiraDDB.jiraCredsTable,
+    jiraDDB.jiraMappingTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
 
   return [sprintMigrateQueue, sprintFormatDataQueue, sprintIndexDataQueue];
 }
