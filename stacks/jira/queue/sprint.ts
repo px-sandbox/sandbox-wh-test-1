@@ -1,12 +1,13 @@
 import { Queue, Table, use } from 'sst/constructs';
 import { Stack } from 'aws-cdk-lib';
-import { commonConfig } from '../common/config';
+import { commonConfig } from '../../common/config';
 
-export function initializeJiraQueue(stack: Stack, jiraDDB: Table): Queue[] {
+export function initializeSprintQueue(stack: Stack, jiraDDB: Table): Queue[] {
   const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
-  const userIndexDataQueue = new Queue(stack, 'jira_users_index', {
+
+  const sprintMigrateQueue = new Queue(stack, 'jira_sprint_migrate', {
     consumer: {
-      function: 'packages/jira/src/sqs/handlers/indexer/user.handler',
+      function: 'packages/jira/src/migrations/sprint.handler',
       cdk: {
         eventSource: {
           batchSize: 5,
@@ -14,22 +15,6 @@ export function initializeJiraQueue(stack: Stack, jiraDDB: Table): Queue[] {
       },
     },
   });
-
-  const userFormatDataQueue = new Queue(stack, 'jira_users_format', {
-    consumer: {
-      function: {
-        handler: 'packages/jira/src/sqs/handlers/formatter/user.handler',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
-  userFormatDataQueue.bind([jiraDDB, userIndexDataQueue]);
-
-  userIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
   const sprintFormatDataQueue = new Queue(stack, 'jira_sprint_format', {
     consumer: {
@@ -56,6 +41,15 @@ export function initializeJiraQueue(stack: Stack, jiraDDB: Table): Queue[] {
       },
     },
   });
+
+  sprintMigrateQueue.bind([
+    jiraDDB,
+    sprintFormatDataQueue,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+
   sprintFormatDataQueue.bind([
     jiraDDB,
     sprintIndexDataQueue,
@@ -63,7 +57,8 @@ export function initializeJiraQueue(stack: Stack, jiraDDB: Table): Queue[] {
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
+
   sprintIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
-  return [userFormatDataQueue, sprintFormatDataQueue];
+  return [sprintMigrateQueue, sprintFormatDataQueue, sprintIndexDataQueue];
 }
