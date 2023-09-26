@@ -10,6 +10,7 @@ import { ParamsMapping } from '../model/params-mapping';
 export async function saveUserDetails(data: Jira.Type.User): Promise<void> {
   try {
     const updatedData = { ...data };
+    logger.info('saveUserDetails.invoked');
     await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,

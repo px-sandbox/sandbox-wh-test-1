@@ -28,7 +28,7 @@ export function initializeJiraQueue(stack: Stack, jiraDDB: Table): Queue[] {
     },
   });
   userFormatDataQueue.bind([jiraDDB, userIndexDataQueue]);
-
   userIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+
   return [userFormatDataQueue];
 }

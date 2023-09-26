@@ -12,7 +12,7 @@ export type User = {
   timeZone: string;
   accountType: string;
   organizationId?: string;
-  emailAddress?: string;
+  emailAddress?: string | null;
   isDeleted?: boolean;
   deletedAt?: string;
   username?: string;

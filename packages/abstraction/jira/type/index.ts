@@ -1,2 +1,2 @@
-export { User } from './user';
+export { User, UserBody } from './user';
 export { Webhook } from './webhook';

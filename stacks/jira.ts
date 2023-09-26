@@ -32,7 +32,13 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
     defaults: {
       function: {
         timeout: '30 seconds',
-        bind: [...formatQueueList, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME],
+        bind: [
+          ...formatQueueList,
+          jiraMappingTable,
+          OPENSEARCH_NODE,
+          OPENSEARCH_PASSWORD,
+          OPENSEARCH_USERNAME,
+        ],
       },
     },
     routes: {
