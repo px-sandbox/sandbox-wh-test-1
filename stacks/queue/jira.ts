@@ -1,9 +1,16 @@
 import { Queue, Table, use } from 'sst/constructs';
 import { Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../common/config';
+import { JiraTables } from '../type/tables';
 
-export function initializeJiraQueue(stack: Stack, jiraDDB: Table): Queue[] {
-  const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
+export function initializeJiraQueue(stack: Stack, jiraDDB: JiraTables): Queue[] {
+  const {
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    JIRA_CLIENT_ID,
+    JIRA_CLIENT_SECRET,
+  } = use(commonConfig);
   const userIndexDataQueue = new Queue(stack, 'jira_users_index', {
     consumer: {
       function: 'packages/jira/src/sqs/handlers/indexer/user.handler',
@@ -27,9 +34,14 @@ export function initializeJiraQueue(stack: Stack, jiraDDB: Table): Queue[] {
       },
     },
   });
-  userFormatDataQueue.bind([jiraDDB, userIndexDataQueue]);
+  userFormatDataQueue.bind([jiraDDB.jiraMappingTable, userIndexDataQueue]);
 
-  userIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  userIndexDataQueue.bind([
+    jiraDDB.jiraMappingTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
 
   const sprintFormatDataQueue = new Queue(stack, 'jira_sprint_format', {
     consumer: {
@@ -57,13 +69,22 @@ export function initializeJiraQueue(stack: Stack, jiraDDB: Table): Queue[] {
     },
   });
   sprintFormatDataQueue.bind([
-    jiraDDB,
+    jiraDDB.jiraCredsTable,
+    jiraDDB.jiraMappingTable,
     sprintIndexDataQueue,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
+    JIRA_CLIENT_ID,
+    JIRA_CLIENT_SECRET,
   ]);
-  sprintIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
+  sprintIndexDataQueue.bind([
+    jiraDDB.jiraCredsTable,
+    jiraDDB.jiraMappingTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
 
   return [userFormatDataQueue, sprintFormatDataQueue];
 }

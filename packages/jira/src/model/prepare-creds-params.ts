@@ -1,7 +1,7 @@
 import { PutCommandInput, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
 
-export class ParamsMapping {
+export class JiraCredsMapping {
   private tableName = Table.jiraCreds.tableName;
 
   public preparePutParams<T>(id: string, otherData: T): PutCommandInput {
@@ -27,7 +27,6 @@ export class ParamsMapping {
   public prepareGetParams(id: string): QueryCommandInput {
     return {
       TableName: this.tableName,
-      IndexName: 'id',
       KeyConditionExpression: 'id = :id',
       ExpressionAttributeValues: { ':id': id },
     };
