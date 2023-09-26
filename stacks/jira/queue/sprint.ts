@@ -1,19 +1,21 @@
-import { Queue, Table, use } from 'sst/constructs';
 import { Stack } from 'aws-cdk-lib';
-import { commonConfig } from '../common/config';
-import { JiraTables } from '../type/tables';
+import { Queue, use } from 'sst/constructs';
+import { commonConfig } from '../../common/config';
+import { JiraTables } from '../../type/tables';
 
-export function initializeJiraQueue(stack: Stack, jiraDDB: JiraTables): Queue[] {
+export function initializeSprintQueue(stack: Stack, jiraDDB: JiraTables): Queue[] {
   const {
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
+    JIRA_REDIRECT_URI,
   } = use(commonConfig);
-  const userIndexDataQueue = new Queue(stack, 'jira_users_index', {
+
+  const sprintMigrateQueue = new Queue(stack, 'jira_sprint_migrate', {
     consumer: {
-      function: 'packages/jira/src/sqs/handlers/indexer/user.handler',
+      function: 'packages/jira/src/migrations/sprint.handler',
       cdk: {
         eventSource: {
           batchSize: 5,
@@ -21,27 +23,6 @@ export function initializeJiraQueue(stack: Stack, jiraDDB: JiraTables): Queue[] 
       },
     },
   });
-
-  const userFormatDataQueue = new Queue(stack, 'jira_users_format', {
-    consumer: {
-      function: {
-        handler: 'packages/jira/src/sqs/handlers/formatter/user.handler',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
-  userFormatDataQueue.bind([jiraDDB.jiraMappingTable, userIndexDataQueue]);
-
-  userIndexDataQueue.bind([
-    jiraDDB.jiraMappingTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
 
   const sprintFormatDataQueue = new Queue(stack, 'jira_sprint_format', {
     consumer: {
@@ -68,6 +49,15 @@ export function initializeJiraQueue(stack: Stack, jiraDDB: JiraTables): Queue[] 
       },
     },
   });
+
+  sprintMigrateQueue.bind([
+    jiraDDB.jiraMappingTable,
+    sprintFormatDataQueue,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+
   sprintFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
@@ -86,5 +76,5 @@ export function initializeJiraQueue(stack: Stack, jiraDDB: JiraTables): Queue[] 
     OPENSEARCH_USERNAME,
   ]);
 
-  return [userFormatDataQueue, sprintFormatDataQueue];
+  return [sprintMigrateQueue, sprintFormatDataQueue, sprintIndexDataQueue];
 }

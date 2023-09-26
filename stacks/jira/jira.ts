@@ -1,7 +1,8 @@
 import { Stack } from 'aws-cdk-lib';
 import { Api, Config, StackContext, Table, use } from 'sst/constructs';
-import { commonConfig } from './common/config';
-import { initializeJiraQueue } from './queue/jira';
+import { commonConfig } from '../common/config';
+import { initializeSprintQueue } from './queue/sprint';
+import { initializeProjectQueue } from './queue/project';
 
 function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
   const tables = {} as Record<string, Table>;
@@ -39,14 +40,16 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   const { jiraMappingTable, jiraCredsTable } = initializeDynamoDBTables(stack);
 
   // Initialize SQS Queues for Jira
-  const formatQueueList = initializeJiraQueue(stack, { jiraMappingTable, jiraCredsTable });
+  const sprintQueues = initializeSprintQueue(stack, { jiraMappingTable, jiraCredsTable });
+  const projectQueues = initializeProjectQueue(stack, jiraMappingTable);
 
   const jiraApi = new Api(stack, 'jiraApi', {
     defaults: {
       function: {
         timeout: '30 seconds',
         bind: [
-          ...formatQueueList,
+          ...sprintQueues,
+          ...projectQueues,
           OPENSEARCH_NODE,
           OPENSEARCH_PASSWORD,
           OPENSEARCH_USERNAME,
