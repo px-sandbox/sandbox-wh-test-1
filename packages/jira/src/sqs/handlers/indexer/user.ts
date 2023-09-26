@@ -1,6 +1,6 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { saveUserDetails } from '../../../repository/save-user';
+import { saveUserDetails } from '../../../repository/user/save-user';
 
 export const handler = async function userIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

@@ -3,8 +3,8 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { mappingPrefixes } from '../constant/config';
-import { searchedDataFormator } from '../util/response-formatter';
+import { mappingPrefixes } from '../../constant/config';
+import { searchedDataFormator } from '../../util/response-formatter';
 
 export async function getUserById(userId: string): Promise<{ _id: string } & Jira.Type.UserBody> {
   try {
