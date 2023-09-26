@@ -25,7 +25,7 @@ export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Webhook.Pr
     );
 
     const projectObj = {
-      id: parentId || uuid(),
+      id: parentId ?? uuid(),
       body: {
         id: `${mappingPrefixes.project}_${this.jiraApiData?.id}`,
         jiraProjectId: this.jiraApiData?.id,

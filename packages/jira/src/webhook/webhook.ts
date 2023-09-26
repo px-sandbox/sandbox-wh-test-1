@@ -6,8 +6,6 @@ import { logger } from 'core';
 import { Jira } from 'abstraction';
 import * as user from './users';
 import * as project from './projects';
-import * as project from './projects';
-
 import * as sprint from './sprints';
 
 
