@@ -17,8 +17,8 @@ export class UserProcessor extends DataProcessor<Jira.ExternalType.Webhook.User,
       body: {
         id: `${mappingPrefixes.user}_${this.jiraApiData?.accountId}`,
         jiraUserId: this.jiraApiData?.accountId,
-        emailAddress: this.jiraApiData?.emailAddress || null,
-        userName: this.jiraApiData?.username || null,
+        emailAddress: this.jiraApiData?.emailAddress ?? null,
+        userName: this.jiraApiData?.username ?? null,
         displayName: this.jiraApiData?.displayName,
         avatarUrls: this.jiraApiData?.avatarUrls
           ? {
@@ -30,7 +30,7 @@ export class UserProcessor extends DataProcessor<Jira.ExternalType.Webhook.User,
           : null,
         isActive: this.jiraApiData?.active,
         isDeleted: !!this.jiraApiData.isDeleted,
-        deletedAt: this.jiraApiData?.deletedAt || null,
+        deletedAt: this.jiraApiData?.deletedAt ?? null,
         organizationId: this.jiraApiData?.organizationId
           ? `${mappingPrefixes.organization}_${this.jiraApiData?.organizationId}`
           : null,
