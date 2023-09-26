@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { Api, Config, StackContext, Table, use } from 'sst/constructs';
+import { Api, StackContext, Table, use } from 'sst/constructs';
 import { commonConfig } from '../common/config';
 import { initializeSprintQueue } from './queue/sprint';
 import { initializeProjectQueue } from './queue/project';
