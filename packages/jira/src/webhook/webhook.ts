@@ -46,10 +46,10 @@ async function processWebhookEvent(
       await user.create(body.user);
       break;
     case Jira.Enums.Event.UserUpdated:
-      // do user update
+      await user.update(body.user);
       break;
     case Jira.Enums.Event.UserDeleted:
-      // do soft delete user
+      await user.deleted(body.accountId, eventTime);
       break;
     case Jira.Enums.Event.SprintCreated:
       await sprint.createSprintEvent(body.sprint, organization);
