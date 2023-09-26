@@ -17,15 +17,22 @@ async function processWebhookEvent(
   body: Jira.Type.Webhook,
   organization: string
 ): Promise<void> {
+  let projectBody;
   switch (eventName?.toLowerCase()) {
     case Jira.Enums.Event.ProjectCreated:
       await project.create(body.project);
       break;
     case Jira.Enums.Event.ProjectUpdated:
-      // do project update
+      projectBody = {...(body.project), updatedAt: eventTime.format('YYYY-MM-DD HH:mm:ss')};
+      await project.update(projectBody);
       break;
     case Jira.Enums.Event.ProjectSoftDeleted:
-      // do soft delete project
+      projectBody = {...(body.project), deletedAt: eventTime.format('YYYY-MM-DD HH:mm:ss'), isDeleted: true};
+      await project.delete(projectBody);
+      break;
+    case Jira.Enums.Event.ProjectRestoredDeleted:
+      projectBody = {...(body.project),  isDeleted: false};
+      await project.restoreDeleted(projectBody);
       break;
     case Jira.Enums.Event.UserCreated:
       await user.create(body.user);

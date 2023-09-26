@@ -4,11 +4,11 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 
 /**
- * Sends a message to SQS when a Jira project is updated.
- * @param project - The updated Jira project.
+ * Handles the project restore deleted event by sending a message to SQS.
+ * @param project The Jira project object.
  * @returns A Promise that resolves when the message is sent to SQS.
  */
-export async function projectUpdatedEvent(project: Jira.ExternalType.Webhook.Project): Promise<void> {
-  logger.info('processProjectUpdatedEvent: Send message to SQS');
+export async function projectRestoreDeletedEvent(project: Jira.ExternalType.Webhook.Project): Promise<void> {
+  logger.info('processProjectRestoreDeletedEvent: Send message to SQS');
   await new SQSClient().sendMessage(project, Queue.jira_projects_format.queueUrl);
 }

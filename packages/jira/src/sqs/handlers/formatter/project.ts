@@ -3,6 +3,11 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { ProjectProcessor } from '../../../processors/project';
 
+/**
+ * Handles the formatted data received from the SQS queue for JIRA projects.
+ * @param event - The SQS event containing the records.
+ * @returns Promise<void>
+ */
 export const handler = async function projectFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(

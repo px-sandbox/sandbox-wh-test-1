@@ -26,7 +26,7 @@ export abstract class DataProcessor<T, S> {
   public async getParentId(id: string): Promise<string> {
     const ddbRes = await new DynamoDbDocClient().find(new ParamsMapping().prepareGetParams(id));
 
-    return ddbRes?.parentId;
+    return ddbRes?.parentId as string;
   }
 
   public async sendDataToQueue<U>(data: U, url: string): Promise<void> {

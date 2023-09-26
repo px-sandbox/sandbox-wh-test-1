@@ -3,10 +3,24 @@ import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 
+/**
+ * Data processor for Jira projects.
+ * @template ExternalType - The external type of the data.
+ * @template Type - The type of the processed data.
+ */
 export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Webhook.Project, Jira.Type.Project> {
+  /**
+   * Constructor for the ProjectProcessor class.
+   * @param data - The data to be processed.
+   */
   constructor(data: Jira.ExternalType.Webhook.Project) {
     super(data);
   }
+
+  /**
+   * Processes the data and returns the processed project object.
+   * @returns The processed project object.
+   */
   public async processor(): Promise<Jira.Type.Project> {
     const parentId = await this.getParentId(
       `${mappingPrefixes.project}_${this.jiraApiData.id}`
@@ -47,8 +61,8 @@ export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Webhook.Pr
         },
         assigneeType: this.jiraApiData?.assigneeType,
         isDeleted: !!this.jiraApiData.isDeleted,
-        deletedAt: this.jiraApiData?.deletedAt,
-        updatedAt: this.jiraApiData?.updatedAt,
+        deletedAt: this.jiraApiData?.deletedAt?? null,
+        updatedAt: this.jiraApiData?.updatedAt?? null,
         
       },
     };
