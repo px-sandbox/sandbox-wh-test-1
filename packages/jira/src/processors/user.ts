@@ -16,7 +16,7 @@ export class UserProcessor extends DataProcessor<Jira.ExternalType.Webhook.User,
       id: parentId || uuid(),
       body: {
         id: `${mappingPrefixes.user}_${this.jiraApiData?.accountId}`,
-        jiraUserId: this.jiraApiData?.accountId,
+        userId: this.jiraApiData?.accountId,
         emailAddress: this.jiraApiData?.emailAddress || null,
         userName: this.jiraApiData?.username || null,
         displayName: this.jiraApiData?.displayName,

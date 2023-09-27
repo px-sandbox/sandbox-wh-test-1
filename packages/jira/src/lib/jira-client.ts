@@ -21,9 +21,7 @@ export class JiraClient {
     this.baseUrl = `https://api.atlassian.com/ex/jira/${this.cloudId}`;
   }
 
-  public static async getClient(
-    orgName: string //   : Promise<JiraClient>
-  ): Promise<JiraClient> {
+  public static async getClient(orgName: string): Promise<JiraClient> {
     // clients creation
     const _esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
