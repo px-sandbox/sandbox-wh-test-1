@@ -6,12 +6,12 @@ import { DataProcessor } from './data-processor';
 /**
  * Data processor for Jira project data.
  */
-export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Webhook.Project, Jira.Type.Project> {
+export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Api.Project, Jira.Type.Project> {
   /**
    * Constructor for ProjectProcessor.
    * @param data - The Jira project data to be processed.
    */
-  constructor(data: Jira.ExternalType.Webhook.Project) {
+  constructor(data: Jira.ExternalType.Api.Project) {
     super(data);
   }
 
@@ -23,12 +23,12 @@ export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Webhook.Pr
     const parentId = await this.getParentId(
       `${mappingPrefixes.project}_${this.jiraApiData.id}`
     );
-
+    const orgData = await this.getOrganizationId(this.jiraApiData.organization);
     const projectObj = {
       id: parentId ?? uuid(),
       body: {
         id: `${mappingPrefixes.project}_${this.jiraApiData?.id}`,
-        jiraProjectId: this.jiraApiData?.id,
+        projectId: this.jiraApiData?.id,
         
         key: this.jiraApiData?.key,
         name: this.jiraApiData?.name,
@@ -40,13 +40,12 @@ export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Webhook.Pr
               avatarUrl16x16: this.jiraApiData?.avatarUrls['16x16'],
             }
           : null,
-        projectLead: {
-            
-            accountId: this.jiraApiData?.projectLead?.accountId,
-            displayName: this.jiraApiData?.projectLead?.displayName,
-            active: this.jiraApiData?.projectLead?.active,
-            timeZone: this.jiraApiData?.projectLead?.timeZone,
-            accountType: this.jiraApiData?.projectLead?.accountType,
+        lead: {
+            accountId: this.jiraApiData?.lead?.accountId,
+            displayName: this.jiraApiData?.lead?.displayName,
+            active: this.jiraApiData?.lead?.active,
+            timeZone: this.jiraApiData?.lead?.timeZone,
+            accountType: this.jiraApiData?.lead?.accountType,
             avatarUrls: this.jiraApiData?.avatarUrls
           ? {
               avatarUrl48x48: this.jiraApiData?.avatarUrls['48x48'],
@@ -57,6 +56,7 @@ export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Webhook.Pr
           : null
           ,
         },
+        organizationId: orgData.body.id ?? null,
         assigneeType: this.jiraApiData?.assigneeType,
         isDeleted: !!this.jiraApiData.isDeleted,
         deletedAt: this.jiraApiData?.deletedAt?? null,

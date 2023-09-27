@@ -2,13 +2,17 @@ import { logger } from 'core';
 import { Jira } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
+import { projectKeysMapper } from './mapper';
 
 /**
  * Sends a message to SQS when a project is created.
  * @param project - The project that was created.
  * @returns A Promise that resolves when the message is sent to SQS.
  */
-export async function projectCreatedEvent(project: Jira.ExternalType.Webhook.Project): Promise<void> {
+export async function projectCreatedEvent(project: Jira.ExternalType.Webhook.Project, organization:string)
+: Promise<void> {
+  const updatedProjectBody: Jira.ExternalType.Api.Project = projectKeysMapper(project, organization);
+  updatedProjectBody.organization = organization;
   logger.info('processProjectCreatedEvent: Send message to SQS');
-  await new SQSClient().sendMessage(project, Queue.jira_projects_format.queueUrl);
+  await new SQSClient().sendMessage(updatedProjectBody, Queue.jira_projects_format.queueUrl);
 }

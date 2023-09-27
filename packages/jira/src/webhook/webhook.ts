@@ -7,16 +7,6 @@ import { Jira } from 'abstraction';
 import * as user from './users';
 import * as project from './projects';
 import * as sprint from './sprints';
-
-
-/**
- * Processes the webhook event based on the event name and performs the corresponding action.
- * @param eventName - The name of the event.
- * @param eventTime - The time when the event occurred.
- * @param body - The webhook payload.
- * @param organization - The name of the organization.
- * @returns A Promise that resolves when the event is processed.
- */
 // eslint-disable-next-line
 
 /**
@@ -27,6 +17,7 @@ import * as sprint from './sprints';
  * @param organization - The name of the organization.
  * @returns A Promise that resolves when the event is processed.
  */
+// eslint-disable-next-line max-lines-per-function
 async function processWebhookEvent(
   eventName: Jira.Enums.Event,
   eventTime: moment.Moment,
@@ -34,24 +25,46 @@ async function processWebhookEvent(
   organization: string
 ): Promise<void> {
   let projectBody: Jira.ExternalType.Webhook.Project;
+
   switch (eventName?.toLowerCase()) {
+
     case Jira.Enums.Event.ProjectCreated:
-      await project.create(body.project);
-      await project.create(body.project);
+      projectBody = {...(body.project), 
+        isDeleted: false, 
+        deletedAt: null,
+        updatedAt: null,
+      };
+      await project.create(projectBody, organization);
       break;
+
     case Jira.Enums.Event.ProjectUpdated:
-      projectBody = {...(body.project), updatedAt: eventTime.format('YYYY-MM-DD HH:mm:ss')};
+      projectBody = {...(body.project), 
+      updatedAt: eventTime.format('YYYY-MM-DD HH:mm:ss'), 
+      isDeleted:false, 
+      deletedAt: null,
+    };
       await project.update(projectBody);
       
       break;
+
     case Jira.Enums.Event.ProjectSoftDeleted:
-      projectBody = {...(body.project), deletedAt: eventTime.format('YYYY-MM-DD HH:mm:ss'), isDeleted: true};
+      projectBody = {...(body.project), 
+      deletedAt: eventTime.format('YYYY-MM-DD HH:mm:ss'), 
+      isDeleted: true,
+      updatedAt: null,
+      };
       await project.delete(projectBody);
       break;
+
     case Jira.Enums.Event.ProjectRestoreDeleted:
-      projectBody = {...(body.project), isDeleted: false};
+      projectBody = {...(body.project), 
+        isDeleted: false, 
+        deletedAt: null,
+        updatedAt: null,
+      };
       await project.restoreDeleted(projectBody);
     break;
+
     case Jira.Enums.Event.UserCreated:
       await user.create(body.user, eventTime, organization);
       break;

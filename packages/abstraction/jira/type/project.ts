@@ -2,7 +2,7 @@ export type Project = {
     id: string;
     body:{ 
         id: string;
-        jiraProjectId: number;
+        projectId: number;
         key: string;
         name: string;
         avatarUrls: {
@@ -11,7 +11,7 @@ export type Project = {
             avatarUrl24x24: string;
             avatarUrl16x16: string;
           } | null;
-        projectLead: {
+        lead: {
             accountId: string;
             avatarUrls: {
                 avatarUrl48x48: string;
@@ -24,9 +24,10 @@ export type Project = {
             timeZone: string;
             accountType: string
         },
+        organizationId: string;
         assigneeType: string
         isDeleted?: boolean;
-        deletedAt: string;
-        updatedAt: string;
+        deletedAt: string | null;
+        updatedAt: string | null;
     }
 }

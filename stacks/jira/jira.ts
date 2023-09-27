@@ -4,6 +4,8 @@ import { commonConfig } from '../common/config';
 import { initializeSprintQueue } from './queue/sprint';
 import { initializeProjectQueue } from './queue/project';
 
+
+
 function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
   const tables = {} as Record<string, Table>;
   tables.jiraMappingTable = new Table(stack, 'JiraMapping', {
@@ -36,6 +38,8 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
   } = use(commonConfig);
+
+  
 
   const { jiraMappingTable, jiraCredsTable } = initializeDynamoDBTables(stack);
 
