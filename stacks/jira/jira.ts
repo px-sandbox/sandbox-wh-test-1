@@ -3,6 +3,7 @@ import { Api, StackContext, Table, use } from 'sst/constructs';
 import { commonConfig } from '../common/config';
 import { initializeSprintQueue } from './queue/sprint';
 import { initializeProjectQueue } from './queue/project';
+import { initializeUserQueue } from './queue/user';
 
 function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
   const tables = {} as Record<string, Table>;
@@ -42,12 +43,14 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   // Initialize SQS Queues for Jira
   const sprintQueues = initializeSprintQueue(stack, { jiraMappingTable, jiraCredsTable });
   const projectQueues = initializeProjectQueue(stack, jiraMappingTable);
+  const userQueues = initializeUserQueue(stack, jiraMappingTable);
 
   const jiraApi = new Api(stack, 'jiraApi', {
     defaults: {
       function: {
         timeout: '30 seconds',
         bind: [
+          ...userQueues,
           ...sprintQueues,
           ...projectQueues,
           OPENSEARCH_NODE,
@@ -55,8 +58,9 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
           OPENSEARCH_USERNAME,
           JIRA_CLIENT_ID,
           JIRA_CLIENT_SECRET,
-          jiraCredsTable,
           JIRA_REDIRECT_URI,
+          jiraMappingTable,
+          jiraCredsTable,
         ],
       },
     },

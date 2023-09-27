@@ -6,6 +6,7 @@ import { logger } from 'core';
 import { JiraCredsMapping } from 'src/model/prepare-creds-params';
 import { Config } from 'sst/node/config';
 import { esResponseDataFormator } from 'util/es-response-formatter';
+import { ParamsMapping } from '../model/prepare-params';
 import { getTokens } from './getToken';
 
 export class JiraClient {
@@ -20,9 +21,7 @@ export class JiraClient {
     this.baseUrl = `https://api.atlassian.com/ex/jira/${this.cloudId}`;
   }
 
-  public static async getClient(
-    orgName: string //   : Promise<JiraClient>
-  ) {
+  public static async getClient(orgName: string): Promise<JiraClient> {
     // clients creation
     const _esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -33,10 +32,10 @@ export class JiraClient {
     const _ddbClient = new DynamoDbDocClient();
 
     // get organisation from elasticsearch
-    const organisation = await _esClient.search(Jira.Enums.IndexName.Organization, 'name', orgName);
-    const [orgId] = await esResponseDataFormator(organisation);
-    if (!organisation) {
-      throw new Error(`Organisation ${orgName} not found`);
+    const organization = await _esClient.search(Jira.Enums.IndexName.Organization, 'name', orgName);
+    const [orgId] = await esResponseDataFormator(organization);
+    if (!organization) {
+      throw new Error(`Organization ${orgName} not found`);
     }
 
     // get creds for this organisation

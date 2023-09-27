@@ -27,11 +27,13 @@
     "aws-lambda": "^1.0.7",
     "aws-sdk-client-mock": "^3.0.0",
     "aws-sdk-js-codemod": "0.17.1",
+    "axios": "^1.5.0",
     "core": "workspace:0.0.1",
     "dotenv": "^16.0.3",
     "elastic-builder": "^2.21.0",
     "moment": "2.29.4",
     "sst": "^2.24.27",
+    "url": "^0.11.3",
     "uuid": "^9.0.0",
     "vitest": "^0.29.7"
   }

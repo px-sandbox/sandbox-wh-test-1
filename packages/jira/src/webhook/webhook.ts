@@ -3,9 +3,9 @@ import moment from 'moment';
 import { logger } from 'core';
 import { Jira } from 'abstraction';
 import * as user from './users';
-
 import * as sprint from './sprints';
 
+// eslint-disable-next-line
 async function processWebhookEvent(
   eventName: Jira.Enums.Event,
   eventTime: moment.Moment,
@@ -23,13 +23,13 @@ async function processWebhookEvent(
       // do soft delete project
       break;
     case Jira.Enums.Event.UserCreated:
-      await user.create(body.user);
+      await user.create(body.user, eventTime, organization);
       break;
     case Jira.Enums.Event.UserUpdated:
-      // do user update
+      await user.update(body.user, organization);
       break;
     case Jira.Enums.Event.UserDeleted:
-      // do soft delete user
+      await user.deleted(body.accountId, eventTime);
       break;
     case Jira.Enums.Event.SprintCreated:
       await sprint.createSprintEvent(body.sprint, organization);

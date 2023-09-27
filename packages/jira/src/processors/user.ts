@@ -11,12 +11,12 @@ export class UserProcessor extends DataProcessor<Jira.ExternalType.Webhook.User,
     const parentId = await this.getParentId(
       `${mappingPrefixes.user}_${this.jiraApiData.accountId}`
     );
-
+    const orgData = await this.getOrganizationId(this.jiraApiData.organization);
     const userObj = {
       id: parentId || uuid(),
       body: {
         id: `${mappingPrefixes.user}_${this.jiraApiData?.accountId}`,
-        jiraUserId: this.jiraApiData?.accountId,
+        userId: this.jiraApiData?.accountId,
         emailAddress: this.jiraApiData?.emailAddress || null,
         userName: this.jiraApiData?.username || null,
         displayName: this.jiraApiData?.displayName,
@@ -28,12 +28,11 @@ export class UserProcessor extends DataProcessor<Jira.ExternalType.Webhook.User,
               avatarUrl16x16: this.jiraApiData?.avatarUrls['16x16'],
             }
           : null,
-        isActive: this.jiraApiData?.active,
+        isActive: this.jiraApiData.active,
         isDeleted: !!this.jiraApiData.isDeleted,
         deletedAt: this.jiraApiData?.deletedAt || null,
-        organizationId: this.jiraApiData?.organizationId
-          ? `${mappingPrefixes.organization}_${this.jiraApiData?.organizationId}`
-          : null,
+        createdAt: this.jiraApiData.createdAt,
+        organizationId: orgData.body.id ?? null,
       },
     };
     return userObj;
