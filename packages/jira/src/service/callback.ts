@@ -1,12 +1,12 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, logger, responseParser } from 'core';
-import axios, { AxiosStatic, AxiosResponse } from 'axios';
-import { Config } from 'sst/node/config';
-import { v4 as uuid } from 'uuid';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { ParamsMapping } from 'src/model/prepare-params';
 import { Jira } from 'abstraction';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import axios, { AxiosResponse } from 'axios';
+import { HttpStatusCode, responseParser } from 'core';
+import { JiraCredsMapping } from 'src/model/prepare-creds-params';
+import { Config } from 'sst/node/config';
+import { v4 as uuid } from 'uuid';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const code: string = event?.queryStringParameters?.code || '';
@@ -40,7 +40,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   );
 
   await Promise.all([
-    _ddbClient.put(new ParamsMapping().preparePutParams(credId, response.data)),
+    _ddbClient.put(new JiraCredsMapping().preparePutParams(credId, response.data)),
     ...accessibleOrgs.data.map(({ id, ...org }) =>
       _esClient.putDocument(Jira.Enums.IndexName.Organization, {
         id: uuid(),
