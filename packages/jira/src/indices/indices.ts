@@ -29,7 +29,7 @@ const indices = [
           type: 'object',
           properties: {
             id: { type: 'keyword' },
-            jiraUserId: { type: 'keyword' },
+            userId: { type: 'keyword' },
             emailAddress: { type: 'keyword' },
             userName: { type: 'text' },
             displayName: { type: 'text' },

@@ -1,6 +1,6 @@
 export type UserBody = {
   id: string;
-  jiraUserId: string;
+  userId: string;
   emailAddress: string | null;
   userName: string | null;
   displayName: string;
