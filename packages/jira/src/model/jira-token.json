@@ -1,5 +1,5 @@
 {
-  "TableName": "charchitkandelwal-pulse-dx-jira-token",
+  "TableName": "manasaggarwal-pulse-dx-jiraCreds",
   "KeySchema": [
     {
       "AttributeName": "id",

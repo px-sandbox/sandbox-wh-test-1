@@ -6,12 +6,12 @@ import { DataProcessor } from './data-processor';
 /**
  * Data processor for Jira project data.
  */
-export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Api.Project, Jira.Type.Project> {
+export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Type.Project> {
   /**
    * Constructor for ProjectProcessor.
    * @param data - The Jira project data to be processed.
    */
-  constructor(data: Jira.ExternalType.Api.Project) {
+  constructor(data: Jira.Mapped.Project) {
     super(data);
   }
 
@@ -20,16 +20,18 @@ export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Api.Projec
    * @returns The processed Jira project data.
    */
   public async processor(): Promise<Jira.Type.Project> {
+    
     const parentId = await this.getParentId(
       `${mappingPrefixes.project}_${this.apiData.id}`
     );
+    
     const orgData = await this.getOrganizationId(this.apiData.organization);
+    
     const projectObj = {
       id: parentId ?? uuid(),
       body: {
         id: `${mappingPrefixes.project}_${this.apiData?.id}`,
         projectId: this.apiData?.id,
-        
         key: this.apiData?.key,
         name: this.apiData?.name,
         avatarUrls: this.apiData?.avatarUrls
@@ -64,6 +66,7 @@ export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Api.Projec
         
       },
     };
+    
     return projectObj;
   }
 }
