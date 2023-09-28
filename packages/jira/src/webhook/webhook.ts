@@ -1,10 +1,23 @@
+/* eslint-disable complexity */
+/* eslint-disable complexity */
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import moment from 'moment';
 import { logger } from 'core';
 import { Jira } from 'abstraction';
 import * as user from './users';
+import * as project from './projects';
 import * as sprint from './sprints';
+// eslint-disable-next-line
 
+/**
+ * Processes the webhook event based on the event name and performs the corresponding action.
+ * @param eventName - The name of the event.
+ * @param eventTime - The time when the event occurred.
+ * @param body - The webhook payload.
+ * @param organization - The name of the organization.
+ * @returns A Promise that resolves when the event is processed.
+ */
+// eslint-disable-next-line max-lines-per-function
 // eslint-disable-next-line
 async function processWebhookEvent(
   eventName: Jira.Enums.Event,
@@ -12,16 +25,40 @@ async function processWebhookEvent(
   body: Jira.Type.Webhook,
   organization: string
 ): Promise<void> {
+  let projectBody: Jira.ExternalType.Webhook.Project;
+
   switch (eventName?.toLowerCase()) {
     case Jira.Enums.Event.ProjectCreated:
-      // do stuff for saving
+      projectBody = { ...body.project, isDeleted: false, deletedAt: null, updatedAt: null };
+      await project.create(projectBody, organization);
       break;
+
     case Jira.Enums.Event.ProjectUpdated:
-      // do project update
+      projectBody = {
+        ...body.project,
+        updatedAt: eventTime.toISOString(),
+        isDeleted: false,
+        deletedAt: null,
+      };
+      await project.update(projectBody);
+
       break;
+
     case Jira.Enums.Event.ProjectSoftDeleted:
-      // do soft delete project
+      projectBody = {
+        ...body.project,
+        deletedAt: eventTime.toISOString(),
+        isDeleted: true,
+        updatedAt: null,
+      };
+      await project.delete(projectBody);
       break;
+
+    case Jira.Enums.Event.ProjectRestoreDeleted:
+      projectBody = { ...body.project, isDeleted: false, deletedAt: null, updatedAt: null };
+      await project.restoreDeleted(projectBody);
+      break;
+
     case Jira.Enums.Event.UserCreated:
       await user.create(body.user, eventTime, organization);
       break;
@@ -32,25 +69,31 @@ async function processWebhookEvent(
       await user.deleted(body.accountId, eventTime);
       break;
     case Jira.Enums.Event.SprintCreated:
-      await sprint.createSprintEvent(body.sprint, organization);
+      await sprint.create(body.sprint, organization);
       break;
     case Jira.Enums.Event.SprintStarted:
-      await sprint.startSprintEvent(body.sprint, organization);
+      await sprint.start(body.sprint, organization);
       break;
     case Jira.Enums.Event.SprintUpdated:
-      await sprint.updateSprintEvent(body.sprint, organization);
+      await sprint.update(body.sprint, organization);
       break;
     case Jira.Enums.Event.SprintDeleted:
-      await sprint.deleteSprintEvent(body.sprint, organization);
+      await sprint.delete(body.sprint, organization);
       break;
     case Jira.Enums.Event.SprintClosed:
-      await sprint.closeSprintEvent(body.sprint, organization);
+      await sprint.close(body.sprint, organization);
       break;
     default:
       logger.info(`No case found for ${eventName} in Jira webhook event`);
       break;
   }
 }
+
+/**
+ * Handles the incoming webhook event from Jira.
+ * @param event - The APIGatewayProxyEvent object containing the webhook event data.
+ * @returns A Promise that resolves to void.
+ */
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
   try {
     logger.info('webhook.handler.invoked', { event });

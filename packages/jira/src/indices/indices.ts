@@ -61,16 +61,32 @@ const indices = [
           type: 'object',
           properties: {
             id: { type: 'keyword' },
-            jiraProjectId: { type: 'keyword' },
+            projectId: { type: 'keyword' },
             projectKey: { type: 'keyword' },
             name: { type: 'text' },
+            avatarUrls: {
+              properties: {
+                avatarUrl48x48: { type: 'text' },
+                avatarUrl32x32: { type: 'text' },
+                avatarUrl24x24: { type: 'text' },
+                avatarUrl16x16: { type: 'text' },
+              },
+            },
             projectTypeKey: { type: 'keyword' },
             projectType: { type: 'text' },
-            projectLead: {
+            lead: {
               properties: {
-                projectLeadId: { type: 'keyword' },
-                name: { type: 'text' },
-                isActive: { type: 'boolean' },
+                accountId: { type: 'keyword' },
+                displayName: { type: 'text' },
+                avatarUrls: {
+                  properties: {
+                    avatarUrl48x48: { type: 'text' },
+                    avatarUrl32x32: { type: 'text' },
+                    avatarUrl24x24: { type: 'text' },
+                    avatarUrl16x16: { type: 'text' },
+                  },
+                },
+                active: { type: 'boolean' },
               },
             },
             category: {
@@ -79,9 +95,10 @@ const indices = [
                 name: { type: 'text' },
               },
             },
-            organizationID: { type: 'keyword' },
-            isDeleteted: { type: 'boolean' },
+            organizationId: { type: 'keyword' },
+            isDeleted: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+            updatedAt: { type: 'date', format: 'strict_date_optional_time' },
           },
         },
       },

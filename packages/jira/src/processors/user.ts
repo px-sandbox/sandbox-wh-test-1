@@ -9,29 +9,29 @@ export class UserProcessor extends DataProcessor<Jira.ExternalType.Webhook.User,
   }
   public async processor(): Promise<Jira.Type.User> {
     const parentId = await this.getParentId(
-      `${mappingPrefixes.user}_${this.jiraApiData.accountId}`
+      `${mappingPrefixes.user}_${this.apiData.accountId}`
     );
-    const orgData = await this.getOrganizationId(this.jiraApiData.organization);
+    const orgData = await this.getOrganizationId(this.apiData.organization);
     const userObj = {
       id: parentId || uuid(),
       body: {
-        id: `${mappingPrefixes.user}_${this.jiraApiData?.accountId}`,
-        userId: this.jiraApiData?.accountId,
-        emailAddress: this.jiraApiData?.emailAddress || null,
-        userName: this.jiraApiData?.username || null,
-        displayName: this.jiraApiData?.displayName,
-        avatarUrls: this.jiraApiData?.avatarUrls
+        id: `${mappingPrefixes.user}_${this.apiData?.accountId}`,
+        userId: this.apiData?.accountId,
+        emailAddress: this.apiData?.emailAddress ?? null,
+        userName: this.apiData?.username ?? null,
+        displayName: this.apiData?.displayName,
+        avatarUrls: this.apiData?.avatarUrls
           ? {
-              avatarUrl48x48: this.jiraApiData?.avatarUrls['48x48'],
-              avatarUrl32x32: this.jiraApiData?.avatarUrls['32x32'],
-              avatarUrl24x24: this.jiraApiData?.avatarUrls['24x24'],
-              avatarUrl16x16: this.jiraApiData?.avatarUrls['16x16'],
+              avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
+              avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
+              avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
+              avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
             }
           : null,
-        isActive: this.jiraApiData.active,
-        isDeleted: !!this.jiraApiData.isDeleted,
-        deletedAt: this.jiraApiData?.deletedAt || null,
-        createdAt: this.jiraApiData.createdAt,
+        isActive: this.apiData.active,
+        isDeleted: !!this.apiData.isDeleted,
+        deletedAt: this.apiData?.deletedAt ?? null,
+        createdAt: this.apiData.createdAt,
         organizationId: orgData.body.id ?? null,
       },
     };

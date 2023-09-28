@@ -9,7 +9,7 @@ import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const code: string = event?.queryStringParameters?.code || '';
+  const code: string = event?.queryStringParameters?.code ?? '';
 
   const response = await axios.post('https://auth.atlassian.com/oauth/token', {
     grant_type: 'authorization_code',
