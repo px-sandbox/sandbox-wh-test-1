@@ -3,7 +3,7 @@ import { Jira } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 
-export async function deleteSprintEvent(
+export async function deleteSprint(
   sprint: Jira.ExternalType.Webhook.Sprint,
   organisation: string
 ): Promise<void> {

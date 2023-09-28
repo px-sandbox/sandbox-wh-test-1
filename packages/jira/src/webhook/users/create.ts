@@ -4,7 +4,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import moment from 'moment';
 
-export async function userCreatedEvent(
+export async function create(
   user: Jira.ExternalType.Webhook.User,
   eventTime: moment.Moment,
   organization: string

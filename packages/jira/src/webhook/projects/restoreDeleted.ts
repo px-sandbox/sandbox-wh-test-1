@@ -8,7 +8,7 @@ import { Queue } from 'sst/node/queue';
  * @param project - The Jira project object.
  * @returns A Promise that resolves when the message is sent to the queue.
  */
-export async function projectRestoreDeletedEvent(project: Jira.ExternalType.Webhook.Project): Promise<void> {
+export async function restoreDeleted(project: Jira.ExternalType.Webhook.Project): Promise<void> {
   logger.info('processProjectRestoreDeletedEvent: Send message to SQS');
   await new SQSClient().sendMessage(project, Queue.jira_projects_format.queueUrl);
 }

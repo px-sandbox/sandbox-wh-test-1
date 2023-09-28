@@ -7,8 +7,6 @@ import { HttpStatusCode, responseParser } from 'core';
 import { JiraCredsMapping } from 'src/model/prepare-creds-params';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import { ParamsMapping } from '../model/prepare-params';
-
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const code: string = event?.queryStringParameters?.code ?? '';

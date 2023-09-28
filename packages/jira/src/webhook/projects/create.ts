@@ -9,7 +9,7 @@ import { projectKeysMapper } from './mapper';
  * @param project - The project that was created.
  * @returns A Promise that resolves when the message is sent to SQS.
  */
-export async function projectCreatedEvent(project: Jira.ExternalType.Webhook.Project, organization:string)
+export async function create(project: Jira.ExternalType.Webhook.Project, organization:string)
 : Promise<void> {
   const updatedProjectBody: Jira.ExternalType.Api.Project = projectKeysMapper(project, organization);
   updatedProjectBody.organization = organization;

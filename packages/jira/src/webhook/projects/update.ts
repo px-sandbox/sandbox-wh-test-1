@@ -8,7 +8,7 @@ import { Queue } from 'sst/node/queue';
  * @param project - The updated Jira project.
  * @returns A Promise that resolves when the message is sent to SQS.
  */
-export async function projectUpdatedEvent(project: Jira.ExternalType.Webhook.Project): Promise<void> {
+export async function update(project: Jira.ExternalType.Webhook.Project): Promise<void> {
   logger.info('processProjectUpdatedEvent: Send message to SQS');
   await new SQSClient().sendMessage(project, Queue.jira_projects_format.queueUrl);
 }
