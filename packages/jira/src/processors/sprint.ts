@@ -18,14 +18,14 @@ export class SprintProcessor extends DataProcessor<
     );
     const orgData = await this.getOrganizationId(this.apiData.organisation);
     const jiraClient = await JiraClient.getClient(this.apiData.organisation);
-    const getProjectId = await jiraClient.getBoards(this.apiData.originBoardId);
+    const board = await jiraClient.getBoard(this.apiData.originBoardId);
 
     const sprintObj = {
       id: parentId || uuid(),
       body: {
         id: `${mappingPrefixes.sprint}_${this.apiData.id}`,
         jiraSprintId: `${this.apiData.id}`,
-        projectKey: getProjectId.data.id,
+        projectKey: board.location.projectId,
         self: this.apiData.self,
         name: this.apiData.name,
         state: this.apiData.state,

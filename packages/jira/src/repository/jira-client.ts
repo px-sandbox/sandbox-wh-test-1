@@ -1,11 +1,11 @@
 import { esResponseDataFormator } from 'util/es-response-formatter';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { Config } from 'sst/node/config';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import axios from 'axios';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
-import { JiraCredsMapping } from '../model/prepare-creds-params';
+import { JiraCredsMapping } from 'src/model/prepare-creds-params';
 import { getTokens } from './getToken';
 
 export class JiraClient {
@@ -53,21 +53,102 @@ export class JiraClient {
     return instance;
   }
 
-  public async getProject(): Promise<void> {}
+  public async getProject(projectId: string): Promise<Jira.ExternalType.Api.Project> {
+    const { data: project } = await axios.get<Jira.ExternalType.Api.Project>(
+      `${this.baseUrl}/rest/api/2/project/${projectId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      }
+    );
 
-  public async getBoards(boardId: number) {
+    return project;
+  }
+
+  public async getBoard(boardId: number) {
     try {
       const token = this.accessToken;
-      return axios.get(`${this.baseUrl}/rest/agile/1.0/board/${boardId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data: board } = await axios.get<Jira.ExternalType.Api.Board>(
+        `${this.baseUrl}/rest/agile/1.0/board/${boardId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      return board;
     } catch (error) {
       logger.error({ message: 'JIRA_USER_FETCH_FAILED', error });
       throw error;
     }
   }
+  public async getBoards(projectId: string): Promise<Jira.ExternalType.Api.Board[]> {
+    const { values: boards } = await this.paginateResults<Jira.ExternalType.Api.Board>(
+      `/rest/agile/1.0/board`,
+      {
+        projectKeyOrId: projectId,
+      }
+    );
 
-  public async getSprints(boardId: string): Promise<void> {}
+    return boards;
+  }
 
-  // public async getIssues():Promise<void> {}
+  public async getSprints(boardId: string) {
+    const { values: sprints } = await this.paginateResults<Jira.ExternalType.Api.Sprint>(
+      `/rest/agile/1.0/board/${boardId}/sprint`
+    );
+
+    return sprints;
+  }
+
+  public async getProjects() {
+    const { values: projects } = await this.paginateResults<Jira.ExternalType.Api.Project>(
+      `/rest/api/2/project/search`
+    );
+
+    return projects;
+  }
+
+  public async getUsers() {
+    const { values: users } = await this.paginateResults<Jira.ExternalType.Api.User>(
+      `/rest/api/2/users/search`
+    );
+
+    return users;
+  }
+
+  public async getIssues() {}
+
+  private async paginateResults<T>(
+    path: string,
+    queue: Record<string, string | number> = {},
+    result: Jira.ExternalType.Api.Response<T> = {
+      startAt: 0,
+      isLast: false,
+      maxResults: 50,
+      total: 0,
+      values: [],
+    }
+  ): Promise<Jira.ExternalType.Api.Response<T>> {
+    const { data } = await axios.get<Jira.ExternalType.Api.Response<T>>(`${this.baseUrl}${path}`, {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+      params: {
+        ...queue,
+        startAt: result.startAt,
+        maxResults: result.maxResults,
+      },
+    });
+
+    result.values = [...result.values, ...data.values];
+    result.startAt += result.values.length;
+    result.isLast = data.isLast;
+
+    if (result.isLast) {
+      return result;
+    }
+
+    return this.paginateResults<T>(path, queue, result);
+  }
 }
