@@ -4,6 +4,7 @@ import { commonConfig } from '../common/config';
 import { initializeSprintQueue } from './queue/sprint';
 import { initializeProjectQueue } from './queue/project';
 import { initializeUserQueue } from './queue/user';
+import { initializeIssueQueue } from './queue/issue';
 
 
 
@@ -48,6 +49,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   const sprintQueues = initializeSprintQueue(stack, { jiraMappingTable, jiraCredsTable });
   const projectQueues = initializeProjectQueue(stack, jiraMappingTable);
   const userQueues = initializeUserQueue(stack, jiraMappingTable);
+  const issueQueues = initializeIssueQueue(stack, { jiraMappingTable, jiraCredsTable });
 
   const jiraApi = new Api(stack, 'jiraApi', {
     defaults: {
@@ -57,6 +59,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
           ...userQueues,
           ...sprintQueues,
           ...projectQueues,
+          ...issueQueues,
           OPENSEARCH_NODE,
           OPENSEARCH_PASSWORD,
           OPENSEARCH_USERNAME,

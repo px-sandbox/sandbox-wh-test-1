@@ -17,10 +17,8 @@ export class IssueProcessor extends DataProcessor<
       `${mappingPrefixes.issue}_${this.apiData.id}`
     );
     const orgData = await this.getOrganizationId(this.apiData.organization);
-    // const jiraClient = await JiraClient.getClient(this.apiData.organization);
-    console.log(this.apiData.fields.labels);
-    // const data  = this.apiData.fields.labels?.map((label) => { if (label === 'FTP') return {FTP: label}});
-    // console.log(data);
+    const jiraClient = await JiraClient.getClient(this.apiData.organization);
+    const issue = await jiraClient.getIssue(this.apiData.id);
     const issueObj = {
       id: parentId || uuid(),
       body: {
@@ -37,18 +35,18 @@ export class IssueProcessor extends DataProcessor<
         priority: this.apiData.fields.priority.name,
         label: this.apiData.fields.labels,
         issueLinks: this.apiData.fields.issuelinks,
-        assigneeId: this.apiData.fields.assignee?.accountId,
-        reporterId: this.apiData.fields.reporter?.accountId,
-        creatorId: this.apiData.fields.creator?.accountId,
+        assigneeId: this.apiData.fields.assignee?.accountId ?? null,
+        reporterId: this.apiData.fields.reporter?.accountId ?? null,
+        creatorId: this.apiData.fields.creator?.accountId ?? null,
         status: this.apiData.fields.status.name,
         subtasks: this.apiData.fields.subtasks,
         createdDate: this.apiData.fields.created,
         lastUpdated: this.apiData.fields.updated,
-        lastViewed:this.apiData.fields.lastViewed,
-        sprintId: '',
+        lastViewed: this.apiData.fields.lastViewed,
+        sprintId: issue.fields?.sprint?.id ?? null,
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
-        organizationId: orgData.body.id
+        organizationId: orgData.body.id,
       },
     };
     return issueObj;

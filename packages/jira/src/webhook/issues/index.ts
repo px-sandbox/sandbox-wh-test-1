@@ -1,1 +1,1 @@
-export {createIssueEvent} from './create';
+export {create} from './create';

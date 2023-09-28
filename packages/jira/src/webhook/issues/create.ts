@@ -3,7 +3,7 @@ import { Jira } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 
-export async function createIssueEvent(
+export async function create(
   issue: Jira.ExternalType.Webhook.Issue,
   organization: string
 ): Promise<void> {

@@ -1,6 +1,6 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { saveIssueDetails } from '../../../lib/save-issue';
+import { saveIssueDetails } from 'src/repository/save-issue';
 
 export const handler = async function issueIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

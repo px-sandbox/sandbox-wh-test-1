@@ -149,12 +149,7 @@ const indices = [
             issueType: { type: 'keyword' },
             isPrimary: { type: 'boolean' },
             priority: { type: 'keyword' },
-            label: {
-              properties: {
-                levelKey: { type: 'keyword' },
-              },
-            },
-
+            label: { type: 'keyword' },
             issuelinks: {
               properties: {
                 issueKey: { type: 'keyword' },
