@@ -1,8 +1,8 @@
 import { Jira } from 'abstraction';
 import { v4 as uuid } from 'uuid';
+import { JiraClient } from 'src/lib/jira-client';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
-import { JiraClient } from 'src/lib/jira-client';
 
 export class SprintProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Sprint,
@@ -13,29 +13,29 @@ export class SprintProcessor extends DataProcessor<
   }
 
   public async processor(): Promise<Jira.Type.Sprint> {
-    const parentId: string = await this.getParentId(
-      `${mappingPrefixes.sprint}_${this.jiraApiData.id}`
+    const parentId: string | undefined = await this.getParentId(
+      `${mappingPrefixes.sprint}_${this.apiData.id}`
     );
-    const orgData = await this.getOrganizationId(this.jiraApiData.organisation);
-    const jiraClient = await JiraClient.getClient(this.jiraApiData.organisation);
-    const getProjectId = await jiraClient.getBoards(this.jiraApiData.originBoardId);
+    const orgData = await this.getOrganizationId(this.apiData.organisation);
+    const jiraClient = await JiraClient.getClient(this.apiData.organisation);
+    const getProjectId = await jiraClient.getBoards(this.apiData.originBoardId);
 
     const sprintObj = {
       id: parentId || uuid(),
       body: {
-        id: `${mappingPrefixes.sprint}_${this.jiraApiData.id}`,
-        jiraSprintId: `${this.jiraApiData.id}`,
+        id: `${mappingPrefixes.sprint}_${this.apiData.id}`,
+        jiraSprintId: `${this.apiData.id}`,
         projectKey: getProjectId.data.id,
-        self: this.jiraApiData.self,
-        name: this.jiraApiData.name,
-        state: this.jiraApiData.state,
-        createdDate: this.jiraApiData.createdDate,
-        startDate: this.jiraApiData.startDate,
-        endDate: this.jiraApiData.endDate,
-        completeDate: this.jiraApiData.completeDate,
-        originBoardId: this.jiraApiData.originBoardId,
-        isDeleted: this.jiraApiData.isDeleted ?? false,
-        deletedAt: this.jiraApiData.deletedAt ?? null,
+        self: this.apiData.self,
+        name: this.apiData.name,
+        state: this.apiData.state,
+        createdDate: this.apiData.createdDate,
+        startDate: this.apiData.startDate,
+        endDate: this.apiData.endDate,
+        completeDate: this.apiData.completeDate,
+        originBoardId: this.apiData.originBoardId,
+        isDeleted: this.apiData.isDeleted ?? false,
+        deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.body.id ?? null,
       },
     };

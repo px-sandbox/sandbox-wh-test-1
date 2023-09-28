@@ -1,12 +1,11 @@
+import { esResponseDataFormator } from 'util/es-response-formatter';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import axios from 'axios';
 import { logger } from 'core';
-import { JiraCredsMapping } from 'src/model/prepare-creds-params';
 import { Config } from 'sst/node/config';
-import { esResponseDataFormator } from 'util/es-response-formatter';
-import { ParamsMapping } from '../model/prepare-params';
+import { JiraCredsMapping } from '../model/prepare-creds-params';
 import { getTokens } from './getToken';
 
 export class JiraClient {
@@ -54,7 +53,7 @@ export class JiraClient {
     return instance;
   }
 
-  public async getProjects() {}
+  public async getProject(): Promise<void> {}
 
   public async getBoards(boardId: number) {
     try {
@@ -68,7 +67,7 @@ export class JiraClient {
     }
   }
 
-  public async getSprints(boardId: string) {}
+  public async getSprints(boardId: string): Promise<void> {}
 
-  public async getIssues() {}
+  // public async getIssues():Promise<void> {}
 }

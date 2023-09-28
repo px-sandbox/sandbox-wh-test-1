@@ -1,12 +1,6 @@
-import { createSprintEvent } from './create';
-import { startSprintEvent } from './start';
-import { updateSprintEvent } from './update';
-import { deleteSprintEvent } from './delete';
-import { closeSprintEvent } from './close';
-export {
-  createSprintEvent,
-  startSprintEvent,
-  updateSprintEvent,
-  deleteSprintEvent,
-  closeSprintEvent,
-};
+export {create} from './create';
+export {start} from './start';
+export {update} from './update';
+export {deleteSprint as delete} from './delete';
+export {close} from './close';
+

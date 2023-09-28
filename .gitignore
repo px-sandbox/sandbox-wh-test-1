@@ -54,3 +54,5 @@ localfile
 livefile
 
 pnpm-lock-deleted.yaml
+
+dynamodb_vol/*
