@@ -55,7 +55,13 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: Table): Queue[] {
     OPENSEARCH_USERNAME,
   ]);
 
-  projectFormatDataQueue.bind([jiraDDB, projectIndexDataQueue]);
+  projectFormatDataQueue.bind([
+    jiraDDB,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    projectIndexDataQueue,
+  ]);
 
   projectIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
