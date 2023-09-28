@@ -6,7 +6,6 @@ import { commonConfig } from './stacks/common/config';
 
 import { AppConfig, Stage } from './stacks/type/stack-config';
 
-
 export default {
   config(): { name: string; region: string } {
     return {

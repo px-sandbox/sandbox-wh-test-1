@@ -33,8 +33,6 @@ export class UserProcessor extends DataProcessor<Jira.ExternalType.Webhook.User,
         deletedAt: this.jiraApiData?.deletedAt ?? null,
         createdAt: this.jiraApiData.createdAt,
         organizationId: orgData.body.id ?? null,
-        
-        
       },
     };
     return userObj;

@@ -1,10 +1,10 @@
+import { esResponseDataFormator } from 'util/es-response-formatter';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import axios from 'axios';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
-import { esResponseDataFormator } from 'util/es-response-formatter';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
 import { getTokens } from './getToken';
 
@@ -20,9 +20,7 @@ export class JiraClient {
     this.baseUrl = `https://api.atlassian.com/ex/jira/${this.cloudId}`;
   }
 
-  public static async getClient(
-    orgName: string 
-  ): Promise<JiraClient> {
+  public static async getClient(orgName: string): Promise<JiraClient> {
     // clients creation
     const _esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -33,10 +31,10 @@ export class JiraClient {
     const _ddbClient = new DynamoDbDocClient();
 
     // get organisation from elasticsearch
-    const organisation = await _esClient.search(Jira.Enums.IndexName.Organization, 'name', orgName);
-    const [orgId] = await esResponseDataFormator(organisation);
-    if (!organisation) {
-      throw new Error(`Organisation ${orgName} not found`);
+    const organization = await _esClient.search(Jira.Enums.IndexName.Organization, 'name', orgName);
+    const [orgId] = await esResponseDataFormator(organization);
+    if (!organization) {
+      throw new Error(`Organization ${orgName} not found`);
     }
 
     // get creds for this organisation
@@ -55,9 +53,7 @@ export class JiraClient {
     return instance;
   }
 
-  public async getProjects(): Promise<void> {
-    
-  }
+  public async getProjects(): Promise<void> {}
 
   public async getBoards(boardId: number) {
     try {
@@ -71,7 +67,7 @@ export class JiraClient {
     }
   }
 
-  public async getSprints(boardId: string):Promise<void> {}
+  public async getSprints(boardId: string): Promise<void> {}
 
   // public async getIssues():Promise<void> {}
 }

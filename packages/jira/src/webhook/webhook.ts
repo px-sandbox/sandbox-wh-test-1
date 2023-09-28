@@ -18,6 +18,7 @@ import * as sprint from './sprints';
  * @returns A Promise that resolves when the event is processed.
  */
 // eslint-disable-next-line max-lines-per-function
+// eslint-disable-next-line
 async function processWebhookEvent(
   eventName: Jira.Enums.Event,
   eventTime: moment.Moment,
@@ -27,43 +28,36 @@ async function processWebhookEvent(
   let projectBody: Jira.ExternalType.Webhook.Project;
 
   switch (eventName?.toLowerCase()) {
-
     case Jira.Enums.Event.ProjectCreated:
-      projectBody = {...(body.project), 
-        isDeleted: false, 
-        deletedAt: null,
-        updatedAt: null,
-      };
+      projectBody = { ...body.project, isDeleted: false, deletedAt: null, updatedAt: null };
       await project.create(projectBody, organization);
       break;
 
     case Jira.Enums.Event.ProjectUpdated:
-      projectBody = {...(body.project), 
-      updatedAt: eventTime.format('YYYY-MM-DD HH:mm:ss'), 
-      isDeleted:false, 
-      deletedAt: null,
-    };
+      projectBody = {
+        ...body.project,
+        updatedAt: eventTime.format('YYYY-MM-DD HH:mm:ss'),
+        isDeleted: false,
+        deletedAt: null,
+      };
       await project.update(projectBody);
-      
+
       break;
 
     case Jira.Enums.Event.ProjectSoftDeleted:
-      projectBody = {...(body.project), 
-      deletedAt: eventTime.format('YYYY-MM-DD HH:mm:ss'), 
-      isDeleted: true,
-      updatedAt: null,
+      projectBody = {
+        ...body.project,
+        deletedAt: eventTime.format('YYYY-MM-DD HH:mm:ss'),
+        isDeleted: true,
+        updatedAt: null,
       };
       await project.delete(projectBody);
       break;
 
     case Jira.Enums.Event.ProjectRestoreDeleted:
-      projectBody = {...(body.project), 
-        isDeleted: false, 
-        deletedAt: null,
-        updatedAt: null,
-      };
+      projectBody = { ...body.project, isDeleted: false, deletedAt: null, updatedAt: null };
       await project.restoreDeleted(projectBody);
-    break;
+      break;
 
     case Jira.Enums.Event.UserCreated:
       await user.create(body.user, eventTime, organization);
@@ -94,7 +88,6 @@ async function processWebhookEvent(
       break;
   }
 }
-
 
 /**
  * Handles the incoming webhook event from Jira.

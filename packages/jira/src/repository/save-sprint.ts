@@ -7,7 +7,7 @@ import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../util/response-formatter';
 import { ParamsMapping } from '../model/params-mapping';
 
-export async function saveSprintDetails(data: Jira.Types.Sprint): Promise<void> {
+export async function saveSprintDetails(data: Jira.Type.Sprint): Promise<void> {
   try {
     const updatedData = { ...data };
     await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));

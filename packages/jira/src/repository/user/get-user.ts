@@ -14,7 +14,7 @@ export async function getUserById(userId: string): Promise<{ _id: string } & Jir
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
     const matchQry = esb.matchQuery('body.id', `${mappingPrefixes.user}_${userId}`).toJSON();
-    const userData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.JiraUsers, matchQry);
+    const userData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Users, matchQry);
     const [formattedUserData] = await searchedDataFormator(userData);
     return formattedUserData;
   } catch (error: unknown) {
