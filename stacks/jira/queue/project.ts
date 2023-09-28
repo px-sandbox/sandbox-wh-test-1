@@ -26,7 +26,6 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: Table): Queue[] {
   const projectIndexDataQueue = new Queue(stack, 'jira_projects_index', {
     consumer: {
       function: 'packages/jira/src/sqs/handlers/indexer/project.handler',
-      function: 'packages/jira/src/sqs/handlers/indexer/project.handler',
       cdk: {
         eventSource: {
           batchSize: 5,
@@ -38,7 +37,6 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: Table): Queue[] {
   const projectFormatDataQueue = new Queue(stack, 'jira_projects_format', {
     consumer: {
       function: {
-        handler: 'packages/jira/src/sqs/handlers/formatter/project.handler',
         handler: 'packages/jira/src/sqs/handlers/formatter/project.handler',
       },
       cdk: {
@@ -57,7 +55,13 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: Table): Queue[] {
     OPENSEARCH_USERNAME,
   ]);
 
-  projectFormatDataQueue.bind([jiraDDB, projectIndexDataQueue]);
+  projectFormatDataQueue.bind([
+    jiraDDB,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    projectIndexDataQueue,
+  ]);
 
   projectIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
