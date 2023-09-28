@@ -85,8 +85,13 @@ async function processWebhookEvent(
       await sprint.close(body.sprint, organization);
       break;
     case Jira.Enums.Event.IssueCreated:
-      await  issue.create(body.issue, organization);
+      await issue.create(body.issue, organization);
       break;
+    case Jira.Enums.Event.IssueUpdated:
+      await issue.update(body.issue, organization);
+      break;
+    case Jira.Enums.Event.IssueDeleted:
+      await issue.deleted(body.issue, organization);
     default:
       logger.info(`No case found for ${eventName} in Jira webhook event`);
       break;
