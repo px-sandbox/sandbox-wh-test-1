@@ -7,6 +7,7 @@ import { Jira } from 'abstraction';
 import * as user from './users';
 import * as project from './projects';
 import * as sprint from './sprints';
+import * as issue from './issues';
 // eslint-disable-next-line
 
 /**
@@ -82,6 +83,9 @@ async function processWebhookEvent(
       break;
     case Jira.Enums.Event.SprintClosed:
       await sprint.close(body.sprint, organization);
+      break;
+    case Jira.Enums.Event.IssueCreated:
+      await  issue.createIssueEvent(body.issue, organization);
       break;
     default:
       logger.info(`No case found for ${eventName} in Jira webhook event`);

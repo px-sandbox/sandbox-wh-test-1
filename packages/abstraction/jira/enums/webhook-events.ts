@@ -12,4 +12,5 @@ export enum Event {
   SprintUpdated = 'sprint_updated',
   SprintDeleted = 'sprint_deleted',
   SprintClosed = 'sprint_closed',
+  IssueCreated = 'jira:issue_created',
 }

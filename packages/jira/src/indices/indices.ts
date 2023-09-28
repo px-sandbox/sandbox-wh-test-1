@@ -143,13 +143,12 @@ const indices = [
             id: { type: 'keyword' },
             jiraIssueId: { type: 'keyword' },
             issueKey: { type: 'keyword' },
-            project: { type: 'text' },
             projectKey: { type: 'keyword' },
             isFTP: { type: 'text' },
             reOpenCount: { type: 'integer' },
             issueType: { type: 'keyword' },
             isPrimary: { type: 'boolean' },
-            priority: { type: 'boolean' },
+            priority: { type: 'keyword' },
             label: {
               properties: {
                 levelKey: { type: 'keyword' },
