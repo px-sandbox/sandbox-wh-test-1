@@ -15,6 +15,8 @@ export type Project = {
     };
     displayName: string;
     active: boolean;
+    timeZone: string;
+    accountType: string;
   };
   components: Array<{
     self: string;
