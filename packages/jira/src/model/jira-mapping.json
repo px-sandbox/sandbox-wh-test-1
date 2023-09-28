@@ -1,42 +1,41 @@
 {
-    "TableName": "table-name",
-    "KeySchema": [
-      {
-        "AttributeName": "parentId",
-        "KeyType": "HASH"
-      }
-    ],
-    "AttributeDefinitions": [
-      {
-        "AttributeName": "parentId",
-        "AttributeType": "S"
-      },
-      {
-        "AttributeName": "jiraId",
-        "AttributeType": "S"
-      }
-    ],
-    "GlobalSecondaryIndexes": [
-      {
-        "IndexName": "jiraIndex",
-        "KeySchema": [
-          {
-            "AttributeName": "jiraId",
-            "KeyType": "HASH"
-          }
-        ],
-        "Projection": {
-          "ProjectionType": "ALL"
-        },
-        "ProvisionedThroughput": {
-          "ReadCapacityUnits": 1,
-          "WriteCapacityUnits": 1
-        }
-      }
-    ],
-    "ProvisionedThroughput": {
-      "ReadCapacityUnits": 1,
-      "WriteCapacityUnits": 1
+  "TableName": "manasaggarwal-pulse-dx-JiraMapping",
+  "KeySchema": [
+    {
+      "AttributeName": "parentId",
+      "KeyType": "HASH"
     }
+  ],
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "parentId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "jiraId",
+      "AttributeType": "S"
+    }
+  ],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "jiraIndex",
+      "KeySchema": [
+        {
+          "AttributeName": "jiraId",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 1,
+        "WriteCapacityUnits": 1
+      }
+    }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 1,
+    "WriteCapacityUnits": 1
   }
-  
+}

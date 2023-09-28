@@ -4,7 +4,7 @@ import { Jira } from 'abstraction';
 import { getUserById } from '../../repository/user/get-user';
 import { saveUserDetails } from '../../repository/user/save-user';
 
-export async function userDeletedEvent(
+export async function deleteUser(
   userId: string,
   eventTime: moment.Moment
 ): Promise<void | false> {
@@ -16,7 +16,7 @@ export async function userDeletedEvent(
   const { _id, ...processUserData } = userData;
 
   processUserData.isDeleted = true;
-  processUserData.deletedAt = moment(eventTime).format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
+  processUserData.deletedAt = moment(eventTime).toISOString();
 
   logger.info(`userDeletedEvent: Delete User id ${_id}`);
   await saveUserDetails({ id: _id, body: processUserData } as Jira.Type.User);

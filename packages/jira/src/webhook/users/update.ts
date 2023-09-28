@@ -4,7 +4,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { getUserById } from '../../repository/user/get-user';
 
-export async function userUpdatedEvent(
+export async function update(
   user: Jira.ExternalType.Webhook.User,
   organization: string
 ): Promise<void | false> {

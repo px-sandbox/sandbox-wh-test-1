@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Api, StackContext, Table, use } from 'sst/constructs';
 import { commonConfig } from '../common/config';
 import { initializeSprintQueue } from './queue/sprint';
-// import { initializeProjectQueue } from './queue/project';
+import { initializeProjectQueue } from './queue/project';
 import { initializeUserQueue } from './queue/user';
 import { initializeBoardQueue } from './queue/board';
 
@@ -43,7 +43,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
 
   // Initialize SQS Queues for Jira
   const sprintQueues = initializeSprintQueue(stack, { jiraMappingTable, jiraCredsTable });
-  // const projectQueues = initializeProjectQueue(stack, jiraMappingTable);
+  const projectQueues = initializeProjectQueue(stack, jiraMappingTable);
   const userQueues = initializeUserQueue(stack, jiraMappingTable);
   const boardQueues = initializeBoardQueue(stack, jiraMappingTable);
 
@@ -55,7 +55,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
           ...userQueues,
           ...sprintQueues,
           ...boardQueues,
-          // ...projectQueues,
+          ...projectQueues,
           OPENSEARCH_NODE,
           OPENSEARCH_PASSWORD,
           OPENSEARCH_USERNAME,

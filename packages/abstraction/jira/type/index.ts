@@ -3,3 +3,4 @@ export * from './user';
 export * from './board';
 export * from './organisation';
 export * from './webhook';
+export * from './project';
