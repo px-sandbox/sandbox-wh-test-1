@@ -4,6 +4,7 @@ import { logger } from 'core';
 import { Jira } from 'abstraction';
 import * as user from './users';
 import * as sprint from './sprints';
+import * as board from './boards';
 
 // eslint-disable-next-line
 async function processWebhookEvent(
@@ -45,6 +46,9 @@ async function processWebhookEvent(
       break;
     case Jira.Enums.Event.SprintClosed:
       await sprint.closeSprintEvent(body.sprint, organization);
+      break;
+    case Jira.Enums.Event.BoardCreated:
+      await board.create(body.board, eventTime, organization);
       break;
     default:
       logger.info(`No case found for ${eventName} in Jira webhook event`);

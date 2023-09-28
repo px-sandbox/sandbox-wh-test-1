@@ -4,9 +4,9 @@ import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import axios, { AxiosResponse } from 'axios';
 import { HttpStatusCode, responseParser } from 'core';
-import { JiraCredsMapping } from 'src/model/prepare-creds-params';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
+import { JiraCredsMapping } from '../model/prepare-creds-params';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const code: string = event?.queryStringParameters?.code || '';

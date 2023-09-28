@@ -13,7 +13,7 @@ const indices = [
           type: 'object',
           properties: {
             id: { type: 'keyword' },
-            jiraOrganizationId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
             organizationName: { type: 'text' },
           },
         },
@@ -194,6 +194,26 @@ const indices = [
             sprintId: { type: 'keyword' },
             projectId: { type: 'keyword' },
             organizationID: { type: 'keyword' },
+          },
+        },
+      },
+    },
+  },
+  {
+    name: Jira.Enums.IndexName.Board,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'keyword' },
+            boardId: { type: 'keyword' },
+            self: { type: 'text' },
+            name: { type: 'text' },
+            type: { type: 'keyword' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            organizationId: { type: 'keyword' },
           },
         },
       },

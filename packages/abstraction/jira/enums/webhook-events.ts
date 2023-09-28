@@ -11,4 +11,5 @@ export enum Event {
   SprintUpdated = 'sprint_updated',
   SprintDeleted = 'sprint_deleted',
   SprintClosed = 'sprint_closed',
+  BoardCreated = 'board_created',
 }
