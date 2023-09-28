@@ -53,7 +53,7 @@ export class JiraClient {
     return instance;
   }
 
-  public async getProjects(): Promise<void> {}
+  public async getProject(): Promise<void> {}
 
   public async getBoards(boardId: number) {
     try {

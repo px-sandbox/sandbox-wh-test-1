@@ -10,7 +10,7 @@ export async function userCreatedEvent(
   organization: string
 ): Promise<void> {
   const userData = { ...user };
-  userData.createdAt = moment(eventTime).format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
+  userData.createdAt = moment(eventTime).toISOString();
   userData.organization = organization;
   logger.info('userCreatedEvent: Send message to SQS');
   await new SQSClient().sendMessage(userData, Queue.jira_users_format.queueUrl);

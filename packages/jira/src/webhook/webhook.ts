@@ -36,7 +36,7 @@ async function processWebhookEvent(
     case Jira.Enums.Event.ProjectUpdated:
       projectBody = {
         ...body.project,
-        updatedAt: eventTime.format('YYYY-MM-DD HH:mm:ss'),
+        updatedAt: eventTime.toISOString(),
         isDeleted: false,
         deletedAt: null,
       };
@@ -47,7 +47,7 @@ async function processWebhookEvent(
     case Jira.Enums.Event.ProjectSoftDeleted:
       projectBody = {
         ...body.project,
-        deletedAt: eventTime.format('YYYY-MM-DD HH:mm:ss'),
+        deletedAt: eventTime.toISOString(),
         isDeleted: true,
         updatedAt: null,
       };
