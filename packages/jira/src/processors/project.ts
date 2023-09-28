@@ -21,46 +21,46 @@ export class ProjectProcessor extends DataProcessor<Jira.ExternalType.Api.Projec
    */
   public async processor(): Promise<Jira.Type.Project> {
     const parentId = await this.getParentId(
-      `${mappingPrefixes.project}_${this.jiraApiData.id}`
+      `${mappingPrefixes.project}_${this.apiData.id}`
     );
-    const orgData = await this.getOrganizationId(this.jiraApiData.organization);
+    const orgData = await this.getOrganizationId(this.apiData.organization);
     const projectObj = {
       id: parentId ?? uuid(),
       body: {
-        id: `${mappingPrefixes.project}_${this.jiraApiData?.id}`,
-        projectId: this.jiraApiData?.id,
+        id: `${mappingPrefixes.project}_${this.apiData?.id}`,
+        projectId: this.apiData?.id,
         
-        key: this.jiraApiData?.key,
-        name: this.jiraApiData?.name,
-        avatarUrls: this.jiraApiData?.avatarUrls
+        key: this.apiData?.key,
+        name: this.apiData?.name,
+        avatarUrls: this.apiData?.avatarUrls
           ? {
-              avatarUrl48x48: this.jiraApiData?.avatarUrls['48x48'],
-              avatarUrl32x32: this.jiraApiData?.avatarUrls['32x32'],
-              avatarUrl24x24: this.jiraApiData?.avatarUrls['24x24'],
-              avatarUrl16x16: this.jiraApiData?.avatarUrls['16x16'],
+              avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
+              avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
+              avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
+              avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
             }
           : null,
         lead: {
-            accountId: this.jiraApiData?.lead?.accountId,
-            displayName: this.jiraApiData?.lead?.displayName,
-            active: this.jiraApiData?.lead?.active,
-            timeZone: this.jiraApiData?.lead?.timeZone,
-            accountType: this.jiraApiData?.lead?.accountType,
-            avatarUrls: this.jiraApiData?.avatarUrls
+            accountId: this.apiData?.lead?.accountId,
+            displayName: this.apiData?.lead?.displayName,
+            active: this.apiData?.lead?.active,
+            timeZone: this.apiData?.lead?.timeZone,
+            accountType: this.apiData?.lead?.accountType,
+            avatarUrls: this.apiData?.avatarUrls
           ? {
-              avatarUrl48x48: this.jiraApiData?.avatarUrls['48x48'],
-              avatarUrl32x32: this.jiraApiData?.avatarUrls['32x32'],
-              avatarUrl24x24: this.jiraApiData?.avatarUrls['24x24'],
-              avatarUrl16x16: this.jiraApiData?.avatarUrls['16x16'],
+              avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
+              avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
+              avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
+              avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
             }
           : null
           ,
         },
         organizationId: orgData.body.id ?? null,
-        assigneeType: this.jiraApiData?.assigneeType,
-        isDeleted: !!this.jiraApiData.isDeleted,
-        deletedAt: this.jiraApiData?.deletedAt?? null,
-        updatedAt: this.jiraApiData?.updatedAt?? null,
+        assigneeType: this.apiData?.assigneeType,
+        isDeleted: !!this.apiData.isDeleted,
+        deletedAt: this.apiData?.deletedAt?? null,
+        updatedAt: this.apiData?.updatedAt?? null,
         
       },
     };

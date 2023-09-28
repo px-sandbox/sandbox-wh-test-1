@@ -7,18 +7,10 @@ import { Jira } from "abstraction";
  */
 export function projectKeysMapper(body: Jira.ExternalType.Webhook.Project, organization:string)
 : Jira.ExternalType.Api.Project{
-    const mappedBody:Jira.ExternalType.Api.Project= {
-        self: body.self,
-        organization,
-        id: body.id,
-        key: body.key,
-        name: body.name,
-        avatarUrls: body.avatarUrls,
-        lead: body.projectLead,
-        assigneeType: body.assigneeType,
-        isDeleted: false,
-        deletedAt: null,
-        updatedAt: null
-    };
-    return mappedBody;
+    const {projectLead, ...rest} = body;
+    return {
+    lead: projectLead,
+    organization,
+    ...rest
+    }; 
 }

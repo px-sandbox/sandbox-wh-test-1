@@ -12,14 +12,14 @@ import { ParamsMapping } from '../model/params-mapping';
  * @template S - Type of processed data.
  */
 export abstract class DataProcessor<T, S> {
-  protected jiraApiData: T;
+  protected apiData: T;
 
   /**
    * Constructor for DataProcessor class.
    * @param data - Jira API data to be processed.
    */
   constructor(data: T) {
-    this.jiraApiData = data;
+    this.apiData = data;
   }
 
   /**
@@ -27,10 +27,10 @@ export abstract class DataProcessor<T, S> {
    * @returns Returns the DataProcessor instance if the data is not undefined, else returns false.
    */
   public validate(): DataProcessor<T, S> | false {
-    if (this.jiraApiData !== undefined) {
+    if (this.apiData !== undefined) {
       return this;
     }
-    logger.error({ message: 'EMPTY_DATA', data: this.jiraApiData });
+    logger.error({ message: 'EMPTY_DATA', data: this.apiData });
     return false;
   }
 
