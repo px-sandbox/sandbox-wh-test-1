@@ -11,7 +11,7 @@ import { projectKeysMapper } from './mapper';
  */
 export async function create(project: Jira.ExternalType.Webhook.Project, organization:string)
 : Promise<void> {
-  const updatedProjectBody: Jira.ExternalType.Api.Project = projectKeysMapper(project, organization);
+  const updatedProjectBody = projectKeysMapper(project, organization);
   updatedProjectBody.organization = organization;
   logger.info('processProjectCreatedEvent: Send message to SQS');
   await new SQSClient().sendMessage(updatedProjectBody, Queue.jira_projects_format.queueUrl);

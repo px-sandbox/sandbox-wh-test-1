@@ -31,6 +31,7 @@ async function processWebhookEvent(
   switch (eventName?.toLowerCase()) {
     case Jira.Enums.Event.ProjectCreated:
       projectBody = { ...body.project, isDeleted: false, deletedAt: null, updatedAt: null };
+      
       await project.create(projectBody, organization);
       break;
 
@@ -41,7 +42,7 @@ async function processWebhookEvent(
         isDeleted: false,
         deletedAt: null,
       };
-      await project.update(projectBody);
+      await project.update(projectBody, organization);
 
       break;
 
@@ -52,12 +53,12 @@ async function processWebhookEvent(
         isDeleted: true,
         updatedAt: null,
       };
-      await project.delete(projectBody);
+      await project.delete(projectBody, organization);
       break;
 
     case Jira.Enums.Event.ProjectRestoreDeleted:
       projectBody = { ...body.project, isDeleted: false, deletedAt: null, updatedAt: null };
-      await project.restoreDeleted(projectBody);
+      await project.restoreDeleted(projectBody, organization);
       break;
 
     case Jira.Enums.Event.UserCreated:
