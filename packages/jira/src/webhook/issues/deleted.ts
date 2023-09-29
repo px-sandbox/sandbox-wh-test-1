@@ -8,7 +8,7 @@ export async function deleted(
   organization: string
 ): Promise<void> {
   logger.info('issue_deleted_event: Send message to SQS');
-  issue.isDeleted = true;
-  issue.deletedAt = new Date().toISOString();
+  issue.issue.isDeleted = true;
+  issue.issue.deletedAt = new Date().toISOString();
   await new SQSClient().sendMessage({ ...issue, organization }, Queue.jira_issue_format.queueUrl);
 }
