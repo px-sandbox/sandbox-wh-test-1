@@ -65,14 +65,14 @@ export type Issue = {
       };
       lastViewed: string;
     };
-    isDeleted: boolean;
-    deletedAt: string;
   };
   changelog: {
     id: string;
     items: changelogItems[];
   };
-  organization?: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  organization: string;
 };
 
 export type changelogItems = {

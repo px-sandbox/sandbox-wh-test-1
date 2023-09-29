@@ -25,8 +25,8 @@ export type Issue = {
     lastViewed: string;
     lastUpdated: string;
     sprintId: string;
-    isDeleted: boolean;
-    deletedAt: string;
+    isDeleted?: boolean | null;
+    deletedAt?: string | null;
     organizationId: string;
     changelog: { id: string; items: changelogItems[] };
   };
