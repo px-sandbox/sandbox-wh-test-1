@@ -119,6 +119,32 @@ export class JiraClient {
 
   public async getIssues() {}
 
+  public async getIssue(issueIdOrKey: string) {
+    try {
+      const issue = await axios.get<Jira.ExternalType.Api.Issue>(
+        `${this.baseUrl}/rest/agile/1.0/issue/${issueIdOrKey}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.accessToken}`,
+          },
+        }
+      );
+      return issue.data;
+    } catch (error) {
+      logger.error({ message: 'JIRA_ISSUE_FETCH_FAILED', error });
+      throw error;
+    }
+
+    // try{
+    //   const {values: issue}  = await this.paginateResults<Jira.ExternalType.Api.Issue>(`/rest/agile/1.0/issue/${issueIdOrKey}`)
+    //   console.log("ISSUE", issue);
+    //   return [issue];
+    //   }catch(error){
+    //     logger.error({ message: 'JIRA_ISSUE_FETCH_FAILED', error });
+    //     throw error;
+    //   }
+  }
+
   private async paginateResults<T>(
     path: string,
     queue: Record<string, string | number> = {},
@@ -140,7 +166,6 @@ export class JiraClient {
         maxResults: result.maxResults,
       },
     });
-
     result.values = [...result.values, ...data.values];
     result.startAt += result.values.length;
     result.isLast = data.isLast;

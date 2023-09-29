@@ -6,3 +6,4 @@ export * from './sprint';
 export * from './project';
 export * from './response';
 export * from './project';
+export * from './issue';

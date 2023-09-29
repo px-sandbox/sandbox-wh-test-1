@@ -143,19 +143,13 @@ const indices = [
             id: { type: 'keyword' },
             jiraIssueId: { type: 'keyword' },
             issueKey: { type: 'keyword' },
-            project: { type: 'text' },
             projectKey: { type: 'keyword' },
             isFTP: { type: 'text' },
             reOpenCount: { type: 'integer' },
             issueType: { type: 'keyword' },
             isPrimary: { type: 'boolean' },
-            priority: { type: 'boolean' },
-            label: {
-              properties: {
-                levelKey: { type: 'keyword' },
-              },
-            },
-
+            priority: { type: 'keyword' },
+            label: { type: 'keyword' },
             issuelinks: {
               properties: {
                 issueKey: { type: 'keyword' },
@@ -188,11 +182,17 @@ const indices = [
                 subtaskKey: { type: 'keyword' },
               },
             },
-            transitionHistory: {
+            changelog: {
               properties: {
-                statusChangedFrom: { type: 'text' },
-                statusChangedTo: { type: 'text' },
-                statusChangedOn: { type: 'date', format: 'strict_date_optional_time' },
+                id: { type: 'keyword' },
+                items: {
+                  properties: {
+                    field: { type: 'text' },
+                    statusChangedFrom: { type: 'text' },
+                    statusChangedTo: { type: 'text' },
+                    statusChangedOn: { type: 'date', format: 'strict_date_optional_time' },
+                  },
+                },
               },
             },
             sprint: {
@@ -209,6 +209,7 @@ const indices = [
             isDelete: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time' },
             sprintId: { type: 'keyword' },
+            boardId: { type: 'keyword' },
             projectId: { type: 'keyword' },
             organizationID: { type: 'keyword' },
           },
