@@ -17,19 +17,20 @@ Promise<void> => {
       try {
         const messageBody = JSON.parse(record.body);
         logger.info('JIRA_PROJECT_SQS_FORMATER', { messageBody });
-
+        
         const projectProcessor = new ProjectProcessor(messageBody);
         const validatedData = projectProcessor.validate();
         if (!validatedData) {
           logger.error('projectFormattedDataReciever.error', { error: 'validation failed' });
           return;
         }
+        
          const data = await projectProcessor.processor();
          
          return projectProcessor.sendDataToQueue(data, Queue.jira_projects_index.queueUrl);
       } catch (error) {
         logger.error('projectFormattedDataReciever.error', error);
-        
+       
         throw error;
       }
       
