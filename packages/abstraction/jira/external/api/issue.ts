@@ -9,6 +9,7 @@ export type Issue = {
       self: string;
       state: string;
       name: string;
+      originBoardId: string;
       goal: string;
     };
     closedSprints: {

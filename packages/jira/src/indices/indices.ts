@@ -209,6 +209,7 @@ const indices = [
             isDelete: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time' },
             sprintId: { type: 'keyword' },
+            boardId: { type: 'keyword' },
             projectId: { type: 'keyword' },
             organizationID: { type: 'keyword' },
           },

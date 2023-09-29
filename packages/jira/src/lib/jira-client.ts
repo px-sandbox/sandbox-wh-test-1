@@ -166,7 +166,6 @@ export class JiraClient {
         maxResults: result.maxResults,
       },
     });
-    console.log('DATA', data);
     result.values = [...result.values, ...data.values];
     result.startAt += result.values.length;
     result.isLast = data.isLast;
