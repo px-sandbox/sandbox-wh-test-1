@@ -23,6 +23,9 @@ export class IssueProcessor extends DataProcessor<
     const changelogItems: Array<changelogItems> = this.apiData.changelog.items.map((item) => {
       return item;
     });
+    const reOpenCount: number = changelogItems.filter((items) => {
+      return items.to == '10036' || items.toString == 'QA Failed';
+    }).length;
 
     const issueObj = {
       id: parentId || uuid(),
@@ -34,7 +37,7 @@ export class IssueProcessor extends DataProcessor<
         issueKey: this.apiData.issue.key,
         isFTP: this.apiData.issue.fields.labels?.includes('FTP') ?? false,
         isFTF: this.apiData.issue.fields.labels?.includes('FTF') ?? false,
-        reOpenCount: 0,
+        reOpenCount: reOpenCount ?? 0,
         issueType: this.apiData.issue.fields.issuetype.name,
         isPrimary: true,
         priority: this.apiData.issue.fields.priority.name,
