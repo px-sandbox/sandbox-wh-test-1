@@ -182,11 +182,17 @@ const indices = [
                 subtaskKey: { type: 'keyword' },
               },
             },
-            transitionHistory: {
+            changelog: {
               properties: {
-                statusChangedFrom: { type: 'text' },
-                statusChangedTo: { type: 'text' },
-                statusChangedOn: { type: 'date', format: 'strict_date_optional_time' },
+                id: { type: 'keyword' },
+                items: {
+                  properties: {
+                    field: { type: 'text' },
+                    statusChangedFrom: { type: 'text' },
+                    statusChangedTo: { type: 'text' },
+                    statusChangedOn: { type: 'date', format: 'strict_date_optional_time' },
+                  },
+                },
               },
             },
             sprint: {

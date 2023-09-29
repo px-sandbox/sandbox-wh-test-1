@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 import { JiraClient } from 'src/lib/jira-client';
+import { changelogItems } from 'abstraction/jira/external/webhook';
 
 export class IssueProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Issue,
@@ -14,39 +15,44 @@ export class IssueProcessor extends DataProcessor<
 
   public async processor(): Promise<Jira.Type.Issue> {
     const parentId: string | undefined = await this.getParentId(
-      `${mappingPrefixes.issue}_${this.apiData.id}`
+      `${mappingPrefixes.issue}_${this.apiData.issue.id}`
     );
     const orgData = await this.getOrganizationId(this.apiData.organization);
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
-    const issue = await jiraClient.getIssue(this.apiData.id);
+    const issue = await jiraClient.getIssue(this.apiData.issue.id);
+    const changelogItems: Array<changelogItems> = this.apiData.changelog.items.map((item) => {
+      return item;
+    });
+
     const issueObj = {
       id: parentId || uuid(),
       body: {
-        id: `${mappingPrefixes.issue}_${this.apiData.id}`,
-        issueId: `${this.apiData.id}`,
-        projectKey: this.apiData.fields.project.key,
-        projectId: this.apiData.fields.project.id,
-        issueKey: this.apiData.key,
-        isFTP: this.apiData.fields.labels?.includes('FTP') ?? false,
-        isFTF: this.apiData.fields.labels?.includes('FTF') ?? false,
+        id: `${mappingPrefixes.issue}_${this.apiData.issue.id}`,
+        issueId: `${this.apiData.issue.id}`,
+        projectKey: this.apiData.issue.fields.project.key,
+        projectId: this.apiData.issue.fields.project.id,
+        issueKey: this.apiData.issue.key,
+        isFTP: this.apiData.issue.fields.labels?.includes('FTP') ?? false,
+        isFTF: this.apiData.issue.fields.labels?.includes('FTF') ?? false,
         reOpenCount: 0,
-        issueType: this.apiData.fields.issuetype.name,
+        issueType: this.apiData.issue.fields.issuetype.name,
         isPrimary: true,
-        priority: this.apiData.fields.priority.name,
-        label: this.apiData.fields.labels,
-        issueLinks: this.apiData.fields.issuelinks,
-        assigneeId: this.apiData.fields.assignee?.accountId ?? null,
-        reporterId: this.apiData.fields.reporter?.accountId ?? null,
-        creatorId: this.apiData.fields.creator?.accountId ?? null,
-        status: this.apiData.fields.status.name,
-        subtasks: this.apiData.fields.subtasks,
-        createdDate: this.apiData.fields.created,
-        lastUpdated: this.apiData.fields.updated,
-        lastViewed: this.apiData.fields.lastViewed,
-        sprintId: issue.fields?.sprint?.id ?? null,
-        isDeleted: this.apiData.isDeleted ?? false,
-        deletedAt: this.apiData.deletedAt ?? null,
+        priority: this.apiData.issue.fields.priority.name,
+        label: this.apiData.issue.fields.labels,
+        issueLinks: this.apiData.issue.fields.issuelinks,
+        assigneeId: this.apiData.issue.fields.assignee?.accountId ?? null,
+        reporterId: this.apiData.issue.fields.reporter?.accountId ?? null,
+        creatorId: this.apiData.issue.fields.creator?.accountId ?? null,
+        status: this.apiData.issue.fields.status.name,
+        subtasks: this.apiData.issue.fields.subtasks,
+        createdDate: this.apiData.issue.fields.created,
+        lastUpdated: this.apiData.issue.fields.updated,
+        lastViewed: this.apiData.issue.fields.lastViewed,
+        sprintId: issue.fields.sprint.id ?? null,
+        isDeleted: this.apiData.issue.isDeleted ?? false,
+        deletedAt: this.apiData.issue.deletedAt ?? null,
         organizationId: orgData.body.id,
+        changelog: { id: this.apiData.changelog.id, items: changelogItems } ?? null,
       },
     };
     return issueObj;
