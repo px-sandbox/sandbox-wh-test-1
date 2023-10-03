@@ -1,11 +1,11 @@
-import { esResponseDataFormator } from 'util/es-response-formatter';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { Config } from 'sst/node/config';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import axios from 'axios';
 import { logger } from 'core';
-import { JiraCredsMapping } from 'src/model/prepare-creds-params';
+import { esResponseDataFormator } from '../../util/es-response-formatter';
+import { JiraCredsMapping } from '../model/prepare-creds-params';
 import { getTokens } from './getToken';
 
 export class JiraClient {
@@ -32,10 +32,11 @@ export class JiraClient {
 
     // get organisation from elasticsearch
     const organization = await _esClient.search(Jira.Enums.IndexName.Organization, 'name', orgName);
-    const [orgId] = await esResponseDataFormator(organization);
     if (!organization) {
       throw new Error(`Organization ${orgName} not found`);
     }
+
+    const [orgId] = await esResponseDataFormator(organization);
 
     // get creds for this organisation
     const creds = await _ddbClient.find(new JiraCredsMapping().prepareGetParams(orgId.credId));
@@ -66,7 +67,7 @@ export class JiraClient {
     return project;
   }
 
-  public async getBoard(boardId: number) {
+  public async getBoard(boardId: number): Promise<Jira.ExternalType.Api.Board> {
     try {
       const token = this.accessToken;
       const { data: board } = await axios.get<Jira.ExternalType.Api.Board>(
@@ -78,7 +79,7 @@ export class JiraClient {
 
       return board;
     } catch (error) {
-      logger.error({ message: 'JIRA_USER_FETCH_FAILED', error });
+      logger.error({ message: 'JIRA_BOARD_FETCH_FAILED', error });
       throw error;
     }
   }
@@ -91,6 +92,23 @@ export class JiraClient {
     );
 
     return boards;
+  }
+
+  public async getBoardConfig(boardId: number): Promise<Jira.ExternalType.Api.BoardConfig> {
+    try {
+      const token = this.accessToken;
+      const { data: boardConfig } = await axios.get<Jira.ExternalType.Api.BoardConfig>(
+        `${this.baseUrl}/rest/agile/1.0/board/${boardId}/configuration`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      return boardConfig;
+    } catch (error) {
+      logger.error({ message: 'JIRA_BOARD_CONFIG_FETCH_FAILED', error });
+      throw error;
+    }
   }
 
   public async getSprints(boardId: string) {
@@ -109,7 +127,24 @@ export class JiraClient {
     return projects;
   }
 
-  public async getUsers() {
+  public async getUser(userAccountId: string): Promise<Jira.ExternalType.Api.User> {
+    try {
+      const token = this.accessToken;
+      const { data: user } = await axios.get<Jira.ExternalType.Api.User>(
+        `${this.baseUrl}/rest/api/2/user?accountId=${userAccountId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      return user;
+    } catch (error) {
+      logger.error({ message: 'JIRA_USER_FETCH_FAILED', error });
+      throw error;
+    }
+  }
+
+  public async getUsers(): Promise<Jira.ExternalType.Api.User[]> {
     const { values: users } = await this.paginateResults<Jira.ExternalType.Api.User>(
       `/rest/api/2/users/search`
     );

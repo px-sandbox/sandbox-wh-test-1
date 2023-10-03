@@ -3,10 +3,12 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import axios, { AxiosResponse } from 'axios';
-import { HttpStatusCode, responseParser } from 'core';
+import { HttpStatusCode, logger, responseParser } from 'core';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
+import { ParamsMapping } from '../model/params-mapping';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
+import { mappingPrefixes } from '../constant/config';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const code: string = event?.queryStringParameters?.code ?? '';
@@ -38,21 +40,33 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       },
     }
   );
-
+  logger.info('accessibleOrgs', { accessibleOrgs });
+  const ddbRes = await _ddbClient.find(
+    new ParamsMapping().prepareGetParams(
+      `${mappingPrefixes.organization}_${accessibleOrgs.data[0].id}`
+    )
+  );
+  logger.info('ddbRes', { ddbRes });
+  const parentId = ddbRes?.parentId as string | undefined;
+  logger.info('parentId', { parentId });
   await Promise.all([
     _ddbClient.put(new JiraCredsMapping().preparePutParams(credId, response.data)),
-    ...accessibleOrgs.data.map(({ id, ...org }) =>
-      _esClient.putDocument(Jira.Enums.IndexName.Organization, {
-        id: uuid(),
+    ...accessibleOrgs.data.map(async ({ id, ...org }) => {
+      const uuidOrg = uuid();
+      await _ddbClient.put(
+        new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
+      );
+      await _esClient.putDocument(Jira.Enums.IndexName.Organization, {
+        id: parentId || uuidOrg,
         body: {
-          id: `jira_org_${id}`,
+          id: `${mappingPrefixes.organization}_${id}`,
           orgId: id,
           credId,
           createdAt: new Date(),
           ...org,
         },
-      })
-    ),
+      });
+    }),
   ]);
 
   return responseParser

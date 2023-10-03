@@ -7,6 +7,12 @@ import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../../util/response-formatter';
 import { ParamsMapping } from '../../model/params-mapping';
 
+/**
+ * Saves the user details to DynamoDB and Elasticsearch.
+ * @param data The user details to be saved.
+ * @returns A Promise that resolves when the user details have been saved successfully.
+ * @throws An error if there was an issue saving the user details.
+ */
 export async function saveUserDetails(data: Jira.Type.User): Promise<void> {
   try {
     const updatedData = { ...data };

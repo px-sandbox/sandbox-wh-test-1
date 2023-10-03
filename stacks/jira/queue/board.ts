@@ -48,7 +48,13 @@ export function initializeBoardQueue(stack: Stack, jiraDDB: Table): Queue[] {
     OPENSEARCH_USERNAME,
   ]);
 
-  boardFormatDataQueue.bind([jiraDDB, boardIndexDataQueue]);
+  boardFormatDataQueue.bind([
+    jiraDDB,
+    boardIndexDataQueue,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
   boardIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
   return [boardMigrateQueue, boardFormatDataQueue, boardIndexDataQueue];

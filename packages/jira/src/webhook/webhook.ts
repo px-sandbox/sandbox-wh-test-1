@@ -86,6 +86,9 @@ async function processWebhookEvent(
     case Jira.Enums.Event.BoardCreated:
       await board.create(body.board, eventTime, organization);
       break;
+    case Jira.Enums.Event.BoardConfigUpdated:
+      await board.updateConfig(body.configuration, organization);
+      break;
     default:
       logger.info(`No case found for ${eventName} in Jira webhook event`);
       break;

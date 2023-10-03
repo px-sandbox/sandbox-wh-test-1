@@ -1,3 +1,2 @@
-import { boardCreatedEvent as create } from './create';
-
-export { create };
+export { create } from './create';
+export { updateConfig } from './config-update';
