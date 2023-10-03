@@ -48,7 +48,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   const projectQueues = initializeProjectQueue(stack, jiraMappingTable);
   const userQueues = initializeUserQueue(stack, jiraMappingTable);
   const issueQueues = initializeIssueQueue(stack, { jiraMappingTable, jiraCredsTable });
-  const ghCopilotFunction = new Function(stack, 'refresh-token-func', {
+  const refreshToken = new Function(stack, 'refresh-token-func', {
     handler: 'packages/jira/src/cron/refresh-token.updateRefreshToken',
     bind: [jiraCredsTable, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET],
   });
@@ -91,7 +91,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
 
   new Cron(stack, 'refresh-token-cron', {
     schedule: 'cron(0 0 1 */2 ? *)',
-    job: ghCopilotFunction,
+    job: refreshToken,
   });
 
   stack.addOutputs({
