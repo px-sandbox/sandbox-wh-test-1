@@ -16,7 +16,7 @@ import { getProjectsSchema } from '../validations';
  * @param event - The APIGatewayProxyEvent object.
  * @returns A Promise that resolves to an APIGatewayProxyResult object.
  */
-const projects = async function getRepoData(
+const projects = async function getProjectsData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const searchTerm: string = event?.queryStringParameters?.search ?? '';
