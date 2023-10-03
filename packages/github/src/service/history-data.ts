@@ -12,7 +12,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
   const repo = event?.queryStringParameters?.repo || '';
   const branch = event?.queryStringParameters?.branch || '';
   try {
-    const esClientObj = await new ElasticSearchClient({
+    const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',

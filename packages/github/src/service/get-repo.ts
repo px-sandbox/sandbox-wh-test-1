@@ -15,7 +15,7 @@ const gitRepos = async function getRepoData(
   const size = Number(event?.queryStringParameters?.size || 10);
   let response: IRepo[] = [];
   try {
-    const esClient = await new ElasticSearchClient({
+    const esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
