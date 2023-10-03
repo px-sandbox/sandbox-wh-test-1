@@ -25,7 +25,7 @@ const gitRepos = async function getRepoData(
       await esClient.getClient().search({
         index: Github.Enums.IndexName.GitRepo,
         from: (page - 1) * size,
-        size: size * page - (page - 1) * size,
+        size,
       })
     ).body;
 
