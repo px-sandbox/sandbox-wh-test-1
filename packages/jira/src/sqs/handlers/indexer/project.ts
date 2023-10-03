@@ -1,6 +1,6 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { saveProjectDetails } from '../../../repository/save-project';
+import { saveProjectDetails } from '../../../repository/project/save-project';
 
 /**
  * Handles the SQS event for project indexing data.

@@ -39,8 +39,6 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
     JIRA_REDIRECT_URI,
   } = use(commonConfig);
 
-  
-
   const { jiraMappingTable, jiraCredsTable } = initializeDynamoDBTables(stack);
 
   // Initialize SQS Queues for Jira
@@ -85,6 +83,10 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
       },
       'GET /jira/callback': {
         function: 'packages/jira/src/service/callback.handler',
+      },
+      // GET Jira project data
+      'GET /jira/projects': {
+        function: 'packages/jira/src/service/project/get-projects.handler',
       },
     },
   });
