@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { Api, StackContext, Table, use } from 'sst/constructs';
+import { Api, Cron, Function, StackContext, Table, use } from 'sst/constructs';
 import { commonConfig } from '../common/config';
 import { initializeSprintQueue } from './queue/sprint';
 import { initializeProjectQueue } from './queue/project';
@@ -46,7 +46,10 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   const projectQueues = initializeProjectQueue(stack, jiraMappingTable);
   const userQueues = initializeUserQueue(stack, jiraMappingTable);
   const issueQueues = initializeIssueQueue(stack, { jiraMappingTable, jiraCredsTable });
-
+  const refreshToken = new Function(stack, 'refresh-token-func', {
+    handler: 'packages/jira/src/cron/refresh-token.updateRefreshToken',
+    bind: [jiraCredsTable, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET],
+  });
   const jiraApi = new Api(stack, 'jiraApi', {
     defaults: {
       function: {
@@ -86,6 +89,11 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
         function: 'packages/jira/src/service/project/get-projects.handler',
       },
     },
+  });
+
+  new Cron(stack, 'refresh-token-cron', {
+    schedule: 'cron(0 0 1 */2 ? *)',
+    job: refreshToken,
   });
 
   stack.addOutputs({
