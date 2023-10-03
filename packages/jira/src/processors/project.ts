@@ -20,18 +20,15 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
    * @returns The processed Jira project data.
    */
   public async processor(): Promise<Jira.Type.Project> {
-    
-    const parentId = await this.getParentId(
-      `${mappingPrefixes.project}_${this.apiData.id}`
-    );
-    
+    const parentId = await this.getParentId(`${mappingPrefixes.project}_${this.apiData.id}`);
+
     const orgData = await this.getOrganizationId(this.apiData.organization);
-    
+
     const projectObj = {
       id: parentId ?? uuid(),
       body: {
         id: `${mappingPrefixes.project}_${this.apiData?.id}`,
-        projectId: this.apiData?.id,
+        projectId: `${this.apiData?.id}`,
         key: this.apiData?.key,
         name: this.apiData?.name,
         avatarUrls: this.apiData?.avatarUrls
@@ -43,30 +40,29 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
             }
           : null,
         lead: {
-            accountId: this.apiData?.lead?.accountId,
-            displayName: this.apiData?.lead?.displayName,
-            active: this.apiData?.lead?.active,
-            timeZone: this.apiData?.lead?.timeZone,
-            accountType: this.apiData?.lead?.accountType,
-            avatarUrls: this.apiData?.avatarUrls
-          ? {
-              avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
-              avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
-              avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
-              avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
-            }
-          : null
-          ,
+          accountId: this.apiData?.lead?.accountId,
+          displayName: this.apiData?.lead?.displayName,
+          active: this.apiData?.lead?.active,
+          timeZone: this.apiData?.lead?.timeZone,
+          accountType: this.apiData?.lead?.accountType,
+          avatarUrls: this.apiData?.avatarUrls
+            ? {
+                avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
+                avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
+                avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
+                avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
+              }
+            : null,
         },
         organizationId: orgData.body.id ?? null,
         assigneeType: this.apiData?.assigneeType,
         isDeleted: !!this.apiData.isDeleted,
-        deletedAt: this.apiData?.deletedAt?? null,
-        updatedAt: this.apiData?.updatedAt?? null,
-        
+        deletedAt: this.apiData?.deletedAt ?? null,
+        updatedAt: this.apiData?.updatedAt ?? null,
+        createdAt: this.apiData?.createdAt ?? null,
       },
     };
-    
+
     return projectObj;
   }
 }

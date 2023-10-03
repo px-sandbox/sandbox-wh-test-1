@@ -5,7 +5,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import axios from 'axios';
 import { logger } from 'core';
-import { JiraCredsMapping } from 'src/model/prepare-creds-params';
+import { JiraCredsMapping } from '../model/prepare-creds-params';
 import { getTokens } from './getToken';
 
 export class JiraClient {
@@ -20,6 +20,12 @@ export class JiraClient {
     this.baseUrl = `https://api.atlassian.com/ex/jira/${this.cloudId}`;
   }
 
+  /**
+   * Returns a JiraClient instance for the given organization name.
+   * @param orgName - The name of the organization.
+   * @returns A Promise that resolves to a JiraClient instance.
+   * @throws An error if the organization or its credentials are not found.
+   */
   public static async getClient(orgName: string): Promise<JiraClient> {
     // clients creation
     const _esClient = new ElasticSearchClient({
@@ -27,7 +33,6 @@ export class JiraClient {
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-
     const _ddbClient = new DynamoDbDocClient();
 
     // get organisation from elasticsearch
@@ -36,10 +41,8 @@ export class JiraClient {
     if (!organization) {
       throw new Error(`Organization ${orgName} not found`);
     }
-
     // get creds for this organisation
     const creds = await _ddbClient.find(new JiraCredsMapping().prepareGetParams(orgId.credId));
-
     if (!creds) {
       throw new Error(`Credential for given Organisation ${orgName} is not found`);
     }
@@ -49,10 +52,14 @@ export class JiraClient {
     const { access_token: accessToken } = await getTokens(refreshToken);
 
     const instance = new JiraClient(orgId.orgId, accessToken, refreshToken);
-
     return instance;
   }
 
+  /**
+   * Retrieves a Jira project by its ID.
+   * @param projectId - The ID of the project to retrieve.
+   * @returns A Promise that resolves with the retrieved project.
+   */
   public async getProject(projectId: string): Promise<Jira.ExternalType.Api.Project> {
     const { data: project } = await axios.get<Jira.ExternalType.Api.Project>(
       `${this.baseUrl}/rest/api/2/project/${projectId}`,
@@ -101,7 +108,11 @@ export class JiraClient {
     return sprints;
   }
 
-  public async getProjects() {
+  /**
+   * Returns an array of Jira projects.
+   * @returns {Promise<Jira.ExternalType.Api.Project[]>} A promise that resolves to an array of Jira projects.
+   */
+  public async getProjects(): Promise<Jira.ExternalType.Api.Project[]> {
     const { values: projects } = await this.paginateResults<Jira.ExternalType.Api.Project>(
       `/rest/api/2/project/search`
     );
