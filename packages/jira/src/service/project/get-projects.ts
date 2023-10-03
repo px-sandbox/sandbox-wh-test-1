@@ -34,7 +34,7 @@ const projects = async function getProjectsData(
       await esClient.getClient().search({
         index: Jira.Enums.IndexName.Project,
         from: (page - 1) * size,
-        size: size * page - (page - 1) * size,
+        size,
       })
     ).body;
 
