@@ -1,7 +1,12 @@
 {
   "extends": "@tsconfig/node16/tsconfig.json",
-  "exclude": ["packages"],
   "compilerOptions": {
-    "moduleResolution": "Node16"
-  }
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "strict": true,
+    "esModuleInterop": true
+  },
+  "exclude": ["packages"]
 }

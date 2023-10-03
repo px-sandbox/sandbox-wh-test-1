@@ -50,6 +50,7 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
          * ------------------------------------
          */
         // CHECK DATA EXISTS IN ELASTICSEARCH
+        
         const check = await checkCommitExists(isMergedCommit, commitId);
         if (check) {
           const installationAccessToken = await getInstallationAccessToken();
