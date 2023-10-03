@@ -7,7 +7,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 export async function getUserById(
   userId: string
 ): Promise<Array<{ _id: string } & Github.Type.UserBody>> {
-  const esClientObj = await new ElasticSearchClient({
+  const esClientObj = new ElasticSearchClient({
     host: Config.OPENSEARCH_NODE,
     username: Config.OPENSEARCH_USERNAME ?? '',
     password: Config.OPENSEARCH_PASSWORD ?? '',

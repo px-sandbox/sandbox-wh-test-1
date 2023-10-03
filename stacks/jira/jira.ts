@@ -6,8 +6,6 @@ import { initializeProjectQueue } from './queue/project';
 import { initializeUserQueue } from './queue/user';
 import { initializeIssueQueue } from './queue/issue';
 
-
-
 function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
   const tables = {} as Record<string, Table>;
   tables.jiraMappingTable = new Table(stack, 'JiraMapping', {
@@ -40,8 +38,6 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
   } = use(commonConfig);
-
-  
 
   const { jiraMappingTable, jiraCredsTable } = initializeDynamoDBTables(stack);
 
@@ -84,6 +80,10 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
       },
       'GET /jira/callback': {
         function: 'packages/jira/src/service/callback.handler',
+      },
+      // GET Jira project data
+      'GET /jira/projects': {
+        function: 'packages/jira/src/service/project/get-projects.handler',
       },
     },
   });

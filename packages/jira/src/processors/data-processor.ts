@@ -26,7 +26,7 @@ export abstract class DataProcessor<T, S> {
    * Validates the Jira API data.
    * @returns Returns the DataProcessor instance if the data is not undefined, else returns false.
    */
-  public validate(): DataProcessor<T, S> | false {
+  public validate(): this | false {
     if (this.apiData !== undefined) {
       return this;
     }
@@ -46,10 +46,10 @@ export abstract class DataProcessor<T, S> {
    * @param id - ID of the Jira API data.
    * @returns Returns the parent ID of the Jira API data.
    */
-  public async getParentId(id: string): Promise<string|undefined> {
+  public async getParentId(id: string): Promise<string | undefined> {
     const ddbRes = await new DynamoDbDocClient().find(new ParamsMapping().prepareGetParams(id));
 
-    return ddbRes?.parentId as string|undefined;
+    return ddbRes?.parentId as string | undefined;
   }
 
   /**
@@ -77,7 +77,7 @@ export abstract class DataProcessor<T, S> {
       'name',
       orgName
     );
-    
+
     return organization.hits.hits[0]._source;
   }
 }

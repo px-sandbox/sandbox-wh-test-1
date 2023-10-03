@@ -64,5 +64,5 @@ export type Project = {
   simplified: boolean;
   style: string;
   isPrivate: boolean;
-  properties: Object;
+  properties: object;
 };
