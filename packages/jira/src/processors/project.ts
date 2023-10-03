@@ -28,7 +28,7 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
       id: parentId ?? uuid(),
       body: {
         id: `${mappingPrefixes.project}_${this.apiData?.id}`,
-        projectId: `${this.apiData?.id}`,
+        projectId: this.apiData?.id.toString(),
         key: this.apiData?.key,
         name: this.apiData?.name,
         avatarUrls: this.apiData?.avatarUrls
