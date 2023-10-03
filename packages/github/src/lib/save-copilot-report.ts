@@ -6,7 +6,7 @@ import { Config } from 'sst/node/config';
 export async function saveGHCopilotReport(data: Github.Type.GHCopilotReport): Promise<void> {
   try {
     const updatedData = { ...data };
-    const esClientObj = await new ElasticSearchClient({
+    const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',

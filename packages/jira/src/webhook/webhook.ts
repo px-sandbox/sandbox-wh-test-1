@@ -30,8 +30,14 @@ async function processWebhookEvent(
 
   switch (eventName?.toLowerCase()) {
     case Jira.Enums.Event.ProjectCreated:
-      projectBody = { ...body.project, isDeleted: false, deletedAt: null, updatedAt: null };
-      
+      projectBody = {
+        ...body.project,
+        isDeleted: false,
+        deletedAt: null,
+        updatedAt: null,
+        createdAt: eventTime.toISOString(),
+      };
+
       await project.create(projectBody, organization);
       break;
 
@@ -41,6 +47,7 @@ async function processWebhookEvent(
         updatedAt: eventTime.toISOString(),
         isDeleted: false,
         deletedAt: null,
+        createdAt: null,
       };
       await project.update(projectBody, organization);
 
@@ -52,12 +59,19 @@ async function processWebhookEvent(
         deletedAt: eventTime.toISOString(),
         isDeleted: true,
         updatedAt: null,
+        createdAt: null,
       };
       await project.delete(projectBody, organization);
       break;
 
     case Jira.Enums.Event.ProjectRestoreDeleted:
-      projectBody = { ...body.project, isDeleted: false, deletedAt: null, updatedAt: null };
+      projectBody = {
+        ...body.project,
+        isDeleted: false,
+        deletedAt: null,
+        updatedAt: null,
+        createdAt: null,
+      };
       await project.restoreDeleted(projectBody, organization);
       break;
 
@@ -99,6 +113,7 @@ async function processWebhookEvent(
         isDeleted: true,
         deletedAt: eventTime.toISOString(),
       });
+      break;
     default:
       logger.info(`No case found for ${eventName} in Jira webhook event`);
       break;

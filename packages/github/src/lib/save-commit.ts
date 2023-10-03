@@ -12,7 +12,7 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
     const updatedData = { ...data };
     await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
 
-    const esClientObj = await new ElasticSearchClient({
+    const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',

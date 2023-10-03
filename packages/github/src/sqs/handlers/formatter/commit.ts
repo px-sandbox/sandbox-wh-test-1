@@ -35,7 +35,7 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
          */
         // CHECK DATA EXISTS IN ELASTICSEARCH
         const commitSearchQuery = esb.matchQuery('body.githubCommitId', commitId);
-        const searchInEsb = await new ElasticSearchClient({
+        const searchInEsb = new ElasticSearchClient({
           host: Config.OPENSEARCH_NODE,
           username: Config.OPENSEARCH_USERNAME ?? '',
           password: Config.OPENSEARCH_PASSWORD ?? '',
