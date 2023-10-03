@@ -1,8 +1,8 @@
 import { Jira } from 'abstraction';
 import { v4 as uuid } from 'uuid';
-import { JiraClient } from 'src/lib/jira-client';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { JiraClient } from '../lib/jira-client';
 
 export class SprintProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Sprint,
@@ -16,8 +16,8 @@ export class SprintProcessor extends DataProcessor<
     const parentId: string | undefined = await this.getParentId(
       `${mappingPrefixes.sprint}_${this.apiData.id}`
     );
-    const orgData = await this.getOrganizationId(this.apiData.organisation);
-    const jiraClient = await JiraClient.getClient(this.apiData.organisation);
+    const orgData = await this.getOrganizationId(this.apiData.organization);
+    const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const board = await jiraClient.getBoard(this.apiData.originBoardId);
 
     const sprintObj = {

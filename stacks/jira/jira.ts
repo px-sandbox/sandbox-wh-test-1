@@ -5,6 +5,7 @@ import { initializeSprintQueue } from './queue/sprint';
 import { initializeProjectQueue } from './queue/project';
 import { initializeUserQueue } from './queue/user';
 import { initializeBoardQueue } from './queue/board';
+import { initializeIssueQueue } from './queue/issue';
 
 function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
   const tables = {} as Record<string, Table>;
@@ -46,6 +47,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   const projectQueues = initializeProjectQueue(stack, jiraMappingTable);
   const userQueues = initializeUserQueue(stack, jiraMappingTable);
   const boardQueues = initializeBoardQueue(stack, jiraMappingTable);
+  const issueQueues = initializeIssueQueue(stack, { jiraMappingTable, jiraCredsTable });
 
   const jiraApi = new Api(stack, 'jiraApi', {
     defaults: {
@@ -56,6 +58,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
           ...sprintQueues,
           ...boardQueues,
           ...projectQueues,
+          ...issueQueues,
           OPENSEARCH_NODE,
           OPENSEARCH_PASSWORD,
           OPENSEARCH_USERNAME,

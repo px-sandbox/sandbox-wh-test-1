@@ -77,6 +77,7 @@ export abstract class DataProcessor<T, S> {
       'name',
       orgName
     );
+    
     return organization.hits.hits[0]._source;
   }
 }

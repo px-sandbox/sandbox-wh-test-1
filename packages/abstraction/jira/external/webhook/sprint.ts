@@ -10,5 +10,5 @@ export type Sprint = {
   originBoardId: number;
   isDeleted: boolean;
   deletedAt: string;
-  organisation: string;
+  organization: string;
 };

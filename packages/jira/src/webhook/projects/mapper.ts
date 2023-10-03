@@ -5,8 +5,8 @@ import { Jira } from "abstraction";
  * @param body - The project object from the Jira webhook payload.
  * @returns The mapped project object.
  */
-export function projectKeysMapper(body: Jira.ExternalType.Webhook.Project, organization:string)
-: Jira.ExternalType.Api.Project{
+export  function projectKeysMapper(body: Jira.ExternalType.Webhook.Project, organization:string)
+: Jira.Mapped.Project {
     const {projectLead, ...rest} = body;
     return {
     lead: projectLead,

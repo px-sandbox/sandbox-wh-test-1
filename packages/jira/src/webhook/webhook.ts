@@ -1,5 +1,4 @@
 /* eslint-disable complexity */
-/* eslint-disable complexity */
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import moment from 'moment';
 import { logger } from 'core';
@@ -8,6 +7,7 @@ import * as user from './users';
 import * as project from './projects';
 import * as sprint from './sprints';
 import * as board from './boards';
+import * as issue from './issues';
 
 /**
  * Processes the webhook event based on the event name and performs the corresponding action.
@@ -18,7 +18,6 @@ import * as board from './boards';
  * @returns A Promise that resolves when the event is processed.
  */
 // eslint-disable-next-line max-lines-per-function
-// eslint-disable-next-line
 async function processWebhookEvent(
   eventName: Jira.Enums.Event,
   eventTime: moment.Moment,
@@ -30,6 +29,7 @@ async function processWebhookEvent(
   switch (eventName?.toLowerCase()) {
     case Jira.Enums.Event.ProjectCreated:
       projectBody = { ...body.project, isDeleted: false, deletedAt: null, updatedAt: null };
+      
       await project.create(projectBody, organization);
       break;
 
@@ -40,7 +40,7 @@ async function processWebhookEvent(
         isDeleted: false,
         deletedAt: null,
       };
-      await project.update(projectBody);
+      await project.update(projectBody, organization);
 
       break;
 
@@ -51,12 +51,12 @@ async function processWebhookEvent(
         isDeleted: true,
         updatedAt: null,
       };
-      await project.delete(projectBody);
+      await project.delete(projectBody, organization);
       break;
 
     case Jira.Enums.Event.ProjectRestoreDeleted:
       projectBody = { ...body.project, isDeleted: false, deletedAt: null, updatedAt: null };
-      await project.restoreDeleted(projectBody);
+      await project.restoreDeleted(projectBody, organization);
       break;
 
     case Jira.Enums.Event.UserCreated:
@@ -88,6 +88,21 @@ async function processWebhookEvent(
       break;
     case Jira.Enums.Event.BoardConfigUpdated:
       await board.updateConfig(body.configuration, organization);
+      break;
+    case Jira.Enums.Event.IssueCreated:
+      await issue.create({ issue: body.issue, changelog: body.changelog, organization });
+      break;
+    case Jira.Enums.Event.IssueUpdated:
+      await issue.update({ issue: body.issue, changelog: body.changelog, organization });
+      break;
+    case Jira.Enums.Event.IssueDeleted:
+      await issue.deleted({
+        issue: body.issue,
+        changelog: body.changelog,
+        organization,
+        isDeleted: true,
+        deletedAt: eventTime.toISOString(),
+      });
       break;
     default:
       logger.info(`No case found for ${eventName} in Jira webhook event`);
