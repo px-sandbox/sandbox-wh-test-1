@@ -5,16 +5,16 @@ import { commonConfig } from '../../common/config';
 export function initializeUserQueue(stack: Stack, jiraDDB: Table): Queue[] {
   const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
 
-  const userMigrateQueue = new Queue(stack, 'jira_user_migrate', {
-    consumer: {
-      function: 'packages/jira/src/migrations/user.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
+  // const userMigrateQueue = new Queue(stack, 'jira_user_migrate', {
+  //   consumer: {
+  //     function: 'packages/jira/src/migrations/user.handler',
+  //     cdk: {
+  //       eventSource: {
+  //         batchSize: 5,
+  //       },
+  //     },
+  //   },
+  // });
 
   const userIndexDataQueue = new Queue(stack, 'jira_users_index', {
     consumer: {
@@ -40,16 +40,16 @@ export function initializeUserQueue(stack: Stack, jiraDDB: Table): Queue[] {
     },
   });
 
-  userMigrateQueue.bind([
-    jiraDDB,
-    userFormatDataQueue,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
+  // userMigrateQueue.bind([
+  //   jiraDDB,
+  //   userFormatDataQueue,
+  //   OPENSEARCH_NODE,
+  //   OPENSEARCH_PASSWORD,
+  //   OPENSEARCH_USERNAME,
+  // ]);
 
   userFormatDataQueue.bind([jiraDDB, userIndexDataQueue]);
   userIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
-  return [userMigrateQueue, userFormatDataQueue, userIndexDataQueue];
+  return [userFormatDataQueue, userIndexDataQueue];
 }

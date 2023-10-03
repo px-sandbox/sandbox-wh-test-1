@@ -12,16 +12,16 @@ import { commonConfig } from '../../common/config';
 export function initializeProjectQueue(stack: Stack, jiraDDB: Table): Queue[] {
   const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
 
-  const projectMigrateQueue = new Queue(stack, 'jira_project_migrate', {
-    consumer: {
-      function: 'packages/jira/src/migrations/project.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
+  // const projectMigrateQueue = new Queue(stack, 'jira_project_migrate', {
+  //   consumer: {
+  //     function: 'packages/jira/src/migrations/project.handler',
+  //     cdk: {
+  //       eventSource: {
+  //         batchSize: 5,
+  //       },
+  //     },
+  //   },
+  // });
 
   const projectIndexDataQueue = new Queue(stack, 'jira_projects_index', {
     consumer: {
@@ -47,13 +47,13 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: Table): Queue[] {
     },
   });
 
-  projectMigrateQueue.bind([
-    jiraDDB,
-    projectFormatDataQueue,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
+  // projectMigrateQueue.bind([
+  //   jiraDDB,
+  //   projectFormatDataQueue,
+  //   OPENSEARCH_NODE,
+  //   OPENSEARCH_PASSWORD,
+  //   OPENSEARCH_USERNAME,
+  // ]);
 
   projectFormatDataQueue.bind([
     jiraDDB,
@@ -65,5 +65,5 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: Table): Queue[] {
 
   projectIndexDataQueue.bind([jiraDDB, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
 
-  return [projectMigrateQueue, projectFormatDataQueue, projectIndexDataQueue];
+  return [projectFormatDataQueue, projectIndexDataQueue];
 }
