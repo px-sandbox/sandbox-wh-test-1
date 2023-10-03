@@ -1,6 +1,6 @@
 import { Jira } from 'abstraction';
 import { v4 as uuid } from 'uuid';
-import { changelogItem } from 'abstraction/jira/external/webhook';
+import { ChangelogItem } from 'abstraction/jira/external/webhook';
 import { JiraClient } from '../lib/jira-client';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
@@ -20,7 +20,7 @@ export class IssueProcessor extends DataProcessor<
     const orgData = await this.getOrganizationId(this.apiData.organization);
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issue = await jiraClient.getIssue(this.apiData.issue.id);
-    const changelogItems: Array<changelogItem> = this.apiData.changelog.items.map((item) => item);
+    const changelogItems: Array<ChangelogItem> = this.apiData.changelog.items.map((item) => item);
     const reOpenCount: number = changelogItems.filter(
       (items) => items.to == '10036' || items.toString == 'QA Failed'
     ).length;
