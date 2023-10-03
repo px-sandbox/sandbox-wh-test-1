@@ -1,4 +1,4 @@
-export type changelogItems = {
+export type changelogItem = {
   field: string;
   fieldtype: string;
   from: string;
