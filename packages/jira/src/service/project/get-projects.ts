@@ -50,16 +50,14 @@ const projects = async function getProjectsData(
     }
 
     // fetching data from elastic search based on query
-    const data = (
-      await esClient.getClient().search({
-        index: Jira.Enums.IndexName.Project,
-        from: (page - 1) * size,
-        size,
-        body: {
-          query,
-        },
-      })
-    ).body;
+    const { body: data } = await esClient.getClient().search({
+      index: Jira.Enums.IndexName.Project,
+      from: (page - 1) * size,
+      size,
+      body: {
+        query,
+      },
+    });
 
     // formatting above query response data
     response = await searchedDataFormator(data);
