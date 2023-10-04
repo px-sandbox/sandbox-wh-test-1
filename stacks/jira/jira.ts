@@ -14,7 +14,7 @@ function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
       jiraId: 'string',
     },
     globalIndexes: {
-      githubIndex: { partitionKey: 'jiraId' },
+      jiraIndex: { partitionKey: 'jiraId' },
     },
     primaryIndex: { partitionKey: 'parentId' },
   });
