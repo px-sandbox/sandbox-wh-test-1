@@ -32,7 +32,7 @@ export function mappingToApiData(
 
 export function mappingToApiDataConfig(
   config: Jira.ExternalType.Api.BoardConfig,
-  boardIndexData: { [key: string]: any },
+  boardIndexData: { [key: string]: any }, // eslint-disable-line @typescript-eslint/no-explicit-any
   organization: string,
   deletedAt: string | null
 ): Jira.Mapper.Board {

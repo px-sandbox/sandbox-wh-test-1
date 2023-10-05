@@ -8,7 +8,7 @@ export type Result = {
 
 export type HitBody = {
   isDeleted?: boolean;
-  [key: string]: any;
+  [key: string]: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 export type Hit = {

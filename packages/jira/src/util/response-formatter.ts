@@ -16,9 +16,9 @@ export interface IRepo {
   topics: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 export const searchedDataFormator = async (
-  data: any
+  data: any // eslint-disable-line @typescript-eslint/no-explicit-any
 ): Promise<(Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[] | []> => {
   if (data?.hits?.max_score != null) {
     return data.hits.hits.map((hit: Other.Type.Hit) => ({
