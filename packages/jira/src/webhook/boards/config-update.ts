@@ -17,6 +17,7 @@ export async function updateConfig(
       return false;
     }
     const deletedAt = null;
+    
     const jiraClient = await JiraClient.getClient(organization);
     const apiUserData = await jiraClient.getBoardConfig(config.id);
 

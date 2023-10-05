@@ -36,9 +36,9 @@ export function mappingToApiDataConfig(
   organization: string,
   deletedAt: string | null
 ): Jira.Mapper.Board {
-  const { id, self, name, type, location, createdAt } = boardIndexData;
+  const { boardId, self, name, type, location, createdAt } = boardIndexData;
   return {
-    id,
+    id: boardId,
     self,
     name,
     type,

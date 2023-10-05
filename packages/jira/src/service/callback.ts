@@ -10,16 +10,45 @@ import { ParamsMapping } from '../model/params-mapping';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
 import { mappingPrefixes } from '../constant/config';
 
+export async function getTokensByCode(code: string): Promise<Jira.ExternalType.Api.Credentials> {
+  try {
+    const response: AxiosResponse<Jira.ExternalType.Api.Credentials> = await axios.post(
+      'https://auth.atlassian.com/oauth/token', {
+      grant_type: 'authorization_code',
+      client_id: Config.JIRA_CLIENT_ID,
+      client_secret: Config.JIRA_CLIENT_SECRET,
+      code,
+      redirect_uri: Config.JIRA_REDIRECT_URI,
+    });
+    return response.data;
+  } catch (e) {
+    logger.error(`Error while getting tokens by code: ${e}`);
+    throw new Error(`Error while getting tokens by code: ${e}`);
+  }
+}
+
+export async function getAccessibleOrgs(accessToken: string): Promise<Array<Jira.ExternalType.Api.Organization>> {
+  try {
+    const response :AxiosResponse<Array<Jira.ExternalType.Api.Organization>> = await axios.get(
+        'https://api.atlassian.com/oauth/token/accessible-resources',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json',
+          },
+        }
+      );
+    return response.data;
+  } catch (e) {
+    logger.error(`Error while getting accessible orgs: ${e}`);
+    throw new Error(`Error while getting accessible orgs: ${e}`);
+  }
+}
+
+// eslint-disable-next-line max-lines-per-function
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const code: string = event?.queryStringParameters?.code ?? '';
-
-  const response = await axios.post('https://auth.atlassian.com/oauth/token', {
-    grant_type: 'authorization_code',
-    client_id: Config.JIRA_CLIENT_ID,
-    client_secret: Config.JIRA_CLIENT_SECRET,
-    code,
-    redirect_uri: Config.JIRA_REDIRECT_URI,
-  });
+  const jiraToken = await getTokensByCode(code);
 
   const _esClient = new ElasticSearchClient({
     host: Config.OPENSEARCH_NODE,
@@ -31,27 +60,18 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   const credId = uuid();
 
-  const accessibleOrgs: AxiosResponse<Array<Jira.ExternalType.Api.Organization>> = await axios.get(
-    'https://api.atlassian.com/oauth/token/accessible-resources',
-    {
-      headers: {
-        Authorization: `Bearer ${response.data.access_token}`,
-        Accept: 'application/json',
-      },
-    }
-  );
-  logger.info('accessibleOrgs', { accessibleOrgs });
+  const accessibleOrgs = await getAccessibleOrgs(jiraToken.access_token);
   const ddbRes = await _ddbClient.find(
     new ParamsMapping().prepareGetParams(
-      `${mappingPrefixes.organization}_${accessibleOrgs.data[0].id}`
+      `${mappingPrefixes.organization}_${accessibleOrgs[0].id}`
     )
   );
-  logger.info('ddbRes', { ddbRes });
+  
   const parentId = ddbRes?.parentId as string | undefined;
   logger.info('parentId', { parentId });
   await Promise.all([
-    _ddbClient.put(new JiraCredsMapping().preparePutParams(credId, response.data)),
-    ...accessibleOrgs.data.map(async ({ id, ...org }) => {
+    _ddbClient.put(new JiraCredsMapping().preparePutParams(credId, jiraToken)),
+    ...accessibleOrgs.map(async ({ id, ...org }) => {
       const uuidOrg = uuid();
       await _ddbClient.put(
         new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)

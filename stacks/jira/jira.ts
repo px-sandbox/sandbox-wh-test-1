@@ -94,6 +94,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
     },
   });
 
+  // eslint-disable-next-line no-new
   new Cron(stack, 'refresh-token-cron', {
     schedule: 'cron(0 0 1 */2 ? *)',
     job: refreshToken,

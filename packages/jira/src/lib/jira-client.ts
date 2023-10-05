@@ -6,7 +6,7 @@ import axios from 'axios';
 import { logger } from 'core';
 import { esResponseDataFormator } from '../../util/es-response-formatter';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
-import { getTokens } from './getToken';
+import { getTokens } from './get-token';
 
 export class JiraClient {
   private baseUrl: string;
@@ -104,11 +104,10 @@ export class JiraClient {
 
   public async getBoardConfig(boardId: number): Promise<Jira.ExternalType.Api.BoardConfig> {
     try {
-      const token = this.accessToken;
       const { data: boardConfig } = await axios.get<Jira.ExternalType.Api.BoardConfig>(
         `${this.baseUrl}/rest/agile/1.0/board/${boardId}/configuration`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${this.accessToken}` },
         }
       );
 
