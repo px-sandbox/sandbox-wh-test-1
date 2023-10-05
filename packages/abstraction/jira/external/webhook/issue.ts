@@ -1,3 +1,12 @@
+export type ChangelogItem = {
+  field: string;
+  fieldtype: string;
+  from: string;
+  fromString: string;
+  to: string;
+  toString: string;
+};
+
 export type Issue = {
   issue: {
     id: string;
@@ -73,13 +82,4 @@ export type Issue = {
   isDeleted?: boolean;
   deletedAt?: string;
   organization: string;
-};
-
-export type changelogItems = {
-  field: string;
-  fieldtype: string;
-  from: string;
-  fromString: string;
-  to: string;
-  toString: string;
 };

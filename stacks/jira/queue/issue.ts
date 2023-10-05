@@ -13,16 +13,16 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_REDIRECT_URI,
   } = use(commonConfig);
 
-  const issueMigrateQueue = new Queue(stack, 'jira_issue_migrate', {
-    consumer: {
-      function: 'packages/jira/src/migrations/issue.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
+  // const issueMigrateQueue = new Queue(stack, 'jira_issue_migrate', {
+  //   consumer: {
+  //     function: 'packages/jira/src/migrations/issue.handler',
+  //     cdk: {
+  //       eventSource: {
+  //         batchSize: 5,
+  //       },
+  //     },
+  //   },
+  // });
 
   const issueFormatDataQueue = new Queue(stack, 'jira_issue_format', {
     consumer: {
@@ -50,13 +50,13 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     },
   });
 
-  issueMigrateQueue.bind([
-    jiraDDB.jiraMappingTable,
-    issueFormatDataQueue,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
+  // issueMigrateQueue.bind([
+  //   jiraDDB.jiraMappingTable,
+  //   issueFormatDataQueue,
+  //   OPENSEARCH_NODE,
+  //   OPENSEARCH_PASSWORD,
+  //   OPENSEARCH_USERNAME,
+  // ]);
 
   issueFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,
@@ -67,6 +67,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     OPENSEARCH_USERNAME,
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
+    JIRA_REDIRECT_URI,
   ]);
   issueIndexDataQueue.bind([
     jiraDDB.jiraCredsTable,
@@ -76,5 +77,5 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     OPENSEARCH_USERNAME,
   ]);
 
-  return [issueMigrateQueue, issueFormatDataQueue, issueIndexDataQueue];
+  return [issueFormatDataQueue, issueIndexDataQueue];
 }

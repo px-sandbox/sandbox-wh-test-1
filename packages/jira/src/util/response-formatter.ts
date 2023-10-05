@@ -48,3 +48,36 @@ export const formatRepoDataResponse = (
     name: repo.name,
     topics: repo.topics,
   }));
+
+export interface IProject {
+  id: number;
+  _id: number;
+  key: string;
+  name: string;
+  lead: {
+    displayName: string;
+    [key: string]: unknown;
+  };
+}
+
+/**
+ * Formats the response of an array of IProject objects into an array of objects with specific properties.
+ * @param data An array of IProject objects.
+ * @returns An array of objects with properties id, jiraId, name, key, and lead.
+ */
+export const formatProjectsResponse = (
+  data: Array<IProject>
+): Array<{
+  id: number;
+  jiraId: number;
+  name: string;
+  key: string;
+  lead: string;
+}> =>
+  data.map((project: IProject) => ({
+    id: project._id,
+    jiraId: project.id,
+    name: project.name,
+    key: project.key,
+    lead: project.lead.displayName,
+  }));

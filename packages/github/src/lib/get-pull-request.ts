@@ -8,7 +8,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 export async function getPullRequestById(
   pullId: number
 ): Promise<Array<{ _id: string } & Github.Type.PullRequestBody>> {
-  const esClientObj = await new ElasticSearchClient({
+  const esClientObj = new ElasticSearchClient({
     host: Config.OPENSEARCH_NODE,
     username: Config.OPENSEARCH_USERNAME ?? '',
     password: Config.OPENSEARCH_PASSWORD ?? '',
