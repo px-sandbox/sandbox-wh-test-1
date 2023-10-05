@@ -40,11 +40,9 @@ export const handler = async function (
   // Filter from projects
 
   await Promise.all([
-    ...projectsFromJira.map((project) =>
-      sqsClient.sendMessage(
-        { organisation, projectId: project.id },
-        Queue.jira_project_migrate.queueUrl
-      )
+    sqsClient.sendMessage(
+      { organisation, includeProjects: projects ?? [] },
+      Queue.jira_project_migrate.queueUrl
     ),
     ...usersFromJira.map((user) =>
       sqsClient.sendMessage({ organisation, user }, Queue.jira_user_migrate.queueUrl)

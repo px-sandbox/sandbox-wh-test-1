@@ -128,8 +128,6 @@ export class JiraClient {
     return users;
   }
 
-  public async getIssues(): Promise<void> {}
-
   public async getIssue(issueIdOrKey: string): Promise<Jira.ExternalType.Api.Issue> {
     try {
       const issue = await axios.get<Jira.ExternalType.Api.Issue>(
@@ -145,16 +143,14 @@ export class JiraClient {
       logger.error({ message: 'JIRA_ISSUE_FETCH_FAILED', error });
       throw error;
     }
-    // TODO: remove this code
-    // try{
-    //   const {values: issue}  = await this.paginateResults<Jira.ExternalType.Api.Issue>
-    // (`/rest/agile/1.0/issue/${issueIdOrKey}`)
-    //   console.log("ISSUE", issue);
-    //   return [issue];
-    //   }catch(error){
-    //     logger.error({ message: 'JIRA_ISSUE_FETCH_FAILED', error });
-    //     throw error;
-    //   }
+  }
+  
+  public async getIssues(boardId: string, sprintId: string) {
+    const { values: issues } = await this.paginateResults<Jira.ExternalType.Api.Issue>(
+      `/rest/agile/1.0/board/${boardId}/sprint/${sprintId}/issue`
+    );
+
+    return issues;
   }
 
   private async paginateResults<T>(
