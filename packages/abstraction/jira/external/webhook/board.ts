@@ -1,25 +1,11 @@
-import { BoardType } from '../../enums/board-type';
-
 export type Board = {
   id: number;
   self: string;
   name: string;
-  type: BoardType;
-  location: {
-    projectId: number;
-    displayName: string;
-    projectName: string;
-    projectKey: string;
-    projectTypeKey: string;
-    avatarURI: string;
-    name: string;
-  };
+  type: string;
 };
 
-export type BoardConfig = {
-  id: number;
-  name: string;
-  self: string;
+export interface BoardConfig extends Board {
   location: {
     type: string;
     key: string;
@@ -44,4 +30,4 @@ export type BoardConfig = {
   ranking: {
     rankCustomFieldId: number;
   };
-};
+}

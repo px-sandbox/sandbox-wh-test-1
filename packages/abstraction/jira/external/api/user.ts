@@ -1,5 +1,6 @@
 export type User = {
   self: string;
+  accountId: string;
   avatarUrls: {
     '48x48': string;
     '32x32': string;
@@ -10,4 +11,13 @@ export type User = {
   active: boolean;
   timeZone: string;
   accountType: string;
+  emailAddress: string;
+  groups: {
+    size: number;
+    items: object[];
+  };
+  applicationRoles: {
+    size: number;
+    items: object[];
+  };
 };

@@ -1,7 +1,7 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { logger } from 'core';
 import { Table } from 'sst/node/table';
-import { getTokens } from '../lib/getToken';
+import { getTokens } from '../lib/get-token';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
 
 // get credIds from dynamoDB

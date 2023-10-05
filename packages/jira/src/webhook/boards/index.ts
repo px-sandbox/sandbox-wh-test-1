@@ -1,1 +1,2 @@
-export function test(): void {}
+export { create } from './create';
+export { updateConfig } from './config-update';

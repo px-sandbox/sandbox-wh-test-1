@@ -1,5 +1,4 @@
 /* eslint-disable complexity */
-/* eslint-disable complexity */
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import moment from 'moment';
 import { logger } from 'core';
@@ -7,8 +6,8 @@ import { Jira } from 'abstraction';
 import * as user from './users';
 import * as project from './projects';
 import * as sprint from './sprints';
+import * as board from './boards';
 import * as issue from './issues';
-// eslint-disable-next-line
 
 /**
  * Processes the webhook event based on the event name and performs the corresponding action.
@@ -19,7 +18,6 @@ import * as issue from './issues';
  * @returns A Promise that resolves when the event is processed.
  */
 // eslint-disable-next-line max-lines-per-function
-// eslint-disable-next-line
 async function processWebhookEvent(
   eventName: Jira.Enums.Event,
   eventTime: moment.Moment,
@@ -98,6 +96,12 @@ async function processWebhookEvent(
       break;
     case Jira.Enums.Event.SprintClosed:
       await sprint.close(body.sprint, organization);
+      break;
+    case Jira.Enums.Event.BoardCreated:
+      await board.create(body.board, eventTime, organization);
+      break;
+    case Jira.Enums.Event.BoardConfigUpdated:
+      await board.updateConfig(body.configuration, organization);
       break;
     case Jira.Enums.Event.IssueCreated:
       await issue.create({ issue: body.issue, changelog: body.changelog, organization });

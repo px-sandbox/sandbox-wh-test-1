@@ -1,5 +1,5 @@
 import { LambdaResponse } from './lambda-response';
 import { ddbGlobalIndex } from './dynamodb-global-index';
-import { HitSource, Result } from './elastic-search';
+import { HitSource, Result, Hit, HitBody } from './elastic-search';
 
-export { LambdaResponse, ddbGlobalIndex, Result, HitSource };
+export { LambdaResponse, ddbGlobalIndex, Result, HitSource, Hit, HitBody };

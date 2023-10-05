@@ -11,10 +11,4 @@ export type User = {
   active: boolean;
   timeZone: string;
   accountType: string;
-  organization: string;
-  emailAddress?: string | null;
-  isDeleted?: boolean;
-  deletedAt?: string;
-  createdAt: string;
-  username?: string;
 };

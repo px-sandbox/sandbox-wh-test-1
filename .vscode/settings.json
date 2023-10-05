@@ -10,6 +10,6 @@
     "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
   },
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
   } // set as "true" to run 'prettier' last not first
 }
