@@ -21,11 +21,10 @@ export async function update(
     logger.info('userUpdatedEvent: User not found');
     return false;
   }
-  const deletedAt = null;
   const jiraClient = await JiraClient.getClient(organization);
   const apiUserData = await jiraClient.getUser(user.accountId);
 
-  const userData = mappingToApiData(apiUserData, userIndexData.createdAt, organization, deletedAt);
+  const userData = mappingToApiData(apiUserData, userIndexData.createdAt, organization);
   logger.info('userUpdatedEvent: Send message to SQS');
   await new SQSClient().sendMessage(userData, Queue.jira_users_format.queueUrl);
 }

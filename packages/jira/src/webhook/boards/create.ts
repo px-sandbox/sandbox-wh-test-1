@@ -21,13 +21,12 @@ export async function create(
   try {
     logger.info('boardCreatedEvent.invoked');
     const createdAt = moment(eventTime).toISOString();
-    const deletedAt = null;
     const jiraClient = await JiraClient.getClient(organization);
     const apiBoardData = await jiraClient.getBoard(board.id);
 
     logger.info('apiBoardData', { apiBoardData });
 
-    const boardData = mappingToApiData(apiBoardData, createdAt, organization, deletedAt);
+    const boardData = mappingToApiData(apiBoardData, createdAt, organization);
     logger.info('boardCreatedEvent: Send message to SQS');
     await new SQSClient().sendMessage(boardData, Queue.jira_board_format.queueUrl);
   } catch (error) {

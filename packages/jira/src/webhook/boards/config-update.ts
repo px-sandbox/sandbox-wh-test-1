@@ -16,12 +16,11 @@ export async function updateConfig(
       logger.info('boardConfigUpdatedEvent: Board not found');
       return false;
     }
-    const deletedAt = null;
     
     const jiraClient = await JiraClient.getClient(organization);
     const apiUserData = await jiraClient.getBoardConfig(config.id);
 
-    const userData = mappingToApiDataConfig(apiUserData, boardIndexData, organization, deletedAt);
+    const userData = mappingToApiDataConfig(apiUserData, boardIndexData, organization);
     logger.info('boardUpdatedEvent: Send message to SQS');
     await new SQSClient().sendMessage(userData, Queue.jira_board_format.queueUrl);
   } catch (error) {

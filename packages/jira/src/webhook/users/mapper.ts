@@ -4,7 +4,7 @@ export function mappingToApiData(
   user: Jira.ExternalType.Api.User,
   createdAt: string,
   organization: string,
-  deletedAt: string | null
+  deletedAt: string | null = null
 ): Jira.Mapper.User {
   return {
     ...user,

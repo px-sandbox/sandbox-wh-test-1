@@ -12,16 +12,13 @@ export function mappingToApiData(
   board: Jira.ExternalType.Api.Board,
   createdAt: string,
   organization: string,
-  deletedAt: string | null
+  deletedAt: string | null = null
 ): Jira.Mapper.Board {
   return {
     id: board.id,
     self: board.self,
     name: board.name,
-    type:
-      board.type?.toLowerCase() === 'kanban'
-        ? Jira.Enums.BoardType.Kanban
-        : Jira.Enums.BoardType.Scrum,
+    type: board.type?.toLowerCase() as Jira.Enums.BoardType,
     location: { ...board.location },
     isDeleted: !!deletedAt,
     deletedAt,
@@ -34,7 +31,7 @@ export function mappingToApiDataConfig(
   config: Jira.ExternalType.Api.BoardConfig,
   boardIndexData: { [key: string]: any }, // eslint-disable-line @typescript-eslint/no-explicit-any
   organization: string,
-  deletedAt: string | null
+  deletedAt: string | null = null
 ): Jira.Mapper.Board {
   const { boardId, self, name, type, location, createdAt } = boardIndexData;
   return {

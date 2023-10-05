@@ -20,10 +20,9 @@ export async function create(
 ): Promise<void> {
   try {
     const createdAt = moment(eventTime).toISOString();
-    const deletedAt = null;
     const jiraClient = await JiraClient.getClient(organization);
     const apiUserData = await jiraClient.getUser(user.accountId);
-    const userData = mappingToApiData(apiUserData, createdAt, organization, deletedAt);
+    const userData = mappingToApiData(apiUserData, createdAt, organization);
     logger.info('userCreatedEvent: Send message to SQS');
     await new SQSClient().sendMessage(userData, Queue.jira_users_format.queueUrl);
   } catch (error) {
