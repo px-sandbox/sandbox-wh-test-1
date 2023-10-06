@@ -4,4 +4,5 @@ export const mappingPrefixes = {
   sprint: 'jira_sprint',
   issue: 'jira_issue',
   project: 'jira_project',
+  board: 'jira_board',
 };

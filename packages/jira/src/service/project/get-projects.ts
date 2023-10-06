@@ -19,7 +19,7 @@ import { getProjectsSchema } from '../validations';
 const projects = async function getProjectsData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  const searchTerm: string = event?.queryStringParameters?.search ?? '';
+  const searchTerm: string = event?.queryStringParameters?.search?.toLowerCase() ?? '';
   const page = Number(event?.queryStringParameters?.page ?? 1);
   const size = Number(event?.queryStringParameters?.size ?? 10);
   let response: IProject[] = [];
@@ -30,20 +30,38 @@ const projects = async function getProjectsData(
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
 
-    const data = (
-      await esClient.getClient().search({
-        index: Jira.Enums.IndexName.Project,
-        from: (page - 1) * size,
-        size,
-      })
-    ).body;
-
+    // match query if search term is present else get all projects
+    let query;
     if (searchTerm) {
-      const searchData = await esClient.search(Jira.Enums.IndexName.Project, 'name', searchTerm);
-      response = await searchedDataFormator(searchData);
+      query = {
+        bool: {
+          must: [
+            { match: { 'body.name': { query: searchTerm, fuzziness: 'AUTO' } } },
+            { match: { 'body.isDeleted': false } },
+          ],
+        },
+      };
     } else {
-      response = await searchedDataFormator(data);
+      query = {
+        match: {
+          'body.isDeleted': false,
+        },
+      };
     }
+
+    // fetching data from elastic search based on query
+    const { body: data } = await esClient.getClient().search({
+      index: Jira.Enums.IndexName.Project,
+      from: (page - 1) * size,
+      size,
+      body: {
+        query,
+      },
+    });
+
+    // formatting above query response data
+    response = await searchedDataFormator(data);
+
     logger.info({ level: 'info', message: 'jira projects data', data: response });
   } catch (error) {
     logger.error('GET_JIRA_PROJECT_DETAILS', { error });

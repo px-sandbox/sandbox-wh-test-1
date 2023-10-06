@@ -5,10 +5,10 @@ import { Queue } from 'sst/node/queue';
 
 export async function deleteSprint(
   sprint: Jira.ExternalType.Webhook.Sprint,
-  organisation: string
+  organization: string
 ): Promise<void> {
   logger.info('sprint_event: Send message to SQS');
   sprint.isDeleted = true;
   sprint.deletedAt = new Date().toISOString();
-  await new SQSClient().sendMessage({ ...sprint, organisation }, Queue.jira_sprint_format.queueUrl);
+  await new SQSClient().sendMessage({ ...sprint, organization }, Queue.jira_sprint_format.queueUrl);
 }
