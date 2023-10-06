@@ -18,3 +18,5 @@ export async function getTokens(refreshToken: string): Promise<Jira.ExternalType
     throw new Error(`Error while getting tokens: ${e}`);
   }
 }
+
+

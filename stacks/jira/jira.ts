@@ -4,6 +4,7 @@ import { commonConfig } from '../common/config';
 import { initializeSprintQueue } from './queue/sprint';
 import { initializeProjectQueue } from './queue/project';
 import { initializeUserQueue } from './queue/user';
+import { initializeBoardQueue } from './queue/board';
 import { initializeIssueQueue } from './queue/issue';
 
 function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
@@ -14,7 +15,7 @@ function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
       jiraId: 'string',
     },
     globalIndexes: {
-      githubIndex: { partitionKey: 'jiraId' },
+      jiraIndex: { partitionKey: 'jiraId' },
     },
     primaryIndex: { partitionKey: 'parentId' },
   });
@@ -45,6 +46,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   const sprintQueues = initializeSprintQueue(stack, { jiraMappingTable, jiraCredsTable });
   const projectQueues = initializeProjectQueue(stack, jiraMappingTable);
   const userQueues = initializeUserQueue(stack, jiraMappingTable);
+  const boardQueues = initializeBoardQueue(stack, jiraMappingTable);
   const issueQueues = initializeIssueQueue(stack, { jiraMappingTable, jiraCredsTable });
   const refreshToken = new Function(stack, 'refresh-token-func', {
     handler: 'packages/jira/src/cron/refresh-token.updateRefreshToken',
@@ -57,6 +59,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
         bind: [
           ...userQueues,
           ...sprintQueues,
+          ...boardQueues,
           ...projectQueues,
           ...issueQueues,
           OPENSEARCH_NODE,
@@ -97,6 +100,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
     },
   });
 
+  // eslint-disable-next-line no-new
   new Cron(stack, 'refresh-token-cron', {
     schedule: 'cron(0 0 1 */2 ? *)',
     job: refreshToken,

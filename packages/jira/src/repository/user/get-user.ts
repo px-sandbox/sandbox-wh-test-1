@@ -1,12 +1,20 @@
 import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import { mappingPrefixes } from '../../constant/config';
 import { searchedDataFormator } from '../../util/response-formatter';
 
-export async function getUserById(userId: string): Promise<{ _id: string } & Jira.Type.UserBody> {
+/**
+ * Retrieves a Jira user by their ID.
+ * @param userId The ID of the user to retrieve.
+ * @returns A promise that resolves with the user data.
+ * @throws An error if the user cannot be retrieved.
+ */
+export async function getUserById(
+  userId: string
+): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
   try {
     const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,

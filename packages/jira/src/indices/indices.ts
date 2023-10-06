@@ -13,7 +13,7 @@ const indices = [
           type: 'object',
           properties: {
             id: { type: 'keyword' },
-            jiraOrganizationId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
             organizationName: { type: 'text' },
           },
         },
@@ -31,7 +31,6 @@ const indices = [
             id: { type: 'keyword' },
             userId: { type: 'keyword' },
             emailAddress: { type: 'keyword' },
-            userName: { type: 'text' },
             displayName: { type: 'text' },
             avatarUrls: {
               properties: {
@@ -42,6 +41,18 @@ const indices = [
               },
             },
             isActive: { type: 'boolean' },
+            groups: {
+              properties: {
+                size: { type: 'integer' },
+                items: { type: 'object' },
+              },
+            },
+            applicationRoles: {
+              properties: {
+                size: { type: 'integer' },
+                items: { type: 'object' },
+              },
+            },
             isDelete: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time' },
             createdAt: { type: 'date', format: 'strict_date_optional_time' },
@@ -213,6 +224,72 @@ const indices = [
             boardId: { type: 'keyword' },
             projectId: { type: 'keyword' },
             organizationID: { type: 'keyword' },
+          },
+        },
+      },
+    },
+  },
+  {
+    name: Jira.Enums.IndexName.Board,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'keyword' },
+            boardId: { type: 'keyword' },
+            self: { type: 'text' },
+            name: { type: 'text' },
+            type: { type: 'keyword' },
+            location: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'keyword' },
+                displayName: { type: 'text' },
+                projectName: { type: 'text' },
+                projectKey: { type: 'keyword' },
+                projectTypeKey: { type: 'keyword' },
+                avatarURI: { type: 'text' },
+                name: { type: 'text' },
+              },
+            },
+            filter: {
+              type: 'object',
+              properties: {
+                id: { type: 'keyword' },
+                self: { type: 'text' },
+              },
+            },
+            columnConfig: {
+              type: 'object',
+              properties: {
+                columns: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'text' },
+                    statuses: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'keyword' },
+                        self: { type: 'text' },
+                      },
+                    },
+                  },
+                },
+                constraintType: { type: 'keyword' },
+              },
+            },
+            ranking: {
+              type: 'object',
+              properties: {
+                rankCustomFieldId: { type: 'integer' },
+              },
+            },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            isDeleted: { type: 'boolean' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+            organizationId: { type: 'keyword' },
           },
         },
       },

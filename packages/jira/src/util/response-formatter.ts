@@ -1,4 +1,5 @@
 import { SprintState } from 'abstraction/jira/enums';
+import { Other } from 'abstraction';
 
 export interface IformatUserDataResponse {
   _id: number;
@@ -16,21 +17,12 @@ export interface IRepo {
   topics: string;
 }
 
-export type Hit = {
-  _id: string;
-  _source: {
-    body: {
-      isDeleted?: boolean;
-      [key: string]: unknown;
-    };
-    [key: string]: unknown;
-  };
-};
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const searchedDataFormator = async (data: any): Promise<any> => {
+export const searchedDataFormator = async (
+  data: any // eslint-disable-line @typescript-eslint/no-explicit-any
+): Promise<(Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[] | []> => {
   if (data?.hits?.max_score != null) {
-    return data.hits.hits.map((hit: Hit) => ({
+    return data.hits.hits.map((hit: Other.Type.Hit) => ({
       _id: hit._id,
       ...hit._source.body,
     }));

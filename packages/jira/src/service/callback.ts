@@ -3,21 +3,52 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import axios, { AxiosResponse } from 'axios';
-import { HttpStatusCode, responseParser } from 'core';
+import { HttpStatusCode, logger, responseParser } from 'core';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
+import { ParamsMapping } from '../model/params-mapping';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
+import { mappingPrefixes } from '../constant/config';
 
+export async function getTokensByCode(code: string): Promise<Jira.ExternalType.Api.Credentials> {
+  try {
+    const response: AxiosResponse<Jira.ExternalType.Api.Credentials> = await axios.post(
+      'https://auth.atlassian.com/oauth/token', {
+      grant_type: 'authorization_code',
+      client_id: Config.JIRA_CLIENT_ID,
+      client_secret: Config.JIRA_CLIENT_SECRET,
+      code,
+      redirect_uri: Config.JIRA_REDIRECT_URI,
+    });
+    return response.data;
+  } catch (e) {
+    logger.error(`Error while getting tokens by code: ${e}`);
+    throw new Error(`Error while getting tokens by code: ${e}`);
+  }
+}
+
+export async function getAccessibleOrgs(accessToken: string): Promise<Array<Jira.ExternalType.Api.Organization>> {
+  try {
+    const response :AxiosResponse<Array<Jira.ExternalType.Api.Organization>> = await axios.get(
+        'https://api.atlassian.com/oauth/token/accessible-resources',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json',
+          },
+        }
+      );
+    return response.data;
+  } catch (e) {
+    logger.error(`Error while getting accessible orgs: ${e}`);
+    throw new Error(`Error while getting accessible orgs: ${e}`);
+  }
+}
+
+// eslint-disable-next-line max-lines-per-function
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const code: string = event?.queryStringParameters?.code ?? '';
-
-  const response = await axios.post('https://auth.atlassian.com/oauth/token', {
-    grant_type: 'authorization_code',
-    client_id: Config.JIRA_CLIENT_ID,
-    client_secret: Config.JIRA_CLIENT_SECRET,
-    code,
-    redirect_uri: Config.JIRA_REDIRECT_URI,
-  });
+  const jiraToken = await getTokensByCode(code);
 
   const _esClient = new ElasticSearchClient({
     host: Config.OPENSEARCH_NODE,
@@ -29,30 +60,33 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   const credId = uuid();
 
-  const accessibleOrgs: AxiosResponse<Array<Jira.ExternalType.Api.Organization>> = await axios.get(
-    'https://api.atlassian.com/oauth/token/accessible-resources',
-    {
-      headers: {
-        Authorization: `Bearer ${response.data.access_token}`,
-        Accept: 'application/json',
-      },
-    }
+  const accessibleOrgs = await getAccessibleOrgs(jiraToken.access_token);
+  const ddbRes = await _ddbClient.find(
+    new ParamsMapping().prepareGetParams(
+      `${mappingPrefixes.organization}_${accessibleOrgs[0].id}`
+    )
   );
-
+  
+  const parentId = ddbRes?.parentId as string | undefined;
+  logger.info('parentId', { parentId });
   await Promise.all([
-    _ddbClient.put(new JiraCredsMapping().preparePutParams(credId, response.data)),
-    ...accessibleOrgs.data.map(({ id, ...org }) =>
-      _esClient.putDocument(Jira.Enums.IndexName.Organization, {
-        id: uuid(),
+    _ddbClient.put(new JiraCredsMapping().preparePutParams(credId, jiraToken)),
+    ...accessibleOrgs.map(async ({ id, ...org }) => {
+      const uuidOrg = uuid();
+      await _ddbClient.put(
+        new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
+      );
+      await _esClient.putDocument(Jira.Enums.IndexName.Organization, {
+        id: parentId || uuidOrg,
         body: {
-          id: `jira_org_${id}`,
+          id: `${mappingPrefixes.organization}_${id}`,
           orgId: id,
           credId,
           createdAt: new Date(),
           ...org,
         },
-      })
-    ),
+      });
+    }),
   ]);
 
   return responseParser

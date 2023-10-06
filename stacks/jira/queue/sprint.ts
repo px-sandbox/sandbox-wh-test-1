@@ -67,6 +67,7 @@ export function initializeSprintQueue(stack: Stack, jiraDDB: JiraTables): Queue[
     OPENSEARCH_USERNAME,
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
+    JIRA_REDIRECT_URI,
   ]);
   sprintIndexDataQueue.bind([
     jiraDDB.jiraCredsTable,
