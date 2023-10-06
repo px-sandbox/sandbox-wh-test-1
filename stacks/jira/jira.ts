@@ -76,11 +76,11 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } = initializeDynamoDBTables(stack);
 
   // Initialize SQS Queues for Jira
-  const sprintQueues = initializeSprintQueue(stack, { jiraMappingTable, jiraCredsTable });
-  const projectQueues = initializeProjectQueue(stack, jiraMappingTable);
-  const userQueues = initializeUserQueue(stack, jiraMappingTable);
-  const boardQueues = initializeBoardQueue(stack, jiraMappingTable);
-  const issueQueues = initializeIssueQueue(stack, { jiraMappingTable, jiraCredsTable });
+  const sprintQueues = initializeSprintQueue(stack, { jiraMappingTable, jiraCredsTable, processJiraRetryTable });
+  const projectQueues = initializeProjectQueue(stack, {jiraMappingTable, jiraCredsTable, processJiraRetryTable});
+  const userQueues = initializeUserQueue(stack, {jiraMappingTable, jiraCredsTable, processJiraRetryTable});
+  const boardQueues = initializeBoardQueue(stack, { jiraMappingTable, jiraCredsTable, processJiraRetryTable});
+  const issueQueues = initializeIssueQueue(stack, { jiraMappingTable, jiraCredsTable, processJiraRetryTable });
   const refreshToken = new Function(stack, 'refresh-token-func', {
     handler: 'packages/jira/src/cron/refresh-token.updateRefreshToken',
     bind: [jiraCredsTable, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET],
@@ -97,6 +97,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
       ...sprintQueues,
       ...projectQueues,
       ...issueQueues,
+      ...boardQueues,
     ],
   });
   const jiraApi = new Api(stack, 'jiraApi', {
@@ -117,6 +118,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
           JIRA_REDIRECT_URI,
           jiraMappingTable,
           jiraCredsTable,
+          processJiraRetryTable,
         ],
       },
     },

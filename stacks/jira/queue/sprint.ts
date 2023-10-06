@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { Queue, use } from 'sst/constructs';
+import { Queue, Function, use } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
 
@@ -24,18 +24,18 @@ export function initializeSprintQueue(stack: Stack, jiraDDB: JiraTables): Queue[
   //   },
   // });
 
-  const sprintFormatDataQueue = new Queue(stack, 'jira_sprint_format', {
-    consumer: {
-      function: {
+  const sprintFormatDataQueue = new Queue(stack, 'jira_sprint_format');
+  sprintFormatDataQueue.addConsumer(stack, {
+      function: new Function(stack, 'jira_sprint_format_func',{
         handler: 'packages/jira/src/sqs/handlers/formatter/sprint.handler',
-      },
+        bind: [sprintFormatDataQueue],
+      }),
       cdk: {
         eventSource: {
           batchSize: 5,
         },
       },
-    },
-  });
+    });
 
   const sprintIndexDataQueue = new Queue(stack, 'jira_sprint_index', {
     consumer: {

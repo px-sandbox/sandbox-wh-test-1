@@ -3,7 +3,6 @@ import { Jira } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import moment from 'moment';
-import { JiraClient } from '../../lib/jira-client';
 import { mappingToApiData } from './mapper';
 
 /**
@@ -21,12 +20,8 @@ export async function create(
   try {
     logger.info('boardCreatedEvent.invoked');
     const createdAt = moment(eventTime).toISOString();
-    const jiraClient = await JiraClient.getClient(organization);
-    const apiBoardData = await jiraClient.getBoard(board.id);
 
-    logger.info('apiBoardData', { apiBoardData });
-
-    const boardData = mappingToApiData(apiBoardData, createdAt, organization);
+    const boardData = mappingToApiData(board, createdAt, organization);
     logger.info('boardCreatedEvent: Send message to SQS');
     await new SQSClient().sendMessage(boardData, Queue.jira_board_format.queueUrl);
   } catch (error) {

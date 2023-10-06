@@ -4,7 +4,6 @@ export interface User {
     id: string;
     userId: string;
     emailAddress: string | null;
-    userName: string | null;
     displayName: string;
     avatarUrls: {
       avatarUrl48x48: string;

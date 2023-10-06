@@ -2,7 +2,6 @@ import { logger } from 'core';
 import { Jira } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
-import { JiraClient } from '../../lib/jira-client';
 import { getUserById } from '../../repository/user/get-user';
 import { mappingToApiData } from './mapper';
 
@@ -21,10 +20,8 @@ export async function update(
     logger.info('userUpdatedEvent: User not found');
     return false;
   }
-  const jiraClient = await JiraClient.getClient(organization);
-  const apiUserData = await jiraClient.getUser(user.accountId);
 
-  const userData = mappingToApiData(apiUserData, userIndexData.createdAt, organization);
+  const userData = mappingToApiData(user, userIndexData.createdAt, organization);
   logger.info('userUpdatedEvent: Send message to SQS');
   await new SQSClient().sendMessage(userData, Queue.jira_users_format.queueUrl);
 }

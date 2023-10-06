@@ -4,8 +4,8 @@ export type Board = {
   id: number;
   self: string;
   name: string;
-  type: BoardType;
-  location: {
+  type?: BoardType;
+  location?: {
     projectId: number;
     displayName: string;
     projectName: string;
