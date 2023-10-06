@@ -11,12 +11,12 @@ export type User = {
   active: boolean;
   timeZone: string;
   accountType: string;
-  emailAddress: string;
-  groups: {
+  emailAddress?: string;
+  groups?: {
     size: number;
     items: object[];
   };
-  applicationRoles: {
+  applicationRoles?: {
     size: number;
     items: object[];
   };

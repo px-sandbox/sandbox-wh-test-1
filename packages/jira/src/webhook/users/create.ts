@@ -3,7 +3,6 @@ import { Jira } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import moment from 'moment';
-import { JiraClient } from '../../lib/jira-client';
 import { mappingToApiData } from './mapper';
 
 /**
@@ -20,9 +19,7 @@ export async function create(
 ): Promise<void> {
   try {
     const createdAt = moment(eventTime).toISOString();
-    const jiraClient = await JiraClient.getClient(organization);
-    const apiUserData = await jiraClient.getUser(user.accountId);
-    const userData = mappingToApiData(apiUserData, createdAt, organization);
+    const userData = mappingToApiData(user, createdAt, organization);
     logger.info('userCreatedEvent: Send message to SQS');
     await new SQSClient().sendMessage(userData, Queue.jira_users_format.queueUrl);
   } catch (error) {

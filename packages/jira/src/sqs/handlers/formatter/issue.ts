@@ -2,6 +2,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { IssueProcessor } from '../../../processors/issue';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function issueFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
@@ -19,6 +20,7 @@ export const handler = async function issueFormattedDataReciever(event: SQSEvent
         const data = await issueProcessor.processor();
         await issueProcessor.sendDataToQueue(data, Queue.jira_issue_index.queueUrl);
       } catch (error) {
+        await logProcessToRetry(record, Queue.jira_issue_format.queueUrl, error as Error);
         logger.error('issueFormattedDataReciever.error', error);
       }
     })

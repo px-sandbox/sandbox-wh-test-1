@@ -1,0 +1,19 @@
+{
+  "TableName": "mm-31-pulse-dx-process-jira-retry",
+  "KeySchema": [
+    {
+      "AttributeName": "processId",
+      "KeyType": "HASH"
+    }
+  ],
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "processId",
+      "AttributeType": "S"
+    }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 1,
+    "WriteCapacityUnits": 1
+  }
+}

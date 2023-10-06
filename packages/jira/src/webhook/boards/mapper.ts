@@ -9,7 +9,7 @@ import { Jira } from 'abstraction';
  * @returns The mapper board object.
  */
 export function mappingToApiData(
-  board: Jira.ExternalType.Api.Board,
+  board: Jira.ExternalType.Webhook.Board,
   createdAt: string,
   organization: string,
   deletedAt: string | null = null
@@ -18,8 +18,6 @@ export function mappingToApiData(
     id: board.id,
     self: board.self,
     name: board.name,
-    type: board.type?.toLowerCase() as Jira.Enums.BoardType,
-    location: { ...board.location },
     isDeleted: !!deletedAt,
     deletedAt,
     createdAt,
@@ -28,7 +26,7 @@ export function mappingToApiData(
 }
 
 export function mappingToApiDataConfig(
-  config: Jira.ExternalType.Api.BoardConfig,
+  config: Jira.ExternalType.Webhook.BoardConfig,
   boardIndexData: { [key: string]: any }, // eslint-disable-line @typescript-eslint/no-explicit-any
   organization: string,
   deletedAt: string | null = null

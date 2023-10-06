@@ -14,7 +14,7 @@ export type Board = {
       projectTypeKey: string;
       avatarURI: string;
       name: string;
-    };
+    } | null;
     filter?: {
       id: string;
       self: string;

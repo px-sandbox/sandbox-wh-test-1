@@ -1,6 +1,8 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
+import { Queue } from 'sst/node/queue';
 import { saveUserDetails } from '../../../repository/user/save-user';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function userIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
@@ -13,6 +15,7 @@ export const handler = async function userIndexDataReciever(event: SQSEvent): Pr
 
         await saveUserDetails(messageBody);
       } catch (error) {
+        await logProcessToRetry(record, Queue.jira_users_index.queueUrl, error as Error);
         logger.error('userIndexDataReciever.error', { error });
       }
     })

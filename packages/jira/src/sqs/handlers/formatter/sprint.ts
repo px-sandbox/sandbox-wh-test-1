@@ -2,6 +2,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { SprintProcessor } from '../../../processors/sprint';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function sprintFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
@@ -19,6 +20,7 @@ export const handler = async function sprintFormattedDataReciever(event: SQSEven
         const data = await sprintProcessor.processor();
         await sprintProcessor.sendDataToQueue(data, Queue.jira_sprint_index.queueUrl);
       } catch (error) {
+        await logProcessToRetry(record, Queue.jira_sprint_format.queueUrl, error as Error);
         logger.error('sprintFormattedDataReciever.error', error);
       }
     })
