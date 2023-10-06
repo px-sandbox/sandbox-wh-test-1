@@ -92,6 +92,8 @@ export interface Sprint {
 }
 
 export interface IssueReponse extends Sprint {
-  totalIssues: number;
-  ftpRate: number;
+  totalIssues?: number;
+  ftpRate?: number;
+  totalDoc?: number;
+  reopenRate?: number;
 }

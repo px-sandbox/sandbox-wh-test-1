@@ -49,7 +49,7 @@ export class IssueProcessor extends DataProcessor<
         createdDate: this.apiData.issue.fields.created,
         lastUpdated: this.apiData.issue.fields.updated,
         lastViewed: this.apiData.issue.fields.lastViewed,
-        sprintId: `${mappingPrefixes.issue}_${issue.fields?.sprint.id}` ?? null,
+        sprintId: `${mappingPrefixes.sprint}_${issue.fields?.sprint.id}` ?? null,
         boardId: issue.fields?.sprint.originBoardId ?? null,
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
