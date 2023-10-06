@@ -46,16 +46,6 @@ export const formatUserDataResponse = (
   organizationId: data.organizationId,
 });
 
-export const formatRepoDataResponse = (
-  data: Array<IRepo>
-): Array<{ id: number; githubId: number; name: string; topics: string }> =>
-  data.map((repo: IRepo) => ({
-    id: repo._id,
-    githubId: repo.id,
-    name: repo.name,
-    topics: repo.topics,
-  }));
-
 export interface IProject {
   id: number;
   _id: number;
@@ -88,3 +78,13 @@ export const formatProjectsResponse = (
     key: project.key,
     lead: project.lead.displayName,
   }));
+
+export type Sprint = {
+  id: number;
+  name: string;
+  state: string;
+  startDate: string;
+  endDate: string;
+  completeDate: string;
+  originBoardId: number;
+};

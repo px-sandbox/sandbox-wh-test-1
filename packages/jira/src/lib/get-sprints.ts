@@ -1,0 +1,21 @@
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { Jira } from 'abstraction';
+import esb from 'elastic-builder';
+import { searchedDataFormator } from 'src/util/response-formatter';
+import { Config } from 'sst/node/config';
+
+export async function getSprints(sprintId: string): Promise<any> {
+  const esClientObj = new ElasticSearchClient({
+    host: Config.OPENSEARCH_NODE,
+    username: Config.OPENSEARCH_USERNAME ?? '',
+    password: Config.OPENSEARCH_PASSWORD ?? '',
+  });
+  const query = esb
+    .boolQuery()
+    .must(esb.termQuery('body.jiraSprintId', sprintId))
+    .should([esb.termQuery('body.status', 'active'), esb.termQuery('body.status', 'future')])
+    .toJSON();
+  const data = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Sprint, query);
+  const [sprint] = await searchedDataFormator(data);
+  return sprint;
+}
