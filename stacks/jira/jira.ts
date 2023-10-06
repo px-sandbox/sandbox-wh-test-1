@@ -136,9 +136,15 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
       'GET /jira/callback': {
         function: 'packages/jira/src/service/callback.handler',
       },
+      'GET /jira/graph/first-time-pass-rate': {
+        function: 'packages/jira/src/service/ftp-rate.handler',
+      },
       // GET Jira project data
       'GET /jira/projects': {
         function: 'packages/jira/src/service/project/get-projects.handler',
+      },
+      'GET /jira/graph/reopen-rate': {
+        function: 'packages/jira/src/service/reopen-rate.handler',
       },
     },
   });

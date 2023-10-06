@@ -6,3 +6,4 @@ export * from './webhook';
 export * from './issue';
 export * from './project';
 export * from './retry-process';
+export * from './aggrigation/ftp-rate';
