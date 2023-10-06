@@ -2,6 +2,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { ProjectProcessor } from '../../../processors/project';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 /**
  * Handler for formatting Jira project data.
@@ -27,6 +28,7 @@ export const handler = async (event: SQSEvent): Promise<void> => {
 
         return projectProcessor.sendDataToQueue(data, Queue.jira_projects_index.queueUrl);
       } catch (error) {
+        await logProcessToRetry(record, Queue.jira_projects_format.queueUrl, error as Error);        
         logger.error('projectFormattedDataReciever.error', error);
 
         throw error;

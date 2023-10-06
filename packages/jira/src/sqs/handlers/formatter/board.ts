@@ -2,6 +2,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { BoardProcessor } from '../../../processors/board';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function boardFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
@@ -20,6 +21,7 @@ export const handler = async function boardFormattedDataReciever(event: SQSEvent
         const data = await boardProcessor.processor();
         await boardProcessor.sendDataToQueue(data, Queue.jira_board_index.queueUrl);
       } catch (error) {
+        await logProcessToRetry(record, Queue.jira_board_format.queueUrl, error as Error);
         logger.error('boardFormattedDataReciever.error', error);
       }
     })
