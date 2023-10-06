@@ -59,7 +59,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
 }
 
 export async function ftpRateGraphAvg(
-  sprintIds: string
+  sprintIds: string[]
 ): Promise<{ totalIssues: string; ftpRate: string }> {
   try {
     const esClientObj = new ElasticSearchClient({

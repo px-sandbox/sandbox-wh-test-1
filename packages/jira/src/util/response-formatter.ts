@@ -1,3 +1,5 @@
+import { SprintState } from 'abstraction/jira/enums';
+
 export interface IformatUserDataResponse {
   _id: number;
   id: number;
@@ -82,7 +84,7 @@ export const formatProjectsResponse = (
 export interface Sprint {
   id: number;
   name: string;
-  state: string;
+  state: SprintState;
   startDate: string;
   endDate: string;
   completeDate: string;

@@ -6,8 +6,10 @@ const ftpRate = async function (event: APIGatewayProxyEvent): Promise<APIGateway
   const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [''];
 
   try {
-    const graphData = await ftpRateGraph(sprintIds);
-    const graphAvgData = await ftpRateGraphAvg(sprintIds);
+    const [graphData, graphAvgData] = await Promise.all([
+      await ftpRateGraph(sprintIds),
+      await ftpRateGraphAvg(sprintIds),
+    ]);
     return responseParser
       .setBody({ graphData: graphData, headline: graphAvgData })
       .setMessage('FTP rates fetched successfully')
