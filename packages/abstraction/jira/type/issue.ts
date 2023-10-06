@@ -1,4 +1,4 @@
-import { changelogItems } from '../external/webhook';
+import { ChangelogItem } from '../external/webhook';
 
 export type Issue = {
   id: string;
@@ -28,6 +28,6 @@ export type Issue = {
     isDeleted?: boolean | null;
     deletedAt?: string | null;
     organizationId: string;
-    changelog: { id: string; items: changelogItems[] };
+    changelog: { id: string; items: ChangelogItem[] };
   };
 };
