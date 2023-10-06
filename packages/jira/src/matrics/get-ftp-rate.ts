@@ -4,10 +4,10 @@ import { IFtpRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { getSprints } from 'src/lib/get-sprints';
-import { Sprint } from 'src/util/response-formatter';
+import { IssueReponse, Sprint } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
 
-export async function ftpRateGraph(sprintIds: string[]): Promise<Sprint[]> {
+export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
   try {
     const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -38,13 +38,12 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<Sprint[]> {
       ftpRateGraphQuery
     );
 
-    const response: Sprint[] = [];
+    const response: IssueReponse[] = [];
     await Promise.all(
       ftpRateGraphResponse.sprint_buckets.buckets.map(async (item) => {
         const sprintData = await getSprints(item.key);
         if (sprintData) {
           response.push({
-            id: item.key,
             totalIssues: item.doc_count,
             ftpRate: item.isFTP_true_count.doc_count,
             ...sprintData,
@@ -60,7 +59,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<Sprint[]> {
 }
 
 export async function ftpRateGraphAvg(
-  sprintIds: string[]
+  sprintIds: string
 ): Promise<{ totalIssues: string; ftpRate: string }> {
   try {
     const esClientObj = new ElasticSearchClient({

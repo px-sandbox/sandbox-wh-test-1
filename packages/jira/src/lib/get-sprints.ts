@@ -1,10 +1,10 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from 'src/util/response-formatter';
+import { searchedDataFormator, Sprint } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
 
-export async function getSprints(sprintId: string): Promise<any> {
+export async function getSprints(sprintId: string): Promise<Sprint> {
   const esClientObj = new ElasticSearchClient({
     host: Config.OPENSEARCH_NODE,
     username: Config.OPENSEARCH_USERNAME ?? '',

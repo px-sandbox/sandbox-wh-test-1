@@ -79,7 +79,7 @@ export const formatProjectsResponse = (
     lead: project.lead.displayName,
   }));
 
-export type Sprint = {
+export interface Sprint {
   id: number;
   name: string;
   state: string;
@@ -87,4 +87,9 @@ export type Sprint = {
   endDate: string;
   completeDate: string;
   originBoardId: number;
-};
+}
+
+export interface IssueReponse extends Sprint {
+  totalIssues: number;
+  ftpRate: number;
+}
