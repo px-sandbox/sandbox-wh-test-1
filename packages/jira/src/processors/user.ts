@@ -1,10 +1,11 @@
 import { Jira } from 'abstraction';
 import { v4 as uuid } from 'uuid';
+import { JiraClient } from '../lib/jira-client';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 
-export class UserProcessor extends DataProcessor<Jira.ExternalType.Webhook.User, Jira.Type.User> {
-  constructor(data: Jira.ExternalType.Webhook.User) {
+export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.User> {
+  constructor(data: Jira.Mapper.User) {
     super(data);
   }
   public async processor(): Promise<Jira.Type.User> {
@@ -12,13 +13,14 @@ export class UserProcessor extends DataProcessor<Jira.ExternalType.Webhook.User,
       `${mappingPrefixes.user}_${this.apiData.accountId}`
     );
     const orgData = await this.getOrganizationId(this.apiData.organization);
+    const jiraClient = await JiraClient.getClient(this.apiData.organization);
+    const apiUserData = await jiraClient.getUser(this.apiData.accountId);
     const userObj = {
       id: parentId || uuid(),
       body: {
         id: `${mappingPrefixes.user}_${this.apiData?.accountId}`,
         userId: this.apiData?.accountId,
         emailAddress: this.apiData?.emailAddress ?? null,
-        userName: this.apiData?.username ?? null,
         displayName: this.apiData?.displayName,
         avatarUrls: this.apiData?.avatarUrls
           ? {
@@ -29,6 +31,8 @@ export class UserProcessor extends DataProcessor<Jira.ExternalType.Webhook.User,
             }
           : null,
         isActive: this.apiData.active,
+        groups: apiUserData.groups,
+        applicationRoles: apiUserData.applicationRoles,
         isDeleted: !!this.apiData.isDeleted,
         deletedAt: this.apiData?.deletedAt ?? null,
         createdAt: this.apiData.createdAt,

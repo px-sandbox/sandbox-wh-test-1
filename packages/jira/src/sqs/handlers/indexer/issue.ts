@@ -1,6 +1,8 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { saveIssueDetails } from 'src/repository/save-issue';
+import { Queue } from 'sst/node/queue';
+import { saveIssueDetails } from '../../../repository/save-issue';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function issueIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
@@ -13,6 +15,7 @@ export const handler = async function issueIndexDataReciever(event: SQSEvent): P
 
         await saveIssueDetails(messageBody);
       } catch (error) {
+        await logProcessToRetry(record, Queue.jira_issue_index.queueUrl, error as Error);
         logger.error('issueIndexDataReciever.error', { error });
       }
     })

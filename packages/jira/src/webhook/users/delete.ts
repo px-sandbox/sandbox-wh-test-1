@@ -4,10 +4,14 @@ import { Jira } from 'abstraction';
 import { getUserById } from '../../repository/user/get-user';
 import { saveUserDetails } from '../../repository/user/save-user';
 
-export async function deleteUser(
-  userId: string,
-  eventTime: moment.Moment
-): Promise<void | false> {
+/**
+ * Deletes a user by their ID and sets the `isDeleted` and `deletedAt` properties in their user data.
+ * @param userId - The ID of the user to delete.
+ * @param eventTime - The time the user was deleted.
+ * @returns A Promise that resolves with `void` if the user was successfully deleted,
+ * or `false` if the user was not found.
+ */
+export async function deleteUser(userId: string, eventTime: moment.Moment): Promise<void | false> {
   const userData = await getUserById(userId);
   if (!userData) {
     logger.info('userDeletedEvent: User not found');

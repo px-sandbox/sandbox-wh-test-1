@@ -1,7 +1,7 @@
+import Url from 'url';
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, responseParser } from 'core';
 import { Config } from 'sst/node/config';
-import Url from 'url';
 
 // add all the permissions required for Jira Integration here
 const permissions = [
@@ -15,6 +15,8 @@ const permissions = [
   'manage:jira-project',
   'read:board-scope:jira-software',
   'read:issue-details:jira',
+  'read:board-scope.admin:jira-software',
+   'read:project:jira',
 ];
 
 export const handler = async (): Promise<APIGatewayProxyResult> => {

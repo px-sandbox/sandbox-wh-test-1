@@ -1,5 +1,7 @@
-import { User } from './user';
-import { Project } from './project';
-import { Sprint } from './sprint';
+export * from './user';
+export * from './project';
+export * from './sprint';
+export * from './board';
 export * from './issue';
-export { User, Project, Sprint };
+
+

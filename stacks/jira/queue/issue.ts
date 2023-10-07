@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { Queue, use } from 'sst/constructs';
+import { Function, Queue, use } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
 
@@ -24,18 +24,18 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
   //   },
   // });
 
-  const issueFormatDataQueue = new Queue(stack, 'jira_issue_format', {
-    consumer: {
-      function: {
+  const issueFormatDataQueue = new Queue(stack, 'jira_issue_format');
+  issueFormatDataQueue.addConsumer(stack, {
+      function: new Function(stack, 'jira_issue_format_func',{
         handler: 'packages/jira/src/sqs/handlers/formatter/issue.handler',
-      },
+        bind: [issueFormatDataQueue],
+      }),
       cdk: {
         eventSource: {
           batchSize: 5,
         },
       },
-    },
-  });
+    });
 
   const issueIndexDataQueue = new Queue(stack, 'jira_issue_index', {
     consumer: {
@@ -61,6 +61,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
   issueFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
+    jiraDDB.processJiraRetryTable,
     issueIndexDataQueue,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -72,6 +73,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
   issueIndexDataQueue.bind([
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
+    jiraDDB.processJiraRetryTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
