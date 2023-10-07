@@ -4,7 +4,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import axios from 'axios';
 import { logger } from 'core';
-import { esResponseDataFormator } from '../../util/es-response-formatter';
+import { esResponseDataFormator } from '../util/es-response-formatter';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
 import { getTokens } from './get-token';
 
