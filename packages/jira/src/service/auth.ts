@@ -16,7 +16,10 @@ const permissions = [
   'read:board-scope:jira-software',
   'read:issue-details:jira',
   'read:board-scope.admin:jira-software',
-   'read:project:jira',
+  'read:project:jira',
+  'read:issue:jira-software',
+  'read:sprint:jira-software',
+  'read:board-scope.admin:jira-software'
 ];
 
 export const handler = async (): Promise<APIGatewayProxyResult> => {
