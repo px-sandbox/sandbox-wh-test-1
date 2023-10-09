@@ -49,9 +49,7 @@ export class JiraClient {
       throw new Error(`Credential for given Organisation ${orgName} is not found`);
     }
 
-    const { refresh_token: refreshToken } = creds as Jira.ExternalType.Api.Credentials;
-
-    const { access_token: accessToken } = await getTokens(refreshToken);
+    const { refresh_token: refreshToken,access_token: accessToken } = creds as Jira.ExternalType.Api.Credentials;
 
     const instance = new JiraClient(orgId.orgId, accessToken, refreshToken);
     return instance;

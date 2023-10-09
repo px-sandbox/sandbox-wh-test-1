@@ -58,7 +58,7 @@ function intializeJiraCron(
   // initialize a cron for jira refresh token that runs every second month at 00:00 UTC
   // eslint-disable-next-line no-new
   new Cron(stack, 'refresh-token-cron', {
-    schedule: 'cron(0 0 1 */2 ? *)',
+    schedule: 'cron(0/45 * ? * * *)',
     job: refreshToken,
   });
 }
