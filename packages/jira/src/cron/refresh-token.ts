@@ -24,6 +24,7 @@ export async function updateRefreshToken(): Promise<void> {
   }
   await Promise.all([
     ddbResp.map(async (item) => {
+      logger.info(`Updating Refresh token updated for credId...: ${item.credId}`);
       const newRefreshToken = await getTokens(item.refreshToken);
       await _ddbClient.put(new JiraCredsMapping().preparePutParams(item.credId, newRefreshToken));
       logger.info(`Refresh token updated for credId: ${item.credId}`);
