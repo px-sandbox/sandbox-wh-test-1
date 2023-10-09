@@ -20,6 +20,6 @@ export async function getSprints(sprintId: string): Promise<Sprint> {
     ])
     .toJSON();
   const data = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Sprint, query);
-  const [sprint] = await searchedDataFormator(data);
+  const [sprint] = await searchedDataFormator(data) as Sprint[];
   return sprint;
 }
