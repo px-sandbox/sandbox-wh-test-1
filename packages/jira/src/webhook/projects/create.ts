@@ -14,5 +14,5 @@ export async function create(project: Jira.ExternalType.Webhook.Project, organiz
   const updatedProjectBody = projectKeysMapper(project, organization);
   updatedProjectBody.organization = organization;
   logger.info('processProjectCreatedEvent: Send message to SQS');
-  await new SQSClient().sendMessage(updatedProjectBody, Queue.jira_projects_format.queueUrl);
+  await new SQSClient().sendMessage(updatedProjectBody, Queue.jira_project_format.queueUrl);
 }

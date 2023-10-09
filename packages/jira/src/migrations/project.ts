@@ -19,22 +19,21 @@ async function checkAndSave(organisation: string, projectId: string) {
   const sqsClient = new SQSClient();
 
   // get project details and send it to formatter
-  const projects = await jira.getProjects();
+  const project = await jira.getProject(projectId);
 
   await Promise.all([
-    ...projects.flatMap(async (project) => [
-      sqsClient.sendMessage(
-        {
-          organisation,
-          project,
-        },
-        Queue.jira_projects_format.queueUrl
-      ),
-      sqsClient.sendMessage(
-        { organisation, projectId: project.id },
-        Queue.jira_board_migrate.queueUrl
-      ),
-    ]),
+    sqsClient.sendMessage(
+      {
+        organisation,
+        project,
+      },
+      Queue.jira_project_format.queueUrl
+    ),
+    sqsClient.sendMessage(
+      { organisation, projectId: project.id },
+      Queue.jira_board_migrate.queueUrl
+    ),
+
   ]);
 }
 
@@ -42,8 +41,8 @@ export const handler = async function (event: SQSEvent) {
   await Promise.all(
     event.Records.map((record: SQSRecord) => {
       try {
-        const { organisation, projects } = JSON.parse(record.body);
-        return checkAndSave(organisation, projects);
+        const { organisation, projectId } = JSON.parse(record.body);
+        return checkAndSave(organisation, projectId);
       } catch (error) {
         logger.error(JSON.stringify({ error, record }));
       }

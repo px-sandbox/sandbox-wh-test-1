@@ -13,29 +13,18 @@ export function initializeSprintQueue(stack: Stack, jiraDDB: JiraTables): Queue[
     JIRA_REDIRECT_URI,
   } = use(commonConfig);
 
-  // const sprintMigrateQueue = new Queue(stack, 'jira_sprint_migrate', {
-  //   consumer: {
-  //     function: 'packages/jira/src/migrations/sprint.handler',
-  //     cdk: {
-  //       eventSource: {
-  //         batchSize: 5,
-  //       },
-  //     },
-  //   },
-  // });
-
   const sprintFormatDataQueue = new Queue(stack, 'jira_sprint_format');
   sprintFormatDataQueue.addConsumer(stack, {
-      function: new Function(stack, 'jira_sprint_format_func',{
-        handler: 'packages/jira/src/sqs/handlers/formatter/sprint.handler',
-        bind: [sprintFormatDataQueue],
-      }),
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+    function: new Function(stack, 'jira_sprint_format_func', {
+      handler: 'packages/jira/src/sqs/handlers/formatter/sprint.handler',
+      bind: [sprintFormatDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
       },
-    });
+    },
+  });
 
   const sprintIndexDataQueue = new Queue(stack, 'jira_sprint_index', {
     consumer: {
@@ -49,14 +38,6 @@ export function initializeSprintQueue(stack: Stack, jiraDDB: JiraTables): Queue[
       },
     },
   });
-
-  // sprintMigrateQueue.bind([
-  //   jiraDDB.jiraMappingTable,
-  //   sprintFormatDataQueue,
-  //   OPENSEARCH_NODE,
-  //   OPENSEARCH_PASSWORD,
-  //   OPENSEARCH_USERNAME,
-  // ]);
 
   sprintFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,

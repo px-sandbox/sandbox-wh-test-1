@@ -16,5 +16,5 @@ export async function deleteProject(project: Jira.ExternalType.Webhook.Project, 
   updatedProjectBody.organization = organization;
 
   logger.info('processProjectDeletedEvent: Send message to SQS');
-  await new SQSClient().sendMessage(updatedProjectBody, Queue.jira_projects_format.queueUrl);
+  await new SQSClient().sendMessage(updatedProjectBody, Queue.jira_project_format.queueUrl);
 }

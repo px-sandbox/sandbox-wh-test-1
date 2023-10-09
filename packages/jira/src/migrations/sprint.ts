@@ -11,8 +11,8 @@ async function checkAndSave(organisation: string, projectId: string, boardId: st
   const sqsClient = new SQSClient();
 
   await Promise.all(
-    sprints.flatMap(async (sprint) =>
-      [sqsClient.sendMessage(
+    sprints.flatMap(async (sprint) => [
+      sqsClient.sendMessage(
         {
           organisation,
           projectId,
@@ -22,11 +22,10 @@ async function checkAndSave(organisation: string, projectId: string, boardId: st
         Queue.jira_sprint_format.queueUrl
       ),
       sqsClient.sendMessage(
-        { organisation, projectId, boardId, sprintId: sprint.id},
+        { organisation, projectId, boardId, sprintId: sprint.id },
         Queue.jira_issue_migrate.queueUrl
-      )
-    ]
-    )
+      ),
+    ])
   );
 }
 

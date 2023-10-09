@@ -4,7 +4,12 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { JiraClient } from '../lib/jira-client';
 
-async function checkAndSave(organisation: string, projectId: string, boardId: string, sprintId: string) {
+async function checkAndSave(
+  organisation: string,
+  projectId: string,
+  boardId: string,
+  sprintId: string
+) {
   const jira = await JiraClient.getClient(organisation);
   const issues = await jira.getIssues(boardId, sprintId);
 
