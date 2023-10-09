@@ -83,7 +83,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   const issueQueues = initializeIssueQueue(stack, { jiraMappingTable, jiraCredsTable, processJiraRetryTable });
   const refreshToken = new Function(stack, 'refresh-token-func', {
     handler: 'packages/jira/src/cron/refresh-token.updateRefreshToken',
-    bind: [jiraCredsTable, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET],
+    bind: [jiraCredsTable, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET, JIRA_REDIRECT_URI],
   });
   const processJiraRetryFunction = new Function(stack, 'process-jira-retry-func', {
     handler: 'packages/jira/src/cron/process-jira-retry.handler',
