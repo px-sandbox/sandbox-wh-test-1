@@ -203,17 +203,6 @@ export class JiraClient {
   ): Promise<Jira.ExternalType.Api.Response<T>> {
 
 
-    console.log(`
-    ################## ALL ${path}
-    
-    startAt: ${result.startAt}
-    maxResults: ${result.maxResults}
-    total: ${result.total}
-    
-    ##################
-    `)
-
-
     const { data } = await axios.get<Jira.ExternalType.Api.Response<T>>(`${this.baseUrl}${path}`, {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
@@ -232,6 +221,8 @@ export class JiraClient {
       maxResults: data.maxResults,
       total: data.total,
     };
+
+    return data;
 
 
     if (data.isLast) {
@@ -270,15 +261,8 @@ export class JiraClient {
       total: data.total,
     };
 
-    console.log(`
-    ################## ${path}
-    
-    startAt: ${newResult.startAt}
-    maxResults: ${newResult.maxResults}
-    total: ${newResult.issues.length}
-    
-    ##################
-    `)
+
+    return data;
 
     if (newResult.startAt >= newResult.total) {
       return newResult;
@@ -294,16 +278,6 @@ export class JiraClient {
     users: Array<T> = []
   ): Promise<Array<T>> {
 
-    console.log(`
-    ################## ${path}
-    
-    startAt: ${startAt}
-    maxResults: ${maxResults}
-    total: ${users.length}
-    
-    ##################
-    `)
-
     const { data } = await axios.get<Array<T>>(`${this.baseUrl}${path}`, {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
@@ -317,6 +291,8 @@ export class JiraClient {
     users = users.concat(data);
     startAt += data.length;
 
+
+    return data;
 
     if (data.length === 0) {
       return users;
