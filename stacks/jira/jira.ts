@@ -74,6 +74,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    AUTH_PUBLIC_KEY,
   } = use(commonConfig);
 
   const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } =
@@ -145,7 +146,26 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   });
 
   const jiraApi = new Api(stack, 'jiraApi', {
+    authorizers: {
+      universal: {
+        type: 'lambda',
+        responseTypes: ['simple'],
+        function: new Function(stack, 'Jira-Universal-Authorizer', {
+          handler: 'packages/auth/src/auth.handler',
+          bind: [AUTH_PUBLIC_KEY],
+        }),
+      },
+      admin: {
+        type: 'lambda',
+        responseTypes: ['simple'],
+        function: new Function(stack, 'Jira-Admin-Authorizer', {
+          handler: 'packages/auth/src/admin-auth.handler',
+          bind: [AUTH_PUBLIC_KEY],
+        }),
+      },
+    },
     defaults: {
+      authorizer: 'universal',
       function: {
         timeout: '30 seconds',
         bind: [
@@ -175,25 +195,32 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
       // GET create all Jira indices into ES
       'GET /jira/create-indices': {
         function: 'packages/jira/src/service/create-indices.handler',
+        authorizer: 'universal'
       },
       'POST /jira/webhook': {
         function: 'packages/jira/src/webhook/webhook.handler',
+        authorizer: 'none',
       },
       'GET /jira/auth': {
         function: 'packages/jira/src/service/auth.handler',
+        authorizer: 'admin',
       },
       'GET /jira/callback': {
         function: 'packages/jira/src/service/callback.handler',
+        authorizer: 'none',
       },
       'GET /jira/graph/first-time-pass-rate': {
         function: 'packages/jira/src/service/ftp-rate.handler',
+        authorizer: 'universal',
       },
       // GET Jira project data
       'GET /jira/projects': {
         function: 'packages/jira/src/service/project/get-projects.handler',
+        authorizer: 'universal',
       },
       'GET /jira/graph/reopen-rate': {
         function: 'packages/jira/src/service/reopen-rate.handler',
+        authorizer: 'universal',
       },
       'GET /jira/migrate': {
         function: {
