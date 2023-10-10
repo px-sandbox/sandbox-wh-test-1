@@ -7,12 +7,12 @@ import { JiraClient } from '../lib/jira-client';
 export const handler = async function (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  const organisation = event?.queryStringParameters?.orgName || '';
+  const organization = event?.queryStringParameters?.orgName || '';
   const projects = event?.queryStringParameters?.projects?.split(',') || [];
 
   const sqsClient = new SQSClient();
 
-  if (!organisation) {
+  if (!organization) {
     return responseParser
       .setBody({})
       .setMessage('Organisation Not found')
@@ -30,7 +30,7 @@ export const handler = async function (
   //     .send();
   // }
 
-  const client = await JiraClient.getClient(organisation);
+  const client = await JiraClient.getClient(organization);
 
   const [projectsFromJira
     , usersFromJira
@@ -56,20 +56,20 @@ export const handler = async function (
     ...projectsToSend.map(({ id }) =>
       sqsClient.sendMessage(
         {
-          organisation,
+          organization,
           projectId: id,
         },
         Queue.jira_project_migrate.queueUrl
       )
     ),
     ...usersFromJira.map((user) =>
-      sqsClient.sendMessage({ organisation, user }, Queue.jira_user_migrate.queueUrl)
+      sqsClient.sendMessage({ organization, user }, Queue.jira_user_migrate.queueUrl)
     ),
   ]);
 
   return responseParser
     .setBody({})
-    .setMessage(`Migration for Organisation ${organisation} is started`)
+    .setMessage(`Migration for Organisation ${organization} is started`)
     .setStatusCode(HttpStatusCode[200])
     .setResponseBodyCode('SUCCESS')
     .send();
