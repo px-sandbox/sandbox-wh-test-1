@@ -1,5 +1,5 @@
 {
-  "TableName": "manasaggarwal-pulse-dx-JiraMapping",
+  "TableName": "nv-pulse-dx-JiraMapping",
   "KeySchema": [
     {
       "AttributeName": "parentId",

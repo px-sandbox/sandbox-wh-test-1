@@ -2,7 +2,7 @@ import { PutCommandInput, ScanCommandInput, DeleteCommandInput } from '@aws-sdk/
 import { Table } from 'sst/node/table';
 
 export class RetryTableMapping {
-  private tableName = Table['process-jira-retry'].tableName;
+  private tableName = Table.jiraProcessRetry.tableName;
 
   public prepareDeleteParams(processId: string): DeleteCommandInput {
     return {

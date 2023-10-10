@@ -12,6 +12,7 @@ import { mappingPrefixes } from '../constant/config';
 
 export async function getTokensByCode(code: string): Promise<Jira.ExternalType.Api.Credentials> {
   try {
+
     const response: AxiosResponse<Jira.ExternalType.Api.Credentials> = await axios.post(
       'https://auth.atlassian.com/oauth/token', {
       grant_type: 'authorization_code',

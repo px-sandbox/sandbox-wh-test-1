@@ -21,28 +21,44 @@ export const handler = async function (
       .send();
   }
 
-  if (projects.length === 0) {
-    return responseParser
-      .setBody({})
-      .setMessage('Please send some projects')
-      .setStatusCode(HttpStatusCode[400])
-      .setResponseBodyCode('SUCCESS')
-      .send();
-  }
+  // if (projects.length === 0) {
+  //   return responseParser
+  //     .setBody({})
+  //     .setMessage('Please send some projects')
+  //     .setStatusCode(HttpStatusCode[400])
+  //     .setResponseBodyCode('SUCCESS')
+  //     .send();
+  // }
 
   const client = await JiraClient.getClient(organisation);
 
-  const [projectsFromJira, usersFromJira] = await Promise.all([
+  const [projectsFromJira
+    , usersFromJira
+  ] = await Promise.all([
     client.getProjects(),
     client.getUsers(),
   ]);
 
   // Filter from projects
+  const projectsToSend = projectsFromJira.filter(({ name }) => name === 'Pulse');
+
+  console.log(`
+  
+  SENDING Projects ############
+
+  ${JSON.stringify(projectsToSend.map(({ name }) => name).join(" | "))}
+  
+  
+  `)
+
 
   await Promise.all([
-    ...projectsFromJira.map((project) =>
+    ...projectsToSend.map(({ id }) =>
       sqsClient.sendMessage(
-        { organisation, projectId: project.id },
+        {
+          organisation,
+          projectId: id,
+        },
         Queue.jira_project_migrate.queueUrl
       )
     ),
