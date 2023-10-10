@@ -19,9 +19,9 @@ export const handler = async function userFormattedDataReciever(event: SQSEvent)
           return;
         }
         const data = await userProcessor.processor();
-        await userProcessor.sendDataToQueue(data, Queue.jira_users_index.queueUrl);
+        await userProcessor.sendDataToQueue(data, Queue.jira_user_index.queueUrl);
       } catch (error) {
-        await logProcessToRetry(record, Queue.jira_users_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.jira_user_format.queueUrl, error as Error);
         logger.error('userFormattedDataReciever.error', error);
       }
     })

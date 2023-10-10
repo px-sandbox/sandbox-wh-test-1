@@ -5,15 +5,6 @@ import { Jira } from 'abstraction';
 import { Queue } from 'sst/node/queue';
 import { JiraClient } from '../lib/jira-client';
 
-/**
- * Input: organisation, projectId
- * Check for the project satisfies the required coditions:
- * 1. The project has Scrum board
- * 2. The project has Medium Workflow v2
- *
- * If upper two conditions satisfies then import prject data otherwise ignore
- */
-
 async function checkAndSave(organisation: string, projectId: string) {
   const jira = await JiraClient.getClient(organisation);
   const boards = await jira.getBoards(projectId);
@@ -31,18 +22,18 @@ async function checkAndSave(organisation: string, projectId: string) {
   const project = await jira.getProject(projectId);
 
   await Promise.all([
-    await sqsClient.sendMessage(
+    sqsClient.sendMessage(
       {
         organisation,
         project,
       },
-      Queue.jira_projects_format.queueUrl
+      Queue.jira_project_format.queueUrl
     ),
-    ...boards
-      .filter((board) => board.type === Jira.Enums.BoardType.Scrum)
-      .map(async (board) =>
-        sqsClient.sendMessage({ organisation, projectId, board }, Queue.jira_board_migrate.queueUrl)
-      ),
+    sqsClient.sendMessage(
+      { organisation, projectId: project.id },
+      Queue.jira_board_migrate.queueUrl
+    ),
+
   ]);
 }
 

@@ -26,9 +26,9 @@ export const handler = async (event: SQSEvent): Promise<void> => {
 
         const data = await projectProcessor.processor();
 
-        return projectProcessor.sendDataToQueue(data, Queue.jira_projects_index.queueUrl);
+        return projectProcessor.sendDataToQueue(data, Queue.jira_project_index.queueUrl);
       } catch (error) {
-        await logProcessToRetry(record, Queue.jira_projects_format.queueUrl, error as Error);        
+        await logProcessToRetry(record, Queue.jira_project_format.queueUrl, error as Error);        
         logger.error('projectFormattedDataReciever.error', error);
 
         throw error;

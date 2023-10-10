@@ -20,18 +20,7 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     JIRA_REDIRECT_URI,
   } = use(commonConfig);
 
-  // const projectMigrateQueue = new Queue(stack, 'jira_project_migrate', {
-  //   consumer: {
-  //     function: 'packages/jira/src/migrations/project.handler',
-  //     cdk: {
-  //       eventSource: {
-  //         batchSize: 5,
-  //       },
-  //     },
-  //   },
-  // });
-
-  const projectIndexDataQueue = new Queue(stack, 'jira_projects_index', {
+  const projectIndexDataQueue = new Queue(stack, 'jira_project_index', {
     consumer: {
       function: 'packages/jira/src/sqs/handlers/indexer/project.handler',
       cdk: {
@@ -42,9 +31,9 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     },
   });
 
-  const projectFormatDataQueue = new Queue(stack, 'jira_projects_format');
+  const projectFormatDataQueue = new Queue(stack, 'jira_project_format');
   projectFormatDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'jira_projects_format_func', {
+    function: new Function(stack, 'jira_project_format_func', {
       handler: 'packages/jira/src/sqs/handlers/formatter/project.handler',
       bind: [projectFormatDataQueue],
     }),
@@ -54,14 +43,6 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
       },
     },
   });
-
-  // projectMigrateQueue.bind([
-  //   jiraDDB,
-  //   projectFormatDataQueue,
-  //   OPENSEARCH_NODE,
-  //   OPENSEARCH_PASSWORD,
-  //   OPENSEARCH_USERNAME,
-  // ]);
 
   projectFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,

@@ -13,17 +13,6 @@ export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_REDIRECT_URI,
   } = use(commonConfig);
 
-  // const boardMigrateQueue = new Queue(stack, 'jira_board_migrate', {
-  //   consumer: {
-  //     function: 'packages/jira/src/migrations/board.handler',
-  //     cdk: {
-  //       eventSource: {
-  //         batchSize: 5,
-  //       },
-  //     },
-  //   },
-  // });
-
   const boardIndexDataQueue = new Queue(stack, 'jira_board_index', {
     consumer: {
       function: 'packages/jira/src/sqs/handlers/indexer/board.handler',
@@ -48,14 +37,6 @@ export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
       },
     },
   });
-
-  // boardMigrateQueue.bind([
-  //   jiraDDB,
-  //   boardFormatDataQueue,
-  //   OPENSEARCH_NODE,
-  //   OPENSEARCH_PASSWORD,
-  //   OPENSEARCH_USERNAME,
-  // ]);
 
   boardFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,
