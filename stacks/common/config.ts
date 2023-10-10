@@ -8,5 +8,6 @@ export function commonConfig({ stack }: StackContext): Record<string, Config.Sec
   stacksSecret.JIRA_CLIENT_ID = new Config.Secret(stack, 'JIRA_CLIENT_ID');
   stacksSecret.JIRA_CLIENT_SECRET = new Config.Secret(stack, 'JIRA_CLIENT_SECRET');
   stacksSecret.JIRA_REDIRECT_URI = new Config.Secret(stack, 'JIRA_REDIRECT_URI');
+  stacksSecret.AUTH_PUBLIC_KEY = new Config.Secret(stack, 'JIRA_AUTH_PUBLIC_KEY');
   return stacksSecret;
 }
