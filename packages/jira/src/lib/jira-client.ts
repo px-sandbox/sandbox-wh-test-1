@@ -6,7 +6,6 @@ import axios from 'axios';
 import { logger } from 'core';
 import { esResponseDataFormator } from '../util/es-response-formatter';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
-import { getTokens } from './get-token';
 
 export class JiraClient {
   private baseUrl: string;
@@ -182,7 +181,7 @@ export class JiraClient {
     }
   }
 
-  public async getIssues(boardId: string, sprintId: string) {
+  public async getIssues(boardId: string, sprintId: string): Promise<Jira.ExternalType.Api.Issue[]> {
     const { issues } = await this.paginateResultsForIssues<Jira.ExternalType.Api.Issue>(
       `/rest/agile/1.0/board/${boardId}/sprint/${sprintId}/issue`
     );
@@ -222,7 +221,7 @@ export class JiraClient {
       total: data.total,
     };
 
-    return data;
+    // return data;
 
 
     if (data.isLast) {
@@ -273,8 +272,8 @@ export class JiraClient {
 
   private async paginateResultsForUsers<T>(
     path: string,
-    startAt: number = 0,
-    maxResults: number = 50,
+    startAt = 0,
+    maxResults = 50,
     users: Array<T> = []
   ): Promise<Array<T>> {
 
@@ -288,16 +287,16 @@ export class JiraClient {
       },
     });
 
-    users = users.concat(data);
-    startAt += data.length;
+    const userData = users.concat(data);
+    const startAtCount = startAt + data.length;
 
 
-    return data;
+    // return data;
 
     if (data.length === 0) {
-      return users;
+      return userData;
     }
 
-    return this.paginateResultsForUsers<T>(path, startAt, maxResults, users);
+    return this.paginateResultsForUsers<T>(path, startAtCount, maxResults, users);
   }
 }

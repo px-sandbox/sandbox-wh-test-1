@@ -1,5 +1,6 @@
 import { PutCommandInput, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
+import { logger } from 'core';
 
 export class JiraCredsMapping {
   private tableName = Table.jiraCreds.tableName;
@@ -25,6 +26,7 @@ export class JiraCredsMapping {
   }
 
   public prepareGetParams(id: string): QueryCommandInput {
+    logger.info('JiraCredsMapping.prepareGetParams', { id, tableName: this.tableName });
     return {
       TableName: this.tableName,
       KeyConditionExpression: 'id = :id',

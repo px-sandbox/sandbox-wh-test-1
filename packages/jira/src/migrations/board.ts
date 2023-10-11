@@ -4,41 +4,48 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { JiraClient } from '../lib/jira-client';
 
-async function checkAndSave(organisation: string, projectId: string) {
-  const jira = await JiraClient.getClient(organisation);
+async function checkAndSave(organization: string, projectId: string): Promise<void> {
+  const jira = await JiraClient.getClient(organization);
   const boards = await jira.getBoards(projectId);
 
   const sqsClient = new SQSClient();
+
+  const createdAt = new Date().toISOString();
+  const deletedAt = null;
 
   await Promise.all([
     ...boards.flatMap(async (board) => [
       sqsClient.sendMessage(
         {
-          organisation,
-          projectId,
-          board,
+          ...board,
+          isDeleted: !!deletedAt,
+          deletedAt,
+          createdAt,
+          organization,
         },
         Queue.jira_board_format.queueUrl
       ),
       sqsClient.sendMessage(
-        { organisation, projectId, boardId: board.id },
+        { organization, projectId, boardId: board.id },
         Queue.jira_sprint_migrate.queueUrl
       )
     ]),
   ]);
 }
 
-export const handler = async function (event: SQSEvent) {
-  await Promise.all(
-    event.Records.map((record: SQSRecord) => {
-      try {
-        const { organisation, projectId }: { organisation: string; projectId: string } = JSON.parse(
+export const handler = async function boardMirgration(event: SQSEvent): Promise<void> {
+  try {
+    await Promise.all(
+      event.Records.map((record: SQSRecord) => {
+
+        const { organization, projectId }: { organization: string; projectId: string } = JSON.parse(
           record.body
         );
-        return checkAndSave(organisation, projectId);
-      } catch (error) {
-        logger.error(JSON.stringify({ error, record }));
-      }
-    })
-  );
+        return checkAndSave(organization, projectId);
+
+      })
+    );
+  } catch (error) {
+    logger.error(JSON.stringify({ error, event }));
+  }
 };
