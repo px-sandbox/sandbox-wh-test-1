@@ -30,15 +30,15 @@ export async function getTokensByCode(code: string): Promise<Jira.ExternalType.A
 
 export async function getAccessibleOrgs(accessToken: string): Promise<Array<Jira.ExternalType.Api.Organization>> {
   try {
-    const response :AxiosResponse<Array<Jira.ExternalType.Api.Organization>> = await axios.get(
-        'https://api.atlassian.com/oauth/token/accessible-resources',
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            Accept: 'application/json',
-          },
-        }
-      );
+    const response: AxiosResponse<Array<Jira.ExternalType.Api.Organization>> = await axios.get(
+      'https://api.atlassian.com/oauth/token/accessible-resources',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/json',
+        },
+      }
+    );
     return response.data;
   } catch (e) {
     logger.error(`Error while getting accessible orgs: ${e}`);
@@ -62,14 +62,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const credId = uuid();
 
   const accessibleOrgs = await getAccessibleOrgs(jiraToken.access_token);
-  const ddbRes = await _ddbClient.find(
-    new ParamsMapping().prepareGetParams(
-      `${mappingPrefixes.organization}_${accessibleOrgs[0].id}`
-    )
-  );
-  
-  const parentId = ddbRes?.parentId as string | undefined;
-  logger.info('parentId', { parentId });
+
   await Promise.all([
     _ddbClient.put(new JiraCredsMapping().preparePutParams(credId, jiraToken)),
     ...accessibleOrgs.map(async ({ id, ...org }) => {
@@ -77,8 +70,22 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       await _ddbClient.put(
         new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
       );
+
+      const ddbRes = await _ddbClient.find(
+        new ParamsMapping().prepareGetParams(
+          `${mappingPrefixes.organization}_${id}`
+        )
+      );
+      let parentId = ddbRes?.parentId as string | undefined;
+
+      if (!parentId) {
+        parentId = uuidOrg;
+        await _ddbClient.put(
+          new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
+        );
+      }
       await _esClient.putDocument(Jira.Enums.IndexName.Organization, {
-        id: parentId || uuidOrg,
+        id: parentId,
         body: {
           id: `${mappingPrefixes.organization}_${id}`,
           orgId: id,

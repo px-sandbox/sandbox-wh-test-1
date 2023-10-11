@@ -5,9 +5,10 @@ import { Jira } from 'abstraction';
 import { Queue } from 'sst/node/queue';
 import { JiraClient } from '../lib/jira-client';
 
-async function checkAndSave(organisation: string, projectId: string) {
-  const jira = await JiraClient.getClient(organisation);
+async function checkAndSave(organization: string, projectId: string) {
+  const jira = await JiraClient.getClient(organization);
   const boards = await jira.getBoards(projectId);
+  logger.info(`Boards for project ${projectId} are ${JSON.stringify(boards)}`);
 
   const isProjectElegible = boards.some((board) => board.type === Jira.Enums.BoardType.Scrum);
 
@@ -24,13 +25,13 @@ async function checkAndSave(organisation: string, projectId: string) {
   await Promise.all([
     sqsClient.sendMessage(
       {
-        organisation,
+        organization,
         project,
       },
       Queue.jira_project_format.queueUrl
     ),
     sqsClient.sendMessage(
-      { organisation, projectId: project.id },
+      { organization, projectId: project.id },
       Queue.jira_board_migrate.queueUrl
     ),
 
@@ -41,8 +42,8 @@ export const handler = async function (event: SQSEvent) {
   await Promise.all(
     event.Records.map((record: SQSRecord) => {
       try {
-        const { organisation, projectId } = JSON.parse(record.body);
-        return checkAndSave(organisation, projectId);
+        const { organization, projectId } = JSON.parse(record.body);
+        return checkAndSave(organization, projectId);
       } catch (error) {
         logger.error(JSON.stringify({ error, record }));
       }

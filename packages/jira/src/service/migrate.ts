@@ -8,7 +8,7 @@ export const handler = async function (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const organization = event?.queryStringParameters?.orgName || '';
-  const projects = event?.queryStringParameters?.projects?.split(',') || [];
+  // const projects = event?.queryStringParameters?.projects?.split(',') || [];
 
   const sqsClient = new SQSClient();
 
@@ -32,24 +32,25 @@ export const handler = async function (
 
   const client = await JiraClient.getClient(organization);
 
-  const [projectsFromJira
-    , usersFromJira
+  const [
+    projectsFromJira,
+    usersFromJira
   ] = await Promise.all([
     client.getProjects(),
     client.getUsers(),
   ]);
 
   // Filter from projects
-  const projectsToSend = projectsFromJira.filter(({ name }) => name === 'Pulse');
+  const projectsToSend = projectsFromJira.filter(({ name }) => name === 'Fuze');
 
-  console.log(`
-  
+  logger.info(`
+
   SENDING Projects ############
 
   ${JSON.stringify(projectsToSend.map(({ name }) => name).join(" | "))}
-  
-  
-  `)
+
+
+  `);
 
 
   await Promise.all([

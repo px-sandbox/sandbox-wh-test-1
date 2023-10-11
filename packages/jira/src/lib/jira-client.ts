@@ -222,7 +222,7 @@ export class JiraClient {
       total: data.total,
     };
 
-    return data;
+    // return data;
 
 
     if (data.isLast) {

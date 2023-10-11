@@ -1,3 +1,5 @@
+import { UserType } from '../../enums/user-type';
+
 export type User = {
   self: string;
   accountId: string;
@@ -10,5 +12,5 @@ export type User = {
   displayName: string;
   active: boolean;
   timeZone: string;
-  accountType: string;
+  accountType: UserType;
 };
