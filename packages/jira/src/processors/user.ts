@@ -20,19 +20,20 @@ export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.Use
       body: {
         id: `${mappingPrefixes.user}_${this.apiData?.accountId}`,
         userId: this.apiData?.accountId,
+        userType: this.apiData?.accountType,
         emailAddress: this.apiData?.emailAddress ?? null,
         displayName: this.apiData?.displayName,
         avatarUrls: this.apiData?.avatarUrls
           ? {
-              avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
-              avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
-              avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
-              avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
-            }
+            avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
+            avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
+            avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
+            avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
+          }
           : null,
         isActive: this.apiData.active,
-        groups: apiUserData.groups,
-        applicationRoles: apiUserData.applicationRoles,
+        groups: apiUserData?.groups ?? null,
+        applicationRoles: apiUserData?.applicationRoles ?? null,
         isDeleted: !!this.apiData.isDeleted,
         deletedAt: this.apiData?.deletedAt ?? null,
         createdAt: this.apiData.createdAt,

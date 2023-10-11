@@ -5,12 +5,12 @@ import { Queue } from 'sst/node/queue';
 import { JiraClient } from '../lib/jira-client';
 
 async function checkAndSave(
-  organisation: string,
+  organization: string,
   projectId: string,
   boardId: string,
   sprintId: string
 ) {
-  const jira = await JiraClient.getClient(organisation);
+  const jira = await JiraClient.getClient(organization);
   const issues = await jira.getIssues(boardId, sprintId);
 
   const sqsClient = new SQSClient();
@@ -19,12 +19,13 @@ async function checkAndSave(
     issues.map(async (issue) =>
       sqsClient.sendMessage(
         {
-          organisation,
+          organization,
           projectId,
           boardId,
+          sprintId,
           issue,
         },
-        Queue.jira_sprint_format.queueUrl
+        Queue.jira_issue_format.queueUrl
       )
     )
   );
@@ -35,17 +36,17 @@ export const handler = async function (event: SQSEvent) {
     event.Records.map((record: SQSRecord) => {
       try {
         const {
-          organisation,
+          organization,
           projectId,
-          boardId,
+          originBoardId,
           sprintId,
         }: {
-          organisation: string;
+          organization: string;
           projectId: string;
-          boardId: string;
+          originBoardId: string;
           sprintId: string;
         } = JSON.parse(record.body);
-        return checkAndSave(organisation, projectId, boardId, sprintId);
+        return checkAndSave(organization, projectId, originBoardId, sprintId);
       } catch (error) {
         logger.error(JSON.stringify({ error, record }));
       }

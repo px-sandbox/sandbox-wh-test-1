@@ -64,7 +64,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   let credId = uuid();
 
   const accessibleOrgs = await getAccessibleOrgs(jiraToken.access_token);
-
+  
   const orgIds = accessibleOrgs.map(({ id }) => id);
 
   logger.info('orgIds', { orgIds });
@@ -96,8 +96,22 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       await _ddbClient.put(
         new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
       );
+
+      const ddbRes = await _ddbClient.find(
+        new ParamsMapping().prepareGetParams(
+          `${mappingPrefixes.organization}_${id}`
+        )
+      );
+      let parentId = ddbRes?.parentId as string | undefined;
+
+      if (!parentId) {
+        parentId = uuidOrg;
+        await _ddbClient.put(
+          new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
+        );
+      }
       await _esClient.putDocument(Jira.Enums.IndexName.Organization, {
-        id: parentId || uuidOrg,
+        id: parentId,
         body: {
           id: `${mappingPrefixes.organization}_${id}`,
           orgId: id,

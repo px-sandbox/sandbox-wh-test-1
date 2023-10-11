@@ -1,8 +1,11 @@
+import { UserType } from '../enums/user-type';
+
 export interface User {
   id: string;
   body: {
     id: string;
     userId: string;
+    userType: UserType;
     emailAddress: string | null;
     displayName: string;
     avatarUrls: {
@@ -10,6 +13,14 @@ export interface User {
       avatarUrl32x32: string;
       avatarUrl24x24: string;
       avatarUrl16x16: string;
+    } | null;
+    groups: {
+      size: number;
+      items: object[];
+    } | null;
+    applicationRoles: {
+      size: number;
+      items: object[];
     } | null;
     isActive: boolean;
     isDeleted: boolean;

@@ -1,3 +1,5 @@
+import { BoardType } from '../enums/board-type';
+
 export type Board = {
   id: string;
   body: {
@@ -5,7 +7,7 @@ export type Board = {
     boardId: number;
     self: string;
     name: string;
-    type: string;
+    type?: BoardType;
     location: {
       projectId: number;
       displayName: string;
