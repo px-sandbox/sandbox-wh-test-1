@@ -26,7 +26,7 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
     sqsClient.sendMessage(
       {
         organization,
-        project,
+        ...project,
       },
       Queue.jira_project_format.queueUrl
     ),
