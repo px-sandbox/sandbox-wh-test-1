@@ -16,12 +16,13 @@ export class ParamsMapping {
     };
   }
 
-  public preparePutParams(parentId: string, jiraId: string): PutCommandInput {
+  public preparePutParams(parentId: string, jiraId: string, organization: string): PutCommandInput {
     return {
       TableName: Table.jiraMapping.tableName,
       Item: {
         parentId,
         jiraId,
+        organization,
       },
     };
   }

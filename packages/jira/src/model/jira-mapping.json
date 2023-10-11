@@ -14,6 +14,10 @@
     {
       "AttributeName": "jiraId",
       "AttributeType": "S"
+    },
+    {
+      "AttributeName": "organization",
+      "AttributeType": "S"
     }
   ],
   "GlobalSecondaryIndexes": [
@@ -22,6 +26,22 @@
       "KeySchema": [
         {
           "AttributeName": "jiraId",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 1,
+        "WriteCapacityUnits": 1
+      }
+    },
+    {
+      "IndexName": "organizationIndex",
+      "KeySchema": [
+        {
+          "AttributeName": "organization",
           "KeyType": "HASH"
         }
       ],
