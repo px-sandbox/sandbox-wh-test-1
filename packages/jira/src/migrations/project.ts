@@ -5,7 +5,7 @@ import { Jira } from 'abstraction';
 import { Queue } from 'sst/node/queue';
 import { JiraClient } from '../lib/jira-client';
 
-async function checkAndSave(organization: string, projectId: string) {
+async function checkAndSave(organization: string, projectId: string): Promise<void> {
   const jira = await JiraClient.getClient(organization);
   const boards = await jira.getBoards(projectId);
   logger.info(`Boards for project ${projectId} are ${JSON.stringify(boards)}`);
@@ -38,15 +38,17 @@ async function checkAndSave(organization: string, projectId: string) {
   ]);
 }
 
-export const handler = async function (event: SQSEvent) {
-  await Promise.all(
-    event.Records.map((record: SQSRecord) => {
-      try {
+export const handler = async function projectMigration(event: SQSEvent): Promise<void> {
+  try {
+    await Promise.all(
+      event.Records.map((record: SQSRecord) => {
+
         const { organization, projectId } = JSON.parse(record.body);
         return checkAndSave(organization, projectId);
-      } catch (error) {
-        logger.error(JSON.stringify({ error, record }));
-      }
-    })
-  );
+
+      })
+    );
+  } catch (error) {
+    logger.error(JSON.stringify({ error, event }));
+  }
 };
