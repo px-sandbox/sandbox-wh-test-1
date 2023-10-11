@@ -42,11 +42,16 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
     await Promise.all(
       ftpRateGraphResponse.sprint_buckets.buckets.map(async (item) => {
         const sprintData = await getSprints(item.key);
+        console.log('sprintData', sprintData);
         if (sprintData) {
           response.push({
-            totalIssues: item.doc_count,
-            ftpRate: item.isFTP_true_count.doc_count,
-            ...sprintData,
+            total: item.doc_count,
+            totalFtp: item.isFTP_true_count.doc_count,
+            sprint: sprintData.name,
+            status: sprintData.state,
+            start: sprintData.startDate,
+            end: sprintData.endDate,
+            percentValue: item.isFTP_true_count.doc_count == 0 ? 0 : (item.isFTP_true_count.doc_count / item.doc_count) * 100,
           });
         }
       })
@@ -60,7 +65,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
 
 export async function ftpRateGraphAvg(
   sprintIds: string[]
-): Promise<{ totalIssues: string; ftpRate: string }> {
+): Promise<{ total: string; totalFtp: string, percentValue: number }> {
   try {
     const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -87,8 +92,11 @@ export async function ftpRateGraphAvg(
       body: ftpRateGraphQuery,
     });
     return {
-      totalIssues: ftpRateGraphResponse.body.hits.total.value,
-      ftpRate: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count,
+      total: ftpRateGraphResponse.body.hits.total.value,
+      totalFtp: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count,
+      percentValue: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count == 0 ? 0 :
+        (ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count /
+          ftpRateGraphResponse.body.hits.total.value) * 100,
     };
   } catch (e) {
     logger.error('ftpRateGraphQuery.error', e);

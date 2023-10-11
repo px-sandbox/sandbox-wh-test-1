@@ -83,9 +83,14 @@ export interface Sprint {
   originBoardId: number;
 }
 
-export interface IssueReponse extends Sprint {
-  totalIssues?: number;
-  ftpRate?: number;
-  totalDoc?: number;
-  reopenRate?: number;
+export interface IssueReponse {
+  total?: number;
+  totalFtp?: number;
+  totalBugs?: number;
+  totalReopen?: number;
+  sprint?: string;
+  status?: SprintState;
+  start?: string;
+  end?: string;
+  percentValue: number;
 }
