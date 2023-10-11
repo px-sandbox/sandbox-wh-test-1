@@ -9,13 +9,17 @@ export const handler = async function (event: SQSEvent) {
   await Promise.all(
     event.Records.map((record: SQSRecord) => {
       try {
-        const { organisation, user }: { organisation: string; user: Jira.ExternalType.Api.User } =
+        const { organization, user }: { organization: string; user: Jira.ExternalType.Api.User } =
           JSON.parse(record.body);
-
+        const createdAt = new Date().toISOString();
+        const deletedAt = null;
         return sqsClient.sendMessage(
           {
-            organisation,
-            user,
+            ...user,
+            isDeleted: !!deletedAt,
+            deletedAt,
+            createdAt,
+            organization,
           },
           Queue.jira_user_format.queueUrl
         );

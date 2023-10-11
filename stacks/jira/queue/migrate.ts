@@ -3,6 +3,7 @@ import { Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
 
+// eslint-disable-next-line max-lines-per-function
 export function initializeMigrateQueue(
   stack: Stack,
   jiraDDB: JiraTables,
@@ -18,7 +19,7 @@ export function initializeMigrateQueue(
       function: {
         handler: 'packages/jira/src/migrations/sprint.handler',
         bind: [
-          
+
           sprintFormatter,
           ...Object.values(jiraDDB),
           ...Object.values(envs)
@@ -37,7 +38,7 @@ export function initializeMigrateQueue(
       function: {
         handler: 'packages/jira/src/migrations/board.handler',
         bind: [
-          
+
           boardFormatter,
           ...Object.values(jiraDDB),
           ...Object.values(envs)
@@ -56,7 +57,7 @@ export function initializeMigrateQueue(
       function: {
         handler: 'packages/jira/src/migrations/project.handler',
         bind: [
-          
+
           projectFormatter,
           ...Object.values(jiraDDB),
           ...Object.values(envs)
@@ -75,7 +76,7 @@ export function initializeMigrateQueue(
       function: {
         handler: 'packages/jira/src/migrations/issue.handler',
         bind: [
-          
+
           issueFormatter,
           ...Object.values(jiraDDB),
           ...Object.values(envs)
@@ -94,7 +95,7 @@ export function initializeMigrateQueue(
       function: {
         handler: 'packages/jira/src/migrations/user.handler',
         bind: [
-          
+
           userFormatter,
           ...Object.values(jiraDDB),
           ...Object.values(envs)
