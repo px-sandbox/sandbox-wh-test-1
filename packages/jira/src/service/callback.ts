@@ -1,5 +1,6 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
+import esb from 'elastic-builder';
 import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import axios, { AxiosResponse } from 'axios';
@@ -9,6 +10,7 @@ import { v4 as uuid } from 'uuid';
 import { ParamsMapping } from '../model/params-mapping';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
 import { mappingPrefixes } from '../constant/config';
+import { esResponseDataFormator } from '../util/es-response-formatter';
 
 export async function getTokensByCode(code: string): Promise<Jira.ExternalType.Api.Credentials> {
   try {
@@ -59,13 +61,37 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   const _ddbClient = new DynamoDbDocClient();
 
-  const credId = uuid();
+  let credId = uuid();
 
   const accessibleOrgs = await getAccessibleOrgs(jiraToken.access_token);
+  
+  const orgIds = accessibleOrgs.map(({ id }) => id);
 
+  logger.info('orgIds', { orgIds });
+
+  const getOrgsFromES = await _esClient.searchWithEsb(Jira.Enums.IndexName.Organization, esb.termsQuery('body.orgId.keyword', orgIds).toJSON());
+
+  const orgsFromEs = await esResponseDataFormator(getOrgsFromES);
+
+  if (orgsFromEs.length > 0) {
+    credId = orgsFromEs[0].credId;
+  }
+
+  const ddbRes = await _ddbClient.find(
+    new ParamsMapping().prepareGetParams(
+      `${mappingPrefixes.organization}_${accessibleOrgs[0].id}`
+    )
+  );
+
+
+
+  const parentId = ddbRes?.parentId as string | undefined;
+  logger.info('parentId', { parentId });
   await Promise.all([
     _ddbClient.put(new JiraCredsMapping().preparePutParams(credId, jiraToken)),
-    ...accessibleOrgs.map(async ({ id, ...org }) => {
+    ...accessibleOrgs.filter((accOrg) => !orgsFromEs.find((esOrg: any) => esOrg.orgId === accOrg.id)
+
+    ).map(async ({ id, ...org }) => {
       const uuidOrg = uuid();
       await _ddbClient.put(
         new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
