@@ -37,13 +37,11 @@ export class JiraClient {
     // get organisation from elasticsearch
     const organization = await _esClient.search(Jira.Enums.IndexName.Organization, 'name', orgName);
 
-    if (!organization) {
-      throw new Error(`Organization ${orgName} not found`);
-    }
-
     const [orgId] = await esResponseDataFormator(organization);
 
-
+    if (!orgId) {
+      throw new Error(`Organization ${orgName} not found`);
+    }
 
     // get creds for this organisation
     const creds = await _ddbClient.find(new JiraCredsMapping().prepareGetParams(orgId.credId)) as any;
