@@ -14,5 +14,5 @@ export async function restoreDeleted(project: Jira.ExternalType.Webhook.Project,
   updatedProjectBody.organization = organization;
 
   logger.info('processProjectRestoreDeletedEvent: Send message to SQS');
-  await new SQSClient().sendMessage(updatedProjectBody, Queue.jira_projects_format.queueUrl);
+  await new SQSClient().sendMessage(updatedProjectBody, Queue.jira_project_format.queueUrl);
 }

@@ -42,6 +42,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
         },
       },
     });
+
     return result.body;
   }
 

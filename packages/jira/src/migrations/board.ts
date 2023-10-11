@@ -1,54 +1,51 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { SQSClient } from '@pulse/event-handler';
-import { Jira } from 'abstraction';
 import { Queue } from 'sst/node/queue';
 import { JiraClient } from '../lib/jira-client';
 
-async function checkAndSave(
-  organisation: string,
-  projectId: string,
-  board: Jira.ExternalType.Api.Board
-) {
-  const jira = await JiraClient.getClient(organisation);
-  const sprints = await jira.getSprints(board.id);
+async function checkAndSave(organization: string, projectId: string): Promise<void> {
+  const jira = await JiraClient.getClient(organization);
+  const boards = await jira.getBoards(projectId);
 
   const sqsClient = new SQSClient();
 
-  // get project details and send it to formatter
+  const createdAt = new Date().toISOString();
+  const deletedAt = null;
 
   await Promise.all([
-    sqsClient.sendMessage(
-      {
-        organisation,
-        projectId,
-        board,
-      },
-      Queue.jira_board_mirate.queueUrl
-    ),
-    ...sprints.map(async (sprint) =>
+    ...boards.flatMap(async (board) => [
       sqsClient.sendMessage(
-        { organisation, projectId, boardId: board.id, sprint },
+        {
+          ...board,
+          isDeleted: !!deletedAt,
+          deletedAt,
+          createdAt,
+          organization,
+        },
+        Queue.jira_board_format.queueUrl
+      ),
+      sqsClient.sendMessage(
+        { organization, projectId, boardId: board.id },
         Queue.jira_sprint_migrate.queueUrl
       )
-    ),
+    ]),
   ]);
 }
 
-export const handler = async function (event: SQSEvent) {
-  await Promise.all(
-    event.Records.map((record: SQSRecord) => {
-      try {
-        const {
-          organisation,
-          projectId,
-          board,
-        }: { organisation: string; projectId: string; board: Jira.ExternalType.Api.Board } =
-          JSON.parse(record.body);
-        return checkAndSave(organisation, projectId, board);
-      } catch (error) {
-        logger.error(JSON.stringify({ error, record }));
-      }
-    })
-  );
+export const handler = async function boardMirgration(event: SQSEvent): Promise<void> {
+  try {
+    await Promise.all(
+      event.Records.map((record: SQSRecord) => {
+
+        const { organization, projectId }: { organization: string; projectId: string } = JSON.parse(
+          record.body
+        );
+        return checkAndSave(organization, projectId);
+
+      })
+    );
+  } catch (error) {
+    logger.error(JSON.stringify({ error, event }));
+  }
 };

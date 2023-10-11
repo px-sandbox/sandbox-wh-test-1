@@ -6,7 +6,6 @@ import axios from 'axios';
 import { logger } from 'core';
 import { esResponseDataFormator } from '../util/es-response-formatter';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
-import { getTokens } from './get-token';
 
 export class JiraClient {
   private baseUrl: string;
@@ -37,19 +36,23 @@ export class JiraClient {
 
     // get organisation from elasticsearch
     const organization = await _esClient.search(Jira.Enums.IndexName.Organization, 'name', orgName);
+
     if (!organization) {
       throw new Error(`Organization ${orgName} not found`);
     }
 
     const [orgId] = await esResponseDataFormator(organization);
 
+
+
     // get creds for this organisation
-    const creds = await _ddbClient.find(new JiraCredsMapping().prepareGetParams(orgId.credId));
+    const creds = await _ddbClient.find(new JiraCredsMapping().prepareGetParams(orgId.credId)) as any;
+
     if (!creds) {
       throw new Error(`Credential for given Organisation ${orgName} is not found`);
     }
 
-    const { refresh_token: refreshToken,access_token: accessToken } = creds as Jira.ExternalType.Api.Credentials;
+    const { refresh_token: refreshToken, access_token: accessToken } = creds as Jira.ExternalType.Api.Credentials;
 
     const instance = new JiraClient(orgId.orgId, accessToken, refreshToken);
     return instance;
@@ -62,7 +65,7 @@ export class JiraClient {
    */
   public async getProject(projectId: string): Promise<Jira.ExternalType.Api.Project> {
     const { data: project } = await axios.get<Jira.ExternalType.Api.Project>(
-      `${this.baseUrl}/rest/api/2/project/${projectId}`,
+      `${this.baseUrl}/rest/api/3/project/${projectId}`,
       {
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
@@ -130,7 +133,7 @@ export class JiraClient {
    */
   public async getProjects(): Promise<Jira.ExternalType.Api.Project[]> {
     const { values: projects } = await this.paginateResults<Jira.ExternalType.Api.Project>(
-      `/rest/api/2/project/search`
+      `/rest/api/3/project/search`
     );
 
     return projects;
@@ -140,7 +143,7 @@ export class JiraClient {
     try {
       const token = this.accessToken;
       const { data: user } = await axios.get<Jira.ExternalType.Api.User>(
-        `${this.baseUrl}/rest/api/2/user?accountId=${userAccountId}`,
+        `${this.baseUrl}/rest/api/3/user?accountId=${userAccountId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -154,14 +157,12 @@ export class JiraClient {
   }
 
   public async getUsers(): Promise<Jira.ExternalType.Api.User[]> {
-    const { values: users } = await this.paginateResults<Jira.ExternalType.Api.User>(
-      `/rest/api/2/users/search`
+    const users = await this.paginateResultsForUsers<Jira.ExternalType.Api.User>(
+      `/rest/api/3/users/search`
     );
 
     return users;
   }
-
-  public async getIssues(): Promise<void> {}
 
   public async getIssue(issueIdOrKey: string): Promise<Jira.ExternalType.Api.Issue> {
     try {
@@ -178,50 +179,134 @@ export class JiraClient {
       logger.error({ message: 'JIRA_ISSUE_FETCH_FAILED', error });
       throw error;
     }
-    // TODO: remove this code
-    // try{
-    //   const {values: issue}  = await this.paginateResults<Jira.ExternalType.Api.Issue>
-    // (`/rest/agile/1.0/issue/${issueIdOrKey}`)
-    //   console.log("ISSUE", issue);
-    //   return [issue];
-    //   }catch(error){
-    //     logger.error({ message: 'JIRA_ISSUE_FETCH_FAILED', error });
-    //     throw error;
-    //   }
+  }
+
+  public async getIssues(boardId: string, sprintId: string): Promise<Jira.ExternalType.Api.Issue[]> {
+    const { issues } = await this.paginateResultsForIssues<Jira.ExternalType.Api.Issue>(
+      `/rest/agile/1.0/board/${boardId}/sprint/${sprintId}/issue`,
+      {
+        fields: 'issuetype,priority,changelog,project,labels,assignee,reporter,creator,status,subtask,changelog,created,updated,lastViewed',
+      }
+    );
+
+    return issues;
+  }
+
+  public async getIssueChangelogs(issueId: string): Promise<Jira.ExternalType.Api.Changelogs[]> {
+    const { values } = await this.paginateResults<Jira.ExternalType.Api.Changelogs>(
+      `/rest/api/2/issue/${issueId}/changelog`
+    );
+    return values;
   }
 
   private async paginateResults<T>(
     path: string,
-    queue: Record<string, string | number> = {},
+    query: Record<string, string | number> = {},
     result: Jira.ExternalType.Api.Response<T> = {
       startAt: 0,
-      isLast: false,
       maxResults: 50,
+      isLast: false,
       total: 0,
       values: [],
     }
   ): Promise<Jira.ExternalType.Api.Response<T>> {
+
+
     const { data } = await axios.get<Jira.ExternalType.Api.Response<T>>(`${this.baseUrl}${path}`, {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
       },
       params: {
-        ...queue,
+        ...query,
         startAt: result.startAt,
         maxResults: result.maxResults,
       },
     });
+
     const newResult = {
-      ...result,
-      values: [...result.values, ...data.values],
-      startAt: result.startAt + result.values.length,
+      values: result.values.concat(data.values),
+      startAt: data.startAt + data.values.length,
       isLast: data.isLast,
+      maxResults: data.maxResults,
+      total: data.total,
     };
 
-    if (newResult.isLast) {
+    // return data;
+
+
+    if (data.isLast) {
       return newResult;
     }
 
-    return this.paginateResults<T>(path, queue, result);
+    return this.paginateResults<T>(path, query, newResult);
+  }
+
+  private async paginateResultsForIssues<T>(
+    path: string,
+    query: Record<string, string | number> = {},
+    result: Jira.ExternalType.Api.IssuesResponse<T> = {
+      startAt: 0,
+      maxResults: 50,
+      total: 0,
+      issues: [],
+    }
+  ): Promise<Jira.ExternalType.Api.IssuesResponse<T>> {
+    const { data } = await axios.get<Jira.ExternalType.Api.IssuesResponse<T>>(`${this.baseUrl}${path}`, {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+      params: {
+        ...query,
+        startAt: result.startAt,
+        maxResults: result.maxResults,
+      },
+    });
+
+    const newResult = {
+      ...result,
+      issues: [...result.issues, ...data.issues],
+      startAt: data.startAt + result.issues.length,
+      maxResults: data.maxResults,
+      total: data.total,
+    };
+
+
+    return data;
+
+    if (newResult.startAt >= newResult.total) {
+      return newResult;
+    }
+
+    return this.paginateResultsForIssues<T>(path, query, newResult);
+  }
+
+  private async paginateResultsForUsers<T>(
+    path: string,
+    startAt = 0,
+    maxResults = 50,
+    users: Array<T> = []
+  ): Promise<Array<T>> {
+
+    const { data } = await axios.get<Array<T>>(`${this.baseUrl}${path}`, {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+      params: {
+        startAt,
+        maxResults,
+      },
+    });
+
+    const userData = users.concat(data);
+    const startAtCount = startAt + data.length;
+
+
+    // return data;
+
+    if (data.length === 0) {
+      return userData;
+    }
+
+    return this.paginateResultsForUsers<T>(path, startAtCount, maxResults, users);
   }
 }

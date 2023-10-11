@@ -3,7 +3,7 @@ import { Other } from 'abstraction';
 import { Table } from 'sst/node/table';
 
 export class ParamsMapping {
-  private tableName = Table.JiraMapping.tableName;
+  private tableName = Table.jiraMapping.tableName;
 
   private indexName = Other.Type.ddbGlobalIndex.JiraIdIndex;
 
@@ -18,7 +18,7 @@ export class ParamsMapping {
 
   public preparePutParams(parentId: string, jiraId: string): PutCommandInput {
     return {
-      TableName: Table.JiraMapping.tableName,
+      TableName: Table.jiraMapping.tableName,
       Item: {
         parentId,
         jiraId,

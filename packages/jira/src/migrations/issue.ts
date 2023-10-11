@@ -4,28 +4,30 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { JiraClient } from '../lib/jira-client';
 
-async function checkAndSave(organization: string, projectId: string, originBoardId: string) {
+async function checkAndSave(
+  organization: string,
+  projectId: string,
+  boardId: string,
+  sprintId: string
+) {
   const jira = await JiraClient.getClient(organization);
-  const sprints = await jira.getSprints(originBoardId);
+  const issues = await jira.getIssues(boardId, sprintId);
 
   const sqsClient = new SQSClient();
 
   await Promise.all(
-    sprints.flatMap(async (sprint) => [
+    issues.map(async (issue) =>
       sqsClient.sendMessage(
         {
           organization,
           projectId,
-          originBoardId,
-          ...sprint,
+          boardId,
+          sprintId,
+          issue,
         },
-        Queue.jira_sprint_format.queueUrl
-      ),
-      sqsClient.sendMessage(
-        { organization, projectId, originBoardId, sprintId: sprint.id },
-        Queue.jira_issue_migrate.queueUrl
-      ),
-    ])
+        Queue.jira_issue_format.queueUrl
+      )
+    )
   );
 }
 
@@ -36,13 +38,15 @@ export const handler = async function (event: SQSEvent) {
         const {
           organization,
           projectId,
-          boardId,
+          originBoardId,
+          sprintId,
         }: {
           organization: string;
           projectId: string;
-          boardId: string;
+          originBoardId: string;
+          sprintId: string;
         } = JSON.parse(record.body);
-        return checkAndSave(organization, projectId, boardId);
+        return checkAndSave(organization, projectId, originBoardId, sprintId);
       } catch (error) {
         logger.error(JSON.stringify({ error, record }));
       }

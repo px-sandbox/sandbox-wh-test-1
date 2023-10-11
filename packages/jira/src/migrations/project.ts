@@ -5,18 +5,10 @@ import { Jira } from 'abstraction';
 import { Queue } from 'sst/node/queue';
 import { JiraClient } from '../lib/jira-client';
 
-/**
- * Input: organisation, projectId
- * Check for the project satisfies the required coditions:
- * 1. The project has Scrum board
- * 2. The project has Medium Workflow v2
- *
- * If upper two conditions satisfies then import prject data otherwise ignore
- */
-
-async function checkAndSave(organisation: string, projectId: string) {
-  const jira = await JiraClient.getClient(organisation);
+async function checkAndSave(organization: string, projectId: string): Promise<void> {
+  const jira = await JiraClient.getClient(organization);
   const boards = await jira.getBoards(projectId);
+  logger.info(`Boards for project ${projectId} are ${JSON.stringify(boards)}`);
 
   const isProjectElegible = boards.some((board) => board.type === Jira.Enums.BoardType.Scrum);
 
@@ -31,30 +23,32 @@ async function checkAndSave(organisation: string, projectId: string) {
   const project = await jira.getProject(projectId);
 
   await Promise.all([
-    await sqsClient.sendMessage(
+    sqsClient.sendMessage(
       {
-        organisation,
+        organization,
         project,
       },
-      Queue.jira_projects_format.queueUrl
+      Queue.jira_project_format.queueUrl
     ),
-    ...boards
-      .filter((board) => board.type === Jira.Enums.BoardType.Scrum)
-      .map(async (board) =>
-        sqsClient.sendMessage({ organisation, projectId, board }, Queue.jira_board_migrate.queueUrl)
-      ),
+    sqsClient.sendMessage(
+      { organization, projectId: project.id },
+      Queue.jira_board_migrate.queueUrl
+    ),
+
   ]);
 }
 
-export const handler = async function (event: SQSEvent) {
-  await Promise.all(
-    event.Records.map((record: SQSRecord) => {
-      try {
-        const { organisation, projectId } = JSON.parse(record.body);
-        return checkAndSave(organisation, projectId);
-      } catch (error) {
-        logger.error(JSON.stringify({ error, record }));
-      }
-    })
-  );
+export const handler = async function projectMigration(event: SQSEvent): Promise<void> {
+  try {
+    await Promise.all(
+      event.Records.map((record: SQSRecord) => {
+
+        const { organization, projectId } = JSON.parse(record.body);
+        return checkAndSave(organization, projectId);
+
+      })
+    );
+  } catch (error) {
+    logger.error(JSON.stringify({ error, event }));
+  }
 };
