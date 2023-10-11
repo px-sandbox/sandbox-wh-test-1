@@ -183,10 +183,20 @@ export class JiraClient {
 
   public async getIssues(boardId: string, sprintId: string): Promise<Jira.ExternalType.Api.Issue[]> {
     const { issues } = await this.paginateResultsForIssues<Jira.ExternalType.Api.Issue>(
-      `/rest/agile/1.0/board/${boardId}/sprint/${sprintId}/issue`
+      `/rest/agile/1.0/board/${boardId}/sprint/${sprintId}/issue`,
+      {
+        fields: 'issuetype,priority,changelog,project,labels,assignee,reporter,creator,status,subtask,changelog,created,updated,lastViewed',
+      }
     );
 
     return issues;
+  }
+
+  public async getIssueChangelogs(issueId: string): Promise<Jira.ExternalType.Api.Changelogs[]> {
+    const { values } = await this.paginateResults<Jira.ExternalType.Api.Changelogs>(
+      `/rest/api/2/issue/${issueId}/changelog`
+    );
+    return values;
   }
 
   private async paginateResults<T>(

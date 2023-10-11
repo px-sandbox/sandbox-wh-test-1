@@ -6,6 +6,6 @@ export type Sprint = {
   startDate: string;
   endDate: string;
   completeDate: string;
-  originBoardId: number;
+  // originBoardId: number;
   goal: string;
 };

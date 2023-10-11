@@ -4,6 +4,7 @@ import { ChangelogItem } from 'abstraction/jira/external/webhook';
 import { JiraClient } from '../lib/jira-client';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { getIssueChangelogs } from 'src/lib/get-issue-changelogs';
 
 export class IssueProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Issue,
@@ -20,10 +21,15 @@ export class IssueProcessor extends DataProcessor<
     const orgData = await this.getOrganizationId(this.apiData.organization);
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issue = await jiraClient.getIssue(this.apiData.issue.id);
-    const changelogItems: Array<ChangelogItem> = this.apiData.changelog.items.map((item) => item);
-    const reOpenCount: number = changelogItems.filter(
-      (items) => items.to == '10036' || items.toString == 'QA Failed'
-    ).length;
+    const changelogArr = await getIssueChangelogs(this.apiData.organization, this.apiData.issue.id);
+    let reOpenCount = 0;
+    let changelogItems: Array<ChangelogItem> = [];
+    if (changelogArr.length > 0) {
+      changelogItems = changelogArr.flatMap((changelog) => changelog.items);
+      reOpenCount = changelogItems.filter(
+        (items) => items.to == '10036' || items.toString == 'QA Failed'
+      ).length;
+    }
 
     const issueObj = {
       id: parentId || uuid(),
@@ -49,12 +55,12 @@ export class IssueProcessor extends DataProcessor<
         createdDate: this.apiData.issue.fields.created,
         lastUpdated: this.apiData.issue.fields.updated,
         lastViewed: this.apiData.issue.fields.lastViewed,
-        sprintId: `${mappingPrefixes.sprint}_${issue.fields?.sprint.id}` ?? null,
-        boardId: issue.fields?.sprint.originBoardId ?? null,
+        sprintId: issue.fields.sprint ? `${mappingPrefixes.sprint}_${issue.fields?.sprint?.id}` : null,
+        boardId: issue.fields.sprint ? `${mappingPrefixes.board}_${issue.fields?.sprint?.originBoardId}` : null,
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.body.id,
-        changelog: { id: this.apiData.changelog.id, items: changelogItems } ?? null,
+        changelog: { items: changelogItems } ?? null,
       },
     };
     return issueObj;
