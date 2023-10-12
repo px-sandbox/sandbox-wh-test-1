@@ -13,11 +13,12 @@ export async function getSprints(sprintId: string): Promise<Sprint> {
   });
   const query = esb
     .boolQuery()
-    .must(esb.termQuery('body.jiraSprintId', sprintId))
+    .must(esb.termQuery('body.id', sprintId))
     .should([
-      esb.termQuery('body.status', SprintState.ACTIVE),
-      esb.termQuery('body.status', SprintState.CLOSED),
+      esb.termQuery('body.state', SprintState.ACTIVE),
+      esb.termQuery('body.state', SprintState.CLOSED),
     ])
+    .minimumShouldMatch(1)
     .toJSON();
   const data = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Sprint, query);
   const [sprint] = await searchedDataFormator(data) as Sprint[];

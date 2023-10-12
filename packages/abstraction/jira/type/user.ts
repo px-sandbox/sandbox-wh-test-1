@@ -26,6 +26,6 @@ export interface User {
     isDeleted: boolean;
     deletedAt: string | null;
     createdAt: string;
-    organizationId: string | null;
+    organizationId: string;
   };
 }

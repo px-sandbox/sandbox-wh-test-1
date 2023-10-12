@@ -14,9 +14,11 @@ function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
     fields: {
       parentId: 'string',
       jiraId: 'string',
+      organization: 'string',
     },
     globalIndexes: {
       jiraIndex: { partitionKey: 'jiraId' },
+      organizationIndex: { partitionKey: 'organization' },
     },
     primaryIndex: { partitionKey: 'parentId' },
   });
