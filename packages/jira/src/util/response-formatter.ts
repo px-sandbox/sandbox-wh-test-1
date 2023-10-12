@@ -82,7 +82,7 @@ export interface IssueReponse {
   totalReopen?: number;
   sprint?: string;
   status?: SprintState;
-  start?: string;
-  end?: string;
+  startDate?: string;
+  endDate?: string;
   percentValue: number;
 }

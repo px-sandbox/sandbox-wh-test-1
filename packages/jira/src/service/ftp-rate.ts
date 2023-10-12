@@ -1,9 +1,9 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { ftpRateGraph, ftpRateGraphAvg } from 'src/matrics/get-ftp-rate';
+import { ftpRateGraph, ftpRateGraphAvg } from '../matrics/get-ftp-rate';
 
-const ftpRate = async function (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [''];
+const ftpRate = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') ?? [''];
 
   try {
     const [graphData, graphAvgData] = await Promise.all([
@@ -11,7 +11,7 @@ const ftpRate = async function (event: APIGatewayProxyEvent): Promise<APIGateway
       await ftpRateGraphAvg(sprintIds),
     ]);
     return responseParser
-      .setBody({ graphData: graphData, headline: graphAvgData })
+      .setBody({ graphData, headline: graphAvgData })
       .setMessage('FTP rates fetched successfully')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')
