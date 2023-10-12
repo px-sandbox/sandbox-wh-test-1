@@ -34,7 +34,6 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
       { organization, projectId: project.id },
       Queue.jira_board_migrate.queueUrl
     ),
-
   ]);
 }
 
