@@ -305,6 +305,6 @@ export class JiraClient {
       return userData;
     }
 
-    return this.paginateResultsForUsers<T>(path, startAtCount, maxResults, users);
+    return this.paginateResultsForUsers<T>(path, startAtCount, maxResults, userData);
   }
 }

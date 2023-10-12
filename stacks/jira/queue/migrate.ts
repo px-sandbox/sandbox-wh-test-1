@@ -35,7 +35,7 @@ export function initializeMigrateQueue(
     },
     cdk: {
       queue: {
-        visibilityTimeout: Duration.seconds(1000),
+        visibilityTimeout: Duration.seconds(310),
       },
     }
   });
@@ -47,7 +47,6 @@ export function initializeMigrateQueue(
         timeout: '300 seconds',
         runtime: 'nodejs18.x',
         bind: [
-
           boardFormatter,
           ...Object.values(jiraDDB),
           ...Object.values(envs)
@@ -61,7 +60,7 @@ export function initializeMigrateQueue(
     },
     cdk: {
       queue: {
-        visibilityTimeout: Duration.seconds(1000),
+        visibilityTimeout: Duration.seconds(310),
       },
     }
   });
@@ -87,7 +86,7 @@ export function initializeMigrateQueue(
     },
     cdk: {
       queue: {
-        visibilityTimeout: Duration.seconds(1000),
+        visibilityTimeout: Duration.seconds(310),
       },
     }
   });
@@ -113,7 +112,7 @@ export function initializeMigrateQueue(
     },
     cdk: {
       queue: {
-        visibilityTimeout: Duration.seconds(1000),
+        visibilityTimeout: Duration.seconds(310),
       },
     }
   });
@@ -139,7 +138,7 @@ export function initializeMigrateQueue(
     },
     cdk: {
       queue: {
-        visibilityTimeout: Duration.seconds(1000),
+        visibilityTimeout: Duration.seconds(310),
       },
     }
   });

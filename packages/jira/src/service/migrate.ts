@@ -49,6 +49,7 @@ export const handler = async function (
 
   ${JSON.stringify(projectsToSend.map(({ name }) => name).join(" | "))}
 
+  Users: ${usersFromJira.length}
 
   `);
 
