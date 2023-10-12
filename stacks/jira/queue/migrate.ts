@@ -35,7 +35,7 @@ export function initializeMigrateQueue(
     },
     cdk: {
       queue: {
-        visibilityTimeout: Duration.seconds(1000),
+        visibilityTimeout: Duration.seconds(310),
       },
     }
   });
@@ -61,7 +61,7 @@ export function initializeMigrateQueue(
     },
     cdk: {
       queue: {
-        visibilityTimeout: Duration.seconds(1000),
+        visibilityTimeout: Duration.seconds(310),
       },
     }
   });
@@ -87,7 +87,7 @@ export function initializeMigrateQueue(
     },
     cdk: {
       queue: {
-        visibilityTimeout: Duration.seconds(1000),
+        visibilityTimeout: Duration.seconds(310),
       },
     }
   });
@@ -113,7 +113,7 @@ export function initializeMigrateQueue(
     },
     cdk: {
       queue: {
-        visibilityTimeout: Duration.seconds(1000),
+        visibilityTimeout: Duration.seconds(310),
       },
     }
   });
@@ -139,7 +139,7 @@ export function initializeMigrateQueue(
     },
     cdk: {
       queue: {
-        visibilityTimeout: Duration.seconds(1000),
+        visibilityTimeout: Duration.seconds(310),
       },
     }
   });
