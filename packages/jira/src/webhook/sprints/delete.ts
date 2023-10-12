@@ -8,7 +8,5 @@ export async function deleteSprint(
   organization: string
 ): Promise<void> {
   logger.info('sprint_event: Send message to SQS');
-  sprint.isDeleted = true;
-  sprint.deletedAt = new Date().toISOString();
   await new SQSClient().sendMessage({ ...sprint, organization }, Queue.jira_sprint_format.queueUrl);
 }

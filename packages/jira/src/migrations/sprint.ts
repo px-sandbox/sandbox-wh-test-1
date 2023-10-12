@@ -4,7 +4,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { JiraClient } from '../lib/jira-client';
 
-async function checkAndSave(organization: string, projectId: string, originBoardId: string) {
+async function checkAndSave(organization: string, projectId: string, originBoardId: string): Promise<void> {
   const jira = await JiraClient.getClient(organization);
   const sprints = await jira.getSprints(originBoardId);
 
@@ -31,7 +31,7 @@ async function checkAndSave(organization: string, projectId: string, originBoard
   );
 }
 
-export const handler = async function (event: SQSEvent) {
+export const handler = async function migrateSprint(event: SQSEvent): Promise<void> {
   await Promise.all(
     event.Records.map((record: SQSRecord) => {
       try {
@@ -47,6 +47,7 @@ export const handler = async function (event: SQSEvent) {
         return checkAndSave(organization, projectId, boardId);
       } catch (error) {
         logger.error(JSON.stringify({ error, record }));
+        throw error;
       }
     })
   );

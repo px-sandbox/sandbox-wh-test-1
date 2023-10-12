@@ -3,9 +3,9 @@ import { Jira } from 'abstraction';
 import { IFtpRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { getSprints } from 'src/lib/get-sprints';
-import { IssueReponse, Sprint } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
+import { IssueReponse } from '../util/response-formatter';
+import { getSprints } from '../lib/get-sprints';
 
 export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
   try {
@@ -50,7 +50,8 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
             status: sprintData.state,
             start: sprintData.startDate,
             end: sprintData.endDate,
-            percentValue: item.isFTP_true_count.doc_count == 0 ? 0 : (item.isFTP_true_count.doc_count / item.doc_count) * 100,
+            percentValue: item.isFTP_true_count.doc_count === 0 ? 0 :
+              (item.isFTP_true_count.doc_count / item.doc_count) * 100,
           });
         }
       })
@@ -93,7 +94,7 @@ export async function ftpRateGraphAvg(
     return {
       total: ftpRateGraphResponse.body.hits.total.value,
       totalFtp: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count,
-      percentValue: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count == 0 ? 0 :
+      percentValue: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count === 0 ? 0 :
         (ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count /
           ftpRateGraphResponse.body.hits.total.value) * 100,
     };

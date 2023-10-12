@@ -44,7 +44,7 @@ export class JiraClient {
     }
 
     // get creds for this organisation
-    const creds = await _ddbClient.find(new JiraCredsMapping().prepareGetParams(orgId.credId)) as any;
+    const creds = await _ddbClient.find(new JiraCredsMapping().prepareGetParams(orgId.credId));
 
     if (!creds) {
       throw new Error(`Credential for given Organisation ${orgName} is not found`);
@@ -183,7 +183,8 @@ export class JiraClient {
     const { issues } = await this.paginateResultsForIssues<Jira.ExternalType.Api.Issue>(
       `/rest/agile/1.0/board/${boardId}/sprint/${sprintId}/issue`,
       {
-        fields: 'issuetype,priority,changelog,project,labels,assignee,reporter,creator,status,subtask,changelog,created,updated,lastViewed',
+        fields: `issuetype,priority,changelog,project,labels,
+        assignee,reporter,creator,status,subtask,changelog,created,updated,lastViewed`,
       }
     );
 

@@ -1,6 +1,6 @@
 import { Jira } from 'abstraction';
 import { v4 as uuid } from 'uuid';
-import { JiraClient } from 'src/lib/jira-client';
+import { JiraClient } from '../lib/jira-client';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 

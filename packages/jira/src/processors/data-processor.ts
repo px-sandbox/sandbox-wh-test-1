@@ -1,9 +1,9 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { SQSClient } from '@pulse/event-handler';
-import { logger } from 'core';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
+import { SQSClient } from '@pulse/event-handler';
 import { Jira } from 'abstraction';
+import { logger } from 'core';
+import { Config } from 'sst/node/config';
 import { ParamsMapping } from '../model/params-mapping';
 
 /**
@@ -72,7 +72,7 @@ export abstract class DataProcessor<T, S> {
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const organization: any = await _esClient.search(
+    const organization: Search<MultiSearchBody> = await _esClient.search(
       Jira.Enums.IndexName.Organization,
       'name',
       orgName

@@ -4,9 +4,9 @@ import { IssuesTypes } from 'abstraction/jira/enums';
 import { IFtpRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { getSprints } from 'src/lib/get-sprints';
-import { IssueReponse, Sprint } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
+import { getSprints } from '../lib/get-sprints';
+import { IssueReponse } from '../util/response-formatter';
 
 export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
   try {
@@ -49,7 +49,8 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
             status: sprintData.state,
             start: sprintData.startDate,
             end: sprintData.endDate,
-            percentValue: item.isFTP_true_count.doc_count == 0 ? 0 : (item.isFTP_true_count.doc_count / item.doc_count) * 100,
+            percentValue: item.isFTP_true_count.doc_count === 0 ? 0 :
+              (item.isFTP_true_count.doc_count / item.doc_count) * 100,
           });
         }
       })
@@ -90,7 +91,7 @@ export async function reopenRateGraphAvg(
     return {
       totalBugs: reopenRateGraphResponse.body.hits.total.value,
       totalReopen: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count,
-      percentValue: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count == 0 ? 0 :
+      percentValue: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count === 0 ? 0 :
         (reopenRateGraphResponse.body.aggregations.reopenRate.doc_count /
           reopenRateGraphResponse.body.hits.total.value) * 100,
     };

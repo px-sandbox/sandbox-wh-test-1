@@ -2,8 +2,8 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { SprintState } from 'abstraction/jira/enums';
 import esb from 'elastic-builder';
-import { searchedDataFormator, Sprint } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
+import { searchedDataFormator, Sprint } from '../util/response-formatter';
 
 export async function getSprints(sprintId: string): Promise<Sprint> {
   const esClientObj = new ElasticSearchClient({
