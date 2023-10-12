@@ -1,8 +1,8 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { reopenRateGraph, reopenRateGraphAvg } from 'src/matrics/get-reopen-rates';
+import { reopenRateGraph, reopenRateGraphAvg } from '../matrics/get-reopen-rates';
 
-const reopenRate = async function (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+const reopenRate = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [''];
 
   try {
@@ -11,7 +11,7 @@ const reopenRate = async function (event: APIGatewayProxyEvent): Promise<APIGate
       await reopenRateGraphAvg(sprintIds),
     ]);
     return responseParser
-      .setBody({ graphData: graphData, headline: graphAvgData })
+      .setBody({ graphData, headline: graphAvgData })
       .setMessage('repoen rates fetched successfully')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')
