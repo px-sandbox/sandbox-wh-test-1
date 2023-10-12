@@ -198,7 +198,11 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
           handler: 'packages/jira/src/service/migrate.handler',
           bind: [projectMigrateQueue, userMigrateQueue]
         },
+      },
 
+      // GET Jira board and sprint data for a project
+      'GET /jira/boards': {
+        function: 'packages/jira/src/service/board/get-boards.handler',
       },
     },
   });
