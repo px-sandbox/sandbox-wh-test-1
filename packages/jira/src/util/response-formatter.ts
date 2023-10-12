@@ -64,37 +64,29 @@ export const formatUserDataResponse = (
   organizationId: data.organizationId,
 });
 
-export interface IProject {
-  id: number;
-  _id: number;
-  key: string;
-  name: string;
-  lead: {
-    displayName: string;
-    [key: string]: unknown;
-  };
-}
 
 /**
- * Formats the response of an array of IProject objects into an array of objects with specific properties.
- * @param data An array of IProject objects.
- * @returns An array of objects with properties id, jiraId, name, key, and lead.
+ * Formats the response of Jira projects API to a specific format.
+ * @param data - An array of project objects returned by Jira projects API.
+ * @returns An array of formatted project objects.
  */
 export const formatProjectsResponse = (
-  data: Array<IProject>
+  data: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[] | []
 ): Array<{
-  id: number;
-  jiraId: number;
+  id: string;
+  jiraId: string;
   name: string;
   key: string;
   lead: string;
+  organizationId: string;
 }> =>
-  data.map((project: IProject) => ({
+  data.map((project) => ({
     id: project._id,
     jiraId: project.id,
     name: project.name,
     key: project.key,
     lead: project.lead.displayName,
+    organizationId: project.organizationId
   }));
 
 export interface Sprint {
@@ -107,11 +99,16 @@ export interface Sprint {
   originBoardId: number;
 }
 
-export interface IssueReponse extends Sprint {
-  totalIssues?: number;
-  ftpRate?: number;
-  totalDoc?: number;
-  reopenRate?: number;
+export interface IssueReponse {
+  total?: number;
+  totalFtp?: number;
+  totalBugs?: number;
+  totalReopen?: number;
+  sprint?: string;
+  status?: SprintState;
+  startDate?: string;
+  endDate?: string;
+  percentValue: number;
 }
 export interface IBoard {
   id: number;

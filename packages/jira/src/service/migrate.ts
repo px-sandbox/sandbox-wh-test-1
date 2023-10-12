@@ -4,10 +4,10 @@ import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
 import { JiraClient } from '../lib/jira-client';
 
-export const handler = async function jiraMigrations(
+export const handler = async (
   event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> {
-  const organization = event?.queryStringParameters?.orgName || '';
+): Promise<APIGatewayProxyResult> => {
+  const organization = event?.queryStringParameters?.orgName ?? '';
   // const projects = event?.queryStringParameters?.projects?.split(',') || [];
 
   const sqsClient = new SQSClient();
@@ -49,6 +49,7 @@ export const handler = async function jiraMigrations(
 
   ${JSON.stringify(projectsToSend.map(({ name }) => name).join(" | "))}
 
+  Users: ${usersFromJira.length}
 
   `);
 

@@ -5,7 +5,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import { Config } from 'sst/node/config';
 import {
-  IProject,
   formatProjectsResponse,
   searchedDataFormator,
 } from '../../util/response-formatter';
@@ -22,7 +21,7 @@ const projects = async function getProjectsData(
   const searchTerm: string = event?.queryStringParameters?.search?.toLowerCase() ?? '';
   const page = Number(event?.queryStringParameters?.page ?? 1);
   const size = Number(event?.queryStringParameters?.size ?? 10);
-  let response: IProject[] = [];
+  let response;
   try {
     const esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
