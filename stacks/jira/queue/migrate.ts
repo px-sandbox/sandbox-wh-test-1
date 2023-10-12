@@ -47,7 +47,6 @@ export function initializeMigrateQueue(
         timeout: '300 seconds',
         runtime: 'nodejs18.x',
         bind: [
-
           boardFormatter,
           ...Object.values(jiraDDB),
           ...Object.values(envs)
