@@ -48,8 +48,8 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
             totalFtp: item.isFTP_true_count.doc_count,
             sprint: sprintData.name,
             status: sprintData.state,
-            start: sprintData.startDate,
-            end: sprintData.endDate,
+            startDate: sprintData.startDate,
+            endDate: sprintData.endDate,
             percentValue:
               item.isFTP_true_count.doc_count === 0 ? 0 : (item.isFTP_true_count.doc_count / item.doc_count) * 100,
           });
