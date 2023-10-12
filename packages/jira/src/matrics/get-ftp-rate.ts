@@ -42,7 +42,6 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
     await Promise.all(
       ftpRateGraphResponse.sprint_buckets.buckets.map(async (item) => {
         const sprintData = await getSprints(item.key);
-        console.log('sprintData', sprintData);
         if (sprintData) {
           response.push({
             total: item.doc_count,
