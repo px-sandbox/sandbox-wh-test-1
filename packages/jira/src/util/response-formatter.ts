@@ -42,9 +42,11 @@ export const searchedDataFormator = async (
   }
   return [];
 };
-
-export const searchedDataFormatorWithDeleted = async (data: any): Promise<any> => {
-  if (data?.hits?.max_score != null) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const searchedDataFormatorWithDeleted = async (
+  data: any // eslint-disable-line @typescript-eslint/no-explicit-any
+): Promise<(Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[] | []> => {
+  if (data?.hits?.total?.value > 0) {
     return data.hits.hits
       .map((hit: Other.Type.Hit) => ({
         _id: hit._id,
@@ -110,27 +112,21 @@ export interface IssueReponse {
   end?: string;
   percentValue: number;
 }
-export interface IBoard {
-  id: number;
-  _id: number;
-  name: string;
-  createdAt: string;
-  sprints: Sprint[];
-}
+
 export const formatBoardResponse = (
-  data: Array<IBoard>
+  data: (Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody)[]
 ): Array<{
-  id: number;
-  jiraId: number;
+  id: string;
+  jiraId: string;
   name: string;
   createdAt: string;
   sprints: Array<{
-    id: number;
+    id: string;
     name: string;
     startDate: string;
     endDate: string;
   }>
-}> => data.map((board: IBoard) => ({
+}> => data.map((board: Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody) => ({
   id: board._id,
   jiraId: board.id,
   name: board.name,
