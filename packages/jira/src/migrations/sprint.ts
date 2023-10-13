@@ -2,6 +2,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
+import { logProcessToRetry } from '../util/retry-process';
 import { JiraClient } from '../lib/jira-client';
 
 async function checkAndSave(organization: string, projectId: string, originBoardId: string): Promise<void> {
@@ -33,7 +34,7 @@ async function checkAndSave(organization: string, projectId: string, originBoard
 
 export const handler = async function migrateSprint(event: SQSEvent): Promise<void> {
   await Promise.all(
-    event.Records.map((record: SQSRecord) => {
+    event.Records.map(async (record: SQSRecord) => {
       try {
         const {
           organization,
@@ -47,6 +48,8 @@ export const handler = async function migrateSprint(event: SQSEvent): Promise<vo
         return checkAndSave(organization, projectId, boardId);
       } catch (error) {
         logger.error(JSON.stringify({ error, record }));
+        await logProcessToRetry(record, Queue.jira_issue_format.queueUrl, error as Error);
+        logger.error('sprintMigrateDataReciever.error', error);
         throw error;
       }
     })

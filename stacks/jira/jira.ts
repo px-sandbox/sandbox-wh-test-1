@@ -105,8 +105,6 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
   });
 
   const [projectMigrateQueue,
-    sprintMigrateQueue,
-    issueMigrateQueue,
     userMigrateQueue] = initializeMigrateQueue(
       stack,
       {
