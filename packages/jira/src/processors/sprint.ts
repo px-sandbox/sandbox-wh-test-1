@@ -25,7 +25,7 @@ export class SprintProcessor extends DataProcessor<
       body: {
         id: `${mappingPrefixes.sprint}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.body.id}`,
         jiraSprintId: `${this.apiData.id}`,
-        projectKey: board.location?.projectId,
+        projectId: `${mappingPrefixes.project}_${board.location?.projectId}_${mappingPrefixes.org}_${orgData.body.id}`,
         self: this.apiData.self,
         name: this.apiData.name,
         state: this.apiData.state,
@@ -33,7 +33,8 @@ export class SprintProcessor extends DataProcessor<
         startDate: this.apiData.startDate,
         endDate: this.apiData.endDate,
         completeDate: this.apiData.completeDate,
-        originBoardId: this.apiData.originBoardId,
+        originBoardId: `${mappingPrefixes.board}_${this.apiData.originBoardId}
+        _${mappingPrefixes.org}_${orgData.body.id}`,
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: `${mappingPrefixes.organization}_${orgData.body.id}` ?? null,
