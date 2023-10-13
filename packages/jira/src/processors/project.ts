@@ -20,7 +20,8 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
    * @returns The processed Jira project data.
    */
   public async processor(): Promise<Jira.Type.Project> {
-    const parentId = await this.getParentId(`${mappingPrefixes.project}_${this.apiData.id}_${mappingPrefixes.org}_${this.apiData.organization}`);
+    const parentId = await this.getParentId(`${mappingPrefixes.project}_${this.apiData.id}
+    _${mappingPrefixes.org}_${this.apiData.organization}`);
 
     const orgData = await this.getOrganizationId(this.apiData.organization);
 

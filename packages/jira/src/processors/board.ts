@@ -10,7 +10,8 @@ export class BoardProcessor extends DataProcessor<Jira.Mapper.Board, Jira.Type.B
     super(data);
   }
   public async processor(): Promise<Jira.Type.Board> {
-    const parentId = await this.getParentId(`${mappingPrefixes.board}_${this.apiData.id}_${mappingPrefixes.org}_${this.apiData.organization}`);
+    const parentId = await this.getParentId(`${mappingPrefixes.board}_${this.apiData.id}
+    _${mappingPrefixes.org}_${this.apiData.organization}`);
     const orgData = await this.getOrganizationId(this.apiData.organization);
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const apiBoardData = await jiraClient.getBoard(this.apiData.id);

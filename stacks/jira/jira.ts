@@ -13,12 +13,10 @@ function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
   tables.jiraMappingTable = new Table(stack, 'jiraMapping', {
     fields: {
       parentId: 'string',
-      jiraId: 'string',
-      organization: 'string',
+      jiraId: 'string'
     },
     globalIndexes: {
-      jiraIndex: { partitionKey: 'jiraId' },
-      organizationIndex: { partitionKey: 'organization' },
+      jiraIndex: { partitionKey: 'jiraId' }
     },
     primaryIndex: { partitionKey: 'parentId' },
   });
