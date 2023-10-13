@@ -9,7 +9,7 @@ export type Board = {
     name: string;
     type?: BoardType;
     location: {
-      projectId: number;
+      projectId: string;
       displayName: string;
       projectName: string;
       projectKey: string;

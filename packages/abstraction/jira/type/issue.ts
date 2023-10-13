@@ -16,9 +16,9 @@ export type Issue = {
     priority: string;
     label: Array<string>;
     issueLinks: Array<string>;
-    assigneeId: string;
-    reporterId: string;
-    creatorId: string;
+    assigneeId: string | null;
+    reporterId: string | null;
+    creatorId: string | null;
     status: string;
     subtasks: Array<string>;
     createdDate: string;
