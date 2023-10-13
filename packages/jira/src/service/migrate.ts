@@ -6,7 +6,7 @@ import { JiraClient } from '../lib/jira-client';
 
 export const handler = async function migrate(
   event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
+): Promise<APIGatewayProxyResult> {
   const organization = event?.queryStringParameters?.orgName ?? '';
   // const projects = event?.queryStringParameters?.projects?.split(',') || [];
 
@@ -41,7 +41,7 @@ export const handler = async function migrate(
   ]);
 
   // Filter from projects
-  const projectsToSend = projectsFromJira.filter(({ name }) => name === 'Fuze');
+  const projectsToSend = projectsFromJira.filter(({ name }) => name === 'Pulse');
 
   logger.info(`
 
