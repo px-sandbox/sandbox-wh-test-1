@@ -106,8 +106,8 @@ export interface IssueReponse {
   totalReopen?: number;
   sprint?: string;
   status?: SprintState;
-  startDate?: string;
-  endDate?: string;
+  start?: string;
+  end?: string;
   percentValue: number;
 }
 export interface IBoard {

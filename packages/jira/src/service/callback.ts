@@ -97,7 +97,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     ).map(async ({ id, ...org }) => {
       const uuidOrg = uuid();
       await _ddbClient.put(
-        new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`, "")
+        new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
       );
 
       const ddbRes = await _ddbClient.find(
@@ -110,7 +110,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       if (!parentId) {
         parentId = uuidOrg;
         await _ddbClient.put(
-          new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`, "")
+          new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
         );
       }
       await _esClient.putDocument(Jira.Enums.IndexName.Organization, {

@@ -17,8 +17,7 @@ export async function saveBoardDetails(data: Jira.Type.Board): Promise<void> {
   try {
     const updatedData = { ...data };
     logger.info('saveBoardDetails.invoked');
-    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id,
-      data.body.organizationId));
+    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
