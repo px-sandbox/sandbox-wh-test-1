@@ -3,6 +3,7 @@ import { logger } from 'core';
 import { SQSClient } from '@pulse/event-handler';
 import { Jira } from 'abstraction';
 import { Queue } from 'sst/node/queue';
+import { logProcessToRetry } from '../util/retry-process';
 import { JiraClient } from '../lib/jira-client';
 
 async function checkAndSave(organization: string, projectId: string): Promise<void> {
@@ -38,16 +39,17 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
 }
 
 export const handler = async function projectMigration(event: SQSEvent): Promise<void> {
-  try {
-    await Promise.all(
-      event.Records.map((record: SQSRecord) => {
-
+  await Promise.all(
+    event.Records.map(async (record: SQSRecord) => {
+      try {
         const { organization, projectId } = JSON.parse(record.body);
         return checkAndSave(organization, projectId);
 
-      })
-    );
-  } catch (error) {
-    logger.error(JSON.stringify({ error, event }));
-  }
-};
+      } catch (error) {
+        logger.error(JSON.stringify({ error, event }));
+        await logProcessToRetry(record, Queue.jira_issue_format.queueUrl, error as Error);
+        logger.error('projectMigrateDataReciever.error', error);
+      }
+    })
+  )
+}
