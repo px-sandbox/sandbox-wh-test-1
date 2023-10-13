@@ -195,7 +195,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
       // GET create all Jira indices into ES
       'GET /jira/create-indices': {
         function: 'packages/jira/src/service/create-indices.handler',
-        authorizer: 'universal'
+        authorizer: 'admin'
       },
       'POST /jira/webhook': {
         function: 'packages/jira/src/webhook/webhook.handler',
@@ -227,7 +227,7 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
           handler: 'packages/jira/src/service/migrate.handler',
           bind: [projectMigrateQueue, userMigrateQueue],
         },
-        authorizer: 'universal',
+        authorizer: 'admin',
       },
 
       // GET Jira board and sprint data for a project
