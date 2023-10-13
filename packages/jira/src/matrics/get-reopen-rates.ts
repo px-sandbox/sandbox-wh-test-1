@@ -5,8 +5,8 @@ import { IFtpRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
-import { IssueReponse } from '../util/response-formatter';
 import { getSprints } from '../lib/get-sprints';
+import { IssueReponse } from '../util/response-formatter';
 
 export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
   try {
@@ -47,10 +47,10 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
             totalReopen: item.isFTP_true_count.doc_count,
             sprint: sprintData.name,
             status: sprintData.state,
-            startDate: sprintData.startDate,
-            endDate: sprintData.endDate,
-            percentValue:
-              item.isFTP_true_count.doc_count === 0 ? 0 : (item.isFTP_true_count.doc_count / item.doc_count) * 100,
+            start: sprintData.startDate,
+            end: sprintData.endDate,
+            percentValue: item.isFTP_true_count.doc_count === 0 ? 0 :
+              (item.isFTP_true_count.doc_count / item.doc_count) * 100,
           });
         }
       })

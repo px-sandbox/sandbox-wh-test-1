@@ -9,7 +9,7 @@ async function checkAndSave(
   projectId: string,
   boardId: string,
   sprintId: string
-) {
+): Promise<void> {
   const jira = await JiraClient.getClient(organization);
   const issues = await jira.getIssues(boardId, sprintId);
 
@@ -31,7 +31,7 @@ async function checkAndSave(
   );
 }
 
-export const handler = async function (event: SQSEvent) {
+export const handler = async function issuesMigrate(event: SQSEvent): Promise<void> {
   await Promise.all(
     event.Records.map((record: SQSRecord) => {
       try {
@@ -49,6 +49,7 @@ export const handler = async function (event: SQSEvent) {
         return checkAndSave(organization, projectId, originBoardId, sprintId);
       } catch (error) {
         logger.error(JSON.stringify({ error, record }));
+        throw error;
       }
     })
   );

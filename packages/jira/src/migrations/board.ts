@@ -7,7 +7,6 @@ import { JiraClient } from '../lib/jira-client';
 async function checkAndSave(organization: string, projectId: string): Promise<void> {
   const jira = await JiraClient.getClient(organization);
   const boards = await jira.getBoards(projectId);
-  console.log('boards length: ', boards.length);
 
   const sqsClient = new SQSClient();
 

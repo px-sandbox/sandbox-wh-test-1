@@ -64,12 +64,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   let credId = uuid();
 
   const accessibleOrgs = await getAccessibleOrgs(jiraToken.access_token);
-  
+
   const orgIds = accessibleOrgs.map(({ id }) => id);
 
   logger.info('orgIds', { orgIds });
 
-  const getOrgsFromES = await _esClient.searchWithEsb(Jira.Enums.IndexName.Organization, esb.termsQuery('body.orgId.keyword', orgIds).toJSON());
+  const getOrgsFromES = await _esClient.searchWithEsb(Jira.Enums.IndexName.Organization,
+    esb.termsQuery('body.orgId.keyword',
+      orgIds).toJSON());
 
   const orgsFromEs = await esResponseDataFormator(getOrgsFromES);
 
@@ -77,24 +79,25 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     credId = orgsFromEs[0].credId;
   }
 
-  const ddbRes = await _ddbClient.find(
-    new ParamsMapping().prepareGetParams(
-      `${mappingPrefixes.organization}_${accessibleOrgs[0].id}`
-    )
-  );
+  // TODO: Remove this code after testing, as it is not used in preparePutParams
+  // const ddbRes = await _ddbClient.find(
+  //   new ParamsMapping().prepareGetParams(
+  //     `${mappingPrefixes.organization}_${accessibleOrgs[0].id}`
+  //   )
+  // );
 
+  // const parentId = ddbRes?.parentId as string | undefined;
+  // logger.info('parentId', { parentId });
 
-
-  const parentId = ddbRes?.parentId as string | undefined;
-  logger.info('parentId', { parentId });
   await Promise.all([
     _ddbClient.put(new JiraCredsMapping().preparePutParams(credId, jiraToken)),
-    ...accessibleOrgs.filter((accOrg) => !orgsFromEs.find((esOrg: any) => esOrg.orgId === accOrg.id)
+    ...accessibleOrgs.filter((accOrg) => !orgsFromEs.find((esOrg: { id: string, orgId: string }) =>
+      esOrg.orgId === accOrg.id)
 
     ).map(async ({ id, ...org }) => {
       const uuidOrg = uuid();
       await _ddbClient.put(
-        new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
+        new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`, "")
       );
 
       const ddbRes = await _ddbClient.find(
@@ -107,7 +110,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       if (!parentId) {
         parentId = uuidOrg;
         await _ddbClient.put(
-          new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
+          new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`, "")
         );
       }
       await _esClient.putDocument(Jira.Enums.IndexName.Organization, {

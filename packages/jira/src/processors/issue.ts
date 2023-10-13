@@ -1,10 +1,10 @@
 import { Jira } from 'abstraction';
 import { v4 as uuid } from 'uuid';
 import { ChangelogItem } from 'abstraction/jira/external/webhook';
+import { getIssueChangelogs } from '../lib/get-issue-changelogs';
 import { JiraClient } from '../lib/jira-client';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
-import { getIssueChangelogs } from 'src/lib/get-issue-changelogs';
 
 export class IssueProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Issue,
@@ -12,6 +12,13 @@ export class IssueProcessor extends DataProcessor<
 > {
   constructor(data: Jira.ExternalType.Webhook.Issue) {
     super(data);
+  }
+
+  public getSprintId(issue: Jira.ExternalType.Api.Issue): string | null {
+    return issue.fields.sprint ? `${mappingPrefixes.sprint}_${issue.fields.sprint.id}` : null;
+  }
+  public getBoardId(issue: Jira.ExternalType.Api.Issue): string | null {
+    return issue.fields.sprint ? `${mappingPrefixes.board}_${issue.fields.sprint.originBoardId}` : null;
   }
 
   public async processor(): Promise<Jira.Type.Issue> {
@@ -27,7 +34,7 @@ export class IssueProcessor extends DataProcessor<
     if (changelogArr.length > 0) {
       changelogItems = changelogArr.flatMap((changelog) => changelog.items);
       reOpenCount = changelogItems.filter(
-        (items) => items.to == '10036' || items.toString == 'QA Failed'
+        (items) => items.to === '10036' || items.toString === 'QA Failed'
       ).length;
     }
 
@@ -41,7 +48,7 @@ export class IssueProcessor extends DataProcessor<
         issueKey: this.apiData.issue.key,
         isFTP: this.apiData.issue.fields.labels?.includes('FTP') ?? false,
         isFTF: this.apiData.issue.fields.labels?.includes('FTF') ?? false,
-        reOpenCount: reOpenCount ?? 0,
+        reOpenCount,
         issueType: this.apiData.issue.fields.issuetype.name,
         isPrimary: true,
         priority: this.apiData.issue.fields.priority.name,
@@ -55,12 +62,12 @@ export class IssueProcessor extends DataProcessor<
         createdDate: this.apiData.issue.fields.created,
         lastUpdated: this.apiData.issue.fields.updated,
         lastViewed: this.apiData.issue.fields.lastViewed,
-        sprintId: issue.fields.sprint ? `${mappingPrefixes.sprint}_${issue.fields?.sprint?.id}` : null,
-        boardId: issue.fields.sprint ? `${mappingPrefixes.board}_${issue.fields?.sprint?.originBoardId}` : null,
+        sprintId: this.getSprintId(issue),
+        boardId: this.getBoardId(issue),
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.body.id,
-        changelog: { items: changelogItems } ?? null,
+        changelog: { items: changelogItems },
       },
     };
     return issueObj;

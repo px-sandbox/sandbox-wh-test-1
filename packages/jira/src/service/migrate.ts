@@ -4,7 +4,7 @@ import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
 import { JiraClient } from '../lib/jira-client';
 
-export const handler = async (
+export const handler = async function migrate(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const organization = event?.queryStringParameters?.orgName ?? '';
