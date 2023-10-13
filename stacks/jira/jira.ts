@@ -225,15 +225,17 @@ export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any
       'GET /jira/migrate': {
         function: {
           handler: 'packages/jira/src/service/migrate.handler',
-          bind: [projectMigrateQueue, userMigrateQueue]
+          bind: [projectMigrateQueue, userMigrateQueue],
         },
+        authorizer: 'universal',
       },
 
       // GET Jira board and sprint data for a project
       'GET /jira/boards': {
         function: 'packages/jira/src/service/board/get-boards.handler',
+        authorizer: 'universal',
       },
-    },
+    }
   });
 
   // Initialize Cron for Jira
