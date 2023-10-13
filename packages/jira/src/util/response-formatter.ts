@@ -21,11 +21,35 @@ export interface IRepo {
 export const searchedDataFormator = async (
   data: any // eslint-disable-line @typescript-eslint/no-explicit-any
 ): Promise<(Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[] | []> => {
+  // TODO: For some cases max_score was null but values was gt 0
+  // if (data?.hits?.max_score != null) {
+  //   return data.hits.hits.map((hit: Other.Type.Hit) => ({
+  //     _id: hit._id,
+  //     ...hit._source.body,
+  //   }));
+  // }
+
+  if (data?.hits?.total?.value > 0) {
+    return data.hits.hits
+      .filter(
+        (hit: Other.Type.Hit) =>
+          typeof hit._source.body.isDeleted === 'undefined' || hit._source.body.isDeleted === false
+      )
+      .map((hit: Other.Type.Hit) => ({
+        _id: hit._id,
+        ...hit._source.body,
+      }));
+  }
+  return [];
+};
+
+export const searchedDataFormatorWithDeleted = async (data: any): Promise<any> => {
   if (data?.hits?.max_score != null) {
-    return data.hits.hits.map((hit: Other.Type.Hit) => ({
-      _id: hit._id,
-      ...hit._source.body,
-    }));
+    return data.hits.hits
+      .map((hit: Other.Type.Hit) => ({
+        _id: hit._id,
+        ...hit._source.body,
+      }));
   }
   return [];
 };
@@ -82,7 +106,39 @@ export interface IssueReponse {
   totalReopen?: number;
   sprint?: string;
   status?: SprintState;
-  start?: string;
-  end?: string;
+  startDate?: string;
+  endDate?: string;
   percentValue: number;
 }
+export interface IBoard {
+  id: number;
+  _id: number;
+  name: string;
+  createdAt: string;
+  sprints: Sprint[];
+}
+export const formatBoardResponse = (
+  data: Array<IBoard>
+): Array<{
+  id: number;
+  jiraId: number;
+  name: string;
+  createdAt: string;
+  sprints: Array<{
+    id: number;
+    name: string;
+    startDate: string;
+    endDate: string;
+  }>
+}> => data.map((board: IBoard) => ({
+  id: board._id,
+  jiraId: board.id,
+  name: board.name,
+  createdAt: board.createdAt,
+  sprints: board.sprints.map((sprint: Sprint) => ({
+    id: sprint.id,
+    name: sprint.name,
+    startDate: sprint.startDate,
+    endDate: sprint.endDate,
+  })),
+}));

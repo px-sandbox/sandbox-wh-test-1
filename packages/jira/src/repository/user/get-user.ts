@@ -4,7 +4,7 @@ import { Config } from 'sst/node/config';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import { mappingPrefixes } from '../../constant/config';
-import { searchedDataFormator } from '../../util/response-formatter';
+import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
 
 /**
  * Retrieves a Jira user by their ID.
@@ -23,7 +23,7 @@ export async function getUserById(
     });
     const matchQry = esb.matchQuery('body.id', `${mappingPrefixes.user}_${userId}`).toJSON();
     const userData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Users, matchQry);
-    const [formattedUserData] = await searchedDataFormator(userData);
+    const [formattedUserData] = await searchedDataFormatorWithDeleted(userData);
     return formattedUserData;
   } catch (error: unknown) {
     logger.error('getUserById.error', { error });

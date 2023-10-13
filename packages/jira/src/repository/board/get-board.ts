@@ -4,7 +4,7 @@ import { Config } from 'sst/node/config';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import { mappingPrefixes } from '../../constant/config';
-import { searchedDataFormator } from '../../util/response-formatter';
+import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
 
 /**
  * Retrieves a Jira board by its ID.
@@ -21,7 +21,7 @@ export async function getBoardById(boardId: number): Promise<Other.Type.HitBody>
     });
     const matchQry = esb.matchQuery('body.id', `${mappingPrefixes.board}_${boardId}`).toJSON();
     const boardData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Board, matchQry);
-    const [formattedBoardData] = await searchedDataFormator(boardData);
+    const [formattedBoardData] = await searchedDataFormatorWithDeleted(boardData);
     return formattedBoardData;
   } catch (error: unknown) {
     logger.error('getBoardById.error', { error });

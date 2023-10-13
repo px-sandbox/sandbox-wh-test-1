@@ -4,7 +4,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
-import { searchedDataFormator } from '../../util/response-formatter';
+import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
 import { ParamsMapping } from '../../model/params-mapping';
 
 /**
@@ -27,7 +27,7 @@ export async function saveBoardDetails(data: Jira.Type.Board): Promise<void> {
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
     logger.info('saveBoardDetails.matchQry------->', { matchQry });
     const boardData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Board, matchQry);
-    const [formattedData] = await searchedDataFormator(boardData);
+    const [formattedData] = await searchedDataFormatorWithDeleted(boardData);
     if (formattedData) {
       updatedData.id = formattedData._id;
     }

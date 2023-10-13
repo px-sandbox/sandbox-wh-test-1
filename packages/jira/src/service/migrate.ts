@@ -6,8 +6,8 @@ import { JiraClient } from '../lib/jira-client';
 
 export const handler = async function migrate(
   event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> {
-  const organization = event?.queryStringParameters?.orgName || '';
+): Promise<APIGatewayProxyResult> => {
+  const organization = event?.queryStringParameters?.orgName ?? '';
   // const projects = event?.queryStringParameters?.projects?.split(',') || [];
 
   const sqsClient = new SQSClient();
