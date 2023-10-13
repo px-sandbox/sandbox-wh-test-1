@@ -23,7 +23,7 @@ export class IssueProcessor extends DataProcessor<
 
   public async processor(): Promise<Jira.Type.Issue> {
     const parentId: string | undefined = await this.getParentId(
-      `${mappingPrefixes.issue}_${this.apiData.issue.id}`
+      `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${this.apiData.organization}`
     );
     const orgData = await this.getOrganizationId(this.apiData.organization);
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
@@ -41,7 +41,7 @@ export class IssueProcessor extends DataProcessor<
     const issueObj = {
       id: parentId || uuid(),
       body: {
-        id: `${mappingPrefixes.issue}_${this.apiData.issue.id}`,
+        id: `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.body.id}`,
         issueId: `${this.apiData.issue.id}`,
         projectKey: this.apiData.issue.fields.project.key,
         projectId: this.apiData.issue.fields.project.id,
@@ -66,7 +66,7 @@ export class IssueProcessor extends DataProcessor<
         boardId: this.getBoardId(issue),
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
-        organizationId: orgData.body.id,
+        organizationId: `${mappingPrefixes.organization}_${orgData.body.id}`,
         changelog: { items: changelogItems },
       },
     };

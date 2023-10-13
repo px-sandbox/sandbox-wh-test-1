@@ -5,4 +5,5 @@ export const mappingPrefixes = {
   issue: 'jira_issue',
   project: 'jira_project',
   board: 'jira_board',
+  org: 'org'
 };

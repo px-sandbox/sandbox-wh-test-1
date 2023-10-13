@@ -14,7 +14,7 @@ export class SprintProcessor extends DataProcessor<
 
   public async processor(): Promise<Jira.Type.Sprint> {
     const parentId: string | undefined = await this.getParentId(
-      `${mappingPrefixes.sprint}_${this.apiData.id}`
+      `${mappingPrefixes.sprint}_${this.apiData.id}_${mappingPrefixes.org}_${this.apiData.organization}`
     );
     const orgData = await this.getOrganizationId(this.apiData.organization);
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
@@ -23,7 +23,7 @@ export class SprintProcessor extends DataProcessor<
     const sprintObj = {
       id: parentId || uuid(),
       body: {
-        id: `${mappingPrefixes.sprint}_${this.apiData.id}`,
+        id: `${mappingPrefixes.sprint}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.body.id}`,
         jiraSprintId: `${this.apiData.id}`,
         projectKey: board.location?.projectId,
         self: this.apiData.self,
@@ -36,7 +36,7 @@ export class SprintProcessor extends DataProcessor<
         originBoardId: this.apiData.originBoardId,
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
-        organizationId: orgData.body.id ?? null,
+        organizationId: `${mappingPrefixes.organization}_${orgData.body.id}` ?? null,
       },
     };
     return sprintObj;
