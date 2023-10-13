@@ -41,7 +41,8 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
           }
           : null,
         lead: {
-          accountId: this.apiData?.lead?.accountId,
+          accountId: `${mappingPrefixes.user}_${this.apiData?.lead?.accountId}
+          _${mappingPrefixes.org}_${orgData.body.id}`,
           displayName: this.apiData?.lead?.displayName,
           active: this.apiData?.lead?.active,
           timeZone: this.apiData?.lead?.timeZone,

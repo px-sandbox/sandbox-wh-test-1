@@ -5,7 +5,7 @@ export type Board = {
   self: string;
   name: string;
   type?: BoardType;
-  location?: {
+  location: {
     projectId: number;
     displayName: string;
     projectName: string;
