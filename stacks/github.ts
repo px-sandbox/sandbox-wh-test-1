@@ -3,19 +3,6 @@ import { Duration, Stack } from 'aws-cdk-lib';
 import { commonConfig } from './common/config';
 import { Stage } from './type/stack-config';
 
-function initializeGHSecrets(stack: Stack): Record<string, Config.Secret> {
-  const ghSecret = {} as Record<string, Config.Secret>;
-  // Set GITHUB config params
-  ghSecret.GITHUB_APP_ID = new Config.Secret(stack, 'GITHUB_APP_ID');
-  ghSecret.GITHUB_APP_PRIVATE_KEY_PEM = new Config.Secret(stack, 'GITHUB_APP_PRIVATE_KEY_PEM');
-  ghSecret.GITHUB_BASE_URL = new Config.Secret(stack, 'GITHUB_BASE_URL');
-  ghSecret.GITHUB_SG_INSTALLATION_ID = new Config.Secret(stack, 'GITHUB_SG_INSTALLATION_ID');
-  ghSecret.GITHUB_WEBHOOK_SECRET = new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET');
-  ghSecret.GITHUB_SG_ACCESS_TOKEN = new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN');
-  ghSecret.AUTH_PUBLIC_KEY = new Config.Secret(stack, 'AUTH_PUBLIC_KEY');
-  ghSecret.GIT_ORGANIZATION_ID = new Config.Secret(stack, 'GIT_ORGANIZATION_ID');
-  return ghSecret;
-}
 
 function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
   const tables = {} as Record<string, Table>;
@@ -94,7 +81,7 @@ export function gh({ stack }: StackContext): {
     GITHUB_SG_ACCESS_TOKEN,
     AUTH_PUBLIC_KEY,
     GIT_ORGANIZATION_ID,
-  } = initializeGHSecrets(stack);
+  } = use(commonConfig);
 
   // Initialize DynamoDB Tables
   const { githubMappingTable, retryProcessTable } = initializeDynamoDBTables(stack);
