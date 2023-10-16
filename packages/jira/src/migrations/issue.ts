@@ -52,7 +52,6 @@ export const handler = async function issuesMigrate(event: SQSEvent): Promise<vo
         logger.error(JSON.stringify({ error, record }));
         await logProcessToRetry(record, Queue.jira_issue_format.queueUrl, error as Error);
         logger.error('issueMigrateDataReciever.error', error);
-        throw error;
       }
     })
   );
