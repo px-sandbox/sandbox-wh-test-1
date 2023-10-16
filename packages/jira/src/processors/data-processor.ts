@@ -72,12 +72,12 @@ export abstract class DataProcessor<T, S> {
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const organization: Search<MultiSearchBody> = await _esClient.search(
+    const organization = await _esClient.search(
       Jira.Enums.IndexName.Organization,
       'name',
       orgName
-    );
+    ) as Jira.Type.Organization;
 
-    return organization.hits.hits[0]._source;
+    return organization;
   }
 }

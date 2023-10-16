@@ -10,27 +10,31 @@ export class BoardProcessor extends DataProcessor<Jira.Mapper.Board, Jira.Type.B
     super(data);
   }
   public async processor(): Promise<Jira.Type.Board> {
-    const parentId = await this.getParentId(`${mappingPrefixes.board}_${this.apiData.id}`);
+    const parentId = await this.getParentId(`${mappingPrefixes.board}_${this.apiData.id}
+    _${mappingPrefixes.org}_${this.apiData.organization}`);
     const orgData = await this.getOrganizationId(this.apiData.organization);
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const apiBoardData = await jiraClient.getBoard(this.apiData.id);
-
+    const { projectId, ...locData } = apiBoardData.location;
     const boardObj = {
       id: parentId || uuid(),
       body: {
-        id: `${mappingPrefixes.board}_${this.apiData?.id}`,
+        id: `${mappingPrefixes.board}_${this.apiData?.id}_${mappingPrefixes.org}_${orgData.body.id}`,
         boardId: this.apiData?.id,
         self: this.apiData.self,
         name: this.apiData.name,
         type: apiBoardData.type,
-        location: apiBoardData?.location ?? null,
+        location: {
+          projectId: `${mappingPrefixes.project}_${projectId}_${mappingPrefixes.org}_${orgData.body.id}`,
+          ...locData
+        },
         filter: this.apiData?.filter ?? null,
         columnConfig: this.apiData?.columnConfig ?? null,
         ranking: this.apiData?.ranking ?? null,
         isDeleted: !!this.apiData.isDeleted,
         deletedAt: this.apiData?.deletedAt ?? null,
         createdAt: this.apiData.createdAt,
-        organizationId: orgData.body.id ?? null,
+        organizationId: `${mappingPrefixes.organization}_${orgData.body.id}` ?? null,
       },
     };
     return boardObj;

@@ -13,7 +13,6 @@ const boards = async function getBoardsData(
 ): Promise<APIGatewayProxyResult> {
     const { orgId, projectId: projectIdString } = event.queryStringParameters as { orgId: string, projectId: string };
 
-    let boardResponse: any = [];
     try {
         const esClient = new ElasticSearchClient({
             host: Config.OPENSEARCH_NODE,
@@ -44,7 +43,7 @@ const boards = async function getBoardsData(
         });
 
         // formatting above query response data
-        boardResponse = await searchedDataFormator(data);
+        const boardResponse = await searchedDataFormator(data);
 
         const boardsData = await Promise.all([
             ...boardResponse.map(
@@ -89,7 +88,7 @@ const boards = async function getBoardsData(
         let statusCode = notFound;
         if (boardsData) {
             statusCode = ok;
-            body = { orgId, projectIdString, boards: formatBoardResponse(boardsData) };
+            body = { organizationId: orgId, projectId: projectIdString, boards: formatBoardResponse(boardsData) };
         }
         return responseParser
             .setBody(body)

@@ -3,6 +3,7 @@ export type Sprint = {
   body: {
     id: string;
     jiraSprintId: string;
+    projectId: string;
     self: string;
     state: string;
     name: string;
@@ -10,7 +11,7 @@ export type Sprint = {
     startDate: string;
     endDate: string;
     completeDate: string;
-    originBoardId: number;
+    originBoardId: string;
     organizationId: string;
     isDeleted: boolean;
     deletedAt: string;

@@ -125,7 +125,6 @@ const indices = [
           properties: {
             id: { type: 'keyword' },
             jiraSprintId: { type: 'keyword' },
-            projectKey: { type: 'keyword' },
             self: { type: 'text' },
             name: { type: 'keyword' },
             state: { type: 'text' },
