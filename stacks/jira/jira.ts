@@ -66,7 +66,14 @@ function intializeJiraCron(
   });
 }
 // eslint-disable-next-line max-lines-per-function,
-export function jira({ stack }: StackContext): { jiraApi: Api<Record<string, any>> } {
+export function jira({ stack }: StackContext): {
+  jiraApi: Api<{
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    universal: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
+  }>;
+} {
   const {
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
