@@ -88,7 +88,7 @@ const boards = async function getBoardsData(
         let statusCode = notFound;
         if (boardsData) {
             statusCode = ok;
-            body = { orgId, projectIdString, boards: formatBoardResponse(boardsData) };
+            body = { organizationId: orgId, projectId: projectIdString, boards: formatBoardResponse(boardsData) };
         }
         return responseParser
             .setBody(body)
