@@ -22,10 +22,10 @@ export class IssueProcessor extends DataProcessor<
   }
 
   public async processor(): Promise<Jira.Type.Issue> {
+    const [orgData] = await this.getOrganizationId(this.apiData.organization);
     const parentId: string | undefined = await this.getParentId(
-      `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${this.apiData.organization}`
+      `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`
     );
-    const orgData = await this.getOrganizationId(this.apiData.organization);
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issue = await jiraClient.getIssue(this.apiData.issue.id);
     const changelogArr = await getIssueChangelogs(this.apiData.organization, this.apiData.issue.id);
@@ -41,11 +41,10 @@ export class IssueProcessor extends DataProcessor<
     const issueObj = {
       id: parentId || uuid(),
       body: {
-        id: `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.body.id}`,
+        id: `${mappingPrefixes.issue}_${this.apiData.issue.id}`,
         issueId: `${this.apiData.issue.id}`,
         projectKey: this.apiData.issue.fields.project.key,
-        projectId: `${mappingPrefixes.project}_${this.apiData.issue.fields.project.id}
-        _${mappingPrefixes.org}_${orgData.body.id}`,
+        projectId: `${mappingPrefixes.project}_${this.apiData.issue.fields.project.id}`,
         issueKey: this.apiData.issue.key,
         isFTP: this.apiData.issue.fields.labels?.includes('FTP') ?? false,
         isFTF: this.apiData.issue.fields.labels?.includes('FTF') ?? false,
@@ -56,14 +55,11 @@ export class IssueProcessor extends DataProcessor<
         label: this.apiData.issue.fields.labels,
         issueLinks: this.apiData.issue.fields.issuelinks,
         assigneeId: this.apiData.issue.fields.assignee?.accountId ?
-          `${mappingPrefixes.user}_${this.apiData.issue.fields.assignee.accountId}
-          _${mappingPrefixes.org}_${orgData.body.id}` : null,
+          `${mappingPrefixes.user}_${this.apiData.issue.fields.assignee.accountId}` : null,
         reporterId: this.apiData.issue.fields.reporter?.accountId ?
-          `${mappingPrefixes.user}_${this.apiData.issue.fields.reporter.accountId}
-        _${mappingPrefixes.org}_${orgData.body.id}` : null,
+          `${mappingPrefixes.user}_${this.apiData.issue.fields.reporter.accountId}` : null,
         creatorId: this.apiData.issue.fields.creator?.accountId ?
-          `${mappingPrefixes.user}_${this.apiData.issue.fields.creator.accountId}
-        _${mappingPrefixes.org}_${orgData.body.id}` : null,
+          `${mappingPrefixes.user}_${this.apiData.issue.fields.creator.accountId}` : null,
         status: this.apiData.issue.fields.status.name,
         subtasks: this.apiData.issue.fields.subtasks,
         createdDate: this.apiData.issue.fields.created,
@@ -73,7 +69,7 @@ export class IssueProcessor extends DataProcessor<
         boardId: this.getBoardId(issue),
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
-        organizationId: `${mappingPrefixes.organization}_${orgData.body.id}`,
+        organizationId: orgData.id,
         changelog: { items: changelogItems },
       },
     };

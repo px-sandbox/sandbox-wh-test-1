@@ -6,6 +6,7 @@ import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
 import { ParamsMapping } from '../../model/params-mapping';
+import { mappingPrefixes } from '../../constant/config';
 
 /**
  * Saves the details of a Jira board to DynamoDB and Elasticsearch.
@@ -17,7 +18,9 @@ export async function saveBoardDetails(data: Jira.Type.Board): Promise<void> {
   try {
     const updatedData = { ...data };
     logger.info('saveBoardDetails.invoked');
-    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
+    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(
+      data.id,
+      `${data.body.id}_${mappingPrefixes.org}_${data.body.organizationId}`));
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',

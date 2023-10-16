@@ -1,8 +1,7 @@
-import { StackContext, Api, Table, Config, Queue, Function, Cron, use } from 'sst/constructs';
+import { StackContext, Api, Table, Queue, Function, Cron, use } from 'sst/constructs';
 import { Duration, Stack } from 'aws-cdk-lib';
 import { commonConfig } from './common/config';
 import { Stage } from './type/stack-config';
-
 
 function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
   const tables = {} as Record<string, Table>;
@@ -70,7 +69,7 @@ export function gh({ stack }: StackContext): {
     admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
   }>;
 } {
-  const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
+  const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, AUTH_PUBLIC_KEY } = use(commonConfig);
   // Destructure secrets
   const {
     GITHUB_APP_ID,
@@ -79,7 +78,7 @@ export function gh({ stack }: StackContext): {
     GITHUB_SG_INSTALLATION_ID,
     GITHUB_WEBHOOK_SECRET,
     GITHUB_SG_ACCESS_TOKEN,
-    AUTH_PUBLIC_KEY,
+    // AUTH_PUBLIC_KEY,
     GIT_ORGANIZATION_ID,
   } = use(commonConfig);
 
