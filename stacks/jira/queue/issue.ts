@@ -13,6 +13,19 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_REDIRECT_URI,
   } = use(commonConfig);
 
+  const issueIndexDataQueue = new Queue(stack, 'jira_issue_index', {
+    consumer: {
+      function: {
+        handler: 'packages/jira/src/sqs/handlers/indexer/issue.handler',
+      },
+      cdk: {
+        eventSource: {
+          batchSize: 5,
+        },
+      },
+    },
+  });
+
   const issueFormatDataQueue = new Queue(stack, 'jira_issue_format');
   issueFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'jira_issue_format_func', {
@@ -26,18 +39,6 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     },
   });
 
-  const issueIndexDataQueue = new Queue(stack, 'jira_issue_index', {
-    consumer: {
-      function: {
-        handler: 'packages/jira/src/sqs/handlers/indexer/issue.handler',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
 
   issueFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,

@@ -13,6 +13,19 @@ export function initializeSprintQueue(stack: Stack, jiraDDB: JiraTables): Queue[
     JIRA_REDIRECT_URI,
   } = use(commonConfig);
 
+  const sprintIndexDataQueue = new Queue(stack, 'jira_sprint_index', {
+    consumer: {
+      function: {
+        handler: 'packages/jira/src/sqs/handlers/indexer/sprint.handler',
+      },
+      cdk: {
+        eventSource: {
+          batchSize: 5,
+        },
+      },
+    },
+  });
+
   const sprintFormatDataQueue = new Queue(stack, 'jira_sprint_format');
   sprintFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'jira_sprint_format_func', {
@@ -26,18 +39,6 @@ export function initializeSprintQueue(stack: Stack, jiraDDB: JiraTables): Queue[
     },
   });
 
-  const sprintIndexDataQueue = new Queue(stack, 'jira_sprint_index', {
-    consumer: {
-      function: {
-        handler: 'packages/jira/src/sqs/handlers/indexer/sprint.handler',
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
 
   sprintFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,
