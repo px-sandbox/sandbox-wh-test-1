@@ -47,7 +47,7 @@ export const handler = async function projectMigration(event: SQSEvent): Promise
 
       } catch (error) {
         logger.error(JSON.stringify({ error, event }));
-        await logProcessToRetry(record, Queue.jira_issue_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.jira_project_migrate.queueUrl, error as Error);
         logger.error('projectMigrateDataReciever.error', error);
       }
     })

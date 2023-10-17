@@ -270,7 +270,7 @@ export class JiraClient {
     };
 
 
-    return data;
+    //return data;
 
     if (newResult.startAt >= newResult.total) {
       return newResult;
