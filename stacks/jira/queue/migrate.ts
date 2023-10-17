@@ -154,9 +154,9 @@ export function initializeMigrateQueue(
 
   return [
     projectMigrateQueue,
+    userMigrateQueue,
     boardMigrateQueue,
     sprintMigrateQueue,
     issueMigrateQueue,
-    userMigrateQueue,
   ];
 }

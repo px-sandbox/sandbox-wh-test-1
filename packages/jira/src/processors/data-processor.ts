@@ -1,10 +1,12 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
+import { searchedDataFormator } from '../util/response-formatter';
 import { ParamsMapping } from '../model/params-mapping';
+
 
 /**
  * Abstract class for processing Jira API data.
@@ -66,7 +68,8 @@ export abstract class DataProcessor<T, S> {
    * @param orgName - Name of the organization.
    * @returns Returns the organization ID.
    */
-  public async getOrganizationId(orgName: string): Promise<Jira.Type.Organization> {
+  public async getOrganizationId(orgName: string):
+    Promise<[] | (Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody)[]> {
     const _esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
@@ -76,8 +79,10 @@ export abstract class DataProcessor<T, S> {
       Jira.Enums.IndexName.Organization,
       'name',
       orgName
-    ) as Jira.Type.Organization;
+    );
 
-    return organization;
+    const orgData = searchedDataFormator(organization);
+
+    return orgData;
   }
 }

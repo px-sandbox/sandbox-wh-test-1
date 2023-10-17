@@ -4,21 +4,22 @@ import { JiraClient } from '../lib/jira-client';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 
+
 export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.User> {
   constructor(data: Jira.Mapper.User) {
     super(data);
   }
   public async processor(): Promise<Jira.Type.User> {
+    const [orgData] = await this.getOrganizationId(this.apiData.organization);
     const parentId = await this.getParentId(
-      `${mappingPrefixes.user}_${this.apiData.accountId}_${mappingPrefixes.org}_${this.apiData.organization}`
+      `${mappingPrefixes.user}_${this.apiData.accountId}_${mappingPrefixes.org}_${orgData.orgId}`
     );
-    const orgData = await this.getOrganizationId(this.apiData.organization);
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const apiUserData = await jiraClient.getUser(this.apiData.accountId);
     const userObj = {
       id: parentId || uuid(),
       body: {
-        id: `${mappingPrefixes.user}_${this.apiData?.accountId}_${mappingPrefixes.org}_${orgData.body.id}`,
+        id: `${mappingPrefixes.user}_${this.apiData?.accountId}`,
         userId: this.apiData?.accountId,
         userType: this.apiData?.accountType,
         emailAddress: this.apiData?.emailAddress ?? null,
@@ -37,7 +38,7 @@ export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.Use
         isDeleted: !!this.apiData.isDeleted,
         deletedAt: this.apiData?.deletedAt ?? null,
         createdAt: this.apiData.createdAt,
-        organizationId: `${mappingPrefixes.organization}}_${orgData.body.id}` ?? null,
+        organizationId: orgData.id ?? null,
       },
     };
     return userObj;

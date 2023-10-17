@@ -13,19 +13,20 @@ export class SprintProcessor extends DataProcessor<
   }
 
   public async processor(): Promise<Jira.Type.Sprint> {
+    const [orgData] = await this.getOrganizationId(this.apiData.organization);
     const parentId: string | undefined = await this.getParentId(
-      `${mappingPrefixes.sprint}_${this.apiData.id}_${mappingPrefixes.org}_${this.apiData.organization}`
+      `${mappingPrefixes.sprint}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`
     );
-    const orgData = await this.getOrganizationId(this.apiData.organization);
+
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const board = await jiraClient.getBoard(this.apiData.originBoardId);
 
     const sprintObj = {
       id: parentId || uuid(),
       body: {
-        id: `${mappingPrefixes.sprint}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.body.id}`,
+        id: `${mappingPrefixes.sprint}_${this.apiData.id}`,
         jiraSprintId: `${this.apiData.id}`,
-        projectId: `${mappingPrefixes.project}_${board.location?.projectId}_${mappingPrefixes.org}_${orgData.body.id}`,
+        projectId: `${mappingPrefixes.project}_${board.location?.projectId}`,
         self: this.apiData.self,
         name: this.apiData.name,
         state: this.apiData.state,
@@ -33,11 +34,10 @@ export class SprintProcessor extends DataProcessor<
         startDate: this.apiData.startDate,
         endDate: this.apiData.endDate,
         completeDate: this.apiData.completeDate,
-        originBoardId: `${mappingPrefixes.board}_${this.apiData.originBoardId}
-        _${mappingPrefixes.org}_${orgData.body.id}`,
+        originBoardId: `${mappingPrefixes.board}_${this.apiData.originBoardId}`,
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
-        organizationId: `${mappingPrefixes.organization}_${orgData.body.id}` ?? null,
+        organizationId: orgData.id ?? null,
       },
     };
     return sprintObj;
