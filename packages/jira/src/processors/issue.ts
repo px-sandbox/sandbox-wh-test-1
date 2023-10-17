@@ -34,7 +34,7 @@ export class IssueProcessor extends DataProcessor<
     if (changelogArr.length > 0) {
       changelogItems = changelogArr.flatMap((changelog) => changelog.items);
       reOpenCount = changelogItems.filter(
-        (items) => items.to === '10036' || items.toString === 'QA Failed'
+        (items) => items.to === '11905' || items.toString === 'QA Failed'
       ).length;
     }
 
@@ -70,7 +70,7 @@ export class IssueProcessor extends DataProcessor<
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.id,
-        changelog: { items: changelogItems },
+        changelog: changelogItems,
       },
     };
     return issueObj;

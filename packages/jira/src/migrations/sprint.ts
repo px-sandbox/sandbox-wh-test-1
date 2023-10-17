@@ -48,7 +48,7 @@ export const handler = async function migrateSprint(event: SQSEvent): Promise<vo
         return checkAndSave(organization, projectId, boardId);
       } catch (error) {
         logger.error(JSON.stringify({ error, record }));
-        await logProcessToRetry(record, Queue.jira_issue_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.jira_sprint_migrate.queueUrl, error as Error);
         logger.error('sprintMigrateDataReciever.error', error);
       }
     })

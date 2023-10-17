@@ -27,7 +27,7 @@ export const handler = async function userMigration(event: SQSEvent): Promise<vo
 
       } catch (error) {
         logger.error(JSON.stringify({ error, event }));
-        await logProcessToRetry(record, Queue.jira_issue_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.jira_user_migrate.queueUrl, error as Error);
         logger.error('userMigrateDataReciever.error', error);
       }
     })

@@ -8,7 +8,7 @@ export const handler = async function migrate(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const organization = event?.queryStringParameters?.orgName ?? '';
-  // const projects = event?.queryStringParameters?.projects?.split(',') || [];
+  const projects = event?.queryStringParameters?.projects?.split(',') || [];
 
   const sqsClient = new SQSClient();
 
@@ -41,7 +41,7 @@ export const handler = async function migrate(
   ]);
 
   // Filter from projects
-  const projectsToSend = projectsFromJira.filter(({ name }) => name === 'Pulse');
+  const projectsToSend = projectsFromJira.filter((project) => projects.includes(project.name));
 
   logger.info(`
 

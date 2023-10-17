@@ -29,6 +29,6 @@ export type Issue = {
     isDeleted?: boolean | null;
     deletedAt?: string | null;
     organizationId: string;
-    changelog: { items: ChangelogItem[] };
+    changelog: ChangelogItem[];
   };
 };

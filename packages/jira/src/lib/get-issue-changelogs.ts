@@ -6,12 +6,9 @@ export async function getIssueChangelogs(organization: string, issueId: string):
     const jira = await JiraClient.getClient(organization);
     const changelogs = await jira.getIssueChangelogs(issueId);
 
-    const changelogValues: Jira.ExternalType.Api.Changelogs[] = changelogs.map((changelog) => {
+    const changelogValues: Jira.ExternalType.Api.Changelogs[] = changelogs.flatMap((changelog) => {
         const items = changelog.items.filter((item) => item.fieldtype === 'jira' && item.field === 'status');
-        return {
-            ...changelog,
-            items,
-        };
+        return { items };
     });
     return changelogValues;
 }

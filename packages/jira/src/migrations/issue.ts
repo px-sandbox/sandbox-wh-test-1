@@ -50,7 +50,7 @@ export const handler = async function issuesMigrate(event: SQSEvent): Promise<vo
         return checkAndSave(organization, projectId, originBoardId, sprintId);
       } catch (error) {
         logger.error(JSON.stringify({ error, record }));
-        await logProcessToRetry(record, Queue.jira_issue_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.jira_issue_migrate.queueUrl, error as Error);
         logger.error('issueMigrateDataReciever.error', error);
       }
     })
