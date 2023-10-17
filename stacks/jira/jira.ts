@@ -113,6 +113,8 @@ export function jira({ stack }: StackContext): {
   });
 
   const [projectMigrateQueue,
+    sprintMigrateQueue,
+    issueMigrateQueue,
     userMigrateQueue] = initializeMigrateQueue(
       stack,
       {
@@ -228,7 +230,8 @@ export function jira({ stack }: StackContext): {
       'GET /jira/migrate': {
         function: {
           handler: 'packages/jira/src/service/migrate.handler',
-          bind: [projectMigrateQueue, userMigrateQueue],
+          bind: [projectMigrateQueue, userMigrateQueue, sprintMigrateQueue,
+            issueMigrateQueue],
         },
         authorizer: 'admin',
       },
@@ -237,6 +240,14 @@ export function jira({ stack }: StackContext): {
       'GET /jira/boards': {
         function: 'packages/jira/src/service/board/get-boards.handler',
         authorizer: 'universal',
+      },
+
+      'GET /jira/refresh-token': {
+        function: {
+          handler: 'packages/jira/src/cron/refresh-token.updateRefreshToken',
+          bind: [jiraCredsTable, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET, JIRA_REDIRECT_URI],
+        },
+        authorizer: 'admin',
       },
     }
   });
