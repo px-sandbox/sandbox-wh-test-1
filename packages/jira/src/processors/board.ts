@@ -25,7 +25,7 @@ export class BoardProcessor extends DataProcessor<Jira.Mapper.Board, Jira.Type.B
         name: this.apiData.name,
         type: apiBoardData.type,
         projectId: `${mappingPrefixes.project}_${projectId}`,
-        projectKey: projectKey,
+        projectKey,
         filter: this.apiData?.filter ?? null,
         columnConfig: this.apiData?.columnConfig ?? null,
         ranking: this.apiData?.ranking ?? null,
