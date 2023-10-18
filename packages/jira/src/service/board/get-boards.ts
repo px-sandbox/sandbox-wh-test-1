@@ -25,7 +25,7 @@ const boards = async function getBoardsData(
         const query = {
             bool: {
                 must: [
-                    { match: { 'body.location.projectId': projectId } },
+                    { match: { 'body.projectId': projectId } },
                     { match: { 'body.organizationId': orgId } },
                     { match: { 'body.type': Jira.Enums.BoardType.Scrum } },
                     { match: { 'body.isDeleted': false } },
@@ -54,7 +54,7 @@ const boards = async function getBoardsData(
                         bool: {
                             must: [
                                 { match: { 'body.originBoardId': item.boardId } },
-                                { match: { 'body.projectKey': projectId } },
+                                { match: { 'body.projectId': projectId } },
                                 { match: { 'body.organizationId': orgId } },
                                 { match: { 'body.isDeleted': false } },
                             ],
