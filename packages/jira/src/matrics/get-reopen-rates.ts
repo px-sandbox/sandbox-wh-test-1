@@ -39,21 +39,39 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
 
     const response: IssueReponse[] = [];
     await Promise.all(
-      reopenRateGraphResponse.sprint_buckets.buckets.map(async (item) => {
-        const sprintData = await getSprints(item.key);
-        if (sprintData) {
+      sprintIds.map(async (sprintId) => {
+        const sprintData = await getSprints(sprintId);
+
+        const bugsData = reopenRateGraphResponse.sprint_buckets.buckets.find((obj) => obj.key === sprintId);
+        if (bugsData) {
+
           response.push({
-            totalBugs: item.doc_count ?? 0,
-            totalReopen: item.isFTP_true_count.doc_count ?? 0,
+            total: bugsData?.doc_count ?? 0,
+            totalFtp: bugsData?.isFTP_true_count?.doc_count ?? 0,
             sprint: sprintData.name,
             status: sprintData.state,
             start: sprintData.startDate,
             end: sprintData.endDate,
-            percentValue: item.isFTP_true_count.doc_count === 0 ? 0 :
-              (item.isFTP_true_count.doc_count / item.doc_count) * 100,
+            percentValue: bugsData?.isFTP_true_count?.doc_count === 0 ? 0 :
+              (bugsData.isFTP_true_count.doc_count / bugsData.doc_count) * 100,
           });
         }
       })
+      // reopenRateGraphResponse.sprint_buckets.buckets.map(async (item) => {
+      //   const sprintData = await getSprints(item.key);
+      //   if (sprintData) {
+      //     response.push({
+      //       totalBugs: item.doc_count ?? 0,
+      //       totalReopen: item.isFTP_true_count.doc_count ?? 0,
+      //       sprint: sprintData.name,
+      //       status: sprintData.state,
+      //       start: sprintData.startDate,
+      //       end: sprintData.endDate,
+      //       percentValue: item.isFTP_true_count.doc_count === 0 ? 0 :
+      //         (item.isFTP_true_count.doc_count / item.doc_count) * 100,
+      //     });
+      //   }
+      // })
     );
     return response;
   } catch (e) {

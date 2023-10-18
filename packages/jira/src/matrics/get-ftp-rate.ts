@@ -39,21 +39,39 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
 
     const response: IssueReponse[] = [];
     await Promise.all(
-      ftpRateGraphResponse.sprint_buckets.buckets.map(async (item) => {
-        const sprintData = await getSprints(item.key);
-        if (sprintData) {
+      sprintIds.map(async (sprintId) => {
+        const sprintData = await getSprints(sprintId);
+
+        const ftpData = ftpRateGraphResponse.sprint_buckets.buckets.find((obj) => obj.key === sprintId);
+        if (ftpData) {
+
           response.push({
-            total: item.doc_count ?? 0,
-            totalFtp: item.isFTP_true_count.doc_count ?? 0,
+            total: ftpData?.doc_count ?? 0,
+            totalFtp: ftpData?.isFTP_true_count?.doc_count ?? 0,
             sprint: sprintData.name,
             status: sprintData.state,
             start: sprintData.startDate,
             end: sprintData.endDate,
-            percentValue: item.isFTP_true_count.doc_count === 0 ? 0 :
-              (item.isFTP_true_count.doc_count / item.doc_count) * 100,
+            percentValue: ftpData?.isFTP_true_count?.doc_count === 0 ? 0 :
+              (ftpData.isFTP_true_count.doc_count / ftpData.doc_count) * 100,
           });
         }
       })
+      // ftpRateGraphResponse.sprint_buckets.buckets.map(async (item) => {
+      //   const sprintData = await getSprints(item.key);
+      //   if (sprintData) {
+      //     response.push({
+      //       total: item?.doc_count ?? 0,
+      //       totalFtp: item?.isFTP_true_count?.doc_count ?? 0,
+      //       sprint: sprintData.name,
+      //       status: sprintData.state,
+      //       start: sprintData.startDate,
+      //       end: sprintData.endDate,
+      //       percentValue: item?.isFTP_true_count?.doc_count === 0 ? 0 :
+      //         (item.isFTP_true_count.doc_count / item.doc_count) * 100,
+      //     });
+      //   }
+      // })
     );
     return response;
   } catch (e) {
