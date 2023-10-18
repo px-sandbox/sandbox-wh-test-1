@@ -1,7 +1,8 @@
+import { SQSClient } from '@pulse/event-handler';
+import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import { Queue } from 'sst/node/queue';
-import { SQSClient } from '@pulse/event-handler';
 import { JiraClient } from '../lib/jira-client';
 
 export const handler = async function migrate(
@@ -9,6 +10,7 @@ export const handler = async function migrate(
 ): Promise<APIGatewayProxyResult> {
   const organization = event?.queryStringParameters?.orgName ?? '';
   const projects = event?.queryStringParameters?.projects?.split(',') || [];
+  const importUsers = event?.queryStringParameters?.importUsers ?? 'false';
 
   const sqsClient = new SQSClient();
 
@@ -32,13 +34,18 @@ export const handler = async function migrate(
 
   const client = await JiraClient.getClient(organization);
 
-  const [
-    projectsFromJira,
-    usersFromJira
-  ] = await Promise.all([
-    client.getProjects(),
-    client.getUsers(),
-  ]);
+  let usersFromJira: Jira.ExternalType.Api.User[] = [];
+  if (importUsers === 'true') {
+    usersFromJira = await client.getUsers();
+  }
+
+  const projectsFromJira = await client.getProjects();
+  // const [
+  //   projectsFromJira,
+  // ] = await Promise.all([
+  //   client.getProjects(),
+  //   client.getUsers(),
+  // ]);
 
   // Filter from projects
   const projectsToSend = projectsFromJira.filter((project) => projects.includes(project.name));

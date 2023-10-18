@@ -25,7 +25,7 @@ export class SprintProcessor extends DataProcessor<
       id: parentId || uuid(),
       body: {
         id: `${mappingPrefixes.sprint}_${this.apiData.id}`,
-        jiraSprintId: `${this.apiData.id}`,
+        sprintId: `${this.apiData.id}`,
         projectId: `${mappingPrefixes.project}_${board.location?.projectId}`,
         self: this.apiData.self,
         name: this.apiData.name,

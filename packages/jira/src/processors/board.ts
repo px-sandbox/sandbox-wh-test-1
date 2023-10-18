@@ -15,7 +15,7 @@ export class BoardProcessor extends DataProcessor<Jira.Mapper.Board, Jira.Type.B
     _${mappingPrefixes.org}_${orgData.orgId}`);
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const apiBoardData = await jiraClient.getBoard(this.apiData.id);
-    const { projectId, ...locData } = apiBoardData.location;
+    const { projectId, projectKey } = apiBoardData.location;
     const boardObj = {
       id: parentId || uuid(),
       body: {
@@ -24,10 +24,8 @@ export class BoardProcessor extends DataProcessor<Jira.Mapper.Board, Jira.Type.B
         self: this.apiData.self,
         name: this.apiData.name,
         type: apiBoardData.type,
-        location: {
-          projectId: `${mappingPrefixes.project}_${projectId}`,
-          ...locData
-        },
+        projectId: `${mappingPrefixes.project}_${projectId}`,
+        projectKey: projectKey,
         filter: this.apiData?.filter ?? null,
         columnConfig: this.apiData?.columnConfig ?? null,
         ranking: this.apiData?.ranking ?? null,

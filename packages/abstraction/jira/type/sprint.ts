@@ -2,7 +2,7 @@ export type Sprint = {
   id: string;
   body: {
     id: string;
-    jiraSprintId: string;
+    sprintId: string;
     projectId: string;
     self: string;
     state: string;

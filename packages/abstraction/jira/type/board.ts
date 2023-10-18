@@ -8,15 +8,8 @@ export type Board = {
     self: string;
     name: string;
     type?: BoardType;
-    location: {
-      projectId: string;
-      displayName: string;
-      projectName: string;
-      projectKey: string;
-      projectTypeKey: string;
-      avatarURI: string;
-      name: string;
-    } | null;
+    projectKey: string;
+    projectId: string;
     filter?: {
       id: string;
       self: string;
