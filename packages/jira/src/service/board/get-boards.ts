@@ -12,8 +12,13 @@ const boards = async function getBoardsData(
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
     const { orgId, projectId } = event.queryStringParameters as { orgId: string, projectId: string };
-
     logger.info({ level: 'info', message: 'jira orgId', data: { orgId, projectId } });
+
+    // To get all boards and sprints for a project we set 1000 items for now as per our assumption 
+    // there will be less than 1000 boards or 1000 sprints for a project
+    const size = 1000;
+    const from = 0;
+
 
     try {
         const esClient = new ElasticSearchClient({
@@ -21,7 +26,7 @@ const boards = async function getBoardsData(
             username: Config.OPENSEARCH_USERNAME ?? '',
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
-        // when projectId will be mapped with jira_project_ prefix then we will remove this line
+
 
         logger.info({ level: 'info', message: 'jira projectId', data: projectId });
         const query = {
@@ -41,6 +46,8 @@ const boards = async function getBoardsData(
             body: {
                 query,
             },
+            from,
+            size,
         });
 
         // formatting above query response data
@@ -69,6 +76,8 @@ const boards = async function getBoardsData(
                             sort: [{ 'body.startDate': { order: 'asc' } }],
                             query: sprintQuery,
                         },
+                        from,
+                        size,
                     });
 
                     const sprintsResponse = await searchedDataFormator(sprintsData);
