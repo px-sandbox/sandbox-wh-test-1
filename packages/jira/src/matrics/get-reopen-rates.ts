@@ -37,24 +37,30 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
       reopenRateGraphQuery
     );
 
-    const response: IssueReponse[] = [];
-    await Promise.all(
-      reopenRateGraphResponse.sprint_buckets.buckets.map(async (item) => {
-        const sprintData = await getSprints(item.key);
-        if (sprintData) {
-          response.push({
-            totalBugs: item.doc_count,
-            totalReopen: item.isFTP_true_count.doc_count,
-            sprint: sprintData.name,
-            status: sprintData.state,
-            start: sprintData.startDate,
-            end: sprintData.endDate,
-            percentValue: item.isFTP_true_count.doc_count === 0 ? 0 :
-              (item.isFTP_true_count.doc_count / item.doc_count) * 100,
-          });
-        }
+    const response: IssueReponse[] = await Promise.all(
+      sprintIds.map(async (sprintId) => {
+        const sprintData = await getSprints(sprintId);
+
+        const bugsData = reopenRateGraphResponse.sprint_buckets.buckets.find((obj) => obj.key === sprintId);
+
+        const totalBugs = bugsData?.doc_count ?? 0;
+        const totalReopen = bugsData?.isFTP_true_count?.doc_count ?? 0;
+        const percentValue = totalBugs === 0 ? 0 : (totalReopen / totalBugs) * 100;
+
+        return {
+          totalBugs,
+          totalReopen,
+          sprint: sprintData.name,
+          status: sprintData.state,
+          start: sprintData.startDate,
+          end: sprintData.endDate,
+          percentValue: Number.isNaN(percentValue) ? 0 : percentValue,
+        };
+
       })
+
     );
+
     return response;
   } catch (e) {
     logger.error('reopenRateGraphQuery.error', e);
@@ -89,8 +95,8 @@ export async function reopenRateGraphAvg(
       body: reopenRateGraphQuery,
     });
     return {
-      totalBugs: reopenRateGraphResponse.body.hits.total.value,
-      totalReopen: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count,
+      totalBugs: reopenRateGraphResponse.body.hits.total.value ?? 0,
+      totalReopen: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count ?? 0,
       percentValue: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count === 0 ? 0 :
         (reopenRateGraphResponse.body.aggregations.reopenRate.doc_count /
           reopenRateGraphResponse.body.hits.total.value) * 100,
