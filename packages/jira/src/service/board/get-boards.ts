@@ -13,6 +13,8 @@ const boards = async function getBoardsData(
 ): Promise<APIGatewayProxyResult> {
     const { orgId, projectId } = event.queryStringParameters as { orgId: string, projectId: string };
 
+    logger.info({ level: 'info', message: 'jira orgId', data: { orgId, projectId } });
+
     try {
         const esClient = new ElasticSearchClient({
             host: Config.OPENSEARCH_NODE,
@@ -53,7 +55,7 @@ const boards = async function getBoardsData(
                     const sprintQuery = {
                         bool: {
                             must: [
-                                { match: { 'body.originBoardId': item.boardId } },
+                                { match: { 'body.originBoardId': item.id } },
                                 { match: { 'body.projectId': projectId } },
                                 { match: { 'body.organizationId': orgId } },
                                 { match: { 'body.isDeleted': false } },
