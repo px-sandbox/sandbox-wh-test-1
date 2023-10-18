@@ -42,7 +42,7 @@ export class IssueProcessor extends DataProcessor<
       id: parentId || uuid(),
       body: {
         id: `${mappingPrefixes.issue}_${this.apiData.issue.id}`,
-        issueId: `${this.apiData.issue.id}`,
+        issueId: this.apiData.issue.id,
         projectKey: this.apiData.issue.fields.project.key,
         projectId: `${mappingPrefixes.project}_${this.apiData.issue.fields.project.id}`,
         issueKey: this.apiData.issue.key,

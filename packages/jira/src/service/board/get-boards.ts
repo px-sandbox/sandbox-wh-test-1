@@ -11,7 +11,7 @@ import { getBoardsSchema } from '../validations';
 const boards = async function getBoardsData(
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-    const { orgId, projectId: projectIdString } = event.queryStringParameters as { orgId: string, projectId: string };
+    const { orgId, projectId } = event.queryStringParameters as { orgId: string, projectId: string };
 
     try {
         const esClient = new ElasticSearchClient({
@@ -20,7 +20,6 @@ const boards = async function getBoardsData(
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
         // when projectId will be mapped with jira_project_ prefix then we will remove this line
-        const projectId = projectIdString.split('jira_project_')[1];
 
         logger.info({ level: 'info', message: 'jira projectId', data: projectId });
         const query = {
@@ -88,7 +87,7 @@ const boards = async function getBoardsData(
         let statusCode = notFound;
         if (boardsData) {
             statusCode = ok;
-            body = { organizationId: orgId, projectId: projectIdString, boards: formatBoardResponse(boardsData) };
+            body = { organizationId: orgId, projectId, boards: formatBoardResponse(boardsData) };
         }
         return responseParser
             .setBody(body)

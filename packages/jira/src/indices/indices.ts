@@ -124,7 +124,7 @@ const indices = [
           type: 'object',
           properties: {
             id: { type: 'keyword' },
-            jiraSprintId: { type: 'keyword' },
+            sprintId: { type: 'keyword' },
             self: { type: 'text' },
             name: { type: 'keyword' },
             state: { type: 'text' },
@@ -151,7 +151,7 @@ const indices = [
           type: 'object',
           properties: {
             id: { type: 'keyword' },
-            jiraIssueId: { type: 'keyword' },
+            issueId: { type: 'keyword' },
             issueKey: { type: 'keyword' },
             projectKey: { type: 'keyword' },
             isFTP: { type: 'boolean' },
@@ -241,18 +241,8 @@ const indices = [
             self: { type: 'text' },
             name: { type: 'text' },
             type: { type: 'keyword' },
-            location: {
-              type: 'object',
-              properties: {
-                projectId: { type: 'keyword' },
-                displayName: { type: 'text' },
-                projectName: { type: 'text' },
-                projectKey: { type: 'keyword' },
-                projectTypeKey: { type: 'keyword' },
-                avatarURI: { type: 'text' },
-                name: { type: 'text' },
-              },
-            },
+            projectId: { type: 'keyword' },
+            projectKey: { type: 'keyword' },
             filter: {
               type: 'object',
               properties: {
