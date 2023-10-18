@@ -17,10 +17,11 @@ import { mappingPrefixes } from '../../constant/config';
 export async function saveBoardDetails(data: Jira.Type.Board): Promise<void> {
   try {
     const updatedData = { ...data };
+    const orgId = data.body.organizationId.split('org_')[1];
     logger.info('saveBoardDetails.invoked');
     await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(
       data.id,
-      `${data.body.id}_${mappingPrefixes.org}_${data.body.organizationId}`));
+      `${data.body.id}_${mappingPrefixes.org}_${orgId}`));
     const esClientObj = await new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
