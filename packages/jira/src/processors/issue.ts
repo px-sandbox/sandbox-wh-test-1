@@ -15,10 +15,12 @@ export class IssueProcessor extends DataProcessor<
   }
 
   public getSprintId(issue: Jira.ExternalType.Api.Issue): string | null {
-    return issue.fields.sprint ? `${mappingPrefixes.sprint}_${issue.fields.sprint.id}` : null;
+    const sprint = issue.fields.sprint || issue.fields.closedSprints[0];
+    return sprint ? `${mappingPrefixes.sprint}_${sprint.id}` : null;
   }
   public getBoardId(issue: Jira.ExternalType.Api.Issue): string | null {
-    return issue.fields.sprint ? `${mappingPrefixes.board}_${issue.fields.sprint.originBoardId}` : null;
+    const sprint = issue.fields.sprint || issue.fields.closedSprints[0];
+    return sprint ? `${mappingPrefixes.board}_${sprint.originBoardId}` : null;
   }
 
   public async processor(): Promise<Jira.Type.Issue> {
@@ -27,7 +29,7 @@ export class IssueProcessor extends DataProcessor<
       `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`
     );
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
-    const issue = await jiraClient.getIssue(this.apiData.issue.id);
+    const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
     const changelogArr = await getIssueChangelogs(this.apiData.organization, this.apiData.issue.id);
     let reOpenCount = 0;
     let changelogItems: Array<ChangelogItem> = [];
@@ -65,8 +67,8 @@ export class IssueProcessor extends DataProcessor<
         createdDate: this.apiData.issue.fields.created,
         lastUpdated: this.apiData.issue.fields.updated,
         lastViewed: this.apiData.issue.fields.lastViewed,
-        sprintId: this.getSprintId(issue),
-        boardId: this.getBoardId(issue),
+        sprintId: this.getSprintId(issueDataFromApi),
+        boardId: this.getBoardId(issueDataFromApi),
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.id,
