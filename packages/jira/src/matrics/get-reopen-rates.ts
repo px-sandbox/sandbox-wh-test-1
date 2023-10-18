@@ -37,42 +37,30 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
       reopenRateGraphQuery
     );
 
-    const response: IssueReponse[] = [];
-    await Promise.all(
+    const response: IssueReponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
 
         const bugsData = reopenRateGraphResponse.sprint_buckets.buckets.find((obj) => obj.key === sprintId);
-        if (bugsData) {
 
-          response.push({
-            total: bugsData?.doc_count ?? 0,
-            totalFtp: bugsData?.isFTP_true_count?.doc_count ?? 0,
-            sprint: sprintData.name,
-            status: sprintData.state,
-            start: sprintData.startDate,
-            end: sprintData.endDate,
-            percentValue: bugsData?.isFTP_true_count?.doc_count === 0 ? 0 :
-              (bugsData.isFTP_true_count.doc_count / bugsData.doc_count) * 100,
-          });
-        }
+        const totalBugs = bugsData?.doc_count ?? 0;
+        const totalReopen = bugsData?.isFTP_true_count?.doc_count ?? 0;
+        const percentValue = totalBugs === 0 ? 0 : (totalReopen / totalBugs) * 100;
+
+        return {
+          totalBugs,
+          totalReopen,
+          sprint: sprintData.name,
+          status: sprintData.state,
+          start: sprintData.startDate,
+          end: sprintData.endDate,
+          percentValue: Number.isNaN(percentValue) ? 0 : percentValue,
+        };
+
       })
-      // reopenRateGraphResponse.sprint_buckets.buckets.map(async (item) => {
-      //   const sprintData = await getSprints(item.key);
-      //   if (sprintData) {
-      //     response.push({
-      //       totalBugs: item.doc_count ?? 0,
-      //       totalReopen: item.isFTP_true_count.doc_count ?? 0,
-      //       sprint: sprintData.name,
-      //       status: sprintData.state,
-      //       start: sprintData.startDate,
-      //       end: sprintData.endDate,
-      //       percentValue: item.isFTP_true_count.doc_count === 0 ? 0 :
-      //         (item.isFTP_true_count.doc_count / item.doc_count) * 100,
-      //     });
-      //   }
-      // })
+
     );
+
     return response;
   } catch (e) {
     logger.error('reopenRateGraphQuery.error', e);

@@ -37,42 +37,30 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
       ftpRateGraphQuery
     );
 
-    const response: IssueReponse[] = [];
-    await Promise.all(
+    const response: IssueReponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
 
         const ftpData = ftpRateGraphResponse.sprint_buckets.buckets.find((obj) => obj.key === sprintId);
-        if (ftpData) {
 
-          response.push({
-            total: ftpData?.doc_count ?? 0,
-            totalFtp: ftpData?.isFTP_true_count?.doc_count ?? 0,
-            sprint: sprintData.name,
-            status: sprintData.state,
-            start: sprintData.startDate,
-            end: sprintData.endDate,
-            percentValue: ftpData?.isFTP_true_count?.doc_count === 0 ? 0 :
-              (ftpData.isFTP_true_count.doc_count / ftpData.doc_count) * 100,
-          });
-        }
+        const total = ftpData?.doc_count ?? 0;
+        const totalFtp = ftpData?.isFTP_true_count?.doc_count ?? 0;
+        const percentValue = totalFtp === 0 || total === 0 ? 0 : (totalFtp / total) * 100;
+
+        return {
+          total,
+          totalFtp,
+          sprint: sprintData.name,
+          status: sprintData.state,
+          start: sprintData.startDate,
+          end: sprintData.endDate,
+          percentValue: Number.isNaN(percentValue) ? 0 : percentValue,
+        };
+
       })
-      // ftpRateGraphResponse.sprint_buckets.buckets.map(async (item) => {
-      //   const sprintData = await getSprints(item.key);
-      //   if (sprintData) {
-      //     response.push({
-      //       total: item?.doc_count ?? 0,
-      //       totalFtp: item?.isFTP_true_count?.doc_count ?? 0,
-      //       sprint: sprintData.name,
-      //       status: sprintData.state,
-      //       start: sprintData.startDate,
-      //       end: sprintData.endDate,
-      //       percentValue: item?.isFTP_true_count?.doc_count === 0 ? 0 :
-      //         (item.isFTP_true_count.doc_count / item.doc_count) * 100,
-      //     });
-      //   }
-      // })
+
     );
+
     return response;
   } catch (e) {
     logger.error('ftpRateGraphQuery.error', e);
