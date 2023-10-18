@@ -15,11 +15,11 @@ export class IssueProcessor extends DataProcessor<
   }
 
   public getSprintId(issue: Jira.ExternalType.Api.Issue): string | null {
-    const sprint = issue.fields.sprint || issue.fields.closedSprints[0];
+    const sprint = issue.fields?.sprint || (issue.fields?.closedSprints && issue.fields.closedSprints[0]);
     return sprint ? `${mappingPrefixes.sprint}_${sprint.id}` : null;
   }
   public getBoardId(issue: Jira.ExternalType.Api.Issue): string | null {
-    const sprint = issue.fields.sprint || issue.fields.closedSprints[0];
+    const sprint = issue.fields?.sprint || (issue.fields?.closedSprints && issue.fields.closedSprints[0]);
     return sprint ? `${mappingPrefixes.board}_${sprint.originBoardId}` : null;
   }
 
