@@ -12,13 +12,13 @@ export type Issue = {
       originBoardId: string;
       goal: string;
     };
-    closedSprints: {
+    closedSprints: [{
       id: string;
       self: string;
       state: string;
       name: string;
       goal: string;
-    };
+    }];
     description: string;
     project: {
       self: string;
