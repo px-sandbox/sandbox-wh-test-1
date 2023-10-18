@@ -43,8 +43,8 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
         const sprintData = await getSprints(item.key);
         if (sprintData) {
           response.push({
-            total: item.doc_count,
-            totalFtp: item.isFTP_true_count.doc_count,
+            total: item.doc_count ?? 0,
+            totalFtp: item.isFTP_true_count.doc_count ?? 0,
             sprint: sprintData.name,
             status: sprintData.state,
             start: sprintData.startDate,
@@ -91,8 +91,8 @@ export async function ftpRateGraphAvg(
       body: ftpRateGraphQuery,
     });
     return {
-      total: ftpRateGraphResponse.body.hits.total.value,
-      totalFtp: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count,
+      total: ftpRateGraphResponse.body.hits.total.value ?? 0,
+      totalFtp: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count ?? 0,
       percentValue: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count === 0 ? 0 :
         (ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count /
           ftpRateGraphResponse.body.hits.total.value) * 100,

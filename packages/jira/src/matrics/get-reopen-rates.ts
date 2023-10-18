@@ -43,8 +43,8 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
         const sprintData = await getSprints(item.key);
         if (sprintData) {
           response.push({
-            totalBugs: item.doc_count,
-            totalReopen: item.isFTP_true_count.doc_count,
+            totalBugs: item.doc_count ?? 0,
+            totalReopen: item.isFTP_true_count.doc_count ?? 0,
             sprint: sprintData.name,
             status: sprintData.state,
             start: sprintData.startDate,
@@ -89,8 +89,8 @@ export async function reopenRateGraphAvg(
       body: reopenRateGraphQuery,
     });
     return {
-      totalBugs: reopenRateGraphResponse.body.hits.total.value,
-      totalReopen: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count,
+      totalBugs: reopenRateGraphResponse.body.hits.total.value ?? 0,
+      totalReopen: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count ?? 0,
       percentValue: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count === 0 ? 0 :
         (reopenRateGraphResponse.body.aggregations.reopenRate.doc_count /
           reopenRateGraphResponse.body.hits.total.value) * 100,
