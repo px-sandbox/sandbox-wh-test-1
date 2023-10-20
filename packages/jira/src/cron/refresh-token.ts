@@ -1,9 +1,9 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { HttpStatusCode, logger, responseParser } from 'core';
+import { APIGatewayProxyResult } from 'aws-lambda';
 import { Table } from 'sst/node/table';
 import { getTokens } from '../lib/get-token';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
-import { APIGatewayProxyResult } from 'aws-lambda';
 
 // get credIds from dynamoDB
 // for each credId, call getToken
