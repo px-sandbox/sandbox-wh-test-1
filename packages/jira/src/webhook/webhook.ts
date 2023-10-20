@@ -106,6 +106,12 @@ async function processWebhookEvent(
     case Jira.Enums.Event.BoardConfigUpdated:
       await board.updateConfig(body.configuration, organization);
       break;
+    case Jira.Enums.Event.BoardUpdated:
+      await board.update(body.board, organization);
+      break;
+    case Jira.Enums.Event.BoardDeleted:
+      await board.delete(body.board.id, eventTime);
+      break;
     case Jira.Enums.Event.IssueCreated:
       await issue.create({ issue: body.issue, changelog: body.changelog, organization });
       break;
