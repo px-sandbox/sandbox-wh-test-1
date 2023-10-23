@@ -11,3 +11,18 @@ export interface IFtpRateResponse {
     ];
   };
 }
+
+export interface IReopenRateResponse {
+  sprint_buckets: {
+    buckets: [
+      {
+        key: string;
+        doc_count: number;
+        reopen_count: {
+          doc_count: number;
+        };
+      }
+    ];
+  };
+}
+

@@ -119,13 +119,10 @@ async function processWebhookEvent(
       await issue.update({ issue: body.issue, changelog: body.changelog, organization });
       break;
     case Jira.Enums.Event.IssueDeleted:
-      await issue.deleted({
-        issue: body.issue,
-        changelog: body.changelog,
-        organization,
-        isDeleted: true,
-        deletedAt: eventTime.toISOString(),
-      });
+      await issue.remove(
+        body.issue.id,
+        eventTime,
+      );
       break;
     default:
       logger.info(`No case found for ${eventName} in Jira webhook event`);
