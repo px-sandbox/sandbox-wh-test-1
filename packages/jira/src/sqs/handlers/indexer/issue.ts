@@ -1,7 +1,7 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { saveIssueDetails } from '../../../repository/save-issue';
+import { saveIssueDetails } from '../../../repository/issue/save-issue';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function issueIndexDataReciever(event: SQSEvent): Promise<void> {
