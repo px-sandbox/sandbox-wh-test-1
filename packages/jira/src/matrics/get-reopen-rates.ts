@@ -54,7 +54,7 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
           status: sprintData.state,
           start: sprintData.startDate,
           end: sprintData.endDate,
-          percentValue: Number.isNaN(percentValue) ? 0 : percentValue,
+          percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
         };
 
       })
@@ -98,8 +98,8 @@ export async function reopenRateGraphAvg(
       totalBugs: reopenRateGraphResponse.body.hits.total.value ?? 0,
       totalReopen: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count ?? 0,
       percentValue: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count === 0 ? 0 :
-        (reopenRateGraphResponse.body.aggregations.reopenRate.doc_count /
-          reopenRateGraphResponse.body.hits.total.value) * 100,
+        Number(((reopenRateGraphResponse.body.aggregations.reopenRate.doc_count /
+          reopenRateGraphResponse.body.hits.total.value) * 100).toFixed(2)),
     };
   } catch (e) {
     logger.error('AvgReopenRateGraphQuery.error', e);
