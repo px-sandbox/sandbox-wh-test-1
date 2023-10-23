@@ -45,6 +45,7 @@ const boards = async function getBoardsData(
             index: Jira.Enums.IndexName.Board,
             body: {
                 query,
+                sort: [{ 'body.boardId': { order: 'desc' } }]
             },
             from,
             size,
@@ -73,7 +74,7 @@ const boards = async function getBoardsData(
                     const { body: sprintsData } = await esClient.getClient().search({
                         index: Jira.Enums.IndexName.Sprint,
                         body: {
-                            sort: [{ 'body.startDate': { order: 'asc' } }],
+                            sort: [{ 'body.startDate': { order: 'desc' } }],
                             query: sprintQuery,
                         },
                         from,
