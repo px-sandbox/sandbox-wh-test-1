@@ -54,7 +54,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
           status: sprintData.state,
           start: sprintData.startDate,
           end: sprintData.endDate,
-          percentValue: Number.isNaN(percentValue) ? 0 : percentValue,
+          percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
         };
 
       })
@@ -100,8 +100,8 @@ export async function ftpRateGraphAvg(
       total: ftpRateGraphResponse.body.hits.total.value ?? 0,
       totalFtp: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count ?? 0,
       percentValue: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count === 0 ? 0 :
-        (ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count /
-          ftpRateGraphResponse.body.hits.total.value) * 100,
+        Number(((ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count /
+          ftpRateGraphResponse.body.hits.total.value) * 100).toFixed(2)),
     };
   } catch (e) {
     logger.error('ftpRateGraphQuery.error', e);
