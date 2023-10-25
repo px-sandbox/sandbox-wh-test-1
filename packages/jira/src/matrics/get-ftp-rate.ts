@@ -18,7 +18,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
     ftpRateGraphQuery.query(
       esb
         .boolQuery()
-        .must([esb.termsQuery('body.sprintId', sprintIds)])
+        .must([esb.termsQuery('body.sprintId', sprintIds), esb.termQuery('body.isDeleted', false)])
         .should([esb.termQuery('body.isFTP', true), esb.termQuery('body.isFTF', true)])
         .minimumShouldMatch(1)
     );
@@ -81,7 +81,7 @@ export async function ftpRateGraphAvg(
     ftpRateGraphQuery.query(
       esb
         .boolQuery()
-        .must([esb.termsQuery('body.sprintId', sprintIds)])
+        .must([esb.termsQuery('body.sprintId', sprintIds), esb.termQuery('body.isDeleted', false)])
         .mustNot(esb.termQuery('body.priority', 'HIGH'))
         .should([esb.termQuery('body.isFTP', true), esb.termQuery('body.isFTF', true)])
         .minimumShouldMatch(1)
