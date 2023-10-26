@@ -77,7 +77,7 @@ export type Issue = {
   };
   changelog: {
     id: string;
-    items: changelogItems[];
+    items: ChangelogItem[];
   };
   isDeleted?: boolean;
   deletedAt?: string;

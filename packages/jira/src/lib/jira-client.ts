@@ -262,9 +262,8 @@ export class JiraClient {
     });
 
     const newResult = {
-      ...result,
       issues: [...result.issues, ...data.issues],
-      startAt: data.startAt + result.issues.length,
+      startAt: data.startAt + data.issues.length,
       maxResults: data.maxResults,
       total: data.total,
     };
