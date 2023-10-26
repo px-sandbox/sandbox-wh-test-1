@@ -249,6 +249,13 @@ export function jira({ stack }: StackContext): {
         },
         authorizer: 'admin',
       },
+
+      'GET /jira/retry/failed': {
+        function: {
+          handler: 'packages/jira/src/cron/process-jira-retry.handler'
+        },
+        authorizer: 'admin',
+      },
     }
   });
 
