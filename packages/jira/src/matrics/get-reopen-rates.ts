@@ -1,7 +1,7 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
-import { IFtpRateResponse } from 'abstraction/jira/type';
+import { IReopenRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
@@ -19,20 +19,23 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
     reopenRateGraphQuery.query(
       esb
         .boolQuery()
-        .must([esb.termsQuery('body.sprintId', sprintIds)])
-        .mustNot(esb.termQuery('body.issueType', IssuesTypes.BUG))
+        .must([
+          esb.termsQuery('body.sprintId', sprintIds),
+          esb.termQuery('body.issueType', IssuesTypes.BUG),
+          esb.termQuery('body.isDeleted', false),
+        ])
     );
     reopenRateGraphQuery
       .agg(
         esb
           .termsAggregation('sprint_buckets', 'body.sprintId')
-          .agg(esb.filterAggregation('isFTP_true_count', esb.rangeQuery('body.reopenCount').gte(0)))
+          .agg(esb.filterAggregation('reopen_count', esb.rangeQuery('body.reOpenCount').gt(0)))
       )
       .toJSON();
 
     logger.info('reopenRateGraphQuery', reopenRateGraphQuery);
 
-    const reopenRateGraphResponse: IFtpRateResponse = await esClientObj.queryAggs<IFtpRateResponse>(
+    const reopenRateGraphResponse: IReopenRateResponse = await esClientObj.queryAggs<IReopenRateResponse>(
       Jira.Enums.IndexName.Issue,
       reopenRateGraphQuery
     );
@@ -41,10 +44,12 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
 
-        const bugsData = reopenRateGraphResponse.sprint_buckets.buckets.find((obj) => obj.key === sprintId);
+        const bugsData = reopenRateGraphResponse.sprint_buckets.buckets.find(
+          (obj) => obj.key === sprintId
+        );
 
         const totalBugs = bugsData?.doc_count ?? 0;
-        const totalReopen = bugsData?.isFTP_true_count?.doc_count ?? 0;
+        const totalReopen = bugsData?.reopen_count?.doc_count ?? 0;
         const percentValue = totalBugs === 0 ? 0 : (totalReopen / totalBugs) * 100;
 
         return {
@@ -54,11 +59,9 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
           status: sprintData.state,
           start: sprintData.startDate,
           end: sprintData.endDate,
-          percentValue: Number.isNaN(percentValue) ? 0 : percentValue,
+          percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
         };
-
       })
-
     );
 
     return response;
@@ -70,7 +73,7 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
 
 export async function reopenRateGraphAvg(
   sprintIds: string[]
-): Promise<{ totalBugs: string; totalReopen: string, percentValue: number }> {
+): Promise<{ totalBugs: string; totalReopen: string; percentValue: number }> {
   try {
     const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -81,11 +84,14 @@ export async function reopenRateGraphAvg(
     reopenRateGraphQuery.query(
       esb
         .boolQuery()
-        .must([esb.termsQuery('body.sprintId', sprintIds)])
-        .mustNot(esb.termQuery('body.issueType', IssuesTypes.BUG))
+        .must([
+          esb.termsQuery('body.sprintId', sprintIds),
+          esb.termQuery('body.issueType', IssuesTypes.BUG),
+          esb.termQuery('body.isDeleted', false),
+        ])
     );
     reopenRateGraphQuery
-      .agg(esb.filterAggregation('reopenRate', esb.rangeQuery('body.reopenCount').gte(0)))
+      .agg(esb.filterAggregation('reopenRate', esb.rangeQuery('body.reOpenCount').gt(0)))
       .toJSON();
 
     logger.info('AvgReopenRateGraphQuery', reopenRateGraphQuery);
@@ -97,9 +103,16 @@ export async function reopenRateGraphAvg(
     return {
       totalBugs: reopenRateGraphResponse.body.hits.total.value ?? 0,
       totalReopen: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count ?? 0,
-      percentValue: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count === 0 ? 0 :
-        (reopenRateGraphResponse.body.aggregations.reopenRate.doc_count /
-          reopenRateGraphResponse.body.hits.total.value) * 100,
+      percentValue:
+        reopenRateGraphResponse.body.aggregations.reopenRate.doc_count === 0
+          ? 0
+          : Number(
+            (
+              (reopenRateGraphResponse.body.aggregations.reopenRate.doc_count /
+                reopenRateGraphResponse.body.hits.total.value) *
+              100
+            ).toFixed(2)
+          ),
     };
   } catch (e) {
     logger.error('AvgReopenRateGraphQuery.error', e);

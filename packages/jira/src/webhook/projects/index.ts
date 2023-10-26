@@ -1,4 +1,4 @@
-export {  create } from './create';
-export {  update } from './update';
+export { create } from './create';
+export { update } from './update';
 export { deleteProject as delete } from './delete';
-export { restoreDeleted} from './restoreDeleted';
+export { restoreDeleted } from './restoreDeleted';

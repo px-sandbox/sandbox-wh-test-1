@@ -4,9 +4,9 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
-import { searchedDataFormator } from '../util/response-formatter';
-import { ParamsMapping } from '../model/params-mapping';
-import { mappingPrefixes } from '../constant/config';
+import { searchedDataFormator } from '../../util/response-formatter';
+import { ParamsMapping } from '../../model/params-mapping';
+import { mappingPrefixes } from '../../constant/config';
 
 export async function saveIssueDetails(data: Jira.Type.Issue): Promise<void> {
   try {
