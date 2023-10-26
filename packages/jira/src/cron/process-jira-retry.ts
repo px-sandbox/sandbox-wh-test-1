@@ -23,7 +23,7 @@ export async function handler(): Promise<void> {
   logger.info(`RetryProcessHandler invoked at: ${new Date().toISOString()}`);
 
   const processes = await new DynamoDbDocClient().scan(
-    new RetryTableMapping().prepareScanParams()
+    new RetryTableMapping().prepareScanParams(1000)
   );
 
   if (processes.length === 0) {
@@ -34,5 +34,5 @@ export async function handler(): Promise<void> {
   await Promise.all(
     processes.map((record: unknown) => processIt(record as Jira.Type.QueueMessage))
   );
-  
+
 }
