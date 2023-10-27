@@ -18,7 +18,11 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
     ftpRateGraphQuery.query(
       esb
         .boolQuery()
-        .must([esb.termsQuery('body.sprintId', sprintIds), esb.termQuery('body.isDeleted', false)])
+        .must([
+          esb.termsQuery('body.sprintId', sprintIds),
+          esb.termQuery('body.isDeleted', false),
+          esb.termQuery('body.issueType', Jira.Enums.IssuesTypes.TASK),
+        ])
         .should([esb.termQuery('body.isFTP', true), esb.termQuery('body.isFTF', true)])
         .minimumShouldMatch(1)
     );
@@ -41,7 +45,9 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
 
-        const ftpData = ftpRateGraphResponse.sprint_buckets.buckets.find((obj) => obj.key === sprintId);
+        const ftpData = ftpRateGraphResponse.sprint_buckets.buckets.find(
+          (obj) => obj.key === sprintId
+        );
 
         const total = ftpData?.doc_count ?? 0;
         const totalFtp = ftpData?.isFTP_true_count?.doc_count ?? 0;
@@ -56,9 +62,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
           end: sprintData.endDate,
           percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
         };
-
       })
-
     );
 
     return response;
@@ -70,7 +74,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
 
 export async function ftpRateGraphAvg(
   sprintIds: string[]
-): Promise<{ total: string; totalFtp: string, percentValue: number }> {
+): Promise<{ total: string; totalFtp: string; percentValue: number }> {
   try {
     const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -81,7 +85,11 @@ export async function ftpRateGraphAvg(
     ftpRateGraphQuery.query(
       esb
         .boolQuery()
-        .must([esb.termsQuery('body.sprintId', sprintIds), esb.termQuery('body.isDeleted', false)])
+        .must([
+          esb.termsQuery('body.sprintId', sprintIds),
+          esb.termQuery('body.isDeleted', false),
+          esb.termQuery('body.issueType', Jira.Enums.IssuesTypes.TASK),
+        ])
         .mustNot(esb.termQuery('body.priority', 'HIGH'))
         .should([esb.termQuery('body.isFTP', true), esb.termQuery('body.isFTF', true)])
         .minimumShouldMatch(1)
@@ -99,9 +107,16 @@ export async function ftpRateGraphAvg(
     return {
       total: ftpRateGraphResponse.body.hits.total.value ?? 0,
       totalFtp: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count ?? 0,
-      percentValue: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count === 0 ? 0 :
-        Number(((ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count /
-          ftpRateGraphResponse.body.hits.total.value) * 100).toFixed(2)),
+      percentValue:
+        ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count === 0
+          ? 0
+          : Number(
+            (
+              (ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count /
+                ftpRateGraphResponse.body.hits.total.value) *
+              100
+            ).toFixed(2)
+          ),
     };
   } catch (e) {
     logger.error('ftpRateGraphQuery.error', e);

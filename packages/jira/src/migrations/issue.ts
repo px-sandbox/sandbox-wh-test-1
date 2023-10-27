@@ -12,7 +12,7 @@ async function checkAndSave(
   sprintId: string
 ): Promise<void> {
   const jira = await JiraClient.getClient(organization);
-  const issues = await jira.getIssues(boardId, sprintId);
+  const issues = await jira.getIssues(sprintId);
 
   logger.info(`
   FETCHING ISSUES FOR THIS 
