@@ -26,7 +26,13 @@ export async function saveSprintDetails(data: Jira.Type.Sprint): Promise<void> {
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
+    const matchQry =
+      esb
+        .boolQuery()
+        .must([
+          esb.termsQuery('body.id', data.body.id),
+          esb.termQuery('body.organizationId', data.body.organizationId),
+        ]).toJSON();
     const sprintData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Sprint, matchQry);
     const [formattedData] = await searchedDataFormator(sprintData);
     if (formattedData) {

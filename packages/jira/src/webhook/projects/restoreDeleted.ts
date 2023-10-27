@@ -8,15 +8,17 @@ import { getProjectById } from '../../repository/project/get-project';
 /**
  * Restores a deleted project in Jira.
  * @param project The project to restore.
- * @param eventTime 
+ * @param eventTime The time the event occurred.
+ * @param organization The organization the project belongs to.
  * @returns A Promise that resolves with void if the project is successfully restored,
  *  or false if the project is not found.
  */
 export async function restoreDeleted(
   projectId: number,
   eventTime: moment.Moment,
+  organization: string
 ): Promise<void | false> {
-  const projectData = await getProjectById(projectId);
+  const projectData = await getProjectById(projectId, organization);
   if (!projectData) {
     logger.info('projectDeletedEvent: Project not found');
     return false;

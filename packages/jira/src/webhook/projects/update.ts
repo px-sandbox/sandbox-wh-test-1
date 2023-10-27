@@ -20,7 +20,7 @@ export async function update(
   eventTime: moment.Moment,
   organization: string
 ): Promise<void | false> {
-  const projectIndexData = await getProjectById(project.id);
+  const projectIndexData = await getProjectById(project.id, organization);
   if (!projectIndexData) {
     logger.info('projectUpdatedEvent: Project not found');
     return false;

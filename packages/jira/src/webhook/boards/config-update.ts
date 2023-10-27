@@ -16,7 +16,7 @@ export async function updateConfig(
   organization: string
 ): Promise<void | false> {
   try {
-    const boardIndexData = await getBoardById(config.id);
+    const boardIndexData = await getBoardById(config.id, organization);
     if (!boardIndexData) {
       logger.info('boardConfigUpdatedEvent: Board not found');
       return false;

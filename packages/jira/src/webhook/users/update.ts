@@ -15,7 +15,7 @@ export async function update(
   user: Jira.ExternalType.Webhook.User,
   organization: string
 ): Promise<void | false> {
-  const userIndexData = await getUserById(user.accountId);
+  const userIndexData = await getUserById(user.accountId, organization);
   if (!userIndexData) {
     logger.info('userUpdatedEvent: User not found');
     return false;

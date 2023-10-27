@@ -27,7 +27,13 @@ export async function saveBoardDetails(data: Jira.Type.Board): Promise<void> {
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
+    const matchQry =
+      esb
+        .boolQuery()
+        .must([
+          esb.termsQuery('body.id', data.body.id),
+          esb.termQuery('body.organizationId', data.body.organizationId),
+        ]).toJSON();
     logger.info('saveBoardDetails.matchQry------->', { matchQry });
     const boardData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Board, matchQry);
     const [formattedData] = await searchedDataFormatorWithDeleted(boardData);

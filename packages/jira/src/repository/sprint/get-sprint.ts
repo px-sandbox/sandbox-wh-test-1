@@ -5,6 +5,7 @@ import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import { mappingPrefixes } from '../../constant/config';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
+import { getOrganizationId } from '../organization/get-organization';
 
 /**
  * Retrieves sprint data by sprint ID.
@@ -13,7 +14,8 @@ import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
  * @throws An error if the sprint data cannot be retrieved.
  */
 export async function getSprintById(
-    sprintId: string
+    sprintId: string,
+    organization: string
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
     try {
         const esClientObj = new ElasticSearchClient({
@@ -21,7 +23,14 @@ export async function getSprintById(
             username: Config.OPENSEARCH_USERNAME ?? '',
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
-        const matchQry = esb.matchQuery('body.id', `${mappingPrefixes.sprint}_${sprintId}`).toJSON();
+        const [org] = await getOrganizationId(organization);
+        const matchQry =
+            esb
+                .boolQuery()
+                .must([
+                    esb.termsQuery('body.id', `${mappingPrefixes.sprint}_${sprintId}`),
+                    esb.termQuery('body.organizationId', `${org.id}`),
+                ]).toJSON();
         const sprintData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Sprint, matchQry);
         const [formattedSprintData] = await searchedDataFormatorWithDeleted(sprintData);
         return formattedSprintData;

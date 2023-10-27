@@ -27,7 +27,13 @@ export async function saveUserDetails(data: Jira.Type.User): Promise<void> {
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
+    const matchQry =
+      esb
+        .boolQuery()
+        .must([
+          esb.termsQuery('body.id', data.body.id),
+          esb.termQuery('body.organizationId', data.body.organizationId),
+        ]).toJSON();
     logger.info('saveUserDetails.matchQry------->', { matchQry });
     const userData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Users, matchQry);
     const [formattedData] = await searchedDataFormatorWithDeleted(userData);

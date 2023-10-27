@@ -8,14 +8,16 @@ import { saveSprintDetails } from '../../repository/sprint/save-sprint';
  * Deletes a sprint by ID.
  * @param sprintId - The ID of the sprint to delete.
  * @param eventTime - The time the event occurred.
+ * @param organization - The organization the sprint belongs to.
  * @returns A Promise that resolves with void if the sprint was deleted successfully,
  *  or false if the sprint was not found.
  */
 export async function deleteSprint(
   sprintId: string,
   eventTime: moment.Moment,
+  organization: string
 ): Promise<void | false> {
-  const sprintData = await getSprintById(sprintId);
+  const sprintData = await getSprintById(sprintId, organization);
   if (!sprintData) {
     logger.info('sprintDeletedEvent: Sprint not found');
     return false;

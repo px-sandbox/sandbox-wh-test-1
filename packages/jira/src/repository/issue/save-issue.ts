@@ -27,7 +27,13 @@ export async function saveIssueDetails(data: Jira.Type.Issue): Promise<void> {
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
+    const matchQry =
+      esb
+        .boolQuery()
+        .must([
+          esb.termsQuery('body.id', data.body.id),
+          esb.termQuery('body.organizationId', data.body.organizationId),
+        ]).toJSON();
     const issueData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Issue, matchQry);
     const [formattedData] = await searchedDataFormator(issueData);
     if (formattedData) {

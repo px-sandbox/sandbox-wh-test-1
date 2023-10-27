@@ -16,7 +16,7 @@ export async function update(
     board: Jira.ExternalType.Webhook.Board,
     organization: string
 ): Promise<void | false> {
-    const boardIndexData = await getBoardById(board.id);
+    const boardIndexData = await getBoardById(board.id, organization);
     if (!boardIndexData) {
         logger.info('boardUpdatedEvent: Board not found');
         return false;
