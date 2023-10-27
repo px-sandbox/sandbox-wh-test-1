@@ -23,14 +23,14 @@ export const handler = async function migrate(
       .send();
   }
 
-  // if (projects.length === 0) {
-  //   return responseParser
-  //     .setBody({})
-  //     .setMessage('Please send some projects')
-  //     .setStatusCode(HttpStatusCode[400])
-  //     .setResponseBodyCode('SUCCESS')
-  //     .send();
-  // }
+  if (projects.length === 0) {
+    return responseParser
+      .setBody({})
+      .setMessage('Please send some projects name to migrate')
+      .setStatusCode(HttpStatusCode[400])
+      .setResponseBodyCode('SUCCESS')
+      .send();
+  }
 
   const client = await JiraClient.getClient(organization);
 
@@ -40,15 +40,9 @@ export const handler = async function migrate(
   }
 
   const projectsFromJira = await client.getProjects();
-  // const [
-  //   projectsFromJira,
-  // ] = await Promise.all([
-  //   client.getProjects(),
-  //   client.getUsers(),
-  // ]);
 
   // Filter from projects
-  const projectsToSend = projectsFromJira.filter((project) => projects.includes(project.name));
+  const projectsToSend = projectsFromJira.filter((project) => projects.includes(project.name.trim()));
 
   logger.info(`
 
