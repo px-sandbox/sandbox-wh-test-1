@@ -33,7 +33,7 @@ export async function fetchAndSaveOrganizationDetails(
             new ParamsMapping().preparePutParams(formattedData.id, formattedData.body.id)
           );
         }
-        await new ElasticSearchClient({
+        new ElasticSearchClient({
           host: Config.OPENSEARCH_NODE,
           username: Config.OPENSEARCH_USERNAME ?? '',
           password: Config.OPENSEARCH_PASSWORD ?? '',

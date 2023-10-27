@@ -19,10 +19,6 @@ node_modules
 
 # IDE - VSCode
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 
 # misc
 /.sass-cache
@@ -54,3 +50,5 @@ localfile
 livefile
 
 pnpm-lock-deleted.yaml
+
+dynamodb_vol/*

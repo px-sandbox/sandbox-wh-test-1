@@ -1,22 +1,7 @@
-import { StackContext, Api, Table, Config, Queue, Function, Cron } from 'sst/constructs';
+import { StackContext, Api, Table, Queue, Function, Cron, use } from 'sst/constructs';
 import { Duration, Stack } from 'aws-cdk-lib';
-
-function initializeSecrets(stack: Stack): Record<string, Config.Secret> {
-  const ghSecret = {} as Record<string, Config.Secret>;
-  // Set GITHUB config params
-  ghSecret.GITHUB_APP_ID = new Config.Secret(stack, 'GITHUB_APP_ID');
-  ghSecret.GITHUB_APP_PRIVATE_KEY_PEM = new Config.Secret(stack, 'GITHUB_APP_PRIVATE_KEY_PEM');
-  ghSecret.GITHUB_BASE_URL = new Config.Secret(stack, 'GITHUB_BASE_URL');
-  ghSecret.GITHUB_SG_INSTALLATION_ID = new Config.Secret(stack, 'GITHUB_SG_INSTALLATION_ID');
-  ghSecret.GITHUB_WEBHOOK_SECRET = new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET');
-  ghSecret.GITHUB_SG_ACCESS_TOKEN = new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN');
-  ghSecret.AUTH_PUBLIC_KEY = new Config.Secret(stack, 'AUTH_PUBLIC_KEY');
-  ghSecret.OPENSEARCH_NODE = new Config.Secret(stack, 'OPENSEARCH_NODE');
-  ghSecret.OPENSEARCH_USERNAME = new Config.Secret(stack, 'OPENSEARCH_USERNAME');
-  ghSecret.OPENSEARCH_PASSWORD = new Config.Secret(stack, 'OPENSEARCH_PASSWORD');
-  ghSecret.GIT_ORGANIZATION_ID = new Config.Secret(stack, 'GIT_ORGANIZATION_ID');
-  return ghSecret;
-}
+import { commonConfig } from './common/config';
+import { Stage } from './type/stack-config';
 
 function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
   const tables = {} as Record<string, Table>;
@@ -41,6 +26,7 @@ function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
 
 function intializeCron(
   stack: Stack,
+  stage: string,
   // eslint-disable-next-line @typescript-eslint/ban-types
   processRetryFunction: Function,
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -56,11 +42,13 @@ function intializeCron(
     job: processRetryFunction,
   });
 
-  // eslint-disable-next-line no-new
-  new Cron(stack, 'github-copilot-cron', {
-    schedule: 'cron(0 * ? * * *)',
-    job: ghCopilotFunction,
-  });
+  if (stage === Stage.LIVE) {
+    // eslint-disable-next-line no-new
+    new Cron(stack, 'github-copilot-cron', {
+      schedule: 'cron(0 * ? * * *)',
+      job: ghCopilotFunction,
+    });
+  }
 
   // initialize a cron that runs every night at 23:30 UTC
   // eslint-disable-next-line no-new
@@ -81,6 +69,7 @@ export function gh({ stack }: StackContext): {
     admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
   }>;
 } {
+  const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, AUTH_PUBLIC_KEY } = use(commonConfig);
   // Destructure secrets
   const {
     GITHUB_APP_ID,
@@ -89,12 +78,9 @@ export function gh({ stack }: StackContext): {
     GITHUB_SG_INSTALLATION_ID,
     GITHUB_WEBHOOK_SECRET,
     GITHUB_SG_ACCESS_TOKEN,
-    AUTH_PUBLIC_KEY,
-    OPENSEARCH_NODE,
-    OPENSEARCH_USERNAME,
-    OPENSEARCH_PASSWORD,
+    // AUTH_PUBLIC_KEY,
     GIT_ORGANIZATION_ID,
-  } = initializeSecrets(stack);
+  } = use(commonConfig);
 
   // Initialize DynamoDB Tables
   const { githubMappingTable, retryProcessTable } = initializeDynamoDBTables(stack);
@@ -547,6 +533,39 @@ export function gh({ stack }: StackContext): {
     },
   });
 
+  const commitFileChanges = new Queue(stack, 'gh_commit_file_changes', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(600),
+      },
+    },
+  });
+  commitFileChanges.addConsumer(stack, {
+    function: new Function(stack, 'commitFileChangesFunc', {
+      handler: 'packages/github/src/sqs/handlers/historical/migrate-commit-file-changes.handler',
+      timeout: '300 seconds',
+      runtime: 'nodejs18.x',
+      bind: [
+        commitIndexDataQueue,
+        commitFileChanges,
+        GITHUB_SG_INSTALLATION_ID,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        githubMappingTable,
+        retryProcessTable,
+        GIT_ORGANIZATION_ID,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+      ],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+
   // bind tables and config to queue
 
   userFormatDataQueue.bind([
@@ -888,6 +907,7 @@ export function gh({ stack }: StackContext): {
           collectPRCommitsData,
           collectPRReviewCommentsData,
           historicalBranch,
+          commitFileChanges,
         ],
       },
     },
@@ -982,11 +1002,21 @@ export function gh({ stack }: StackContext): {
         function: 'packages/github/src/service/get-lines-of-code.handler',
         authorizer: 'universal',
       },
+      'GET /github/file-changes-of-commit': {
+        function: 'packages/github/src/service/file-changes-of-commit.handler',
+        authorizer: 'universal',
+      },
     },
   });
 
   // Initialize cron
-  intializeCron(stack, processRetryFunction, ghCopilotFunction, ghBranchCounterFunction);
+  intializeCron(
+    stack,
+    stack.stage,
+    processRetryFunction,
+    ghCopilotFunction,
+    ghBranchCounterFunction
+  );
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,

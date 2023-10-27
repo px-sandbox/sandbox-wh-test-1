@@ -1,0 +1,22 @@
+// More Jira Webhook events can be added here
+export enum Event {
+  ProjectCreated = 'project_created',
+  ProjectUpdated = 'project_updated',
+  ProjectSoftDeleted = 'project_soft_deleted',
+  ProjectRestoreDeleted = 'project_restored_deleted',
+  UserCreated = 'user_created',
+  UserUpdated = 'user_updated',
+  UserDeleted = 'user_deleted',
+  SprintCreated = 'sprint_created',
+  SprintStarted = 'sprint_started',
+  SprintUpdated = 'sprint_updated',
+  SprintDeleted = 'sprint_deleted',
+  SprintClosed = 'sprint_closed',
+  BoardCreated = 'board_created',
+  BoardConfigUpdated = 'board_configuration_changed',
+  BoardUpdated = 'board_updated',
+  BoardDeleted = 'board_deleted',
+  IssueCreated = 'jira:issue_created',
+  IssueUpdated = 'jira:issue_updated',
+  IssueDeleted = 'jira:issue_deleted',
+}

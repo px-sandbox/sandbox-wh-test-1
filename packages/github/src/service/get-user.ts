@@ -17,11 +17,18 @@ const githubUser = async function getUserData(
   const githubUserId: string = event?.pathParameters?.githubUserId || '';
   let response: IformatUserDataResponse[] = [];
   try {
-    const data = await new ElasticSearchClient({
+    const esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
-    }).search(Github.Enums.IndexName.GitUsers, Github.Enums.SearchKey.GitUserId, githubUserId);
+    });
+
+    const data = await esClient.search(
+      Github.Enums.IndexName.GitUsers,
+      Github.Enums.SearchKey.GitUserId,
+      githubUserId
+    );
+
     response = await searchedDataFormator(data);
     logger.info({ level: 'info', message: 'github user data', data: response });
   } catch (error) {
