@@ -1,9 +1,9 @@
 import { Jira } from 'abstraction';
 import { v4 as uuid } from 'uuid';
+import { logger } from 'core';
 import { JiraClient } from '../lib/jira-client';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
-
 
 export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.User> {
   constructor(data: Jira.Mapper.User) {
@@ -11,6 +11,10 @@ export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.Use
   }
   public async processor(): Promise<Jira.Type.User> {
     const [orgData] = await this.getOrganizationId(this.apiData.organization);
+    if (!orgData) {
+      logger.error('Organization not found');
+      throw new Error('Organization not found');
+    }
     const parentId = await this.getParentId(
       `${mappingPrefixes.user}_${this.apiData.accountId}_${mappingPrefixes.org}_${orgData.orgId}`
     );
