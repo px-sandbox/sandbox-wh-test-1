@@ -5,6 +5,12 @@ import { SQSClient } from '@pulse/event-handler';
 import { getBoardById } from '../../repository/board/get-board';
 import { mappingToApiDataConfig } from './mapper';
 
+/**
+ * Updates the configuration of a Jira board.
+ * @param config - The new configuration for the board.
+ * @param organization - The name of the organization the board belongs to.
+ * @returns A Promise that resolves with void if the update is successful, or false if the board is not found.
+ */
 export async function updateConfig(
   config: Jira.ExternalType.Webhook.BoardConfig,
   organization: string

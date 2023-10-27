@@ -7,13 +7,13 @@ import { mappingPrefixes } from '../../constant/config';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
 
 /**
- * Retrieves a Jira user by their ID.
- * @param issueId The ID of the issue to retrieve.
- * @returns A promise that resolves with the user data.
- * @throws An error if the user cannot be retrieved.
+ * Retrieves sprint data by sprint ID.
+ * @param sprintId - The ID of the sprint to retrieve.
+ * @returns A promise that resolves with the formatted sprint data.
+ * @throws An error if the sprint data cannot be retrieved.
  */
-export async function getIssueById(
-    issueId: string
+export async function getSprintById(
+    sprintId: string
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
     try {
         const esClientObj = new ElasticSearchClient({
@@ -21,12 +21,12 @@ export async function getIssueById(
             username: Config.OPENSEARCH_USERNAME ?? '',
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
-        const matchQry = esb.matchQuery('body.id', `${mappingPrefixes.issue}_${issueId}`).toJSON();
-        const issueData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Issue, matchQry);
-        const [formattedIssueData] = await searchedDataFormatorWithDeleted(issueData);
-        return formattedIssueData;
+        const matchQry = esb.matchQuery('body.id', `${mappingPrefixes.sprint}_${sprintId}`).toJSON();
+        const sprintData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Sprint, matchQry);
+        const [formattedSprintData] = await searchedDataFormatorWithDeleted(sprintData);
+        return formattedSprintData;
     } catch (error: unknown) {
-        logger.error('getIssueById.error', { error });
+        logger.error('getSprintById.error', { error });
         throw error;
     }
 }

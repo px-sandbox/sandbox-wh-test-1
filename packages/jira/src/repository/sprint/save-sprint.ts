@@ -4,10 +4,16 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
-import { searchedDataFormator } from '../util/response-formatter';
-import { ParamsMapping } from '../model/params-mapping';
-import { mappingPrefixes } from '../constant/config';
+import { searchedDataFormator } from '../../util/response-formatter';
+import { ParamsMapping } from '../../model/params-mapping';
+import { mappingPrefixes } from '../../constant/config';
 
+/**
+ * Saves the details of a Jira sprint to DynamoDB and Elasticsearch.
+ * @param data The sprint data to be saved.
+ * @returns A Promise that resolves when the sprint details have been saved.
+ * @throws Throws an error if there was an issue saving the sprint details.
+ */
 export async function saveSprintDetails(data: Jira.Type.Sprint): Promise<void> {
   try {
     const updatedData = { ...data };

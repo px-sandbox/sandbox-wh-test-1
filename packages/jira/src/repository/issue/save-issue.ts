@@ -8,6 +8,12 @@ import { searchedDataFormator } from '../../util/response-formatter';
 import { ParamsMapping } from '../../model/params-mapping';
 import { mappingPrefixes } from '../../constant/config';
 
+/**
+ * Saves the details of a Jira issue to DynamoDB and Elasticsearch.
+ * @param data The issue data to be saved.
+ * @returns A Promise that resolves when the data has been saved successfully.
+ * @throws An error if there was a problem saving the data.
+ */
 export async function saveIssueDetails(data: Jira.Type.Issue): Promise<void> {
   try {
     const updatedData = { ...data };

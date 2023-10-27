@@ -1,20 +1,31 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClient } from '@pulse/event-handler';
-import { Queue } from 'sst/node/queue';
-import { projectKeysMapper } from './mapper';
-
+import moment from 'moment';
+import { saveProjectDetails } from '../../repository/project/save-project';
+import { getProjectById } from '../../repository/project/get-project';
 
 /**
- * Handles the project deleted event by sending a message to SQS.
- * @param project The project that was deleted.
- * @returns A Promise that resolves when the message is sent to SQS.
+ * Deletes a Jira project.
+ * @param project - The project to be deleted.
+ * @param eventTime - The time the event occurred.
+ * @returns A Promise that resolves with void if the project was successfully deleted,
+ *  or false if the project was not found.
  */
-export async function deleteProject(project: Jira.ExternalType.Webhook.Project, organization:string): Promise<void> {
+export async function deleteProject(
+  projectId: number,
+  eventTime: moment.Moment,
+): Promise<void | false> {
+  const projectData = await getProjectById(projectId);
+  if (!projectData) {
+    logger.info('projectDeletedEvent: Project not found');
+    return false;
+  }
+  const { _id, ...processProjectData } = projectData;
+  processProjectData.updatedAt = moment(eventTime).toISOString();
+  processProjectData.isDeleted = true;
+  processProjectData.deletedAt = moment(eventTime).toISOString();
 
-  const updatedProjectBody = projectKeysMapper(project, organization);
-  updatedProjectBody.organization = organization;
+  logger.info(`projectDeletedEvent: Delete Project id ${_id}`);
+  await saveProjectDetails({ id: _id, body: processProjectData } as Jira.Type.Project);
 
-  logger.info('processProjectDeletedEvent: Send message to SQS');
-  await new SQSClient().sendMessage(updatedProjectBody, Queue.jira_project_format.queueUrl);
 }

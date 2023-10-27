@@ -25,6 +25,14 @@ export function mappingToApiData(
   };
 }
 
+/**
+ * Maps the board configuration data received from Jira API to the format expected by the application.
+ * @param config - The board configuration data received from Jira API.
+ * @param boardIndexData - The board index data received from Jira API.
+ * @param organization - The name of the organization to which the board belongs.
+ * @param deletedAt - The timestamp at which the board was deleted, if it has been deleted.
+ * @returns The board data in the format expected by the application.
+ */
 export function mappingToApiDataConfig(
   config: Jira.ExternalType.Webhook.BoardConfig,
   boardIndexData: { [key: string]: any }, // eslint-disable-line @typescript-eslint/no-explicit-any

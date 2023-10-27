@@ -24,8 +24,4 @@ export type Project = {
     accountType: string;
   };
   assigneeType: string;
-  createdAt: string;
-  isDeleted?: boolean;
-  deletedAt: string;
-  updatedAt: string;
 };

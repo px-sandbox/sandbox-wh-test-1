@@ -24,55 +24,20 @@ async function processWebhookEvent(
   body: Jira.Type.Webhook,
   organization: string
 ): Promise<void> {
-  let projectBody: Jira.ExternalType.Webhook.Project;
 
   switch (eventName?.toLowerCase()) {
     case Jira.Enums.Event.ProjectCreated:
-      projectBody = {
-        ...body.project,
-        isDeleted: false,
-        deletedAt: null,
-        updatedAt: null,
-        createdAt: eventTime.toISOString(),
-      };
-
-      await project.create(projectBody, organization);
+      await project.create(body.project, eventTime, organization);
       break;
-
     case Jira.Enums.Event.ProjectUpdated:
-      projectBody = {
-        ...body.project,
-        updatedAt: eventTime.toISOString(),
-        isDeleted: false,
-        deletedAt: null,
-        createdAt: null,
-      };
-      await project.update(projectBody, organization);
-
+      await project.update(body.project, eventTime, organization);
       break;
-
     case Jira.Enums.Event.ProjectSoftDeleted:
-      projectBody = {
-        ...body.project,
-        deletedAt: eventTime.toISOString(),
-        isDeleted: true,
-        updatedAt: null,
-        createdAt: null,
-      };
-      await project.delete(projectBody, organization);
+      await project.delete(body.project.id, eventTime);
       break;
-
     case Jira.Enums.Event.ProjectRestoreDeleted:
-      projectBody = {
-        ...body.project,
-        isDeleted: false,
-        deletedAt: null,
-        updatedAt: null,
-        createdAt: null,
-      };
-      await project.restoreDeleted(projectBody, organization);
+      await project.restoreDeleted(body.project.id, eventTime);
       break;
-
     case Jira.Enums.Event.UserCreated:
       await user.create(body.user, eventTime, organization);
       break;
@@ -92,7 +57,7 @@ async function processWebhookEvent(
       await sprint.update(body.sprint, organization);
       break;
     case Jira.Enums.Event.SprintDeleted:
-      await sprint.delete(body.sprint, organization);
+      await sprint.delete(body.sprint.id, eventTime);
       break;
     case Jira.Enums.Event.SprintClosed:
       await sprint.close({

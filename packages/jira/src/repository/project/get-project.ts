@@ -7,13 +7,13 @@ import { mappingPrefixes } from '../../constant/config';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
 
 /**
- * Retrieves a Jira user by their ID.
- * @param issueId The ID of the issue to retrieve.
- * @returns A promise that resolves with the user data.
- * @throws An error if the user cannot be retrieved.
+ * Retrieves project data from Elasticsearch by project ID.
+ * @param projectId The ID of the project to retrieve.
+ * @returns A Promise that resolves to an object containing the project ID and body.
+ * @throws An error if the Elasticsearch search fails.
  */
-export async function getIssueById(
-    issueId: string
+export async function getProjectById(
+    projectId: number
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
     try {
         const esClientObj = new ElasticSearchClient({
@@ -21,12 +21,12 @@ export async function getIssueById(
             username: Config.OPENSEARCH_USERNAME ?? '',
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
-        const matchQry = esb.matchQuery('body.id', `${mappingPrefixes.issue}_${issueId}`).toJSON();
-        const issueData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Issue, matchQry);
-        const [formattedIssueData] = await searchedDataFormatorWithDeleted(issueData);
-        return formattedIssueData;
+        const matchQry = esb.matchQuery('body.id', `${mappingPrefixes.project}_${projectId}`).toJSON();
+        const projectData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Project, matchQry);
+        const [formattedProjectData] = await searchedDataFormatorWithDeleted(projectData);
+        return formattedProjectData;
     } catch (error: unknown) {
-        logger.error('getIssueById.error', { error });
+        logger.error('getProjectById.error', { error });
         throw error;
     }
 }

@@ -1,7 +1,7 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { saveSprintDetails } from '../../../repository/save-sprint';
+import { saveSprintDetails } from '../../../repository/sprint/save-sprint';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function sprintIndexDataReciever(event: SQSEvent): Promise<void> {
