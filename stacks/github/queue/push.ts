@@ -1,7 +1,10 @@
 import { Stack } from "aws-cdk-lib";
-import { Function, Queue } from "sst/constructs";
+import { Function, Queue, use } from "sst/constructs";
+import { GithubTables } from "../../type/tables";
+import { commonConfig } from "../../common/config";
 
-export function initailizePushQueue(stack: Stack): Queue[] {
+export function initailizePushQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
+    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
     const pushIndexDataQueue = new Queue(stack, 'gh_push_index');
     pushIndexDataQueue.addConsumer(stack, {
         function: new Function(stack, 'gh_push_index_func', {
@@ -27,5 +30,18 @@ export function initailizePushQueue(stack: Stack): Queue[] {
         },
     });
 
+    pushFormatDataQueue.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        pushIndexDataQueue,
+        GIT_ORGANIZATION_ID,
+    ]);
+    pushIndexDataQueue.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+    ]);
     return [pushFormatDataQueue, pushIndexDataQueue]
 }

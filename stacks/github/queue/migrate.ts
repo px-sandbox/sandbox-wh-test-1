@@ -1,0 +1,259 @@
+import { Duration, Stack } from "aws-cdk-lib";
+import { Function, Queue, use } from "sst/constructs";
+import { GithubTables } from "../../type/tables";
+import { commonConfig } from "../../common/config";
+
+export function initializeMigrationQueue(stack: Stack, githubDDb: GithubTables, formatterQueue: Queue[]) {
+
+    const { GIT_ORGANIZATION_ID, GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_SG_INSTALLATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
+    const [prFormatDataQueue, prReviewFormatDataQueue, prReviewCommentFormatDataQueue, commitFormatDataQueue] = formatterQueue;
+    const collectPRData = new Queue(stack, 'gh_historical_pr', {
+        cdk: {
+            queue: {
+                visibilityTimeout: Duration.seconds(600),
+            },
+        },
+    });
+
+    collectPRData.addConsumer(stack, {
+        function: new Function(stack, 'histPRFunc', {
+            handler: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
+            timeout: '300 seconds',
+            runtime: 'nodejs18.x',
+            bind: [collectPRData],
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 1,
+            },
+        },
+    });
+
+    const collectReviewsData = new Queue(stack, 'gh_historical_reviews', {
+        cdk: {
+            queue: {
+                visibilityTimeout: Duration.seconds(600),
+            },
+        },
+    });
+
+    collectReviewsData.addConsumer(stack, {
+        function: new Function(stack, 'histPrReviewFunc', {
+            handler: 'packages/github/src/sqs/handlers/historical/historical-review.handler',
+            timeout: '30 seconds',
+            runtime: 'nodejs18.x',
+            bind: [collectReviewsData],
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 5,
+            },
+        },
+    });
+
+    const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number', {
+        cdk: {
+            queue: {
+                visibilityTimeout: Duration.seconds(600),
+            },
+        },
+    });
+    collecthistoricalPrByumber.addConsumer(stack, {
+        function: new Function(stack, 'histPrByNumberFunc', {
+            handler: 'packages/github/src/sqs/handlers/historical/historical-pr-by-number.handler',
+            timeout: '300 seconds',
+            runtime: 'nodejs18.x',
+            bind: [collecthistoricalPrByumber],
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 1,
+            },
+        },
+    });
+
+    const collectCommitsData = new Queue(stack, 'gh_historical_commits', {
+        cdk: {
+            queue: {
+                visibilityTimeout: Duration.seconds(600),
+            },
+        },
+    });
+    collectCommitsData.addConsumer(stack, {
+        function: new Function(stack, 'histCommitFunc', {
+            handler: 'packages/github/src/sqs/handlers/historical/historical-commit.handler',
+            timeout: '300 seconds',
+            runtime: 'nodejs18.x',
+            bind: [collectCommitsData],
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 1,
+                maxConcurrency: 2,
+            },
+        },
+    });
+
+    const historicalBranch = new Queue(stack, 'gh_historical_branch', {
+        cdk: {
+            queue: {
+                visibilityTimeout: Duration.seconds(600),
+            },
+        },
+    });
+
+    historicalBranch.addConsumer(stack, {
+        function: new Function(stack, 'histBranchFunc', {
+            handler: 'packages/github/src/sqs/handlers/historical/historical-branch.handler',
+            bind: [historicalBranch],
+            runtime: 'nodejs18.x',
+            timeout: '300 seconds',
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 1,
+                maxConcurrency: 2,
+            },
+        },
+    });
+
+    const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits', {
+        cdk: {
+            queue: {
+                visibilityTimeout: Duration.seconds(600),
+            },
+        },
+    });
+    collectPRCommitsData.addConsumer(stack, {
+        function: new Function(stack, 'histPRCommitFunc', {
+            handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commit.handler',
+            timeout: '30 seconds',
+            runtime: 'nodejs18.x',
+            bind: [collectPRCommitsData],
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 5,
+            },
+        },
+    });
+
+    const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments', {
+        cdk: {
+            queue: {
+                visibilityTimeout: Duration.seconds(600),
+            },
+        },
+    });
+    collectPRReviewCommentsData.addConsumer(stack, {
+        function: new Function(stack, 'histPRReviewCommentsFunc', {
+            handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comment.handler',
+            timeout: '300 seconds',
+            runtime: 'nodejs18.x',
+            bind: [collectPRReviewCommentsData],
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 5,
+            },
+        },
+    }); 1
+
+    collectPRData.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        GITHUB_SG_INSTALLATION_ID,
+        collectReviewsData,
+        GIT_ORGANIZATION_ID,
+        collectPRCommitsData,
+        collectPRReviewCommentsData,
+    ]);
+    collecthistoricalPrByumber.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        prFormatDataQueue,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        GITHUB_SG_INSTALLATION_ID,
+        GIT_ORGANIZATION_ID,
+        commitFormatDataQueue,
+    ]);
+    collectReviewsData.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        GITHUB_SG_INSTALLATION_ID,
+        GIT_ORGANIZATION_ID,
+        collecthistoricalPrByumber,
+        prReviewFormatDataQueue,
+    ]);
+
+    collectCommitsData.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        GITHUB_SG_INSTALLATION_ID,
+        GIT_ORGANIZATION_ID,
+        commitFormatDataQueue,
+        collectPRData,
+    ]);
+
+    collectPRCommitsData.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        GITHUB_SG_INSTALLATION_ID,
+        GIT_ORGANIZATION_ID,
+        commitFormatDataQueue,
+    ]);
+
+    collectPRReviewCommentsData.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        GITHUB_SG_INSTALLATION_ID,
+        GIT_ORGANIZATION_ID,
+        prReviewCommentFormatDataQueue,
+    ]);
+
+    historicalBranch.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        GITHUB_SG_INSTALLATION_ID,
+        GIT_ORGANIZATION_ID,
+        collectCommitsData,
+    ]);
+
+
+    return [collectCommitsData, collectCommitsData, collectPRCommitsData, collectPRData, collectPRReviewCommentsData, collectReviewsData, historicalBranch, collecthistoricalPrByumber]
+
+}

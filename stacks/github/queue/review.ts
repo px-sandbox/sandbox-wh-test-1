@@ -1,7 +1,10 @@
 import { Stack } from "aws-cdk-lib";
-import { Function, Queue } from "sst/constructs";
+import { Function, Queue, use } from "sst/constructs";
+import { GithubTables } from "../../type/tables";
+import { commonConfig } from "../../common/config";
 
-export function initaializePrReviewAndCommentsQueue(stack: Stack): Queue[] {
+export function initaializePrReviewAndCommentsQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
+    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
     const prReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index');
     prReviewCommentIndexDataQueue.addConsumer(stack, {
         function: new Function(stack, 'gh_pr_review_comment_index_func', {
@@ -53,5 +56,32 @@ export function initaializePrReviewAndCommentsQueue(stack: Stack): Queue[] {
         },
     });
 
+    prReviewCommentFormatDataQueue.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        prReviewCommentIndexDataQueue,
+        GIT_ORGANIZATION_ID,
+    ]);
+
+    prReviewCommentIndexDataQueue.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+    ]);
+    prReviewFormatDataQueue.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        prReviewIndexDataQueue,
+        GIT_ORGANIZATION_ID,
+    ]);
+    prReviewIndexDataQueue.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+    ]);
     return [prReviewCommentFormatDataQueue, prReviewCommentIndexDataQueue, prReviewFormatDataQueue, prReviewIndexDataQueue]
 }

@@ -1,8 +1,11 @@
 import { Stack } from "aws-cdk-lib";
-import { Queue } from "sst/constructs";
+import { Queue, use } from "sst/constructs";
+import { GithubTables } from "../../type/tables";
+import { commonConfig } from "../../common/config";
 
 
-export function initailizeBranchQueue(stack: Stack): Queue[] {
+export function initailizeBranchQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
+    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
     const branchIndexDataQueue = new Queue(stack, 'gh_branch_index', {
         consumer: {
             function: 'packages/github/src/sqs/handlers/indexer/branch.handler',
@@ -26,5 +29,20 @@ export function initailizeBranchQueue(stack: Stack): Queue[] {
             },
         },
     });
+
+    branchFormatDataQueue.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        branchIndexDataQueue,
+        GIT_ORGANIZATION_ID,
+    ]);
+
+    branchIndexDataQueue.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+    ]);
     return [branchFormatDataQueue, branchIndexDataQueue]
 }

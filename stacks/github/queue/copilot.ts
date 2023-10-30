@@ -1,6 +1,8 @@
-import { Queue, Stack } from "sst/constructs";
+import { Function, Queue, Stack, use } from "sst/constructs";
+import { commonConfig } from "../../common/config";
 
 export function initailizeCopilotQueue(stack: Stack): Queue[] {
+    const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, GIT_ORGANIZATION_ID, GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_SG_INSTALLATION_ID, GITHUB_APP_ID } = use(commonConfig)
     const ghCopilotIndexDataQueue = new Queue(stack, 'gh_copilot_index', {
         consumer: {
             function: 'packages/github/src/sqs/handlers/indexer/gh-copilot.handler',
@@ -26,5 +28,7 @@ export function initailizeCopilotQueue(stack: Stack): Queue[] {
         },
     });
 
+    ghCopilotFormatDataQueue.bind([ghCopilotIndexDataQueue, GIT_ORGANIZATION_ID]);
+    ghCopilotIndexDataQueue.bind([OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME]);
     return [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue]
 }

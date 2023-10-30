@@ -1,7 +1,11 @@
 import { Stack } from "aws-cdk-lib";
-import { Function, Queue } from "sst/constructs";
+import { Function, Queue, use } from "sst/constructs";
+import { GithubTables } from "../../type/tables";
+import { commonConfig } from "../../common/config";
 
-export function initailizePrQueue(stack: Stack, ghMergedCommitProcessQueue: Queue): Queue[] {
+export function initailizePrQueue(stack: Stack, ghMergedCommitProcessQueue: Queue, githubDDb: GithubTables): Queue[] {
+
+    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD } = use(commonConfig);
     const prIndexDataQueue = new Queue(stack, 'gh_pr_index');
     prIndexDataQueue.addConsumer(stack, {
         function: new Function(stack, 'gh_pr_index_func', {
@@ -28,5 +32,23 @@ export function initailizePrQueue(stack: Stack, ghMergedCommitProcessQueue: Queu
         },
     });
 
+    prFormatDataQueue.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        prIndexDataQueue,
+        GIT_ORGANIZATION_ID,
+        OPENSEARCH_NODE,
+        OPENSEARCH_USERNAME,
+        OPENSEARCH_PASSWORD,
+        ghMergedCommitProcessQueue,
+    ]);
+
+    prIndexDataQueue.bind([
+        githubDDb.githubMappingTable,
+        githubDDb.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+    ]);
     return [prFormatDataQueue, prIndexDataQueue]
 }
