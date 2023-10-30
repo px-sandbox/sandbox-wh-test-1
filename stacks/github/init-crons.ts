@@ -2,7 +2,7 @@ import { Stack } from "aws-cdk-lib";
 import { Cron, Function } from "sst/constructs";
 import { Stage } from "../type/stack-config";
 
-export function intializeCron(
+export function initializeCron(
     stack: Stack,
     stage: string,
     // eslint-disable-next-line @typescript-eslint/ban-types

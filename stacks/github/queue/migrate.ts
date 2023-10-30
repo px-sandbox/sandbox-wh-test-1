@@ -3,10 +3,12 @@ import { Function, Queue, use } from "sst/constructs";
 import { GithubTables } from "../../type/tables";
 import { commonConfig } from "../../common/config";
 
-export function initializeMigrationQueue(stack: Stack, githubDDb: GithubTables, formatterQueue: Queue[]) {
+export function initializeMigrationQueue(stack: Stack, githubDDb: GithubTables, formatterQueue: Queue[]): Queue[] {
 
-    const { GIT_ORGANIZATION_ID, GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_SG_INSTALLATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
-    const [prFormatDataQueue, prReviewFormatDataQueue, prReviewCommentFormatDataQueue, commitFormatDataQueue] = formatterQueue;
+    const { GIT_ORGANIZATION_ID, GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_SG_INSTALLATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
+    const [prFormatDataQueue, prReviewFormatDataQueue,
+        prReviewCommentFormatDataQueue, commitFormatDataQueue] = formatterQueue;
     const collectPRData = new Queue(stack, 'gh_historical_pr', {
         cdk: {
             queue: {
@@ -157,7 +159,7 @@ export function initializeMigrationQueue(stack: Stack, githubDDb: GithubTables, 
                 batchSize: 5,
             },
         },
-    }); 1
+    });
 
     collectPRData.bind([
         githubDDb.githubMappingTable,
@@ -254,6 +256,8 @@ export function initializeMigrationQueue(stack: Stack, githubDDb: GithubTables, 
     ]);
 
 
-    return [collectCommitsData, collectCommitsData, collectPRCommitsData, collectPRData, collectPRReviewCommentsData, collectReviewsData, historicalBranch, collecthistoricalPrByumber]
+    return [collectCommitsData, collectCommitsData, collectPRCommitsData,
+        collectPRData, collectPRReviewCommentsData, collectReviewsData,
+        historicalBranch, collecthistoricalPrByumber]
 
 }

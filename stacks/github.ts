@@ -1,17 +1,17 @@
 import { Api, Function, StackContext, use } from 'sst/constructs';
 import { commonConfig } from './common/config';
-import { intializeCron } from './github/init-crons';
+import { initializeCron } from './github/init-crons';
 import { initializeFunctions } from './github/init-functions';
 import { initializeDynamoDBTables } from './github/init-tables';
-import { initailizeBranchQueue } from './github/queue/branch';
-import { initalizeBranchCounterQueue } from './github/queue/branch-counter';
-import { initailizeCommitQueue } from './github/queue/commit';
-import { initailizeCopilotQueue } from './github/queue/copilot';
+import { initializeBranchQueue } from './github/queue/branch';
+import { initializeBranchCounterQueue } from './github/queue/branch-counter';
+import { initializeCommitQueue } from './github/queue/commit';
+import { initializeCopilotQueue } from './github/queue/copilot';
 import { initializeMigrationQueue } from './github/queue/migrate';
-import { initailizePrQueue } from './github/queue/pr';
-import { initailizePushQueue } from './github/queue/push';
+import { initializePrQueue } from './github/queue/pr';
+import { initializePushQueue } from './github/queue/push';
 import { initializeRepoQueue } from './github/queue/repo';
-import { initaializePrReviewAndCommentsQueue } from './github/queue/review';
+import { initializePrReviewAndCommentsQueue } from './github/queue/review';
 import { initializeUserQueue } from './github/queue/user';
 
 // eslint-disable-next-line max-lines-per-function,
@@ -52,7 +52,7 @@ export function gh({ stack }: StackContext): {
   /**
    * Queue to format and index branch data
    */
-  const [branchFormatDataQueue, branchIndexDataQueue] = initailizeBranchQueue(stack, { githubMappingTable, retryProcessTable });
+  const [branchFormatDataQueue, branchIndexDataQueue] = initializeBranchQueue(stack, { githubMappingTable, retryProcessTable });
 
   /**
    * Queue to format and index repo data
@@ -62,32 +62,32 @@ export function gh({ stack }: StackContext): {
   /**
    * Queue to format and index commit data
    */
-  const [commitFormatDataQueue, commitIndexDataQueue, ghMergedCommitProcessQueue, commitFileChanges] = initailizeCommitQueue(stack, { githubMappingTable, retryProcessTable },);
+  const [commitFormatDataQueue, commitIndexDataQueue, ghMergedCommitProcessQueue, commitFileChanges] = initializeCommitQueue(stack, { githubMappingTable, retryProcessTable },);
 
   /**
    * Queue to format and index PR data
    */
-  const [prFormatDataQueue, prIndexDataQueue] = initailizePrQueue(stack, ghMergedCommitProcessQueue, { githubMappingTable, retryProcessTable });
+  const [prFormatDataQueue, prIndexDataQueue] = initializePrQueue(stack, ghMergedCommitProcessQueue, { githubMappingTable, retryProcessTable });
 
   /**
    * Queue to format and index push data
    */
-  const [pushFormatDataQueue, pushIndexDataQueue] = initailizePushQueue(stack, { githubMappingTable, retryProcessTable });
+  const [pushFormatDataQueue, pushIndexDataQueue] = initializePushQueue(stack, { githubMappingTable, retryProcessTable });
 
   /**
    * Queue to format and index PR review and comment data
    */
-  const [prReviewIndexDataQueue, prReviewFormatDataQueue, prReviewCommentFormatDataQueue, prReviewCommentIndexDataQueue] = initaializePrReviewAndCommentsQueue(stack, { githubMappingTable, retryProcessTable });
+  const [prReviewIndexDataQueue, prReviewFormatDataQueue, prReviewCommentFormatDataQueue, prReviewCommentIndexDataQueue] = initializePrReviewAndCommentsQueue(stack, { githubMappingTable, retryProcessTable });
 
   /**
    * Queue to format and index github copilot data
    */
-  const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue] = initailizeCopilotQueue(stack);
+  const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue] = initializeCopilotQueue(stack);
 
   /**
    * Queue to format and index branch counter data
    */
-  const [branchCounterFormatterQueue, branchCounterIndexQueue,] = initalizeBranchCounterQueue(stack, { githubMappingTable, retryProcessTable });
+  const [branchCounterFormatterQueue, branchCounterIndexQueue,] = initializeBranchCounterQueue(stack, { githubMappingTable, retryProcessTable });
 
   /**
    * Queue to format and index migrate data
@@ -110,7 +110,7 @@ export function gh({ stack }: StackContext): {
       collectPRCommitsData, collectPRReviewCommentsData,
       branchCounterIndexQueue, ghMergedCommitProcessQueue], { githubMappingTable, retryProcessTable });
 
-  intializeCron(
+  initializeCron(
     stack,
     stack.stage,
     processRetryFunction,

@@ -3,7 +3,7 @@ import { Function, Queue, use } from "sst/constructs";
 import { GithubTables } from "../../type/tables";
 import { commonConfig } from "../../common/config";
 
-export function initaializePrReviewAndCommentsQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
+export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
     const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
     const prReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index');
     prReviewCommentIndexDataQueue.addConsumer(stack, {

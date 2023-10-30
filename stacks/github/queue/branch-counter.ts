@@ -3,7 +3,7 @@ import { Function, Queue, use } from "sst/constructs";
 import { GithubTables } from "../../type/tables";
 import { commonConfig } from "../../common/config";
 
-export function initalizeBranchCounterQueue(stack: Stack, githubDDB: GithubTables): Queue[] {
+export function initializeBranchCounterQueue(stack: Stack, githubDDB: GithubTables): Queue[] {
     const branchCounterIndexQueue = new Queue(stack, 'gh_active_branch_counter_index');
     const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
 

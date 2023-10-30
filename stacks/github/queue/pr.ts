@@ -3,7 +3,7 @@ import { Function, Queue, use } from "sst/constructs";
 import { GithubTables } from "../../type/tables";
 import { commonConfig } from "../../common/config";
 
-export function initailizePrQueue(stack: Stack, ghMergedCommitProcessQueue: Queue, githubDDb: GithubTables): Queue[] {
+export function initializePrQueue(stack: Stack, ghMergedCommitProcessQueue: Queue, githubDDb: GithubTables): Queue[] {
 
     const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD } = use(commonConfig);
     const prIndexDataQueue = new Queue(stack, 'gh_pr_index');

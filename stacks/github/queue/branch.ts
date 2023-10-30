@@ -4,7 +4,7 @@ import { GithubTables } from "../../type/tables";
 import { commonConfig } from "../../common/config";
 
 
-export function initailizeBranchQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
+export function initializeBranchQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
     const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
     const branchIndexDataQueue = new Queue(stack, 'gh_branch_index', {
         consumer: {
