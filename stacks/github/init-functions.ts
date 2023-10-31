@@ -4,28 +4,19 @@ import { commonConfig } from "../common/config";
 import { GithubTables } from "../type/tables";
 
 
-export function initializeFunctions(stack: Stack, queuesForFunctions: Queue[], githubDDb: GithubTables): Function[] {
 
-    const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig)
+function initProcessRetryFunction(stack: Stack, githubDDb: GithubTables, QueueArray: Queue[]): Function {
 
-    const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue, branchCounterFormatterQueue, userIndexDataQueue, userFormatDataQueue, repoIndexDataQueue, repoFormatDataQueue, branchIndexDataQueue, branchFormatDataQueue, prIndexDataQueue, prFormatDataQueue, commitIndexDataQueue, commitFormatDataQueue, pushIndexDataQueue, pushFormatDataQueue, prReviewCommentIndexDataQueue, prReviewCommentFormatDataQueue, afterRepoSaveQueue, prReviewIndexDataQueue, prReviewFormatDataQueue, collectPRData, collectReviewsData, collecthistoricalPrByumber, collectCommitsData, historicalBranch, collectPRCommitsData, collectPRReviewCommentsData,
-        branchCounterIndexQueue, ghMergedCommitProcessQueue] = queuesForFunctions;
-
-    const ghCopilotFunction = new Function(stack, 'github-copilot', {
-        handler: 'packages/github/src/cron/github-copilot.handler',
-        bind: [
-            ghCopilotFormatDataQueue,
-            ghCopilotIndexDataQueue,
-            GITHUB_APP_PRIVATE_KEY_PEM,
-            GITHUB_APP_ID,
-            GITHUB_SG_INSTALLATION_ID,
-        ],
-    });
-
-    const ghBranchCounterFunction = new Function(stack, 'branch-counter', {
-        handler: 'packages/github/src/cron/branch-counter.handler',
-        bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchCounterFormatterQueue],
-    });
+    const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID,
+        OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig)
+    const [branchCounterFormatterQueue,
+        userIndexDataQueue, userFormatDataQueue, repoIndexDataQueue, repoFormatDataQueue,
+        branchIndexDataQueue, branchFormatDataQueue, prIndexDataQueue, prFormatDataQueue,
+        commitIndexDataQueue, commitFormatDataQueue, pushIndexDataQueue, pushFormatDataQueue,
+        prReviewCommentIndexDataQueue, prReviewCommentFormatDataQueue, afterRepoSaveQueue,
+        prReviewIndexDataQueue, prReviewFormatDataQueue, collectPRData, collectReviewsData,
+        collecthistoricalPrByumber, collectCommitsData, historicalBranch, collectPRCommitsData,
+        collectPRReviewCommentsData, branchCounterIndexQueue, ghMergedCommitProcessQueue] = QueueArray;
 
     const processRetryFunction = new Function(stack, 'retry-failed-processor', {
         handler: 'packages/github/src/cron/retry-process.handler',
@@ -63,6 +54,33 @@ export function initializeFunctions(stack: Stack, queuesForFunctions: Queue[], g
             GITHUB_SG_INSTALLATION_ID,
         ],
     });
-    return [ghCopilotFunction, ghBranchCounterFunction, processRetryFunction]
+
+    return processRetryFunction
+}
+
+export function initializeFunctions(stack: Stack, queuesForFunctions: Queue[], githubDDb: GithubTables): Function[] {
+
+    const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID,
+        OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig)
+    const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue, branchCounterFormatterQueue] = queuesForFunctions;
+
+    const ghCopilotFunction = new Function(stack, 'github-copilot', {
+        handler: 'packages/github/src/cron/github-copilot.handler',
+        bind: [
+            ghCopilotFormatDataQueue,
+            ghCopilotIndexDataQueue,
+            GITHUB_APP_PRIVATE_KEY_PEM,
+            GITHUB_APP_ID,
+            GITHUB_SG_INSTALLATION_ID,
+        ],
+    });
+
+    const ghBranchCounterFunction = new Function(stack, 'branch-counter', {
+        handler: 'packages/github/src/cron/branch-counter.handler',
+        bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchCounterFormatterQueue],
+    });
+
+
+    return [ghCopilotFunction, ghBranchCounterFunction, initProcessRetryFunction(stack, githubDDb, queuesForFunctions)]
 
 }

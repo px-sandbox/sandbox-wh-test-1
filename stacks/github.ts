@@ -47,37 +47,44 @@ export function gh({ stack }: StackContext): {
    * 
    * Queue to format and index user data
    */
-  const [userFormatDataQueue, userIndexDataQueue] = initializeUserQueue(stack, { githubMappingTable, retryProcessTable });
+  const [userFormatDataQueue, userIndexDataQueue] =
+    initializeUserQueue(stack, { githubMappingTable, retryProcessTable });
 
   /**
    * Queue to format and index branch data
    */
-  const [branchFormatDataQueue, branchIndexDataQueue] = initializeBranchQueue(stack, { githubMappingTable, retryProcessTable });
+  const [branchFormatDataQueue, branchIndexDataQueue] =
+    initializeBranchQueue(stack, { githubMappingTable, retryProcessTable });
 
   /**
    * Queue to format and index repo data
    */
-  const [repoFormatDataQueue, repoIndexDataQueue, afterRepoSaveQueue] = initializeRepoQueue(stack, { githubMappingTable, retryProcessTable }, branchFormatDataQueue, branchIndexDataQueue);
+  const [repoFormatDataQueue, repoIndexDataQueue, afterRepoSaveQueue] =
+    initializeRepoQueue(stack, { githubMappingTable, retryProcessTable }, branchFormatDataQueue, branchIndexDataQueue);
 
   /**
    * Queue to format and index commit data
    */
-  const [commitFormatDataQueue, commitIndexDataQueue, ghMergedCommitProcessQueue, commitFileChanges] = initializeCommitQueue(stack, { githubMappingTable, retryProcessTable },);
+  const [commitFormatDataQueue, commitIndexDataQueue, ghMergedCommitProcessQueue, commitFileChanges]
+    = initializeCommitQueue(stack, { githubMappingTable, retryProcessTable },);
 
   /**
    * Queue to format and index PR data
    */
-  const [prFormatDataQueue, prIndexDataQueue] = initializePrQueue(stack, ghMergedCommitProcessQueue, { githubMappingTable, retryProcessTable });
+  const [prFormatDataQueue, prIndexDataQueue] =
+    initializePrQueue(stack, ghMergedCommitProcessQueue, { githubMappingTable, retryProcessTable });
 
   /**
    * Queue to format and index push data
    */
-  const [pushFormatDataQueue, pushIndexDataQueue] = initializePushQueue(stack, { githubMappingTable, retryProcessTable });
+  const [pushFormatDataQueue, pushIndexDataQueue] =
+    initializePushQueue(stack, { githubMappingTable, retryProcessTable });
 
   /**
    * Queue to format and index PR review and comment data
    */
-  const [prReviewIndexDataQueue, prReviewFormatDataQueue, prReviewCommentFormatDataQueue, prReviewCommentIndexDataQueue] = initializePrReviewAndCommentsQueue(stack, { githubMappingTable, retryProcessTable });
+  const [prReviewIndexDataQueue, prReviewFormatDataQueue, prReviewCommentFormatDataQueue, prReviewCommentIndexDataQueue]
+    = initializePrReviewAndCommentsQueue(stack, { githubMappingTable, retryProcessTable });
 
   /**
    * Queue to format and index github copilot data
@@ -87,12 +94,14 @@ export function gh({ stack }: StackContext): {
   /**
    * Queue to format and index branch counter data
    */
-  const [branchCounterFormatterQueue, branchCounterIndexQueue,] = initializeBranchCounterQueue(stack, { githubMappingTable, retryProcessTable });
+  const [branchCounterFormatterQueue, branchCounterIndexQueue,]
+    = initializeBranchCounterQueue(stack, { githubMappingTable, retryProcessTable });
 
   /**
    * Queue to format and index migrate data
    */
-  const [collectCommitsData, collecthistoricalPrByumber, collectPRData, collectPRReviewCommentsData, collectReviewsData, historicalBranch, collectPRCommitsData] =
+  const [collectCommitsData, collecthistoricalPrByumber, collectPRData, collectPRReviewCommentsData,
+    collectReviewsData, historicalBranch, collectPRCommitsData] =
     initializeMigrationQueue(stack, { githubMappingTable, retryProcessTable },
       [prFormatDataQueue, commitFormatDataQueue, prReviewCommentFormatDataQueue, commitFormatDataQueue]);
 

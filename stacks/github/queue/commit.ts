@@ -4,7 +4,8 @@ import { GithubTables } from "../../type/tables";
 import { commonConfig } from "../../common/config";
 
 export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
-    const { GIT_ORGANIZATION_ID, GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID, OPENSEARCH_NODE, OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD } = use(commonConfig);
+    const { GIT_ORGANIZATION_ID, GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID,
+        GITHUB_SG_INSTALLATION_ID, OPENSEARCH_NODE, OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD } = use(commonConfig);
 
     const commitIndexDataQueue = new Queue(stack, 'gh_commit_index');
     commitIndexDataQueue.addConsumer(stack, {

@@ -12,7 +12,8 @@ export function initializeCron(
     // eslint-disable-next-line @typescript-eslint/ban-types
     ghBranchCounterFunction: Function
 ): void {
-    // Initialized cron job for every 1 hour to fetch failed processes from `retryProcessTable` Table and process them out
+    // Initialized cron job for every 1 hour to 
+    // fetch failed processes from `retryProcessTable` Table and process them out
     // Cron Expression : cron(Minutes Hours Day-of-month Month Day-of-week Year)
     // eslint-disable-next-line no-new
     new Cron(stack, 'failed-process-retry-cron', {

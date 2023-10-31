@@ -83,5 +83,6 @@ export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: Gith
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
     ]);
-    return [prReviewCommentFormatDataQueue, prReviewCommentIndexDataQueue, prReviewFormatDataQueue, prReviewIndexDataQueue]
+    return [prReviewCommentFormatDataQueue, prReviewCommentIndexDataQueue,
+        prReviewFormatDataQueue, prReviewIndexDataQueue]
 }
