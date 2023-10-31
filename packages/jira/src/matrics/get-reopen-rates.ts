@@ -29,6 +29,7 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
       .agg(
         esb
           .termsAggregation('sprint_buckets', 'body.sprintId')
+          .size(sprintIds.length)
           .agg(esb.filterAggregation('reopen_count', esb.rangeQuery('body.reOpenCount').gt(0)))
       )
       .toJSON();
