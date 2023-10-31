@@ -95,7 +95,6 @@ async function processWebhookEvent(
       await sprint.delete({
         ...body.sprint, isDeleted: true,
         deletedAt: eventTime.toISOString(),
-        state: Jira.Enums.SprintState.DELETE,
       }, organization);
       break;
     case Jira.Enums.Event.SprintClosed:
