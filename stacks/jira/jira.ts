@@ -2,7 +2,7 @@ import { Api, Function, StackContext } from 'sst/constructs';
 import { initializeQueues } from './queue/initialize';
 import { initializeDynamoDBTables } from './ddb-tables';
 import { intializeJiraCron } from './cron-jobs';
-import { initializeFunctions } from './init-functions';
+import { initializeFunctions } from './cron-functions';
 import { initializeApi } from './api';
 
 // eslint-disable-next-line max-lines-per-function,
