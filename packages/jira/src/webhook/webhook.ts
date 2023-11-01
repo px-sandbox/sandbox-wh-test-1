@@ -60,10 +60,7 @@ async function processWebhookEvent(
       await sprint.delete(body.sprint.id, eventTime, organization);
       break;
     case Jira.Enums.Event.SprintClosed:
-      await sprint.close({
-        ...body.sprint, isDeleted: false,
-        deletedAt: null,
-      }, organization);
+      await sprint.close(body.sprint, organization);
       break;
     case Jira.Enums.Event.BoardCreated:
       await board.create(body.board, eventTime, organization);
