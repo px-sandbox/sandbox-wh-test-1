@@ -72,6 +72,7 @@ async function updateData(esClientObj: ElasticSearchClient, indexName: string, m
   if (formattedData) {
     if (isDeleted) {
       formattedData.isDeleted = true;
+      formattedData.deletedAt = new Date().toISOString();
     }
     const { _id: id, ...body } = formattedData;
     await esClientObj.putDocument(indexName, { id, body });
