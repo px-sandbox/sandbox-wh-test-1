@@ -6,7 +6,7 @@ import { commonConfig } from "../../common/config";
 export function initializeBranchCounterQueue(stack: Stack, githubDDB: GithubTables): Queue[] {
     const branchCounterIndexQueue = new Queue(stack, 'gh_active_branch_counter_index');
     const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
-
+    const { retryProcessTable, githubMappingTable } = githubDDB;
     branchCounterIndexQueue.addConsumer(stack, {
         function: new Function(stack, 'gh_active_branch_counter_index_func', {
             handler: 'packages/github/src/sqs/handlers/indexer/active-branch.handler',
@@ -14,8 +14,8 @@ export function initializeBranchCounterQueue(stack: Stack, githubDDB: GithubTabl
                 OPENSEARCH_NODE,
                 OPENSEARCH_PASSWORD,
                 OPENSEARCH_USERNAME,
-                githubDDB.retryProcessTable,
-                githubDDB.githubMappingTable,
+                retryProcessTable,
+                githubMappingTable,
                 branchCounterIndexQueue,
             ],
         }),
@@ -37,8 +37,8 @@ export function initializeBranchCounterQueue(stack: Stack, githubDDB: GithubTabl
                 OPENSEARCH_USERNAME,
                 branchCounterFormatterQueue,
                 branchCounterIndexQueue,
-                githubDDB.retryProcessTable,
-                githubDDB.githubMappingTable,
+                retryProcessTable,
+                githubMappingTable,
             ],
         }),
 

@@ -1,68 +1,45 @@
-import { Stack } from "aws-cdk-lib";
-import { Function, Queue, use } from "sst/constructs";
-import { commonConfig } from "../common/config";
-import { GithubTables } from "../type/tables";
+import { Stack } from 'aws-cdk-lib';
+import { Function, Queue, use } from 'sst/constructs';
+import { commonConfig } from '../common/config';
+import { GithubTables } from '../type/tables';
 
-
-
-function initProcessRetryFunction(stack: Stack, githubDDb: GithubTables, QueueArray: Queue[]): Function {
-
-    const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID,
-        OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig)
-    const [branchCounterFormatterQueue,
-        userIndexDataQueue, userFormatDataQueue, repoIndexDataQueue, repoFormatDataQueue,
-        branchIndexDataQueue, branchFormatDataQueue, prIndexDataQueue, prFormatDataQueue,
-        commitIndexDataQueue, commitFormatDataQueue, pushIndexDataQueue, pushFormatDataQueue,
-        prReviewCommentIndexDataQueue, prReviewCommentFormatDataQueue, afterRepoSaveQueue,
-        prReviewIndexDataQueue, prReviewFormatDataQueue, collectPRData, collectReviewsData,
-        collecthistoricalPrByumber, collectCommitsData, historicalBranch, collectPRCommitsData,
-        collectPRReviewCommentsData, branchCounterIndexQueue, ghMergedCommitProcessQueue] = QueueArray;
+function initProcessRetryFunction(
+    stack: Stack,
+    githubDDb: GithubTables,
+    QueueArray: Queue[]
+): Function {
+    const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID } =
+        use(commonConfig);
 
     const processRetryFunction = new Function(stack, 'retry-failed-processor', {
         handler: 'packages/github/src/cron/retry-process.handler',
         bind: [
             githubDDb.retryProcessTable,
-            userIndexDataQueue,
-            userFormatDataQueue,
-            repoIndexDataQueue,
-            repoFormatDataQueue,
-            branchIndexDataQueue,
-            branchFormatDataQueue,
-            prIndexDataQueue,
-            prFormatDataQueue,
-            commitIndexDataQueue,
-            commitFormatDataQueue,
-            pushIndexDataQueue,
-            pushFormatDataQueue,
-            prReviewCommentIndexDataQueue,
-            prReviewCommentFormatDataQueue,
-            afterRepoSaveQueue,
-            prReviewIndexDataQueue,
-            prReviewFormatDataQueue,
-            collectPRData,
-            collectReviewsData,
-            collecthistoricalPrByumber,
-            collectCommitsData,
-            historicalBranch,
-            collectPRCommitsData,
-            collectPRReviewCommentsData,
-            branchCounterIndexQueue,
-            branchCounterFormatterQueue,
-            ghMergedCommitProcessQueue,
+            ...QueueArray,
             GITHUB_APP_PRIVATE_KEY_PEM,
             GITHUB_APP_ID,
             GITHUB_SG_INSTALLATION_ID,
         ],
     });
 
-    return processRetryFunction
+    return processRetryFunction;
 }
 
-export function initializeFunctions(stack: Stack, queuesForFunctions: Queue[], githubDDb: GithubTables): Function[] {
-
-    const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID,
-        OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig)
-    const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue, branchCounterFormatterQueue] = queuesForFunctions;
+export function initializeFunctions(
+    stack: Stack,
+    queuesForFunctions: Queue[],
+    githubDDb: GithubTables
+): Function[] {
+    const {
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        GITHUB_SG_INSTALLATION_ID,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+    } = use(commonConfig);
+    const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue, branchCounterFormatterQueue] =
+        queuesForFunctions;
 
     const ghCopilotFunction = new Function(stack, 'github-copilot', {
         handler: 'packages/github/src/cron/github-copilot.handler',
@@ -80,7 +57,9 @@ export function initializeFunctions(stack: Stack, queuesForFunctions: Queue[], g
         bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchCounterFormatterQueue],
     });
 
-
-    return [ghCopilotFunction, ghBranchCounterFunction, initProcessRetryFunction(stack, githubDDb, queuesForFunctions)]
-
+    return [
+        ghCopilotFunction,
+        ghBranchCounterFunction,
+        initProcessRetryFunction(stack, githubDDb, queuesForFunctions),
+    ];
 }

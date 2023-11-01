@@ -6,6 +6,7 @@ import { commonConfig } from "../../common/config";
 
 export function initializeBranchQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
     const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
+    const { retryProcessTable, githubMappingTable } = githubDDb;
     const branchIndexDataQueue = new Queue(stack, 'gh_branch_index', {
         consumer: {
             function: 'packages/github/src/sqs/handlers/indexer/branch.handler',
@@ -31,15 +32,15 @@ export function initializeBranchQueue(stack: Stack, githubDDb: GithubTables): Qu
     });
 
     branchFormatDataQueue.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         branchIndexDataQueue,
         GIT_ORGANIZATION_ID,
     ]);
 
     branchIndexDataQueue.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,

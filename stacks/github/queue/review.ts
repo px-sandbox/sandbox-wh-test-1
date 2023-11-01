@@ -1,10 +1,12 @@
-import { Stack } from "aws-cdk-lib";
-import { Function, Queue, use } from "sst/constructs";
-import { GithubTables } from "../../type/tables";
-import { commonConfig } from "../../common/config";
+import { Stack } from 'aws-cdk-lib';
+import { Function, Queue, use } from 'sst/constructs';
+import { GithubTables } from '../../type/tables';
+import { commonConfig } from '../../common/config';
 
 export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
-    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
+    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } =
+        use(commonConfig);
+    const { retryProcessTable, githubMappingTable } = githubDDb;
     const prReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index');
     prReviewCommentIndexDataQueue.addConsumer(stack, {
         function: new Function(stack, 'gh_pr_review_comment_index_func', {
@@ -57,32 +59,36 @@ export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: Gith
     });
 
     prReviewCommentFormatDataQueue.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         prReviewCommentIndexDataQueue,
         GIT_ORGANIZATION_ID,
     ]);
 
     prReviewCommentIndexDataQueue.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
     ]);
     prReviewFormatDataQueue.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         prReviewIndexDataQueue,
         GIT_ORGANIZATION_ID,
     ]);
     prReviewIndexDataQueue.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
     ]);
-    return [prReviewCommentFormatDataQueue, prReviewCommentIndexDataQueue,
-        prReviewFormatDataQueue, prReviewIndexDataQueue]
+    return [
+        prReviewCommentFormatDataQueue,
+        prReviewCommentIndexDataQueue,
+        prReviewFormatDataQueue,
+        prReviewIndexDataQueue,
+    ];
 }

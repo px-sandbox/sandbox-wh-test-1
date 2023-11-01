@@ -1,12 +1,19 @@
-import { Duration, Stack } from "aws-cdk-lib";
-import { Function, Queue, use } from "sst/constructs";
-import { GithubTables } from "../../type/tables";
-import { commonConfig } from "../../common/config";
+import { Duration, Stack } from 'aws-cdk-lib';
+import { Function, Queue, use } from 'sst/constructs';
+import { GithubTables } from '../../type/tables';
+import { commonConfig } from '../../common/config';
 
 export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
-    const { GIT_ORGANIZATION_ID, GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID,
-        GITHUB_SG_INSTALLATION_ID, OPENSEARCH_NODE, OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD } = use(commonConfig);
-
+    const {
+        GIT_ORGANIZATION_ID,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        GITHUB_SG_INSTALLATION_ID,
+        OPENSEARCH_NODE,
+        OPENSEARCH_USERNAME,
+        OPENSEARCH_PASSWORD,
+    } = use(commonConfig);
+    const { retryProcessTable, githubMappingTable } = githubDDb;
     const commitIndexDataQueue = new Queue(stack, 'gh_commit_index');
     commitIndexDataQueue.addConsumer(stack, {
         function: new Function(stack, 'gh_commit_index_func', {
@@ -69,8 +76,8 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
                 GITHUB_SG_INSTALLATION_ID,
                 GITHUB_APP_PRIVATE_KEY_PEM,
                 GITHUB_APP_ID,
-                githubDDb.githubMappingTable,
-                githubDDb.retryProcessTable,
+                githubMappingTable,
+                retryProcessTable,
                 GIT_ORGANIZATION_ID,
                 OPENSEARCH_NODE,
                 OPENSEARCH_PASSWORD,
@@ -85,8 +92,8 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
     });
 
     commitFormatDataQueue.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         commitIndexDataQueue,
         GIT_ORGANIZATION_ID,
         GITHUB_APP_PRIVATE_KEY_PEM,
@@ -98,8 +105,8 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
     ]);
 
     ghMergedCommitProcessQueue.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         GIT_ORGANIZATION_ID,
         OPENSEARCH_NODE,
         OPENSEARCH_USERNAME,
@@ -109,12 +116,17 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
     ]);
 
     commitIndexDataQueue.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
     ]);
 
-    return [commitFormatDataQueue, commitIndexDataQueue, ghMergedCommitProcessQueue, commitFileChanges]
+    return [
+        commitFormatDataQueue,
+        commitIndexDataQueue,
+        ghMergedCommitProcessQueue,
+        commitFileChanges,
+    ];
 }

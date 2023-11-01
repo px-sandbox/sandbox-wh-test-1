@@ -1,12 +1,24 @@
-import { Stack } from "aws-cdk-lib";
-import { Queue, use } from "sst/constructs";
-import { GithubTables } from "../../type/tables";
-import { commonConfig } from "../../common/config";
+import { Stack } from 'aws-cdk-lib';
+import { Queue, use } from 'sst/constructs';
+import { GithubTables } from '../../type/tables';
+import { commonConfig } from '../../common/config';
 
-export function initializeRepoQueue(stack: Stack, githubDDb: GithubTables,
-    branchFormatDataQueue: Queue, branchIndexDataQueue: Queue): Queue[] {
-    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD,
-        OPENSEARCH_USERNAME, GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_SG_INSTALLATION_ID } = use(commonConfig)
+export function initializeRepoQueue(
+    stack: Stack,
+    githubDDb: GithubTables,
+    branchFormatDataQueue: Queue,
+    branchIndexDataQueue: Queue
+): Queue[] {
+    const {
+        GIT_ORGANIZATION_ID,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        GITHUB_APP_ID,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_SG_INSTALLATION_ID,
+    } = use(commonConfig);
+    const { retryProcessTable, githubMappingTable } = githubDDb;
     const repoIndexDataQueue = new Queue(stack, 'gh_repo_index', {
         consumer: {
             function: 'packages/github/src/sqs/handlers/indexer/repo.handler',
@@ -43,15 +55,15 @@ export function initializeRepoQueue(stack: Stack, githubDDb: GithubTables,
     });
 
     repoFormatDataQueue.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         repoIndexDataQueue,
         GIT_ORGANIZATION_ID,
     ]);
 
     repoIndexDataQueue.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
@@ -65,5 +77,5 @@ export function initializeRepoQueue(stack: Stack, githubDDb: GithubTables,
         branchFormatDataQueue,
         branchIndexDataQueue,
     ]);
-    return [repoFormatDataQueue, repoIndexDataQueue, afterRepoSaveQueue]
+    return [repoFormatDataQueue, repoIndexDataQueue, afterRepoSaveQueue];
 }

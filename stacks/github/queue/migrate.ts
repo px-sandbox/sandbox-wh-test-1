@@ -1,14 +1,28 @@
-import { Duration, Stack } from "aws-cdk-lib";
-import { Function, Queue, use } from "sst/constructs";
-import { GithubTables } from "../../type/tables";
-import { commonConfig } from "../../common/config";
+import { Duration, Stack } from 'aws-cdk-lib';
+import { Function, Queue, use } from 'sst/constructs';
+import { GithubTables } from '../../type/tables';
+import { commonConfig } from '../../common/config';
 
-export function initializeMigrationQueue(stack: Stack, githubDDb: GithubTables, formatterQueue: Queue[]): Queue[] {
-
-    const { GIT_ORGANIZATION_ID, GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY_PEM,
-        GITHUB_SG_INSTALLATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
-    const [prFormatDataQueue, prReviewFormatDataQueue,
-        prReviewCommentFormatDataQueue, commitFormatDataQueue] = formatterQueue;
+export function initializeMigrationQueue(
+    stack: Stack,
+    githubDDb: GithubTables,
+    formatterQueue: Queue[]
+): Queue[] {
+    const {
+        GIT_ORGANIZATION_ID,
+        GITHUB_APP_ID,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_SG_INSTALLATION_ID,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+    } = use(commonConfig);
+    const [
+        prFormatDataQueue,
+        prReviewFormatDataQueue,
+        prReviewCommentFormatDataQueue,
+        commitFormatDataQueue,
+    ] = formatterQueue;
     const collectPRData = new Queue(stack, 'gh_historical_pr', {
         cdk: {
             queue: {
@@ -255,9 +269,14 @@ export function initializeMigrationQueue(stack: Stack, githubDDb: GithubTables, 
         collectCommitsData,
     ]);
 
-
-    return [collectCommitsData, collectCommitsData, collectPRCommitsData,
-        collectPRData, collectPRReviewCommentsData, collectReviewsData,
-        historicalBranch, collecthistoricalPrByumber]
-
+    return [
+        collectCommitsData,
+        collectCommitsData,
+        collectPRCommitsData,
+        collectPRData,
+        collectPRReviewCommentsData,
+        collectReviewsData,
+        historicalBranch,
+        collecthistoricalPrByumber,
+    ];
 }
