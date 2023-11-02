@@ -19,9 +19,9 @@ export const handler = async function pushFormattedDataReciever(event: SQSEvent)
           return;
         }
         const data = await pushProcessor.processor();
-        await pushProcessor.sendDataToQueue(data, Queue.gh_push_index.queueUrl);
+        await pushProcessor.sendDataToQueue(data, Queue.qGhPushIndex.queueUrl);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_push_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qGhPushFormat.queueUrl, error as Error);
         logger.error('pushFormattedDataReciever.error', error);
       }
     })

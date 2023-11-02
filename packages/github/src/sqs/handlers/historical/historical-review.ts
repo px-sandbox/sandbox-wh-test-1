@@ -55,7 +55,7 @@ async function processReviewQueueForPageOne(
       prNumber: messageBody.number,
       repoId: messageBody.head.repo.id,
     },
-    Queue.gh_historical_pr_by_number.queueUrl
+    Queue.qGhHistoricalPrByNumber.queueUrl
   );
 }
 
@@ -85,7 +85,7 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
           pullId: messageBody.id,
           repoId: messageBody.head.repo.id,
         },
-        Queue.gh_pr_review_format.queueUrl
+        Queue.qGhPrReviewFormat.queueUrl
       )
     );
 
@@ -104,7 +104,7 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
     await getPrReviews({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
     logger.error(`historical.reviews.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(record, Queue.gh_historical_reviews.queueUrl, error as Error);
+    await logProcessToRetry(record, Queue.qGhHistoricalReviews.queueUrl, error as Error);
   }
 }
 

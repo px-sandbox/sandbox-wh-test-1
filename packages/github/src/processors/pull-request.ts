@@ -157,7 +157,7 @@ export class PRProcessor extends DataProcessor<
             owner: this.ghApiData.head.repo.owner.login,
           },
         },
-        Queue.gh_merge_commit_process.queueUrl
+        Queue.qGhMergeCommitProcess.queueUrl
       );
     }
 

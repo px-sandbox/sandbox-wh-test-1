@@ -41,7 +41,7 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
           githubRepoId,
           page: 1,
         },
-        Queue.gh_historical_commits.queueUrl
+        Queue.qGhHistoricalCommits.queueUrl
       )
     );
     await Promise.all(queueProcessed);
@@ -56,7 +56,7 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
     logger.error(`historical.repoBranches.error: ${JSON.stringify(error)}`);
     await logProcessToRetry(
       record as SQSRecord,
-      Queue.gh_historical_branch.queueUrl,
+      Queue.qGhHistoricalBranch.queueUrl,
       error as Error
     );
   }
@@ -77,7 +77,7 @@ export const handler = async function collectBranchData(event: SQSEvent): Promis
       try {
         await getRepoBranches(record);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_historical_branch.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qGhHistoricalBranch.queueUrl, error as Error);
         logger.error(JSON.stringify({ message: 'collectBranchData.failed', record, error }));
       }
     })

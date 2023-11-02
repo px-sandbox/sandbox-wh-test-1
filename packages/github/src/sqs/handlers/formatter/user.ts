@@ -18,7 +18,7 @@ export const handler = async function userFormattedDataReciever(event: SQSEvent)
           return;
         }
         const data = await userProcessor.processor();
-        await userProcessor.sendDataToQueue(data, Queue.gh_users_index.queueUrl);
+        await userProcessor.sendDataToQueue(data, Queue.qGhUsersIndex.queueUrl);
       } catch (error) {
         logger.error('userFormattedDataReciever.error', error);
       }

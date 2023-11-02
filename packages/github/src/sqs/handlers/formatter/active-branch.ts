@@ -67,7 +67,7 @@ async function countBranchesAndSendToSQS(
 
     const data = await branchProcessor.processor();
 
-    await branchProcessor.sendDataToQueue(data, Queue.gh_active_branch_counter_index.queueUrl);
+    await branchProcessor.sendDataToQueue(data, Queue.qGhActiveBranchCounterIndex.queueUrl);
   } catch (error: unknown) {
     logger.error(`
     countBranchesAndSendToSQS.error for ${JSON.stringify(repo)} at ${date}
@@ -90,7 +90,7 @@ export async function handler(event: SQSEvent): Promise<void> {
       } catch (error) {
         await logProcessToRetry(
           record,
-          Queue.gh_active_branch_counter_format.queueUrl,
+          Queue.qGhActiveBranchCounterFormat.queueUrl,
           error as Error
         );
       }

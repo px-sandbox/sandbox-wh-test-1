@@ -15,7 +15,7 @@ export async function handler(event: SQSEvent): Promise<void> {
 
         await saveActiveBranch(messageBody);
       } catch (error) {
-        logProcessToRetry(record, Queue.gh_active_branch_counter_index.queueUrl, error as Error);
+        logProcessToRetry(record, Queue.qGhActiveBranchCounterIndex.queueUrl, error as Error);
         logger.error('branchCounterDataReciever.error', { error });
       }
     })

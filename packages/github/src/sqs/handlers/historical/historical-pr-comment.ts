@@ -41,7 +41,7 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
           pullId: messageBody.id,
           repoId: messageBody.head.repo.id,
         },
-        Queue.gh_pr_review_comment_format.queueUrl
+        Queue.qGhPrReviewCommentFormat.queueUrl
       )
     );
     await Promise.all(queueProcessed);
@@ -55,7 +55,7 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
     await getPrComments({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
     logger.error(`historical.comments.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(record, Queue.gh_historical_pr_comments.queueUrl, error as Error);
+    await logProcessToRetry(record, Queue.qGhHistoricalPrComments.queueUrl, error as Error);
   }
 }
 

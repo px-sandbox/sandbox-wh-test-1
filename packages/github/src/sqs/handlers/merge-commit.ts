@@ -36,7 +36,7 @@ export const handler = async function processMergeCommit(event: SQSEvent): Promi
           logger.error('processMergeCommit.error', { error: 'mergeCommitDetail not found' });
           await logProcessToRetry(
             record,
-            Queue.gh_merge_commit_process.queueUrl,
+            Queue.qGhMergeCommitProcess.queueUrl,
             new Error('mergeCommitDetail not found')
           );
           return false;
@@ -46,7 +46,7 @@ export const handler = async function processMergeCommit(event: SQSEvent): Promi
 
         await new SQSClient().sendMessage(
           messageBody,
-          Queue.gh_commit_format.queueUrl,
+          Queue.qGhCommitFormat.queueUrl,
           `${messageBody.commitId}+merge`
         );
       } catch (error) {

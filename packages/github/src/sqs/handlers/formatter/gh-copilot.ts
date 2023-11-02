@@ -19,7 +19,7 @@ export const handler = async function ghCopilotFormattedDataReciever(
           return;
         }
         const data = await ghCopilotProcessor.processor();
-        await ghCopilotProcessor.sendDataToQueue(data, Queue.gh_copilot_index.queueUrl);
+        await ghCopilotProcessor.sendDataToQueue(data, Queue.qGhCopilotIndex.queueUrl);
       } catch (error) {
         logger.error('ghCopilotFormattedDataReciever.error', error);
       }
