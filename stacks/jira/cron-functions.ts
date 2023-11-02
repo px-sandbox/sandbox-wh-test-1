@@ -24,6 +24,7 @@ export function initializeFunctions(stack: Stack, queues: Queue[], tables: JiraT
             processJiraRetryTable,
             JIRA_CLIENT_ID,
             JIRA_CLIENT_SECRET,
+            JIRA_REDIRECT_URI,
             ...queues,
         ],
     });
