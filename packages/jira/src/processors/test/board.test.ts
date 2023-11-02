@@ -29,7 +29,7 @@ describe('BoardProcessor', () => {
             getBoard: vi.fn(),
         } as unknown as JiraClient;
         JiraClient.getClient = vi.fn().mockResolvedValue(jiraClient);
-        boardProcessor.getOrganizationId = vi.fn().mockResolvedValue([{ orgId: 'org123', id: 'jira_org_org123' }]);
+        // boardProcessor.getOrganizationId = vi.fn().mockResolvedValue([{ orgId: 'org123', id: 'jira_org_org123' }]);
         boardProcessor.getParentId = vi.fn().mockResolvedValue('f2fd8d13-8bde-4ec0-bf87-4376fc2c8672');
     });
 
@@ -82,7 +82,7 @@ describe('BoardProcessor', () => {
         });
         it('should throw an error if organization is not found', async () => {
             const mockLoggerError = vi.spyOn(logger, 'error');
-            boardProcessor.getOrganizationId = vi.fn().mockReturnValueOnce([]);
+            // boardProcessor.getOrganizationId = vi.fn().mockReturnValueOnce([]);
             await expect(boardProcessor.processor()).rejects.toThrow('Organization not found');
             expect(mockLoggerError).toHaveBeenCalledWith('Organization not found');
         });

@@ -5,7 +5,7 @@ import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import { mappingPrefixes } from '../../constant/config';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
-import { getOrganizationId } from '../organization/get-organization';
+import { getOrganization } from '../organization/get-organization';
 
 /**
  * Retrieves a Jira board by its ID.
@@ -20,13 +20,17 @@ export async function getBoardById(boardId: number, organization: string): Promi
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const [org] = await getOrganizationId(organization);
+    const orgData = await getOrganization(organization);
+    if (!orgData) {
+      logger.error(`Organization ${organization} not found`);
+      throw new Error(`Organization ${organization} not found`);
+    }
     const matchQry =
       esb
         .boolQuery()
         .must([
           esb.termsQuery('body.id', `${mappingPrefixes.board}_${boardId}`),
-          esb.termQuery('body.organizationId', `${org.id}`),
+          esb.termQuery('body.organizationId', `${orgData.id}`),
         ]).toJSON();
     const boardData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Board, matchQry);
     const [formattedBoardData] = await searchedDataFormatorWithDeleted(boardData);

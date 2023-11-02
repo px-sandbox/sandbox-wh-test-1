@@ -5,7 +5,7 @@ import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import { mappingPrefixes } from '../../constant/config';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
-import { getOrganizationId } from '../organization/get-organization';
+import { getOrganization } from '../organization/get-organization';
 
 /**
  * Retrieves a Jira user by their ID.
@@ -23,13 +23,17 @@ export async function getUserById(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const [org] = await getOrganizationId(organization);
+    const orgData = await getOrganization(organization);
+    if (!orgData) {
+      logger.error(`Organization ${organization} not found`);
+      throw new Error(`Organization ${organization} not found`);
+    }
     const matchQry =
       esb
         .boolQuery()
         .must([
           esb.termsQuery('body.id', `${mappingPrefixes.user}_${userId}`),
-          esb.termQuery('body.organizationId', `${org.id}`),
+          esb.termQuery('body.organizationId', `${orgData.id}`),
         ]).toJSON();
     const userData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Users, matchQry);
     const [formattedUserData] = await searchedDataFormatorWithDeleted(userData);
