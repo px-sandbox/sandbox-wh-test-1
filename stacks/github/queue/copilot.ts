@@ -1,5 +1,6 @@
-import { Queue, Stack, use } from 'sst/constructs';
+import { Queue, use } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
+import { Stack } from 'aws-cdk-lib';
 
 export function initializeCopilotQueue(stack: Stack): Queue[] {
     const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, GIT_ORGANIZATION_ID } =
