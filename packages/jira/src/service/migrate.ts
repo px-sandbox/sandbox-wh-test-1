@@ -62,11 +62,11 @@ export const handler = async function migrate(
           organization,
           projectId: id,
         },
-        Queue.jira_project_migrate.queueUrl
+        Queue.qProjectMigrate.queueUrl
       )
     ),
     ...usersFromJira.map((user) =>
-      sqsClient.sendMessage({ organization, user }, Queue.jira_user_migrate.queueUrl)
+      sqsClient.sendMessage({ organization, user }, Queue.qUserMigrate.queueUrl)
     ),
   ]);
 

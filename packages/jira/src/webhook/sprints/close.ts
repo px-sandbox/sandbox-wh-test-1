@@ -14,5 +14,5 @@ export async function close(
   organization: string
 ): Promise<void> {
   logger.info('sprint_event: Send message to SQS');
-  await new SQSClient().sendMessage({ ...sprint, organization }, Queue.jira_sprint_format.queueUrl);
+  await new SQSClient().sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
 }

@@ -15,7 +15,7 @@ export const handler = async function sprintIndexDataReciever(event: SQSEvent): 
 
         await saveSprintDetails(messageBody);
       } catch (error) {
-        await logProcessToRetry(record, Queue.jira_sprint_index.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qSprintIndex.queueUrl, error as Error);
         logger.error('sprintIndexDataReciever.error', { error });
       }
     })

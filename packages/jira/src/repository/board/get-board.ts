@@ -25,7 +25,7 @@ export async function getBoardById(boardId: number, organization: string): Promi
       esb
         .boolQuery()
         .must([
-          esb.termsQuery('body.id', `${mappingPrefixes.project}_${boardId}`),
+          esb.termsQuery('body.id', `${mappingPrefixes.board}_${boardId}`),
           esb.termQuery('body.organizationId', `${org.id}`),
         ]).toJSON();
     const boardData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Board, matchQry);

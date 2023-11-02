@@ -18,9 +18,9 @@ export const handler = async function issueFormattedDataReciever(event: SQSEvent
           return;
         }
         const data = await issueProcessor.processor();
-        await issueProcessor.sendDataToQueue(data, Queue.jira_issue_index.queueUrl);
+        await issueProcessor.sendDataToQueue(data, Queue.qIssueIndex.queueUrl);
       } catch (error) {
-        await logProcessToRetry(record, Queue.jira_issue_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qIssueFormat.queueUrl, error as Error);
         logger.error('issueFormattedDataReciever.error', error);
       }
     })

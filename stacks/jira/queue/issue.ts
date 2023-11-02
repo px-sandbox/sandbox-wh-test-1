@@ -13,7 +13,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_REDIRECT_URI,
   } = use(commonConfig);
 
-  const issueIndexDataQueue = new Queue(stack, 'jira_issue_index', {
+  const issueIndexDataQueue = new Queue(stack, 'qIssueIndex', {
     consumer: {
       function: {
         handler: 'packages/jira/src/sqs/handlers/indexer/issue.handler',
@@ -26,9 +26,9 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     },
   });
 
-  const issueFormatDataQueue = new Queue(stack, 'jira_issue_format');
+  const issueFormatDataQueue = new Queue(stack, 'qIssueFormat');
   issueFormatDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'jira_issue_format_func', {
+    function: new Function(stack, 'fnIssueFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/issue.handler',
       bind: [issueFormatDataQueue],
     }),

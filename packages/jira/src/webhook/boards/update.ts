@@ -24,5 +24,5 @@ export async function update(
 
     const boardData = mappingToApiData(board, boardIndexData.createdAt, organization);
     logger.info('userUpdatedEvent: Send message to SQS');
-    await new SQSClient().sendMessage(boardData, Queue.jira_board_format.queueUrl);
+    await new SQSClient().sendMessage(boardData, Queue.qBoardFormat.queueUrl);
 }

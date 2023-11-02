@@ -34,5 +34,5 @@ export async function update(
   );
 
   logger.info('processProjectUpdatedEvent: Send message to SQS');
-  await new SQSClient().sendMessage(updatedProjectBody, Queue.jira_project_format.queueUrl);
+  await new SQSClient().sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
 }

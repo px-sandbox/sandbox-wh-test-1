@@ -21,5 +21,5 @@ export async function create(
   const createdAt = moment(eventTime).toISOString();
   const updatedProjectBody = projectKeysMapper(project, createdAt, organization);
   logger.info('processProjectCreatedEvent: Send message to SQS');
-  await new SQSClient().sendMessage(updatedProjectBody, Queue.jira_project_format.queueUrl);
+  await new SQSClient().sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
 }

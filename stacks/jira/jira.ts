@@ -51,14 +51,14 @@ function intializeJiraCron(
    */
 
   // eslint-disable-next-line no-new
-  new Cron(stack, 'failed-process-jira-retry-cron', {
+  new Cron(stack, 'cronRetryProcess', {
     schedule: 'cron(0/30 * ? * * *)',
     job: processJiraRetryFunction,
   });
 
   // initialize a cron for jira refresh token that runs every second month at 00:00 UTC
   // eslint-disable-next-line no-new
-  new Cron(stack, 'refresh-token-cron', {
+  new Cron(stack, 'cronRefreshToken', {
     schedule: 'cron(0/45 * ? * * *)',
     job: refreshToken,
   });
@@ -125,11 +125,11 @@ export function jira({ stack }: StackContext): {
       [projectFormatter, sprintFormatter, userFormatter, boardFormatter, issueFormatter]
     );
 
-  const refreshToken = new Function(stack, 'refresh-token-func', {
+  const refreshToken = new Function(stack, 'fnRefreshToken', {
     handler: 'packages/jira/src/cron/refresh-token.updateRefreshToken',
     bind: [jiraCredsTable, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET, JIRA_REDIRECT_URI],
   });
-  const processJiraRetryFunction = new Function(stack, 'process-jira-retry-func', {
+  const processJiraRetryFunction = new Function(stack, 'fnRetryProcess', {
     handler: 'packages/jira/src/cron/process-jira-retry.handler',
     bind: [
       jiraMappingTable,
@@ -155,7 +155,7 @@ export function jira({ stack }: StackContext): {
       universal: {
         type: 'lambda',
         responseTypes: ['simple'],
-        function: new Function(stack, 'Jira-Universal-Authorizer', {
+        function: new Function(stack, 'fnUniversalAuth', {
           handler: 'packages/auth/src/auth.handler',
           bind: [AUTH_PUBLIC_KEY],
         }),
@@ -163,7 +163,7 @@ export function jira({ stack }: StackContext): {
       admin: {
         type: 'lambda',
         responseTypes: ['simple'],
-        function: new Function(stack, 'Jira-Admin-Authorizer', {
+        function: new Function(stack, 'fnAdminAuth', {
           handler: 'packages/auth/src/admin-auth.handler',
           bind: [AUTH_PUBLIC_KEY],
         }),
