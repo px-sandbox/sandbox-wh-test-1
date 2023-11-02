@@ -1,5 +1,5 @@
 import { SSTConfig } from 'sst';
-import { gh } from './stacks/github';
+import { gh } from './stacks/github/github';
 import { devops } from './stacks/devops';
 import { jira } from './stacks/jira/jira';
 import { commonConfig } from './stacks/common/config';

@@ -14,8 +14,8 @@ function initProcessRetryFunction(
     const processRetryFunction = new Function(stack, 'fnRetryFailedProcessor', {
         handler: 'packages/github/src/cron/retry-process.handler',
         bind: [
-            githubDDb.retryProcessTable,
             ...QueueArray,
+            githubDDb.retryProcessTable,
             GITHUB_APP_PRIVATE_KEY_PEM,
             GITHUB_APP_ID,
             GITHUB_SG_INSTALLATION_ID,
