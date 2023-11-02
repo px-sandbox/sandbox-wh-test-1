@@ -11,7 +11,7 @@ function initProcessRetryFunction(
     const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID } =
         use(commonConfig);
 
-    const processRetryFunction = new Function(stack, 'retry-failed-processor', {
+    const processRetryFunction = new Function(stack, 'fnRetryFailedProcessor', {
         handler: 'packages/github/src/cron/retry-process.handler',
         bind: [
             githubDDb.retryProcessTable,
@@ -41,7 +41,7 @@ export function initializeFunctions(
     const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue, branchCounterFormatterQueue] =
         queuesForFunctions;
 
-    const ghCopilotFunction = new Function(stack, 'github-copilot', {
+    const ghCopilotFunction = new Function(stack, 'fnGithubCopilot', {
         handler: 'packages/github/src/cron/github-copilot.handler',
         bind: [
             ghCopilotFormatDataQueue,
@@ -52,7 +52,7 @@ export function initializeFunctions(
         ],
     });
 
-    const ghBranchCounterFunction = new Function(stack, 'branch-counter', {
+    const ghBranchCounterFunction = new Function(stack, 'fnBranchCounter', {
         handler: 'packages/github/src/cron/branch-counter.handler',
         bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchCounterFormatterQueue],
     });

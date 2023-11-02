@@ -19,7 +19,7 @@ export function initializeRepoQueue(
         GITHUB_SG_INSTALLATION_ID,
     } = use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDb;
-    const repoIndexDataQueue = new Queue(stack, 'gh_repo_index', {
+    const repoIndexDataQueue = new Queue(stack, 'qGhRepoIndex', {
         consumer: {
             function: 'packages/github/src/sqs/handlers/indexer/repo.handler',
             cdk: {
@@ -29,7 +29,7 @@ export function initializeRepoQueue(
             },
         },
     });
-    const repoFormatDataQueue = new Queue(stack, 'gh_repo_format', {
+    const repoFormatDataQueue = new Queue(stack, 'qGhRepoFormat', {
         consumer: {
             function: {
                 handler: 'packages/github/src/sqs/handlers/formatter/repo.handler',
@@ -43,7 +43,7 @@ export function initializeRepoQueue(
         },
     });
 
-    const afterRepoSaveQueue = new Queue(stack, 'gh_after_repo_save', {
+    const afterRepoSaveQueue = new Queue(stack, 'qGhAfterRepoSave', {
         consumer: {
             function: 'packages/github/src/sqs/handlers/save-branches.handler',
             cdk: {

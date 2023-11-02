@@ -19,14 +19,14 @@ export function initializeCron(
      * Cron Expression : cron(Minutes Hours Day-of-month Month Day-of-week Year
      */
     // eslint-disable-next-line no-new
-    new Cron(stack, 'failed-process-retry-cron', {
+    new Cron(stack, 'cronFailedProcessRetry', {
         schedule: 'cron(0/30 * ? * * *)',
         job: processRetryFunction,
     });
 
     if (stage === Stage.LIVE) {
         // eslint-disable-next-line no-new
-        new Cron(stack, 'github-copilot-cron', {
+        new Cron(stack, 'cronGithubCopilot', {
             schedule: 'cron(0 * ? * * *)',
             job: ghCopilotFunction,
         });
@@ -35,7 +35,7 @@ export function initializeCron(
      *  initialize a cron that runs every night at 23:30 UTC
      */
     // eslint-disable-next-line no-new
-    new Cron(stack, 'branch-counter-cron', {
+    new Cron(stack, 'cronBranchCounter', {
         // schedule: 'cron(30 23 ? * * *)',
         // run every 5 minutes for testing
         schedule: 'cron(0/5 * ? * * *)',

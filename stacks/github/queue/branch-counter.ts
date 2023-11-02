@@ -4,11 +4,11 @@ import { GithubTables } from "../../type/tables";
 import { commonConfig } from "../../common/config";
 
 export function initializeBranchCounterQueue(stack: Stack, githubDDB: GithubTables): Queue[] {
-    const branchCounterIndexQueue = new Queue(stack, 'gh_active_branch_counter_index');
+    const branchCounterIndexQueue = new Queue(stack, 'qGhActiveBranchCounterIndex');
     const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDB;
     branchCounterIndexQueue.addConsumer(stack, {
-        function: new Function(stack, 'gh_active_branch_counter_index_func', {
+        function: new Function(stack, 'fnGhActiveBranchCounterIndex', {
             handler: 'packages/github/src/sqs/handlers/indexer/active-branch.handler',
             bind: [
                 OPENSEARCH_NODE,
@@ -26,10 +26,10 @@ export function initializeBranchCounterQueue(stack: Stack, githubDDB: GithubTabl
         },
     });
 
-    const branchCounterFormatterQueue = new Queue(stack, 'gh_active_branch_counter_format');
+    const branchCounterFormatterQueue = new Queue(stack, 'qGhActiveBranchCounterFormat');
 
     branchCounterFormatterQueue.addConsumer(stack, {
-        function: new Function(stack, 'gh_active_branch_counter_format_func', {
+        function: new Function(stack, 'fnGhActiveBranchCounterFormat', {
             handler: 'packages/github/src/sqs/handlers/formatter/active-branch.handler',
             bind: [
                 OPENSEARCH_NODE,

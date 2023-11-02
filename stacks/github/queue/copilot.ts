@@ -4,7 +4,7 @@ import { commonConfig } from '../../common/config';
 export function initializeCopilotQueue(stack: Stack): Queue[] {
     const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, GIT_ORGANIZATION_ID } =
         use(commonConfig);
-    const ghCopilotIndexDataQueue = new Queue(stack, 'gh_copilot_index', {
+    const ghCopilotIndexDataQueue = new Queue(stack, 'qGhCopilotIndex', {
         consumer: {
             function: 'packages/github/src/sqs/handlers/indexer/gh-copilot.handler',
             cdk: {
@@ -15,7 +15,7 @@ export function initializeCopilotQueue(stack: Stack): Queue[] {
         },
     });
 
-    const ghCopilotFormatDataQueue = new Queue(stack, 'gh_copilot_format', {
+    const ghCopilotFormatDataQueue = new Queue(stack, 'qGhCopilotFormat', {
         consumer: {
             function: {
                 handler: 'packages/github/src/sqs/handlers/formatter/gh-copilot.handler',

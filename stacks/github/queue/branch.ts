@@ -7,7 +7,7 @@ import { commonConfig } from "../../common/config";
 export function initializeBranchQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
     const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDb;
-    const branchIndexDataQueue = new Queue(stack, 'gh_branch_index', {
+    const branchIndexDataQueue = new Queue(stack, 'qGhBranchIndex', {
         consumer: {
             function: 'packages/github/src/sqs/handlers/indexer/branch.handler',
             cdk: {
@@ -17,7 +17,7 @@ export function initializeBranchQueue(stack: Stack, githubDDb: GithubTables): Qu
             },
         },
     });
-    const branchFormatDataQueue = new Queue(stack, 'gh_branch_format', {
+    const branchFormatDataQueue = new Queue(stack, 'qGhBranchFormat', {
         consumer: {
             function: {
                 handler: 'packages/github/src/sqs/handlers/formatter/branch.handler',

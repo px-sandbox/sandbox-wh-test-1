@@ -6,7 +6,7 @@ import { commonConfig } from "../../common/config";
 export function initializeUserQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
     const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDb;
-    const userIndexDataQueue = new Queue(stack, 'gh_users_index', {
+    const userIndexDataQueue = new Queue(stack, 'qGhUsersIndex', {
         consumer: {
             function: 'packages/github/src/sqs/handlers/indexer/user.handler',
             cdk: {
@@ -16,7 +16,7 @@ export function initializeUserQueue(stack: Stack, githubDDb: GithubTables): Queu
             },
         },
     });
-    const userFormatDataQueue = new Queue(stack, 'gh_users_format', {
+    const userFormatDataQueue = new Queue(stack, 'qGhUsersFormat', {
         consumer: {
             function: {
                 handler: 'packages/github/src/sqs/handlers/formatter/user.handler',

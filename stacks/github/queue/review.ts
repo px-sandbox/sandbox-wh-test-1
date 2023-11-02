@@ -7,9 +7,9 @@ export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: Gith
     const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } =
         use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDb;
-    const prReviewCommentIndexDataQueue = new Queue(stack, 'gh_pr_review_comment_index');
+    const prReviewCommentIndexDataQueue = new Queue(stack, 'qGhPrReviewCommentIndex');
     prReviewCommentIndexDataQueue.addConsumer(stack, {
-        function: new Function(stack, 'gh_pr_review_comment_index_func', {
+        function: new Function(stack, 'fnGhPrReviewCommentIndex', {
             handler: 'packages/github/src/sqs/handlers/indexer/pr-review-comment.handler',
             bind: [prReviewCommentIndexDataQueue],
         }),
@@ -19,9 +19,9 @@ export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: Gith
             },
         },
     });
-    const prReviewCommentFormatDataQueue = new Queue(stack, 'gh_pr_review_comment_format');
+    const prReviewCommentFormatDataQueue = new Queue(stack, 'qGhPrReviewComment');
     prReviewCommentFormatDataQueue.addConsumer(stack, {
-        function: new Function(stack, 'gh_pr_review_comment_format_func', {
+        function: new Function(stack, 'fnGhPrReviewCommentFormat', {
             handler: 'packages/github/src/sqs/handlers/formatter/pr-review-comment.handler',
             bind: [prReviewCommentFormatDataQueue, prReviewCommentIndexDataQueue],
         }),
@@ -32,9 +32,9 @@ export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: Gith
         },
     });
 
-    const prReviewIndexDataQueue = new Queue(stack, 'gh_pr_review_index');
+    const prReviewIndexDataQueue = new Queue(stack, 'qGhPrReviewIndex');
     prReviewIndexDataQueue.addConsumer(stack, {
-        function: new Function(stack, 'gh_pr_review_index_func', {
+        function: new Function(stack, 'fnGhPrReviewIndex', {
             handler: 'packages/github/src/sqs/handlers/indexer/pr-review.handler',
             bind: [prReviewIndexDataQueue],
         }),
@@ -45,9 +45,9 @@ export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: Gith
         },
     });
 
-    const prReviewFormatDataQueue = new Queue(stack, 'gh_pr_review_format');
+    const prReviewFormatDataQueue = new Queue(stack, 'qGhPrReviewFormat');
     prReviewFormatDataQueue.addConsumer(stack, {
-        function: new Function(stack, 'gh_pr_review_format_func', {
+        function: new Function(stack, 'fnGhPrReviewFormat', {
             handler: 'packages/github/src/sqs/handlers/formatter/pr-review.handler',
             bind: [prReviewFormatDataQueue, prReviewIndexDataQueue],
         }),

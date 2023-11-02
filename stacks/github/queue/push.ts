@@ -7,9 +7,9 @@ export function initializePushQueue(stack: Stack, githubDDb: GithubTables): Queu
     const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } =
         use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDb;
-    const pushIndexDataQueue = new Queue(stack, 'gh_push_index');
+    const pushIndexDataQueue = new Queue(stack, 'qGhPushIndex');
     pushIndexDataQueue.addConsumer(stack, {
-        function: new Function(stack, 'gh_push_index_func', {
+        function: new Function(stack, 'fnGhPushIndex', {
             handler: 'packages/github/src/sqs/handlers/indexer/push.handler',
             bind: [pushIndexDataQueue],
         }),
@@ -19,9 +19,9 @@ export function initializePushQueue(stack: Stack, githubDDb: GithubTables): Queu
             },
         },
     });
-    const pushFormatDataQueue = new Queue(stack, 'gh_push_format');
+    const pushFormatDataQueue = new Queue(stack, 'qGhPushFormat');
     pushFormatDataQueue.addConsumer(stack, {
-        function: new Function(stack, 'gh_push_format_func', {
+        function: new Function(stack, 'fnGhPushFormat', {
             handler: 'packages/github/src/sqs/handlers/formatter/push.handler',
             bind: [pushFormatDataQueue, pushIndexDataQueue],
         }),

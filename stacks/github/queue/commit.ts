@@ -14,9 +14,9 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         OPENSEARCH_PASSWORD,
     } = use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDb;
-    const commitIndexDataQueue = new Queue(stack, 'gh_commit_index');
+    const commitIndexDataQueue = new Queue(stack, 'qGhCommitIndex');
     commitIndexDataQueue.addConsumer(stack, {
-        function: new Function(stack, 'gh_commit_index_func', {
+        function: new Function(stack, 'fnGhCommitIndex', {
             handler: 'packages/github/src/sqs/handlers/indexer/commit.handler',
             bind: [commitIndexDataQueue],
         }),
@@ -26,7 +26,7 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
             },
         },
     });
-    const commitFormatDataQueue = new Queue(stack, 'gh_commit_format', {
+    const commitFormatDataQueue = new Queue(stack, 'qGhCommitFormat', {
         cdk: {
             queue: {
                 fifo: true,
@@ -34,7 +34,7 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         },
     });
     commitFormatDataQueue.addConsumer(stack, {
-        function: new Function(stack, 'gh_commit_format_func', {
+        function: new Function(stack, 'fnGhCommitFormat', {
             handler: 'packages/github/src/sqs/handlers/formatter/commit.handler',
             bind: [commitFormatDataQueue, commitIndexDataQueue],
         }),
@@ -45,9 +45,9 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         },
     });
 
-    const ghMergedCommitProcessQueue = new Queue(stack, 'gh_merge_commit_process');
+    const ghMergedCommitProcessQueue = new Queue(stack, 'qGhMergeCommitProcess');
     ghMergedCommitProcessQueue.addConsumer(stack, {
-        function: new Function(stack, 'gh_merge_commit_process_func', {
+        function: new Function(stack, 'fnGhMergeCommitProcess', {
             handler: 'packages/github/src/sqs/handlers/merge-commit.handler',
             bind: [ghMergedCommitProcessQueue, commitFormatDataQueue],
         }),
@@ -58,7 +58,7 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         },
     });
 
-    const commitFileChanges = new Queue(stack, 'gh_commit_file_changes', {
+    const commitFileChanges = new Queue(stack, 'qGhCommitFileChanges', {
         cdk: {
             queue: {
                 visibilityTimeout: Duration.seconds(600),
@@ -66,7 +66,7 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         },
     });
     commitFileChanges.addConsumer(stack, {
-        function: new Function(stack, 'commitFileChangesFunc', {
+        function: new Function(stack, 'fnCommitFileChanges', {
             handler: 'packages/github/src/sqs/handlers/historical/migrate-commit-file-changes.handler',
             timeout: '300 seconds',
             runtime: 'nodejs18.x',

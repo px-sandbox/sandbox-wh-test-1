@@ -23,7 +23,8 @@ export function initializeMigrationQueue(
         prReviewCommentFormatDataQueue,
         commitFormatDataQueue,
     ] = formatterQueue;
-    const collectPRData = new Queue(stack, 'gh_historical_pr', {
+    const { retryProcessTable, githubMappingTable } = githubDDb;
+    const collectPRData = new Queue(stack, 'qGhHistoricalPr', {
         cdk: {
             queue: {
                 visibilityTimeout: Duration.seconds(600),
@@ -32,7 +33,7 @@ export function initializeMigrationQueue(
     });
 
     collectPRData.addConsumer(stack, {
-        function: new Function(stack, 'histPRFunc', {
+        function: new Function(stack, 'fnHistoricalPR', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
             timeout: '300 seconds',
             runtime: 'nodejs18.x',
@@ -45,7 +46,7 @@ export function initializeMigrationQueue(
         },
     });
 
-    const collectReviewsData = new Queue(stack, 'gh_historical_reviews', {
+    const collectReviewsData = new Queue(stack, 'qGhHistoricalReviews', {
         cdk: {
             queue: {
                 visibilityTimeout: Duration.seconds(600),
@@ -54,7 +55,7 @@ export function initializeMigrationQueue(
     });
 
     collectReviewsData.addConsumer(stack, {
-        function: new Function(stack, 'histPrReviewFunc', {
+        function: new Function(stack, 'fnHistPrReview', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-review.handler',
             timeout: '30 seconds',
             runtime: 'nodejs18.x',
@@ -67,7 +68,7 @@ export function initializeMigrationQueue(
         },
     });
 
-    const collecthistoricalPrByumber = new Queue(stack, 'gh_historical_pr_by_number', {
+    const collecthistoricalPrByumber = new Queue(stack, 'qGhHistoricalPrByNumber', {
         cdk: {
             queue: {
                 visibilityTimeout: Duration.seconds(600),
@@ -75,7 +76,7 @@ export function initializeMigrationQueue(
         },
     });
     collecthistoricalPrByumber.addConsumer(stack, {
-        function: new Function(stack, 'histPrByNumberFunc', {
+        function: new Function(stack, 'fnHistPrByNumber', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-pr-by-number.handler',
             timeout: '300 seconds',
             runtime: 'nodejs18.x',
@@ -88,7 +89,7 @@ export function initializeMigrationQueue(
         },
     });
 
-    const collectCommitsData = new Queue(stack, 'gh_historical_commits', {
+    const collectCommitsData = new Queue(stack, 'qGhHistoricalCommits', {
         cdk: {
             queue: {
                 visibilityTimeout: Duration.seconds(600),
@@ -96,7 +97,7 @@ export function initializeMigrationQueue(
         },
     });
     collectCommitsData.addConsumer(stack, {
-        function: new Function(stack, 'histCommitFunc', {
+        function: new Function(stack, 'fnHistCommit', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-commit.handler',
             timeout: '300 seconds',
             runtime: 'nodejs18.x',
@@ -110,7 +111,7 @@ export function initializeMigrationQueue(
         },
     });
 
-    const historicalBranch = new Queue(stack, 'gh_historical_branch', {
+    const historicalBranch = new Queue(stack, 'qGhHistoricalBranch', {
         cdk: {
             queue: {
                 visibilityTimeout: Duration.seconds(600),
@@ -119,7 +120,7 @@ export function initializeMigrationQueue(
     });
 
     historicalBranch.addConsumer(stack, {
-        function: new Function(stack, 'histBranchFunc', {
+        function: new Function(stack, 'fnHistBranch', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-branch.handler',
             bind: [historicalBranch],
             runtime: 'nodejs18.x',
@@ -133,7 +134,7 @@ export function initializeMigrationQueue(
         },
     });
 
-    const collectPRCommitsData = new Queue(stack, 'gh_historical_pr_commits', {
+    const collectPRCommitsData = new Queue(stack, 'qGhHistoricalPrCommits', {
         cdk: {
             queue: {
                 visibilityTimeout: Duration.seconds(600),
@@ -141,7 +142,7 @@ export function initializeMigrationQueue(
         },
     });
     collectPRCommitsData.addConsumer(stack, {
-        function: new Function(stack, 'histPRCommitFunc', {
+        function: new Function(stack, 'fnHistPRCommit', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commit.handler',
             timeout: '30 seconds',
             runtime: 'nodejs18.x',
@@ -154,7 +155,7 @@ export function initializeMigrationQueue(
         },
     });
 
-    const collectPRReviewCommentsData = new Queue(stack, 'gh_historical_pr_comments', {
+    const collectPRReviewCommentsData = new Queue(stack, 'qGhHistoricalPrComments', {
         cdk: {
             queue: {
                 visibilityTimeout: Duration.seconds(600),
@@ -162,7 +163,7 @@ export function initializeMigrationQueue(
         },
     });
     collectPRReviewCommentsData.addConsumer(stack, {
-        function: new Function(stack, 'histPRReviewCommentsFunc', {
+        function: new Function(stack, 'fnHistPRReviewComments', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comment.handler',
             timeout: '300 seconds',
             runtime: 'nodejs18.x',
@@ -176,8 +177,8 @@ export function initializeMigrationQueue(
     });
 
     collectPRData.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
@@ -190,8 +191,8 @@ export function initializeMigrationQueue(
         collectPRReviewCommentsData,
     ]);
     collecthistoricalPrByumber.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
@@ -203,8 +204,8 @@ export function initializeMigrationQueue(
         commitFormatDataQueue,
     ]);
     collectReviewsData.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
@@ -217,8 +218,8 @@ export function initializeMigrationQueue(
     ]);
 
     collectCommitsData.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
@@ -231,8 +232,8 @@ export function initializeMigrationQueue(
     ]);
 
     collectPRCommitsData.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
@@ -244,8 +245,8 @@ export function initializeMigrationQueue(
     ]);
 
     collectPRReviewCommentsData.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
@@ -257,8 +258,8 @@ export function initializeMigrationQueue(
     ]);
 
     historicalBranch.bind([
-        githubDDb.githubMappingTable,
-        githubDDb.retryProcessTable,
+        githubMappingTable,
+        retryProcessTable,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
