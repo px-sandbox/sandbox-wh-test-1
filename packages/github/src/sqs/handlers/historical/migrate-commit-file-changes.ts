@@ -84,10 +84,10 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           return;
         }
         const data = await commitProcessor.processor();
-        await commitProcessor.sendDataToQueue(data, Queue.gh_commit_index.queueUrl);
+        await commitProcessor.sendDataToQueue(data, Queue.qGhCommitIndex.queueUrl);
       } catch (error) {
         logger.error('migrate-commitFormattedDataReciever', error);
-        await logProcessToRetry(record, Queue.gh_commit_file_changes.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qGhCommitFileChanges.queueUrl, error as Error);
       }
     })
   );

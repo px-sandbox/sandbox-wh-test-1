@@ -29,7 +29,7 @@ async function getReposList(
 
     await Promise.all(
       reposPerPage.map(async (repo) =>
-        new SQSClient().sendMessage(repo, Queue.gh_repo_format.queueUrl)
+        new SQSClient().sendMessage(repo, Queue.qGhRepoFormat.queueUrl)
       )
     );
 

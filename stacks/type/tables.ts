@@ -5,3 +5,8 @@ export type JiraTables = {
   jiraCredsTable: Table;
   processJiraRetryTable: Table;
 };
+
+export type GithubTables = {
+  githubMappingTable: Table;
+  retryProcessTable: Table;
+};

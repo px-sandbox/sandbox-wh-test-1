@@ -13,7 +13,7 @@ export async function preparePush(
   try {
     await new SQSClient().sendMessage(
       { commits, ref, pusherId, id: lastCommitId, repoId },
-      Queue.gh_push_format.queueUrl
+      Queue.qGhPushFormat.queueUrl
     );
   } catch (error: unknown) {
     logger.error({

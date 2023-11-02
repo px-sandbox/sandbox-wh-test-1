@@ -15,7 +15,7 @@ export const handler = async function pRIndexDataReciever(event: SQSEvent): Prom
 
         await savePRDetails(messageBody);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_pr_index.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qGhPrIndex.queueUrl, error as Error);
         logger.error('pRIndexDataReciever.error', { error });
       }
     })

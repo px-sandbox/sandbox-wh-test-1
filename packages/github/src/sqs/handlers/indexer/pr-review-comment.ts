@@ -16,7 +16,7 @@ export const handler = async function pullRequestReviewCommentIndexDataReciever(
 
         await savePRReviewComment(messageBody);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_pr_review_comment_index.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qGhPrReviewCommentIndex.queueUrl, error as Error);
         logger.error('pRReviewCommentIndexDataReciever.error', { error });
       }
     })

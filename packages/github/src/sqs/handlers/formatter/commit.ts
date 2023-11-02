@@ -50,7 +50,7 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
          * ------------------------------------
          */
         // CHECK DATA EXISTS IN ELASTICSEARCH
-        
+
         const check = await checkCommitExists(isMergedCommit, commitId);
         if (check) {
           const installationAccessToken = await getInstallationAccessToken();
@@ -87,11 +87,11 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
             return;
           }
           const data = await commitProcessor.processor();
-          await commitProcessor.sendDataToQueue(data, Queue.gh_commit_index.queueUrl);
+          await commitProcessor.sendDataToQueue(data, Queue.qGhCommitIndex.queueUrl);
         }
       } catch (error) {
         logger.error('commitFormattedDataReciever', error);
-        await logProcessToRetry(record, Queue.gh_commit_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qGhCommitFormat.queueUrl, error as Error);
       }
     })
   );

@@ -22,7 +22,7 @@ export async function getCommits(commits: Github.ExternalType.Webhook.Commit): P
               },
               timestamp: commit.timestamp,
             },
-            Queue.gh_commit_format.queueUrl,
+            Queue.qGhCommitFormat.queueUrl,
             commit.id
           );
         }),
