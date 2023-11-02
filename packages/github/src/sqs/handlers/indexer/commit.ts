@@ -14,7 +14,7 @@ export const handler = async function commitIndexDataReciever(event: SQSEvent): 
 
         await saveCommitDetails(messageBody);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_commit_index.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qGhCommitIndex.queueUrl, error as Error);
         logger.error('commitIndexDataReciever.error', { errorInfo: JSON.stringify(error) });
       }
     })

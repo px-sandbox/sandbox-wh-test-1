@@ -22,9 +22,9 @@ export const handler = async function pRReviewFormattedDataReciever(
           return;
         }
         const data = await prReviewProcessor.processor();
-        await prReviewProcessor.sendDataToQueue(data, Queue.gh_pr_review_index.queueUrl);
+        await prReviewProcessor.sendDataToQueue(data, Queue.qGhPrReviewIndex.queueUrl);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_pr_review_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qGhPrReviewFormat.queueUrl, error as Error);
         logger.error('pRReviewFormattedDataReciever.error', error);
       }
     })

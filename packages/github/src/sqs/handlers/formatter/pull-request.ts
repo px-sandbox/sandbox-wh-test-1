@@ -19,9 +19,9 @@ export const handler = async function pRFormattedDataReciever(event: SQSEvent): 
           return;
         }
         const data = await pullProcessor.processor();
-        await pullProcessor.sendDataToQueue(data, Queue.gh_pr_index.queueUrl);
+        await pullProcessor.sendDataToQueue(data, Queue.qGhPrIndex.queueUrl);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_pr_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qGhPrFormat.queueUrl, error as Error);
         logger.error('pRFormattedDataReciever.error', error);
       }
     })

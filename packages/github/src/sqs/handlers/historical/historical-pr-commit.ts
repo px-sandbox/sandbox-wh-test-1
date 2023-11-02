@@ -32,7 +32,7 @@ async function saveCommit(commitData: any, messageBody: any): Promise<void> {
       },
       timestamp: new Date(),
     },
-    Queue.gh_commit_format.queueUrl
+    Queue.qGhCommitFormat.queueUrl
   );
 }
 async function getPRCommits(record: SQSRecord): Promise<boolean | undefined> {
@@ -69,7 +69,7 @@ async function getPRCommits(record: SQSRecord): Promise<boolean | undefined> {
     await getPRCommits({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
     logger.error(`historical.PR.commits.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(record, Queue.gh_historical_pr_commits.queueUrl, error as Error);
+    await logProcessToRetry(record, Queue.qGhHistoricalPrCommits.queueUrl, error as Error);
   }
 }
 export const handler = async function collectPRCommitData(

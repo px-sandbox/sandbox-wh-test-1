@@ -19,7 +19,7 @@ export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: Gith
             },
         },
     });
-    const prReviewCommentFormatDataQueue = new Queue(stack, 'qGhPrReviewComment');
+    const prReviewCommentFormatDataQueue = new Queue(stack, 'qGhPrReviewCommentFormat');
     prReviewCommentFormatDataQueue.addConsumer(stack, {
         function: new Function(stack, 'fnGhPrReviewCommentFormat', {
             handler: 'packages/github/src/sqs/handlers/formatter/pr-review-comment.handler',

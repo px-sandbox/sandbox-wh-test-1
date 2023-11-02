@@ -23,7 +23,7 @@ export function initializePrQueue(
             },
         },
     });
-    const prFormatDataQueue = new Queue(stack, 'qGhPFormat');
+    const prFormatDataQueue = new Queue(stack, 'qGhPrFormat');
     prFormatDataQueue.addConsumer(stack, {
         function: new Function(stack, 'fnGhPrFormat', {
             handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',

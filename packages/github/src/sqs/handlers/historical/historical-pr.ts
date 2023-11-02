@@ -42,10 +42,10 @@ async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
     let processes = [];
     processes = [
       ...octokitRespData.map((prData: unknown) =>
-        new SQSClient().sendMessage(prData, Queue.gh_historical_reviews.queueUrl)
+        new SQSClient().sendMessage(prData, Queue.qGhHistoricalReviews.queueUrl)
       ),
       ...octokitRespData.map((prData: unknown) =>
-        new SQSClient().sendMessage(prData, Queue.gh_historical_pr_comments.queueUrl)
+        new SQSClient().sendMessage(prData, Queue.qGhHistoricalPrComments.queueUrl)
       ),
     ];
     await Promise.all(processes);
@@ -60,7 +60,7 @@ async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
     await getPrList({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
     logger.error(`historical.PR.error: ${JSON.stringify(error)}`);
-    await logProcessToRetry(record, Queue.gh_historical_pr.queueUrl, error as Error);
+    await logProcessToRetry(record, Queue.qGhHistoricalPr.queueUrl, error as Error);
   }
 }
 
