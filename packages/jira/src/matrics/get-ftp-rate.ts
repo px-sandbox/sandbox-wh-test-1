@@ -21,7 +21,10 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
         .must([
           esb.termsQuery('body.sprintId', sprintIds),
           esb.termQuery('body.isDeleted', false),
-          esb.termQuery('body.issueType', Jira.Enums.IssuesTypes.TASK),
+          esb.termsQuery('body.issueType', [
+            Jira.Enums.IssuesTypes.TASK,
+            Jira.Enums.IssuesTypes.STORY,
+          ]),
         ])
         .should([esb.termQuery('body.isFTP', true), esb.termQuery('body.isFTF', true)])
         .minimumShouldMatch(1)
@@ -30,6 +33,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
       .agg(
         esb
           .termsAggregation('sprint_buckets', 'body.sprintId')
+          .size(sprintIds.length)
           .agg(esb.filterAggregation('isFTP_true_count', esb.termQuery('body.isFTP', true)))
       )
       .toJSON();
@@ -88,7 +92,10 @@ export async function ftpRateGraphAvg(
         .must([
           esb.termsQuery('body.sprintId', sprintIds),
           esb.termQuery('body.isDeleted', false),
-          esb.termQuery('body.issueType', Jira.Enums.IssuesTypes.TASK),
+          esb.termsQuery('body.issueType', [
+            Jira.Enums.IssuesTypes.TASK,
+            Jira.Enums.IssuesTypes.STORY,
+          ]),
         ])
         .mustNot(esb.termQuery('body.priority', 'HIGH'))
         .should([esb.termQuery('body.isFTP', true), esb.termQuery('body.isFTF', true)])
