@@ -1,12 +1,33 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClient } from '@pulse/event-handler';
-import { Queue } from 'sst/node/queue';
+import moment from 'moment';
+import { getSprintById } from '../../repository/sprint/get-sprint';
+import { saveSprintDetails } from '../../repository/sprint/save-sprint';
 
+/**
+ * Deletes a sprint by ID.
+ * @param sprintId - The ID of the sprint to delete.
+ * @param eventTime - The time the event occurred.
+ * @param organization - The organization the sprint belongs to.
+ * @returns A Promise that resolves with void if the sprint was deleted successfully,
+ *  or false if the sprint was not found.
+ */
 export async function deleteSprint(
-  sprint: Jira.ExternalType.Webhook.Sprint,
+  sprintId: string,
+  eventTime: moment.Moment,
   organization: string
-): Promise<void> {
-  logger.info('sprint_event: Send message to SQS');
-  await new SQSClient().sendMessage({ ...sprint, organization }, Queue.jira_sprint_format.queueUrl);
+): Promise<void | false> {
+  const sprintData = await getSprintById(sprintId, organization);
+  if (!sprintData) {
+    logger.info('sprintDeletedEvent: Sprint not found');
+    return false;
+  }
+  const { _id, ...processSprintData } = sprintData;
+
+  processSprintData.isDeleted = true;
+  processSprintData.deletedAt = moment(eventTime).toISOString();
+
+  logger.info(`sprintDeletedEvent: Delete Sprint id ${_id}`);
+  await saveSprintDetails({ id: _id, body: processSprintData } as Jira.Type.Sprint);
+
 }

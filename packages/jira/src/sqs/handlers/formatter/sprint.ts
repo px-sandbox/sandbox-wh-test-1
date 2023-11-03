@@ -18,9 +18,9 @@ export const handler = async function sprintFormattedDataReciever(event: SQSEven
           return;
         }
         const data = await sprintProcessor.processor();
-        await sprintProcessor.sendDataToQueue(data, Queue.jira_sprint_index.queueUrl);
+        await sprintProcessor.sendDataToQueue(data, Queue.qSprintIndex.queueUrl);
       } catch (error) {
-        await logProcessToRetry(record, Queue.jira_sprint_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qSprintFormat.queueUrl, error as Error);
         logger.error('sprintFormattedDataReciever.error', error);
       }
     })

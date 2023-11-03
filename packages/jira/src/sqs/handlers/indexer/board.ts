@@ -15,7 +15,7 @@ export const handler = async function boardIndexDataReciever(event: SQSEvent): P
 
         await saveBoardDetails(messageBody);
       } catch (error) {
-        await logProcessToRetry(record, Queue.jira_board_index.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qBoardIndex.queueUrl, error as Error);
         logger.error('boardIndexDataReciever.error', { error });
       }
     })

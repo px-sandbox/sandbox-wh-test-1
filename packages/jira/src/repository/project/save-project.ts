@@ -26,7 +26,13 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
+    const matchQry =
+      esb
+        .boolQuery()
+        .must([
+          esb.termsQuery('body.id', data.body.id),
+          esb.termQuery('body.organizationId', data.body.organizationId),
+        ]).toJSON();
     logger.info('saveProjectDetails.matchQry------->', { matchQry });
     const projectData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Project, matchQry);
     const [formattedData] = await searchedDataFormator(projectData);

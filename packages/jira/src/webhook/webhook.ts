@@ -24,55 +24,20 @@ async function processWebhookEvent(
   body: Jira.Type.Webhook,
   organization: string
 ): Promise<void> {
-  let projectBody: Jira.ExternalType.Webhook.Project;
 
   switch (eventName?.toLowerCase()) {
     case Jira.Enums.Event.ProjectCreated:
-      projectBody = {
-        ...body.project,
-        isDeleted: false,
-        deletedAt: null,
-        updatedAt: null,
-        createdAt: eventTime.toISOString(),
-      };
-
-      await project.create(projectBody, organization);
+      await project.create(body.project, eventTime, organization);
       break;
-
     case Jira.Enums.Event.ProjectUpdated:
-      projectBody = {
-        ...body.project,
-        updatedAt: eventTime.toISOString(),
-        isDeleted: false,
-        deletedAt: null,
-        createdAt: null,
-      };
-      await project.update(projectBody, organization);
-
+      await project.update(body.project, eventTime, organization);
       break;
-
     case Jira.Enums.Event.ProjectSoftDeleted:
-      projectBody = {
-        ...body.project,
-        deletedAt: eventTime.toISOString(),
-        isDeleted: true,
-        updatedAt: null,
-        createdAt: null,
-      };
-      await project.delete(projectBody, organization);
+      await project.delete(body.project.id, eventTime, organization);
       break;
-
     case Jira.Enums.Event.ProjectRestoreDeleted:
-      projectBody = {
-        ...body.project,
-        isDeleted: false,
-        deletedAt: null,
-        updatedAt: null,
-        createdAt: null,
-      };
-      await project.restoreDeleted(projectBody, organization);
+      await project.restoreDeleted(body.project.id, eventTime, organization);
       break;
-
     case Jira.Enums.Event.UserCreated:
       await user.create(body.user, eventTime, organization);
       break;
@@ -80,7 +45,7 @@ async function processWebhookEvent(
       await user.update(body.user, organization);
       break;
     case Jira.Enums.Event.UserDeleted:
-      await user.deleted(body.accountId, eventTime);
+      await user.deleted(body.accountId, eventTime, organization);
       break;
     case Jira.Enums.Event.SprintCreated:
       await sprint.create(body.sprint, organization);
@@ -92,10 +57,7 @@ async function processWebhookEvent(
       await sprint.update(body.sprint, organization);
       break;
     case Jira.Enums.Event.SprintDeleted:
-      await sprint.delete({
-        ...body.sprint, isDeleted: true,
-        deletedAt: eventTime.toISOString(),
-      }, organization);
+      await sprint.delete(body.sprint.id, eventTime, organization);
       break;
     case Jira.Enums.Event.SprintClosed:
       await sprint.close(body.sprint, organization);
@@ -110,7 +72,7 @@ async function processWebhookEvent(
       await board.update(body.board, organization);
       break;
     case Jira.Enums.Event.BoardDeleted:
-      await board.delete(body.board.id, eventTime);
+      await board.delete(body.board.id, eventTime, organization);
       break;
     case Jira.Enums.Event.IssueCreated:
       await issue.create({ issue: body.issue, changelog: body.changelog, organization });
@@ -122,6 +84,7 @@ async function processWebhookEvent(
       await issue.remove(
         body.issue.id,
         eventTime,
+        organization,
       );
       break;
     default:

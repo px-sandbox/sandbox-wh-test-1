@@ -23,7 +23,7 @@ export async function create(
 
     const boardData = mappingToApiData(board, createdAt, organization);
     logger.info('boardCreatedEvent: Send message to SQS');
-    await new SQSClient().sendMessage(boardData, Queue.jira_board_format.queueUrl);
+    await new SQSClient().sendMessage(boardData, Queue.qBoardFormat.queueUrl);
   } catch (error) {
     logger.error('boardCreatedEvent.error', { error });
   }

@@ -15,7 +15,7 @@ export const handler = async function userIndexDataReciever(event: SQSEvent): Pr
 
         await saveUserDetails(messageBody);
       } catch (error) {
-        await logProcessToRetry(record, Queue.jira_user_index.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qUserIndex.queueUrl, error as Error);
         logger.error('userIndexDataReciever.error', { error });
       }
     })
