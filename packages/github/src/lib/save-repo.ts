@@ -30,7 +30,7 @@ export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<
     await esClientObj.putDocument(Github.Enums.IndexName.GitRepo, updatedData);
     const lastAction = updatedData.body.action.slice(-1).pop();
     if (lastAction && lastAction.action !== 'deleted') {
-      await new SQSClient().sendMessage(updatedData, Queue.gh_after_repo_save.queueUrl);
+      await new SQSClient().sendMessage(updatedData, Queue.qGhAfterRepoSave.queueUrl);
     }
     logger.info('saveRepoDetails.successful');
   } catch (error: unknown) {

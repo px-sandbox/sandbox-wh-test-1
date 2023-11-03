@@ -53,7 +53,7 @@ export async function pROnQueue(
         review_seconds: reviewSeconds,
         action,
       },
-      Queue.gh_pr_format.queueUrl
+      Queue.qGhPrFormat.queueUrl
     );
   } catch (error: unknown) {
     logger.error({

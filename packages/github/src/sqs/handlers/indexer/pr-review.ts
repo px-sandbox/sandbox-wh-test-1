@@ -15,7 +15,7 @@ export const handler = async function pRReviewIndexDataReciever(event: SQSEvent)
 
         await savePRReview(messageBody);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_pr_review_index.queueUrl, error);
+        await logProcessToRetry(record, Queue.qGhPrReviewIndex.queueUrl, error as Error);
         logger.error('pRReviewIndexDataReciever.error', { error });
       }
     })

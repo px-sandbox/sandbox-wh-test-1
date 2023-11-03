@@ -29,7 +29,7 @@ export async function pRReviewCommentOnQueue(
 
     await new SQSClient().sendMessage(
       { comment: prReviewComment, pullId, repoId, action },
-      Queue.gh_pr_review_comment_format.queueUrl
+      Queue.qGhPrReviewCommentFormat.queueUrl
     );
   } catch (error: unknown) {
     logger.error({

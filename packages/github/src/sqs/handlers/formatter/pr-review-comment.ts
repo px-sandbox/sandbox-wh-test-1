@@ -31,10 +31,10 @@ export const handler = async function pRReviewCommentFormattedDataReciever(
         const data = await prReviewCommentProcessor.processor();
         await prReviewCommentProcessor.sendDataToQueue(
           data,
-          Queue.gh_pr_review_comment_index.queueUrl
+          Queue.qGhPrReviewCommentIndex.queueUrl
         );
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_pr_review_comment_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qGhPrReviewCommentFormat.queueUrl, error as Error);
         logger.error('pRReviewCommentFormattedDataReciever.error', error);
       }
     })
