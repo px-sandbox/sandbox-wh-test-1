@@ -24,13 +24,12 @@ export function gh({ stack }: StackContext): {
    *  Initialize Queues
    */
   const [...restQueues] = initializeQueue(stack, { githubMappingTable, retryProcessTable });
-
   /**
    * Initialize Functions
    */
   const [ghCopilotFunction, ghBranchCounterFunction, processRetryFunction] = initializeFunctions(
     stack,
-    restQueues,
+    [...restQueues],
     { githubMappingTable, retryProcessTable }
   );
 
@@ -45,7 +44,7 @@ export function gh({ stack }: StackContext): {
     ghBranchCounterFunction
   );
 
-  const { ghAPI } = initializeApi(stack, restQueues);
+  const ghAPI = initializeApi(stack, [...restQueues]);
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,

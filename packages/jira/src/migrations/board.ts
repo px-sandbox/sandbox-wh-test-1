@@ -2,9 +2,9 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
+import { Jira } from 'abstraction';
 import { logProcessToRetry } from '../util/retry-process';
 import { JiraClient } from '../lib/jira-client';
-import { Jira } from 'abstraction';
 
 async function checkAndSave(organization: string, projectId: string): Promise<void> {
   const jira = await JiraClient.getClient(organization);
