@@ -51,5 +51,7 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): Queue[] 
         commitFileChanges,
         branchFormatDataQueue,
         branchIndexDataQueue,
+        commitFormatDataQueue,
+        prFormatDataQueue
     ];
 }

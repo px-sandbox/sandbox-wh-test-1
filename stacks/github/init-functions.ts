@@ -38,7 +38,7 @@ export function initializeFunctions(
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
     } = use(commonConfig);
-    const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue, branchCounterFormatterQueue] =
+    const [branchCounterFormatterQueue, ghCopilotFormatDataQueue, ghCopilotIndexDataQueue,] =
         queuesForFunctions;
 
     const ghCopilotFunction = new Function(stack, 'fnGithubCopilot', {

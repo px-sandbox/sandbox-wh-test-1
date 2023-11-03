@@ -6,14 +6,12 @@ import { commonConfig } from '../common/config';
 export function initializeApi(
     stack: Stack,
     queue: Queue[]
-): {
-    ghAPI: Api<{
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        universal: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
-    }>;
-} {
+): Api<{
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    universal: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
+}> {
     const {
         AUTH_PUBLIC_KEY,
         GITHUB_APP_ID,
@@ -27,26 +25,7 @@ export function initializeApi(
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
     } = use(commonConfig);
-    const [userFormatDataQueue,
-        commitFormatDataQueue,
-        repoFormatDataQueue,
-        branchFormatDataQueue,
-        prFormatDataQueue,
-        prReviewCommentFormatDataQueue,
-        pushFormatDataQueue,
-        prReviewFormatDataQueue,
-        branchCounterFormatterQueue,
-        githubMappingTable,
-        retryProcessTable,
-        afterRepoSaveQueue,
-        collectPRData,
-        collectReviewsData,
-        collecthistoricalPrByumber,
-        collectCommitsData,
-        collectPRCommitsData,
-        collectPRReviewCommentsData,
-        historicalBranch,
-        commitFileChanges,] = queue;
+
     const ghAPI = new Api(stack, 'api', {
         authorizers: {
             universal: {
@@ -71,15 +50,7 @@ export function initializeApi(
             function: {
                 timeout: '30 seconds',
                 bind: [
-                    userFormatDataQueue,
-                    commitFormatDataQueue,
-                    repoFormatDataQueue,
-                    branchFormatDataQueue,
-                    prFormatDataQueue,
-                    prReviewCommentFormatDataQueue,
-                    pushFormatDataQueue,
-                    prReviewFormatDataQueue,
-                    branchCounterFormatterQueue,
+                    ...queue,
                     GITHUB_BASE_URL,
                     GITHUB_APP_ID,
                     GITHUB_APP_PRIVATE_KEY_PEM,
@@ -90,24 +61,11 @@ export function initializeApi(
                     OPENSEARCH_PASSWORD,
                     OPENSEARCH_USERNAME,
                     GIT_ORGANIZATION_ID,
-                    githubMappingTable,
-                    retryProcessTable,
-                    afterRepoSaveQueue,
-                    collectPRData,
-                    collectReviewsData,
-                    collecthistoricalPrByumber,
-                    collectCommitsData,
-                    collectPRCommitsData,
-                    collectPRReviewCommentsData,
-                    historicalBranch,
-                    commitFileChanges,
                 ],
             },
         },
         routes: initializeRoutes(),
     });
 
-    return {
-        ghAPI,
-    };
+    return ghAPI;
 }
