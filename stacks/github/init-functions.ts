@@ -7,7 +7,8 @@ function initProcessRetryFunction(
     stack: Stack,
     githubDDb: GithubTables,
     QueueArray: Queue[]
-): Function {
+
+): Function {// eslint-disable-line @typescript-eslint/ban-types
     const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID } =
         use(commonConfig);
 
@@ -29,7 +30,7 @@ export function initializeFunctions(
     stack: Stack,
     queuesForFunctions: Queue[],
     githubDDb: GithubTables
-): Function[] {
+): Function[] {// eslint-disable-line @typescript-eslint/ban-types
     const {
         GITHUB_APP_PRIVATE_KEY_PEM,
         GITHUB_APP_ID,
@@ -38,7 +39,7 @@ export function initializeFunctions(
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
     } = use(commonConfig);
-    const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue, branchCounterFormatterQueue] =
+    const [branchCounterFormatterQueue, ghCopilotFormatDataQueue, ghCopilotIndexDataQueue,] =
         queuesForFunctions;
 
     const ghCopilotFunction = new Function(stack, 'fnGithubCopilot', {
