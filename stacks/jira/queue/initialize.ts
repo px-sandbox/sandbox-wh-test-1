@@ -12,7 +12,7 @@ export function initializeQueues(
     jiraMappingTable: Table,
     jiraCredsTable: Table,
     processJiraRetryTable: Table
-): Array<Queue> {
+): Record<string, Queue> {
 
     const [sprintFormatter, sprintIndexer] = initializeSprintQueue(stack, {
         jiraMappingTable,
@@ -53,7 +53,7 @@ export function initializeQueues(
             [projectFormatter, sprintFormatter, userFormatter, boardFormatter, issueFormatter]
         );
 
-    return [
+    return {
         projectMigrateQueue,
         sprintMigrateQueue,
         issueMigrateQueue,
@@ -68,5 +68,5 @@ export function initializeQueues(
         boardIndexer,
         issueFormatter,
         issueIndexer,
-    ];
+    };
 }

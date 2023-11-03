@@ -18,13 +18,13 @@ export function jira({ stack }: StackContext): {
   const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } =
     initializeDynamoDBTables(stack);
 
-  const [
+  const {
     projectMigrateQueue,
     sprintMigrateQueue,
     issueMigrateQueue,
     userMigrateQueue,
     ...restQueues
-  ] = initializeQueues(
+  } = initializeQueues(
     stack,
     jiraMappingTable,
     jiraCredsTable,
@@ -33,7 +33,7 @@ export function jira({ stack }: StackContext): {
 
   const [refreshToken, processJiraRetryFunction] = initializeFunctions(
     stack,
-    restQueues,
+    Object.values(restQueues),
     { jiraMappingTable, jiraCredsTable, processJiraRetryTable }
   );
 
@@ -45,7 +45,7 @@ export function jira({ stack }: StackContext): {
       userMigrateQueue,
       sprintMigrateQueue,
       issueMigrateQueue,
-      ...restQueues
+      ...Object.values(restQueues),
     ]
   );
   // Initialize Cron for Jira
