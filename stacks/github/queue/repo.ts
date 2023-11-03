@@ -3,6 +3,7 @@ import { Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
 
+// eslint-disable-next-line max-lines-per-function,
 export function initializeRepoQueue(
     stack: Stack,
     githubDDb: GithubTables,
