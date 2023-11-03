@@ -2,6 +2,7 @@ import { beforeEach, afterEach, expect, it, describe, vi } from 'vitest';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { JiraClient } from '../../lib/jira-client';
+import { getOrganization } from '../../repository/organization/get-organization';
 import { UserProcessor } from '../user';
 
 // eslint-disable-next-line max-lines-per-function
@@ -9,6 +10,8 @@ describe('UserProcessor', () => {
     let jiraClient: JiraClient;
     let userProcessor: UserProcessor;
     let apiData: Jira.Mapper.User;
+
+    vi.mock('../../repository/organization/get-organization');
     const user: Jira.Mapper.User = {
         self: 'https://example.com/user123',
         accountId: 'user123',
@@ -35,6 +38,8 @@ describe('UserProcessor', () => {
             getUser: vi.fn(),
         } as unknown as JiraClient;
         JiraClient.getClient = vi.fn().mockResolvedValue(jiraClient);
+        const mockOrgData = { orgId: 'org123', id: 'jira_org_org123' };
+        getOrganization = vi.fn().mockResolvedValue(mockOrgData);
         // userProcessor.getOrganizationId = vi.fn().mockResolvedValue([{ orgId: 'org123', id: 'jira_org_org123' }]);
         userProcessor.getParentId = vi.fn().mockResolvedValue('f2fd8d13-8bde-4ec0-bf87-4376fc2c8672');
 
@@ -56,9 +61,11 @@ describe('UserProcessor', () => {
 
         it('should throw an error if organization is not found', async () => {
             const mockLoggerError = vi.spyOn(logger, 'error');
-            // userProcessor.getOrganizationId = vi.fn().mockReturnValue([]);
-            await expect(userProcessor.processor()).rejects.toThrow('Organization not found');
-            expect(mockLoggerError).toHaveBeenCalledWith('Organization not found');
+            (getOrganization as vi.Mock).mockResolvedValueOnce(undefined);
+            // getOrganizationData = vi.fn().mockReturnValueOnce(undefined);
+            // expect(getOrganization).toHaveBeenCalledWith('org 100');
+            await expect(userProcessor.processor()).rejects.toThrow('Organization org 123 not found');
+            expect(mockLoggerError).toHaveBeenCalledWith('Organization org 123 not found');
         });
         // eslint-disable-next-line max-lines-per-function
         it('should return a user object with correct properties', async () => {
