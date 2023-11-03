@@ -12,8 +12,17 @@ async function checkAndSave(
   sprintId: string
 ): Promise<void> {
   const jira = await JiraClient.getClient(organization);
-  const issues = await jira.getIssues(boardId, sprintId);
+  const issues = await jira.getIssues(sprintId);
 
+  logger.info(`
+  FETCHING ISSUES FOR THIS 
+  sprintId: ${sprintId}
+  boardId: ${boardId}
+  projectId: ${projectId}
+  organization: ${organization}
+  issues: ${issues.length}
+  total: ${Array.from(new Set(issues.map(issue => issue.id))).length}
+  `)
   const sqsClient = new SQSClient();
 
   await Promise.all(
@@ -30,6 +39,7 @@ async function checkAndSave(
       )
     )
   );
+  logger.info('issuesMigrateDataReciever.successful');
 }
 
 export const handler = async function issuesMigrate(event: SQSEvent): Promise<void> {

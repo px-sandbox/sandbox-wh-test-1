@@ -179,12 +179,12 @@ export class JiraClient {
     }
   }
 
-  public async getIssues(boardId: string, sprintId: string): Promise<Jira.ExternalType.Api.Issue[]> {
+  public async getIssues(sprintId: string): Promise<Jira.ExternalType.Api.Issue[]> {
     const { issues } = await this.paginateResultsForIssues<Jira.ExternalType.Api.Issue>(
-      `/rest/agile/1.0/board/${boardId}/sprint/${sprintId}/issue`,
+      `/rest/agile/1.0/sprint/${sprintId}/issue`,
       {
         fields: `issuetype,priority,changelog,project,labels,
-        assignee,reporter,creator,status,subtask,changelog,created,updated,lastViewed`,
+        assignee,reporter,creator,status,subtask,changelog,created,updated,lastViewed,sprint,closedSprints`,
       }
     );
 
@@ -262,9 +262,8 @@ export class JiraClient {
     });
 
     const newResult = {
-      ...result,
       issues: [...result.issues, ...data.issues],
-      startAt: data.startAt + result.issues.length,
+      startAt: data.startAt + data.issues.length,
       maxResults: data.maxResults,
       total: data.total,
     };

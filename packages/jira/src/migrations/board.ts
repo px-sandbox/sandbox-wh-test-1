@@ -4,6 +4,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { logProcessToRetry } from '../util/retry-process';
 import { JiraClient } from '../lib/jira-client';
+import { Jira } from 'abstraction';
 
 async function checkAndSave(organization: string, projectId: string): Promise<void> {
   const jira = await JiraClient.getClient(organization);
@@ -15,7 +16,7 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
   const deletedAt = null;
 
   await Promise.all(
-    [...boards.map(async (board) =>
+    [...boards.filter(board => board.type === Jira.Enums.BoardType.Scrum).map(async (board) =>
       sqsClient.sendMessage(
         {
           ...board,
@@ -27,7 +28,7 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
         Queue.jira_board_format.queueUrl
       )
     ),
-    ...boards.map(async (board) =>
+    ...boards.filter(board => board.type === Jira.Enums.BoardType.Scrum).map(async (board) =>
       sqsClient.sendMessage(
         { organization, projectId, boardId: board.id },
         Queue.jira_sprint_migrate.queueUrl

@@ -14,13 +14,11 @@ export class IssueProcessor extends DataProcessor<
     super(data);
   }
 
-  public getSprintId(issue: Jira.ExternalType.Api.Issue): string | null {
-    const sprint = issue.fields?.sprint || (issue.fields?.closedSprints && issue.fields.closedSprints[0]);
-    return sprint ? `${mappingPrefixes.sprint}_${sprint.id}` : null;
-  }
-  public getBoardId(issue: Jira.ExternalType.Api.Issue): string | null {
-    const sprint = issue.fields?.sprint || (issue.fields?.closedSprints && issue.fields.closedSprints[0]);
-    return sprint ? `${mappingPrefixes.board}_${sprint.originBoardId}` : null;
+  public getSprintAndBoardId(issue: Jira.ExternalType.Api.Issue): { sprintId: string | null, boardId: string | null } {
+    const sprint = issue.fields?.customfield_10007 && issue.fields.customfield_10007[0];
+    return sprint ? {
+      sprintId: `${mappingPrefixes.sprint}_${sprint.id}`, boardId: `${mappingPrefixes.board}_${sprint.boardId}`
+    } : { sprintId: null, boardId: null };
   }
 
   public async processor(): Promise<Jira.Type.Issue> {
@@ -30,7 +28,7 @@ export class IssueProcessor extends DataProcessor<
     );
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
-    const changelogArr = await getIssueChangelogs(this.apiData.organization, this.apiData.issue.id);
+    const changelogArr = await getIssueChangelogs(this.apiData.organization, this.apiData.issue.id, jiraClient);
     let reOpenCount = 0;
     let changelogItems: Array<ChangelogItem> = [];
     if (changelogArr.length > 0) {
@@ -67,8 +65,7 @@ export class IssueProcessor extends DataProcessor<
         createdDate: this.apiData.issue.fields.created,
         lastUpdated: this.apiData.issue.fields.updated,
         lastViewed: this.apiData.issue.fields.lastViewed,
-        sprintId: this.getSprintId(issueDataFromApi),
-        boardId: this.getBoardId(issueDataFromApi),
+        ...this.getSprintAndBoardId(issueDataFromApi),
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.id,

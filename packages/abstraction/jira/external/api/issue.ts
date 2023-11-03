@@ -31,5 +31,13 @@ export type Issue = {
       remainingEstimate: string;
       timeSpent: string;
     };
+    customfield_10007: [{
+      id: string;
+      self: string;
+      state: string;
+      name: string;
+      boardId: string;
+      goal: string;
+    }]
   };
 };

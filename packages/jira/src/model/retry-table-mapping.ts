@@ -13,9 +13,10 @@ export class RetryTableMapping {
     };
   }
 
-  public prepareScanParams(): ScanCommandInput {
+  public prepareScanParams(limit: number): ScanCommandInput {
     return {
       TableName: this.tableName,
+      Limit: limit
     };
   }
 
