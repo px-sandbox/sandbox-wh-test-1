@@ -35,7 +35,7 @@ export function initializeApi(stack: Stack, tables: JiraTables, queues: Queue[])
             universal: {
                 type: 'lambda',
                 responseTypes: ['simple'],
-                function: new Function(stack, 'fnUniversalAuth', {
+                function: new Function(stack, 'fnUniversalJiraAuth', {
                     handler: 'packages/auth/src/auth.handler',
                     bind: [AUTH_PUBLIC_KEY],
                 }),
@@ -43,7 +43,7 @@ export function initializeApi(stack: Stack, tables: JiraTables, queues: Queue[])
             admin: {
                 type: 'lambda',
                 responseTypes: ['simple'],
-                function: new Function(stack, 'fnAdminAuth', {
+                function: new Function(stack, 'fnAdminJiraAuth', {
                     handler: 'packages/auth/src/admin-auth.handler',
                     bind: [AUTH_PUBLIC_KEY],
                 }),
