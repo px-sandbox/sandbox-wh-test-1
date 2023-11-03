@@ -1,6 +1,6 @@
 import { Stack } from 'aws-cdk-lib';
-import { GithubTables } from '../../type/tables';
 import { Queue } from 'sst/constructs';
+import { GithubTables } from '../../type/tables';
 import { initializeBranchCounterQueue } from './branch-counter';
 import { initializeBranchQueue } from './branch';
 import { initializeCommitQueue } from './commit';

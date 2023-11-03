@@ -3,6 +3,7 @@ import { Api, Function, Queue, use } from 'sst/constructs';
 import { initializeRoutes } from './route';
 import { commonConfig } from '../common/config';
 
+// eslint-disable-next-line max-lines-per-function,
 export function initializeApi(
     stack: Stack,
     queue: Queue[]

@@ -1,5 +1,6 @@
 import { ApiRouteProps } from "sst/constructs";
 
+// eslint-disable-next-line max-lines-per-function
 export function initializeRoutes(): Record<string, ApiRouteProps<"universal" | "admin">> {
     return {
 

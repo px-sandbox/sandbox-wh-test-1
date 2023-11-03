@@ -7,6 +7,7 @@ import { Config } from 'sst/node/config';
 import { IssueReponse } from '../util/response-formatter';
 import { getSprints } from '../lib/get-sprints';
 
+// eslint-disable-next-line max-lines-per-function,
 export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
   try {
     const esClientObj = new ElasticSearchClient({
