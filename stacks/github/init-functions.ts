@@ -6,15 +6,12 @@ import { GithubTables } from '../type/tables';
 function initProcessRetryFunction(
     stack: Stack,
     githubDDb: GithubTables,
-    QueueArray: { [key: string]: Queue }
 ): Function {// eslint-disable-line @typescript-eslint/ban-types
     const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID } =
         use(commonConfig);
-
     const processRetryFunction = new Function(stack, 'fnRetryFailedProcessor', {
         handler: 'packages/github/src/cron/retry-process.handler',
         bind: [
-            ...Object.values(QueueArray),
             githubDDb.retryProcessTable,
             GITHUB_APP_PRIVATE_KEY_PEM,
             GITHUB_APP_ID,
@@ -39,7 +36,7 @@ export function initializeFunctions(
         OPENSEARCH_USERNAME,
     } = use(commonConfig);
 
-    const { ghCopilotFormatDataQueue, ghCopilotIndexDataQueue, branchFormatDataQueue } = queuesForFunctions;
+    const { ghCopilotFormatDataQueue, ghCopilotIndexDataQueue, branchCounterFormatterQueue } = queuesForFunctions;
 
     const ghCopilotFunction = new Function(stack, 'fnGithubCopilot', {
         handler: 'packages/github/src/cron/github-copilot.handler',
@@ -54,12 +51,12 @@ export function initializeFunctions(
 
     const ghBranchCounterFunction = new Function(stack, 'fnBranchCounter', {
         handler: 'packages/github/src/cron/branch-counter.handler',
-        bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchFormatDataQueue],
+        bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchCounterFormatterQueue],
     });
 
     return [
         ghCopilotFunction,
         ghBranchCounterFunction,
-        initProcessRetryFunction(stack, githubDDb, queuesForFunctions),
+        initProcessRetryFunction(stack, githubDDb),
     ];
 }

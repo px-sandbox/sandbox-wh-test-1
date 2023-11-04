@@ -44,7 +44,7 @@ export function gh({ stack }: StackContext): {
     ghBranchCounterFunction
   );
 
-  const ghAPI = initializeApi(stack, Object.values(restQueues));
+  const ghAPI = initializeApi(stack, restQueues, { githubMappingTable, retryProcessTable });
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,

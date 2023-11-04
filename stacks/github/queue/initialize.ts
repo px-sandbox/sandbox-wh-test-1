@@ -10,7 +10,9 @@ import { initializePushQueue } from './push';
 import { initializeRepoQueue } from './repo';
 import { initializePrReviewAndCommentsQueue } from './review';
 import { initializeUserQueue } from './user';
+import { initializeBranchCounterQueue } from './branch-counter';
 
+// eslint-disable-next-line max-lines-per-function,
 export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: string]: Queue } {
     const [
         commitFormatDataQueue,
@@ -53,6 +55,10 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         branchIndexDataQueue
     );
     const [userFormatDataQueue, userIndexDataQueue] = initializeUserQueue(stack, githubDDb);
+    const [branchCounterFormatterQueue, branchCounterIndexQueue] = initializeBranchCounterQueue(
+        stack,
+        githubDDb
+    );
     return {
         branchFormatDataQueue,
         branchIndexDataQueue,
@@ -79,5 +85,7 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         commitFileChanges,
         commitFormatDataQueue,
         prFormatDataQueue,
+        branchCounterFormatterQueue,
+        branchCounterIndexQueue,
     };
 }

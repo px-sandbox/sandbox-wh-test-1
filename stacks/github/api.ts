@@ -2,11 +2,13 @@ import { Stack } from 'aws-cdk-lib';
 import { Api, Function, Queue, use } from 'sst/constructs';
 import { initializeRoutes } from './route';
 import { commonConfig } from '../common/config';
+import { GithubTables } from '../type/tables';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeApi(
     stack: Stack,
-    queue: Queue[]
+    queue: { [key: string]: Queue },
+    githubDDb: GithubTables
 ): Api<{
     // eslint-disable-next-line @typescript-eslint/ban-types
     universal: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
@@ -26,7 +28,6 @@ export function initializeApi(
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
     } = use(commonConfig);
-
     const ghAPI = new Api(stack, 'api', {
         authorizers: {
             universal: {
@@ -51,21 +52,21 @@ export function initializeApi(
             function: {
                 timeout: '30 seconds',
                 bind: [
-                    ...queue,
-                    GITHUB_BASE_URL,
                     GITHUB_APP_ID,
                     GITHUB_APP_PRIVATE_KEY_PEM,
+                    GITHUB_BASE_URL,
+                    GITHUB_SG_ACCESS_TOKEN,
                     GITHUB_SG_INSTALLATION_ID,
                     GITHUB_WEBHOOK_SECRET,
-                    GITHUB_SG_ACCESS_TOKEN,
+                    GIT_ORGANIZATION_ID,
                     OPENSEARCH_NODE,
                     OPENSEARCH_PASSWORD,
                     OPENSEARCH_USERNAME,
-                    GIT_ORGANIZATION_ID,
-                ],
+
+                ]
             },
         },
-        routes: initializeRoutes(),
+        routes: initializeRoutes(queue, githubDDb),
     });
 
     return ghAPI;

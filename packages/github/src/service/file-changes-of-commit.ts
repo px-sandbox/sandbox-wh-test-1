@@ -35,7 +35,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       commits.map(async (commit: Github.Type.Commits) => {
         new SQSClient().sendMessage(
           { ...commit, repoOwner: orgName },
-          Queue.gh_commit_file_changes.queueUrl
+          Queue.qGhCommitFileChanges.queueUrl
         );
       })
     );
