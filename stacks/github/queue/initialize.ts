@@ -1,7 +1,6 @@
 import { Stack } from 'aws-cdk-lib';
 import { Queue } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
-import { initializeBranchCounterQueue } from './branch-counter';
 import { initializeBranchQueue } from './branch';
 import { initializeCommitQueue } from './commit';
 import { initializeCopilotQueue } from './copilot';
@@ -11,8 +10,10 @@ import { initializePushQueue } from './push';
 import { initializeRepoQueue } from './repo';
 import { initializePrReviewAndCommentsQueue } from './review';
 import { initializeUserQueue } from './user';
+import { initializeBranchCounterQueue } from './branch-counter';
 
-export function initializeQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
+// eslint-disable-next-line max-lines-per-function,
+export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: string]: Queue } {
     const [
         commitFormatDataQueue,
         commitIndexDataQueue,
@@ -31,27 +32,60 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): Queue[] 
         githubDDb
     );
     const [branchFormatDataQueue, branchIndexDataQueue] = initializeBranchQueue(stack, githubDDb);
-
-    return [
-        ...initializeBranchCounterQueue(stack, githubDDb),
-        ...initializeCopilotQueue(stack),
-        ...initializeMigrationQueue(stack, githubDDb, [
-            prFormatDataQueue,
-            prReviewFormatDataQueue,
-            prReviewCommentFormatDataQueue,
-            commitFormatDataQueue,
-        ]),
-        ...initializePushQueue(stack, githubDDb),
-        ...initializeRepoQueue(stack, githubDDb, branchFormatDataQueue, branchIndexDataQueue),
-        ...initializeUserQueue(stack, githubDDb),
+    const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue] = initializeCopilotQueue(stack);
+    const [
+        collectCommitsData,
+        collectPRCommitsData,
+        collectPRData,
+        collectPRReviewCommentsData,
+        collectReviewsData,
+        historicalBranch,
+        collecthistoricalPrByumber,
+    ] = initializeMigrationQueue(stack, githubDDb, [
+        prFormatDataQueue,
+        prReviewFormatDataQueue,
+        prReviewCommentFormatDataQueue,
+        commitFormatDataQueue,
+    ]);
+    const [pushFormatDataQueue, pushIndexDataQueue] = initializePushQueue(stack, githubDDb);
+    const [repoFormatDataQueue, repoIndexDataQueue, afterRepoSaveQueue] = initializeRepoQueue(
+        stack,
+        githubDDb,
+        branchFormatDataQueue,
+        branchIndexDataQueue
+    );
+    const [userFormatDataQueue, userIndexDataQueue] = initializeUserQueue(stack, githubDDb);
+    const [branchCounterFormatterQueue, branchCounterIndexQueue] = initializeBranchCounterQueue(
+        stack,
+        githubDDb
+    );
+    return {
+        branchFormatDataQueue,
+        branchIndexDataQueue,
+        ghCopilotFormatDataQueue,
+        ghCopilotIndexDataQueue,
+        collectCommitsData,
+        collectPRCommitsData,
+        collectPRData,
+        collectPRReviewCommentsData,
+        collectReviewsData,
+        historicalBranch,
+        collecthistoricalPrByumber,
+        pushFormatDataQueue,
+        pushIndexDataQueue,
+        repoFormatDataQueue,
+        repoIndexDataQueue,
+        afterRepoSaveQueue,
+        userFormatDataQueue,
+        userIndexDataQueue,
         prIndexDataQueue,
         prReviewCommentIndexDataQueue,
         prReviewIndexDataQueue,
         commitIndexDataQueue,
         commitFileChanges,
-        branchFormatDataQueue,
-        branchIndexDataQueue,
         commitFormatDataQueue,
-        prFormatDataQueue
-    ];
+        prFormatDataQueue,
+        branchCounterFormatterQueue,
+        branchCounterIndexQueue,
+    };
 }

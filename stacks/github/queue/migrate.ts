@@ -273,7 +273,6 @@ export function initializeMigrationQueue(
 
     return [
         collectCommitsData,
-        collectCommitsData,
         collectPRCommitsData,
         collectPRData,
         collectPRReviewCommentsData,

@@ -1,14 +1,27 @@
-import { ApiRouteProps } from "sst/constructs";
+import { ApiRouteProps, Queue } from 'sst/constructs';
+import { GithubTables } from '../type/tables';
 
 // eslint-disable-next-line max-lines-per-function
-export function initializeRoutes(): Record<string, ApiRouteProps<"universal" | "admin">> {
+export function initializeRoutes(
+    queues: { [key: string]: Queue },
+    githubDDb: GithubTables
+): Record<string, ApiRouteProps<'universal' | 'admin'>> {
+    const {
+        userFormatDataQueue,
+        repoFormatDataQueue,
+        branchFormatDataQueue,
+        commitFormatDataQueue,
+        pushFormatDataQueue,
+        prFormatDataQueue,
+    } = queues;
+    const { retryProcessTable, githubMappingTable } = githubDDb;
     return {
-
         // GET Metadata route
         'GET /github/metadata': {
             function: {
                 handler: 'packages/github/src/service/get-metadata.handler',
                 timeout: '15 minutes',
+                bind: [userFormatDataQueue, repoFormatDataQueue, githubMappingTable],
             },
             authorizer: 'admin',
         },
@@ -29,7 +42,17 @@ export function initializeRoutes(): Record<string, ApiRouteProps<"universal" | "
         },
         // POST Webhook handler
         'POST /github/webhook': {
-            function: 'packages/github/src/service/webhook.webhookData',
+            function: {
+                handler: 'packages/github/src/service/webhook.webhookData',
+                bind: [
+                    userFormatDataQueue,
+                    repoFormatDataQueue,
+                    branchFormatDataQueue,
+                    commitFormatDataQueue,
+                    pushFormatDataQueue,
+                    prFormatDataQueue,
+                ],
+            },
             authorizer: 'none',
         },
         // GET GithubUser data
@@ -71,7 +94,18 @@ export function initializeRoutes(): Record<string, ApiRouteProps<"universal" | "
 
         // GET github data ingestion failed retry
         'GET /github/retry/failed': {
-            function: 'packages/github/src/cron/retry-process.handler',
+            function: {
+                handler: 'packages/github/src/cron/retry-process.handler',
+                bind: [
+                    retryProcessTable,
+                    userFormatDataQueue,
+                    repoFormatDataQueue,
+                    branchFormatDataQueue,
+                    commitFormatDataQueue,
+                    pushFormatDataQueue,
+                    prFormatDataQueue,
+                ],
+            },
         },
 
         // GET create all ES indices
@@ -98,5 +132,5 @@ export function initializeRoutes(): Record<string, ApiRouteProps<"universal" | "
             function: 'packages/github/src/service/file-changes-of-commit.handler',
             authorizer: 'universal',
         },
-    }
+    };
 }
