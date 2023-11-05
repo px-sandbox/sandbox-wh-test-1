@@ -20,13 +20,13 @@ async function checkAndSave(organization: string, projectId: string, originBoard
           originBoardId,
           ...sprint,
         },
-        Queue.jira_sprint_format.queueUrl
+        Queue.qSprintFormat.queueUrl
       ),
     ),
     ...sprints.map(async (sprint) =>
       sqsClient.sendMessage(
         { organization, projectId, originBoardId, sprintId: sprint.id },
-        Queue.jira_issue_migrate.queueUrl
+        Queue.qIssueMigrate.queueUrl
       ),
     )]
   );
@@ -48,7 +48,7 @@ export const handler = async function migrateSprint(event: SQSEvent): Promise<vo
         return checkAndSave(organization, projectId, boardId);
       } catch (error) {
         logger.error(JSON.stringify({ error, record }));
-        await logProcessToRetry(record, Queue.jira_sprint_migrate.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qSprintMigrate.queueUrl, error as Error);
         logger.error('sprintMigrateDataReciever.error', error);
       }
     })

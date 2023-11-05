@@ -22,12 +22,12 @@ export const handler = async function userMigration(event: SQSEvent): Promise<vo
             createdAt,
             organization,
           },
-          Queue.jira_user_format.queueUrl
+          Queue.qUserFormat.queueUrl
         );
 
       } catch (error) {
         logger.error(JSON.stringify({ error, event }));
-        await logProcessToRetry(record, Queue.jira_user_migrate.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qUserMigrate.queueUrl, error as Error);
         logger.error('userMigrateDataReciever.error', error);
       }
     })

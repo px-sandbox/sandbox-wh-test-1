@@ -29,11 +29,11 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
         organization,
         ...project,
       },
-      Queue.jira_project_format.queueUrl
+      Queue.qProjectFormat.queueUrl
     ),
     sqsClient.sendMessage(
       { organization, projectId: project.id },
-      Queue.jira_board_migrate.queueUrl
+      Queue.qBoardMigrate.queueUrl
     ),
   ]);
 }
@@ -47,7 +47,7 @@ export const handler = async function projectMigration(event: SQSEvent): Promise
 
       } catch (error) {
         logger.error(JSON.stringify({ error, event }));
-        await logProcessToRetry(record, Queue.jira_project_migrate.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qProjectMigrate.queueUrl, error as Error);
         logger.error('projectMigrateDataReciever.error', error);
       }
     })

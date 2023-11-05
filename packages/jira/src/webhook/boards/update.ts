@@ -16,7 +16,7 @@ export async function update(
     board: Jira.ExternalType.Webhook.Board,
     organization: string
 ): Promise<void | false> {
-    const boardIndexData = await getBoardById(board.id);
+    const boardIndexData = await getBoardById(board.id, organization);
     if (!boardIndexData) {
         logger.info('boardUpdatedEvent: Board not found');
         return false;
@@ -24,5 +24,5 @@ export async function update(
 
     const boardData = mappingToApiData(board, boardIndexData.createdAt, organization);
     logger.info('userUpdatedEvent: Send message to SQS');
-    await new SQSClient().sendMessage(boardData, Queue.jira_board_format.queueUrl);
+    await new SQSClient().sendMessage(boardData, Queue.qBoardFormat.queueUrl);
 }
