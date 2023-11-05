@@ -13,6 +13,8 @@ export function initializeRoutes(
         commitFormatDataQueue,
         pushFormatDataQueue,
         prFormatDataQueue,
+        prReviewCommentFormatDataQueue,
+        prReviewFormatDataQueue,
     } = queues;
     const { retryProcessTable, githubMappingTable } = githubDDb;
     return {
@@ -51,6 +53,8 @@ export function initializeRoutes(
                     commitFormatDataQueue,
                     pushFormatDataQueue,
                     prFormatDataQueue,
+                    prReviewCommentFormatDataQueue,
+                    prReviewFormatDataQueue,
                 ],
             },
             authorizer: 'none',
@@ -104,6 +108,8 @@ export function initializeRoutes(
                     commitFormatDataQueue,
                     pushFormatDataQueue,
                     prFormatDataQueue,
+                    prReviewCommentFormatDataQueue,
+                    prReviewFormatDataQueue,
                 ],
             },
         },
