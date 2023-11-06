@@ -87,5 +87,7 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         prFormatDataQueue,
         branchCounterFormatterQueue,
         branchCounterIndexQueue,
+        prReviewCommentFormatDataQueue,
+        prReviewFormatDataQueue,
     };
 }
