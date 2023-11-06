@@ -11,20 +11,19 @@ import { Jira } from "abstraction";
  * @returns The mapped project object.
  */
 export function projectKeysMapper(
-    body: Jira.ExternalType.Webhook.Project,
+    body: Jira.ExternalType.Api.Project,
     createdAt: string,
     organization: string,
     updatedAt: string = createdAt,
     deletedAt: string | null = null
 ): Jira.Mapped.Project {
-    const { projectLead, ...rest } = body;
+
     return {
-        lead: projectLead,
         organization,
         isDeleted: !!deletedAt,
         deletedAt,
         createdAt,
         updatedAt,
-        ...rest
+        ...body
     };
 }
