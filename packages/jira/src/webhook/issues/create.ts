@@ -2,6 +2,7 @@ import { logger } from 'core';
 import { Jira } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
+import { JiraClient } from '../../lib/jira-client';
 
 /**
  * Creates a Jira issue and sends a message to SQS.
@@ -10,5 +11,15 @@ import { Queue } from 'sst/node/queue';
  */
 export async function create(issue: Jira.ExternalType.Webhook.Issue): Promise<void> {
   logger.info('issue_event: Send message to SQS');
-  await new SQSClient().sendMessage({ ...issue }, Queue.qIssueFormat.queueUrl);
+
+  const jiraClient = await JiraClient.getClient(issue.organization);
+  const issueData = await jiraClient.getIssue(issue.issue.id);
+  const projectData = await jiraClient.getProject(issueData.fields.project.id);
+
+  // checking is project type is software. We dont wanna save maintainence projects
+
+  logger.info('issue_event: Checking project type');
+  if (projectData.projectTypeKey.toLowerCase() === 'software') {
+    await new SQSClient().sendMessage({ ...issue }, Queue.qIssueFormat.queueUrl);
+  }
 }
