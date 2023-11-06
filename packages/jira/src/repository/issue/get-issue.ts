@@ -33,7 +33,7 @@ export async function getIssueById(
                 .boolQuery()
                 .must([
                     esb.termsQuery('body.id', `${mappingPrefixes.issue}_${issueId}`),
-                    esb.termQuery('body.organizationId', `${orgData.id}`),
+                    esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
                 ]).toJSON();
         const issueData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Issue, matchQry);
         const [formattedIssueData] = await searchedDataFormatorWithDeleted(issueData);
