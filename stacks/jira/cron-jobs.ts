@@ -3,10 +3,16 @@ import { Stack } from 'aws-cdk-lib';
 
 export function intializeJiraCron(
     stack: Stack,
+
     // eslint-disable-next-line @typescript-eslint/ban-types
     processJiraRetryFunction: Function,
+
     // eslint-disable-next-line @typescript-eslint/ban-types
-    refreshToken: Function
+    refreshToken: Function,
+
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    hardDeleteProjectsData: Function
+
 ): void {
     /**
      * Initialized cron job for every 1/2 hour to fetch failed processes from `jiraRetryProcessTable` Table
@@ -25,5 +31,12 @@ export function intializeJiraCron(
     new Cron(stack, 'cronRefreshToken', {
         schedule: 'cron(0/45 * ? * * *)',
         job: refreshToken,
+    });
+
+    // cron to hard delete projects after 90 days
+    // eslint-disable-next-line no-new
+    new Cron(stack, 'hard-delete-project-cron', {
+        schedule: 'cron(00 00 * * ? *)',
+        job: hardDeleteProjectsData
     });
 }

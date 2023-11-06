@@ -8,6 +8,36 @@ import { searchedDataFormator, searchedDataFormatorWithDeleted } from '../../uti
 import { ParamsMapping } from '../../model/params-mapping';
 import { mappingPrefixes } from '../../constant/config';
 
+
+/**
+ * Updates data in ElasticSearch index based on the provided matchField and matchValue.
+ * @param esClientObj - The ElasticSearch client object.
+ * @param indexName - The name of the ElasticSearch index.
+ * @param matchField - The field to match against in the ElasticSearch index.
+ * @param matchValue - The value to match against in the ElasticSearch index.
+ * @param isDeleted - Optional flag to mark the data as deleted.
+ * @returns Promise<void>
+ */
+async function updateData(
+  esClientObj: ElasticSearchClient,
+  indexName: string,
+  matchField: string,
+  matchValue: string,
+  isDeleted = false): Promise<void> {
+  const matchQry = esb.matchQuery(matchField, matchValue).toJSON();
+  const data = await esClientObj.searchWithEsb(indexName, matchQry);
+  const [formattedData] = await searchedDataFormatorWithDeleted(data);
+  if (formattedData) {
+    if (isDeleted) {
+      formattedData.isDeleted = true;
+      formattedData.deletedAt = new Date().toISOString();
+    }
+    const { _id: id, ...body } = formattedData;
+    await esClientObj.putDocument(indexName, { id, body });
+    logger.info(`save${indexName}Details.successful`);
+  }
+}
+
 /**
  * Saves the project details to DynamoDB and Elasticsearch.
  * @param data The project details to be saved.
@@ -56,26 +86,3 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
 }
 
 
-/**
- * Updates data in ElasticSearch index based on the provided matchField and matchValue.
- * @param esClientObj - The ElasticSearch client object.
- * @param indexName - The name of the ElasticSearch index.
- * @param matchField - The field to match against in the ElasticSearch index.
- * @param matchValue - The value to match against in the ElasticSearch index.
- * @param isDeleted - Optional flag to mark the data as deleted.
- * @returns Promise<void>
- */
-async function updateData(esClientObj: ElasticSearchClient, indexName: string, matchField: string, matchValue: string, isDeleted = false) {
-  const matchQry = esb.matchQuery(matchField, matchValue).toJSON();
-  const data = await esClientObj.searchWithEsb(indexName, matchQry);
-  const [formattedData] = await searchedDataFormatorWithDeleted(data);
-  if (formattedData) {
-    if (isDeleted) {
-      formattedData.isDeleted = true;
-      formattedData.deletedAt = new Date().toISOString();
-    }
-    const { _id: id, ...body } = formattedData;
-    await esClientObj.putDocument(indexName, { id, body });
-    logger.info(`save${indexName}Details.successful`);
-  }
-}

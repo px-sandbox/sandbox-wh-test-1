@@ -78,4 +78,24 @@ export class ElasticSearchClient implements IElasticSearchClient {
       throw err;
     }
   }
+
+  /**
+   * Deletes documents from the specified index based on a query.
+   * @param indexName - The name of the index to delete documents from.
+   * @param query - The query object to filter the documents to be deleted.
+   * @returns A Promise that resolves to void.
+   * @throws Throws an error if the deletion fails.
+   */
+  public async deleteByQuery(indexName: string | string[], query: object): Promise<void> {
+    try {
+      await this.client.indices.refresh({ index: indexName });
+      await this.client.deleteByQuery({
+        index: indexName,
+        body: { query },
+      });
+    } catch (err) {
+      logger.error('deleteByQuery.error : ', { err });
+      throw err;
+    }
+  }
 }

@@ -9,6 +9,9 @@ export function initializeFunctions(stack: Stack, queues: Queue[], tables: JiraT
         JIRA_CLIENT_ID,
         JIRA_CLIENT_SECRET,
         JIRA_REDIRECT_URI,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
     } = use(commonConfig);
     const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } = tables;
 
@@ -28,5 +31,18 @@ export function initializeFunctions(stack: Stack, queues: Queue[], tables: JiraT
             ...queues,
         ],
     });
-    return [refreshToken, processJiraRetryFunction];
+
+    const hardDeleteProjectsData = new Function(stack, 'hard-delete-projects-data', {
+        handler: 'packages/jira/src/cron/hard-delete-projects.handler',
+        bind: [
+            jiraMappingTable,
+            JIRA_CLIENT_ID,
+            JIRA_CLIENT_SECRET,
+            OPENSEARCH_NODE,
+            OPENSEARCH_PASSWORD,
+            OPENSEARCH_USERNAME,
+            ...queues,
+        ]
+    });
+    return [refreshToken, processJiraRetryFunction, hardDeleteProjectsData];
 }
