@@ -15,6 +15,8 @@ export function initializeRoutes(
         prFormatDataQueue,
         prReviewCommentFormatDataQueue,
         prReviewFormatDataQueue,
+        collectPRData,
+        historicalBranch,
     } = queues;
     const { retryProcessTable, githubMappingTable } = githubDDb;
     return {
@@ -93,7 +95,10 @@ export function initializeRoutes(
 
         // GET Historical Data
         'GET /github/history': {
-            function: 'packages/github/src/service/history-data.handler',
+            function: {
+                handler: 'packages/github/src/service/history-data.handler',
+                bind: [collectPRData, historicalBranch],
+            },
         },
 
         // GET github data ingestion failed retry
