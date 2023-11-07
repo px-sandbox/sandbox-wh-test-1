@@ -77,3 +77,34 @@ export const handler = async function migrate(
     .setResponseBodyCode('SUCCESS')
     .send();
 };
+
+export const issueStatusHandler = async function issueStatusMigration(
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> {
+  const organization = event?.queryStringParameters?.orgName ?? '';
+  const sqsClient = new SQSClient();
+
+  if (!organization) {
+    return responseParser
+      .setBody({})
+      .setMessage('Organisation Not found')
+      .setStatusCode(HttpStatusCode[400])
+      .setResponseBodyCode('SUCCESS')
+      .send();
+  }
+
+  const client = await JiraClient.getClient(organization);
+  const issueStatuses = await client.getIssueStatuses();
+
+  await Promise.all([
+    ...issueStatuses.map((status) =>
+      sqsClient.sendMessage({ organization, status }, Queue.qIssueStatusMigrate.queueUrl)
+    ),
+  ]);
+  return responseParser
+    .setBody({})
+    .setMessage(`Issue status Migration for Organisation ${organization} is started`)
+    .setStatusCode(HttpStatusCode[200])
+    .setResponseBodyCode('SUCCESS')
+    .send();
+}

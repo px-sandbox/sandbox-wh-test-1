@@ -5,8 +5,10 @@ import { initializeProjectQueue } from './project';
 import { initializeUserQueue } from './user';
 import { initializeBoardQueue } from './board';
 import { initializeIssueQueue } from './issue';
+import { initializeIssueStatusQueue } from './issue-status';
 import { initializeMigrateQueue } from './migrate';
 
+// eslint-disable-next-line max-lines-per-function
 export function initializeQueues(
     stack: Stack,
     jiraMappingTable: Table,
@@ -40,24 +42,40 @@ export function initializeQueues(
         processJiraRetryTable,
     });
 
+    const [issueStatusFormatter, issueStatusIndexer] = initializeIssueStatusQueue(stack, {
+        jiraMappingTable,
+        jiraCredsTable,
+        processJiraRetryTable,
+    });
+
     const [projectMigrateQueue,
+        userMigrateQueue,
         sprintMigrateQueue,
+        issueStatusMigrateQueue,
         issueMigrateQueue,
-        userMigrateQueue] = initializeMigrateQueue(
-            stack,
-            {
-                jiraMappingTable,
-                jiraCredsTable,
-                processJiraRetryTable,
-            },
-            [projectFormatter, sprintFormatter, userFormatter, boardFormatter, issueFormatter]
-        );
+    ] = initializeMigrateQueue(
+        stack,
+        {
+            jiraMappingTable,
+            jiraCredsTable,
+            processJiraRetryTable,
+        },
+        [
+            projectFormatter,
+            sprintFormatter,
+            userFormatter,
+            boardFormatter,
+            issueFormatter,
+            issueStatusFormatter
+        ]
+    );
 
     return {
         projectMigrateQueue,
-        sprintMigrateQueue,
-        issueMigrateQueue,
         userMigrateQueue,
+        sprintMigrateQueue,
+        issueStatusMigrateQueue,
+        issueMigrateQueue,
         sprintFormatter,
         sprintIndexer,
         projectFormatter,
@@ -68,5 +86,7 @@ export function initializeQueues(
         boardIndexer,
         issueFormatter,
         issueIndexer,
+        issueStatusFormatter,
+        issueStatusIndexer,
     };
 }

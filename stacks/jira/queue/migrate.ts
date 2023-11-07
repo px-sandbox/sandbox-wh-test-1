@@ -11,8 +11,14 @@ export function initializeMigrateQueue(
 ): Queue[] {
   const envs = use(commonConfig);
 
-  const [projectFormatter, sprintFormatter, userFormatter, boardFormatter, issueFormatter] =
-    formatterQueues;
+  const [
+    projectFormatter,
+    sprintFormatter,
+    userFormatter,
+    boardFormatter,
+    issueFormatter,
+    issueStatusFormatter
+  ] = formatterQueues;
 
   const sprintMigrateQueue = new Queue(stack, 'qSprintMigrate', {
     cdk: {
@@ -93,7 +99,31 @@ export function initializeMigrateQueue(
       },
     },
   });
-
+  const issueStatusMigrateQueue = new Queue(stack, 'qIssueStatusMigrate', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(310),
+      },
+    }
+  });
+  issueStatusMigrateQueue.addConsumer(stack, {
+    function: new Function(stack, 'fnIssueStatusMigrate', {
+      handler: 'packages/jira/src/migrations/issue-status.handler',
+      timeout: '300 seconds',
+      runtime: 'nodejs18.x',
+      bind: [
+        issueStatusMigrateQueue,
+        issueStatusFormatter,
+        ...Object.values(jiraDDB),
+        ...Object.values(envs)
+      ],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
   const issueMigrateQueue = new Queue(stack, 'qIssueMigrate', {
     cdk: {
       queue: {
@@ -155,8 +185,9 @@ export function initializeMigrateQueue(
   return [
     projectMigrateQueue,
     userMigrateQueue,
-    boardMigrateQueue,
     sprintMigrateQueue,
+    issueStatusMigrateQueue,
     issueMigrateQueue,
+    boardMigrateQueue,
   ];
 }

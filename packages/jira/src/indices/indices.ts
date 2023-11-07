@@ -284,6 +284,26 @@ const indices = [
       },
     },
   },
+  {
+    name: Jira.Enums.IndexName.IssueStatus,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'keyword' },
+            issueStatusId: { type: 'keyword' },
+            name: { type: 'text' },
+            status: { type: 'text' },
+            organizationId: { type: 'keyword' },
+            pxStatus: { type: 'keyword' },
+          },
+        },
+      },
+    },
+
+  }
 ];
 async function createMapping(name: string, mappings: unknown): Promise<void> {
   try {

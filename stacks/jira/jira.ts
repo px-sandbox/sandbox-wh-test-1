@@ -20,9 +20,10 @@ export function jira({ stack }: StackContext): {
 
   const {
     projectMigrateQueue,
-    sprintMigrateQueue,
-    issueMigrateQueue,
     userMigrateQueue,
+    sprintMigrateQueue,
+    issueStatusMigrateQueue,
+    issueMigrateQueue,
     ...restQueues
   } = initializeQueues(
     stack,
@@ -44,6 +45,7 @@ export function jira({ stack }: StackContext): {
       projectMigrateQueue,
       userMigrateQueue,
       sprintMigrateQueue,
+      issueStatusMigrateQueue,
       issueMigrateQueue,
       ...Object.values(restQueues),
     ]

@@ -50,6 +50,13 @@ export function initializeRoutes(
             },
             authorizer: 'admin',
         },
+        'GET /jira/migrate/issue-status': {
+            function: {
+                handler: 'packages/jira/src/service/migrate.issueStatusHandler',
+                bind: [...migrateQueues],
+            },
+            authorizer: 'admin',
+        },
 
         // GET Jira board and sprint data for a project
         'GET /jira/boards': {
