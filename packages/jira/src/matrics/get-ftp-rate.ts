@@ -6,6 +6,7 @@ import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
 import { IssueReponse } from '../util/response-formatter';
 import { getSprints } from '../lib/get-sprints';
+import { getBoardById, getBoardByOrgId } from 'src/repository/board/get-board';
 
 // eslint-disable-next-line max-lines-per-function,
 export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
@@ -49,6 +50,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
     const response: IssueReponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
+        const boardName = await getBoardByOrgId(sprintData.originBoardId, sprintData.organizationId)
 
         const ftpData = ftpRateGraphResponse.sprint_buckets.buckets.find(
           (obj) => obj.key === sprintId
@@ -62,6 +64,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
           total,
           totalFtp,
           sprintName: sprintData.name,
+          boardName: boardName.name,
           status: sprintData.state,
           startDate: sprintData.startDate,
           endDate: sprintData.endDate,

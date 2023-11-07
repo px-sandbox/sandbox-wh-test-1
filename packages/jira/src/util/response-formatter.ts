@@ -99,6 +99,7 @@ export interface Sprint {
   endDate: string;
   completeDate: string;
   originBoardId: number;
+  organizationId: string;
 }
 
 export interface IssueReponse {
