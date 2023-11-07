@@ -3,7 +3,7 @@ import { commonConfig } from '../common/config';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeRoutes(
-    migrateQueues: Queue[],
+    migrateQueues: Record<string, Queue>,
     jiraCredsTable: Table
 ): Record<string, ApiRouteProps<"universal" | "admin">> {
     const {
@@ -12,6 +12,13 @@ export function initializeRoutes(
         JIRA_REDIRECT_URI,
     } = use(commonConfig);
     let routesObj: Record<string, ApiRouteProps<"universal" | "admin">> = {};
+    const {
+        projectMigrateQueue,
+        userMigrateQueue,
+        sprintMigrateQueue,
+        issueStatusMigrateQueue,
+        issueMigrateQueue
+    } = migrateQueues;
     routesObj = {
         // GET create all Jira indices into ES
         'GET /jira/create-indices': {
@@ -46,14 +53,14 @@ export function initializeRoutes(
         'GET /jira/migrate': {
             function: {
                 handler: 'packages/jira/src/service/migrate.handler',
-                bind: [...migrateQueues],
+                bind: [projectMigrateQueue, userMigrateQueue, sprintMigrateQueue, issueMigrateQueue],
             },
             authorizer: 'admin',
         },
         'GET /jira/migrate/issue-status': {
             function: {
                 handler: 'packages/jira/src/service/migrate.issueStatusHandler',
-                bind: [...migrateQueues],
+                bind: [issueStatusMigrateQueue],
             },
             authorizer: 'admin',
         },

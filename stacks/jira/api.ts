@@ -29,13 +29,13 @@ export function initializeApi(stack: Stack, tables: JiraTables, queues: Queue[])
         issueMigrateQueue,
         ...restQueues
     ] = queues;
-    const routeObj = initializeRoutes([
+    const routeObj = initializeRoutes({
         projectMigrateQueue,
         userMigrateQueue,
         sprintMigrateQueue,
         issueStatusMigrateQueue,
         issueMigrateQueue,
-    ],
+    },
         jiraCredsTable
     );
     const jiraApi = new Api(stack, 'jiraApi', {
