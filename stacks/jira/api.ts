@@ -21,13 +21,21 @@ export function initializeApi(stack: Stack, tables: JiraTables, queues: Queue[])
         OPENSEARCH_USERNAME,
     } = use(commonConfig);
     const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } = tables;
-    const [projectMigrateQueue, sprintMigrateQueue, issueMigrateQueue, userMigrateQueue, ...restQueues] = queues;
-    const routeObj = initializeRoutes([
+    const [
         projectMigrateQueue,
+        userMigrateQueue,
         sprintMigrateQueue,
+        issueStatusMigrateQueue,
         issueMigrateQueue,
-        userMigrateQueue
-    ],
+        ...restQueues
+    ] = queues;
+    const routeObj = initializeRoutes({
+        projectMigrateQueue,
+        userMigrateQueue,
+        sprintMigrateQueue,
+        issueStatusMigrateQueue,
+        issueMigrateQueue,
+    },
         jiraCredsTable
     );
     const jiraApi = new Api(stack, 'jiraApi', {

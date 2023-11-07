@@ -7,3 +7,4 @@ export * from './project';
 export * from './response';
 export * from './issue';
 export * from './changelogs';
+export * from './issue-status';
