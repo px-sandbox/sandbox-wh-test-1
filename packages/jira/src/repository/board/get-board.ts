@@ -63,7 +63,7 @@ export async function getBoardByOrgId(
       .boolQuery()
       .must([
         esb.termsQuery('body.id', `${boardId}`),
-        esb.termQuery('body.organizationId.keyword', `${organizationId}`),
+        esb.termQuery('body.organizationId', `${organizationId}`),
       ])
       .toJSON();
     const boardData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Board, matchQry);
