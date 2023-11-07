@@ -32,7 +32,7 @@ export async function saveIssueDetails(data: Jira.Type.Issue): Promise<void> {
         .boolQuery()
         .must([
           esb.termsQuery('body.id', data.body.id),
-          esb.termQuery('body.organizationId', data.body.organizationId),
+          esb.termQuery('body.organizationId.keyword', data.body.organizationId),
         ]).toJSON();
     const issueData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Issue, matchQry);
     const [formattedData] = await searchedDataFormator(issueData);

@@ -23,6 +23,6 @@ export async function update(
     }
 
     const boardData = mappingToApiData(board, boardIndexData.createdAt, organization);
-    logger.info('userUpdatedEvent: Send message to SQS');
+    logger.info('boardUpdatedEvent: Send message to SQS');
     await new SQSClient().sendMessage(boardData, Queue.qBoardFormat.queueUrl);
 }

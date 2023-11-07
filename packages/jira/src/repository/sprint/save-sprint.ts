@@ -31,7 +31,7 @@ export async function saveSprintDetails(data: Jira.Type.Sprint): Promise<void> {
         .boolQuery()
         .must([
           esb.termsQuery('body.id', data.body.id),
-          esb.termQuery('body.organizationId', data.body.organizationId),
+          esb.termQuery('body.organizationId.keyword', data.body.organizationId),
         ]).toJSON();
     const sprintData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Sprint, matchQry);
     const [formattedData] = await searchedDataFormator(sprintData);
