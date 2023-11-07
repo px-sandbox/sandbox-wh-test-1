@@ -32,7 +32,7 @@ export function jira({ stack }: StackContext): {
     processJiraRetryTable
   );
 
-  const [refreshToken, processJiraRetryFunction] = initializeFunctions(
+  const [refreshToken, processJiraRetryFunction, hardDeleteProjectsData] = initializeFunctions(
     stack,
     Object.values(restQueues),
     { jiraMappingTable, jiraCredsTable, processJiraRetryTable }
@@ -51,10 +51,11 @@ export function jira({ stack }: StackContext): {
     ]
   );
   // Initialize Cron for Jira
-  intializeJiraCron(stack, processJiraRetryFunction, refreshToken);
+  intializeJiraCron(stack, processJiraRetryFunction, refreshToken, hardDeleteProjectsData);
 
   stack.addOutputs({
     ApiEndpoint: jiraApi.url,
   });
   return { jiraApi };
 }
+

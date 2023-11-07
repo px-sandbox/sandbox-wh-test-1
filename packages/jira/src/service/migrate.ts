@@ -41,9 +41,13 @@ export const handler = async function migrate(
 
   const projectsFromJira = await client.getProjects();
 
-  // Filter from projects
-  const projectsToSend = projectsFromJira.filter((project) => projects.includes(project.name.trim()));
+  // Filter from projects based on name and project type ('software')
+  const projectsToSend = projectsFromJira.filter((project) =>
+    projects.includes(project.name.trim()) && project.projectTypeKey.toLowerCase() === 'software');
 
+  if (projectsToSend.length === 0) {
+    return responseParser.setMessage('No projects to migrate').send();
+  }
   logger.info(`
 
   SENDING Projects ############
@@ -98,7 +102,7 @@ export const issueStatusHandler = async function issueStatusMigration(
 
   await Promise.all([
     ...issueStatuses.map((status) =>
-      sqsClient.sendMessage({ organization, status }, Queue.qIssueStatusMigrate.queueUrl)
+      sqsClient.sendMessage({ organization, status }, Queue.qIssueMigrate.queueUrl)
     ),
   ]);
   return responseParser

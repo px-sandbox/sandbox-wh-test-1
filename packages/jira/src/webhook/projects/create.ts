@@ -3,6 +3,7 @@ import { Jira } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import moment from 'moment';
+import { JiraClient } from '../../lib/jira-client';
 import { projectKeysMapper } from './mapper';
 
 
@@ -18,8 +19,19 @@ export async function create(
   eventTime: moment.Moment,
   organization: string)
   : Promise<void> {
-  const createdAt = moment(eventTime).toISOString();
-  const updatedProjectBody = projectKeysMapper(project, createdAt, organization);
-  logger.info('processProjectCreatedEvent: Send message to SQS');
-  await new SQSClient().sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
+
+  // getting jira client and fetching project data using api
+  const jiraClient = await JiraClient.getClient(organization);
+  const projectData = await jiraClient.getProject(project.id.toString());
+
+  // checking is project type is software. We dont wanna save maintainence projects
+
+  logger.info('processProjectCreatedEvent: Checking project type');
+  if (projectData.projectTypeKey.toLowerCase() === 'software') {
+    const createdAt = moment(eventTime).toISOString();
+    const updatedProjectBody = projectKeysMapper(projectData, createdAt, organization);
+    logger.info('processProjectCreatedEvent: Send message to SQS');
+    await new SQSClient().sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
+  }
+
 }

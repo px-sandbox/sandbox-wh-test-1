@@ -1,5 +1,5 @@
 {
-  "TableName": "nv-pulse-dx-jiraCreds",
+  "TableName": "manasaggarwal-pulse-dx-jiraCreds",
   "KeySchema": [
     {
       "AttributeName": "id",
