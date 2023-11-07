@@ -25,7 +25,6 @@ async function updateData(
   matchValue: string,
   orgId: string,
   isDeleted = false): Promise<void> {
-  const matchQry = esb.matchQuery(matchField, matchValue).toJSON();
   const matchQry2 = esb.boolQuery()
     .must([
       esb.termsQuery(matchField, matchValue),
