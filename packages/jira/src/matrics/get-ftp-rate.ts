@@ -61,10 +61,10 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
         return {
           total,
           totalFtp,
-          sprint: sprintData.name,
+          sprintName: sprintData.name,
           status: sprintData.state,
-          start: sprintData.startDate,
-          end: sprintData.endDate,
+          startDate: sprintData.startDate,
+          endDate: sprintData.endDate,
           percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
         };
       })
