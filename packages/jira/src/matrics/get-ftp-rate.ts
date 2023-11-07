@@ -4,8 +4,9 @@ import { IFtpRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
-import { IssueReponse } from '../util/response-formatter';
+import { getBoardByOrgId } from '../repository/board/get-board';
 import { getSprints } from '../lib/get-sprints';
+import { IssueReponse } from '../util/response-formatter';
 
 // eslint-disable-next-line max-lines-per-function,
 export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
@@ -49,6 +50,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
     const response: IssueReponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
+        const boardName = await getBoardByOrgId(sprintData.originBoardId, sprintData.organizationId)
 
         const ftpData = ftpRateGraphResponse.sprint_buckets.buckets.find(
           (obj) => obj.key === sprintId
@@ -61,10 +63,11 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
         return {
           total,
           totalFtp,
-          sprint: sprintData.name,
+          sprintName: sprintData.name,
+          boardName: boardName.name,
           status: sprintData.state,
-          start: sprintData.startDate,
-          end: sprintData.endDate,
+          startDate: sprintData.startDate,
+          endDate: sprintData.endDate,
           percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
         };
       })
