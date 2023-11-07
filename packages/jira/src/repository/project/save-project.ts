@@ -23,9 +23,16 @@ async function updateData(
   indexName: string,
   matchField: string,
   matchValue: string,
+  orgId: string,
   isDeleted = false): Promise<void> {
   const matchQry = esb.matchQuery(matchField, matchValue).toJSON();
-  const data = await esClientObj.searchWithEsb(indexName, matchQry);
+  const matchQry2 = esb.boolQuery()
+    .must([
+      esb.termsQuery(matchField, matchValue),
+      esb.termQuery('body.organizationId', orgId),
+    ]).toJSON();
+
+  const data = await esClientObj.searchWithEsb(indexName, matchQry2);
   const [formattedData] = await searchedDataFormatorWithDeleted(data);
   if (formattedData) {
     if (isDeleted) {
@@ -72,9 +79,13 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
     await esClientObj.putDocument(Jira.Enums.IndexName.Project, updatedData);
 
     if (data.body.isDeleted) {
-      await Promise.all([updateData(esClientObj, Jira.Enums.IndexName.Sprint, 'body.projectId', data.body.id, true),
-      updateData(esClientObj, Jira.Enums.IndexName.Issue, 'body.projectId', data.body.id, true),
-      updateData(esClientObj, Jira.Enums.IndexName.Board, 'body.projectId', data.body.id, true)])
+      await Promise.all([
+        updateData(esClientObj, Jira.Enums.IndexName.Sprint,
+          'body.projectId', data.body.id, data.body.organizationId, true),
+        updateData(esClientObj, Jira.Enums.IndexName.Issue,
+          'body.projectId', data.body.id, data.body.organizationId, true),
+        updateData(esClientObj, Jira.Enums.IndexName.Board,
+          'body.projectId', data.body.id, data.body.organizationId, true)]);
     }
     logger.info('saveProjectDetails.successful');
   } catch (error: unknown) {
