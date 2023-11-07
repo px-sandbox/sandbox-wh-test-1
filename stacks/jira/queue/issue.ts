@@ -11,6 +11,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    AVAILABLE_PROJECT_KEYS
   } = use(commonConfig);
 
   const issueIndexDataQueue = new Queue(stack, 'qIssueIndex', {
@@ -51,6 +52,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    AVAILABLE_PROJECT_KEYS
   ]);
   issueIndexDataQueue.bind([
     jiraDDB.jiraCredsTable,
@@ -59,6 +61,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
+    AVAILABLE_PROJECT_KEYS
   ]);
 
   return [issueFormatDataQueue, issueIndexDataQueue];
