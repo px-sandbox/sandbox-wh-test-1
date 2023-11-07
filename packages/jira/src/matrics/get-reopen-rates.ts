@@ -5,9 +5,9 @@ import { IReopenRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
+import { getBoardByOrgId } from '../repository/board/get-board';
 import { getSprints } from '../lib/get-sprints';
 import { IssueReponse } from '../util/response-formatter';
-import { getBoardByOrgId } from 'src/repository/board/get-board';
 
 export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
   try {
