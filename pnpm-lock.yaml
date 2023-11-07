@@ -347,6 +347,9 @@ importers:
       '@pulse/event-handler':
         specifier: ^1.0.0
         version: link:../@pulse/event-handler
+      '@types/async':
+        specifier: ^3.2.23
+        version: 3.2.23
       abstraction:
         specifier: workspace:^1.0.0
         version: link:../abstraction
@@ -5130,6 +5133,10 @@ packages:
   /@tsconfig/node16@1.0.3:
     resolution: {integrity: sha512-yOlFc+7UtL/89t2ZhjPvvB/DeAr3r+Dq58IgzsFkOAvVC6NMJXmCGjbptdXdR9qsX7pKcTL+s87FtYREi2dEEQ==}
     dev: true
+
+  /@types/async@3.2.23:
+    resolution: {integrity: sha512-/sDXs+HxCtt4/duO0AZFHs+ydQYHzd3qUybEFb+juRWQJNCFj3sYbqM2ABjWi8m7J93KXdJvIbDiARzqqIEESw==}
+    dev: false
 
   /@types/aws-lambda@8.10.114:
     resolution: {integrity: sha512-M8WpEGfC9iQ6V2Ccq6nGIXoQgeVc6z0Ngk8yCOL5V/TYIxshvb0MWQYLFFTZDesL0zmsoBc4OBjG9DB/4rei6w==}
