@@ -112,6 +112,7 @@ async function deleteProjectfromDD(result: RequestParams.Search<MultiSearchBody>
  */
 export async function handler(): Promise<void> {
     const ninetyDaysAgo = new Date();
+    // TODO: make 90 days configurable later on
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
     // query to get projects where isDeleted is true and deletedAt is more than 90 days ago

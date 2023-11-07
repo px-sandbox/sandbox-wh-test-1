@@ -41,9 +41,13 @@ export const handler = async function migrate(
 
   const projectsFromJira = await client.getProjects();
 
-  // Filter from projects
-  const projectsToSend = projectsFromJira.filter((project) => projects.includes(project.name.trim()));
+  // Filter from projects based on name and project type ('software')
+  const projectsToSend = projectsFromJira.filter((project) =>
+    projects.includes(project.name.trim()) && project.projectTypeKey.toLowerCase() === 'software');
 
+  if (projectsToSend.length === 0) {
+    return responseParser.setMessage('No projects to migrate').send();
+  }
   logger.info(`
 
   SENDING Projects ############
