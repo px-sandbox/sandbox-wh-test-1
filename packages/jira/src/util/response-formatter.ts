@@ -107,11 +107,12 @@ export interface IssueReponse {
   totalFtp?: number;
   totalBugs?: number;
   totalReopen?: number;
-  sprint?: string;
+  sprintName?: string;
+  boardName?: string;
   status?: SprintState;
-  start?: string;
-  end?: string;
-  percentValue: number;
+  startDate?: string;
+  endDate?: string;
+  percentValue?: number;
 }
 
 export const formatBoardResponse = (
