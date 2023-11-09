@@ -42,10 +42,10 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
       reopenRateGraphQuery
     );
 
-    const response: IssueReponse[] = await Promise.all(
+    const response: IssueReponse[] = (await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
-        const boardName = await getBoardByOrgId(sprintData.originBoardId, sprintData.organizationId)
+        const boardName = await getBoardByOrgId(sprintData?.originBoardId, sprintData?.organizationId)
         const bugsData = reopenRateGraphResponse.sprint_buckets.buckets.find(
           (obj) => obj.key === sprintId
         );
@@ -57,17 +57,17 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
         return {
           totalBugs,
           totalReopen,
-          sprintName: sprintData.name,
-          boardName: boardName.name,
-          status: sprintData.state,
-          startDate: sprintData.startDate,
-          endDate: sprintData.endDate,
+          sprintName: sprintData?.name,
+          boardName: boardName?.name,
+          status: sprintData?.state,
+          startDate: sprintData?.startDate,
+          endDate: sprintData?.endDate,
           percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
         };
       })
-    );
+    ));
 
-    return response;
+    return response.filter((obj) => obj.sprintName !== undefined);
   } catch (e) {
     logger.error('reopenRateGraphQuery.error', e);
     throw e;

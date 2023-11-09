@@ -3,11 +3,12 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { Config } from 'sst/node/config';
 import { Table } from 'sst/node/table';
-import { RequestParams } from '@elastic/elasticsearch';
-import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
 import { logger } from 'core';
 import async from 'async';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
+import esb from 'elastic-builder';
+import { Hit, HitBody } from 'abstraction/other/type';
+import { searchedDataFormatorWithDeleted } from '../util/response-formatter';
 
 // initializing elastic search client
 const esClientObj = new ElasticSearchClient({
@@ -21,13 +22,13 @@ const esClientObj = new ElasticSearchClient({
  * @param result The search result containing the project IDs to delete.
  * @returns A Promise that resolves when the deletion is complete.
  */
-async function deleteProjectData(result: RequestParams.Search<MultiSearchBody>): Promise<void> {
+async function deleteProjectData(result: (Pick<Hit, "_id"> & HitBody)[]): Promise<void> {
     try {
         logger.info('starting to delete project, sprint, boards and issues data from elastic search');
-        const projectData = result.hits?.hits?.
-            map((hit: { _source: { body: { id: any; organizationId: any; }; }; }) => ({
-                projectId: hit._source.body.id,
-                organizationId: hit._source.body.organizationId
+        const projectData = result?.
+            map((hit) => ({
+                projectId: hit.id,
+                organizationId: hit.organizationId
             }));
 
         const indexArr = [
@@ -37,25 +38,21 @@ async function deleteProjectData(result: RequestParams.Search<MultiSearchBody>):
             Jira.Enums.IndexName.Board
         ];
         let deleteQuery = {};
+
         for (const data of projectData) {
 
-            // delete query for elastic search for projects data based on projectId/id and organizationId
-            deleteQuery = {
-                bool: {
-                    must: [
-                        {
-                            bool: {
-                                should: [
-                                    { term: { 'body.id': data.projectId } },
-                                    { term: { 'body.projectId': data.projectId } }
-                                ],
-                                minimum_should_match: 1
-                            }
-                        },
-                        { term: { 'body.organizationId': data.organizationId } }
-                    ]
-                }
-            };
+            deleteQuery = esb.boolQuery()
+                .must([
+                    esb.boolQuery().should([
+                        esb.termQuery('body.id', data.projectId),
+                        esb.termQuery('body.projectId', data.projectId)
+                    ])
+                        .minimumShouldMatch(1),
+                    esb.boolQuery().should([
+                        esb.termQuery('body.organizationId', data.organizationId),
+                        esb.termQuery('body.organizationId.keyword', data.organizationId)
+                    ]).minimumShouldMatch(1)
+                ]).toJSON();
         }
 
         // deleting all data from ES for project and related sprint, boards and issues
@@ -73,11 +70,11 @@ async function deleteProjectData(result: RequestParams.Search<MultiSearchBody>):
  * @param result - The search result from DD.
  * @returns A Promise that resolves when all projects have been deleted from DynamoDB.
  */
-async function deleteProjectfromDD(result: RequestParams.Search<MultiSearchBody>): Promise<void> {
+async function deleteProjectfromDD(result: (Pick<Hit, "_id"> & HitBody)[]): Promise<void> {
     try {
         logger.info('starting to delete project from dynamo db');
 
-        const parentIds = result.hits.hits.map((hit: { _id: any; }) => hit._id);
+        const parentIds = result?.map((hit) => hit._id);
 
 
         // Deleting from dynamo DB in batches of 20
@@ -111,29 +108,28 @@ async function deleteProjectfromDD(result: RequestParams.Search<MultiSearchBody>
  * @returns Promise<void>
  */
 export async function handler(): Promise<void> {
+    logger.info('Hard delete projects from elastic search and dynamo db function invoked');
+
     const ninetyDaysAgo = new Date();
-    // TODO: make 90 days configurable later on
-    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - Number(Config.PROJECT_DELETION_AGE_DAYS));
 
-    // query to get projects where isDeleted is true and deletedAt is more than 90 days ago
-    const query = {
+    const query = esb.boolQuery().must([
+        esb.termQuery('body.isDeleted', true),
+        esb.rangeQuery('body.deletedAt').lte(ninetyDaysAgo.toISOString())
+    ]).toJSON();
 
-        bool: {
-            must: [
-                { match: { 'body.isDeleted': true } },
-                { range: { 'body.deletedAt': { lte: ninetyDaysAgo.toISOString() } } }
-            ]
-        }
-    };
+    logger.info('searching for projects that have been soft-deleted >=90 days ago');
+
     const result = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Project, query);
+    const res = await searchedDataFormatorWithDeleted(result);
 
-    if (result?.hits?.hits) {
+    if (res.length > 0) {
 
         // deleting projects data from projects/sprints/boards/issues document
-        await deleteProjectData(result);
+        await deleteProjectData(res);
 
         // deleting project record from dynamo DB
-        await deleteProjectfromDD(result)
+        await deleteProjectfromDD(res)
 
     }
 
