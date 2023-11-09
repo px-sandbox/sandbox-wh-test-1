@@ -1,3 +1,4 @@
+import esb from 'elastic-builder';
 import { transpileSchema } from '@middy/validator/transpile';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
@@ -8,7 +9,12 @@ import { searchedDataFormator } from '../../util/response-formatter';
 import { updateIssueStatusSchema } from '../validations';
 import { saveIssueStatusDetails } from '../../repository/issue/save-issue-status';
 
-// eslint-disable-next-line max-lines-per-function
+/**
+ * Updates the status of a Jira issue for a given organization.
+ * @param event - The APIGatewayProxyEvent containing the query string parameters.
+ * @returns A Promise that resolves to an APIGatewayProxyResult.
+ * @throws An error if the issue status cannot be updated.
+ */
 const issueStatus = async function updateIssueStatus(
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
@@ -27,23 +33,16 @@ const issueStatus = async function updateIssueStatus(
             username: Config.OPENSEARCH_USERNAME ?? '',
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
-
-        const query = {
-            bool: {
-                must: [
-                    { match: { 'body.id': issueStatusId } },
-                    { match: { 'body.organizationId': orgId } }
-                ],
-            },
-        };
+        const query = esb
+            .boolQuery()
+            .must([
+                esb.termsQuery('body.id', issueStatusId),
+                esb.termQuery('body.organizationId', orgId),
+            ])
+            .toJSON();
 
         // fetching data from elastic search based on query
-        const { body: data } = await esClient.getClient().search({
-            index: Jira.Enums.IndexName.IssueStatus,
-            body: {
-                query
-            }
-        });
+        const data = await esClient.searchWithEsb(Jira.Enums.IndexName.IssueStatus, query);
 
         // formatting above query response data
         const [issueStatusResponse] = await searchedDataFormator(data);

@@ -7,6 +7,13 @@ import { Config } from 'sst/node/config';
 import { formatBoardResponse, searchedDataFormator } from '../../util/response-formatter';
 import { getBoardsSchema } from '../validations';
 
+
+/**
+ * Retrieves all boards and sprints for a project from ElasticSearch based on the provided `orgId` and `projectId`.
+ * @param event - The APIGatewayProxyEvent object containing the query string parameters.
+ * @returns A Promise that resolves to an APIGatewayProxyResult object containing the retrieved board and sprint data.
+ * @throws An error if the board details cannot be retrieved.
+ */
 // eslint-disable-next-line max-lines-per-function
 const boards = async function getBoardsData(
     event: APIGatewayProxyEvent
