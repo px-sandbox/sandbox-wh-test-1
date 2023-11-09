@@ -23,15 +23,24 @@ AUTH0_CLIENT_ID=client-id
 
 ## Configure envirnoment variables
 
-- Copy .env.local to .env
-- Run the following command on terminal
+- Make sure that sst is installed globally on your system.
+
+        `npm i -g sst`
+
+Explore the `setup.bash` file in the editor and update the values for each variables in
+`inputs`
+
+For Example
 
 ```
-npx sst secrets set GITHUB_SG_INSTALLATION_ID <INSTALLATION_ID>
-npx sst secrets set GITHUB_BASE_URL https://api.github.com
-npx sst secrets set GITHUB_APP_PRIVATE_KEY_PEM <PEM file content>
-npx sst secrets set GITHUB_APP_ID <APP_ID>
+inputs=(
+  'ELASTIC_NODE | "http://localhost:9200"'
+)
 ```
+
+After you have updated all the values accordingly, run
+
+    `bash setup.bash`
 
 ## Configure DynamoDB for local
 
