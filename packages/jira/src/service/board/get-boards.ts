@@ -7,6 +7,13 @@ import { Config } from 'sst/node/config';
 import { formatBoardResponse, searchedDataFormator } from '../../util/response-formatter';
 import { getBoardsSchema } from '../validations';
 
+
+/**
+ * Retrieves all boards and sprints for a project from ElasticSearch based on the provided `orgId` and `projectId`.
+ * @param event - The APIGatewayProxyEvent object containing the query string parameters.
+ * @returns A Promise that resolves to an APIGatewayProxyResult object containing the retrieved board and sprint data.
+ * @throws An error if the board details cannot be retrieved.
+ */
 // eslint-disable-next-line max-lines-per-function
 const boards = async function getBoardsData(
     event: APIGatewayProxyEvent
@@ -29,6 +36,7 @@ const boards = async function getBoardsData(
 
 
         logger.info({ level: 'info', message: 'jira projectId', data: projectId });
+        // TODO: Update elastic search query using esb builder
         const query = {
             bool: {
                 must: [
@@ -60,6 +68,7 @@ const boards = async function getBoardsData(
                     item: (Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody)
                 ) => {
                     const boardItem = item;
+                    // TODO: Update elastic search query using esb builder
                     const sprintQuery = {
                         bool: {
                             must: [

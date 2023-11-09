@@ -9,6 +9,12 @@ import { ParamsMapping } from '../../model/params-mapping';
 import { mappingPrefixes } from '../../constant/config';
 
 
+/**
+ * Saves the issue status details to DynamoDB and Elasticsearch.
+ * @param data The issue status data to be saved.
+ * @returns A Promise that resolves when the data is saved successfully.
+ * @throws An error if there is an issue with saving the data.
+ */
 export async function saveIssueStatusDetails(data: Jira.Type.IssueStatus): Promise<void> {
     try {
         const updatedData = { ...data };
