@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { Config } from 'sst/node/config';
 import { Table } from 'sst/node/table';
 import { logger } from 'core';
 import async from 'async';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import esb from 'elastic-builder';
-import { Hit, HitBody } from 'abstraction/other/type';
+import moment from 'moment';
 import { searchedDataFormatorWithDeleted } from '../util/response-formatter';
 
 // initializing elastic search client
@@ -22,7 +22,7 @@ const esClientObj = new ElasticSearchClient({
  * @param result The search result containing the project IDs to delete.
  * @returns A Promise that resolves when the deletion is complete.
  */
-async function deleteProjectData(result: (Pick<Hit, "_id"> & HitBody)[]): Promise<void> {
+async function deleteProjectData(result: (Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody)[]): Promise<void> {
     try {
         logger.info('starting to delete project, sprint, boards and issues data from elastic search');
         const projectData = result?.
@@ -70,7 +70,7 @@ async function deleteProjectData(result: (Pick<Hit, "_id"> & HitBody)[]): Promis
  * @param result - The search result from DD.
  * @returns A Promise that resolves when all projects have been deleted from DynamoDB.
  */
-async function deleteProjectfromDD(result: (Pick<Hit, "_id"> & HitBody)[]): Promise<void> {
+async function deleteProjectfromDD(result: (Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody)[]): Promise<void> {
     try {
         logger.info('starting to delete project from dynamo db');
 
@@ -110,12 +110,17 @@ async function deleteProjectfromDD(result: (Pick<Hit, "_id"> & HitBody)[]): Prom
 export async function handler(): Promise<void> {
     logger.info('Hard delete projects from elastic search and dynamo db function invoked');
 
-    const ninetyDaysAgo = new Date();
-    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - Number(Config.PROJECT_DELETION_AGE_DAYS));
+    const duration = Config.PROJECT_DELETION_AGE;
+    const [value, unit] = duration.split(" ");
+
+    if (!value || !unit) {
+        throw new Error(`Invalid duration format: ${duration}`);
+    }
+    const dateToCompare = moment().subtract(value, unit as any);
 
     const query = esb.boolQuery().must([
         esb.termQuery('body.isDeleted', true),
-        esb.rangeQuery('body.deletedAt').lte(ninetyDaysAgo.toISOString())
+        esb.rangeQuery('body.deletedAt').lte(dateToCompare.toISOString())
     ]).toJSON();
 
     logger.info('searching for projects that have been soft-deleted >=90 days ago');

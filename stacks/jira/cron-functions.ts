@@ -12,6 +12,7 @@ export function initializeFunctions(stack: Stack, queues: Queue[], tables: JiraT
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
+        PROJECT_DELETION_AGE,
     } = use(commonConfig);
     const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } = tables;
 
@@ -41,6 +42,7 @@ export function initializeFunctions(stack: Stack, queues: Queue[], tables: JiraT
             OPENSEARCH_NODE,
             OPENSEARCH_PASSWORD,
             OPENSEARCH_USERNAME,
+            PROJECT_DELETION_AGE,
             ...queues,
         ]
     });
