@@ -65,6 +65,14 @@ export function initializeRoutes(
             authorizer: 'admin',
         },
 
+        // api to update pxStatus in issueStatus table
+        'GET /jira/update-issue-status': {
+            function: {
+                handler: 'packages/jira/src/service/issue/update-issue-status.handler',
+            },
+            authorizer: 'admin',
+        },
+
         // GET Jira board and sprint data for a project
         'GET /jira/boards': {
             function: 'packages/jira/src/service/board/get-boards.handler',

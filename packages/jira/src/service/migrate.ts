@@ -102,7 +102,7 @@ export const issueStatusHandler = async function issueStatusMigration(
 
   await Promise.all([
     ...issueStatuses.map((status) =>
-      sqsClient.sendMessage({ organization, status }, Queue.qIssueMigrate.queueUrl)
+      sqsClient.sendMessage({ organization, status }, Queue.qIssueStatusMigrate.queueUrl)
     ),
   ]);
   return responseParser

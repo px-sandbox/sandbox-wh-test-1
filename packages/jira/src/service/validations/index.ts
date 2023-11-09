@@ -33,3 +33,27 @@ export const getBoardsSchema = {
     },
   },
 };
+
+export const updateIssueStatusSchema = {
+  type: 'object',
+  properties: {
+    queryStringParameters: {
+      type: 'object',
+      properties: {
+        orgId: {
+          type: 'string',
+          pattern: '^jira_org_.*$',
+        },
+        issueStatusId: {
+          type: 'string',
+          pattern: '^jira_issue_status_.*$',
+        },
+        pxStatus: {
+          type: 'string',
+        },
+      },
+      required: ['orgId', 'issueStatusId', 'pxStatus'],
+
+    },
+  },
+};
