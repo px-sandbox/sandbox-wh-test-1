@@ -98,4 +98,27 @@ export class ElasticSearchClient implements IElasticSearchClient {
       throw err;
     }
   }
+
+  /**
+   * Updates a document in the specified Elasticsearch index.
+   * @param indexName - The name of the Elasticsearch index.
+   * @param id - The ID of the document to update.
+   * @param updatedDoc - The updated document object.
+   * @returns A Promise that resolves with void when the update is complete.
+   * @throws An error if the update fails.
+   */
+  public async updateDocument(indexName: string, id: string, updatedDoc: object): Promise<void> {
+    try {
+      await this.client.update({
+        index: indexName,
+        id,
+        body: {
+          doc: updatedDoc,
+        }
+      });
+    } catch (err) {
+      logger.error('updateDocument.error : ', { err });
+      throw err;
+    }
+  }
 }

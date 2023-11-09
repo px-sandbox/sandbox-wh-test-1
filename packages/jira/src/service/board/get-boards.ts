@@ -36,6 +36,7 @@ const boards = async function getBoardsData(
 
 
         logger.info({ level: 'info', message: 'jira projectId', data: projectId });
+        // TODO: Update elastic search query using esb builder
         const query = {
             bool: {
                 must: [
@@ -67,6 +68,7 @@ const boards = async function getBoardsData(
                     item: (Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody)
                 ) => {
                     const boardItem = item;
+                    // TODO: Update elastic search query using esb builder
                     const sprintQuery = {
                         bool: {
                             must: [

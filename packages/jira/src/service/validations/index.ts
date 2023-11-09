@@ -40,19 +40,14 @@ export const updateIssueStatusSchema = {
     queryStringParameters: {
       type: 'object',
       properties: {
-        orgId: {
+        issueStatusDocId: {
           type: 'string',
-          pattern: '^jira_org_.*$',
-        },
-        issueStatusId: {
-          type: 'string',
-          pattern: '^jira_issue_status_.*$',
         },
         pxStatus: {
           type: 'string',
         },
       },
-      required: ['orgId', 'issueStatusId', 'pxStatus'],
+      required: ['issueStatusDocId', 'pxStatus'],
 
     },
   },
