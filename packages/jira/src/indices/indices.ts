@@ -323,7 +323,7 @@ async function createMapping(name: string, mappings: unknown): Promise<void> {
 
     await esClient.indices.create({ index: name, body: { mappings } });
 
-    logger.info(`Created mapping for '${name}' suuceeful`);
+    logger.info(`Created mapping for '${name}' successful`);
   } catch (error) {
     logger.error(`Error creating mapping for '${name}':`, error);
     throw error;
