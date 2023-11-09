@@ -20,7 +20,7 @@ export function initializeApi(stack: Stack, tables: JiraTables, queues: Queue[])
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
         AVAILABLE_PROJECT_KEYS,
-        PROJECT_DELETION_AGE_DAYS
+        PROJECT_DELETION_AGE
     } = use(commonConfig);
     const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } = tables;
     const [
@@ -75,7 +75,7 @@ export function initializeApi(stack: Stack, tables: JiraTables, queues: Queue[])
                     jiraCredsTable,
                     processJiraRetryTable,
                     AVAILABLE_PROJECT_KEYS,
-                    PROJECT_DELETION_AGE_DAYS
+                    PROJECT_DELETION_AGE
                 ],
             },
         },

@@ -110,7 +110,7 @@ async function deleteProjectfromDD(result: (Pick<Other.Type.Hit, "_id"> & Other.
 export async function handler(): Promise<void> {
     logger.info('Hard delete projects from elastic search and dynamo db function invoked');
 
-    const duration = Config.PROJECT_DELETION_AGE_DAYS;
+    const duration = Config.PROJECT_DELETION_AGE;
     const durationInMs = ms(duration);
 
     if (durationInMs === undefined) {

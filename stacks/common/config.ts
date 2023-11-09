@@ -16,7 +16,7 @@ export const commonConfig = ({ stack }: StackContext): {
   GITHUB_WEBHOOK_SECRET: Config.Secret;
   GITHUB_SG_ACCESS_TOKEN: Config.Secret;
   AVAILABLE_PROJECT_KEYS: Config.Secret;
-  PROJECT_DELETION_AGE_DAYS: Config.Secret;
+  PROJECT_DELETION_AGE: Config.Secret;
 } => ({
   OPENSEARCH_NODE: new Config.Secret(stack, 'OPENSEARCH_NODE'),
   OPENSEARCH_USERNAME: new Config.Secret(stack, 'OPENSEARCH_USERNAME'),
@@ -26,7 +26,7 @@ export const commonConfig = ({ stack }: StackContext): {
   JIRA_REDIRECT_URI: new Config.Secret(stack, 'JIRA_REDIRECT_URI'),
   AUTH_PUBLIC_KEY: new Config.Secret(stack, 'AUTH_PUBLIC_KEY'),
   AVAILABLE_PROJECT_KEYS: new Config.Secret(stack, 'AVAILABLE_PROJECT_KEYS'),
-  PROJECT_DELETION_AGE_DAYS: new Config.Secret(stack, 'PROJECT_DELETION_AGE_DAYS'),
+  PROJECT_DELETION_AGE: new Config.Secret(stack, 'PROJECT_DELETION_AGE'),
 
   /** GITHUB SECRETS */
   GITHUB_APP_PRIVATE_KEY_PEM: new Config.Secret(stack, 'GITHUB_APP_PRIVATE_KEY_PEM'),
