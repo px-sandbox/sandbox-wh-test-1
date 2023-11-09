@@ -5,7 +5,7 @@ import { Config } from "sst/node/config";
 import esb from "elastic-builder";
 import { searchedDataFormator } from "./response-formatter";
 
-export async function getIssueStatusData(orgId: string): Promise<Other.Type.HitBody> {
+export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.HitBody> {
     try {
         const esClient = new ElasticSearchClient({
             host: Config.OPENSEARCH_NODE,

@@ -2,7 +2,7 @@ import { Jira } from 'abstraction';
 import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
 import { ChangelogItem } from 'abstraction/jira/external/webhook';
-import { getIssueStatusData } from '../util/issue-status';
+import { getFailedStatusDetails } from '../util/issue-status';
 import { getIssueChangelogs } from '../lib/get-issue-changelogs';
 import { JiraClient } from '../lib/jira-client';
 import { mappingPrefixes } from '../constant/config';
@@ -38,7 +38,7 @@ export class IssueProcessor extends DataProcessor<
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
     const changelogArr = await getIssueChangelogs(this.apiData.organization, this.apiData.issue.id, jiraClient);
     let reOpenCount = 0;
-    const QaFailed = await getIssueStatusData(orgData.id);
+    const QaFailed = await getFailedStatusDetails(orgData.id);
     let changelogItems: Array<ChangelogItem> = [];
     if (changelogArr.length > 0) {
       changelogItems = changelogArr.flatMap((changelog) => changelog.items);
