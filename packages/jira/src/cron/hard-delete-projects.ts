@@ -7,7 +7,7 @@ import { logger } from 'core';
 import async from 'async';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import esb from 'elastic-builder';
-import ms from 'ms';
+import moment from 'moment';
 import { searchedDataFormatorWithDeleted } from '../util/response-formatter';
 
 // initializing elastic search client
@@ -111,13 +111,12 @@ export async function handler(): Promise<void> {
     logger.info('Hard delete projects from elastic search and dynamo db function invoked');
 
     const duration = Config.PROJECT_DELETION_AGE;
-    const durationInMs = ms(duration);
+    const [value, unit] = duration.split(" ");
 
-    if (durationInMs === undefined) {
+    if (!value || !unit) {
         throw new Error(`Invalid duration format: ${duration}`);
     }
-
-    const dateToCompare = new Date(Date.now() - durationInMs);
+    const dateToCompare = moment().subtract(value, unit as any);
 
     const query = esb.boolQuery().must([
         esb.termQuery('body.isDeleted', true),
