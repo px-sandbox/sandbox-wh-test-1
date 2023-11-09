@@ -350,9 +350,6 @@ importers:
       '@types/async':
         specifier: ^3.2.23
         version: 3.2.23
-      '@types/ms':
-        specifier: ^0.7.34
-        version: 0.7.34
       abstraction:
         specifier: workspace:^1.0.0
         version: link:../abstraction
@@ -5214,10 +5211,6 @@ packages:
     dependencies:
       moment: 2.29.4
     dev: true
-
-  /@types/ms@0.7.34:
-    resolution: {integrity: sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==}
-    dev: false
 
   /@types/node-rsa@1.1.1:
     resolution: {integrity: sha512-itzxtaBgk4OMbrCawVCvas934waMZWjW17v7EYgFVlfYS/cl0/P7KZdojWCq9SDJMI5cnLQLUP8ayhVCTY8TEg==}
