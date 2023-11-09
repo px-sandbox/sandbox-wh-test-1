@@ -3,6 +3,7 @@ import { Jira } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
+import { ProjectTypeKey } from 'abstraction/jira/enums/project';
 import { JiraClient } from '../../lib/jira-client';
 
 /**
@@ -26,7 +27,7 @@ export async function create(issue: Jira.ExternalType.Webhook.Issue): Promise<vo
 
     // checking is project type is software. We dont wanna save maintainence projects
     logger.info('issue_event: Checking project type');
-    if (projectData.projectTypeKey.toLowerCase() === 'software') {
+    if (projectData.projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE) {
       await new SQSClient().sendMessage({ ...issue }, Queue.qIssueFormat.queueUrl);
     }
   } else {

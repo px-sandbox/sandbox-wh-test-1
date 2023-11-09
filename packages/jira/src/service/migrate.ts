@@ -3,6 +3,7 @@ import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import { Queue } from 'sst/node/queue';
+import { ProjectTypeKey } from "abstraction/jira/enums/project";
 import { JiraClient } from '../lib/jira-client';
 
 export const handler = async function migrate(
@@ -43,7 +44,7 @@ export const handler = async function migrate(
 
   // Filter from projects based on name and project type ('software')
   const projectsToSend = projectsFromJira.filter((project) =>
-    projects.includes(project.name.trim()) && project.projectTypeKey.toLowerCase() === 'software');
+    projects.includes(project.name.trim()) && project.projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE);
 
   if (projectsToSend.length === 0) {
     return responseParser.setMessage('No projects to migrate').send();
