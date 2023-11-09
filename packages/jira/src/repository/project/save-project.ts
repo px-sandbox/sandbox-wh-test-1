@@ -25,14 +25,20 @@ async function updateData(
   matchValue: string,
   orgId: string,
   isDeleted = false): Promise<void> {
+  // Starting to soft delete project, sprint, boards and issues data from elastic search
+  logger.info(`starting to soft delete ${indexName} data from elastic search`);
   const matchQry2 = esb.boolQuery()
     .must([
       esb.termsQuery(matchField, matchValue),
-      esb.termQuery('body.organizationId', orgId),
+      esb.boolQuery()
+        .should([esb.termQuery('body.organizationId', orgId), esb.termQuery('body.organizationId.keyword', orgId)])
+        .minimumShouldMatch(1),
+
     ]).toJSON();
 
   const data = await esClientObj.searchWithEsb(indexName, matchQry2);
   const [formattedData] = await searchedDataFormatorWithDeleted(data);
+
   if (formattedData) {
     if (isDeleted) {
       formattedData.isDeleted = true;
