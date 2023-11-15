@@ -1,0 +1,19 @@
+{
+    "TableName": "manasaggarwal-pulse-dx-libMaster",
+    "KeySchema": [
+        {
+            "AttributeName": "libName",
+            "KeyType": "HASH"
+        }
+    ],
+    "AttributeDefinitions": [
+        {
+            "AttributeName": "libName",
+            "AttributeType": "S"
+        }
+    ],
+    "ProvisionedThroughput": {
+        "ReadCapacityUnits": 1,
+        "WriteCapacityUnits": 1
+    }
+}
