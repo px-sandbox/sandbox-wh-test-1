@@ -18,16 +18,14 @@ export const handler = async function currentDepRegistry(event: SQSEvent): Promi
                 logger.info('WORKFLOW_CURRENT_DEPENDENCIES_INDEXED', { messageBody });
 
                 const {
-                    version,
-                    owner,
-                    repo_name: repoName,
-                    package: packageName,
+                    dependencyName,
+                    currentVersion,
                     ghRepoId,
                     orgName,
                     isDeleted,
-                    isCore
+                    isCore,
+                    releaseDate
                 } = messageBody;
-                const currentDep = await getCurrentDepReleaseDate(repoName, owner);
 
                 const orgData = await getOrganization(orgName);
                 const workflowObj: Github.Type.Workflow = {
@@ -35,10 +33,10 @@ export const handler = async function currentDepRegistry(event: SQSEvent): Promi
                     body: {
                         repoId: `${mappingPrefixes.repo}_${ghRepoId}`,
                         organizationId: orgData.body.id,
-                        version,
-                        name: packageName,
-                        libName: `npm_${packageName}`,
-                        releaseDate: currentDep.releaseDate,
+                        version: currentVersion,
+                        name: dependencyName,
+                        libName: `npm_${dependencyName}`,
+                        releaseDate,
                         isDeleted,
                         isCore,
 

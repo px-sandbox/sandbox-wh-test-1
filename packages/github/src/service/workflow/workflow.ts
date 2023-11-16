@@ -3,7 +3,7 @@ import { logger } from "core";
 import { Github } from "abstraction";
 import { SQSClient } from "@pulse/event-handler";
 import { Queue } from "sst/node/queue";
-import { getNodeLibInfo } from "src/util/node-library-info";
+import { getNodeLibInfo } from "../../util/node-library-info";
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<void | APIGatewayProxyResult> => {
     try {
