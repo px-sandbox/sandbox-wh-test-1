@@ -61,6 +61,14 @@ export function initializeRoutes(
             },
             authorizer: 'none',
         },
+
+        // POST handle data from Github actions workflow
+        'POST /github/workflow': {
+            function: {
+                handler: 'packages/github/src/service/workflow/workflow.handler',
+            },
+            authorizer: 'none',
+        },
         // GET GithubUser data
         'GET /github/user/{githubUserId}': {
             function: 'packages/github/src/service/get-user.handler',
