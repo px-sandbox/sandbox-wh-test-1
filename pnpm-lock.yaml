@@ -61,8 +61,8 @@ importers:
         specifier: ^10.2.69
         version: 10.2.69
       crypto-js:
-        specifier: ^4.1.1
-        version: 4.1.1
+        specifier: ^4.2.0
+        version: 4.2.0
       eslint:
         specifier: ^8.47.0
         version: 8.47.0
@@ -95,7 +95,7 @@ importers:
         version: 3.306.0
       '@aws-sdk/lib-dynamodb':
         specifier: ^3.309.0
-        version: 3.309.0(@aws-sdk/client-dynamodb@3.306.0)(@aws-sdk/smithy-client@3.374.0)(@aws-sdk/types@3.433.0)
+        version: 3.309.0(@aws-sdk/client-dynamodb@3.306.0)(@aws-sdk/smithy-client@3.374.0)(@aws-sdk/types@3.451.0)
       '@aws-sdk/util-dynamodb':
         specifier: ^3.309.0
         version: 3.309.0
@@ -369,8 +369,8 @@ importers:
         specifier: 0.17.1
         version: 0.17.1
       axios:
-        specifier: ^1.5.0
-        version: 1.5.0
+        specifier: ^1.6.2
+        version: 1.6.2
       core:
         specifier: workspace:0.0.1
         version: link:../core
@@ -1910,7 +1910,7 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@aws-sdk/lib-dynamodb@3.309.0(@aws-sdk/client-dynamodb@3.306.0)(@aws-sdk/smithy-client@3.374.0)(@aws-sdk/types@3.433.0):
+  /@aws-sdk/lib-dynamodb@3.309.0(@aws-sdk/client-dynamodb@3.306.0)(@aws-sdk/smithy-client@3.374.0)(@aws-sdk/types@3.451.0):
     resolution: {integrity: sha512-YnTMSG63Ly21lCL+uXVraIxUq/HHkmsrTSnGz3xLVdOzK59VjAOcOPdXlmYHArOJPmWEWgK7wRrRwscxJSYgUA==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
@@ -1920,7 +1920,7 @@ packages:
     dependencies:
       '@aws-sdk/client-dynamodb': 3.306.0
       '@aws-sdk/smithy-client': 3.374.0
-      '@aws-sdk/types': 3.433.0
+      '@aws-sdk/types': 3.451.0
       '@aws-sdk/util-dynamodb': 3.309.0
       tslib: 2.6.2
     dev: false
@@ -2486,6 +2486,14 @@ packages:
     dependencies:
       '@smithy/types': 2.4.0
       tslib: 2.6.2
+
+  /@aws-sdk/types@3.451.0:
+    resolution: {integrity: sha512-rhK+qeYwCIs+laJfWCcrYEjay2FR/9VABZJ2NRM89jV/fKqGVQR52E5DQqrI+oEIL5JHMhhnr4N4fyECMS35lw==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      '@smithy/types': 2.5.0
+      tslib: 2.6.2
+    dev: false
 
   /@aws-sdk/url-parser@3.306.0:
     resolution: {integrity: sha512-mhyOjtycZgxKYo2CoDhDQONuRd5TLfEwmyGWVgFrfubF0LejQ3rkBRLC5zT9TBZ8RJHNlqU2oGdsZCy3JV6Rlw==}
@@ -4925,6 +4933,13 @@ packages:
     dependencies:
       tslib: 2.6.2
 
+  /@smithy/types@2.5.0:
+    resolution: {integrity: sha512-/a31lYofrMBkJb3BuPlYJTMKDj0hUmKUP6JFZQu6YVuQVoAjubiY0A52U9S0Uysd33n/djexCUSNJ+G9bf3/aA==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      tslib: 2.6.2
+    dev: false
+
   /@smithy/url-parser@2.0.12:
     resolution: {integrity: sha512-qgkW2mZqRvlNUcBkxYB/gYacRaAdck77Dk3/g2iw0S9F0EYthIS3loGfly8AwoWpIvHKhkTsCXXQfzksgZ4zIA==}
     dependencies:
@@ -6012,8 +6027,8 @@ packages:
     transitivePeerDependencies:
       - debug
 
-  /axios@1.5.0:
-    resolution: {integrity: sha512-D4DdjDo5CY50Qms0qGQTTw6Q44jl7zRwY7bthds06pUGfChBCTcQs+N743eFWGEd6pRTMd6A+I87aWyFV5wiZQ==}
+  /axios@1.6.2:
+    resolution: {integrity: sha512-7i24Ri4pmDRfJTR7LDBhsOTtcm+9kjX5WiY1X3wIisx6G9So3pfMkEiU7emUBe46oceVImccTEM3k6C5dbVW8A==}
     dependencies:
       follow-redirects: 1.15.3
       form-data: 4.0.0
@@ -6649,10 +6664,6 @@ packages:
 
   /crypt@0.0.2:
     resolution: {integrity: sha512-mCxBlsHFYh9C+HVpiEacem8FEBnMXgU9gy4zmNC+SXAZNB/1idgp/aulFJ4FgCi7GPEVbfyng092GqL2k2rmow==}
-
-  /crypto-js@4.1.1:
-    resolution: {integrity: sha512-o2JlM7ydqd3Qk9CA0L4NL6mTzU2sdx96a+oOfPu8Mkl/PK51vSyoi8/rQ8NknZtk44vq15lmhAj9CIAGwgeWKw==}
-    dev: true
 
   /crypto-js@4.2.0:
     resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
