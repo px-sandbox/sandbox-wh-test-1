@@ -3,6 +3,7 @@ import { logger } from "core";
 import { Github } from "abstraction";
 import { SQSClient } from "@pulse/event-handler";
 import { Queue } from "sst/node/queue";
+import { getNodeLibInfo } from "src/util/node-library-info";
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<void | APIGatewayProxyResult> => {
     try {
@@ -31,12 +32,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<void | APIGa
             );
 
             await Promise.all(uniqueDeps.map(async (dep) => {
+                const { current } = await getNodeLibInfo(dep.dependencyName, dep.currentVersion);
                 const message = {
                     ...dep,
                     ghRepoId,
                     orgName,
                     isDeleted: false,
                     isCore: coreDeps.some((coreDep) => coreDep.dependencyName === dep.dependencyName),
+                    releaseDate: current.releaseDate,
                 };
                 sqsClient.sendMessage(message, Queue.qCurrentDepRegistry.queueUrl);
             }
