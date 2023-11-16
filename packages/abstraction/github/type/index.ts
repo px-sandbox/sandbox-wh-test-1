@@ -17,6 +17,7 @@ import { CalculateGraphAvgData } from './graph';
 import { GHCopilotReport } from './gh-copilot';
 import { ActiveBranches, RawActiveBRanches } from './active-branches';
 import { IndexMapping } from './index-mapping';
+import { Workflow } from './workflow';
 
 export {
   Branch,
@@ -48,4 +49,5 @@ export {
   ActiveBranches,
   RawActiveBRanches,
   IndexMapping,
+  Workflow,
 };
