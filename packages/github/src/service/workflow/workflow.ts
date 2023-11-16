@@ -12,21 +12,35 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<void | APIGa
 
         if (data) {
             const sqsClient = new SQSClient();
-            const { repository_info: { repo_id: ghRepoId, repo_owner: orgName }, dependencies } = data;
-            const promises = [];
+            const {
+                coreDependencies,
+                repository_info: {
+                    repo_id: ghRepoId,
+                    repo_owner: orgName
+                },
+                dependencies
+            } = data;
+            const coreDeps = Object.entries(coreDependencies).map(
+                ([dependencyName, currentVersion]) => ({ dependencyName, currentVersion })
+            );
+            const allDeps = [...coreDeps, ...dependencies];
+            const uniqueDeps = allDeps.filter((dep, index, self) =>
+                index === self.findIndex((t) => (
+                    t.dependencyName === dep.dependencyName && t.currentVersion === dep.currentVersion
+                ))
+            );
 
-            for (const [pkg, dependency] of Object.entries(dependencies)) {
+            await Promise.all(uniqueDeps.map(async (dep) => {
                 const message = {
-                    ...dependency,
-                    package: pkg,
+                    ...dep,
                     ghRepoId,
                     orgName,
                     isDeleted: false,
-                    isCore: false,
+                    isCore: coreDeps.some((coreDep) => coreDep.dependencyName === dep.dependencyName),
                 };
-                promises.push(sqsClient.sendMessage(message, Queue.qCurrentDepRegistry.queueUrl));
+                sqsClient.sendMessage(message, Queue.qCurrentDepRegistry.queueUrl);
             }
-            await Promise.all(promises);
+            ));
         } else {
             logger.warn('workflow.handler.noData');
         }

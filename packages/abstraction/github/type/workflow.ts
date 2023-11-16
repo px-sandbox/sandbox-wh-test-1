@@ -3,7 +3,8 @@ export type Workflow = {
     body: {
         repoId: string;
         organizationId: string;
-        package: string;
+        name: string;
+        libName: string;
         version: string;
         releaseDate: string;
         isDeleted: boolean;

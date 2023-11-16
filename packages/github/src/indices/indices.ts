@@ -440,7 +440,8 @@ const indices = [
           properties: {
             repoId: { type: 'keyword' },
             organizationId: { type: 'keyword' },
-            package: { type: 'keyword' },
+            name: { type: 'keyword' },
+            libName: { type: 'keyword' },
             version: { type: 'text' },
             releaseDate: { type: 'date', format: 'strict_date_optional_time' },
             isDeleted: { type: 'boolean' },

@@ -1,5 +1,5 @@
 export type Workflow = {
-    engines: {
+    coreDependencies: {
         [key: string]: string;
     },
     repository_info: {
@@ -8,11 +8,7 @@ export type Workflow = {
         repo_owner: string;
     },
     dependencies: {
-        [key: string]: {
-            version: string;
-            repo_url: string;
-            owner: string;
-            repo_name: string;
-        };
-    }
+        dependencyName: string;
+        currentVersion: string;
+    }[]
 };
