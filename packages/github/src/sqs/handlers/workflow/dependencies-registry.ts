@@ -21,18 +21,17 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
                 const {
                     dependencyName,
                     currentVersion,
-                    ghRepoId,
+                    repoId,
                     isDeleted,
                     isCore,
                 } = messageBody;
 
                 const { current, latest } = await getNodeLibInfo(dependencyName, currentVersion);
                 const libName = `npm_${dependencyName}`;
-                //const orgData = await getOrganization(orgName);
                 const workflowObj: Github.Type.Workflow = {
                     id: uuid(),
                     body: {
-                        repoId: `${mappingPrefixes.repo}_${ghRepoId}`,
+                        repoId: `${mappingPrefixes.repo}_${repoId}`,
                         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
                         version: currentVersion,
                         name: dependencyName,
