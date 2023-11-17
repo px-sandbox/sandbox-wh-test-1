@@ -18,6 +18,7 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    AVAILABLE_PROJECT_KEYS
   } = use(commonConfig);
 
   const projectIndexDataQueue = new Queue(stack, 'qProjectIndex', {
@@ -55,6 +56,7 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    AVAILABLE_PROJECT_KEYS
   ]);
 
   projectIndexDataQueue.bind([

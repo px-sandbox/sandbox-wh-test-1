@@ -61,7 +61,6 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
-    AVAILABLE_PROJECT_KEYS
   ]);
 
   return [issueFormatDataQueue, issueIndexDataQueue];
