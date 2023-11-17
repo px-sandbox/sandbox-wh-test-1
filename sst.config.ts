@@ -16,7 +16,7 @@ export default {
   stacks(app): void | Promise<void> {
     app.stack(commonConfig);
     app.stack(gh);
-    app.stack(jira);
+    // app.stack(jira);
     app.stack(devops);
 
     if (app.stage !== Stage.LIVE) {
