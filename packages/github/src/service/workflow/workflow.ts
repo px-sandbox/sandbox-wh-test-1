@@ -27,7 +27,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<void | APIGa
                     t.dependencyName === dep.dependencyName && t.currentVersion === dep.currentVersion
                 ))
             );
-            logger.info('workflow.handler.uniqueDeps', { uniqueDeps });
             await Promise.all(uniqueDeps.map(async (dep) => {
                 const message = {
                     ...dep,
@@ -36,7 +35,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<void | APIGa
                     isDeleted: false,
                     isCore: coreDependencies.some((coreDep) => coreDep.dependencyName === dep.dependencyName),
                 };
-                logger.info('workflow.handler.sqsMessage', message);
                 sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
             }
             ));

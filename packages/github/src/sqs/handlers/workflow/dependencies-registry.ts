@@ -16,7 +16,7 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
             try {
                 const messageBody = JSON.parse(record.body);
 
-                logger.info('WORKFLOW_CURRENT_DEPENDENCIES_INDEXED', { messageBody });
+                logger.info('WORKFLOW_DEPENDENCIES_INDEXED', { messageBody });
 
                 const {
                     dependencyName,
@@ -26,6 +26,7 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
                     isDeleted,
                     isCore,
                 } = messageBody;
+
                 const { current } = await getNodeLibInfo(dependencyName, currentVersion);
                 const orgData = await getOrganization(orgName);
                 const workflowObj: Github.Type.Workflow = {
@@ -42,6 +43,7 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
 
                     }
                 }
+                logger.info('WORKFLOW_DEPENDENCIES_DATA', { workflowObj });
                 const sqsClient = new SQSClient();
                 await Promise.all([
                     sqsClient.sendMessage(workflowObj, Queue.qCurrentDepRegistry.queueUrl),

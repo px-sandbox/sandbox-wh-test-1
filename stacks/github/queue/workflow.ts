@@ -19,12 +19,7 @@ export function initializeWorkflowQueue(stack: Stack, githubDDb: GithubTables): 
         },
     });
 
-    depRegistryQueue.bind([
-        retryProcessTable,
-        OPENSEARCH_NODE,
-        OPENSEARCH_PASSWORD,
-        OPENSEARCH_USERNAME,
-    ]);
+
     const currentDepRegistryQueue = new Queue(stack, 'qCurrentDepRegistry');
     currentDepRegistryQueue.addConsumer(stack, {
         function: new Function(stack, 'fnCurrentDepRegistry', {
@@ -43,6 +38,13 @@ export function initializeWorkflowQueue(stack: Stack, githubDDb: GithubTables): 
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
+    ]);
+    depRegistryQueue.bind([
+        retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        currentDepRegistryQueue,
     ]);
     return [depRegistryQueue, currentDepRegistryQueue]
 }
