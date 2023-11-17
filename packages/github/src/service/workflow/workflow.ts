@@ -22,7 +22,7 @@ async function deletePrevDependencies(repoId: string): Promise<void> {
     );
     const formattedData = await searchedDataFormator(workflowData);
     if (formattedData) {
-        formattedData.map(async (data: any) => {
+        formattedData.map(async (data: { _id: string }) => {
             const updatedData = { body: { isDeleted: true } };
             await esClientObj.updateDocument(Github.Enums.IndexName.GitWorkflow, data._id, updatedData);
         });
