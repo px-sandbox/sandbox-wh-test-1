@@ -4,7 +4,6 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
 import moment from 'moment';
-import { JiraClient } from '../../lib/jira-client';
 import { getProjectById } from '../../repository/project/get-project';
 import { projectKeysMapper } from './mapper';
 
