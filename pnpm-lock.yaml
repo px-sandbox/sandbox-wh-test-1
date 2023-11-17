@@ -273,7 +273,7 @@ importers:
         version: 0.17.1
       axios:
         specifier: ^1.6.0
-        version: 1.6.2
+        version: 1.6.0
       core:
         specifier: workspace:0.0.1
         version: link:../core
@@ -378,8 +378,8 @@ importers:
         specifier: 0.17.1
         version: 0.17.1
       axios:
-        specifier: ^1.5.0
-        version: 1.5.0
+        specifier: ^1.6.0
+        version: 1.6.0
       core:
         specifier: workspace:0.0.1
         version: link:../core
@@ -513,9 +513,6 @@ packages:
   /@aws-cdk/cloud-assembly-schema@2.95.1:
     resolution: {integrity: sha512-hVI7PJdx4dH222lxlQ+fvR+QOA9v1x0oFjMgVXQT0AUaM0UHqNO5np2Ufv1GhMpKFsQSD+gtFveUJAdkcL5dCA==}
     engines: {node: '>= 14.15.0'}
-    dependencies:
-      jsonschema: 1.4.1
-      semver: 7.5.4
     bundledDependencies:
       - jsonschema
       - semver
@@ -538,7 +535,6 @@ packages:
       '@aws-cdk/cloud-assembly-schema': 2.95.1
     dependencies:
       '@aws-cdk/cloud-assembly-schema': 2.95.1
-      semver: 7.5.4
     bundledDependencies:
       - semver
 
@@ -546,7 +542,7 @@ packages:
     resolution: {integrity: sha512-IzSgsrxUcsrejQbPVilIKy16kAT52EwB6zSaI+M3xxIhKh5+aldEyvI+z6erM7TCLB2BJsFrtHjp6/4/sr+3dA==}
     dependencies:
       '@aws-crypto/util': 3.0.0
-      '@aws-sdk/types': 3.451.0
+      '@aws-sdk/types': 3.398.0
       tslib: 1.14.1
 
   /@aws-crypto/crc32c@3.0.0:
@@ -955,8 +951,8 @@ packages:
     transitivePeerDependencies:
       - aws-crt
 
-  /@aws-sdk/client-iot@3.451.0:
-    resolution: {integrity: sha512-HYenaq1QAx3V6CPyPLvJh5ZOAyz1ETqceNPlw562DTMvT9h+gPMa8PPXhxhdfPZ6ouROoD4JPBIEpPxMCCWjtg==}
+  /@aws-sdk/client-iot@3.453.0:
+    resolution: {integrity: sha512-SWxuex5G/4/jKKdtMMH3R8i1iUt70t89cyiCMvWr3EYj0EmNUfnrDLH7zgQ4UITDgbiRCuXZEHB1hGyc3SgAQQ==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
@@ -1002,8 +998,8 @@ packages:
     transitivePeerDependencies:
       - aws-crt
 
-  /@aws-sdk/client-lambda@3.452.0:
-    resolution: {integrity: sha512-DcWbLPHvYyDFiB2LGNQK056RSWn4QXyAB+pedwq3rIeVOV0+D3BsJyAPPTAUR+esnA+eA0xV4bGh67PESTrotw==}
+  /@aws-sdk/client-lambda@3.453.0:
+    resolution: {integrity: sha512-MbCURw7HHikZOxdAS0LmlzBXHcw26l8LIwrUsBhWPMI9HHZ/86B2dV1p5BdL9JJjx4WMbXhTAk0FSS2O1Hjo+w==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
@@ -1210,8 +1206,8 @@ packages:
       - aws-crt
     dev: false
 
-  /@aws-sdk/client-ssm@3.451.0:
-    resolution: {integrity: sha512-Piuqmhdh48adWF5g+1+IUvtR6wv7e8b3BblYWCFIVgYHeXv2qfT5rDm7CbxLJsQ+4ZZcUU6Xj5ykRRIwlPHRow==}
+  /@aws-sdk/client-ssm@3.453.0:
+    resolution: {integrity: sha512-SRAnMwfCH+vUgXRdn0k9Ly5xRJNH9VZ2pSoGzyp/fON7LYZf/yEa6Vu/s0/Lr3nCDgKhsc/KTq/8XqcjVal8ag==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
@@ -2489,7 +2485,6 @@ packages:
     dependencies:
       '@smithy/types': 2.5.0
       tslib: 2.6.2
-    dev: false
 
   /@aws-sdk/types@3.451.0:
     resolution: {integrity: sha512-rhK+qeYwCIs+laJfWCcrYEjay2FR/9VABZJ2NRM89jV/fKqGVQR52E5DQqrI+oEIL5JHMhhnr4N4fyECMS35lw==}
@@ -3117,9 +3112,6 @@ packages:
       '@babel/helper-string-parser': 7.22.5
       '@babel/helper-validator-identifier': 7.22.20
       to-fast-properties: 2.0.0
-
-  /@balena/dockerignore@1.0.2:
-    resolution: {integrity: sha512-wMue2Sy4GAVTk6Ic4tJVcnfdau+gx2EnG7S+uAEe+TWJFqE4YoWN4/H8MSLj4eYJKxGg26lZwboEniNiNwZQ6Q==}
 
   /@colors/colors@1.5.0:
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
@@ -5906,17 +5898,7 @@ packages:
       '@aws-cdk/asset-awscli-v1': 2.2.201
       '@aws-cdk/asset-kubectl-v20': 2.1.2
       '@aws-cdk/asset-node-proxy-agent-v6': 2.0.1
-      '@balena/dockerignore': 1.0.2
-      case: 1.6.3
       constructs: 10.2.69
-      fs-extra: 11.1.1
-      ignore: 5.3.0
-      jsonschema: 1.4.1
-      minimatch: 3.1.2
-      punycode: 2.3.1
-      semver: 7.5.4
-      table: 6.8.1
-      yaml: 1.10.2
     bundledDependencies:
       - '@balena/dockerignore'
       - case
@@ -6002,8 +5984,8 @@ packages:
       uuid: 8.0.0
       xml2js: 0.5.0
 
-  /aws-sdk@2.1497.0:
-    resolution: {integrity: sha512-X8bDAMVToQ+vr3Ctizt4GRGYFhfwOQ0+dyBRTt9tyuOQ0BQQFIicBoUM6WHqGez6G2EZWPAYjBQQNj4zsCUMCw==}
+  /aws-sdk@2.1498.0:
+    resolution: {integrity: sha512-m3yxYWrXsn9FJRcWBZZ4ySOEKxodP8KMhwoGJMALd0MLtfPUl/Yf0YuwVyTct2ZzRGMU8i7XoZYPY1fr76LD1w==}
     engines: {node: '>= 10.0.0'}
     dependencies:
       buffer: 4.9.2
@@ -6017,8 +5999,8 @@ packages:
       uuid: 8.0.0
       xml2js: 0.5.0
 
-  /axios@1.5.0:
-    resolution: {integrity: sha512-D4DdjDo5CY50Qms0qGQTTw6Q44jl7zRwY7bthds06pUGfChBCTcQs+N743eFWGEd6pRTMd6A+I87aWyFV5wiZQ==}
+  /axios@1.6.0:
+    resolution: {integrity: sha512-EZ1DYihju9pwVB+jg67ogm+Tmqc6JmhamRN6I4Zt8DfZu5lbcQGw3ozH9lFejSJgs/ibaef3A9PMXPLeefFGJg==}
     dependencies:
       follow-redirects: 1.15.3
       form-data: 4.0.0
@@ -6127,8 +6109,8 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001562
-      electron-to-chromium: 1.4.585
+      caniuse-lite: 1.0.30001563
+      electron-to-chromium: 1.4.587
       node-releases: 2.0.13
       update-browserslist-db: 1.0.13(browserslist@4.22.1)
 
@@ -6215,8 +6197,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /caniuse-lite@1.0.30001562:
-    resolution: {integrity: sha512-kfte3Hym//51EdX4239i+Rmp20EsLIYGdPkERegTgU19hQWCRhsRFGKHTliUlsry53tv17K7n077Kqa0WJU4ng==}
+  /caniuse-lite@1.0.30001563:
+    resolution: {integrity: sha512-na2WUmOxnwIZtwnFI2CZ/3er0wdNzU7hN+cPYz/z2ajHThnkWjNBOpEPP4n+4r2WPM847JaMotaJE3bnfzjyKw==}
 
   /capital-case@1.0.4:
     resolution: {integrity: sha512-ds37W8CytHgwnhGGTi88pcPyR15qoNkOpYwmMMfnWqqWgESapLqvDx6huFjQ5vqWSn2Z06173XNA7LtMOeUh1A==}
@@ -6226,10 +6208,6 @@ packages:
       upper-case-first: 2.0.2
     dev: false
 
-  /case@1.6.3:
-    resolution: {integrity: sha512-mzDSXIPaFwVDvZAHqZ9VlbyF4yyXRuX6IvB06WvPYkqJVO24kX1PPhv9bfpKNFZyxYFmmgo03HUiD8iklmJYRQ==}
-    engines: {node: '>= 0.8.0'}
-
   /cdk-assets@2.95.1:
     resolution: {integrity: sha512-zrxJpKhFBw2s4vR5NL1S6p+iiqIEVxPL1AQ02++oSFyCeStoM0WVSccWwlUVQRuCRz8ZC5ZS9oismHQLMT4vOQ==}
     engines: {node: '>= 14.15.0'}
@@ -6238,7 +6216,7 @@ packages:
       '@aws-cdk/cloud-assembly-schema': 2.95.1
       '@aws-cdk/cx-api': 2.95.1(@aws-cdk/cloud-assembly-schema@2.95.1)
       archiver: 5.3.2
-      aws-sdk: 2.1497.0
+      aws-sdk: 2.1498.0
       glob: 7.2.3
       mime: 2.6.0
       yargs: 16.2.0
@@ -6914,8 +6892,8 @@ packages:
       lodash.omit: 4.5.0
     dev: false
 
-  /electron-to-chromium@1.4.585:
-    resolution: {integrity: sha512-B4yBlX0azdA3rVMxpYwLQfDpdwOgcnLCkpvSOd68iFmeedo+WYjaBJS3/W58LVD8CB2nf+o7C4K9xz1l09RkWg==}
+  /electron-to-chromium@1.4.587:
+    resolution: {integrity: sha512-RyJX0q/zOkAoefZhB9XHghGeATVP0Q3mwA253XD/zj2OeXc+JZB9pCaEv6R578JUYaWM9PRhye0kXvd/V1cQ3Q==}
 
   /emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -7597,6 +7575,7 @@ packages:
       graceful-fs: 4.2.11
       jsonfile: 6.1.0
       universalify: 2.0.1
+    dev: true
 
   /fs-extra@9.1.0:
     resolution: {integrity: sha512-hcg3ZmepS30/7BSFqRvoo3DOMQu7IjqxO5nCDt+zM9XWjb33Wg7ziNT+Qvqbuc3+gWpzO02JubVyk2G4Zvo1OQ==}
@@ -8383,9 +8362,6 @@ packages:
     resolution: {integrity: sha512-POQXvpdL69+CluYsillJ7SUhKvytYjW9vG/GKpnf+xP8UWgYEM/RaMzHHofbALDiKbbP1W8UEYmgGl39WkPZsg==}
     engines: {'0': node >= 0.2.0}
     dev: true
-
-  /jsonschema@1.4.1:
-    resolution: {integrity: sha512-S6cATIPVv1z0IlxdN+zUk5EPjkGCdnhN4wVSBlvoUO1tOLJootbo9CquNJmbIh4yikWHiUedhRYrNPn1arpEmQ==}
 
   /jsonwebtoken@9.0.0:
     resolution: {integrity: sha512-tuGfYXxkQGDPnLJ7SibiQgVgeDgfbPq2k2ICcbgqW8WxWLBAxKQM/ZCu/IT8SOSwmaYl4dpTFCW5xZv7YbbWUw==}
@@ -10039,12 +10015,12 @@ packages:
       '@aws-sdk/client-ecs': 3.451.0
       '@aws-sdk/client-eventbridge': 3.451.0
       '@aws-sdk/client-iam': 3.451.0
-      '@aws-sdk/client-iot': 3.451.0
+      '@aws-sdk/client-iot': 3.453.0
       '@aws-sdk/client-iot-data-plane': 3.451.0
-      '@aws-sdk/client-lambda': 3.452.0
+      '@aws-sdk/client-lambda': 3.453.0
       '@aws-sdk/client-rds-data': 3.451.0
       '@aws-sdk/client-s3': 3.451.0
-      '@aws-sdk/client-ssm': 3.451.0
+      '@aws-sdk/client-ssm': 3.453.0
       '@aws-sdk/client-sts': 3.451.0
       '@aws-sdk/config-resolver': 3.374.0
       '@aws-sdk/credential-providers': 3.451.0

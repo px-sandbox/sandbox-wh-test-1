@@ -31,7 +31,7 @@
     "aws-sdk": "^2.1444.0",
     "aws-sdk-client-mock": "^3.0.0",
     "aws-sdk-js-codemod": "0.17.1",
-    "axios": "^1.5.0",
+    "axios": "^1.6.0",
     "core": "workspace:0.0.1",
     "dotenv": "^16.0.3",
     "elastic-builder": "^2.21.0",
