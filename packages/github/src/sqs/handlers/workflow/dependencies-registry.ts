@@ -4,9 +4,9 @@ import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
 import { Github } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
+import { Config } from 'sst/node/config';
 import { mappingPrefixes } from '../../../constant/config';
 import { logProcessToRetry } from '../../../util/retry-process';
-import { getOrganization } from '../../../lib/get-organization';
 import { getNodeLibInfo } from "../../../util/node-library-info";
 
 export const handler = async function dependencyRegistry(event: SQSEvent): Promise<void> {
@@ -22,17 +22,17 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
                     dependencyName,
                     currentVersion,
                     ghRepoId,
-                    orgName,
                     isDeleted,
                     isCore,
                 } = messageBody;
+
                 const { current, latest } = await getNodeLibInfo(dependencyName, currentVersion);
-                const orgData = await getOrganization(orgName);
+                // const orgData = await getOrganization(orgName);
                 const workflowObj: Github.Type.Workflow = {
                     id: uuid(),
                     body: {
                         repoId: `${mappingPrefixes.repo}_${ghRepoId}`,
-                        organizationId: orgData.body.id,
+                        organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
                         version: currentVersion,
                         name: dependencyName,
                         libName: `npm_${dependencyName}`,

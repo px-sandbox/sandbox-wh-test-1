@@ -1,7 +1,7 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { LibParamsMapping } from 'src/model/lib-master-mapping';
+import { LibParamsMapping } from '../../../model/lib-master-mapping';
 
 export const handler = async function latestDepRegistry(event: SQSEvent): Promise<void> {
     logger.info(`Records Length: ${event.Records.length}`);
@@ -14,7 +14,9 @@ export const handler = async function latestDepRegistry(event: SQSEvent): Promis
                     libName,
                     latest: { version, releaseDate },
                 } = messageBody;
-                await new DynamoDbDocClient().put(new LibParamsMapping().preparePutParams(libName, { version, releaseDate }));
+                await new DynamoDbDocClient().put(
+                    new LibParamsMapping().preparePutParams(libName, { version, releaseDate })
+                );
             } catch (error) {
                 logger.error('latestDepRegistry.error', { error });
             }

@@ -18,7 +18,8 @@ export function initializeRoutes(
         collectPRData,
         historicalBranch,
         depRegistryQueue,
-        currentDepRegistryQueue
+        currentDepRegistryQueue,
+        latestDepRegistry,
     } = queues;
     const { retryProcessTable, githubMappingTable } = githubDDb;
     return {
@@ -68,7 +69,7 @@ export function initializeRoutes(
         'POST /github/workflow': {
             function: {
                 handler: 'packages/github/src/service/workflow/workflow.handler',
-                bind: [depRegistryQueue, currentDepRegistryQueue],
+                bind: [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry],
             },
             authorizer: 'none',
         },

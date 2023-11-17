@@ -4,7 +4,7 @@ import { GithubTables } from "../../type/tables";
 import { commonConfig } from "../../common/config";
 
 export function initializeWorkflowQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
-    const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
+    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
     const { retryProcessTable, libMasterTable } = githubDDb;
     const depRegistryQueue = new Queue(stack, 'qDepRegistry');
     depRegistryQueue.addConsumer(stack, {
@@ -33,6 +33,19 @@ export function initializeWorkflowQueue(stack: Stack, githubDDb: GithubTables): 
         },
     });
 
+    const latestDepRegistry = new Queue(stack, 'qLatestDepRegistry');
+    latestDepRegistry.addConsumer(stack, {
+        function: new Function(stack, 'fnLatestDepRegistry', {
+            handler: 'packages/github/src/sqs/handlers/workflow/latest-dependencies.handler',
+            bind: [libMasterTable],
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 5,
+            },
+        },
+    });
+
     currentDepRegistryQueue.bind([
         retryProcessTable,
         OPENSEARCH_NODE,
@@ -42,24 +55,13 @@ export function initializeWorkflowQueue(stack: Stack, githubDDb: GithubTables): 
 
     depRegistryQueue.bind([
         retryProcessTable,
+        GIT_ORGANIZATION_ID,
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
         currentDepRegistryQueue,
+        latestDepRegistry,
     ]);
 
-    const latestDepRegistry = new Queue(stack, 'qLatestDepRegistry');
-    latestDepRegistry.addConsumer(stack, {
-        function: new Function(stack, 'fnLatestDepRegistry', {
-            handler: 'packages/github/src/sqs/handlers/indexer/workflow/latest-dependencies.handler',
-            timeout: '30 seconds',
-            bind: [libMasterTable],
-        }),
-        cdk: {
-            eventSource: {
-                batchSize: 5,
-            },
-        },
-    });
     return [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry]
 }
