@@ -3,7 +3,6 @@ import { logger } from "core";
 import { Github } from "abstraction";
 import { SQSClient } from "@pulse/event-handler";
 import { Queue } from "sst/node/queue";
-import { getNodeLibInfo } from "../../util/node-library-info";
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<void | APIGatewayProxyResult> => {
     try {
@@ -15,33 +14,30 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<void | APIGa
             const sqsClient = new SQSClient();
             const {
                 coreDependencies,
-                repository_info: {
-                    repo_id: ghRepoId,
-                    repo_owner: orgName
+                repositoryInfo: {
+                    repoId,
+                    repoOwner: orgName
                 },
                 dependencies
             } = data;
-            const coreDeps = Object.entries(coreDependencies).map(
-                ([dependencyName, currentVersion]) => ({ dependencyName, currentVersion })
-            );
-            const allDeps = [...coreDeps, ...dependencies];
+
+            const allDeps = [...coreDependencies, ...dependencies];
             const uniqueDeps = allDeps.filter((dep, index, self) =>
                 index === self.findIndex((t) => (
                     t.dependencyName === dep.dependencyName && t.currentVersion === dep.currentVersion
                 ))
             );
-
+            logger.info('workflow.handler.uniqueDeps', { uniqueDeps });
             await Promise.all(uniqueDeps.map(async (dep) => {
-                const { current } = await getNodeLibInfo(dep.dependencyName, dep.currentVersion);
                 const message = {
                     ...dep,
-                    ghRepoId,
+                    repoId,
                     orgName,
                     isDeleted: false,
-                    isCore: coreDeps.some((coreDep) => coreDep.dependencyName === dep.dependencyName),
-                    releaseDate: current.releaseDate,
+                    isCore: coreDependencies.some((coreDep) => coreDep.dependencyName === dep.dependencyName),
                 };
-                sqsClient.sendMessage(message, Queue.qCurrentDepRegistry.queueUrl);
+                logger.info('workflow.handler.sqsMessage', message);
+                sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
             }
             ));
         } else {

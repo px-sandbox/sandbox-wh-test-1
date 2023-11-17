@@ -17,6 +17,8 @@ export function initializeRoutes(
         prReviewFormatDataQueue,
         collectPRData,
         historicalBranch,
+        depRegistryQueue,
+        currentDepRegistryQueue
     } = queues;
     const { retryProcessTable, githubMappingTable } = githubDDb;
     return {
@@ -66,6 +68,7 @@ export function initializeRoutes(
         'POST /github/workflow': {
             function: {
                 handler: 'packages/github/src/service/workflow/workflow.handler',
+                bind: [depRegistryQueue, currentDepRegistryQueue],
             },
             authorizer: 'none',
         },
@@ -123,6 +126,8 @@ export function initializeRoutes(
                     prFormatDataQueue,
                     prReviewCommentFormatDataQueue,
                     prReviewFormatDataQueue,
+                    depRegistryQueue,
+                    currentDepRegistryQueue
                 ],
             },
         },

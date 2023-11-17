@@ -60,7 +60,7 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         stack,
         githubDDb
     );
-    const [currentDepRegistryQueue] = initializeWorkflowQueue(stack, githubDDb);
+    const [depRegistryQueue, currentDepRegistryQueue] = initializeWorkflowQueue(stack, githubDDb);
     return {
         branchFormatDataQueue,
         branchIndexDataQueue,
@@ -91,6 +91,7 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         branchCounterIndexQueue,
         prReviewCommentFormatDataQueue,
         prReviewFormatDataQueue,
+        depRegistryQueue,
         currentDepRegistryQueue,
     };
 }
