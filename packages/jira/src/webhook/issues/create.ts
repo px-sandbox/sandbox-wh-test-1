@@ -16,13 +16,14 @@ export async function create(issue: Jira.ExternalType.Webhook.Issue): Promise<vo
   logger.info('issue_event: Send message to SQS');
 
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS ? Config.AVAILABLE_PROJECT_KEYS.split(',') : [];
-
+  logger.info('issue_event:available_project_keys', { projectKeys });
   const jiraClient = await JiraClient.getClient(issue.organization);
 
   const issueData = await jiraClient.getIssue(issue.issue.id);
 
   // We wanna make sure that only those issues are saved whose project is available in our system
   if (projectKeys.length > 0 && projectKeys.includes(issueData.fields.project.key)) {
+    logger.info('issue_event_for_project', { projectKey: issueData.fields.project.key });
     const projectData = await jiraClient.getProject(issueData.fields.project.id);
 
     // checking is project type is software. We dont wanna save maintainence projects
