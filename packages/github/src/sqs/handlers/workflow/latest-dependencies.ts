@@ -17,6 +17,7 @@ export const handler = async function latestDepRegistry(event: SQSEvent): Promis
                 await new DynamoDbDocClient().put(
                     new LibParamsMapping().preparePutParams(libName, { version, releaseDate })
                 );
+                logger.info('WORKFLOW_LATEST_DEPENDENCIES_DYNAMODB_SUCCESS');
             } catch (error) {
                 logger.error('latestDepRegistry.error', { error });
             }

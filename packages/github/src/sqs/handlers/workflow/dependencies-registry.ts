@@ -27,7 +27,8 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
                 } = messageBody;
 
                 const { current, latest } = await getNodeLibInfo(dependencyName, currentVersion);
-                // const orgData = await getOrganization(orgName);
+                const libName = `npm_${dependencyName}`;
+                //const orgData = await getOrganization(orgName);
                 const workflowObj: Github.Type.Workflow = {
                     id: uuid(),
                     body: {
@@ -35,7 +36,7 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
                         organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
                         version: currentVersion,
                         name: dependencyName,
-                        libName: `npm_${dependencyName}`,
+                        libName,
                         releaseDate: current.releaseDate,
                         isDeleted,
                         isCore,
@@ -46,7 +47,7 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
                 const sqsClient = new SQSClient();
                 await Promise.all([
                     sqsClient.sendMessage(workflowObj, Queue.qCurrentDepRegistry.queueUrl),
-                    sqsClient.sendMessage(latest, Queue.qLatestDepRegistry.queueUrl),
+                    sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl),
                 ]);
             } catch (error) {
                 await logProcessToRetry(record, Queue.qDepRegistry.queueUrl, error as Error);
