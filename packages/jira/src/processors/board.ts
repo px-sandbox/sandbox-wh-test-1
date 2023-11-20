@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
 import { mappingPrefixes } from '../constant/config';
 import { JiraClient } from '../lib/jira-client';
+import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
 
 export class BoardProcessor extends DataProcessor<Jira.Mapper.Board, Jira.Type.Board> {
@@ -10,10 +11,10 @@ export class BoardProcessor extends DataProcessor<Jira.Mapper.Board, Jira.Type.B
     super(data);
   }
   public async processor(): Promise<Jira.Type.Board> {
-    const [orgData] = await this.getOrganizationId(this.apiData.organization);
+    const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
-      logger.error(`Organization not found`);
-      throw new Error(`Organization not found`);
+      logger.error(`Organization ${this.apiData.organization} not found`);
+      throw new Error(`Organization ${this.apiData.organization} not found`);
     }
     const parentId = await this.getParentId(`${mappingPrefixes.board}_${this.apiData.id}
     _${mappingPrefixes.org}_${orgData.orgId}`);

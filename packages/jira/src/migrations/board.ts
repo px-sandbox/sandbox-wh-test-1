@@ -2,9 +2,9 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
+import { Jira } from 'abstraction';
 import { logProcessToRetry } from '../util/retry-process';
 import { JiraClient } from '../lib/jira-client';
-import { Jira } from 'abstraction';
 
 async function checkAndSave(organization: string, projectId: string): Promise<void> {
   const jira = await JiraClient.getClient(organization);
@@ -25,13 +25,13 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
           createdAt,
           organization,
         },
-        Queue.jira_board_format.queueUrl
+        Queue.qBoardFormat.queueUrl
       )
     ),
     ...boards.filter(board => board.type === Jira.Enums.BoardType.Scrum).map(async (board) =>
       sqsClient.sendMessage(
         { organization, projectId, boardId: board.id },
-        Queue.jira_sprint_migrate.queueUrl
+        Queue.qSprintMigrate.queueUrl
       )
     )]
   );
@@ -50,7 +50,7 @@ export const handler = async function boardMirgration(event: SQSEvent): Promise<
 
       } catch (error) {
         logger.error(JSON.stringify({ error, event }));
-        await logProcessToRetry(record, Queue.jira_board_migrate.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qBoardMigrate.queueUrl, error as Error);
         logger.error('boardMigrateDataReciever.error', error);
       }
     })

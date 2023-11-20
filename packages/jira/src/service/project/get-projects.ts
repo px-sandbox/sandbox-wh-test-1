@@ -32,6 +32,7 @@ const projects = async function getProjectsData(
     // match query if search term is present else get all projects
     let query;
     if (searchTerm) {
+      // TODO: Update elastic search query using esb builder
       query = {
         bool: {
           must: [

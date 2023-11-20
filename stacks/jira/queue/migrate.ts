@@ -11,10 +11,16 @@ export function initializeMigrateQueue(
 ): Queue[] {
   const envs = use(commonConfig);
 
-  const [projectFormatter, sprintFormatter, userFormatter, boardFormatter, issueFormatter] =
-    formatterQueues;
+  const [
+    projectFormatter,
+    sprintFormatter,
+    userFormatter,
+    boardFormatter,
+    issueFormatter,
+    issueStatusFormatter
+  ] = formatterQueues;
 
-  const sprintMigrateQueue = new Queue(stack, 'jira_sprint_migrate', {
+  const sprintMigrateQueue = new Queue(stack, 'qSprintMigrate', {
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
@@ -22,7 +28,7 @@ export function initializeMigrateQueue(
     }
   });
   sprintMigrateQueue.addConsumer(stack, {
-    function: new Function(stack, 'jira_sprint_migrate_func', {
+    function: new Function(stack, 'fnSprintMigrate', {
       handler: 'packages/jira/src/migrations/sprint.handler',
       timeout: '300 seconds',
       runtime: 'nodejs18.x',
@@ -40,7 +46,7 @@ export function initializeMigrateQueue(
     },
   });
 
-  const boardMigrateQueue = new Queue(stack, 'jira_board_migrate', {
+  const boardMigrateQueue = new Queue(stack, 'qBoardMigrate', {
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
@@ -49,7 +55,7 @@ export function initializeMigrateQueue(
   });
 
   boardMigrateQueue.addConsumer(stack, {
-    function: new Function(stack, 'jira_board_migrate_func', {
+    function: new Function(stack, 'fnBoardMigrate', {
       handler: 'packages/jira/src/migrations/board.handler',
       timeout: '300 seconds',
       runtime: 'nodejs18.x',
@@ -67,7 +73,7 @@ export function initializeMigrateQueue(
     },
   });
 
-  const projectMigrateQueue = new Queue(stack, 'jira_project_migrate', {
+  const projectMigrateQueue = new Queue(stack, 'qProjectMigrate', {
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
@@ -76,7 +82,7 @@ export function initializeMigrateQueue(
   });
 
   projectMigrateQueue.addConsumer(stack, {
-    function: new Function(stack, 'jira_project_migrate_func', {
+    function: new Function(stack, 'fnProjectMigrate', {
       handler: 'packages/jira/src/migrations/project.handler',
       timeout: '300 seconds',
       runtime: 'nodejs18.x',
@@ -93,8 +99,32 @@ export function initializeMigrateQueue(
       },
     },
   });
-
-  const issueMigrateQueue = new Queue(stack, 'jira_issue_migrate', {
+  const issueStatusMigrateQueue = new Queue(stack, 'qIssueStatusMigrate', {
+    cdk: {
+      queue: {
+        visibilityTimeout: Duration.seconds(310),
+      },
+    }
+  });
+  issueStatusMigrateQueue.addConsumer(stack, {
+    function: new Function(stack, 'fnIssueStatusMigrate', {
+      handler: 'packages/jira/src/migrations/issue-status.handler',
+      timeout: '300 seconds',
+      runtime: 'nodejs18.x',
+      bind: [
+        issueStatusMigrateQueue,
+        issueStatusFormatter,
+        ...Object.values(jiraDDB),
+        ...Object.values(envs)
+      ],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+  const issueMigrateQueue = new Queue(stack, 'qIssueMigrate', {
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
@@ -103,7 +133,7 @@ export function initializeMigrateQueue(
   });
 
   issueMigrateQueue.addConsumer(stack, {
-    function: new Function(stack, 'jira_issue_migrate_func', {
+    function: new Function(stack, 'fnIssueMigrate', {
       handler: 'packages/jira/src/migrations/issue.handler',
       timeout: '300 seconds',
       runtime: 'nodejs18.x',
@@ -121,7 +151,7 @@ export function initializeMigrateQueue(
     },
   });
 
-  const userMigrateQueue = new Queue(stack, 'jira_user_migrate', {
+  const userMigrateQueue = new Queue(stack, 'qUserMigrate', {
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
@@ -130,7 +160,7 @@ export function initializeMigrateQueue(
   });
 
   userMigrateQueue.addConsumer(stack, {
-    function: new Function(stack, 'jira_user_migrate_func', {
+    function: new Function(stack, 'fnUserMigrate', {
       handler: 'packages/jira/src/migrations/user.handler',
       timeout: '300 seconds',
       runtime: 'nodejs18.x',
@@ -155,8 +185,9 @@ export function initializeMigrateQueue(
   return [
     projectMigrateQueue,
     userMigrateQueue,
-    boardMigrateQueue,
     sprintMigrateQueue,
+    issueStatusMigrateQueue,
     issueMigrateQueue,
+    boardMigrateQueue,
   ];
 }

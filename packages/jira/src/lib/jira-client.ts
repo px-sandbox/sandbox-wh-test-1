@@ -162,6 +162,18 @@ export class JiraClient {
     return users;
   }
 
+  public async getIssueStatuses(): Promise<Jira.ExternalType.Api.IssueStatus[]> {
+    try {
+      const { values: statuses } = await this.paginateResultsForIssueStatuses<Jira.ExternalType.Api.IssueStatus>(
+        `/rest/api/3/statuses/search`
+      );
+      return statuses;
+    } catch (error) {
+      logger.error({ message: 'JIRA_ISSUE_STATUS_FETCH_FAILED', error });
+      throw error;
+    }
+  }
+
   public async getIssue(issueIdOrKey: string): Promise<Jira.ExternalType.Api.Issue> {
     try {
       const issue = await axios.get<Jira.ExternalType.Api.Issue>(
@@ -306,5 +318,45 @@ export class JiraClient {
     }
 
     return this.paginateResultsForUsers<T>(path, startAtCount, maxResults, userData);
+  }
+
+  private async paginateResultsForIssueStatuses<T>(
+    path: string,
+    query: Record<string, string | number> = {},
+    result: Jira.ExternalType.Api.IssueStatusResponse<T> = {
+      startAt: 0,
+      maxResults: 200,
+      total: 0,
+      values: [],
+    }
+  ): Promise<Jira.ExternalType.Api.IssueStatusResponse<T>> {
+    const { data } = await axios.get<Jira.ExternalType.Api.IssueStatusResponse<T>>(
+      `${this.baseUrl}${path}`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+        params: {
+          ...query,
+          startAt: result.startAt,
+          maxResults: result.maxResults,
+        },
+      }
+    );
+
+    const newResult = {
+      values: [...result.values, ...data.values],
+      startAt: data.startAt + data.values.length,
+      maxResults: data.maxResults,
+      total: data.total,
+    };
+
+    // return data;
+
+    if (newResult.startAt >= newResult.total) {
+      return newResult;
+    }
+
+    return this.paginateResultsForIssueStatuses<T>(path, query, newResult);
   }
 }

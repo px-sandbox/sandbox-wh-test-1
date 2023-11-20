@@ -284,6 +284,26 @@ const indices = [
       },
     },
   },
+  {
+    name: Jira.Enums.IndexName.IssueStatus,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'keyword' },
+            issueStatusId: { type: 'keyword' },
+            name: { type: 'text' },
+            status: { type: 'text' },
+            organizationId: { type: 'keyword' },
+            pxStatus: { type: 'keyword' },
+          },
+        },
+      },
+    },
+
+  }
 ];
 async function createMapping(name: string, mappings: unknown): Promise<void> {
   try {
@@ -303,7 +323,7 @@ async function createMapping(name: string, mappings: unknown): Promise<void> {
 
     await esClient.indices.create({ index: name, body: { mappings } });
 
-    logger.info(`Created mapping for '${name}' suuceeful`);
+    logger.info(`Created mapping for '${name}' successful`);
   } catch (error) {
     logger.error(`Error creating mapping for '${name}':`, error);
     throw error;

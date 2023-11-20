@@ -1,5 +1,5 @@
 {
-  "TableName": "nv-pulse-dx-jiraProcessRetry",
+  "TableName": "manasaggarwal-pulse-dx-jiraProcessRetry",
   "KeySchema": [
     {
       "AttributeName": "processId",

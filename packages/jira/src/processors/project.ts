@@ -1,6 +1,8 @@
 import { Jira } from 'abstraction';
 import { v4 as uuid } from 'uuid';
+import { logger } from 'core';
 import { mappingPrefixes } from '../constant/config';
+import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
 
 /**
@@ -20,7 +22,11 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
    * @returns The processed Jira project data.
    */
   public async processor(): Promise<Jira.Type.Project> {
-    const [orgData] = await this.getOrganizationId(this.apiData.organization);
+    const orgData = await getOrganization(this.apiData.organization);
+    if (!orgData) {
+      logger.error(`Organization ${this.apiData.organization} not found`);
+      throw new Error(`Organization ${this.apiData.organization} not found`);
+    }
     const parentId = await this.getParentId(`${mappingPrefixes.project}_${this.apiData.id}
     _${mappingPrefixes.org}_${orgData.orgId}`);
 

@@ -13,7 +13,7 @@ export function initializeUserQueue(stack: Stack, jiraDDB: JiraTables): Queue[] 
     JIRA_REDIRECT_URI,
   } = use(commonConfig);
 
-  const userIndexDataQueue = new Queue(stack, 'jira_user_index', {
+  const userIndexDataQueue = new Queue(stack, 'qUserIndex', {
     consumer: {
       function: 'packages/jira/src/sqs/handlers/indexer/user.handler',
       cdk: {
@@ -24,9 +24,9 @@ export function initializeUserQueue(stack: Stack, jiraDDB: JiraTables): Queue[] 
     },
   });
 
-  const userFormatDataQueue = new Queue(stack, 'jira_user_format');
+  const userFormatDataQueue = new Queue(stack, 'qUserFormat');
   userFormatDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'jira_user_format_func', {
+    function: new Function(stack, 'fnUserFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/user.handler',
       bind: [userFormatDataQueue],
     }),

@@ -99,6 +99,7 @@ export interface Sprint {
   endDate: string;
   completeDate: string;
   originBoardId: number;
+  organizationId: string;
 }
 
 export interface IssueReponse {
@@ -106,11 +107,12 @@ export interface IssueReponse {
   totalFtp?: number;
   totalBugs?: number;
   totalReopen?: number;
-  sprint?: string;
+  sprintName?: string;
+  boardName?: string;
   status?: SprintState;
-  start?: string;
-  end?: string;
-  percentValue: number;
+  startDate?: string;
+  endDate?: string;
+  percentValue?: number;
 }
 
 export const formatBoardResponse = (
@@ -122,7 +124,7 @@ export const formatBoardResponse = (
   createdAt: string;
   sprints: Array<{
     id: string;
-    name: string;
+    sprintName: string;
     startDate: string;
     endDate: string;
   }>
@@ -133,7 +135,7 @@ export const formatBoardResponse = (
   createdAt: board.createdAt,
   sprints: board.sprints.map((sprint: Sprint) => ({
     id: sprint.id,
-    name: sprint.name,
+    sprintName: sprint.name,
     startDate: sprint.startDate,
     endDate: sprint.endDate,
   })),

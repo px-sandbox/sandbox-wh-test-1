@@ -33,3 +33,22 @@ export const getBoardsSchema = {
     },
   },
 };
+
+export const updateIssueStatusSchema = {
+  type: 'object',
+  properties: {
+    queryStringParameters: {
+      type: 'object',
+      properties: {
+        issueStatusDocId: {
+          type: 'string',
+        },
+        pxStatus: {
+          type: 'string',
+        },
+      },
+      required: ['issueStatusDocId', 'pxStatus'],
+
+    },
+  },
+};

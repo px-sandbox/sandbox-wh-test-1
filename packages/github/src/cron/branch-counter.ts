@@ -55,7 +55,7 @@ async function getReposAndSendToSQS(
               repo: repo._source.body as Github.Type.Repository,
               date: currentDate,
             },
-            Queue.gh_active_branch_counter_format.queueUrl
+            Queue.qGhActiveBranchCounterFormat.queueUrl
           );
         }
         return Promise.resolve();

@@ -18,9 +18,10 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    AVAILABLE_PROJECT_KEYS
   } = use(commonConfig);
 
-  const projectIndexDataQueue = new Queue(stack, 'jira_project_index', {
+  const projectIndexDataQueue = new Queue(stack, 'qProjectIndex', {
     consumer: {
       function: 'packages/jira/src/sqs/handlers/indexer/project.handler',
       cdk: {
@@ -31,9 +32,9 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     },
   });
 
-  const projectFormatDataQueue = new Queue(stack, 'jira_project_format');
+  const projectFormatDataQueue = new Queue(stack, 'qProjectFormat');
   projectFormatDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'jira_project_format_func', {
+    function: new Function(stack, 'fnProjectFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/project.handler',
       bind: [projectFormatDataQueue],
     }),
@@ -55,6 +56,7 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    AVAILABLE_PROJECT_KEYS
   ]);
 
   projectIndexDataQueue.bind([

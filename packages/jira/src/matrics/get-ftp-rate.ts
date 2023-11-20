@@ -4,9 +4,11 @@ import { IFtpRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
-import { IssueReponse } from '../util/response-formatter';
+import { getBoardByOrgId } from '../repository/board/get-board';
 import { getSprints } from '../lib/get-sprints';
+import { IssueReponse } from '../util/response-formatter';
 
+// eslint-disable-next-line max-lines-per-function,
 export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
   try {
     const esClientObj = new ElasticSearchClient({
@@ -45,9 +47,12 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
       ftpRateGraphQuery
     );
 
-    const response: IssueReponse[] = await Promise.all(
+    const response = (await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
+
+
+        const boardName = await getBoardByOrgId(sprintData?.originBoardId, sprintData?.organizationId)
 
         const ftpData = ftpRateGraphResponse.sprint_buckets.buckets.find(
           (obj) => obj.key === sprintId
@@ -60,16 +65,17 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
         return {
           total,
           totalFtp,
-          sprint: sprintData.name,
-          status: sprintData.state,
-          start: sprintData.startDate,
-          end: sprintData.endDate,
+          sprintName: sprintData?.name,
+          boardName: boardName?.name,
+          status: sprintData?.state,
+          startDate: sprintData?.startDate,
+          endDate: sprintData?.endDate,
           percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
         };
       })
-    );
+    ));
 
-    return response;
+    return response.filter((obj) => obj.sprintName !== undefined);
   } catch (e) {
     logger.error('ftpRateGraphQuery.error', e);
     throw e;
@@ -111,6 +117,7 @@ export async function ftpRateGraphAvg(
       index: Jira.Enums.IndexName.Issue,
       body: ftpRateGraphQuery,
     });
+
     return {
       total: ftpRateGraphResponse.body.hits.total.value ?? 0,
       totalFtp: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count ?? 0,

@@ -1,9 +1,13 @@
 import { Jira } from 'abstraction';
 import { v4 as uuid } from 'uuid';
+import { logger } from 'core';
 import { ChangelogItem } from 'abstraction/jira/external/webhook';
+import { Config } from 'sst/node/config';
+import { getFailedStatusDetails } from '../util/issue-status';
 import { getIssueChangelogs } from '../lib/get-issue-changelogs';
 import { JiraClient } from '../lib/jira-client';
 import { mappingPrefixes } from '../constant/config';
+import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
 
 export class IssueProcessor extends DataProcessor<
@@ -14,6 +18,15 @@ export class IssueProcessor extends DataProcessor<
     super(data);
   }
 
+  public validate(): false | this {
+    const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+    if (this.apiData !== undefined && projectKeys.includes(this.apiData.issue.fields.project.key)) {
+      return this;
+    }
+    logger.info({ message: 'EMPTY_DATA or projectKey not in available keys for this issue', data: this.apiData })
+    return false;
+  }
+
   public getSprintAndBoardId(issue: Jira.ExternalType.Api.Issue): { sprintId: string | null, boardId: string | null } {
     const sprint = issue.fields?.customfield_10007 && issue.fields.customfield_10007[0];
     return sprint ? {
@@ -21,8 +34,13 @@ export class IssueProcessor extends DataProcessor<
     } : { sprintId: null, boardId: null };
   }
 
+  // eslint-disable-next-line complexity
   public async processor(): Promise<Jira.Type.Issue> {
-    const [orgData] = await this.getOrganizationId(this.apiData.organization);
+    const orgData = await getOrganization(this.apiData.organization);
+    if (!orgData) {
+      logger.error(`Organization ${this.apiData.organization} not found`);
+      throw new Error(`Organization ${this.apiData.organization} not found`);
+    }
     const parentId: string | undefined = await this.getParentId(
       `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`
     );
@@ -30,14 +48,14 @@ export class IssueProcessor extends DataProcessor<
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
     const changelogArr = await getIssueChangelogs(this.apiData.organization, this.apiData.issue.id, jiraClient);
     let reOpenCount = 0;
+    const QaFailed = await getFailedStatusDetails(orgData.id);
     let changelogItems: Array<ChangelogItem> = [];
     if (changelogArr.length > 0) {
       changelogItems = changelogArr.flatMap((changelog) => changelog.items);
       reOpenCount = changelogItems.filter(
-        (items) => items.to === '11905' || items.toString === 'QA Failed'
+        (items) => items.to === QaFailed.issueStatusId && items.toString === QaFailed.name
       ).length;
     }
-
     const issueObj = {
       id: parentId || uuid(),
       body: {
@@ -74,4 +92,5 @@ export class IssueProcessor extends DataProcessor<
     };
     return issueObj;
   }
+
 }

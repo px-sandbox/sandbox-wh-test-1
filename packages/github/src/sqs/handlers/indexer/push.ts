@@ -14,7 +14,7 @@ export const handler = async function pushIndexDataReciever(event: SQSEvent): Pr
         logger.info('PUSH_SQS_RECIEVER_HANDLER_INDEXED', { messageBody });
         await savePushDetails(messageBody);
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_push_index.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qGhPushIndex.queueUrl, error as Error);
         logger.error('pushIndexDataReciever.error', { error });
       }
     })

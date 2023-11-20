@@ -93,7 +93,7 @@ export async function pRReviewOnQueue(
     await Promise.all([
       new SQSClient().sendMessage(
         { review: prReview, pullId, repoId, action },
-        Queue.gh_pr_review_format.queueUrl
+        Queue.qGhPrReviewFormat.queueUrl
       ),
       new SQSClient().sendMessage(
         {
@@ -103,7 +103,7 @@ export async function pRReviewOnQueue(
           review_seconds: reviewSeconds,
           action: Github.Enums.Comments.REVIEW_COMMENTED,
         },
-        Queue.gh_pr_format.queueUrl
+        Queue.qGhPrFormat.queueUrl
       ),
     ]);
   } catch (error: unknown) {

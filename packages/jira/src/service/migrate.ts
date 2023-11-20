@@ -3,6 +3,7 @@ import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import { Queue } from 'sst/node/queue';
+import { ProjectTypeKey } from "abstraction/jira/enums/project";
 import { JiraClient } from '../lib/jira-client';
 
 export const handler = async function migrate(
@@ -41,9 +42,13 @@ export const handler = async function migrate(
 
   const projectsFromJira = await client.getProjects();
 
-  // Filter from projects
-  const projectsToSend = projectsFromJira.filter((project) => projects.includes(project.name.trim()));
+  // Filter from projects based on name and project type ('software')
+  const projectsToSend = projectsFromJira.filter((project) =>
+    projects.includes(project.name.trim()) && project.projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE);
 
+  if (projectsToSend.length === 0) {
+    return responseParser.setMessage('No projects to migrate').send();
+  }
   logger.info(`
 
   SENDING Projects ############
@@ -62,11 +67,11 @@ export const handler = async function migrate(
           organization,
           projectId: id,
         },
-        Queue.jira_project_migrate.queueUrl
+        Queue.qProjectMigrate.queueUrl
       )
     ),
     ...usersFromJira.map((user) =>
-      sqsClient.sendMessage({ organization, user }, Queue.jira_user_migrate.queueUrl)
+      sqsClient.sendMessage({ organization, user }, Queue.qUserMigrate.queueUrl)
     ),
   ]);
 
@@ -77,3 +82,34 @@ export const handler = async function migrate(
     .setResponseBodyCode('SUCCESS')
     .send();
 };
+
+export const issueStatusHandler = async function issueStatusMigration(
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> {
+  const organization = event?.queryStringParameters?.orgName ?? '';
+  const sqsClient = new SQSClient();
+
+  if (!organization) {
+    return responseParser
+      .setBody({})
+      .setMessage('Organisation Not found')
+      .setStatusCode(HttpStatusCode[400])
+      .setResponseBodyCode('SUCCESS')
+      .send();
+  }
+
+  const client = await JiraClient.getClient(organization);
+  const issueStatuses = await client.getIssueStatuses();
+
+  await Promise.all([
+    ...issueStatuses.map((status) =>
+      sqsClient.sendMessage({ organization, status }, Queue.qIssueStatusMigrate.queueUrl)
+    ),
+  ]);
+  return responseParser
+    .setBody({})
+    .setMessage(`Issue status Migration for Organisation ${organization} is started`)
+    .setStatusCode(HttpStatusCode[200])
+    .setResponseBodyCode('SUCCESS')
+    .send();
+}

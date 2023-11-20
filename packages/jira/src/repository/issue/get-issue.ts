@@ -5,6 +5,7 @@ import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import { mappingPrefixes } from '../../constant/config';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
+import { getOrganization } from '../organization/get-organization';
 
 /**
  * Retrieves a Jira user by their ID.
@@ -13,7 +14,8 @@ import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
  * @throws An error if the user cannot be retrieved.
  */
 export async function getIssueById(
-    issueId: string
+    issueId: string,
+    organization: string
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
     try {
         const esClientObj = new ElasticSearchClient({
@@ -21,10 +23,21 @@ export async function getIssueById(
             username: Config.OPENSEARCH_USERNAME ?? '',
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
-        const matchQry = esb.matchQuery('body.id', `${mappingPrefixes.issue}_${issueId}`).toJSON();
+        const orgData = await getOrganization(organization);
+        if (!orgData) {
+            logger.error(`Organization ${organization} not found`);
+            throw new Error(`Organization ${organization} not found`);
+        }
+        const matchQry =
+            esb
+                .boolQuery()
+                .must([
+                    esb.termsQuery('body.id', `${mappingPrefixes.issue}_${issueId}`),
+                    esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
+                ]).toJSON();
         const issueData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Issue, matchQry);
-        const [formattedissueData] = await searchedDataFormatorWithDeleted(issueData);
-        return formattedissueData;
+        const [formattedIssueData] = await searchedDataFormatorWithDeleted(issueData);
+        return formattedIssueData;
     } catch (error: unknown) {
         logger.error('getIssueById.error', { error });
         throw error;

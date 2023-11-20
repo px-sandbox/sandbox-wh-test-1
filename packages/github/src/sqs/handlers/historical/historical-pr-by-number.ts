@@ -26,7 +26,7 @@ async function processQueueOnMergedPR(octokitRespData: any, messageBody: any): P
       },
       timestamp: new Date(),
     },
-    Queue.gh_commit_format.queueUrl,
+    Queue.qGhCommitFormat.queueUrl,
     octokitRespData.merge_commit_sha
   );
 }
@@ -71,7 +71,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
             approved_at: messageBody.approvedAt,
             review_seconds: reviewSeconds,
           },
-          Queue.gh_pr_format.queueUrl
+          Queue.qGhPrFormat.queueUrl
         );
 
         // setting the `isMergedCommit` for commit
@@ -79,7 +79,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
           await processQueueOnMergedPR(octokitRespData, messageBody);
         }
       } catch (error) {
-        await logProcessToRetry(record, Queue.gh_historical_pr_by_number.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qGhHistoricalPrByNumber.queueUrl, error as Error);
         logger.error(`historical.pr.number.error: ${JSON.stringify(error)}`);
       }
     })

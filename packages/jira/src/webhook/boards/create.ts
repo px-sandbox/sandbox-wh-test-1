@@ -3,6 +3,8 @@ import { Jira } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import moment from 'moment';
+import { ProjectTypeKey } from 'abstraction/jira/enums/project';
+import { JiraClient } from '../../lib/jira-client';
 import { mappingToApiData } from './mapper';
 
 /**
@@ -19,11 +21,20 @@ export async function create(
 ): Promise<void> {
   try {
     logger.info('boardCreatedEvent.invoked');
-    const createdAt = moment(eventTime).toISOString();
+    const jiraClient = await JiraClient.getClient(organization);
+    const apiBoardData = await jiraClient.getBoard(board.id);
 
-    const boardData = mappingToApiData(board, createdAt, organization);
-    logger.info('boardCreatedEvent: Send message to SQS');
-    await new SQSClient().sendMessage(boardData, Queue.jira_board_format.queueUrl);
+
+    // checking is project type is 'software'. We dont wanna save maintainence projects.
+
+    logger.info('boardCreatedEvent: Checking project type');
+    if (apiBoardData.location.projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE) {
+      const createdAt = moment(eventTime).toISOString();
+
+      const boardData = mappingToApiData(board, createdAt, organization);
+      logger.info('boardCreatedEvent: Send message to SQS');
+      await new SQSClient().sendMessage(boardData, Queue.qBoardFormat.queueUrl);
+    }
   } catch (error) {
     logger.error('boardCreatedEvent.error', { error });
   }

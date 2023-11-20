@@ -14,6 +14,13 @@ export type IssuesResponse<T> = {
   issues: Array<T>;
 };
 
+export type IssueStatusResponse<T> = {
+  startAt: number;
+  total: number;
+  maxResults: number;
+  values: Array<T>;
+};
+
 
 // export type UsersResponse<T> = {
 //   maxResults: number;

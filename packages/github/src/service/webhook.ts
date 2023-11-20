@@ -25,7 +25,7 @@ interface ReviewProcessType {
 function generateHMACToken(payload: crypto.BinaryLike): Buffer {
   const hmac = Buffer.from(
     'sha256' +
-      `=${crypto.createHmac('sha256', Config.GITHUB_WEBHOOK_SECRET).update(payload).digest('hex')}`
+    `=${crypto.createHmac('sha256', Config.GITHUB_WEBHOOK_SECRET).update(payload).digest('hex')}`
   );
   return hmac;
 }
@@ -45,7 +45,7 @@ async function processRepoEvent(
   data: Github.ExternalType.Webhook.Repository,
   action: string
 ): Promise<void> {
-  await new SQSClient().sendMessage({ ...data, action }, Queue.gh_repo_format.queueUrl);
+  await new SQSClient().sendMessage({ ...data, action }, Queue.qGhRepoFormat.queueUrl);
 }
 async function processBranchEvent(
   data: Github.ExternalType.Webhook.Branch,
@@ -77,7 +77,7 @@ async function processBranchEvent(
   }
   logger.info('-------Branch event --------');
   logger.info(obj);
-  await new SQSClient().sendMessage(obj, Queue.gh_branch_format.queueUrl);
+  await new SQSClient().sendMessage(obj, Queue.qGhBranchFormat.queueUrl);
 }
 async function processOrgEvent(
   data: Github.ExternalType.Webhook.User,
@@ -106,7 +106,7 @@ async function processOrgEvent(
   if (Object.keys(obj).length === 0) return false;
   logger.info('-------User event --------');
   logger.info(obj);
-  await new SQSClient().sendMessage(obj, Queue.gh_users_format.queueUrl);
+  await new SQSClient().sendMessage(obj, Queue.qGhUsersFormat.queueUrl);
 }
 async function processCommitEvent(data: Github.ExternalType.Webhook.Commit): Promise<void> {
   const commitData = data;

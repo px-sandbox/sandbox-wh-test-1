@@ -26,9 +26,9 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     let queueUrl = '';
     if (historyType === 'commits') {
       repoData.reqBranch = branch;
-      queueUrl = Queue.gh_historical_branch.queueUrl;
+      queueUrl = Queue.qGhHistoricalBranch.queueUrl;
     } else {
-      queueUrl = Queue.gh_historical_pr.queueUrl;
+      queueUrl = Queue.qGhHistoricalPr.queueUrl;
     }
 
     if (repoData) {

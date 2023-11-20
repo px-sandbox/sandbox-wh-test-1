@@ -38,7 +38,7 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
           },
           timestamp: new Date(),
         },
-        Queue.gh_commit_format.queueUrl,
+        Queue.qGhCommitFormat.queueUrl,
         commitData.sha
       )
     );
@@ -55,7 +55,7 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
     await getRepoCommits({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
     logger.error(JSON.stringify({ message: 'historical.commits.error', error }));
-    await logProcessToRetry(record, Queue.gh_historical_commits.queueUrl, error as Error);
+    await logProcessToRetry(record, Queue.qGhHistoricalCommits.queueUrl, error as Error);
   }
 }
 export const handler = async function collectCommitData(event: SQSEvent): Promise<void> {

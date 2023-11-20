@@ -11,9 +11,10 @@ export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    AVAILABLE_PROJECT_KEYS
   } = use(commonConfig);
 
-  const boardIndexDataQueue = new Queue(stack, 'jira_board_index', {
+  const boardIndexDataQueue = new Queue(stack, 'qBoardIndex', {
     consumer: {
       function: 'packages/jira/src/sqs/handlers/indexer/board.handler',
       cdk: {
@@ -24,10 +25,10 @@ export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     },
   });
 
-  const boardFormatDataQueue = new Queue(stack, 'jira_board_format');
+  const boardFormatDataQueue = new Queue(stack, 'qBoardFormat');
 
   boardFormatDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'jira_board_format_func', {
+    function: new Function(stack, 'fnBoardFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/board.handler',
       bind: [boardFormatDataQueue],
     }),
@@ -49,6 +50,7 @@ export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    AVAILABLE_PROJECT_KEYS
   ]);
   boardIndexDataQueue.bind([
     jiraDDB.jiraCredsTable,

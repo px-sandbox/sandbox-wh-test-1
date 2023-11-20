@@ -8,6 +8,12 @@ import { searchedDataFormator } from '../../util/response-formatter';
 import { ParamsMapping } from '../../model/params-mapping';
 import { mappingPrefixes } from '../../constant/config';
 
+/**
+ * Saves the details of a Jira issue to DynamoDB and Elasticsearch.
+ * @param data The issue data to be saved.
+ * @returns A Promise that resolves when the data has been saved successfully.
+ * @throws An error if there was a problem saving the data.
+ */
 export async function saveIssueDetails(data: Jira.Type.Issue): Promise<void> {
   try {
     const updatedData = { ...data };
@@ -21,7 +27,13 @@ export async function saveIssueDetails(data: Jira.Type.Issue): Promise<void> {
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
+    const matchQry =
+      esb
+        .boolQuery()
+        .must([
+          esb.termsQuery('body.id', data.body.id),
+          esb.termQuery('body.organizationId.keyword', data.body.organizationId),
+        ]).toJSON();
     const issueData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Issue, matchQry);
     const [formattedData] = await searchedDataFormator(issueData);
     if (formattedData) {

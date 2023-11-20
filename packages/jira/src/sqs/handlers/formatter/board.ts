@@ -19,9 +19,9 @@ export const handler = async function boardFormattedDataReciever(event: SQSEvent
           return;
         }
         const data = await boardProcessor.processor();
-        await boardProcessor.sendDataToQueue(data, Queue.jira_board_index.queueUrl);
+        await boardProcessor.sendDataToQueue(data, Queue.qBoardIndex.queueUrl);
       } catch (error) {
-        await logProcessToRetry(record, Queue.jira_board_format.queueUrl, error as Error);
+        await logProcessToRetry(record, Queue.qBoardFormat.queueUrl, error as Error);
         logger.error('boardFormattedDataReciever.error', error);
       }
     })
