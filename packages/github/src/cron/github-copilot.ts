@@ -51,7 +51,7 @@ async function getGHCopilotReports(
 
     await Promise.all(
       reportsPerPage.seats.map((seat) =>
-        new SQSClient().sendMessage(seat, Queue.qGhCommitFormat.queueUrl)
+        new SQSClient().sendMessage(seat, Queue.qGhCopilotFormat.queueUrl)
       )
     );
 
