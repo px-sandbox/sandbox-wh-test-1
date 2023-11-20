@@ -4,13 +4,40 @@ import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import { IRepo, formatRepoDataResponse, searchedDataFormator } from '../util/response-formatter';
 import { getGitRepoSchema } from './validations';
 
+async function processEventData(repoIds: string[], esClient: ElasticSearchClient,
+  gitRepoName: string, page: number, size: number): Promise<Record<string, any>> {
+  let data = null;
+  if (repoIds.length > 0) {
+    const repoName = esb.requestBodySearch().query(
+      esb
+        .boolQuery()
+        .must(esb.termsQuery('body.id', repoIds))
+    ).toJSON() as { query: object };
+    data = await esClient.searchWithEsb(Github.Enums.IndexName.GitRepo, repoName.query);
+  } else {
+    data = (
+      await esClient.getClient().search({
+        index: Github.Enums.IndexName.GitRepo,
+        from: (page - 1) * size,
+        size,
+      })
+    ).body;
+    if (gitRepoName) {
+      data = await esClient.search(Github.Enums.IndexName.GitRepo, 'name', gitRepoName);
+    }
+  }
+
+  return data;
+}
 const gitRepos = async function getRepoData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const gitRepoName: string = event?.queryStringParameters?.search || '';
+  const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
   const page = Number(event?.queryStringParameters?.page || 1);
   const size = Number(event?.queryStringParameters?.size || 10);
   let response: IRepo[] = [];
@@ -20,18 +47,7 @@ const gitRepos = async function getRepoData(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-
-    let data = (
-      await esClient.getClient().search({
-        index: Github.Enums.IndexName.GitRepo,
-        from: (page - 1) * size,
-        size,
-      })
-    ).body;
-
-    if (gitRepoName) {
-      data = await esClient.search(Github.Enums.IndexName.GitRepo, 'name', gitRepoName);
-    }
+    const data = await processEventData(repoIds, esClient, gitRepoName, page, size);
     response = await searchedDataFormator(data);
     logger.info({ level: 'info', message: 'github repo data', data: response });
   } catch (error) {
