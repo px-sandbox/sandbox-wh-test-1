@@ -2,6 +2,7 @@ import { Jira } from 'abstraction';
 import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
 import { ChangelogItem } from 'abstraction/jira/external/webhook';
+import { Config } from 'sst/node/config';
 import { getFailedStatusDetails } from '../util/issue-status';
 import { getIssueChangelogs } from '../lib/get-issue-changelogs';
 import { JiraClient } from '../lib/jira-client';
@@ -15,6 +16,15 @@ export class IssueProcessor extends DataProcessor<
 > {
   constructor(data: Jira.ExternalType.Webhook.Issue) {
     super(data);
+  }
+
+  public validate(): false | this {
+    const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+    if (this.apiData !== undefined && projectKeys.includes(this.apiData.issue.fields.project.key)) {
+      return this;
+    }
+    logger.info({ message: 'EMPTY_DATA or projectKey not in available keys for this issue', data: this.apiData })
+    return false;
   }
 
   public getSprintAndBoardId(issue: Jira.ExternalType.Api.Issue): { sprintId: string | null, boardId: string | null } {
@@ -82,4 +92,5 @@ export class IssueProcessor extends DataProcessor<
     };
     return issueObj;
   }
+
 }
