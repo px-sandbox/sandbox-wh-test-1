@@ -67,4 +67,19 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
   public async delete(deleteParams: DeleteCommandInput): Promise<void> {
     await this.getDdbDocClient().send(new DeleteCommand(deleteParams));
   }
+
+  public async scanAllItems(scanParams: ScanCommandInput): Promise<Array<unknown>> {
+    const items: Array<unknown> = [];
+    let data;
+    const params: ScanCommandInput = { ...scanParams }; // Create a new object
+
+    do {
+      // eslint-disable-next-line no-await-in-loop
+      data = await this.getDdbDocClient().send(new ScanCommand(params)) as ScanCommandOutput;
+      items.push(...(data.Items || []));
+      params.ExclusiveStartKey = data.LastEvaluatedKey;
+    } while (data.LastEvaluatedKey);
+
+    return items;
+  }
 }

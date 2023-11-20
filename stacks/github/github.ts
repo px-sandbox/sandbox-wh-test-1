@@ -27,7 +27,7 @@ export function gh({ stack }: StackContext): {
   /**
    * Initialize Functions
    */
-  const [ghCopilotFunction, ghBranchCounterFunction, processRetryFunction] = initializeFunctions(
+  const cronFunctions = initializeFunctions(
     stack,
     restQueues,
     { githubMappingTable, retryProcessTable, libMasterTable }
@@ -39,9 +39,7 @@ export function gh({ stack }: StackContext): {
   initializeCron(
     stack,
     stack.stage,
-    processRetryFunction,
-    ghCopilotFunction,
-    ghBranchCounterFunction
+    cronFunctions
   );
 
   const ghAPI = initializeApi(stack, restQueues, { githubMappingTable, retryProcessTable, libMasterTable });
