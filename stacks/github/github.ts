@@ -18,19 +18,19 @@ export function gh({ stack }: StackContext): {
   /** Initialize DynamoDB Tables
    *
    */
-  const { githubMappingTable, retryProcessTable } = initializeDynamoDBTables(stack);
+  const { githubMappingTable, retryProcessTable, libMasterTable } = initializeDynamoDBTables(stack);
 
   /**
    *  Initialize Queues
    */
-  const restQueues = initializeQueue(stack, { githubMappingTable, retryProcessTable });
+  const restQueues = initializeQueue(stack, { githubMappingTable, retryProcessTable, libMasterTable });
   /**
    * Initialize Functions
    */
   const [ghCopilotFunction, ghBranchCounterFunction, processRetryFunction] = initializeFunctions(
     stack,
     restQueues,
-    { githubMappingTable, retryProcessTable }
+    { githubMappingTable, retryProcessTable, libMasterTable }
   );
 
   /**
@@ -44,7 +44,7 @@ export function gh({ stack }: StackContext): {
     ghBranchCounterFunction
   );
 
-  const ghAPI = initializeApi(stack, restQueues, { githubMappingTable, retryProcessTable });
+  const ghAPI = initializeApi(stack, restQueues, { githubMappingTable, retryProcessTable, libMasterTable });
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,
