@@ -13,7 +13,7 @@ export class GHCopilotProcessor extends DataProcessor<
   }
   public async processor(): Promise<Github.Type.GHCopilotReport> {
     const lastActivityAt = this.ghApiData.last_activity_at;
-    const lastActivityEditor = this.ghApiData.last_activity_editor.split('/');
+    const lastActivityEditor = this.ghApiData.last_activity_editor?.split('/') || [];
     const ghCopilotObj = {
       id: uuid(),
       body: {
