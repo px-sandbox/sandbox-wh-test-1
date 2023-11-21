@@ -7,6 +7,7 @@ import {
   QueryCommandInput,
   ScanCommand,
   ScanCommandInput,
+  ScanCommandOutput,
   DeleteCommandInput,
   DeleteCommand,
 } from '@aws-sdk/lib-dynamodb';
@@ -70,7 +71,7 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
 
   public async scanAllItems(scanParams: ScanCommandInput): Promise<Array<unknown>> {
     const items: Array<unknown> = [];
-    let data;
+    let data: ScanCommandOutput;
     const params: ScanCommandInput = { ...scanParams }; // Create a new object
 
     do {
