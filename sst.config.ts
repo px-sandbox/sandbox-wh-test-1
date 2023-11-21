@@ -17,7 +17,7 @@ export default {
   async stacks(app) {
 
     Tags.of(app).add("Project_name", "pulse");
-    Tags.of(app).add("Environment", "sandbox");
+    Tags.of(app).add("Environment", app.stage);
 
     app.stack(commonConfig);
     app.stack(gh);
