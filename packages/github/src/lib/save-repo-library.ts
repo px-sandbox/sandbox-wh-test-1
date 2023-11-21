@@ -3,7 +3,7 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
 
-export async function saveWorkflowDetails(data: Github.Type.Workflow): Promise<void> {
+export async function saveRepoLibraryDetails(data: Github.Type.RepoLibrary): Promise<void> {
     try {
         const updatedData = { ...data };
         const esClientObj = new ElasticSearchClient({
@@ -11,10 +11,10 @@ export async function saveWorkflowDetails(data: Github.Type.Workflow): Promise<v
             username: Config.OPENSEARCH_USERNAME ?? '',
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
-        await esClientObj.putDocument(Github.Enums.IndexName.GitWorkflow, updatedData);
-        logger.info('saveWorkflowDetails.successful');
+        await esClientObj.putDocument(Github.Enums.IndexName.GitRepoLibrary, updatedData);
+        logger.info('saveRepoLibraryDetails.successful');
     } catch (error: unknown) {
-        logger.error('saveWorkflowDetails.error', {
+        logger.error('saveRepoLibraryDetails.error', {
             error,
         });
         throw error;

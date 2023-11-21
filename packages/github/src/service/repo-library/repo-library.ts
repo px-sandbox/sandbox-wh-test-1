@@ -16,15 +16,15 @@ async function deletePrevDependencies(repoId: string): Promise<void> {
         password: Config.OPENSEARCH_PASSWORD ?? '',
     });
     const matchQry = esb.matchQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`).toJSON();
-    const workflowData = await esClientObj.searchWithEsb(
-        Github.Enums.IndexName.GitWorkflow,
+    const repoLibData = await esClientObj.searchWithEsb(
+        Github.Enums.IndexName.GitRepoLibrary,
         matchQry
     );
-    const formattedData = await searchedDataFormator(workflowData);
+    const formattedData = await searchedDataFormator(repoLibData);
     if (formattedData) {
         formattedData.map(async (data: { _id: string }) => {
             const updatedData = { body: { isDeleted: true } };
-            await esClientObj.updateDocument(Github.Enums.IndexName.GitWorkflow, data._id, updatedData);
+            await esClientObj.updateDocument(Github.Enums.IndexName.GitRepoLibrary, data._id, updatedData);
         });
     }
 }
@@ -32,8 +32,8 @@ export const handler = async (
     event: APIGatewayProxyEvent
 ): Promise<void | APIGatewayProxyResult> => {
     try {
-        const data: Github.ExternalType.Workflow = JSON.parse(event.body ?? '{}');
-        logger.info('workflow.handler.received', { data });
+        const data: Github.ExternalType.RepoLibrary = JSON.parse(event.body ?? '{}');
+        logger.info('repoLibrary.handler.received', { data });
 
         if (data) {
             const sqsClient = new SQSClient();
@@ -69,9 +69,9 @@ export const handler = async (
                 })
             );
         } else {
-            logger.warn('workflow.handler.noData');
+            logger.warn('repoLibrary.handler.noData');
         }
     } catch (error) {
-        logger.error('workflow.handler.error', { error, event });
+        logger.error('repoLibrary.handler.error', { error, event });
     }
 };

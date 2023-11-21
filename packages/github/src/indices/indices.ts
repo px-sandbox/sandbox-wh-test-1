@@ -431,7 +431,7 @@ const indices = [
     },
   },
   {
-    name: Github.Enums.IndexName.GitWorkflow,
+    name: Github.Enums.IndexName.GitRepoLibrary,
     _id: { type: 'uuid' },
     mappings: {
       properties: {

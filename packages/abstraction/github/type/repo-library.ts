@@ -1,4 +1,4 @@
-export type Workflow = {
+export type RepoLibrary = {
     id: string;
     body: {
         repoId: string;

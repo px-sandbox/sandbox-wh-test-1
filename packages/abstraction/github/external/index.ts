@@ -1,5 +1,5 @@
 import * as Api from './api';
 import * as Webhook from './webhook';
-import { Workflow } from './workflow';
+import { RepoLibrary } from './repo-library';
 
-export { Api, Webhook, Workflow };
+export { Api, Webhook, RepoLibrary };

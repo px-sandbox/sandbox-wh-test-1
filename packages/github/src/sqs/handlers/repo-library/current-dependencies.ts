@@ -1,7 +1,7 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { saveWorkflowDetails } from '../../../lib/save-workflow';
+import { saveRepoLibraryDetails } from '../../../lib/save-repo-library';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function currentDependency(event: SQSEvent): Promise<void> {
@@ -11,9 +11,9 @@ export const handler = async function currentDependency(event: SQSEvent): Promis
             try {
                 const messageBody = JSON.parse(record.body);
 
-                logger.info('WORKFLOW_CURRENT_DEPENDENCIES_INDEXED', { messageBody });
+                logger.info('CURRENT_DEPENDENCIES_INDEXED', { messageBody });
 
-                await saveWorkflowDetails(messageBody);
+                await saveRepoLibraryDetails(messageBody);
 
             } catch (error) {
                 await logProcessToRetry(record, Queue.qCurrentDepRegistry.queueUrl, error as Error);
