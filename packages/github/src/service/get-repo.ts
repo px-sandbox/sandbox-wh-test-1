@@ -8,7 +8,7 @@ import esb from 'elastic-builder';
 import { IRepo, formatRepoDataResponse, searchedDataFormator } from '../util/response-formatter';
 import { getGitRepoSchema } from './validations';
 
-async function processEventData(repoIds: string[], esClient: ElasticSearchClient,
+async function fetchReposData(repoIds: string[], esClient: ElasticSearchClient,
   gitRepoName: string, page: number, size: number): Promise<Record<string, any>> {
   let data = null;
   if (repoIds.length > 0) {
@@ -47,7 +47,7 @@ const gitRepos = async function getRepoData(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const data = await processEventData(repoIds, esClient, gitRepoName, page, size);
+    const data = await fetchReposData(repoIds, esClient, gitRepoName, page, size);
     response = await searchedDataFormator(data);
     logger.info({ level: 'info', message: 'github repo data', data: response });
   } catch (error) {
