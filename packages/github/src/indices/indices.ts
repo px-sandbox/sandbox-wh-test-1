@@ -430,6 +430,28 @@ const indices = [
       },
     },
   },
+  {
+    name: Github.Enums.IndexName.GitRepoLibrary,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            repoId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            name: { type: 'keyword' },
+            libName: { type: 'keyword' },
+            version: { type: 'text' },
+            releaseDate: { type: 'date', format: 'strict_date_optional_time' },
+            isDeleted: { type: 'boolean' },
+            isCore: { type: 'boolean' },
+
+          }
+        }
+      }
+    }
+  }
 ];
 
 async function createMapping(name: string, mappings: Github.Type.IndexMapping): Promise<void> {

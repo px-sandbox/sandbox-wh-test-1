@@ -10,4 +10,5 @@ export enum IndexName {
   GitOrganization = 'git_organization',
   GitCopilot = 'git_copilot',
   GitActiveBranches = 'git_active_branches',
+  GitRepoLibrary = 'git_repo_library',
 }

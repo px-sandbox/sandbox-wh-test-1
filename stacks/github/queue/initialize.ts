@@ -11,6 +11,7 @@ import { initializeRepoQueue } from './repo';
 import { initializePrReviewAndCommentsQueue } from './review';
 import { initializeUserQueue } from './user';
 import { initializeBranchCounterQueue } from './branch-counter';
+import { initializeRepoLibraryQueue } from './repo-library';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: string]: Queue } {
@@ -59,6 +60,7 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         stack,
         githubDDb
     );
+    const [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry] = initializeRepoLibraryQueue(stack, githubDDb);
     return {
         branchFormatDataQueue,
         branchIndexDataQueue,
@@ -89,5 +91,8 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         branchCounterIndexQueue,
         prReviewCommentFormatDataQueue,
         prReviewFormatDataQueue,
+        depRegistryQueue,
+        currentDepRegistryQueue,
+        latestDepRegistry
     };
 }

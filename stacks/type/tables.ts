@@ -9,4 +9,5 @@ export type JiraTables = {
 export type GithubTables = {
   githubMappingTable: Table;
   retryProcessTable: Table;
+  libMasterTable: Table;
 };
