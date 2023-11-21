@@ -11,12 +11,13 @@ import { getNodeLibInfo } from "../../../util/node-library-info";
 
 export const handler = async function dependencyRegistry(event: SQSEvent): Promise<void> {
     logger.info(`Records Length: ${event.Records.length}`);
+    const sqsClient = new SQSClient();
     await Promise.all(
         event.Records.map(async (record: SQSRecord) => {
             try {
                 const messageBody = JSON.parse(record.body);
 
-                logger.info('WORKFLOW_DEPENDENCIES_INDEXED', { messageBody });
+                logger.info('DEPENDENCIES_INDEXED', { messageBody });
 
                 const {
                     dependencyName,
@@ -28,7 +29,7 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
 
                 const { current, latest } = await getNodeLibInfo(dependencyName, currentVersion);
                 const libName = `npm_${dependencyName}`;
-                const workflowObj: Github.Type.Workflow = {
+                const repoLibObj: Github.Type.RepoLibrary = {
                     id: uuid(),
                     body: {
                         repoId: `${mappingPrefixes.repo}_${repoId}`,
@@ -42,10 +43,9 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
 
                     }
                 }
-                logger.info('WORKFLOW_DEPENDENCIES_DATA', { workflowObj });
-                const sqsClient = new SQSClient();
+                logger.info('DEPENDENCIES_DATA', { repoLibObj });
                 await Promise.all([
-                    sqsClient.sendMessage(workflowObj, Queue.qCurrentDepRegistry.queueUrl),
+                    sqsClient.sendMessage(repoLibObj, Queue.qCurrentDepRegistry.queueUrl),
                     sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl),
                 ]);
             } catch (error) {

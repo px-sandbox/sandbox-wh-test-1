@@ -7,7 +7,6 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 import { mappingPrefixes } from '../../constant/config';
-import { searchedDataFormator } from '../../util/response-formatter';
 
 async function deletePrevDependencies(repoId: string): Promise<void> {
     const esClientObj = new ElasticSearchClient({
@@ -16,24 +15,20 @@ async function deletePrevDependencies(repoId: string): Promise<void> {
         password: Config.OPENSEARCH_PASSWORD ?? '',
     });
     const matchQry = esb.matchQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`).toJSON();
-    const workflowData = await esClientObj.searchWithEsb(
-        Github.Enums.IndexName.GitWorkflow,
-        matchQry
+    const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
+
+    await esClientObj.updateByQuery(
+        Github.Enums.IndexName.GitRepoLibrary,
+        matchQry,
+        script.toJSON()
     );
-    const formattedData = await searchedDataFormator(workflowData);
-    if (formattedData) {
-        formattedData.map(async (data: { _id: string }) => {
-            const updatedData = { body: { isDeleted: true } };
-            await esClientObj.updateDocument(Github.Enums.IndexName.GitWorkflow, data._id, updatedData);
-        });
-    }
 }
 export const handler = async (
     event: APIGatewayProxyEvent
 ): Promise<void | APIGatewayProxyResult> => {
     try {
-        const data: Github.ExternalType.Workflow = JSON.parse(event.body ?? '{}');
-        logger.info('workflow.handler.received', { data });
+        const data: Github.ExternalType.RepoLibrary = JSON.parse(event.body ?? '{}');
+        logger.info('repoLibrary.handler.received', { data });
 
         if (data) {
             const sqsClient = new SQSClient();
@@ -65,13 +60,13 @@ export const handler = async (
                             (coreDep) => coreDep.dependencyName === dep.dependencyName
                         ),
                     };
-                    sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
+                    await sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
                 })
             );
         } else {
-            logger.warn('workflow.handler.noData');
+            logger.warn('repoLibrary.handler.noData');
         }
     } catch (error) {
-        logger.error('workflow.handler.error', { error, event });
+        logger.error('repoLibrary.handler.error', { error, event });
     }
 };

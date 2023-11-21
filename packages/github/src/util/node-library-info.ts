@@ -3,7 +3,7 @@ import axios from 'axios';
 import { LibInfo } from 'abstraction/github/type';
 import _ from 'lodash';
 
-export async function getNodeLibInfo(libName: string, currentVersion?: string): Promise<LibInfo> {
+export async function getNodeLibInfo(libName: string, currentVersion: string): Promise<LibInfo> {
     const npmPackageUrl = `https://registry.npmjs.org/${libName}`;
     let latestVersion: string;
     try {
@@ -24,8 +24,8 @@ export async function getNodeLibInfo(libName: string, currentVersion?: string): 
                 releaseDate: data.time[latestVersion],
             },
             current: {
-                version: currentVersion ?? latestVersion,
-                releaseDate: data.time[currentVersion ?? latestVersion],
+                version: currentVersion,
+                releaseDate: data.time[currentVersion],
             },
         };
     } catch (error) {

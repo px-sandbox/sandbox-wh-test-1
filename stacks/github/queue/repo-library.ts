@@ -3,13 +3,13 @@ import { Function, Queue, use } from "sst/constructs";
 import { GithubTables } from "../../type/tables";
 import { commonConfig } from "../../common/config";
 
-export function initializeWorkflowQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
+export function initializeRepoLibraryQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
     const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
     const { retryProcessTable, libMasterTable } = githubDDb;
     const depRegistryQueue = new Queue(stack, 'qDepRegistry');
     depRegistryQueue.addConsumer(stack, {
         function: new Function(stack, 'fnDepRegistry', {
-            handler: 'packages/github/src/sqs/handlers/workflow/dependencies-registry.handler',
+            handler: 'packages/github/src/sqs/handlers/repo-library/dependencies-registry.handler',
             bind: [depRegistryQueue],
         }),
         cdk: {
@@ -23,7 +23,7 @@ export function initializeWorkflowQueue(stack: Stack, githubDDb: GithubTables): 
     const currentDepRegistryQueue = new Queue(stack, 'qCurrentDepRegistry');
     currentDepRegistryQueue.addConsumer(stack, {
         function: new Function(stack, 'fnCurrentDepRegistry', {
-            handler: 'packages/github/src/sqs/handlers/workflow/current-dependencies.handler',
+            handler: 'packages/github/src/sqs/handlers/repo-library/current-dependencies.handler',
             bind: [currentDepRegistryQueue],
         }),
         cdk: {
@@ -36,7 +36,7 @@ export function initializeWorkflowQueue(stack: Stack, githubDDb: GithubTables): 
     const latestDepRegistry = new Queue(stack, 'qLatestDepRegistry');
     latestDepRegistry.addConsumer(stack, {
         function: new Function(stack, 'fnLatestDepRegistry', {
-            handler: 'packages/github/src/sqs/handlers/workflow/latest-dependencies.handler',
+            handler: 'packages/github/src/sqs/handlers/repo-library/latest-dependencies.handler',
             bind: [libMasterTable],
         }),
         cdk: {

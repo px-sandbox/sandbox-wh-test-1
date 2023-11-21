@@ -1,11 +1,9 @@
+type LibVersion = {
+    version: string,
+    releaseDate: string,
+}
 export type LibInfo = {
     name: string,
-    latest: {
-        version: string,
-        releaseDate: string,
-    }
-    current: {
-        version: string,
-        releaseDate: string,
-    }
+    latest: LibVersion,
+    current: LibVersion,
 }

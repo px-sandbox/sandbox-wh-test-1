@@ -65,10 +65,10 @@ export function initializeRoutes(
             authorizer: 'none',
         },
 
-        // POST handle data from Github actions workflow
-        'POST /github/workflow': {
+        // POST handle repository's libraries info 
+        'POST /github/repo-libraries': {
             function: {
-                handler: 'packages/github/src/service/workflow/workflow.handler',
+                handler: 'packages/github/src/service/repo-library/repo-library.handler',
                 bind: [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry],
             },
             authorizer: 'none',
