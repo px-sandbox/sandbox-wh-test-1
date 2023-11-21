@@ -1,4 +1,4 @@
-import { PutCommandInput } from '@aws-sdk/lib-dynamodb';
+import { PutCommandInput, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
 
 export class LibParamsMapping {
@@ -11,6 +11,14 @@ export class LibParamsMapping {
                 libName,
                 ...version,
             },
+        };
+    }
+
+    public prepareGetParams(libName: string): QueryCommandInput {
+        return {
+            TableName: this.tableName,
+            KeyConditionExpression: 'libName = :libName',
+            ExpressionAttributeValues: { ':libName': libName },
         };
     }
 }
