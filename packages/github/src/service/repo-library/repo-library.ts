@@ -7,7 +7,6 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 import { mappingPrefixes } from '../../constant/config';
-import { searchedDataFormator } from '../../util/response-formatter';
 
 async function deletePrevDependencies(repoId: string): Promise<void> {
     const esClientObj = new ElasticSearchClient({
@@ -16,17 +15,13 @@ async function deletePrevDependencies(repoId: string): Promise<void> {
         password: Config.OPENSEARCH_PASSWORD ?? '',
     });
     const matchQry = esb.matchQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`).toJSON();
-    const repoLibData = await esClientObj.searchWithEsb(
+    const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
+
+    await esClientObj.updateByQuery(
         Github.Enums.IndexName.GitRepoLibrary,
-        matchQry
+        matchQry,
+        script.toJSON()
     );
-    const formattedData = await searchedDataFormator(repoLibData);
-    if (formattedData) {
-        formattedData.map(async (data: { _id: string }) => {
-            const updatedData = { body: { isDeleted: true } };
-            await esClientObj.updateDocument(Github.Enums.IndexName.GitRepoLibrary, data._id, updatedData);
-        });
-    }
 }
 export const handler = async (
     event: APIGatewayProxyEvent
@@ -65,7 +60,7 @@ export const handler = async (
                             (coreDep) => coreDep.dependencyName === dep.dependencyName
                         ),
                     };
-                    sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
+                    await sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
                 })
             );
         } else {

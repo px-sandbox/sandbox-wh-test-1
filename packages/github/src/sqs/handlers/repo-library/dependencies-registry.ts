@@ -11,6 +11,7 @@ import { getNodeLibInfo } from "../../../util/node-library-info";
 
 export const handler = async function dependencyRegistry(event: SQSEvent): Promise<void> {
     logger.info(`Records Length: ${event.Records.length}`);
+    const sqsClient = new SQSClient();
     await Promise.all(
         event.Records.map(async (record: SQSRecord) => {
             try {
@@ -43,7 +44,6 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
                     }
                 }
                 logger.info('DEPENDENCIES_DATA', { repoLibObj });
-                const sqsClient = new SQSClient();
                 await Promise.all([
                     sqsClient.sendMessage(repoLibObj, Queue.qCurrentDepRegistry.queueUrl),
                     sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl),

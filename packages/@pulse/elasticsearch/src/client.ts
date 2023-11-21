@@ -121,4 +121,26 @@ export class ElasticSearchClient implements IElasticSearchClient {
       throw err;
     }
   }
+
+  /**
+   * Updates documents in the specified index based on a query and a script.
+   * @param indexName - The name of the index.
+   * @param query - The query object specifying the documents to update.
+   * @param script - The script object containing the update logic.
+   * @throws {Error} If an error occurs while updating the documents.
+   */
+  public async updateByQuery(indexName: string, query: object, script: object): Promise<void> {
+    try {
+      await this.client.updateByQuery({
+        index: indexName,
+        body: {
+          query,
+          script,
+        }
+      });
+    } catch (err) {
+      logger.error('updateByQuery.error : ', { err });
+      throw err;
+    }
+  }
 }
