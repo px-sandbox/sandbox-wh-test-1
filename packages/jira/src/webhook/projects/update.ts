@@ -2,6 +2,7 @@ import { logger } from 'core';
 import { Jira } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
+import { Config } from 'sst/node/config';
 import moment from 'moment';
 import { getProjectById } from '../../repository/project/get-project';
 import { projectKeysMapper } from './mapper';
@@ -20,12 +21,22 @@ export async function update(
   eventTime: moment.Moment,
   organization: string
 ): Promise<void | false> {
+  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+
+  logger.info('projectUpdatedEvent', { projectKey: project.key, availableProjectKeys: projectKeys });
+
+  if (!projectKeys.includes(project.key)) {
+    logger.info('processProjectUpdatedEvent: Project not available in our system');
+    return;
+  }
+
   const projectIndexData = await getProjectById(project.id, organization);
   if (!projectIndexData) {
     logger.info('projectUpdatedEvent: Project not found');
     return false;
   }
-  const updatedAt = moment(eventTime).toISOString();
+
+  const updatedAt = eventTime.toISOString();
   const updatedProjectBody: Jira.Mapped.Project = projectKeysMapper(
     project,
     projectIndexData.createdAt,

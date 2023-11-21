@@ -11,6 +11,7 @@ export function initializeSprintQueue(stack: Stack, jiraDDB: JiraTables): Queue[
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    AVAILABLE_PROJECT_KEYS
   } = use(commonConfig);
 
   const sprintIndexDataQueue = new Queue(stack, 'qSprintIndex', {
@@ -50,6 +51,7 @@ export function initializeSprintQueue(stack: Stack, jiraDDB: JiraTables): Queue[
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    AVAILABLE_PROJECT_KEYS
   ]);
   sprintIndexDataQueue.bind([
     jiraDDB.jiraCredsTable,

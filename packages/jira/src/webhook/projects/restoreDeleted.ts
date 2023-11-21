@@ -1,8 +1,11 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
 import moment from 'moment';
+import { Config } from 'sst/node/config';
+import { JiraClient } from '../../lib/jira-client';
 import { saveProjectDetails } from '../../repository/project/save-project';
 import { getProjectById } from '../../repository/project/get-project';
+
 
 
 /**
@@ -18,13 +21,25 @@ export async function restoreDeleted(
   eventTime: moment.Moment,
   organization: string
 ): Promise<void | false> {
+  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const jiraClient = await JiraClient.getClient(organization);
+  const data = await jiraClient.getProject(projectId.toString());
+
+  logger.info('projectRestoreDeletedEvent', { projectKey: data.key, availableProjectKeys: projectKeys });
+
+  if (!projectKeys.includes(data.key)) {
+    logger.info('projectRestoreDeletedEvent: Project not available in our system');
+    return;
+  }
+
   const projectData = await getProjectById(projectId, organization);
   if (!projectData) {
-    logger.info('projectDeletedEvent: Project not found');
+    logger.info('projectRestoreDeletedEvent: Project not found');
     return false;
   }
+
   const { _id, ...processProjectData } = projectData;
-  processProjectData.updatedAt = moment(eventTime).toISOString();
+  processProjectData.updatedAt = eventTime.toISOString();
   processProjectData.isDeleted = false;
   processProjectData.deletedAt = null;
 
