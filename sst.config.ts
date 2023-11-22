@@ -3,6 +3,7 @@ import { gh } from './stacks/github/github';
 import { devops } from './stacks/devops';
 import { jira } from './stacks/jira/jira';
 import { commonConfig } from './stacks/common/config';
+import { Tags } from "aws-cdk-lib";
 
 import { AppConfig, Stage } from './stacks/type/stack-config';
 
@@ -13,7 +14,11 @@ export default {
       region: AppConfig.REGION,
     };
   },
-  stacks(app): void | Promise<void> {
+  async stacks(app) {
+
+    Tags.of(app).add("Project_name", "pulse");
+    Tags.of(app).add("Environment", app.stage);
+
     app.stack(commonConfig);
     app.stack(gh);
     app.stack(jira);
@@ -22,5 +27,6 @@ export default {
     if (app.stage !== Stage.LIVE) {
       app.setDefaultRemovalPolicy('destroy');
     }
+
   },
 } satisfies SSTConfig;
