@@ -19,6 +19,16 @@ export class ElasticSearchClient implements IElasticSearchClient {
     return this.client;
   }
 
+  public async bulkUpdate(indexName: string, data: any[]): Promise<void> {
+    const body = data.flatMap(doc => [
+      { update: { _index: indexName, _id: doc._id } },
+      {
+        doc: { body: { isDeleted: true, deletedAt: new Date().toISOString() } }
+      }
+    ]);
+    await this.client.bulk({ refresh: true, body });
+  }
+
   public async putDocument(index: string, document: ElasticSearchDocument): Promise<void> {
     const { id, ...body } = document;
     await this.client.index({
