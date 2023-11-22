@@ -69,18 +69,17 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
     await this.getDdbDocClient().send(new DeleteCommand(deleteParams));
   }
 
-  public async scanAllItems(scanParams: ScanCommandInput): Promise<Array<unknown>> {
-    const items: Array<unknown> = [];
-    let data: ScanCommandOutput;
+  /**
+   * Scans all items in the DynamoDB table based on the provided scan parameters.
+   * 
+   * @param scanParams - The scan parameters for the scan operation.
+   * @returns A promise that resolves to the scan command output.
+   */
+  public async scanAllItems(scanParams: ScanCommandInput): Promise<ScanCommandOutput> {
     const params: ScanCommandInput = { ...scanParams }; // Create a new object
 
-    do {
-      // eslint-disable-next-line no-await-in-loop
-      data = await this.getDdbDocClient().send(new ScanCommand(params)) as ScanCommandOutput;
-      items.push(...(data.Items || []));
-      params.ExclusiveStartKey = data.LastEvaluatedKey;
-    } while (data.LastEvaluatedKey);
+    const data = await this.getDdbDocClient().send(new ScanCommand(params)) as ScanCommandOutput;
 
-    return items;
+    return data;
   }
 }

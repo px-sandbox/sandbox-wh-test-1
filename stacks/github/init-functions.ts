@@ -40,7 +40,7 @@ export function initializeFunctions(
         ghCopilotFormatDataQueue,
         ghCopilotIndexDataQueue,
         branchCounterFormatterQueue,
-        latestDepRegistry
+        masterLibraryQueue,
     } = queuesForFunctions;
 
     const ghCopilotFunction = new Function(stack, 'fnGithubCopilot', {
@@ -63,7 +63,7 @@ export function initializeFunctions(
 
     const ghUpdateLatestDepOnDDBFunction = new Function(stack, 'fnUpdateLatestDepOnDDB', {
         handler: 'packages/github/src/cron/update-latest-dep.handler',
-        bind: [githubDDb.libMasterTable, latestDepRegistry],
+        bind: [githubDDb.libMasterTable, masterLibraryQueue],
     });
 
     return {
