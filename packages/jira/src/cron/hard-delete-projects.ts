@@ -39,7 +39,7 @@ async function deleteProjectData(result: (Pick<Other.Type.Hit, "_id"> & Other.Ty
         ];
         let deleteQuery = {};
 
-        for (const data of projectData) {
+        const deletePromises = projectData.map(data => {
 
             deleteQuery = esb.boolQuery()
                 .must([
@@ -53,10 +53,12 @@ async function deleteProjectData(result: (Pick<Other.Type.Hit, "_id"> & Other.Ty
                         esb.termQuery('body.organizationId.keyword', data.organizationId)
                     ]).minimumShouldMatch(1)
                 ]).toJSON();
-        }
 
-        // deleting all data from ES for project and related sprint, boards and issues
-        await esClientObj.deleteByQuery(indexArr, deleteQuery);
+            // deleting all data from ES for project and related sprint, boards and issues
+            return esClientObj.deleteByQuery(indexArr, deleteQuery);
+        });
+
+        await Promise.all(deletePromises);
         logger.info('deleted project, sprint, boards and issues data from elastic search');
     } catch (err) {
         logger.error('error while deleting project data from elastic search', err);
