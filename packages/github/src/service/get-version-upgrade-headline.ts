@@ -1,24 +1,16 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
-import { APIGatewayProxyEvent } from 'aws-lambda';
-import { logger } from 'core';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
-import { compareVersions } from 'compare-versions';
 import { LibParamsMapping } from '../model/lib-master-mapping';
 import { searchedDataFormator } from '../util/response-formatter';
 
 /**
- * @param version2
- * @param version1
- * If the first version is less than the second version, it returns a negative number.
- * If the first version is greater than the second version, it returns a positive number.
- * If the two versions are equal, it returns 0.
+ *  Considering that single repo will have less than 1000 libraries
  */
-function compareLibVersions(version1: string, version2: string): number {
-    return compareVersions(version1, version2);
-}
 const getLibFromDB = async (
     libNameAndVersion: { libName: string; version: string }[]
 ): Promise<{ countOutOfDateLib: number; countUpToDateLib: number }> => {
@@ -30,8 +22,8 @@ const getLibFromDB = async (
             new LibParamsMapping().prepareGetParams(lib.libName)
         );
         if (records && records.version) {
-            const res = compareLibVersions(records.version as string, lib.version);
-            if (res > 0) {
+            const latestVer = records.version as string;
+            if (latestVer !== lib.version) {
                 countOutOfDateLib += 1;
             } else {
                 countUpToDateLib += 1;
@@ -41,6 +33,7 @@ const getLibFromDB = async (
     await Promise.all(promises);
     return { countOutOfDateLib, countUpToDateLib };
 };
+
 const getLibFromES = async (
     repoIds: string[]
 ): Promise<{
@@ -55,7 +48,13 @@ const getLibFromES = async (
         });
         const query = esb
             .requestBodySearch()
-            .query(esb.boolQuery().must(esb.termsQuery('body.repoId', repoIds)))
+            .query(
+                esb
+                    .boolQuery()
+                    .must([esb.termsQuery('body.repoId', repoIds),
+                    esb.termQuery('body.isDeleted', false)])
+            )
+
             .toJSON() as { query: object };
         const libData = await esClientObj.searchWithEsb(
             Github.Enums.IndexName.GitRepoLibrary,
@@ -74,11 +73,13 @@ const getLibFromES = async (
     }
 };
 
-export async function handler(event: APIGatewayProxyEvent): Promise<{
-    countOutOfDateLib: number;
-    countUpToDateLib: number;
-}> {
+export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [''];
     const lib = await getLibFromES(repoIds);
-    return lib;
+    return responseParser
+        .setBody({ headline: lib })
+        .setMessage('Headline for version upgrade')
+        .setStatusCode(HttpStatusCode['200'])
+        .setResponseBodyCode('SUCCESS')
+        .send();
 }
