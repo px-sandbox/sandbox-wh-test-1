@@ -110,7 +110,7 @@ export interface IssueReponse {
   sprintName?: string;
   boardName?: string;
   status?: SprintState;
-  startDate?: string;
+  startDate: string;
   endDate?: string;
   percentValue?: number;
 }

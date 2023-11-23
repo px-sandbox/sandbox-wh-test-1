@@ -74,7 +74,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
         };
       })
     ));
-    response = _.sortBy(response, [(item: IssueReponse) => new Date(item.startDate || '9999-12-31')]).reverse();
+    response = _.sortBy(response, [(item: IssueReponse) => new Date(item.startDate)]).reverse();
     return response.filter((obj) => obj.sprintName !== undefined);
   } catch (e) {
     logger.error('ftpRateGraphQuery.error', e);
