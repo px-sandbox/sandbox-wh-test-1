@@ -41,25 +41,36 @@ const getLibFromES = async (
     countUpToDateLib: number;
 }> => {
     try {
+        let libData = [];
+        let size = 100;
+        let from = 0;
         const esClientObj = new ElasticSearchClient({
             host: Config.OPENSEARCH_NODE,
             username: Config.OPENSEARCH_USERNAME ?? '',
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
-        const query = esb
-            .requestBodySearch().size(repoIds.length)
-            .query(
-                esb
-                    .boolQuery()
-                    .must([esb.termsQuery('body.repoId', repoIds),
-                    esb.termQuery('body.isDeleted', false)])
-            )
+        do {
+            const query = esb
+                .requestBodySearch().size(size)
+                .query(
+                    esb
+                        .boolQuery()
+                        .must([esb.termsQuery('body.repoId', repoIds),
+                        esb.termQuery('body.isDeleted', false)])
+                )
+                .from(from)
+                .toJSON() as { query: object };
 
-            .toJSON() as { query: object };
-        const libData = await esClientObj.searchWithEsb(
-            Github.Enums.IndexName.GitRepoLibrary,
-            query.query
-        );
+
+            const esLibData = await esClientObj.searchWithEsb(
+                Github.Enums.IndexName.GitRepoLibrary,
+                query.query
+            );
+            libData.push(esLibData)
+            from += size;
+        }
+        while (libData.length > 100)
+
         const data = await searchedDataFormator(libData);
         const libNameAndVersion = data.map((lib: { libName: string; version: string }) => ({
             libName: lib.libName,
