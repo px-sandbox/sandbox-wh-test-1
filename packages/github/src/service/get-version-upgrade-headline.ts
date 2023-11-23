@@ -47,7 +47,7 @@ const getLibFromES = async (
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
         const query = esb
-            .requestBodySearch()
+            .requestBodySearch().size(repoIds.length)
             .query(
                 esb
                     .boolQuery()
