@@ -3,6 +3,7 @@ import { Function, Queue, use } from "sst/constructs";
 import { GithubTables } from "../../type/tables";
 import { commonConfig } from "../../common/config";
 
+// eslint-disable-next-line max-lines-per-function,
 export function initializeRepoLibraryQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
     const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
     const { retryProcessTable, libMasterTable } = githubDDb;
@@ -45,6 +46,25 @@ export function initializeRepoLibraryQueue(stack: Stack, githubDDb: GithubTables
             },
         },
     });
+    const masterLibraryQueue = new Queue(stack, 'qMasterLibInfo');
+    masterLibraryQueue.addConsumer(stack, {
+        function: new Function(stack, 'fnMasterLibrary', {
+            handler: 'packages/github/src/sqs/handlers/repo-library/master-library.handler',
+            bind: [masterLibraryQueue],
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 5,
+            },
+        },
+    });
+    masterLibraryQueue.bind([
+        retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        latestDepRegistry,
+    ]);
 
     currentDepRegistryQueue.bind([
         retryProcessTable,
@@ -63,5 +83,5 @@ export function initializeRepoLibraryQueue(stack: Stack, githubDDb: GithubTables
         latestDepRegistry,
     ]);
 
-    return [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry]
+    return [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry, masterLibraryQueue]
 }

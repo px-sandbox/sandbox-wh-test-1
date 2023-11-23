@@ -60,7 +60,12 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         stack,
         githubDDb
     );
-    const [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry] = initializeRepoLibraryQueue(stack, githubDDb);
+    const [
+        depRegistryQueue,
+        currentDepRegistryQueue,
+        latestDepRegistry,
+        masterLibraryQueue
+    ] = initializeRepoLibraryQueue(stack, githubDDb);
     return {
         branchFormatDataQueue,
         branchIndexDataQueue,
@@ -93,6 +98,7 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         prReviewFormatDataQueue,
         depRegistryQueue,
         currentDepRegistryQueue,
-        latestDepRegistry
+        latestDepRegistry,
+        masterLibraryQueue,
     };
 }
