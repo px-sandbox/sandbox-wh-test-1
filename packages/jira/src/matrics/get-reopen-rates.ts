@@ -5,10 +5,10 @@ import { IReopenRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
+import _ from 'lodash';
 import { getBoardByOrgId } from '../repository/board/get-board';
 import { getSprints } from '../lib/get-sprints';
 import { IssueReponse } from '../util/response-formatter';
-import _ from 'lodash';
 
 export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
   try {
@@ -67,7 +67,7 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
         };
       })
     ));
-    response = _.sortBy(response, [(item: IssueReponse) => new Date(item.startDate)]).reverse();
+    response = _.sortBy(response, [(item: IssueReponse): Date => new Date(item.startDate)]).reverse();
     return response.filter((obj) => obj.sprintName !== undefined);
   } catch (e) {
     logger.error('reopenRateGraphQuery.error', e);
