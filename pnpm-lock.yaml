@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -24,8 +24,8 @@ importers:
         specifier: ^15.0.1
         version: 15.0.1
       sst:
-        specifier: 2.25.5
-        version: 2.25.5
+        specifier: 2.27.0
+        version: 2.27.0
       winston:
         specifier: ^3.8.2
         version: 3.8.2
@@ -156,8 +156,8 @@ importers:
         specifier: ^9.0.0
         version: 9.0.0
       sst:
-        specifier: ^2.24.7
-        version: 2.25.5
+        specifier: 2.27.0
+        version: 2.27.0
     devDependencies:
       '@types/jsonwebtoken':
         specifier: ^9.0.2
@@ -218,8 +218,8 @@ importers:
         specifier: ^18.15.10
         version: 18.15.10
       sst:
-        specifier: ^2.3.1
-        version: 2.25.5
+        specifier: 2.27.0
+        version: 2.27.0
       vitest:
         specifier: ^0.29.7
         version: 0.29.7
@@ -256,6 +256,9 @@ importers:
       '@pulse/event-handler':
         specifier: ^1.0.0
         version: link:../@pulse/event-handler
+      '@types/lodash':
+        specifier: ^4.14.201
+        version: 4.14.201
       abstraction:
         specifier: workspace:^1.0.0
         version: link:../abstraction
@@ -268,6 +271,9 @@ importers:
       aws-sdk-js-codemod:
         specifier: 0.17.1
         version: 0.17.1
+      axios:
+        specifier: ^1.6.0
+        version: 1.6.2
       core:
         specifier: workspace:0.0.1
         version: link:../core
@@ -280,6 +286,9 @@ importers:
       elastic-builder:
         specifier: ^2.21.0
         version: 2.21.0
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       moment:
         specifier: 2.29.4
         version: 2.29.4
@@ -290,8 +299,8 @@ importers:
         specifier: ^2.0.14
         version: 2.0.14
       sst:
-        specifier: ^2.24.12
-        version: 2.25.5
+        specifier: 2.27.0
+        version: 2.27.0
       universal-github-app-jwt:
         specifier: 2.0.1
         version: 2.0.1
@@ -384,8 +393,8 @@ importers:
         specifier: 2.29.4
         version: 2.29.4
       sst:
-        specifier: ^2.24.27
-        version: 2.25.5
+        specifier: 2.27.0
+        version: 2.27.0
       url:
         specifier: ^0.11.3
         version: 0.11.3
@@ -5205,11 +5214,15 @@ packages:
   /@types/lodash.clonedeep@4.5.8:
     resolution: {integrity: sha512-I5toZLLfTvhnuAnejjVgSpBSLSC316bVURbI0sCYI0dKY3jaJgOg2arfPC6miTNnHRi/Tk/J6BB+kzT3iB5mcw==}
     dependencies:
-      '@types/lodash': 4.14.200
+      '@types/lodash': 4.14.202
     dev: false
 
-  /@types/lodash@4.14.200:
-    resolution: {integrity: sha512-YI/M/4HRImtNf3pJgbF+W6FrXovqj+T+/HpENLTooK9PnkacBsDpeP3IpHab40CClUfhNmdM2WTNP2sa2dni5Q==}
+  /@types/lodash@4.14.201:
+    resolution: {integrity: sha512-y9euML0cim1JrykNxADLfaG0FgD1g/yTHwUs/Jg9ZIU7WKj2/4IW9Lbb1WZbvck78W/lfGXFfe+u2EGfIJXdLQ==}
+    dev: false
+
+  /@types/lodash@4.14.202:
+    resolution: {integrity: sha512-OvlIYQK9tNneDlS0VN54LLd5uiPCBOp7gS5Z0f1mjoJYBrtStzgmJBxONW3U6OZqdtNzZPmn9BS/7WI7BFFcFQ==}
     dev: false
 
   /@types/lru-cache@5.1.1:
@@ -8899,7 +8912,7 @@ packages:
       duplexify: 4.1.2
       help-me: 3.0.0
       inherits: 2.0.4
-      minimist: 1.2.6
+      minimist: 1.2.8
       mqtt-packet: 6.10.0
       pump: 3.0.0
       readable-stream: 3.6.2
@@ -10020,8 +10033,8 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
 
-  /sst@2.25.5:
-    resolution: {integrity: sha512-pvmLdkWWMM64pxMs0YaHsYVNjztJZNF/ApxR+Ly30aAAHTJ6ayW+fedQhbnuOWOWvKOZIbTYvLC/X3cedl+8ug==}
+  /sst@2.27.0:
+    resolution: {integrity: sha512-5tfUPQN4UYkw9zWHmUJPOenlHGm9AR5S+xr/Gv1Lz1j2rfS3O1a7ZJ9Spkon2WCTFNBx5mAi87T1gfDMiZw6PQ==}
     hasBin: true
     peerDependencies:
       '@sls-next/lambda-at-edge': ^3.7.0
