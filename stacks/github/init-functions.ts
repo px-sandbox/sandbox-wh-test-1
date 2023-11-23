@@ -63,6 +63,7 @@ export function initializeFunctions(
 
     const ghUpdateLatestDepOnDDBFunction = new Function(stack, 'fnUpdateLatestDepOnDDB', {
         handler: 'packages/github/src/cron/update-latest-dep.handler',
+        timeout: '300 seconds',
         bind: [githubDDb.libMasterTable, masterLibraryQueue],
     });
 
