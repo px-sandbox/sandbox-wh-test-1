@@ -21,7 +21,7 @@ export function initializeRoutes(
         currentDepRegistryQueue,
         latestDepRegistry,
     } = queues;
-    const { retryProcessTable, githubMappingTable } = githubDDb;
+    const { retryProcessTable, githubMappingTable, libMasterTable } = githubDDb;
     return {
         // GET Metadata route
         'GET /github/metadata': {
@@ -157,5 +157,12 @@ export function initializeRoutes(
             function: 'packages/github/src/service/file-changes-of-commit.handler',
             authorizer: 'universal',
         },
+        'GET /github/version-upgrade-headline': {
+            function: {
+                handler: 'packages/github/src/service/get-version-upgrade-headline.handler',
+                bind: [libMasterTable]
+            },
+            authorizer: 'universal',
+        }
     };
 }
