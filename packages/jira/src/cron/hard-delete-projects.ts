@@ -39,7 +39,7 @@ async function deleteProjectData(result: (Pick<Other.Type.Hit, "_id"> & Other.Ty
         ];
         let deleteQuery = {};
 
-        for (const data of projectData) {
+        const deletePromises = projectData.map(data => {
 
             deleteQuery = esb.boolQuery()
                 .must([
@@ -53,10 +53,12 @@ async function deleteProjectData(result: (Pick<Other.Type.Hit, "_id"> & Other.Ty
                         esb.termQuery('body.organizationId.keyword', data.organizationId)
                     ]).minimumShouldMatch(1)
                 ]).toJSON();
-        }
 
-        // deleting all data from ES for project and related sprint, boards and issues
-        await esClientObj.deleteByQuery(indexArr, deleteQuery);
+            // deleting all data from ES for project and related sprint, boards and issues
+            return esClientObj.deleteByQuery(indexArr, deleteQuery);
+        });
+
+        await Promise.all(deletePromises);
         logger.info('deleted project, sprint, boards and issues data from elastic search');
     } catch (err) {
         logger.error('error while deleting project data from elastic search', err);
@@ -78,7 +80,7 @@ async function deleteProjectfromDD(result: (Pick<Other.Type.Hit, "_id"> & Other.
 
 
         // Deleting from dynamo DB in batches of 20
-        async.eachLimit(parentIds, 20, async (parentId: any) => {
+        await async.eachLimit(parentIds, 50, async (parentId: any) => {
             const params = {
                 TableName: Table.jiraMapping.tableName,
                 Key: {
@@ -123,7 +125,7 @@ export async function handler(): Promise<void> {
         esb.rangeQuery('body.deletedAt').lte(dateToCompare.toISOString())
     ]).toJSON();
 
-    logger.info('searching for projects that have been soft-deleted >=90 days ago');
+    logger.info('searching for projects that have been soft-deleted >=PROJECT_DELETION_AGE');
 
     const result = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Project, query);
     const res = await searchedDataFormatorWithDeleted(result);
