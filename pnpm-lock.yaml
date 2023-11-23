@@ -355,6 +355,9 @@ importers:
       '@types/async':
         specifier: ^3.2.23
         version: 3.2.23
+      '@types/lodash':
+        specifier: ^4.14.201
+        version: 4.14.201
       abstraction:
         specifier: workspace:^1.0.0
         version: link:../abstraction
@@ -385,6 +388,9 @@ importers:
       elastic-builder:
         specifier: ^2.21.0
         version: 2.21.0
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       moment:
         specifier: 2.29.4
         version: 2.29.4
