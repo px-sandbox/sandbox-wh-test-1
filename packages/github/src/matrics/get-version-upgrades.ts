@@ -7,7 +7,6 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
 import { Github } from 'abstraction';
 import moment from 'moment';
-import { LibraryRecord, VerUpgradeRes } from 'abstraction/github/type/aggregations/version-upgrades';
 import { paginate, sortData } from '../util/version-upgrades';
 import { searchedDataFormator } from '../util/response-formatter';
 
@@ -24,7 +23,7 @@ const esClientObj = new ElasticSearchClient({
  * @returns A promise that resolves to an array of LibraryRecord objects.
  * @throws If there is an error fetching the items from DynamoDB.
  */
-async function fetchDDRecords(libNames: string[]): Promise<LibraryRecord[]> {
+async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRecord[]> {
     const keys = libNames.map(libName => ({ libName }));
 
     const params = {
@@ -135,7 +134,7 @@ export async function getVersionUpgrades(
     limit: number,
     repoIds: string[],
     sort?: Github.Type.VersionUpgradeSortType,
-): Promise<VerUpgradeRes[]> {
+): Promise<Github.Type.VerUpgradeRes[]> {
     try {
 
         // fetching repo-library data from elastic search

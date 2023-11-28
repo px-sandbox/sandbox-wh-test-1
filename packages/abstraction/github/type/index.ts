@@ -21,8 +21,10 @@ import { RepoLibrary } from './repo-library';
 import { LibInfo } from './lib-info';
 import {
   DDRecordType,
+  LibraryRecord,
   RepoLibType,
   RepoNameType,
+  VerUpgradeRes,
   VersionUpgradeSortType
 } from './aggregations/version-upgrades';
 
@@ -62,4 +64,6 @@ export {
   RepoLibType,
   RepoNameType,
   DDRecordType,
+  LibraryRecord,
+  VerUpgradeRes
 };
