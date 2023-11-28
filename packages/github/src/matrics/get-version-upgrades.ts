@@ -15,6 +15,7 @@ import {
     VersionUpgradeSortType
 } from 'abstraction/github/type';
 import { LibraryRecord, VerUpgradeRes } from 'abstraction/github/type/aggregations/version-upgrades';
+import { paginate, sortData } from '../util/version-upgrades';
 import { searchedDataFormator } from '../util/response-formatter';
 
 // initializing elastic search client
@@ -124,75 +125,6 @@ async function getESVersionUpgradeData(repoIds: string[]): Promise<UpdatedRepoLi
     return updatedRepoLibs;
 }
 
-
-/**
- * Sorts the version upgrade results by the "isCore" property.
- * @param a - The first version upgrade result.
- * @param b - The second version upgrade result.
- * @returns A number indicating the sort order.
- */
-function sortByIsCore(a: VerUpgradeRes, b: VerUpgradeRes): number {
-    return b.isCore ? 1 : -1;
-}
-
-/**
- * Sorts an array of VerUpgradeRes objects by date difference.
- * @param a - The first VerUpgradeRes object.
- * @param b - The second VerUpgradeRes object.
- * @returns A number indicating the sort order.
- */
-function sortByDateDiff(a: VerUpgradeRes, b: VerUpgradeRes): number {
-    return (b.dateDiff ?? 0) - (a.dateDiff ?? 0);
-}
-
-/**
- * Sorts an array of objects by a specified key in ascending or descending order.
- * @param a - The first object to compare.
- * @param b - The second object to compare.
- * @param key - The key to sort the objects by.
- * @param order - The order in which to sort the objects ('asc' for ascending, 'desc' for descending).
- * @returns A number indicating the sort order of the objects.
- */
-function sortByKey(a: VerUpgradeRes, b: VerUpgradeRes, key: 'libName' | 'repoName', order: 'asc' | 'desc'): number {
-    const aValue = a[key] || '';
-    const bValue = b[key] || '';
-    return order === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-}
-
-/**
- * Sorts the given data array based on certain criteria.
- * @param data - The array of VerUpgradeRes objects to be sorted.
- * @param sort - Optional sorting criteria.
- * @returns A Promise that resolves to the sorted array of VerUpgradeRes objects.
- */
-async function sortData(data: VerUpgradeRes[], sort?: VersionUpgradeSortType): Promise<VerUpgradeRes[]> {
-    return data.sort((a, b) => {
-        if (a.isCore !== b.isCore) {
-            return sortByIsCore(a, b);
-        }
-        if ((a.dateDiff ?? 0) !== (b.dateDiff ?? 0)) {
-            return sortByDateDiff(a, b);
-        }
-        if (sort && (a[sort.key] !== b[sort.key])) {
-            return sortByKey(a, b, sort.key, sort.order);
-        }
-        return 0;
-    });
-}
-
-/**
- * Paginates an array of data.
- * 
- * @param data - The array of data to be paginated.
- * @param page - The page number to retrieve.
- * @param limit - The number of items per page.
- * @returns A promise that resolves to the paginated array of data.
- */
-async function paginate<T>(data: T[], page: number, limit: number): Promise<T[]> {
-    const start = (page - 1) * limit;
-    const end = page * limit;
-    return data.slice(start, end);
-}
 
 /**
  * Retrieves the version upgrades for a given search query, page, limit, repository IDs, and optional sorting criteria.
