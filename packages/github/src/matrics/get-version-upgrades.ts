@@ -144,15 +144,16 @@ export async function getVersionUpgrades(
     limit: number,
     repoIds: string[],
     sort?: Github.Type.VersionUpgradeSortType,
-): Promise<Github.Type.VerUpgradeRes[]> {
+): Promise<Github.Type.VerUpgFinalRes> {
     try {
 
         // fetching repo-library data from elastic search
         const updatedRepoLibs = await getESVersionUpgradeData(repoIds, search);
 
         if (!updatedRepoLibs?.length) {
-            return [];
+            return { versionData: [], page, totalPages: 0 };
         }
+
         const libNames = updatedRepoLibs?.map((lib: Github.Type.RepoLibType) => (lib.libName));
 
         // fetching records from dynamo db for latest version and release date
@@ -172,13 +173,13 @@ export async function getVersionUpgrades(
                 } :
                 { ...lib, latestVerDate: '', latestVer: '', dateDiff: undefined };
         });
-
+        const totalPages = Math.ceil(finalData.length / limit);
         // sorting data
         const sortedData = await sortData(finalData, sort);
 
         // paginating data
-        const paginatedData = paginate(sortedData, page, limit);
-        return paginatedData;
+        const paginatedData = await paginate(sortedData, page, limit);
+        return { versionData: paginatedData, totalPages, page };
 
     } catch (e) {
         logger.error('versionUpgrade.error: Error while fetching version upgrades', e);

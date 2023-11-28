@@ -24,6 +24,7 @@ import {
   LibraryRecord,
   RepoLibType,
   RepoNameType,
+  VerUpgFinalRes,
   VerUpgradeRes,
   VersionUpgradeSortType
 } from './aggregations/version-upgrades';
@@ -65,5 +66,6 @@ export {
   RepoNameType,
   DDRecordType,
   LibraryRecord,
-  VerUpgradeRes
+  VerUpgradeRes,
+  VerUpgFinalRes
 };
