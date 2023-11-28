@@ -10,6 +10,8 @@ import {
   ScanCommandOutput,
   DeleteCommandInput,
   DeleteCommand,
+  BatchGetCommandInput,
+  BatchGetCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { IDynmoDbDocClient } from '../types';
 
@@ -53,6 +55,17 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
   public async find(getParams: QueryCommandInput): Promise<Record<string, unknown> | undefined> {
     const ddbRes = await this.getDdbDocClient().send(new QueryCommand(getParams));
     return ddbRes.Items ? ddbRes.Items[0] : undefined;
+  }
+
+  /**
+   * Retrieves items from one or more tables in a single operation.
+   * @param params - The input parameters for the batchGet operation.
+   * @returns A promise that resolves with the result of the batchGet operation.
+   */
+  public async batchGet(params: BatchGetCommandInput): Promise<Array<unknown>> {
+    const command = new BatchGetCommand(params);
+    const ddbRes = await this.getDdbDocClient().send(command);
+    return ddbRes?.Responses;
   }
 
   public async put(putParams: PutCommandInput): Promise<void> {

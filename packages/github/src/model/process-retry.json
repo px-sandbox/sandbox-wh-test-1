@@ -1,5 +1,5 @@
 {
-  "TableName": "process-retry",
+  "TableName": "manasaggarwal-pulse-dx-process-retry",
   "KeySchema": [
     {
       "AttributeName": "processId",

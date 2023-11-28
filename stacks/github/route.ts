@@ -105,6 +105,16 @@ export function initializeRoutes(
             authorizer: 'universal',
         },
 
+        // GET Technical Success Criteria metrics
+        'GET /github/graph/version-upgrades': {
+            function: {
+                handler: 'packages/github/src/service/version-upgrades.handler',
+                bind: [libMasterTable],
+            },
+            authorizer: 'universal',
+
+        },
+
         // GET Historical Data
         'GET /github/history': {
             function: {
