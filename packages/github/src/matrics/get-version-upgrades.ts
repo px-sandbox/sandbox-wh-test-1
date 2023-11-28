@@ -51,11 +51,21 @@ async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRe
  * @param repoIds An array of repository IDs.
  * @returns A promise that resolves to an array of RepoLibType objects representing the upgraded version data.
  */
-async function getESVersionUpgradeData(repoIds: string[]): Promise<Github.Type.RepoLibType[]> {
+async function getESVersionUpgradeData(repoIds: string[], searchString: string): Promise<Github.Type.RepoLibType[]> {
     // query for searching and getting repo-name and repo-library data from elastic search
-    const query = esb.boolQuery().
-        should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)]).
-        minimumShouldMatch(1).toJSON();
+
+    const query = esb.boolQuery()
+        .should([
+            esb.termsQuery('body.repoId', repoIds),
+            esb.termsQuery('body.id', repoIds)
+        ])
+        .minimumShouldMatch(1);
+
+    if (searchString) {
+        query.must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`));
+    }
+
+    const finalQuery = query.toJSON();
 
 
     // continually fetching repo-library data from elastic search until all data is fetched
@@ -67,7 +77,7 @@ async function getESVersionUpgradeData(repoIds: string[]): Promise<Github.Type.R
         const data = await esClientObj.getClient().search({
             index: Github.Enums.IndexName.GitRepoLibrary,
             body: {
-                query,
+                query: finalQuery,
             },
             from: 100 * (counter - 1),
             size: 100,
@@ -91,7 +101,7 @@ async function getESVersionUpgradeData(repoIds: string[]): Promise<Github.Type.R
         const repoNamesData = await esClientObj.getClient().search({
             index: Github.Enums.IndexName.GitRepo,
             body: {
-                query,
+                query: finalQuery,
             },
             from: 100 * (counter2 - 1),
             size: 100,
@@ -138,9 +148,12 @@ export async function getVersionUpgrades(
     try {
 
         // fetching repo-library data from elastic search
-        const updatedRepoLibs = await getESVersionUpgradeData(repoIds);
+        const updatedRepoLibs = await getESVersionUpgradeData(repoIds, search);
 
-        const libNames = updatedRepoLibs.map((lib: Github.Type.RepoLibType) => (lib.libName));
+        if (!updatedRepoLibs?.length) {
+            return [];
+        }
+        const libNames = updatedRepoLibs?.map((lib: Github.Type.RepoLibType) => (lib.libName));
 
         // fetching records from dynamo db for latest version and release date
         const ddRecords: Github.Type.DDRecordType[] = await fetchDDRecords([...(new Set(libNames))]);
