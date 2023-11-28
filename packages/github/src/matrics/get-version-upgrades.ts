@@ -35,11 +35,11 @@ async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRe
     };
 
     try {
-        const data: Record<string, any> = await new DynamoDbDocClient().batchGet(params);
+        const data = await new DynamoDbDocClient().batchGet(params);
         logger.info('Items:', data);
         const tableIndex = Table.libMaster.tableName;
 
-        return data[tableIndex];
+        return data ? (data[tableIndex] as Github.Type.LibraryRecord[]) : [];
     } catch (err) {
         logger.error('Error fetching items:', err);
         throw err;

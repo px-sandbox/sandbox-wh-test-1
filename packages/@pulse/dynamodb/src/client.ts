@@ -62,7 +62,7 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
    * @param params - The input parameters for the batchGet operation.
    * @returns A promise that resolves with the result of the batchGet operation.
    */
-  public async batchGet(params: BatchGetCommandInput): Promise<Array<unknown>> {
+  public async batchGet(params: BatchGetCommandInput): Promise<Record<string, Record<string, unknown>[]> | undefined> {
     const command = new BatchGetCommand(params);
     const ddbRes = await this.getDdbDocClient().send(command);
     return ddbRes?.Responses;
