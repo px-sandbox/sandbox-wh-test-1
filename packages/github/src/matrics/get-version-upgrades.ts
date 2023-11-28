@@ -11,7 +11,6 @@ import {
     DDRecordType,
     RepoLibType,
     RepoNameType,
-    UpdatedRepoLibsType,
     VersionUpgradeSortType
 } from 'abstraction/github/type';
 import { LibraryRecord, VerUpgradeRes } from 'abstraction/github/type/aggregations/version-upgrades';
@@ -57,9 +56,9 @@ async function fetchDDRecords(libNames: string[]): Promise<LibraryRecord[]> {
 /**
  * Retrieves the upgraded version data for the given repository IDs.
  * @param repoIds An array of repository IDs.
- * @returns A promise that resolves to an array of UpdatedRepoLibsType objects representing the upgraded version data.
+ * @returns A promise that resolves to an array of RepoLibType objects representing the upgraded version data.
  */
-async function getESVersionUpgradeData(repoIds: string[]): Promise<UpdatedRepoLibsType[]> {
+async function getESVersionUpgradeData(repoIds: string[]): Promise<RepoLibType[]> {
     // query for searching and getting repo-name and repo-library data from elastic search
     const query = esb.boolQuery().
         should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)]).

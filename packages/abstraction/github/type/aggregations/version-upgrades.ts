@@ -57,9 +57,6 @@ export type DDRecordType = {
     libName: string;
 };
 
-export type UpdatedRepoLibsType = RepoLibType;
-
-
 export type LibraryRecord = {
     version: string;
     releaseDate: string;

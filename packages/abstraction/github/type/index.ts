@@ -23,7 +23,6 @@ import {
   DDRecordType,
   RepoLibType,
   RepoNameType,
-  UpdatedRepoLibsType,
   VersionUpgradeSortType
 } from './aggregations/version-upgrades';
 
@@ -63,5 +62,4 @@ export {
   RepoLibType,
   RepoNameType,
   DDRecordType,
-  UpdatedRepoLibsType
 };
