@@ -7,12 +7,6 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
 import { Github } from 'abstraction';
 import moment from 'moment';
-import {
-    DDRecordType,
-    RepoLibType,
-    RepoNameType,
-    VersionUpgradeSortType
-} from 'abstraction/github/type';
 import { LibraryRecord, VerUpgradeRes } from 'abstraction/github/type/aggregations/version-upgrades';
 import { paginate, sortData } from '../util/version-upgrades';
 import { searchedDataFormator } from '../util/response-formatter';
@@ -58,7 +52,7 @@ async function fetchDDRecords(libNames: string[]): Promise<LibraryRecord[]> {
  * @param repoIds An array of repository IDs.
  * @returns A promise that resolves to an array of RepoLibType objects representing the upgraded version data.
  */
-async function getESVersionUpgradeData(repoIds: string[]): Promise<RepoLibType[]> {
+async function getESVersionUpgradeData(repoIds: string[]): Promise<Github.Type.RepoLibType[]> {
     // query for searching and getting repo-name and repo-library data from elastic search
     const query = esb.boolQuery().
         should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)]).
@@ -89,7 +83,7 @@ async function getESVersionUpgradeData(repoIds: string[]): Promise<RepoLibType[]
     } while (repoLibs?.length);
 
 
-    const repoNamesArr: RepoNameType[] = [];
+    const repoNamesArr: Github.Type.RepoNameType[] = [];
     let counter2 = 1;
     let repoNames;
 
@@ -114,8 +108,8 @@ async function getESVersionUpgradeData(repoIds: string[]): Promise<RepoLibType[]
 
 
     // adding repoName to repoLibData
-    const updatedRepoLibs = repoLibData.map((lib: RepoLibType) => {
-        const matchingRepo = repoNamesArr.find((repo: RepoNameType) => repo.id === lib.repoId);
+    const updatedRepoLibs = repoLibData.map((lib: Github.Type.RepoLibType) => {
+        const matchingRepo = repoNamesArr.find((repo: Github.Type.RepoNameType) => repo.id === lib.repoId);
 
         return matchingRepo ?
             { ...lib, repoName: matchingRepo.name, currVerDate: lib.releaseDate, currVer: lib.version } :
@@ -140,21 +134,22 @@ export async function getVersionUpgrades(
     page: number,
     limit: number,
     repoIds: string[],
-    sort?: VersionUpgradeSortType,
+    sort?: Github.Type.VersionUpgradeSortType,
 ): Promise<VerUpgradeRes[]> {
     try {
 
         // fetching repo-library data from elastic search
         const updatedRepoLibs = await getESVersionUpgradeData(repoIds);
 
-        const libNames = updatedRepoLibs.map((lib: RepoLibType) => (lib.libName));
+        const libNames = updatedRepoLibs.map((lib: Github.Type.RepoLibType) => (lib.libName));
 
         // fetching records from dynamo db for latest version and release date
-        const ddRecords: DDRecordType[] = await fetchDDRecords([...(new Set(libNames))]);
+        const ddRecords: Github.Type.DDRecordType[] = await fetchDDRecords([...(new Set(libNames))]);
 
         // adding latest version and release date to repo-library data
-        const finalData = updatedRepoLibs.map((lib: RepoLibType) => {
-            const latestVerData = ddRecords.find((ddRecord: DDRecordType) => ddRecord.libName === lib.libName);
+        const finalData = updatedRepoLibs.map((lib: Github.Type.RepoLibType) => {
+            const latestVerData = ddRecords.
+                find((ddRecord: Github.Type.DDRecordType) => ddRecord.libName === lib.libName);
             const date1 = moment(lib.currVerDate);
             const date2 = moment(latestVerData?.releaseDate);
             const diffMonth = date2.diff(date1, 'months');
