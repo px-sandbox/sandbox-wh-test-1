@@ -21,7 +21,7 @@ export function initializeRoutes(
         currentDepRegistryQueue,
         latestDepRegistry,
     } = queues;
-    const { retryProcessTable, githubMappingTable } = githubDDb;
+    const { retryProcessTable, githubMappingTable, libMasterTable } = githubDDb;
     return {
         // GET Metadata route
         'GET /github/metadata': {
@@ -103,6 +103,16 @@ export function initializeRoutes(
         'GET /github/graph/pr-wait-time': {
             function: 'packages/github/src/service/pr-wait-time.handler',
             authorizer: 'universal',
+        },
+
+        // GET Technical Success Criteria metrics
+        'GET /github/graph/version-upgrades': {
+            function: {
+                handler: 'packages/github/src/service/version-upgrades.handler',
+                bind: [libMasterTable],
+            },
+            authorizer: 'universal',
+
         },
 
         // GET Historical Data

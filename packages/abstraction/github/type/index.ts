@@ -19,6 +19,13 @@ import { ActiveBranches, RawActiveBRanches } from './active-branches';
 import { IndexMapping } from './index-mapping';
 import { RepoLibrary } from './repo-library';
 import { LibInfo } from './lib-info';
+import {
+  DDRecordType,
+  RepoLibType,
+  RepoNameType,
+  UpdatedRepoLibsType,
+  VersionUpgradeSortType
+} from './aggregations/version-upgrades';
 
 export {
   Branch,
@@ -51,5 +58,10 @@ export {
   RawActiveBRanches,
   IndexMapping,
   RepoLibrary,
-  LibInfo
+  LibInfo,
+  VersionUpgradeSortType,
+  RepoLibType,
+  RepoNameType,
+  DDRecordType,
+  UpdatedRepoLibsType
 };

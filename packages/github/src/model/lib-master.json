@@ -1,5 +1,5 @@
 {
-    "TableName": "charchitkandelwal-pulse-dx-libMaster",
+    "TableName": "manasaggarwal-pulse-dx-libMaster",
     "KeySchema": [
         {
             "AttributeName": "libName",
