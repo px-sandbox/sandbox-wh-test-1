@@ -27,6 +27,13 @@ export type RepoLibType = BaseRepoType & {
 
 export type VerUpgradeRes = RepoLibType & {
     dateDiff?: number;
+
+}
+
+export type VerUpgFinalRes = {
+    versionData: VerUpgradeRes[];
+    totalPages?: number;
+    page?: number;
 }
 
 export type RepoNameType = {
