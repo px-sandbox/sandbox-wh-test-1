@@ -11,7 +11,8 @@ async function sendAllDepsToQueue(items: Array<{ libName: string; version: strin
             items.map(async (item) => {
                 const { libName, version } = item;
                 const depName = libName.split('npm_')[1];
-                new SQSClient().sendMessage({ depName, version }, Queue.qMasterLibInfo.queueUrl);
+                logger.info(`sendAllDepsToQueue: libname: ${depName}, version: ${version}`);
+                await new SQSClient().sendMessage({ depName, version }, Queue.qMasterLibInfo.queueUrl);
             })
         );
     } catch (err) {
@@ -33,6 +34,7 @@ export async function handler(): Promise<void> {
             items = data.Items ? data.Items as { libName: string; version: string }[] : [];
             params.ExclusiveStartKey = data.LastEvaluatedKey;
             if (items.length > 0) {
+                logger.info(`UpdateLatestDepHandler: ${items.length} items found`);
                 // eslint-disable-next-line no-await-in-loop
                 await sendAllDepsToQueue(items);
             }
