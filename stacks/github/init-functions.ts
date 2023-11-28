@@ -26,7 +26,7 @@ export function initializeFunctions(
     stack: Stack,
     queuesForFunctions: { [key: string]: Queue },
     githubDDb: GithubTables
-): Function[] {// eslint-disable-line @typescript-eslint/ban-types
+): Record<string, Function> {// eslint-disable-line @typescript-eslint/ban-types
     const {
         GITHUB_APP_PRIVATE_KEY_PEM,
         GITHUB_APP_ID,
@@ -36,7 +36,12 @@ export function initializeFunctions(
         OPENSEARCH_USERNAME,
     } = use(commonConfig);
 
-    const { ghCopilotFormatDataQueue, ghCopilotIndexDataQueue, branchCounterFormatterQueue } = queuesForFunctions;
+    const {
+        ghCopilotFormatDataQueue,
+        ghCopilotIndexDataQueue,
+        branchCounterFormatterQueue,
+        masterLibraryQueue,
+    } = queuesForFunctions;
 
     const ghCopilotFunction = new Function(stack, 'fnGithubCopilot', {
         handler: 'packages/github/src/cron/github-copilot.handler',
@@ -54,9 +59,19 @@ export function initializeFunctions(
         bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchCounterFormatterQueue],
     });
 
-    return [
+    const initProcessRetry = initProcessRetryFunction(stack, githubDDb);
+
+    const ghUpdateLatestDepOnDDBFunction = new Function(stack, 'fnUpdateLatestDepOnDDB', {
+        handler: 'packages/github/src/cron/update-latest-dep.handler',
+        timeout: '300 seconds',
+        bind: [githubDDb.libMasterTable, masterLibraryQueue],
+    });
+
+    return {
         ghCopilotFunction,
         ghBranchCounterFunction,
-        initProcessRetryFunction(stack, githubDDb),
-    ];
+        processRetryFunction: initProcessRetry,
+        ghUpdateLatestDepOnDDBFunction,
+    };
+
 }
