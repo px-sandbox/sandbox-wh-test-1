@@ -16,14 +16,14 @@ export async function sortData(data: VerUpgradeRes[], sort?: VersionUpgradeSortT
         Github.Enums.SortOrder.DESC,
     ];
 
-
-    if (sort?.key === Github.Enums.SortKey.DATEDIFF) {
-        sortKeys.push(Github.Enums.SortKey.DATEDIFF);
+    if (sort) {
+        sortKeys.push(sort.key);
         sortDir.push(sort.order);
-    } else if (sort?.key === Github.Enums.SortKey.REPONAME || sort?.key === Github.Enums.SortKey.LIBNAME) {
-        sortKeys.push(...[sort.key, Github.Enums.SortKey.DATEDIFF]);
-        sortDir.push(...[sort.order, Github.Enums.SortOrder.DESC]);
+    } else {
+        sortKeys.push(Github.Enums.SortKey.DATEDIFF);
+        sortDir.push(Github.Enums.SortOrder.DESC);
     }
+
 
     return _.orderBy(data, sortKeys, sortDir);
 
