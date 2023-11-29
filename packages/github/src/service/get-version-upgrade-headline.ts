@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
