@@ -153,4 +153,23 @@ export class ElasticSearchClient implements IElasticSearchClient {
       throw err;
     }
   }
+  /**
+   * paginate a document from the specified Elasticsearch index.
+   */
+  public async paginateSearch(
+    indexName: string,
+    query: object
+  ): Promise<RequestParams.Search<MultiSearchBody>> {
+    try {
+      await this.client.indices.refresh({ index: indexName });
+      const { body } = await this.client.search({
+        index: indexName,
+        body: query,
+      });
+      return body;
+    } catch (err) {
+      logger.error('searchWithEsb.error: ', { err });
+      throw err;
+    }
+  }
 }
