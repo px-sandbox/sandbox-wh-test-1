@@ -1,3 +1,4 @@
+import { Github } from "abstraction";
 import { VerUpgradeRes, VersionUpgradeSortType } from "abstraction/github/type/aggregations/version-upgrades";
 import _ from "lodash";
 
@@ -10,16 +11,20 @@ import _ from "lodash";
 export async function sortData(data: VerUpgradeRes[], sort?: VersionUpgradeSortType): Promise<VerUpgradeRes[]> {
     const sortKeys = [
         'isCore',
-        'dateDiff'
     ];
-    const sortDir: ("asc" | "desc")[] = [
-        'desc',
-        'desc'
+    const sortDir = [
+        Github.Enums.SortOrder.DESC,
     ];
-    if (sort) {
-        sortKeys.push(`${sort.key}`);
-        sortDir.push(`${sort.order}`);
+
+
+    if (sort?.key === Github.Enums.SortKey.DATEDIFF) {
+        sortKeys.push(Github.Enums.SortKey.DATEDIFF);
+        sortDir.push(sort.order);
+    } else if (sort?.key === Github.Enums.SortKey.REPONAME || sort?.key === Github.Enums.SortKey.LIBNAME) {
+        sortKeys.push(...[sort.key, Github.Enums.SortKey.DATEDIFF]);
+        sortDir.push(...[sort.order, Github.Enums.SortOrder.DESC]);
     }
+
     return _.orderBy(data, sortKeys, sortDir);
 
 }
