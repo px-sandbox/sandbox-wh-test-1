@@ -1,5 +1,3 @@
-import { SortKey, SortOrder } from "../../enums";
-
 type BaseRepoType = {
     _id: string;
     repoId: string;
@@ -14,8 +12,8 @@ type BaseRepoType = {
 
 
 export type VersionUpgradeSortType = {
-    key: SortKey;
-    order: SortOrder;
+    key: 'libName' | 'repoName';
+    order: 'asc' | 'desc';
 };
 
 export type RepoLibType = BaseRepoType & {

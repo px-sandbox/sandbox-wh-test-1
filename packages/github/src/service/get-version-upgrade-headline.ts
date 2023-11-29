@@ -54,9 +54,10 @@ const getLibFromES = async (
     countOutOfDateLib: number;
     countUpToDateLib: number;
 }> => {
+    let libFormatData;
     try {
         const libData = [];
-        const size = 100;
+        const size = 2;
         let from = 0;
         const esClientObj = new ElasticSearchClient({
             host: Config.OPENSEARCH_NODE,
@@ -75,17 +76,16 @@ const getLibFromES = async (
                 .from(from)
                 .toJSON() as { query: object };
 
-
-            const esLibData = await esClientObj.searchWithEsb(
+            const esLibData = await esClientObj.paginateSearch(
                 Github.Enums.IndexName.GitRepoLibrary,
-                query.query
+                query
             );
 
-            const libFormatData = await searchedDataFormator(esLibData);
+            libFormatData = await searchedDataFormator(esLibData);
             libData.push(...libFormatData)
             from += size;
         }
-        while (libData.length > 100)
+        while (libFormatData.length >= size)
         const libNameAndVersion = libData.map((lib: { libName: string; version: string, releaseDate: string }) => ({
             libName: lib.libName,
             version: lib.version,
