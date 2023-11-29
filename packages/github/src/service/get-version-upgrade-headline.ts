@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
@@ -75,11 +76,12 @@ const getLibFromES = async (
                 .toJSON() as { query: object };
 
 
-            const esLibData = esClientObj.searchWithEsb(
+            const esLibData = await esClientObj.searchWithEsb(
                 Github.Enums.IndexName.GitRepoLibrary,
                 query.query
             );
-            const libFormatData = searchedDataFormator(esLibData);
+
+            const libFormatData = await searchedDataFormator(esLibData);
             libData.push(...libFormatData)
             from += size;
         }
