@@ -1,6 +1,7 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { logProcessToRetry } from '../../../util/retry-process';
 import { RepositoryProcessor } from '../../../processors/repo';
 
 export const handler = async function repoFormattedDataReciever(event: SQSEvent): Promise<void> {
@@ -21,6 +22,7 @@ export const handler = async function repoFormattedDataReciever(event: SQSEvent)
         await repoProcessor.sendDataToQueue(data, Queue.qGhRepoIndex.queueUrl);
       } catch (error) {
         logger.error('repoFormattedDataReciever.error', error);
+        await logProcessToRetry(record, Queue.qGhRepoFormat.queueUrl, error as Error);
       }
     })
   );
