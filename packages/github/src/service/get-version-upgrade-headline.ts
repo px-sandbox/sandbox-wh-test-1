@@ -57,7 +57,7 @@ const getLibFromES = async (
     let libFormatData;
     try {
         const libData = [];
-        const size = 2;
+        const size = 100;
         let from = 0;
         const esClientObj = new ElasticSearchClient({
             host: Config.OPENSEARCH_NODE,

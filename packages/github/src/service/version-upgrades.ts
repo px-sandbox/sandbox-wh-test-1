@@ -10,12 +10,13 @@ const versionUpgrades = async function versionUpgrades(
     const search: string = event.queryStringParameters?.search ?? '';
     const page: string = event.queryStringParameters?.page ?? '';
     const limit: string = event.queryStringParameters?.limit ?? '10';
-    const sort: VersionUpgradeSortType | undefined =
-        event.queryStringParameters?.sort as VersionUpgradeSortType | undefined;
+    let sort = event.queryStringParameters?.sort ?? undefined;
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
 
     try {
-        const verUpgrades = await getVersionUpgrades(search, parseInt(page, 10), parseInt(limit, 10), repoIds, sort);
+        sort = sort ? JSON.parse(decodeURIComponent(sort)) : undefined;
+        const verUpgrades = await getVersionUpgrades(search, parseInt(page, 10), parseInt(limit, 10), repoIds,
+            sort as VersionUpgradeSortType | undefined);
 
         return responseParser
             .setBody(verUpgrades)
