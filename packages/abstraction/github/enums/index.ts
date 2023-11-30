@@ -1,3 +1,4 @@
+import { SortKey, SortOrder } from './version-upgrades';
 import { IndexName } from './es-index';
 import { Event } from './webhook-event';
 import { Repo, Branch, Organization, Comments, PullRequest } from './webhook-action';
@@ -18,4 +19,6 @@ export {
   ReviewState,
   UserType,
   OrgConst,
+  SortKey,
+  SortOrder
 };
