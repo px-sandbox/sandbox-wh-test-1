@@ -29,6 +29,7 @@ import {
   VersionUpgradeSortType
 } from './aggregations/version-upgrades';
 import { RepoSastScans } from './repo-sast-scans';
+
 export {
   Branch,
   Organization,

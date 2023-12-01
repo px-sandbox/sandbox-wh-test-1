@@ -5,21 +5,21 @@ import { HttpStatusCode, logger, responseParser } from "core";
 import { repoSastScansFomatter, storeScanReportToES } from "src/processors/repo-sast-scans";
 
 
-async function deletePrevDependencies(repoId: string): Promise<void> {
-    const esClientObj = new ElasticSearchClient({
-        host: Config.OPENSEARCH_NODE,
-        username: Config.OPENSEARCH_USERNAME ?? '',
-        password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const matchQry = esb.matchQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`).toJSON();
-    const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
+// async function deletePrevDependencies(repoId: string): Promise<void> {
+//     const esClientObj = new ElasticSearchClient({
+//         host: Config.OPENSEARCH_NODE,
+//         username: Config.OPENSEARCH_USERNAME ?? '',
+//         password: Config.OPENSEARCH_PASSWORD ?? '',
+//     });
+//     const matchQry = esb.matchQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`).toJSON();
+//     const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
 
-    await esClientObj.updateByQuery(
-        Github.Enums.IndexName.GitRepoLibrary,
-        matchQry,
-        script.toJSON()
-    );
-}
+//     await esClientObj.updateByQuery(
+//         Github.Enums.IndexName.GitRepoLibrary,
+//         matchQry,
+//         script.toJSON()
+//     );
+// }
 export const handler = async function repoSastScans(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 
     try {
