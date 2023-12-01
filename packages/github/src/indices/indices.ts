@@ -451,6 +451,30 @@ const indices = [
         }
       }
     }
+  },
+  {
+    name: Github.Enums.IndexName.GitRepoScans,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            errorMsg: { type: 'keyword' },
+            ruleId: { type: 'keyword' },
+            repoId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            branch: { type: 'keyword' },
+            fileName: { type: 'text' },
+            lineNumber: { type: 'integer' },
+            codeSnippet: { type: 'text' },
+            date: { type: 'date', format: 'strict_date_optional_time' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            isDeleted: { type: 'boolean' },
+          },
+        },
+      },
+    },
   }
 ];
 

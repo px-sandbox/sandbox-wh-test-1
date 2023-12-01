@@ -173,6 +173,12 @@ export function initializeRoutes(
                 bind: [libMasterTable]
             },
             authorizer: 'universal',
+        },
+        'GET /github/repo-sast-scans': {
+            function: {
+                handler: 'packages/github/src/service/repo-sast-scans.handler',
+            },
+            authorizer: 'universal',
         }
     };
 }
