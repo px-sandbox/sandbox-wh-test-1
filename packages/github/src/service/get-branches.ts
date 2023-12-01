@@ -20,7 +20,7 @@ const esClient = new ElasticSearchClient({
 async function fetchBranchesData(repoIds: string[]): Promise<string[]> {
 
     const query = esb.boolQuery().
-        must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', false)]).toJSON();
+        must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', true)]).toJSON();
 
     logger.info('GET_GITHUB_BRANCH_DETAILS: will now fetch data from ES');
     const branches = await esClient.searchWithEsb(Github.Enums.IndexName.GitBranch, query);
