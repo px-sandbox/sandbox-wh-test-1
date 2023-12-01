@@ -83,6 +83,13 @@ export function initializeRoutes(
             function: 'packages/github/src/service/get-repo.handler',
             authorizer: 'universal',
         },
+
+        // GET Github Branches data
+        'GET /github/branches': {
+            function: 'packages/github/src/service/get-branches.handler',
+            authorizer: 'universal',
+        },
+
         // GET PR comments graph data
         'GET /github/graph/number-comments-added-to-prs': {
             function: 'packages/github/src/service/get-pr-comment.handler',
