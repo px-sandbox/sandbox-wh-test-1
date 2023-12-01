@@ -20,16 +20,20 @@ const esClient = new ElasticSearchClient({
 async function fetchBranchesData(repoIds: string[]): Promise<string[]> {
 
     const query = esb.boolQuery().
-        must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', true)]).toJSON();
+        must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', false)]).toJSON();
 
+    logger.info('GET_GITHUB_BRANCH_DETAILS: will now fetch data from ES');
     const branches = await esClient.searchWithEsb(Github.Enums.IndexName.GitBranch, query);
 
     const formattedData = await searchedDataFormator(branches);
 
-    if (!formattedData.length) return [];
+    if (!formattedData.length) {
+        logger.info('GET_GITHUB_BRANCH_DETAILS: No branches data found in ES for given repoIds');
+        return [];
+    }
 
     const branchesArr: string[] = formattedData.map((data: Github.Type.FormattedBranches) => data.name);
-
+    logger.info('GET_GITHUB_BRANCH_DETAILS: branches data found in ES for given repoIds', { branchesArr });
 
     return [...new Set(branchesArr)];
 }
@@ -43,13 +47,16 @@ async function fetchBranchesData(repoIds: string[]): Promise<string[]> {
 const gitBranches = async function getBranchesData(
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+    logger.info('GET_GITHUB_BRANCH_DETAILS', { event });
 
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
     if (repoIds.length <= 0) {
+        logger.error('repoIds is empty but they are required', { repoIds });
         throw new Error('RepoIds are required');
     }
 
     try {
+
         const body = await fetchBranchesData(repoIds);
         if (!body.length) {
             return responseParser.
