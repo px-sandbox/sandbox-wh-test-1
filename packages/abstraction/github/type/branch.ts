@@ -20,19 +20,3 @@ export interface Branch {
     isDeleted: boolean;
   };
 }
-
-export type FormattedBranches = {
-  _id: string;
-  id: string;
-  githubBranchId: string;
-  name: string;
-  organizationId: string;
-  repoId: string;
-  createdAt: string;
-  isDeleted: boolean;
-  action: Array<object>;
-  createdAtDay: string;
-  computationalDate: string;
-  githubDate: string;
-  protected: boolean;
-};

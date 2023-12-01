@@ -1,5 +1,5 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import { Config } from 'sst/node/config';
@@ -32,7 +32,8 @@ async function fetchBranchesData(repoIds: string[]): Promise<string[]> {
         return [];
     }
 
-    const branchesArr: string[] = formattedData.map((data: Github.Type.FormattedBranches) => data.name);
+    const branchesArr: string[] = formattedData.
+        map((data: (Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody)) => data.name);
     logger.info('GET_GITHUB_BRANCH_DETAILS: branches data found in ES for given repoIds', { branchesArr });
 
     return [...new Set(branchesArr)];
