@@ -1,4 +1,4 @@
-import { Api, Function, StackContext } from 'sst/constructs';
+import { Api, Bucket, Function, StackContext } from 'sst/constructs';
 import { initializeApi } from './api';
 import { initializeCron } from './init-crons';
 import { initializeFunctions } from './init-functions';
@@ -20,10 +20,14 @@ export function gh({ stack }: StackContext): {
    */
   const { githubMappingTable, retryProcessTable, libMasterTable } = initializeDynamoDBTables(stack);
 
+  const bucket = new Bucket(stack, "bucket", {
+    name: "sast-error-buckets",
+    cors: false,
+  });
   /**
    *  Initialize Queues
    */
-  const restQueues = initializeQueue(stack, { githubMappingTable, retryProcessTable, libMasterTable });
+  const restQueues = initializeQueue(stack, { githubMappingTable, retryProcessTable, libMasterTable }, bucket);
   /**
    * Initialize Functions
    */
@@ -42,7 +46,7 @@ export function gh({ stack }: StackContext): {
     cronFunctions
   );
 
-  const ghAPI = initializeApi(stack, restQueues, { githubMappingTable, retryProcessTable, libMasterTable });
+  const ghAPI = initializeApi(stack, restQueues, { githubMappingTable, retryProcessTable, libMasterTable }, bucket);
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,

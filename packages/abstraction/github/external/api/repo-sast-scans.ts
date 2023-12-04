@@ -10,7 +10,7 @@ export type RepoSastScans = {
     date: string;
     branch: string;
     repoId: string;
-    organizationId: string;
+    orgId: string;
     errors: ScanErrors[];
     createdAt: string;
 };

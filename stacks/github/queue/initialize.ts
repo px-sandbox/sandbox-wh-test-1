@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { Queue } from 'sst/constructs';
+import { Bucket, Queue } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { initializeBranchQueue } from './branch';
 import { initializeCommitQueue } from './commit';
@@ -12,9 +12,10 @@ import { initializePrReviewAndCommentsQueue } from './review';
 import { initializeUserQueue } from './user';
 import { initializeBranchCounterQueue } from './branch-counter';
 import { initializeRepoLibraryQueue } from './repo-library';
+import { initializeRepoSastScanQueue } from './repo-sast-scans';
 
 // eslint-disable-next-line max-lines-per-function,
-export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: string]: Queue } {
+export function initializeQueue(stack: Stack, githubDDb: GithubTables, bucket: Bucket): { [key: string]: Queue } {
     const [
         commitFormatDataQueue,
         commitIndexDataQueue,
@@ -66,6 +67,8 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         latestDepRegistry,
         masterLibraryQueue
     ] = initializeRepoLibraryQueue(stack, githubDDb);
+
+    const repoSastScans = initializeRepoSastScanQueue(stack, bucket);
     return {
         branchFormatDataQueue,
         branchIndexDataQueue,
@@ -100,5 +103,6 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         currentDepRegistryQueue,
         latestDepRegistry,
         masterLibraryQueue,
+        repoSastScans
     };
 }

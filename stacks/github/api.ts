@@ -1,14 +1,15 @@
 import { Stack } from 'aws-cdk-lib';
-import { Api, Function, Queue, use } from 'sst/constructs';
-import { initializeRoutes } from './route';
+import { Api, Bucket, Function, Queue, use } from 'sst/constructs';
 import { commonConfig } from '../common/config';
 import { GithubTables } from '../type/tables';
+import { initializeRoutes } from './route';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeApi(
     stack: Stack,
     queue: { [key: string]: Queue },
-    githubDDb: GithubTables
+    githubDDb: GithubTables,
+    bucket: Bucket
 ): Api<{
     // eslint-disable-next-line @typescript-eslint/ban-types
     universal: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
@@ -62,7 +63,7 @@ export function initializeApi(
                     OPENSEARCH_NODE,
                     OPENSEARCH_PASSWORD,
                     OPENSEARCH_USERNAME,
-
+                    bucket,
                 ]
             },
         },
