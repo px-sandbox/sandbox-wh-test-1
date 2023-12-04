@@ -22,7 +22,7 @@ export class RepositoryProcessor extends DataProcessor<
         actionDay: moment().format('dddd'),
       },
     ];
-    if (!parentId && this.ghApiData.action !== Github.Enums.Repo.Created) {
+    if (!parentId && this.ghApiData?.action !== Github.Enums.Repo.Created) {
       logger.error('REPOSITORY_PROCESSOR_ERROR', { error: 'Repository not found', data: this.ghApiData });
       throw new Error('Repository not found');
     }
