@@ -1,4 +1,4 @@
-import { Branch } from './branch';
+import { Branch, FormattedBranches } from './branch';
 import { Organization } from './organization';
 import { Repository, RepoFormatter } from './repository';
 import { User, UserBody } from './user';
@@ -69,5 +69,6 @@ export {
   LibraryRecord,
   VerUpgradeRes,
   VerUpgFinalRes,
-  RepoSastScans
+  RepoSastScans,
+  FormattedBranches
 };

@@ -15,6 +15,7 @@ export async function sortData(data: VerUpgradeRes[], sort?: VersionUpgradeSortT
     const sortDir = [
         Github.Enums.SortOrder.DESC,
     ];
+
     if (sort) {
         sortKeys.push(sort.key);
         sortDir.push(sort.order);
@@ -22,6 +23,8 @@ export async function sortData(data: VerUpgradeRes[], sort?: VersionUpgradeSortT
         sortKeys.push(Github.Enums.SortKey.DATEDIFF);
         sortDir.push(Github.Enums.SortOrder.DESC);
     }
+
+
     return _.orderBy(data, sortKeys, sortDir);
 
 }

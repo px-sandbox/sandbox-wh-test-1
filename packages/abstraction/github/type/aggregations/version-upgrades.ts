@@ -1,4 +1,4 @@
-import { SortOrder, SortKey } from "../../enums";
+import { SortKey, SortOrder } from "../../enums";
 
 type BaseRepoType = {
     _id: string;
