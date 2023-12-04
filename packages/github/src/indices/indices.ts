@@ -471,6 +471,7 @@ const indices = [
             date: { type: 'date', format: 'strict_date_optional_time' },
             createdAt: { type: 'date', format: 'strict_date_optional_time' },
             isDeleted: { type: 'boolean' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
           },
         },
       },

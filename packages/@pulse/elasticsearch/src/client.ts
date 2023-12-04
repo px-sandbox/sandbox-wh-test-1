@@ -181,4 +181,14 @@ export class ElasticSearchClient implements IElasticSearchClient {
 
     await this.client.bulk({ refresh: true, body });
   }
+
+  public async softDeleteDocument(indexName: string, data: any[]): Promise<void> {
+
+    const body = data.flatMap(doc => [
+      { update: { _index: indexName, _id: doc._id } },
+      {
+        doc: { body: { isDeleted: true, deletedAt: new Date().toISOString() } }
+      }
+    ]);
+  }
 }
