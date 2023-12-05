@@ -4,7 +4,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { S3 } from 'aws-sdk';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import moment from 'moment';
-import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 
 export const handler = async function repoSastErrors(

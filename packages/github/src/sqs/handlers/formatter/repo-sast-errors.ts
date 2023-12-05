@@ -1,7 +1,11 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { fetchDataFromS3, repoSastErrorsFomatter, storeSastErrorReportToES } from '../../../processors/repo-sast-errors';
+import {
+    fetchDataFromS3,
+    repoSastErrorsFomatter,
+    storeSastErrorReportToES,
+} from '../../../processors/repo-sast-errors';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function repoSastErrorsDataReceiver(event: SQSEvent): Promise<void> {

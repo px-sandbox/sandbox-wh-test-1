@@ -1,10 +1,10 @@
 import { Api, Bucket, Function, StackContext } from 'sst/constructs';
+import { HttpMethods } from 'aws-cdk-lib/aws-s3';
 import { initializeApi } from './api';
 import { initializeCron } from './init-crons';
 import { initializeFunctions } from './init-functions';
 import { initializeDynamoDBTables } from './init-tables';
 import { initializeQueue } from './queue/initialize';
-import { HttpMethods } from 'aws-cdk-lib/aws-s3';
 // eslint-disable-next-line max-lines-per-function,
 export function gh({ stack }: StackContext): {
   ghAPI: Api<{
@@ -21,37 +21,43 @@ export function gh({ stack }: StackContext): {
   /**
    * Initialize Bucket
    */
-  const sastErrorsBucket = new Bucket(stack, "sastErrorBucket", {
+  const sastErrorsBucket = new Bucket(stack, 'sastErrorBucket', {
     name: `${process.env.SST_STAGE}-sast-errors`,
     cors: [
       {
         allowedMethods: [HttpMethods.GET, HttpMethods.POST],
         allowedOrigins: ['*'],
-      }]
+      },
+    ],
   });
   /**
    *  Initialize Queues
    */
-  const restQueues = initializeQueue(stack, { githubMappingTable, retryProcessTable, libMasterTable }, sastErrorsBucket);
+  const restQueues = initializeQueue(
+    stack,
+    { githubMappingTable, retryProcessTable, libMasterTable },
+    sastErrorsBucket
+  );
   /**
    * Initialize Functions
    */
-  const cronFunctions = initializeFunctions(
-    stack,
-    restQueues,
-    { githubMappingTable, retryProcessTable, libMasterTable }
-  );
+  const cronFunctions = initializeFunctions(stack, restQueues, {
+    githubMappingTable,
+    retryProcessTable,
+    libMasterTable,
+  });
 
   /**
    * Initialize Crons
    */
-  initializeCron(
-    stack,
-    stack.stage,
-    cronFunctions
-  );
+  initializeCron(stack, stack.stage, cronFunctions);
 
-  const ghAPI = initializeApi(stack, restQueues, { githubMappingTable, retryProcessTable, libMasterTable }, sastErrorsBucket);
+  const ghAPI = initializeApi(
+    stack,
+    restQueues,
+    { githubMappingTable, retryProcessTable, libMasterTable },
+    sastErrorsBucket
+  );
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,

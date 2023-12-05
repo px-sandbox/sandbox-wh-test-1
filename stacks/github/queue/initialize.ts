@@ -15,7 +15,11 @@ import { initializeRepoLibraryQueue } from './repo-library';
 import { initializeRepoSastErrorQueue } from './repo-sast-errors';
 
 // eslint-disable-next-line max-lines-per-function,
-export function initializeQueue(stack: Stack, githubDDb: GithubTables, sastErrorsBucket: Bucket): { [key: string]: Queue } {
+export function initializeQueue(
+    stack: Stack,
+    githubDDb: GithubTables,
+    sastErrorsBucket: Bucket
+): { [key: string]: Queue } {
     const [
         commitFormatDataQueue,
         commitIndexDataQueue,
@@ -61,12 +65,8 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables, sastError
         stack,
         githubDDb
     );
-    const [
-        depRegistryQueue,
-        currentDepRegistryQueue,
-        latestDepRegistry,
-        masterLibraryQueue
-    ] = initializeRepoLibraryQueue(stack, githubDDb);
+    const [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry, masterLibraryQueue] =
+        initializeRepoLibraryQueue(stack, githubDDb);
 
     const repoSastErrors = initializeRepoSastErrorQueue(stack, sastErrorsBucket);
     return {
@@ -103,6 +103,6 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables, sastError
         currentDepRegistryQueue,
         latestDepRegistry,
         masterLibraryQueue,
-        repoSastErrors
+        repoSastErrors,
     };
 }
