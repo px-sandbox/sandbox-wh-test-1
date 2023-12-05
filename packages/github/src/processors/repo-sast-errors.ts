@@ -35,7 +35,8 @@ export async function storeSastErrorReportToES(
     data: Github.Type.RepoSastErrors[],
     repoId: string,
     branch: string,
-    orgId: string
+    orgId: string,
+    createdAt: string
 ): Promise<void> {
     const esClientObj = new ElasticSearchClient({
         host: Config.OPENSEARCH_NODE,
@@ -52,7 +53,7 @@ export async function storeSastErrorReportToES(
                 `${mappingPrefixes.organization}_${orgId}`
             ),
             esb.rangeQuery('body.createdAt').gt(moment().utc().startOf('day').toISOString())
-                .lt(moment().utc().toISOString()),
+                .lt(createdAt),
             esb.termQuery('body.isDeleted', false),
         ])
         .toJSON();

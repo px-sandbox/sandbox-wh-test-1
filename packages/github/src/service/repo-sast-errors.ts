@@ -30,6 +30,7 @@ export const handler = async function repoSastErrors(
                 branch: data.branch,
                 s3Obj,
                 orgId: data.orgId,
+                createdAt: data.createdAt,
             },
             Queue.qGhRepoSastError.queueUrl
         );
