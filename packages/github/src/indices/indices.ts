@@ -453,7 +453,7 @@ const indices = [
     }
   },
   {
-    name: Github.Enums.IndexName.GitRepoScans,
+    name: Github.Enums.IndexName.GitRepoSastErrors,
     _id: { type: 'uuid' },
     mappings: {
       properties: {

@@ -57,15 +57,15 @@ export async function storeSastErrorReportToES(
         ])
         .toJSON();
     const searchedData = await esClientObj.searchWithEsb(
-        Github.Enums.IndexName.GitRepoScans,
+        Github.Enums.IndexName.GitRepoSastErrors,
         matchQry
     );
     const formattedData = await searchedDataFormator(searchedData);
     if (formattedData.length > 0) {
-        await esClientObj.bulkUpdate(Github.Enums.IndexName.GitRepoScans, formattedData);
+        await esClientObj.bulkUpdate(Github.Enums.IndexName.GitRepoSastErrors, formattedData);
         logger.info('repoSastErrors_deleted', { records: formattedData.length });
     }
-    await esClientObj.bulkInsert(Github.Enums.IndexName.GitRepoScans, data);
+    await esClientObj.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, data);
     logger.info('storeSastErrorReportToES.success');
 }
 export async function fetchDataFromS3(key: string): Promise<Github.ExternalType.Api.RepoSastErrors> {
