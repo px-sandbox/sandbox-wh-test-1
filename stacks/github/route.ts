@@ -20,6 +20,7 @@ export function initializeRoutes(
         depRegistryQueue,
         currentDepRegistryQueue,
         latestDepRegistry,
+        repoSastErrors
     } = queues;
     const { retryProcessTable, githubMappingTable, libMasterTable } = githubDDb;
     return {
@@ -180,6 +181,13 @@ export function initializeRoutes(
                 bind: [libMasterTable]
             },
             authorizer: 'universal',
+        },
+        'POST /github/repo-sast-errors': {
+            function: {
+                handler: 'packages/github/src/service/repo-sast-errors.handler',
+                bind: [repoSastErrors]
+            },
+            authorizer: 'none',
         }
     };
 }

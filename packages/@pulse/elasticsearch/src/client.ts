@@ -26,6 +26,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
         doc: { body: { isDeleted: true, deletedAt: new Date().toISOString() } }
       }
     ]);
+
     await this.client.bulk({ refresh: true, body });
   }
 
@@ -171,5 +172,14 @@ export class ElasticSearchClient implements IElasticSearchClient {
       logger.error('searchWithEsb.error: ', { err });
       throw err;
     }
+  }
+
+  public async bulkInsert(indexName: string, data: any[]): Promise<void> {
+    const body = data.flatMap(doc => [
+      { index: { _index: indexName, _id: doc._id } },
+      { body: { ...doc.body } }
+    ]);
+
+    await this.client.bulk({ refresh: true, body });
   }
 }

@@ -28,6 +28,7 @@ import {
   VerUpgradeRes,
   VersionUpgradeSortType
 } from './aggregations/version-upgrades';
+import { RepoSastErrors } from './repo-sast-errors';
 
 export {
   Branch,
@@ -68,5 +69,6 @@ export {
   LibraryRecord,
   VerUpgradeRes,
   VerUpgFinalRes,
+  RepoSastErrors,
   FormattedBranches
 };
