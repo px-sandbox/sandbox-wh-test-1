@@ -1,4 +1,4 @@
-type ScanErrors = {
+type SastError = {
     ruleId: string;
     message: string;
     location: string;
@@ -11,6 +11,6 @@ export type RepoSastErrors = {
     branch: string;
     repoId: string;
     orgId: string;
-    errors: ScanErrors[];
+    errors: SastError[];
     createdAt: string;
 };

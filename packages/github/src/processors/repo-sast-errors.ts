@@ -10,7 +10,7 @@ import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { searchedDataFormator } from '../util/response-formatter';
 
-export async function repoSastErrorsFomatter(
+export async function repoSastErrorsFormatter(
     data: Github.ExternalType.Api.RepoSastErrors
 ): Promise<Github.Type.RepoSastErrors[]> {
     return data.errors.map((error) => ({

@@ -3,7 +3,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import {
     fetchDataFromS3,
-    repoSastErrorsFomatter,
+    repoSastErrorsFormatter,
     storeSastErrorReportToES,
 } from '../../../processors/repo-sast-errors';
 import { logProcessToRetry } from '../../../util/retry-process';
@@ -17,9 +17,9 @@ export const handler = async function repoSastErrorsDataReceiver(event: SQSEvent
                 logger.info('REPO_SAST_SCAN_SQS_RECEIVER_HANDLER_FORMATTER', { messageBody });
                 const { s3Obj, repoId, branch, orgId } = messageBody;
                 const data = await fetchDataFromS3(s3Obj.key);
-                const sastErrorFormattedData = await repoSastErrorsFomatter(data);
+                const sastErrorFormattedData = await repoSastErrorsFormatter(data);
                 await storeSastErrorReportToES(sastErrorFormattedData, repoId, branch, orgId);
-                logger.info('REPO_SAST_SCAN_SQS_RECEIVER_HANDLER_FORMATTER_FROMS3', { data });
+                logger.info('REPO_SAST_SCAN_SQS_RECEIVER_HANDLER_FORMATTER_FROM_S3', { data });
             } catch (error) {
                 await logProcessToRetry(record, Queue.qGhRepoSastError.queueUrl, error as Error);
                 logger.error('repoSastScanFormattedDataReceiver.error', error);

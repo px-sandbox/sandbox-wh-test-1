@@ -18,7 +18,7 @@ export const handler = async function repoSastErrors(
             Key: `sast_errors_${data.orgId}_${data.repoId}_${data.branch.replace(
                 /\//g,
                 '_'
-            )}_${moment().toISOString()}.json`,
+            )}_${data.createdAt}.json`,
             Body: JSON.stringify(data),
             ContentType: 'application/json',
         };
