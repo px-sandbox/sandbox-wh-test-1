@@ -51,7 +51,8 @@ export async function storeSastErrorReportToES(
                 'body.organizationId',
                 `${mappingPrefixes.organization}_${orgId}`
             ),
-            esb.rangeQuery('body.createdAt').lt(moment().toISOString()),
+            esb.rangeQuery('body.createdAt').gt(moment().utc().startOf('day').toISOString())
+                .lt(moment().utc().toISOString()),
             esb.termQuery('body.isDeleted', false),
         ])
         .toJSON();
