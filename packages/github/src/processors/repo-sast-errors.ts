@@ -12,7 +12,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 
 export async function repoSastErrorsFomatter(
     data: Github.ExternalType.Api.RepoSastErrors
-): Promise<Github.Type.RepoSastScans[]> {
+): Promise<Github.Type.RepoSastErrors[]> {
     return data.errors.map((error) => ({
         _id: uuid(),
         body: {
@@ -32,7 +32,7 @@ export async function repoSastErrorsFomatter(
 }
 
 export async function storeSastErrorReportToES(
-    data: Github.Type.RepoSastScans[],
+    data: Github.Type.RepoSastErrors[],
     repoId: string,
     branch: string,
     orgId: string

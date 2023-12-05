@@ -17,8 +17,8 @@ export const handler = async function repoSastErrorsDataReceiver(event: SQSEvent
                 logger.info('REPO_SAST_SCAN_SQS_RECEIVER_HANDLER_FORMATTER', { messageBody });
                 const { s3Obj, repoId, branch, orgId } = messageBody;
                 const data = await fetchDataFromS3(s3Obj.key);
-                const scansFormattedData = await repoSastErrorsFomatter(data);
-                await storeSastErrorReportToES(scansFormattedData, repoId, branch, orgId);
+                const sastErrorFormattedData = await repoSastErrorsFomatter(data);
+                await storeSastErrorReportToES(sastErrorFormattedData, repoId, branch, orgId);
                 logger.info('REPO_SAST_SCAN_SQS_RECEIVER_HANDLER_FORMATTER_FROMS3', { data });
             } catch (error) {
                 await logProcessToRetry(record, Queue.qGhRepoSastError.queueUrl, error as Error);

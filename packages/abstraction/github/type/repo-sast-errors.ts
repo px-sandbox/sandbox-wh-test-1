@@ -1,4 +1,4 @@
-export type RepoSastScans =
+export type RepoSastErrors =
     {
         _id: string;
         body: {

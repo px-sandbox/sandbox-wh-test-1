@@ -8,7 +8,7 @@ export function initializeRepoSastErrorQueue(stack: Stack, sastErrorsBucket: Buc
         use(commonConfig);
     const repoSastErrorsQueue = new Queue(stack, 'qGhRepoSastError');
     repoSastErrorsQueue.addConsumer(stack, {
-        function: new Function(stack, 'fnRepoSastScansErrorHandler', {
+        function: new Function(stack, 'fnRepoSastErrorHandler', {
             handler: 'packages/github/src/sqs/handlers/formatter/repo-sast-errors.handler',
             bind: [
                 OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME,

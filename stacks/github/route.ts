@@ -182,7 +182,7 @@ export function initializeRoutes(
             },
             authorizer: 'universal',
         },
-        'POST /github/repo-sast-scans': {
+        'POST /github/repo-sast-errors': {
             function: {
                 handler: 'packages/github/src/service/repo-sast-errors.handler',
                 bind: [repoSastErrors]
