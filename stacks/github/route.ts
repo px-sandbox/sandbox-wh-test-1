@@ -187,7 +187,7 @@ export function initializeRoutes(
                 handler: 'packages/github/src/service/repo-sast-errors.handler',
                 bind: [repoSastErrors]
             },
-            authorizer: 'universal',
+            authorizer: 'none',
         }
     };
 }
