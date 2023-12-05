@@ -20,7 +20,7 @@ export function initializeRoutes(
         depRegistryQueue,
         currentDepRegistryQueue,
         latestDepRegistry,
-        repoSastScans
+        repoSastErrors
     } = queues;
     const { retryProcessTable, githubMappingTable, libMasterTable } = githubDDb;
     return {
@@ -182,10 +182,10 @@ export function initializeRoutes(
             },
             authorizer: 'universal',
         },
-        'GET /github/repo-sast-scans': {
+        'POST /github/repo-sast-scans': {
             function: {
-                handler: 'packages/github/src/service/repo-sast-scans.handler',
-                bind: [repoSastScans]
+                handler: 'packages/github/src/service/repo-sast-errors.handler',
+                bind: [repoSastErrors]
             },
             authorizer: 'universal',
         }

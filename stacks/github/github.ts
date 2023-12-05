@@ -4,7 +4,7 @@ import { initializeCron } from './init-crons';
 import { initializeFunctions } from './init-functions';
 import { initializeDynamoDBTables } from './init-tables';
 import { initializeQueue } from './queue/initialize';
-
+import { HttpMethods } from 'aws-cdk-lib/aws-s3';
 // eslint-disable-next-line max-lines-per-function,
 export function gh({ stack }: StackContext): {
   ghAPI: Api<{
@@ -14,20 +14,25 @@ export function gh({ stack }: StackContext): {
     admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
   }>;
 } {
-
   /** Initialize DynamoDB Tables
    *
    */
   const { githubMappingTable, retryProcessTable, libMasterTable } = initializeDynamoDBTables(stack);
-
-  const bucket = new Bucket(stack, "bucket", {
-    name: "sast-error-buckets",
-    cors: false,
+  /**
+   * Initialize Bucket
+   */
+  const sastErrorsBucket = new Bucket(stack, "sastErrorBucket", {
+    name: `${process.env.SST_STAGE}-sast-errors`,
+    cors: [
+      {
+        allowedMethods: [HttpMethods.GET, HttpMethods.POST],
+        allowedOrigins: ['*'],
+      }]
   });
   /**
    *  Initialize Queues
    */
-  const restQueues = initializeQueue(stack, { githubMappingTable, retryProcessTable, libMasterTable }, bucket);
+  const restQueues = initializeQueue(stack, { githubMappingTable, retryProcessTable, libMasterTable }, sastErrorsBucket);
   /**
    * Initialize Functions
    */
@@ -46,7 +51,7 @@ export function gh({ stack }: StackContext): {
     cronFunctions
   );
 
-  const ghAPI = initializeApi(stack, restQueues, { githubMappingTable, retryProcessTable, libMasterTable }, bucket);
+  const ghAPI = initializeApi(stack, restQueues, { githubMappingTable, retryProcessTable, libMasterTable }, sastErrorsBucket);
 
   stack.addOutputs({
     ApiEndpoint: ghAPI.url,

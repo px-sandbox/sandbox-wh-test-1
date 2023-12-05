@@ -12,10 +12,10 @@ import { initializePrReviewAndCommentsQueue } from './review';
 import { initializeUserQueue } from './user';
 import { initializeBranchCounterQueue } from './branch-counter';
 import { initializeRepoLibraryQueue } from './repo-library';
-import { initializeRepoSastScanQueue } from './repo-sast-scans';
+import { initializeRepoSastErrorQueue } from './repo-sast-errors';
 
 // eslint-disable-next-line max-lines-per-function,
-export function initializeQueue(stack: Stack, githubDDb: GithubTables, bucket: Bucket): { [key: string]: Queue } {
+export function initializeQueue(stack: Stack, githubDDb: GithubTables, sastErrorsBucket: Bucket): { [key: string]: Queue } {
     const [
         commitFormatDataQueue,
         commitIndexDataQueue,
@@ -68,7 +68,7 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables, bucket: B
         masterLibraryQueue
     ] = initializeRepoLibraryQueue(stack, githubDDb);
 
-    const repoSastScans = initializeRepoSastScanQueue(stack, bucket);
+    const repoSastErrors = initializeRepoSastErrorQueue(stack, sastErrorsBucket);
     return {
         branchFormatDataQueue,
         branchIndexDataQueue,
@@ -103,6 +103,6 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables, bucket: B
         currentDepRegistryQueue,
         latestDepRegistry,
         masterLibraryQueue,
-        repoSastScans
+        repoSastErrors
     };
 }

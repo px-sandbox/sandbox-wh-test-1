@@ -6,7 +6,7 @@ type ScanErrors = {
     snippet: string;
 };
 
-export type RepoSastScans = {
+export type RepoSastErrors = {
     date: string;
     branch: string;
     repoId: string;

@@ -17,6 +17,7 @@ export const commonConfig = ({ stack }: StackContext): {
   GITHUB_SG_ACCESS_TOKEN: Config.Secret;
   AVAILABLE_PROJECT_KEYS: Config.Secret;
   PROJECT_DELETION_AGE: Config.Secret;
+  SAST_ERROR_BUCKET: Config.Secret;
 } => ({
   OPENSEARCH_NODE: new Config.Secret(stack, 'OPENSEARCH_NODE'),
   OPENSEARCH_USERNAME: new Config.Secret(stack, 'OPENSEARCH_USERNAME'),
@@ -35,5 +36,6 @@ export const commonConfig = ({ stack }: StackContext): {
   GITHUB_SG_INSTALLATION_ID: new Config.Secret(stack, 'GITHUB_SG_INSTALLATION_ID'),
   GITHUB_WEBHOOK_SECRET: new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET'),
   GITHUB_SG_ACCESS_TOKEN: new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN'),
-  GIT_ORGANIZATION_ID: new Config.Secret(stack, 'GIT_ORGANIZATION_ID')
+  GIT_ORGANIZATION_ID: new Config.Secret(stack, 'GIT_ORGANIZATION_ID'),
+  SAST_ERROR_BUCKET: new Config.Secret(stack, 'SAST_ERROR_BUCKET'),
 });

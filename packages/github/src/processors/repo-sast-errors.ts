@@ -1,8 +1,7 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { S3 } from 'aws-sdk';
-import { GetObjectOutput, GetObjectRequest } from 'aws-sdk/clients/s3';
-import { PromiseResult } from 'aws-sdk/lib/request';
+import { GetObjectRequest } from 'aws-sdk/clients/s3';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import moment from 'moment';
@@ -11,8 +10,8 @@ import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { searchedDataFormator } from '../util/response-formatter';
 
-export async function repoSastScansFomatter(
-    data: Github.ExternalType.Api.RepoSastScans
+export async function repoSastErrorsFomatter(
+    data: Github.ExternalType.Api.RepoSastErrors
 ): Promise<Github.Type.RepoSastScans[]> {
     return data.errors.map((error) => ({
         _id: uuid(),
@@ -20,22 +19,23 @@ export async function repoSastScansFomatter(
             errorMsg: error.message,
             ruleId: error.ruleId,
             repoId: `${mappingPrefixes.repo}_${data.repoId}`,
-            organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+            organizationId: `${mappingPrefixes.organization}_${data.orgId}`,
             branch: data.branch,
             fileName: error.location,
             lineNumber: error.lineNo,
             codeSnippet: error.snippet,
             date: data.date,
-            createdAt: moment().toISOString(),
+            createdAt: data.createdAt,
             isDeleted: false,
         },
     }));
 }
 
-export async function storeScanReportToES(
+export async function storeSastErrorReportToES(
     data: Github.Type.RepoSastScans[],
     repoId: string,
-    branch: string
+    branch: string,
+    orgId: string
 ): Promise<void> {
     const esClientObj = new ElasticSearchClient({
         host: Config.OPENSEARCH_NODE,
@@ -49,7 +49,7 @@ export async function storeScanReportToES(
             esb.termQuery('body.branch', branch),
             esb.termQuery(
                 'body.organizationId',
-                `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`
+                `${mappingPrefixes.organization}_${orgId}`
             ),
             esb.rangeQuery('body.createdAt').lt(moment().toISOString()),
             esb.termQuery('body.isDeleted', false),
@@ -62,14 +62,14 @@ export async function storeScanReportToES(
     const formattedData = await searchedDataFormator(searchedData);
     if (formattedData.length > 0) {
         await esClientObj.bulkUpdate(Github.Enums.IndexName.GitRepoScans, formattedData);
-        logger.info('scanReport_deleted', { records: formattedData.length });
+        logger.info('repoSastErrors_deleted', { records: formattedData.length });
     }
     await esClientObj.bulkInsert(Github.Enums.IndexName.GitRepoScans, data);
-    logger.info('storeScanReportToES.success');
+    logger.info('storeSastErrorReportToES.success');
 }
-export async function fetchDataFromS3(key: string): Promise<GetObjectOutput> {
+export async function fetchDataFromS3(key: string): Promise<Github.ExternalType.Api.RepoSastErrors> {
     const params: GetObjectRequest = {
-        Bucket: process.env.BUCKET_NAME || 'sast-error-buckets',
+        Bucket: `${process.env.SST_STAGE}-sast-errors`,
         Key: key,
         ResponseContentType: 'application/json',
     };
