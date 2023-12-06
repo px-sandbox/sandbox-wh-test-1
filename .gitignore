@@ -44,7 +44,7 @@ Thumbs.db
 coverage
 test-reports
 
-packages/github/src/model/mapping.json
+packages/github/src/model/*.json
 
 localfile
 livefile
@@ -52,3 +52,4 @@ livefile
 pnpm-lock-deleted.yaml
 
 dynamodb_vol/*
+packages/jira/src/model/*.json
