@@ -22,7 +22,7 @@ const esClientObj = new ElasticSearchClient({
  * @param branch The branch to filter the data by.
  * @returns A promise that resolves to an array of graph data objects, each containing a date and a value.
  */
-async function getGraphData(startDate: string, endDate: string, interval: string, branch: string):
+async function getGraphData(repoIds: string[], startDate: string, endDate: string, interval: string, branch: string):
     Promise<Github.Type.ProdSecurityGraphData[]> {
 
     let graphInterval: esb.DateHistogramAggregation;
@@ -50,6 +50,7 @@ async function getGraphData(startDate: string, endDate: string, interval: string
     // query for fetching and aggregating records based on branch and date range
     const query =
         esb.requestBodySearch().size(0).query(esb.boolQuery()
+            .filter(esb.termsQuery('body.repoId', repoIds))
             .filter(esb.termQuery('body.branch', branch))
             .filter(
                 esb.rangeQuery('body.date')
@@ -60,8 +61,10 @@ async function getGraphData(startDate: string, endDate: string, interval: string
                 graphInterval
             );
 
+
     const data = await
         esClientObj.queryAggs<Github.Type.ProdSecurityAgg>(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
+
 
     // returning bucketed data
     return data?.errorsOverTime?.buckets?.map((item: Github.Type.ErrorsOverTimeBuckets) => ({
@@ -76,10 +79,15 @@ async function getGraphData(startDate: string, endDate: string, interval: string
  * @param branch - The branch name.
  * @returns A promise that resolves to the number of headline statistics.
  */
-async function getHeadlineStat(branch: string): Promise<number> {
+async function getHeadlineStat(repoIds: string[], branch: string): Promise<number> {
     const query = esb.boolQuery()
-        .must([esb.termQuery('body.branch', branch),
-        esb.termQuery('body.date', moment().format('YYYY-MM-DD'))]);
+
+        .must([
+            esb.termsQuery('body.repoId', repoIds),
+            esb.termQuery('body.branch', branch),
+            esb.termQuery('body.date', moment().format('YYYY-MM-DD'))
+        ]);
+
 
     const data = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
     const formattedData = await searchedDataFormator(data);
@@ -98,6 +106,7 @@ async function getHeadlineStat(branch: string): Promise<number> {
  * @throws If there is an error while fetching the data.
  */
 export async function getProductSecurity(
+    repoIds: string[],
     startDate: string,
     endDate: string,
     interval: string,
@@ -105,11 +114,14 @@ export async function getProductSecurity(
 ): Promise<Github.Type.ProductSecurity> {
     try {
 
-        const graphData = await getGraphData(startDate, endDate, interval, branch);
-        const headlineStat = await getHeadlineStat(branch);
+        const [graphData, headlineStat] = await Promise.all([
+            getGraphData(repoIds, startDate, endDate, interval, branch),
+            getHeadlineStat(repoIds, branch)
+        ]);
+
 
         return {
-            headline: headlineStat,
+            headline: headlineStat ?? 0,
             graphData
         }
 

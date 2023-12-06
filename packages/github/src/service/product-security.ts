@@ -10,18 +10,19 @@ import { getProductSecurity } from '../matrics/get-product-security';
  * @param event - The APIGatewayProxyEvent object containing the request details.
  * @returns A Promise that resolves to an APIGatewayProxyResult object representing the response.
  */
-const productSecurity = async function productSecurity(
+const productSecurity = async function handler(
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
     const startDate: string = event.queryStringParameters?.startDate ?? '';
     const endDate: string = event.queryStringParameters?.endDate ?? '';
     const interval: string = event.queryStringParameters?.interval ?? '';
     const branch = event.queryStringParameters?.branch ?? '';
+    const repoIds = event.queryStringParameters?.repoIds?.split(',') ?? [];
 
 
     try {
 
-        const prodSecurityRes = await getProductSecurity(startDate, endDate, interval, branch);
+        const prodSecurityRes = await getProductSecurity(repoIds, startDate, endDate, interval, branch);
 
         return responseParser
             .setBody(prodSecurityRes)
