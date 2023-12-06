@@ -30,7 +30,6 @@ export class Organization extends DataProcessor<
         publicRepos: this.ghApiData.public_repos,
         createdAt: this.ghApiData.created_at,
         updatedAt: this.ghApiData.updated_at,
-        deletedAt: false,
       },
     };
     return orgObj;

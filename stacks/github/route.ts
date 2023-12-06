@@ -197,6 +197,16 @@ export function initializeRoutes(
                 bind: [repoSastErrors]
             },
             authorizer: 'none',
-        }
+        },
+
+        // GET github branches list from ES
+        'GET /github/branch-list': {
+            function: {
+                handler: 'packages/github/src/migrations/branch-protected.handler',
+                timeout: '15 minutes',
+                bind: [repoFormatDataQueue, branchFormatDataQueue],
+            },
+            authorizer: 'admin',
+        },
     };
 }
