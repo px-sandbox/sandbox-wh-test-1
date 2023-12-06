@@ -60,7 +60,8 @@ async function getGraphData(startDate: string, endDate: string, interval: string
                 graphInterval
             );
 
-    const data = await esClientObj.queryAggs<Github.Type.ProdSecurityAgg>('git_repo_scans', query.toJSON());
+    const data = await
+        esClientObj.queryAggs<Github.Type.ProdSecurityAgg>(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
 
     // returning bucketed data
     return data?.errorsOverTime?.buckets?.map((item: Github.Type.ErrorsOverTimeBuckets) => ({
@@ -80,7 +81,7 @@ async function getHeadlineStat(branch: string): Promise<number> {
         .must([esb.termQuery('body.branch', branch),
         esb.termQuery('body.date', moment().format('YYYY-MM-DD'))]);
 
-    const data = await esClientObj.searchWithEsb('git_repo_scans', query.toJSON());
+    const data = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
     const formattedData = await searchedDataFormator(data);
 
     return formattedData.length;
