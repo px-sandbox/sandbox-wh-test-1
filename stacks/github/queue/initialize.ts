@@ -68,7 +68,7 @@ export function initializeQueue(
     const [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry, masterLibraryQueue] =
         initializeRepoLibraryQueue(stack, githubDDb);
 
-    const repoSastErrors = initializeRepoSastErrorQueue(stack, sastErrorsBucket);
+    const repoSastErrors = initializeRepoSastErrorQueue(stack, sastErrorsBucket, githubDDb);
     return {
         branchFormatDataQueue,
         branchIndexDataQueue,
