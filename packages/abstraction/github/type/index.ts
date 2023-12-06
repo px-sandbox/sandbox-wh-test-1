@@ -1,4 +1,4 @@
-import { Branch, FormattedBranches } from './branch';
+import { Branch } from './branch';
 import { Organization } from './organization';
 import { Repository, RepoFormatter } from './repository';
 import { User, UserBody } from './user';
@@ -28,6 +28,8 @@ import {
   VerUpgradeRes,
   VersionUpgradeSortType
 } from './aggregations/version-upgrades';
+import { ErrorsOverTimeBuckets, ProdSecurityAgg } from './aggregations/product-security';
+import { ProdSecurityGraphData, ProductSecurity } from './product-security';
 import { RepoSastErrors } from './repo-sast-errors';
 
 export {
@@ -70,5 +72,8 @@ export {
   VerUpgradeRes,
   VerUpgFinalRes,
   RepoSastErrors,
-  FormattedBranches
+  ProdSecurityAgg,
+  ErrorsOverTimeBuckets,
+  ProductSecurity,
+  ProdSecurityGraphData
 };

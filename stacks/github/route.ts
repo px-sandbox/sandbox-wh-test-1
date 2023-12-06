@@ -123,6 +123,15 @@ export function initializeRoutes(
 
         },
 
+        // GET Technical Success Criteria metrics
+        'GET /github/graph/product-security': {
+            function: {
+                handler: 'packages/github/src/service/product-security.handler',
+            },
+            authorizer: 'universal',
+
+        },
+
         // GET Historical Data
         'GET /github/history': {
             function: {
