@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyResult } from 'aws-lambda';
@@ -8,11 +9,10 @@ import { searchedDataFormator } from '../util/response-formatter';
 import { getBranches } from '../lib/get-branch-list';
 
 
-const getReposFromES = async (
-): Promise<any> => {
+const getReposFromES = async (): Promise<any> => {
     let reposFormatData;
     try {
-        const reposData: any = [];
+        const reposData = [];
         const size = 100;
         let from = 0;
         const esClientObj = new ElasticSearchClient({
@@ -20,6 +20,7 @@ const getReposFromES = async (
             username: Config.OPENSEARCH_USERNAME ?? '',
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
+
         do {
             const query = esb
                 .requestBodySearch().size(size)
@@ -35,16 +36,15 @@ const getReposFromES = async (
             );
 
             reposFormatData = await searchedDataFormator(esReposData);
-            reposData.push(...reposFormatData)
+            reposData.push(...reposFormatData);
             from += size;
 
-            const getBranchesPromises = reposData.map((repoData: any) => {
-                return getBranches(repoData.githubRepoId, repoData.name, repoData.owner);
-            });
+            const getBranchesPromises = reposData.map((repoData) =>
+                getBranches(repoData.githubRepoId, repoData.name, repoData.owner));
             await Promise.all(getBranchesPromises);
-            return reposData;
-        }
-        while (reposFormatData.length >= size)
+        } while (reposFormatData.length === size);
+
+        return reposData;
     } catch (error) {
         logger.error('getReposFromES.error', error);
         throw error;

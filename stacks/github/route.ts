@@ -195,7 +195,7 @@ export function initializeRoutes(
             function: {
                 handler: 'packages/github/src/migrations/branch-protected.handler',
                 timeout: '15 minutes',
-                bind: [branchFormatDataQueue],
+                bind: [repoFormatDataQueue, branchFormatDataQueue],
             },
             authorizer: 'admin',
         },
