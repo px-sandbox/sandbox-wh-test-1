@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable no-await-in-loop */
 import { logger } from 'core';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
@@ -52,32 +53,35 @@ async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRe
  * @returns A promise that resolves to an array of RepoLibType objects representing the upgraded version data.
  */
 async function getESVersionUpgradeData(repoIds: string[], searchString: string): Promise<Github.Type.RepoLibType[]> {
-    // query for searching and getting repo-name and repo-library data from elastic search
 
-    const query = esb.boolQuery()
+    /* ESB QUERY FOR SEARCHING AND GETTING REPO-LIBRARY DATA FROM ELASTIC SEARCH */
+    const repoLibQuery = esb.boolQuery()
         .should([
             esb.termsQuery('body.repoId', repoIds),
             esb.termsQuery('body.id', repoIds)
         ])
         .minimumShouldMatch(1);
 
+    // If search is given then we add that to query to fetched only searched records
     if (searchString) {
-        query.must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`));
+        repoLibQuery.must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`));
     }
 
-    const finalQuery = query.toJSON();
+    // final repo Libs query to be passed to elastic search
+    const finalRepoLibQuery = repoLibQuery.toJSON();
 
 
     // continually fetching repo-library data from elastic search until all data is fetched
-    const repoLibData = [];
-    let counter = 1;
-    let repoLibs;
+    const repoLibData = []; // array to store repo-library data
+    let counter = 1; // counter for the loop to fetch data from elastic search
+    let repoLibs; // variable to store fetched-formatted-data from elastic search inside loop
 
+    // we will fetch data from elastic search continuously, until we get empty array, to get all records
     do {
         const data = await esClientObj.getClient().search({
             index: Github.Enums.IndexName.GitRepoLibrary,
             body: {
-                query: finalQuery,
+                query: finalRepoLibQuery,
             },
             from: 100 * (counter - 1),
             size: 100,
@@ -92,16 +96,26 @@ async function getESVersionUpgradeData(repoIds: string[], searchString: string):
     } while (repoLibs?.length);
 
 
-    const repoNamesArr: Github.Type.RepoNameType[] = [];
-    let counter2 = 1;
-    let repoNames;
+    /* FETCHING REPONAMES DATA FROM ELASTIC SEARCH */
 
+    const repoNamesQuery = esb.boolQuery()
+        .should([
+            esb.termsQuery('body.repoId', repoIds),
+            esb.termsQuery('body.id', repoIds)
+        ])
+        .minimumShouldMatch(1).toJSON();
+
+    const repoNamesArr: Github.Type.RepoNameType[] = []; // array to store repoNames data
+    let counter2 = 1; // counter for the loop to fetch data from elastic search
+    let repoNames; // variable to store fetched-formatted-data from elastic search inside loop
+
+    // we will fetch data from elastic search continuously, until we get empty array, to get all records
     do {
-        // fetching repoNames data from elastic search
+
         const repoNamesData = await esClientObj.getClient().search({
             index: Github.Enums.IndexName.GitRepo,
             body: {
-                query: finalQuery,
+                query: repoNamesQuery,
             },
             from: 100 * (counter2 - 1),
             size: 100,
@@ -116,7 +130,7 @@ async function getESVersionUpgradeData(repoIds: string[], searchString: string):
     } while (repoNames?.length);
 
 
-    // adding repoName to repoLibData
+    /* ADDING REPONAME TO REPOLIBDATA */
     const updatedRepoLibs = repoLibData.map((lib: Github.Type.RepoLibType) => {
         const matchingRepo = repoNamesArr.find((repo: Github.Type.RepoNameType) => repo.id === lib.repoId);
 
@@ -174,6 +188,7 @@ export async function getVersionUpgrades(
                 { ...lib, latestVerDate: '', latestVer: '', dateDiff: undefined };
         });
         const totalPages = Math.ceil(finalData.length / limit);
+
         // sorting data
         const sortedData = await sortData(finalData, sort);
 
