@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { Queue, use } from 'sst/constructs';
+import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
 
@@ -20,30 +20,31 @@ export function initializeRepoQueue(
         GITHUB_SG_INSTALLATION_ID,
     } = use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDb;
-    const repoIndexDataQueue = new Queue(stack, 'qGhRepoIndex', {
-        consumer: {
-            function: 'packages/github/src/sqs/handlers/indexer/repo.handler',
-            cdk: {
-                eventSource: {
-                    batchSize: 5,
-                },
+    const repoIndexDataQueue = new Queue(stack, 'qGhRepoIndex')
+    repoIndexDataQueue.addConsumer(stack, {
+        function: new Function(stack, 'fnRepoIndex', {
+            handler: 'packages/github/src/sqs/handlers/indexer/repo.handler',
+            bind: [repoIndexDataQueue],
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 5,
             },
         },
     });
-    const repoFormatDataQueue = new Queue(stack, 'qGhRepoFormat', {
-        consumer: {
-            function: {
-                handler: 'packages/github/src/sqs/handlers/formatter/repo.handler',
-                bind: [repoIndexDataQueue],
-            },
-            cdk: {
-                eventSource: {
-                    batchSize: 5,
-                },
+    const repoFormatDataQueue = new Queue(stack, 'qGhRepoFormat')
+    repoFormatDataQueue.addConsumer(stack, {
+        function: new Function(stack, 'fnRepoFormat', {
+            handler: 'packages/github/src/sqs/handlers/formatter/repo.handler',
+            bind: [repoIndexDataQueue, repoFormatDataQueue],
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 5,
             },
         },
-    });
 
+    });
     const afterRepoSaveQueue = new Queue(stack, 'qGhAfterRepoSave', {
         consumer: {
             function: 'packages/github/src/sqs/handlers/save-branches.handler',

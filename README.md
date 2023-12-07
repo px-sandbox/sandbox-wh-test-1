@@ -68,6 +68,9 @@ After you have updated all the values accordingly, run
 5. To delete the table run following command on terminal
    `aws dynamodb delete-table --table-name <TABLE_NAME> --endpoint-url http://localhost:8000`
 
+6. To get the list tables
+   `aws dynamodb list-tables  --endpoint-url http://localhost:8000`
+
 ## Steps to deploy your stack (Can be change)
 
 1. Run `pnpm i` to install all dependencies. It will install all the dependencies
