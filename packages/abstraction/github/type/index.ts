@@ -26,11 +26,18 @@ import {
   RepoNameType,
   VerUpgFinalRes,
   VerUpgradeRes,
-  VersionUpgradeSortType
+  VersionUpgradeSortType,
 } from './aggregations/version-upgrades';
 import { ErrorsOverTimeBuckets, ProdSecurityAgg } from './aggregations/product-security';
 import { ProdSecurityGraphData, ProductSecurity } from './product-security';
 import { RepoSastErrors } from './repo-sast-errors';
+import {
+  SastErrorsData,
+  ISastErrorAggregationResponse,
+  SastErrorReport,
+  SastErrorsAggregationData,
+  SastErrorsAggregation,
+} from './aggregations/repo-sast-errors';
 
 export {
   Branch,
@@ -75,5 +82,10 @@ export {
   ProdSecurityAgg,
   ErrorsOverTimeBuckets,
   ProductSecurity,
-  ProdSecurityGraphData
+  ProdSecurityGraphData,
+  SastErrorsData,
+  ISastErrorAggregationResponse,
+  SastErrorReport,
+  SastErrorsAggregationData,
+  SastErrorsAggregation,
 };
