@@ -60,6 +60,7 @@ const gitBranches = async function getBranchesData(
 
         const body = await fetchBranchesData(repoIds);
 
+        // we are not throwing error when no branches found for given repoIds because API shouldn't fail in that case
         return responseParser.
             setBody(body).
             setMessage('Branches fetched successfully').
