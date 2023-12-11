@@ -11,7 +11,8 @@ const repoSastErrors = async function repoSastErrors(
     const limit: string = event.queryStringParameters?.limit ?? '10';
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
     const branch: string[] = event.queryStringParameters?.branch?.split(',') ?? [];
-    const orgName: string = event.queryStringParameters?.orgName ?? '';
+    //TODO: orgName is not used in the functions
+    // const orgName: string = event.queryStringParameters?.orgName ?? '';
     const startDate: string = event.queryStringParameters?.startDate || '';
     const endDate: string = event.queryStringParameters?.endDate || '';
     const sortKey: Github.Enums.SortKey = event.queryStringParameters?.sortKey as Github.Enums.SortKey ??
@@ -26,7 +27,7 @@ const repoSastErrors = async function repoSastErrors(
         }
         const sastErrorsDetails = await getRepoSastErrors(
             repoIds,
-            orgName,
+            // orgName,
             startDate,
             endDate,
             branch,
