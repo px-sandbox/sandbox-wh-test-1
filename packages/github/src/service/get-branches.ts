@@ -59,14 +59,6 @@ const gitBranches = async function getBranchesData(
     try {
 
         const body = await fetchBranchesData(repoIds);
-        if (!body.length) {
-            return responseParser.
-                setBody(body).
-                setMessage('Branches not found').
-                setStatusCode(HttpStatusCode['404']).
-                setResponseBodyCode('NOT FOUND').
-                send();
-        }
 
         return responseParser.
             setBody(body).
