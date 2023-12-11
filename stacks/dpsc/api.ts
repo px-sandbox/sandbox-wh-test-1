@@ -8,7 +8,6 @@ export function initializeApi(
     stack: Stack,
 ): Api<{
     universal: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
-    admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
 }> {
     const {
         AUTH_PUBLIC_KEY,
@@ -30,14 +29,6 @@ export function initializeApi(
                 responseTypes: ['simple'],
                 function: new Function(stack, 'universalAuth', {
                     handler: 'packages/auth/src/auth.handler',
-                    bind: [AUTH_PUBLIC_KEY],
-                }),
-            },
-            admin: {
-                type: 'lambda',
-                responseTypes: ['simple'],
-                function: new Function(stack, 'adminAuth', {
-                    handler: 'packages/auth/src/admin-auth.handler',
                     bind: [AUTH_PUBLIC_KEY],
                 }),
             },

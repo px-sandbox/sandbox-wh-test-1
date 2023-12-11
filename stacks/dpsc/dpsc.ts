@@ -5,7 +5,6 @@ import { initializeApi } from './api';
 export function dpscStack({ stack }: StackContext): {
     dpscAPI: Api<{
         universal: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
-        admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
     }>;
 } {
 

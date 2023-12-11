@@ -1,7 +1,7 @@
 import { ApiRouteProps } from 'sst/constructs';
 
 export function initializeRoutes(
-): Record<string, ApiRouteProps<'universal' | 'admin'>> {
+): Record<string, ApiRouteProps<'universal'>> {
     return {
 
         // GET PR comments graph data
