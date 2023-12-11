@@ -1,0 +1,45 @@
+import { ApiRouteProps } from 'sst/constructs';
+
+export function initializeRoutes(
+): Record<string, ApiRouteProps<'universal'>> {
+    return {
+
+        // GET PR comments graph data
+        'GET /github/graph/number-comments-added-to-prs': {
+            function: 'packages/github/src/service/get-pr-comment.handler',
+            authorizer: 'universal',
+        },
+        // GET Graph for frequency of code commits
+        'GET /github/graph/code-commit-frequency': {
+            function: 'packages/github/src/service/get-commit-frequency.handler',
+            authorizer: 'universal',
+        },
+        // GET Graph for number of PRs
+        'GET /github/graph/number-pr-raised': {
+            function: 'packages/github/src/service/pr-raised-count.handler',
+            authorizer: 'universal',
+        },
+
+        // GET Graph for PRs review time
+        'GET /github/graph/pr-wait-time': {
+            function: 'packages/github/src/service/pr-wait-time.handler',
+            authorizer: 'universal',
+        },
+
+        // GET github active number of branches
+        'GET /github/graph/number-of-branches': {
+            function: 'packages/github/src/service/active-branches.handler',
+            authorizer: 'universal',
+        },
+
+        'GET /github/graph/number-of-branches-by-repo': {
+            function: 'packages/github/src/cron/branch-counter.handler',
+        },
+
+        // GET Graph for avg lines of code per day per developer
+        'GET /github/graph/lines-of-code': {
+            function: 'packages/github/src/service/get-lines-of-code.handler',
+            authorizer: 'universal',
+        },
+    };
+}
