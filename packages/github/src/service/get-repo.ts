@@ -9,7 +9,7 @@ import { IRepo, formatRepoDataResponse, searchedDataFormator } from '../util/res
 import { getGitRepoSchema } from './validations';
 
 async function fetchReposData(repoIds: string[], esClient: ElasticSearchClient,
-  gitRepoName: string, page: number, size: number): Promise<Record<string, any>> {
+  gitRepoName: string, page: number, size: number): Promise<Record<string, string>> {
   let data = null;
   if (repoIds.length > 0) {
     const repoName = esb.requestBodySearch().query(
