@@ -6,6 +6,7 @@ import { jira } from './stacks/jira/jira';
 import { commonConfig } from './stacks/common/config';
 
 import { AppConfig, Stage } from './stacks/type/stack-config';
+import { dpscStack } from './stacks/dpsc/dpsc';
 
 export default {
   config(): { name: string; region: string } {
@@ -14,6 +15,7 @@ export default {
       region: AppConfig.REGION,
     };
   },
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   async stacks(app) {
 
     Tags.of(app).add("Project_name", "pulse");
@@ -23,6 +25,7 @@ export default {
     app.stack(gh);
     app.stack(jira);
     app.stack(devops);
+    app.stack(dpscStack);
 
     if (app.stage !== Stage.LIVE) {
       app.setDefaultRemovalPolicy('destroy');
