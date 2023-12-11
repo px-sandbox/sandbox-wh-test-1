@@ -56,6 +56,7 @@ async function getESVersionUpgradeData(repoIds: string[], searchString: string):
 
     /* ESB QUERY FOR SEARCHING AND GETTING REPO-LIBRARY DATA FROM ELASTIC SEARCH */
     const repoLibQuery = esb.boolQuery()
+        .must(esb.termQuery('body.isDeleted', false))
         .should([
             esb.termsQuery('body.repoId', repoIds),
             esb.termsQuery('body.id', repoIds)

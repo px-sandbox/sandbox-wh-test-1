@@ -28,13 +28,13 @@ export interface ISastErrorAggregationResult {
 
 export type SastErrorsAggregation = {
     errorName: string;
-    errorRuleId: string;
-    errorFileName: string;
-    branchName: string[];
-    errorFirstOccurred: string;
+    ruleId: string;
+    filename: string;
+    branch: string[];
+    firstOccurredAt: string;
 }
 export type SastErrorsAggregationData = {
-    sastErrors: SastErrorsAggregation[];
+    data: SastErrorsAggregation[];
     totalPages: number;
     page: number;
 }
