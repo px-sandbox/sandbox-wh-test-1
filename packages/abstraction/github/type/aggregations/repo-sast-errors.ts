@@ -4,7 +4,7 @@ export type SastErrorReport = {
     errorFileName: string;
 };
 
-export interface ISastErrorAggregationResponse {
+export interface ISastErrorAggregationResult {
     errorsBucket: {
         buckets: [
             {

@@ -45,7 +45,7 @@ async function searchSastErrors(
         )
         .toJSON();
     try {
-        const searchedData: Github.Type.ISastErrorAggregationResponse = await esClientObj.queryAggs(
+        const searchedData: Github.Type.ISastErrorAggregationResult = await esClientObj.queryAggs(
             Github.Enums.IndexName.GitRepoSastErrors,
             matchQry
         );
@@ -124,7 +124,7 @@ export async function getRepoSastErrors(
             endDate,
             branch
         );
-        const report = await esClientObj.queryAggs<Github.Type.ISastErrorAggregationResponse>(
+        const report = await esClientObj.queryAggs<Github.Type.ISastErrorAggregationResult>(
             Github.Enums.IndexName.GitRepoSastErrors,
             requestBody
         );
