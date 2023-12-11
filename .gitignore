@@ -44,11 +44,11 @@ Thumbs.db
 coverage
 test-reports
 
-packages/github/src/model/mapping.json
-
 localfile
 livefile
 
 pnpm-lock-deleted.yaml
 
 dynamodb_vol/*
+packages/github/src/model/*.json
+packages/jira/src/model/*.json

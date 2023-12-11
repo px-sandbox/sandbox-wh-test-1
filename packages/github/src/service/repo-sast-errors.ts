@@ -43,6 +43,10 @@ export const handler = async function repoSastErrors(
             .send();
     } catch (err) {
         logger.error('repoSastErrors.handler.error', { err });
-        throw err;
+        return responseParser
+            .setMessage(`Failed to get SAST errors: ${err}`)
+            .setStatusCode(HttpStatusCode['500'])
+            .setResponseBodyCode('ERROR')
+            .send();
     }
 };

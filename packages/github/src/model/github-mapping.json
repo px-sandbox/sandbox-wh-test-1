@@ -1,5 +1,5 @@
 {
-  "TableName": "manasaggarwal-pulse-dx-GithubMapping",
+  "TableName": "${stack_name}-pulse-dx-GithubMapping",
   "KeySchema": [
     {
       "AttributeName": "parentId",

@@ -208,5 +208,11 @@ export function initializeRoutes(
             },
             authorizer: 'admin',
         },
+        'GET /github/graph/product-security-details': {
+            function: {
+                handler: 'packages/github/src/service/repo-sast-errors-details.handler',
+            },
+            authorizer: 'universal',
+        },
     };
 }

@@ -465,7 +465,7 @@ const indices = [
             repoId: { type: 'keyword' },
             organizationId: { type: 'keyword' },
             branch: { type: 'keyword' },
-            fileName: { type: 'text' },
+            fileName: { type: 'keyword' },
             lineNumber: { type: 'integer' },
             codeSnippet: { type: 'text' },
             date: { type: 'date', format: 'strict_date_optional_time' },
