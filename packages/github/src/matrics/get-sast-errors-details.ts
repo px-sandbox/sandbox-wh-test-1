@@ -132,23 +132,23 @@ export async function getRepoSastErrors(
         const finalData: Github.Type.SastErrorsAggregation[] = report.errorsBucket.buckets.map(
             (bucket) => ({
                 errorName: bucket.key.errorMsg as string,
-                errorRuleId: bucket.key.errorRuleId as string,
-                errorFileName: bucket.key.errorFileName as string,
-                branchName: bucket.distinctBranchName.buckets.map(
+                ruleId: bucket.key.errorRuleId as string,
+                filename: bucket.key.errorFileName as string,
+                branch: bucket.distinctBranchName.buckets.map(
                     (branchBucket) => branchBucket.key as string
                 ),
-                errorFirstOccurred: bucket.errorFirstOccurred.value_as_string as string,
+                firstOccurredAt: bucket.errorFirstOccurred.value_as_string as string,
             })
         );
         const totalPages = Math.ceil(finalData.length / limit);
         const sortedData = _.orderBy(
             finalData,
-            [(item): Date => new Date(item.errorFirstOccurred)],
+            [(item): Date => new Date(item.firstOccurredAt)],
             sort?.order
         );
         const paginatedData = await paginate(sortedData, page, limit);
 
-        return { sastErrors: paginatedData, totalPages, page };
+        return { data: paginatedData, totalPages, page };
     } catch (err) {
         logger.error('getRepoSastErrorsMatrics.error', err);
         throw err;
