@@ -3,6 +3,7 @@ import { Github } from 'abstraction';
 import esb from 'elastic-builder';
 import _ from 'lodash';
 import { Config } from 'sst/node/config';
+import { logger } from 'core';
 import { paginate } from '../util/version-upgrades';
 
 const esClientObj = new ElasticSearchClient({
@@ -43,16 +44,21 @@ async function searchSastErrors(
                 )
         )
         .toJSON();
-    const searchedData: Github.Type.ISastErrorAggregationResponse = await esClientObj.queryAggs(
-        Github.Enums.IndexName.GitRepoSastErrors,
-        matchQry
-    );
-    const formattedData = searchedData.errorsBucket.buckets.map((bucket) => ({
-        errorMsg: bucket.key.errorMsg as string,
-        errorRuleId: bucket.key.errorRuleId as string,
-        errorFileName: bucket.key.errorFileName as string,
-    }));
-    return formattedData;
+    try {
+        const searchedData: Github.Type.ISastErrorAggregationResponse = await esClientObj.queryAggs(
+            Github.Enums.IndexName.GitRepoSastErrors,
+            matchQry
+        );
+        const formattedData = searchedData.errorsBucket.buckets.map((bucket) => ({
+            errorMsg: bucket.key.errorMsg as string,
+            errorRuleId: bucket.key.errorRuleId as string,
+            errorFileName: bucket.key.errorFileName as string,
+        }));
+        return formattedData;
+    } catch (err) {
+        logger.error('searchSastErrorsMatrics.error', err);
+        throw err;
+    }
 }
 
 async function getRepoSastErrorsQuery(
@@ -111,35 +117,40 @@ export async function getRepoSastErrors(
     limit: number,
     sort?: Github.Type.VersionUpgradeSortType
 ): Promise<Github.Type.SastErrorsAggregationData> {
-    const requestBody = await getRepoSastErrorsQuery(
-        repoIds,
-        startDate,
-        endDate,
-        branch
-    );
-    const report = await esClientObj.queryAggs<Github.Type.ISastErrorAggregationResponse>(
-        Github.Enums.IndexName.GitRepoSastErrors,
-        requestBody
-    );
+    try {
+        const requestBody = await getRepoSastErrorsQuery(
+            repoIds,
+            startDate,
+            endDate,
+            branch
+        );
+        const report = await esClientObj.queryAggs<Github.Type.ISastErrorAggregationResponse>(
+            Github.Enums.IndexName.GitRepoSastErrors,
+            requestBody
+        );
 
-    const finalData: Github.Type.SastErrorsAggregation[] = report.errorsBucket.buckets.map(
-        (bucket) => ({
-            errorName: bucket.key.errorMsg as string,
-            errorRuleId: bucket.key.errorRuleId as string,
-            errorFileName: bucket.key.errorFileName as string,
-            branchName: bucket.distinctBranchName.buckets.map(
-                (branchBucket) => branchBucket.key as string
-            ),
-            errorFirstOccurred: bucket.errorFirstOccurred.value_as_string as string,
-        })
-    );
-    const totalPages = Math.ceil(finalData.length / limit);
-    const sortedData = _.orderBy(
-        finalData,
-        [(item): Date => new Date(item.errorFirstOccurred)],
-        sort?.order
-    );
-    const paginatedData = await paginate(sortedData, page, limit);
+        const finalData: Github.Type.SastErrorsAggregation[] = report.errorsBucket.buckets.map(
+            (bucket) => ({
+                errorName: bucket.key.errorMsg as string,
+                errorRuleId: bucket.key.errorRuleId as string,
+                errorFileName: bucket.key.errorFileName as string,
+                branchName: bucket.distinctBranchName.buckets.map(
+                    (branchBucket) => branchBucket.key as string
+                ),
+                errorFirstOccurred: bucket.errorFirstOccurred.value_as_string as string,
+            })
+        );
+        const totalPages = Math.ceil(finalData.length / limit);
+        const sortedData = _.orderBy(
+            finalData,
+            [(item): Date => new Date(item.errorFirstOccurred)],
+            sort?.order
+        );
+        const paginatedData = await paginate(sortedData, page, limit);
 
-    return { sastErrors: paginatedData, totalPages, page };
+        return { sastErrors: paginatedData, totalPages, page };
+    } catch (err) {
+        logger.error('getRepoSastErrorsMatrics.error', err);
+        throw err;
+    }
 }

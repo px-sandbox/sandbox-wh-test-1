@@ -11,7 +11,7 @@ const repoSastErrors = async function repoSastErrors(
     const limit: string = event.queryStringParameters?.limit ?? '10';
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
     const branch: string[] = event.queryStringParameters?.branch?.split(',') ?? [];
-    //TODO: orgName is not used in the functions
+    // TODO: orgName is not used in the functions
     // const orgName: string = event.queryStringParameters?.orgName ?? '';
     const startDate: string = event.queryStringParameters?.startDate || '';
     const endDate: string = event.queryStringParameters?.endDate || '';
