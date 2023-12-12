@@ -74,16 +74,6 @@ export function initializeRoutes(
             },
             authorizer: 'none',
         },
-        // GET GithubUser data
-        'GET /github/user/{githubUserId}': {
-            function: 'packages/github/src/service/get-user.handler',
-            authorizer: 'universal',
-        },
-        // GET GithubRepo data
-        'GET /github/repositories': {
-            function: 'packages/github/src/service/get-repo.handler',
-            authorizer: 'universal',
-        },
 
         // GET Github Branches data
         'GET /github/branches': {
