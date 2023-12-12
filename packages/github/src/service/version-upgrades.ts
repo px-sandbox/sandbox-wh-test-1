@@ -12,7 +12,7 @@ const versionUpgrades = async function versionUpgrades(
     const limit: string = event.queryStringParameters?.limit ?? '10';
     const sortKey: Github.Enums.SortKey = event.queryStringParameters?.sortKey as Github.Enums.SortKey ??
         Github.Enums.SortKey.DATEDIFF;
-    const sortOrder: Github.Enums.SortOrder = event.queryStringParameters?.SortOrder as Github.Enums.SortOrder ??
+    const sortOrder: Github.Enums.SortOrder = event.queryStringParameters?.sortOrder as Github.Enums.SortOrder ??
         Github.Enums.SortOrder.DESC;
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
 
