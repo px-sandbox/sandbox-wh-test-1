@@ -161,7 +161,7 @@ export function initializeRoutes(
             },
             authorizer: 'admin',
         },
-        'GET /github/graph/product-security-details': {
+        'GET /github/graph/product-security/detail': {
             function: {
                 handler: 'packages/github/src/service/repo-sast-errors-details.handler',
             },

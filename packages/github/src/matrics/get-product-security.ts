@@ -50,6 +50,7 @@ async function getGraphData(repoIds: string[], startDate: string, endDate: strin
     // query for fetching and aggregating records based on branch and date range
     const query =
         esb.requestBodySearch().size(0).query(esb.boolQuery()
+            .filter(esb.termQuery('body.isDeleted', false))
             .filter(esb.termsQuery('body.repoId', repoIds))
             .filter(esb.termQuery('body.branch', branch))
             .filter(
@@ -83,6 +84,7 @@ async function getHeadlineStat(repoIds: string[], branch: string): Promise<numbe
     const query = esb.boolQuery()
 
         .must([
+            esb.termQuery('body.isDeleted', false),
             esb.termsQuery('body.repoId', repoIds),
             esb.termQuery('body.branch', branch),
             esb.termQuery('body.date', moment().format('YYYY-MM-DD'))
