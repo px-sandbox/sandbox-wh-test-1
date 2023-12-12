@@ -69,7 +69,9 @@ async function getRepoSastErrorsQuery(
     branch: string[],
 ): Promise<object> {
     const data = await searchSastErrors(repoIds, startDate, endDate, branch);
-
+    if (data.length === 0) {
+        return {};
+    }
     return esb
         .requestBodySearch()
         .size(0)
@@ -128,27 +130,29 @@ export async function getRepoSastErrors(
             Github.Enums.IndexName.GitRepoSastErrors,
             requestBody
         );
+        if (report) {
+            const finalData: Github.Type.SastErrorsAggregation[] = report.errorsBucket.buckets.map(
+                (bucket) => ({
+                    errorName: bucket.key.errorMsg as string,
+                    ruleId: bucket.key.errorRuleId as string,
+                    filename: bucket.key.errorFileName as string,
+                    branch: bucket.distinctBranchName.buckets.map(
+                        (branchBucket) => branchBucket.key as string
+                    ),
+                    firstOccurredAt: bucket.errorFirstOccurred.value_as_string as string,
+                })
+            );
+            const totalPages = Math.ceil(finalData.length / limit);
+            const sortedData = _.orderBy(
+                finalData,
+                [(item): Date => new Date(item.firstOccurredAt)],
+                sort?.order
+            );
+            const paginatedData = await paginate(sortedData, page, limit);
 
-        const finalData: Github.Type.SastErrorsAggregation[] = report.errorsBucket.buckets.map(
-            (bucket) => ({
-                errorName: bucket.key.errorMsg as string,
-                ruleId: bucket.key.errorRuleId as string,
-                filename: bucket.key.errorFileName as string,
-                branch: bucket.distinctBranchName.buckets.map(
-                    (branchBucket) => branchBucket.key as string
-                ),
-                firstOccurredAt: bucket.errorFirstOccurred.value_as_string as string,
-            })
-        );
-        const totalPages = Math.ceil(finalData.length / limit);
-        const sortedData = _.orderBy(
-            finalData,
-            [(item): Date => new Date(item.firstOccurredAt)],
-            sort?.order
-        );
-        const paginatedData = await paginate(sortedData, page, limit);
-
-        return { data: paginatedData, totalPages, page };
+            return { data: paginatedData, totalPages, page };
+        }
+        return { data: [], totalPages: 0, page };
     } catch (err) {
         logger.error('getRepoSastErrorsMatrics.error', err);
         throw err;
