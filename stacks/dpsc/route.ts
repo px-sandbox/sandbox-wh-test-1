@@ -41,5 +41,18 @@ export function initializeRoutes(
             function: 'packages/github/src/service/get-lines-of-code.handler',
             authorizer: 'universal',
         },
+
+        // TODO: Move again in github stack after UAT and PROD will be sync   GET GithubUser data
+        'GET /github/user/{githubUserId}': {
+            function: 'packages/github/src/service/get-user.handler',
+            authorizer: 'universal',
+        },
+
+        // TODO: Move again in github stack after UAT and PROD will be sync  GET GithubRepo data
+        'GET /github/repositories': {
+            function: 'packages/github/src/service/get-repo.handler',
+            authorizer: 'universal',
+        },
+
     };
 }
