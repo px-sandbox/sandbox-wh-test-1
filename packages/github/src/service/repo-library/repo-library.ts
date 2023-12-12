@@ -38,8 +38,7 @@ export const handler = async (
                 dependencies,
             } = data;
 
-            const allDeps = [...coreDependencies, ...dependencies];
-            const uniqueDeps = allDeps.filter(
+            const uniqueDeps = dependencies.filter(
                 (dep, index, self) =>
                     index ===
                     self.findIndex(
@@ -50,18 +49,28 @@ export const handler = async (
             await deletePrevDependencies(repoId);
 
             await Promise.all(
-                uniqueDeps.map(async (dep) => {
+                [...uniqueDeps.map(async (dep) => {
                     const message = {
                         ...dep,
                         repoId,
                         orgName,
                         isDeleted: false,
-                        isCore: coreDependencies.some(
-                            (coreDep) => coreDep.dependencyName === dep.dependencyName
-                        ),
+                        isCore: false
                     };
+
                     await sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
-                })
+                }), ...coreDependencies.map(async (dep) => {
+                    const message = {
+                        ...dep,
+                        repoId,
+                        orgName,
+                        isDeleted: false,
+                        isCore: true
+                    };
+
+                    await sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
+                })]
+
             );
         } else {
             logger.warn('repoLibrary.handler.noData');
