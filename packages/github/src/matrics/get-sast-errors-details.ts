@@ -44,6 +44,9 @@ async function searchSastErrors(
                 )
         )
         .toJSON();
+
+    logger.info('searchSastErrorsMatrics.query', { query: JSON.stringify(matchQry) });
+
     try {
         const searchedData: Github.Type.ISastErrorAggregationResult = await esClientObj.queryAggs(
             Github.Enums.IndexName.GitRepoSastErrors,
@@ -69,6 +72,7 @@ async function getRepoSastErrorsQuery(
     branch: string[],
 ): Promise<object> {
     const data = await searchSastErrors(repoIds, startDate, endDate, branch);
+    logger.info('getRepoSastErrorsSearch.data', { length: data.length });
     if (data.length === 0) {
         return {};
     }
@@ -119,7 +123,10 @@ export async function getRepoSastErrors(
     limit: number,
     sort?: Github.Type.VersionUpgradeSortType
 ): Promise<Github.Type.SastErrorsAggregationData> {
+
+    logger.info('getRepoSastErrors.details', { repoIds, startDate, endDate, branch, page, limit, sort });
     try {
+
         const requestBody = await getRepoSastErrorsQuery(
             repoIds,
             startDate,
@@ -130,6 +137,9 @@ export async function getRepoSastErrors(
             Github.Enums.IndexName.GitRepoSastErrors,
             requestBody
         );
+        logger.info('getRepoSastErrorsMatrics.report', {
+            report_length: report
+        });
         if (report) {
             const finalData: Github.Type.SastErrorsAggregation[] = report.errorsBucket.buckets.map(
                 (bucket) => ({
