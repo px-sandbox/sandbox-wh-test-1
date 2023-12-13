@@ -13,6 +13,7 @@ import { initializeUserQueue } from './user';
 import { initializeBranchCounterQueue } from './branch-counter';
 import { initializeRepoLibraryQueue } from './repo-library';
 import { initializeRepoSastErrorQueue } from './repo-sast-errors';
+import { initializeSecurityScanQueue } from './update-security-scan';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeQueue(
@@ -69,6 +70,7 @@ export function initializeQueue(
         initializeRepoLibraryQueue(stack, githubDDb);
 
     const repoSastErrors = initializeRepoSastErrorQueue(stack, sastErrorsBucket, githubDDb);
+    const [scansSaveQueue] = initializeSecurityScanQueue(stack);
     return {
         branchFormatDataQueue,
         branchIndexDataQueue,
@@ -104,5 +106,6 @@ export function initializeQueue(
         latestDepRegistry,
         masterLibraryQueue,
         repoSastErrors,
+        scansSaveQueue
     };
 }

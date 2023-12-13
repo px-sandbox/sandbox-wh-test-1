@@ -20,7 +20,8 @@ export function initializeRoutes(
         depRegistryQueue,
         currentDepRegistryQueue,
         latestDepRegistry,
-        repoSastErrors
+        repoSastErrors,
+        scansSaveQueue
     } = queues;
     const { retryProcessTable, githubMappingTable, libMasterTable } = githubDDb;
     return {
@@ -158,6 +159,16 @@ export function initializeRoutes(
             function: {
                 handler: 'packages/github/src/service/repo-sast-errors.handler',
                 bind: [repoSastErrors]
+            },
+            authorizer: 'none',
+        },
+
+        // Cron to create security scans for today, if there aren't any, based on yesterday's data
+        'POST /github/cron/update-security-scans': {
+
+            function: {
+                handler: 'packages/github/src/service/update-security-scans.handler',
+                bind: [scansSaveQueue]
             },
             authorizer: 'none',
         },
