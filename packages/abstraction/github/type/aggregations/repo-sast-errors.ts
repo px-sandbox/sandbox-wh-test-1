@@ -2,6 +2,7 @@ export type SastErrorReport = {
     errorMsg: string;
     errorRuleId: string;
     errorFileName: string;
+    errorRepoId: string;
 };
 
 export interface ISastErrorAggregationResult {
@@ -32,6 +33,7 @@ export type SastErrorsAggregation = {
     filename: string;
     branch: string[];
     firstOccurredAt: string;
+    repoName: string;
 }
 export type SastErrorsAggregationData = {
     data: SastErrorsAggregation[];
