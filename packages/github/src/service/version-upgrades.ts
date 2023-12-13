@@ -8,7 +8,7 @@ const versionUpgrades = async function versionUpgrades(
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
     const search: string = event.queryStringParameters?.search ?? '';
-    const page: string = event.queryStringParameters?.page ?? '';
+    const page: string = event.queryStringParameters?.page ?? '1';
     const limit: string = event.queryStringParameters?.limit ?? '10';
     const sortKey: Github.Enums.SortKey = event.queryStringParameters?.sortKey as Github.Enums.SortKey ??
         Github.Enums.SortKey.DATEDIFF;
