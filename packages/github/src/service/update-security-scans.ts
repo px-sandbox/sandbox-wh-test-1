@@ -55,6 +55,7 @@ async function fetchBranchesData(repoId: string, currDate: string): Promise<void
  * @throws Error if repoIds are not provided or if an error occurs during the update process.
  */
 const updateSecurityScans = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    logger.info('updateSecurityScans: event: ', event);
     const repoIds = event.queryStringParameters?.repoIds?.split(',') ?? [];
     const currDate = moment().format('YYYY-MM-DD');
 
