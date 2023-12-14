@@ -25,7 +25,6 @@ const esClientObj = new ElasticSearchClient({
  * @throws If there is an error fetching the items from DynamoDB.
  */
 async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRecord[]> {
-
     const libKeys = libNames.map(libName => ({ libName }));
 
     const ddClient = new DynamoDbDocClient();
