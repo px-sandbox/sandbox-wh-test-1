@@ -24,7 +24,7 @@ async function fetchBranchesData(repoId: string, currDate: string): Promise<void
 
     const query = esb.boolQuery().must([
         esb.termQuery('body.repoId', repoId),
-        esb.termQuery('body.protected', false),
+        esb.termQuery('body.protected', true),
     ]).toJSON();
 
 
