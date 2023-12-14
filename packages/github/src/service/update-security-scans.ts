@@ -21,14 +21,17 @@ const esClient = new ElasticSearchClient({
  * @returns A promise that resolves to an array of branch names.
  */
 async function fetchBranchesData(repoId: string, currDate: string): Promise<void> {
-
+    // query to extract protected branches with matching repoId
     const query = esb.boolQuery().must([
         esb.termQuery('body.repoId', repoId),
         esb.termQuery('body.protected', true),
+        esb.termQuery('body.isDeleted', false),
     ]).toJSON();
 
 
     const branches = await esClient.searchWithEsb(Github.Enums.IndexName.GitBranch, query);
+
+    // formatting data into easily readable form
     const formattedData = await searchedDataFormator(branches);
 
     if (!formattedData.length) {
@@ -36,9 +39,11 @@ async function fetchBranchesData(repoId: string, currDate: string): Promise<void
         return;
     }
 
+    // modifying formatted data into array of branch names.
     const branchesArr: string[] = formattedData.
         map((data: (Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody)) => data.name);
 
+    // sending data to SQS for each branch of each repoId.
     logger.info(`GET_GITHUB_BRANCH_DETAILS: sending data to SQS for repoId: ${repoId}, branches: ${branchesArr}`);
     branchesArr.forEach((branch) => {
 
@@ -64,13 +69,15 @@ const updateSecurityScans = async (event: APIGatewayProxyEvent): Promise<APIGate
     }
 
     try {
+
+        // we call fetchBranchesData for each repoId in parallel
         await Promise.all(
             repoIds.map(async (repoId) => {
                 await fetchBranchesData(repoId, currDate);
             })
         );
         return responseParser.
-            setMessage('successfully updated scans for today').
+            setMessage('successfully updating scans for today').
             setResponseBodyCode('SUCCESS').
             setStatusCode(HttpStatusCode['200']).
             send();

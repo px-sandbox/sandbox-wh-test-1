@@ -6,6 +6,9 @@ export function initializeRoutes(
     queues: { [key: string]: Queue },
     githubDDb: GithubTables
 ): Record<string, ApiRouteProps<'universal' | 'admin'>> {
+
+    /* We are extracting the queues from the queues object 
+     * and bind them to their respective functions/handlers called within routes */
     const {
         userFormatDataQueue,
         repoFormatDataQueue,
@@ -23,6 +26,9 @@ export function initializeRoutes(
         repoSastErrors,
         scansSaveQueue
     } = queues;
+
+    /* We aso extract and bind the tables 
+     * from the githubDDb object to their respective functions/handlers called within routes */
     const { retryProcessTable, githubMappingTable, libMasterTable } = githubDDb;
     return {
         // GET Metadata route
@@ -110,6 +116,7 @@ export function initializeRoutes(
         },
 
         // GET github data ingestion failed retry
+        // bind all the queues and tables needed to the retry-process.handler
         'GET /github/retry/failed': {
             function: {
                 handler: 'packages/github/src/cron/retry-process.handler',
@@ -124,7 +131,8 @@ export function initializeRoutes(
                     prReviewCommentFormatDataQueue,
                     prReviewFormatDataQueue,
                     depRegistryQueue,
-                    currentDepRegistryQueue
+                    currentDepRegistryQueue,
+                    scansSaveQueue
                 ],
             },
         },

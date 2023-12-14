@@ -70,7 +70,7 @@ export function initializeQueue(
         initializeRepoLibraryQueue(stack, githubDDb);
 
     const repoSastErrors = initializeRepoSastErrorQueue(stack, sastErrorsBucket, githubDDb);
-    const [scansSaveQueue] = initializeSecurityScanQueue(stack);
+    const [scansSaveQueue] = initializeSecurityScanQueue(stack, githubDDb);
     return {
         branchFormatDataQueue,
         branchIndexDataQueue,
