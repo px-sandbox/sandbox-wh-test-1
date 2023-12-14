@@ -25,26 +25,41 @@ const esClientObj = new ElasticSearchClient({
  * @throws If there is an error fetching the items from DynamoDB.
  */
 async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRecord[]> {
-    const keys = libNames.map(libName => ({ libName }));
+    const libKeys = libNames.map(libName => ({ libName }));
 
-    const params = {
-        RequestItems: {
-            [Table.libMaster.tableName]: {
-                Keys: keys,
+    const ddClient = new DynamoDbDocClient();
+    const tableIndex = Table.libMaster.tableName;
+    let results: Github.Type.LibraryRecord[] = [];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chunk = (arr: any[], size: number): any[][] =>
+        Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+            arr.slice(i * size, i * size + size)
+        );
+
+    const keysChunks = chunk(libKeys, 100);
+
+    for (const keys of keysChunks) {
+        const params = {
+            RequestItems: {
+                [tableIndex]: {
+                    Keys: keys,
+                },
             },
-        },
-    };
+        };
 
-    try {
-        const data = await new DynamoDbDocClient().batchGet(params);
-        logger.info('Items:', data);
-        const tableIndex = Table.libMaster.tableName;
-
-        return data ? (data[tableIndex] as Github.Type.LibraryRecord[]) : [];
-    } catch (err) {
-        logger.error('Error fetching items:', err);
-        throw err;
+        try {
+            const data = await ddClient.batchGet(params);
+            logger.info('Items:', data);
+            if (data && data[tableIndex]) {
+                results = [...results, ...(data[tableIndex] as Github.Type.LibraryRecord[])];
+            }
+        } catch (err) {
+            logger.error('Error fetching DD record items:', err);
+        }
     }
+
+    return results;
 }
 
 /**
