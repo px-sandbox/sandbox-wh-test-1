@@ -1,7 +1,7 @@
 import { MetricCategories } from "abstraction/github/type";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { HttpStatusCode, responseParser } from "core";
-import { getDscRagsDetails } from "src/matrics/get-dsc-rags-details";
+import { getDscRagsDetails } from "../matrics/get-dsc-rags-details";
 
 export const handler = async function dscRagsDetails(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     const startDate: string = event.queryStringParameters?.startDate || '';

@@ -39,7 +39,7 @@ import {
   SastErrorsAggregation,
 } from './aggregations/repo-sast-errors';
 
-import { MetricCategories, MetricCategory, MetricFunction, Metrics } from './aggregations/metric-categories';
+import { MetricCategories, MetricFunction, Metrics } from './aggregations/metric-categories';
 
 export {
   Branch,
@@ -91,7 +91,6 @@ export {
   SastErrorsAggregationData,
   SastErrorsAggregation,
   MetricCategories,
-  MetricCategory,
   MetricFunction,
   Metrics
 };

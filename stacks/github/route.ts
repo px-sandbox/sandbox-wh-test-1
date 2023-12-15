@@ -123,7 +123,8 @@ export function initializeRoutes(
                     prReviewCommentFormatDataQueue,
                     prReviewFormatDataQueue,
                     depRegistryQueue,
-                    currentDepRegistryQueue
+                    currentDepRegistryQueue,
+                    repoSastErrors
                 ],
             },
         },
@@ -167,5 +168,6 @@ export function initializeRoutes(
             },
             authorizer: 'universal',
         },
-    };
+
+    }
 }
