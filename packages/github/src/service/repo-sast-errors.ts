@@ -11,6 +11,7 @@ export const handler = async function repoSastErrors(
 ): Promise<APIGatewayProxyResult> {
     try {
         const data: Github.ExternalType.Api.RepoSastErrors = JSON.parse(event.body ?? '{}');
+        logger.info('repoSastErrors.handler.received', { errorData: data });
         const s3 = new S3();
         data.createdAt = moment().toISOString();
         const params = {
