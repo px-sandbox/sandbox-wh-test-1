@@ -80,7 +80,7 @@ async function getGraphData(repoIds: string[], startDate: string, endDate: strin
  * @param branch - The branch name.
  * @returns A promise that resolves to the number of headline statistics.
  */
-async function getHeadlineStat(repoIds: string[], branch: string): Promise<number> {
+export async function getHeadlineStat(repoIds: string[], branch: string): Promise<number> {
     const query = esb.boolQuery()
 
         .must([

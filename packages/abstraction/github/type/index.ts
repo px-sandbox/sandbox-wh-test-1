@@ -39,6 +39,8 @@ import {
   SastErrorsAggregation,
 } from './aggregations/repo-sast-errors';
 
+import { MetricCategories, MetricCategory, MetricFunction, Metrics } from './aggregations/metric-categories';
+
 export {
   Branch,
   Organization,
@@ -88,4 +90,8 @@ export {
   SastErrorReport,
   SastErrorsAggregationData,
   SastErrorsAggregation,
+  MetricCategories,
+  MetricCategory,
+  MetricFunction,
+  Metrics
 };
