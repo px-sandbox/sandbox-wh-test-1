@@ -7,6 +7,7 @@ export type SastErrorReport = {
 
 export interface ISastErrorAggregationResult {
     errorsBucket: {
+        after_key: SastErrorReport,
         buckets: [
             {
                 key: SastErrorReport;
