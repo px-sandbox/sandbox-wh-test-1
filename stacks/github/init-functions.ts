@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { commonConfig } from '../common/config';
@@ -5,14 +6,70 @@ import { GithubTables } from '../type/tables';
 
 function initProcessRetryFunction(
     stack: Stack,
+    queues: { [key: string]: Queue },
     githubDDb: GithubTables,
 ): Function {// eslint-disable-line @typescript-eslint/ban-types
     const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID } =
         use(commonConfig);
+    const { retryProcessTable } = githubDDb;
+    const {
+        branchFormatDataQueue,
+        ghCopilotFormatDataQueue,
+        collectCommitsData,
+        collectPRCommitsData,
+        collectPRData,
+        collectPRReviewCommentsData,
+        collectReviewsData,
+        historicalBranch,
+        collecthistoricalPrByumber,
+        pushFormatDataQueue,
+        repoFormatDataQueue,
+        afterRepoSaveQueue,
+        userFormatDataQueue,
+        commitFileChanges,
+        commitFormatDataQueue,
+        prFormatDataQueue,
+        branchCounterFormatterQueue,
+        prReviewCommentFormatDataQueue,
+        prReviewFormatDataQueue,
+        depRegistryQueue,
+        currentDepRegistryQueue,
+        latestDepRegistry,
+        masterLibraryQueue,
+        repoSastErrors,
+        scansSaveQueue
+    } = queues;
+
+    // we need to bind all necessary queues to the function
     const processRetryFunction = new Function(stack, 'fnRetryFailedProcessor', {
         handler: 'packages/github/src/cron/retry-process.handler',
         bind: [
-            githubDDb.retryProcessTable,
+            retryProcessTable,
+            branchFormatDataQueue,
+            ghCopilotFormatDataQueue,
+            collectCommitsData,
+            collectPRCommitsData,
+            collectPRData,
+            collectPRReviewCommentsData,
+            collectReviewsData,
+            historicalBranch,
+            collecthistoricalPrByumber,
+            pushFormatDataQueue,
+            repoFormatDataQueue,
+            afterRepoSaveQueue,
+            userFormatDataQueue,
+            commitFileChanges,
+            commitFormatDataQueue,
+            prFormatDataQueue,
+            branchCounterFormatterQueue,
+            prReviewCommentFormatDataQueue,
+            prReviewFormatDataQueue,
+            depRegistryQueue,
+            currentDepRegistryQueue,
+            latestDepRegistry,
+            masterLibraryQueue,
+            repoSastErrors,
+            scansSaveQueue,
             GITHUB_APP_PRIVATE_KEY_PEM,
             GITHUB_APP_ID,
             GITHUB_SG_INSTALLATION_ID,
@@ -59,7 +116,7 @@ export function initializeFunctions(
         bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchCounterFormatterQueue],
     });
 
-    const initProcessRetry = initProcessRetryFunction(stack, githubDDb);
+    const initProcessRetry = initProcessRetryFunction(stack, queuesForFunctions, githubDDb);
 
     const ghUpdateLatestDepOnDDBFunction = new Function(stack, 'fnUpdateLatestDepOnDDB', {
         handler: 'packages/github/src/cron/update-latest-dep.handler',
