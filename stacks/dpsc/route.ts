@@ -54,5 +54,18 @@ export function initializeRoutes(
             authorizer: 'universal',
         },
 
+        'GET /dsc/rags': {
+            function: {
+                handler: 'packages/github/src/service/dsc-rags.handler',
+            },
+            authorizer: 'none',
+        },
+
+        'GET /tsc/rags': {
+            function: {
+                handler: 'packages/github/src/service/tsc-rags.handler',
+            },
+            authorizer: 'none',
+        }
     };
 }
