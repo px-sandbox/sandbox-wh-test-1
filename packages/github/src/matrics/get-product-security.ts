@@ -132,3 +132,19 @@ export async function getProductSecurity(
         throw e;
     }
 }
+
+export async function weeklyHeadlineStat(repoIds: string[], branch: string[]): Promise<number> {
+    const query = esb.boolQuery()
+
+        .must([
+            esb.termQuery('body.isDeleted', false),
+            esb.termsQuery('body.repoId', repoIds),
+            esb.termsQuery('body.branch', branch),
+            esb.termQuery('body.date', moment().format('YYYY-MM-DD'))
+        ]);
+    const data = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
+    const formattedData = await searchedDataFormator(data);
+
+    return formattedData.length;
+}
+
