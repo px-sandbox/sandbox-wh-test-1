@@ -132,7 +132,7 @@ export function initializeRoutes(
                     prReviewFormatDataQueue,
                     depRegistryQueue,
                     currentDepRegistryQueue,
-                    repoSastErrors
+                    repoSastErrors,
                     scansSaveQueue
                 ],
             },
