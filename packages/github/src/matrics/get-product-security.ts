@@ -133,16 +133,19 @@ export async function getProductSecurity(
     }
 }
 
-export async function weeklyHeadlineStat(repoIds: string[], branch: string[]): Promise<number> {
+export async function weeklyHeadlineStat(branch: { repoId: string, branch: string }[]): Promise<number> {
     const query = esb.boolQuery()
-
+        .should(
+            branch.map((branchData) =>
+                esb.boolQuery().must([
+                    esb.termQuery('body.branch', branchData.branch),
+                    esb.termQuery('body.repoId', branchData.repoId)
+                ]))).minimumShouldMatch(1)
         .must([
             esb.termQuery('body.isDeleted', false),
-            esb.termsQuery('body.repoId', repoIds),
-            esb.termsQuery('body.branch', branch),
             esb.termQuery('body.date', moment().format('YYYY-MM-DD'))
-        ]);
-    const data = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
+        ]).toJSON();
+    const data = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, query);
     const formattedData = await searchedDataFormator(data);
 
     return formattedData.length;
