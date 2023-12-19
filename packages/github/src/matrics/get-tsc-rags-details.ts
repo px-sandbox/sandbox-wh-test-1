@@ -1,13 +1,46 @@
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { Github } from 'abstraction';
+import esb from 'elastic-builder';
+import { Config } from 'sst/node/config';
+import { searchedDataFormator } from '../util/response-formatter';
 import { weeklyHeadlineStat } from './get-product-security';
 
-export async function getTscRagsDetails(
-    repoIds: string[],
-): Promise<{ product_security: number }> {
+export async function getTscRagsDetails(repoIds: string[]): Promise<{ product_security: number }> {
+    const esClientObj = new ElasticSearchClient({
+        host: Config.OPENSEARCH_NODE,
+        username: Config.OPENSEARCH_USERNAME ?? '',
+        password: Config.OPENSEARCH_PASSWORD ?? '',
+    });
+    const branchesList = ['prod', 'master', 'main', 'uat', 'stage', 'qa', 'dev', 'develop'];
 
-    // TODO: for now hardcoded prod, master, main as branch 
-    const branch = ['prod', 'master', 'main'];
+    const getBranchesQuery = esb
+        .boolQuery()
+        .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', true)])
+        .toJSON();
 
-    const data = await weeklyHeadlineStat(repoIds, branch);
+    const getBranches = await esClientObj.searchWithEsb(
+        Github.Enums.IndexName.GitBranch,
+        getBranchesQuery
+    );
+    const branchesName = await searchedDataFormator(getBranches);
+    const branches = branchesName.reduce(
+        (acc: { [x: string]: string[] }, branch: { repoId: string; name: string }) => {
+            if (!acc[branch.repoId]) {
+                acc[branch.repoId] = [branch.name];
+            } else {
+                acc[branch.repoId].push(branch.name);
+            }
+            return acc;
+        },
+        {}
+    );
+
+    Object.keys(branches).forEach((repoId) => {
+        branches[repoId] = branchesList.find((name) => branches[repoId].includes(name));
+    });
+
+    const result = Object.keys(branches).map((repoId) => ({ repoId, branch: branches[repoId] }));
+    const data = await weeklyHeadlineStat(result);
 
     return { product_security: data };
 }
