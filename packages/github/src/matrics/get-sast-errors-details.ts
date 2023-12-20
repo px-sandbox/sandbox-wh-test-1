@@ -60,8 +60,8 @@ async function searchSastErrors(
             Github.Enums.IndexName.GitRepoSastErrors,
             matchQry
         );
-        const afterKeyData = searchedData.errorsBucket.after_key;
-        formattedData = searchedData.errorsBucket.buckets.map((bucket) => ({
+        const afterKeyData = searchedData?.errorsBucket.after_key;
+        formattedData = searchedData?.errorsBucket.buckets.map((bucket) => ({
             errorMsg: bucket.key.errorMsg as string,
             errorRuleId: bucket.key.errorRuleId as string,
             errorFileName: bucket.key.errorFileName as string,
@@ -201,12 +201,13 @@ export async function getRepoSastErrors(
                 Github.Enums.IndexName.GitRepoSastErrors,
                 requestBody
             );
-            logger.info('getRepoSastErrorsMatrics.report', {
-                report_length: report
-            });
-            afterKey = report.errorsBucket.after_key;
-            const repoNames = await getRepoNames(repoIds);
             if (report) {
+                logger.info('getRepoSastErrorsMatrics.report', {
+                    report_length: report
+                });
+                afterKey = report?.errorsBucket.after_key;
+                const repoNames = await getRepoNames(repoIds);
+
                 finalData.push(...report.errorsBucket.buckets.map(
                     (bucket) => ({
                         repoName: repoNames.find((repo: Github.Type.RepoNameType) =>
