@@ -24,7 +24,8 @@ export function initializeRoutes(
         currentDepRegistryQueue,
         latestDepRegistry,
         repoSastErrors,
-        scansSaveQueue
+        scansSaveQueue,
+        ghMergedCommitProcessQueue
     } = queues;
 
     /* We aso extract and bind the tables 
@@ -133,7 +134,8 @@ export function initializeRoutes(
                     depRegistryQueue,
                     currentDepRegistryQueue,
                     repoSastErrors,
-                    scansSaveQueue
+                    scansSaveQueue,
+                    ghMergedCommitProcessQueue
                 ],
             },
         },
