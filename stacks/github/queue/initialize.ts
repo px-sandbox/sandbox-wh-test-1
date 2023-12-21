@@ -66,7 +66,7 @@ export function initializeQueue(
         stack,
         githubDDb
     );
-    const [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry, masterLibraryQueue] =
+    const [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry, masterLibraryQueue, repoLibS3Queue] =
         initializeRepoLibraryQueue(stack, githubDDb);
 
     const repoSastErrors = initializeRepoSastErrorQueue(stack, sastErrorsBucket, githubDDb);
@@ -106,6 +106,8 @@ export function initializeQueue(
         latestDepRegistry,
         masterLibraryQueue,
         repoSastErrors,
-        scansSaveQueue
+        scansSaveQueue,
+        repoLibS3Queue,
+        ghMergedCommitProcessQueue
     };
 }
