@@ -24,13 +24,15 @@ const esClientObj = new ElasticSearchClient({
  * @returns A promise that resolves to an array of LibraryRecord objects.
  * @throws If there is an error fetching the items from DynamoDB.
  */
-async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRecord[]> {
+async function fetchDDRecords(libNames: string[]):
+    Promise<{ [key: string]: { libname: string, version: string, releaseDate: string } }> {
     const libKeys = libNames.map(libName => ({ libName }));
 
     const ddClient = new DynamoDbDocClient();
     const tableIndex = Table.libMaster.tableName;
     let results: Github.Type.LibraryRecord[] = [];
 
+    // we are chunking array of keys into 100 keys each, as dynamo db can only take 100 keys at a time
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chunk = (arr: any[], size: number): any[][] =>
         Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
@@ -38,6 +40,9 @@ async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRe
         );
 
     const keysChunks = chunk(libKeys, 100);
+
+    // will store final result in this obj
+    const resObj: { [key: string]: { libname: string, version: string, releaseDate: string } } = {};
 
     for (const keys of keysChunks) {
         const params = {
@@ -58,8 +63,13 @@ async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRe
             logger.error('Error fetching DD record items:', err);
         }
     }
+    // storing result in key format to optimise search
+    results.map((res) => {
+        resObj[res.libName] = { libname: res.libName, version: res.version, releaseDate: res.releaseDate };
+        return resObj;
+    });
 
-    return results;
+    return resObj;
 }
 
 /**
@@ -187,12 +197,12 @@ export async function getVersionUpgrades(
         const libNames = updatedRepoLibs?.map((lib: Github.Type.RepoLibType) => (lib.libName));
 
         // fetching records from dynamo db for latest version and release date
-        const ddRecords: Github.Type.DDRecordType[] = await fetchDDRecords([...(new Set(libNames))]);
+        const ddRecords = await fetchDDRecords([...(new Set(libNames))]);
 
         // adding latest version and release date to repo-library data
         const finalData = updatedRepoLibs.map((lib: Github.Type.RepoLibType) => {
-            const latestVerData = ddRecords.
-                find((ddRecord: Github.Type.DDRecordType) => ddRecord.libName === lib.libName);
+
+            const latestVerData = ddRecords[lib.libName];
             const date1 = moment(lib.currVerDate);
             const date2 = moment(latestVerData?.releaseDate);
             const diffMonth = date2.diff(date1, 'months');
