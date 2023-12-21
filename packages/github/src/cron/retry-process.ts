@@ -8,12 +8,16 @@ import { getInstallationAccessToken } from '../util/installation-access-token';
 
 async function processIt(record: Github.Type.QueueMessage): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId } = record;
+  logger.info('RetryProcessHandlerProcessData', { processId, messageBody, queue });
+  try {
+    // send to queue
+    await new SQSClient().sendMessage(JSON.parse(messageBody), queue, MessageDeduplicationId);
 
-  // send to queue
-  await new SQSClient().sendMessage(JSON.parse(messageBody), queue, MessageDeduplicationId);
-
-  // delete from dynamodb
-  await new DynamoDbDocClient().delete(new RetryTableMapping().prepareDeleteParams(processId));
+    // delete from dynamodb
+    await new DynamoDbDocClient().delete(new RetryTableMapping().prepareDeleteParams(processId));
+  } catch (error) {
+    logger.error('RetryProcessHandlerProcess.error', error);
+  }
 }
 
 export async function handler(): Promise<void> {
@@ -26,9 +30,9 @@ export async function handler(): Promise<void> {
   });
   const githubRetryLimit = await octokit('GET /rate_limit');
   if (githubRetryLimit.data && githubRetryLimit.data.rate.remaining > 3) {
-    const itemsToPick = githubRetryLimit.data.rate.remaining / 3;
+    // const //itemsToPick = githubRetryLimit.data.rate.remaining / 3;
     const processes = await new DynamoDbDocClient().scan(
-      new RetryTableMapping().prepareScanParams(itemsToPick)
+      new RetryTableMapping().prepareScanParams(100)
     );
 
     if (processes.length === 0) {

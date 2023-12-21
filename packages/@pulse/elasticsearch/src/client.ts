@@ -20,14 +20,18 @@ export class ElasticSearchClient implements IElasticSearchClient {
   }
 
   public async bulkUpdate(indexName: string, data: any[]): Promise<void> {
-    const body = data.flatMap(doc => [
-      { update: { _index: indexName, _id: doc._id } },
-      {
-        doc: { body: { isDeleted: true, deletedAt: new Date().toISOString() } }
-      }
-    ]);
+    try {
+      const body = data.flatMap(doc => [
+        { update: { _index: indexName, _id: doc._id } },
+        {
+          doc: { body: { isDeleted: true, deletedAt: new Date().toISOString() } }
+        }
+      ]);
 
-    await this.client.bulk({ refresh: true, body });
+      await this.client.bulk({ refresh: true, body });
+    } catch (err) {
+      logger.error('bulkUpdate.error: ', { err });
+    }
   }
 
   public async putDocument(index: string, document: ElasticSearchDocument): Promise<void> {
@@ -175,11 +179,15 @@ export class ElasticSearchClient implements IElasticSearchClient {
   }
 
   public async bulkInsert(indexName: string, data: any[]): Promise<void> {
-    const body = data.flatMap(doc => [
-      { index: { _index: indexName, _id: doc._id } },
-      { body: { ...doc.body } }
-    ]);
+    try {
+      const body = data.flatMap(doc => [
+        { index: { _index: indexName, _id: doc._id } },
+        { body: { ...doc.body } }
+      ]);
 
-    await this.client.bulk({ refresh: true, body });
+      await this.client.bulk({ refresh: true, body });
+    } catch (err) {
+      logger.error('bulkInsert.error: ', { err });
+    }
   }
 }
