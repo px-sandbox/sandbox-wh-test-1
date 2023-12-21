@@ -11,10 +11,16 @@ async function processIt(record: Github.Type.QueueMessage): Promise<void> {
   logger.info('RetryProcessHandlerProcessData', { processId, messageBody, queue });
   try {
     // send to queue
-    await new SQSClient().sendMessage(JSON.parse(messageBody), queue, MessageDeduplicationId);
+    await new SQSClient().sendMessage(JSON.parse(messageBody), queue, MessageDeduplicationId).
+      then(
+        async () => {
+          logger.info('RetryProcessHandlerProcess.success', { processId, queue });
+          await new DynamoDbDocClient().delete(new RetryTableMapping().prepareDeleteParams(processId));
+          logger.info('RetryProcessHandlerProcess.delete', { processId, queue });
+        }
+      )
+      .catch((error) => { logger.error('RetryProcessHandlerProcess.error', error); });
 
-    // delete from dynamodb
-    await new DynamoDbDocClient().delete(new RetryTableMapping().prepareDeleteParams(processId));
   } catch (error) {
     logger.error('RetryProcessHandlerProcess.error', error);
   }
@@ -30,20 +36,26 @@ export async function handler(): Promise<void> {
   });
   const githubRetryLimit = await octokit('GET /rate_limit');
   if (githubRetryLimit.data && githubRetryLimit.data.rate.remaining > 3) {
-    // const //itemsToPick = githubRetryLimit.data.rate.remaining / 3;
-    const processes = await new DynamoDbDocClient().scan(
-      new RetryTableMapping().prepareScanParams(100)
-    );
-
-    if (processes.length === 0) {
-      logger.info(`RetryProcessHandler no processes found at: ${new Date().toISOString()}`);
-      return;
+    const itemsToPick = githubRetryLimit.data.rate.remaining / 3;
+    const limit = 500;
+    const params = new RetryTableMapping().prepareScanParams(limit);
+    for (let i = 0; i < limit / itemsToPick; i++) {
+      logger.info(`RetryProcessHandler process count ${i} at: ${new Date().toISOString()}`);
+      const processes = await new DynamoDbDocClient().scanAllItems(
+        params,
+      );
+      if (processes.Count === 0) {
+        logger.info(`RetryProcessHandler no processes found at: ${new Date().toISOString()}`);
+        return;
+      }
+      const items = processes.Items ? processes.Items as Github.Type.QueueMessage[] : [];
+      await Promise.all(
+        items.map((record: unknown) => processIt(record as Github.Type.QueueMessage))
+      );
+      params.ExclusiveStartKey = processes.LastEvaluatedKey
     }
-
-    await Promise.all(
-      processes.map((record: unknown) => processIt(record as Github.Type.QueueMessage))
-    );
   } else {
     logger.info('NO_REMANING_RATE_LIMIT', { githubRetryLimit: githubRetryLimit.data });
   }
 }
+
