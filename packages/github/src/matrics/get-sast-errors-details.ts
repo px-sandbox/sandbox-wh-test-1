@@ -60,7 +60,7 @@ async function searchSastErrors(
             matchQry
         );
 
-        formattedData = searchedData.errorsBucket.buckets.map((bucket) => ({
+        formattedData = searchedData?.errorsBucket?.buckets?.map((bucket) => ({
             errorMsg: bucket.key.errorMsg as string,
             errorRuleId: bucket.key.errorRuleId as string,
             errorFileName: bucket.key.errorFileName as string,
@@ -206,7 +206,7 @@ export async function getRepoSastErrors(
                 requestBody
             );
             logger.info('getRepoSastErrorsMatrics.report', {
-                report_length: report
+                report_length: report ?? ''
             });
             afterKey = report?.errorsBucket?.after_key;
             const repoNames = await getRepoNames(repoIds);

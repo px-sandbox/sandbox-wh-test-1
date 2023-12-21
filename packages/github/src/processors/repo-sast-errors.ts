@@ -8,7 +8,6 @@ import moment from 'moment';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
-import { searchedDataFormator } from '../util/response-formatter';
 
 export async function repoSastErrorsFormatter(
     data: Github.ExternalType.Api.RepoSastErrors
@@ -38,38 +37,46 @@ export async function storeSastErrorReportToES(
     orgId: string,
     createdAt: string
 ): Promise<void> {
-    const esClientObj = new ElasticSearchClient({
-        host: Config.OPENSEARCH_NODE,
-        username: Config.OPENSEARCH_USERNAME ?? '',
-        password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const matchQry = esb
-        .boolQuery()
-        .must([
-            esb.termQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`),
-            esb.termQuery('body.branch', branch),
-            esb.termQuery(
-                'body.organizationId',
-                `${mappingPrefixes.organization}_${orgId}`
-            ),
-            esb.rangeQuery('body.createdAt').gt(moment().utc().startOf('day').toISOString())
-                .lt(createdAt),
-            esb.termQuery('body.isDeleted', false),
-        ])
-        .toJSON();
-    const searchedData = await esClientObj.searchWithEsb(
-        Github.Enums.IndexName.GitRepoSastErrors,
-        matchQry
-    );
-    const formattedData = await searchedDataFormator(searchedData);
-    if (formattedData.length > 0) {
-        await esClientObj.bulkUpdate(Github.Enums.IndexName.GitRepoSastErrors, formattedData);
-        logger.info('repoSastErrors_deleted', { records: formattedData.length });
+    try {
+        const esClientObj = new ElasticSearchClient({
+            host: Config.OPENSEARCH_NODE,
+            username: Config.OPENSEARCH_USERNAME ?? '',
+            password: Config.OPENSEARCH_PASSWORD ?? '',
+        });
+
+        const matchQry = esb
+            .boolQuery()
+            .must([
+                esb.termQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`),
+                esb.termQuery('body.branch', branch),
+                esb.termQuery('body.organizationId', `${mappingPrefixes.organization}_${orgId}`),
+                esb
+                    .rangeQuery('body.createdAt')
+                    .gt(moment().utc().startOf('day').toISOString())
+                    .lt(createdAt),
+                esb.termQuery('body.isDeleted', false),
+            ])
+            .toJSON();
+        const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
+        await esClientObj.updateByQuery(
+            Github.Enums.IndexName.GitRepoSastErrors,
+            matchQry,
+            script.toJSON()
+        );
+
+        if (data.length > 0) {
+            logger.info('storeSastErrorReportToES.data', { data_length: data.length });
+            await esClientObj.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, data);
+            logger.info('storeSastErrorReportToES.success');
+        } else {
+            logger.info('storeSastErrorReportToES.no_data');
+        }
+    } catch (error) {
+        logger.error('storeSastErrorReportToES.error', { error });
+        throw error;
     }
-    await esClientObj.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, data);
-    logger.info('storeSastErrorReportToES.success');
 }
-export async function fetchDataFromS3(key: string): Promise<Github.ExternalType.Api.RepoSastErrors> {
+export async function fetchDataFromS3<T>(key: string): Promise<T> {
     const params: GetObjectRequest = {
         Bucket: `${process.env.SST_STAGE}-sast-errors`,
         Key: key,
