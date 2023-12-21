@@ -8,7 +8,6 @@ import moment from 'moment';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
-import { searchedDataFormator } from '../util/response-formatter';
 
 export async function repoSastErrorsFormatter(
     data: Github.ExternalType.Api.RepoSastErrors
@@ -58,16 +57,13 @@ export async function storeSastErrorReportToES(
                 esb.termQuery('body.isDeleted', false),
             ])
             .toJSON();
-        const searchedData = await esClientObj.searchWithEsb(
+        const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
+        await esClientObj.updateByQuery(
             Github.Enums.IndexName.GitRepoSastErrors,
-            matchQry
+            matchQry,
+            script.toJSON()
         );
-        const formattedData = await searchedDataFormator(searchedData);
-        if (formattedData.length > 0) {
-            logger.info('storeSastErrorFormatted.data', { formattedData_length: formattedData.length });
-            await esClientObj.bulkUpdate(Github.Enums.IndexName.GitRepoSastErrors, formattedData);
-            logger.info('repoSastErrors_deleted', { records: formattedData.length });
-        }
+
         if (data.length > 0) {
             logger.info('storeSastErrorReportToES.data', { data_length: data.length });
             await esClientObj.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, data);

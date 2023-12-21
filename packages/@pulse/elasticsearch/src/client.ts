@@ -21,11 +21,11 @@ export class ElasticSearchClient implements IElasticSearchClient {
 
   public async bulkUpdate(indexName: string, data: any[]): Promise<void> {
     try {
-      const body = data.flatMap(doc => [
+      const body = data.flatMap((doc) => [
         { update: { _index: indexName, _id: doc._id } },
         {
-          doc: { body: { isDeleted: true, deletedAt: new Date().toISOString() } }
-        }
+          doc: { body: { isDeleted: true, deletedAt: new Date().toISOString() } },
+        },
       ]);
 
       await this.client.bulk({ refresh: true, body });
@@ -129,7 +129,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
         id,
         body: {
           doc: updatedDoc,
-        }
+        },
       });
     } catch (err) {
       logger.error('updateDocument.error : ', { err });
@@ -145,13 +145,14 @@ export class ElasticSearchClient implements IElasticSearchClient {
    * @throws {Error} If an error occurs while updating the documents.
    */
   public async updateByQuery(indexName: string, query: object, script: object): Promise<void> {
+    logger.info('updateByQuery.updateData for index : ', { indexName });
     try {
       await this.client.updateByQuery({
         index: indexName,
         body: {
           query,
           script,
-        }
+        },
       });
     } catch (err) {
       logger.error('updateByQuery.error : ', { err });
@@ -180,14 +181,27 @@ export class ElasticSearchClient implements IElasticSearchClient {
 
   public async bulkInsert(indexName: string, data: any[]): Promise<void> {
     try {
-      const body = data.flatMap(doc => [
+      const body = data.flatMap((doc) => [
         { index: { _index: indexName, _id: doc._id } },
-        { body: { ...doc.body } }
+        { body: { ...doc.body } },
       ]);
 
       await this.client.bulk({ refresh: true, body });
     } catch (err) {
       logger.error('bulkInsert.error: ', { err });
     }
+  }
+
+  public async updateDeletePreference(indexName: string, matchQry: any): Promise<void> {
+    await this.client.updateByQuery({
+      index: indexName,
+      body: {
+        query: matchQry,
+        script: {
+          source: 'ctx._source.body.isDeleted = true',
+          lang: 'painless',
+        },
+      },
+    });
   }
 }
