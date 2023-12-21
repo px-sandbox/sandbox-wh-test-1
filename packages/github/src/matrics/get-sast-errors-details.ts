@@ -192,41 +192,41 @@ export async function getRepoSastErrors(
     let afterKey;
     const finalData: Github.Type.SastErrorsAggregation[] = [];
     try {
-        do {
-            const requestBody = await getRepoSastErrorsQuery(
-                repoIds,
-                startDate,
-                endDate,
-                branch,
-                afterKeyObj,
-            );
 
-            const report = await esClientObj.queryAggs<Github.Type.ISastErrorAggregationResult>(
-                Github.Enums.IndexName.GitRepoSastErrors,
-                requestBody
-            );
-            logger.info('getRepoSastErrorsMatrics.report', {
-                report_length: report ?? ''
-            });
-            afterKey = report?.errorsBucket?.after_key;
-            const repoNames = await getRepoNames(repoIds);
-            if (report) {
-                finalData.push(...report.errorsBucket.buckets.map(
-                    (bucket) => ({
-                        repoName: repoNames.find((repo: Github.Type.RepoNameType) =>
-                            repo.id === bucket.key.errorRepoId)?.name as string | '',
-                        errorName: bucket.key.errorMsg as string,
-                        ruleId: bucket.key.errorRuleId as string,
-                        filename: bucket.key.errorFileName as string,
-                        branch: bucket.distinctBranchName.buckets.map(
-                            (branchBucket) => branchBucket.key as string
-                        ),
-                        firstOccurredAt: bucket.errorFirstOccurred.value_as_string as string,
-                    })
-                ));
-            }
-            logger.info('getRepoSastErrorsMatrics.finalData', { finalData_length: finalData?.length });
-        } while (afterKey !== undefined);
+        const requestBody = await getRepoSastErrorsQuery(
+            repoIds,
+            startDate,
+            endDate,
+            branch,
+            afterKeyObj,
+        );
+
+        const report = await esClientObj.queryAggs<Github.Type.ISastErrorAggregationResult>(
+            Github.Enums.IndexName.GitRepoSastErrors,
+            requestBody
+        );
+        logger.info('getRepoSastErrorsMatrics.report', {
+            report_length: report ?? ''
+        });
+        afterKey = report?.errorsBucket?.after_key;
+        const repoNames = await getRepoNames(repoIds);
+        if (report) {
+            finalData.push(...report.errorsBucket.buckets.map(
+                (bucket) => ({
+                    repoName: repoNames.find((repo: Github.Type.RepoNameType) =>
+                        repo.id === bucket.key.errorRepoId)?.name as string | '',
+                    errorName: bucket.key.errorMsg as string,
+                    ruleId: bucket.key.errorRuleId as string,
+                    filename: bucket.key.errorFileName as string,
+                    branch: bucket.distinctBranchName.buckets.map(
+                        (branchBucket) => branchBucket.key as string
+                    ),
+                    firstOccurredAt: bucket.errorFirstOccurred.value_as_string as string,
+                })
+            ));
+        }
+        logger.info('getRepoSastErrorsMatrics.finalData', { finalData_length: finalData?.length });
+
         logger.info('getRepoSastErrorsMatrics.finalData', { finalData_length: finalData?.length });
 
         return {
