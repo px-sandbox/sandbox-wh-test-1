@@ -229,7 +229,10 @@ export async function getRepoSastErrors(
         } while (afterKey !== undefined);
         logger.info('getRepoSastErrorsMatrics.finalData', { finalData_length: finalData?.length });
 
-        return { data: finalData.length > 0 ? finalData : [], afterKey };
+        return {
+            data: finalData.length > 0 ? finalData : [],
+            afterKey: Buffer.from(JSON.stringify(afterKey), 'utf-8').toString('base64')
+        };
     }
     catch (err) {
         logger.error('getRepoSastErrorsMatrics.error', err);

@@ -38,7 +38,7 @@ export type SastErrorsAggregation = {
 }
 export type SastErrorsAggregationData = {
     data: SastErrorsAggregation[];
-    afterKey: object | undefined;
+    afterKey: string | undefined;
 }
 export type SastErrorsData = [{
     _id: string;
