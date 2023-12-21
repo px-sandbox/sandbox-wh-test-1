@@ -15,15 +15,16 @@ const repoSastErrors = async function repoSastErrors(
 
     try {
 
-        const objString = Buffer.from(afterKey, 'base64').toString('utf-8') ?? '';
-        const decodedAfterKey = objString.length ? JSON.parse(objString) : {};
+        const afterKeyObj = afterKey.length > 0 ?
+            JSON.parse(Buffer.from(afterKey, 'base64').toString('utf-8')) :
+            undefined;
         const sastErrorsDetails = await getRepoSastErrors(
             repoIds,
             // orgName,
             startDate,
             endDate,
             branch,
-            decodedAfterKey,
+            afterKeyObj,
         );
 
         return responseParser
