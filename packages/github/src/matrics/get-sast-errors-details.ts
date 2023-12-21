@@ -32,7 +32,7 @@ async function searchSastErrors(
             esb.CompositeAggregation.termsValuesSource('errorFileName', 'body.fileName'),
             esb.CompositeAggregation.termsValuesSource('errorRepoId', 'body.repoId'),
         );
-    if (afterKey !== undefined) {
+    if (afterKey) {
         compositeAgg = compositeAgg.after(afterKey);
     }
     const matchQry = esb
@@ -102,7 +102,7 @@ async function getRepoSastErrorsQuery(
             esb.minAggregation('errorFirstOccurred', 'body.date'),
         ]);
 
-    if (afterKey !== undefined) {
+    if (afterKey) {
         compositeAgg = compositeAgg.after(afterKey);
     }
     const query = esb
