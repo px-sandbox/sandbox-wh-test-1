@@ -45,10 +45,13 @@ async function fetchBranchesData(repoId: string, currDate: string): Promise<void
 
     // sending data to SQS for each branch of each repoId.
     logger.info(`GET_GITHUB_BRANCH_DETAILS: sending data to SQS for repoId: ${repoId}, branches: ${branchesArr}`);
-    branchesArr.forEach((branch) => {
 
-        new SQSClient().sendMessage({ repoId, branch, currDate }, Queue.qGhScansSave.queueUrl);
-    });
+    const sqsClient = new SQSClient();
+
+    await Promise.all(branchesArr.map(async (branch) =>
+
+        sqsClient.sendMessage({ repoId, branch, currDate }, Queue.qGhScansSave.queueUrl)
+    ));
 
 }
 
@@ -71,10 +74,11 @@ const updateSecurityScans = async (event: APIGatewayProxyEvent): Promise<APIGate
     try {
 
         // we call fetchBranchesData for each repoId in parallel
+
         await Promise.all(
-            repoIds.map(async (repoId) => {
-                await fetchBranchesData(repoId, currDate);
-            })
+            repoIds.map(async (repoId) =>
+                fetchBranchesData(repoId, currDate)
+            )
         );
         return responseParser.
             setMessage('successfully updating scans for today').
