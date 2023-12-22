@@ -7,6 +7,7 @@ const repoSastErrors = async function repoSastErrors(
 ): Promise<APIGatewayProxyResult> {
     const afterKey: string = event.queryStringParameters?.afterKey ?? '';
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
+    // TODO: this is not array. We receive only single branch name
     const branch: string[] = event.queryStringParameters?.branch?.split(',') ?? [];
     // TODO: orgName is not used in the functions
     // const orgName: string = event.queryStringParameters?.orgName ?? '';

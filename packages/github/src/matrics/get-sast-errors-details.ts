@@ -231,7 +231,7 @@ export async function getRepoSastErrors(
 
         return {
             data: finalData.length > 0 ? finalData : [],
-            afterKey: Buffer.from(JSON.stringify(afterKey), 'utf-8').toString('base64')
+            afterKey: afterKey ? Buffer.from(JSON.stringify(afterKey), 'utf-8').toString('base64') : ''
         };
     }
     catch (err) {

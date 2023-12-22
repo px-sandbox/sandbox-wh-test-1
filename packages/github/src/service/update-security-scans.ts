@@ -34,7 +34,7 @@ async function fetchBranchesData(repoId: string, currDate: string): Promise<void
     // formatting data into easily readable form
     const formattedData = await searchedDataFormator(branches);
 
-    if (!formattedData.length) {
+    if (!formattedData?.length) {
         logger.info(`GET_GITHUB_BRANCH_DETAILS: No branches found for repoId: ${repoId}`);
         return;
     }
@@ -67,7 +67,7 @@ const updateSecurityScans = async (event: APIGatewayProxyEvent): Promise<APIGate
     const repoIds = event.queryStringParameters?.repoIds?.split(',') ?? [];
     const currDate = moment().format('YYYY-MM-DD');
 
-    if (!repoIds.length) {
+    if (!repoIds?.length) {
         throw new Error('RepoIds are not provided!');
     }
 
