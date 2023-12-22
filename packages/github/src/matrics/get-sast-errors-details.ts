@@ -85,11 +85,11 @@ async function getRepoSastErrorsQuery(
     endDate: string,
     branch: string[],
     afterKey: object | undefined
-): Promise<object> {
+): Promise<object | undefined> {
     const data = await searchSastErrors(repoIds, startDate, endDate, branch);
     logger.info('getRepoSastErrorsSearch.data', { length: data.length });
     if (data.length === 0) {
-        return {};
+        return undefined;
     }
 
     let compositeAgg = esb
@@ -197,11 +197,11 @@ export async function getRepoSastErrors(
                 branch,
                 afterKey,
             );
-            const report = await esClientObj.queryAggs<Github.Type.ISastErrorAggregationResult>(
-                Github.Enums.IndexName.GitRepoSastErrors,
-                requestBody
-            );
-            if (report) {
+            if (requestBody) {
+                const report = await esClientObj.queryAggs<Github.Type.ISastErrorAggregationResult>(
+                    Github.Enums.IndexName.GitRepoSastErrors,
+                    requestBody
+                );
                 logger.info('getRepoSastErrorsMatrics.report', {
                     report_length: report
                 });
