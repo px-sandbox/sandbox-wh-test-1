@@ -203,6 +203,10 @@ export async function getVersionUpgrades(
                 } :
                 { ...lib, latestVerDate: '', latestVer: '', dateDiff: undefined };
         });
+        // If no final data then we return empty response
+        if (!finalData.length) {
+            return { versionData: [], page, totalPages: 0 };
+        }
         const totalPages = Math.ceil(finalData.length / limit);
 
         // sorting data
