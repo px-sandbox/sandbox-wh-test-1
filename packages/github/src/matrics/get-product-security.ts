@@ -92,9 +92,8 @@ export async function getHeadlineStat(repoIds: string[], branch: string): Promis
 
 
     const data = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
-    const formattedData = await searchedDataFormator(data);
 
-    return formattedData.length;
+    return data?.hits?.total?.value;
 }
 
 
