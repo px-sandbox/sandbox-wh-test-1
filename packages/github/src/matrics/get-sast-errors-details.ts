@@ -205,14 +205,12 @@ export async function getRepoSastErrors(
             Github.Enums.IndexName.GitRepoSastErrors,
             requestBody
         );
-        console.log('yeh hai report', report);
         logger.info('getRepoSastErrorsMatrics.report', {
             report_length: report ?? ''
         });
         afterKey = report?.errorsBucket?.after_key;
         const repoNames = await getRepoNames(repoIds);
         if (report) {
-            console.log('yha ghusgya report mei', report);
             finalData.push(...report.errorsBucket.buckets.map(
                 (bucket) => ({
                     repoName: repoNames.find((repo: Github.Type.RepoNameType) =>
