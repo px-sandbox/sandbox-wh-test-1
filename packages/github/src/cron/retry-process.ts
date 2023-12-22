@@ -37,7 +37,7 @@ export async function handler(): Promise<void> {
   const githubRetryLimit = await octokit('GET /rate_limit');
   if (githubRetryLimit.data && githubRetryLimit.data.rate.remaining > 3) {
     const itemsToPick = githubRetryLimit.data.rate.remaining / 3;
-    const limit = 500;
+    const limit = 200;
     const params = new RetryTableMapping().prepareScanParams(limit);
     for (let i = 0; i < Math.floor(itemsToPick / limit); i++) {
       logger.info(`RetryProcessHandler process count ${i} at: ${new Date().toISOString()}`);
