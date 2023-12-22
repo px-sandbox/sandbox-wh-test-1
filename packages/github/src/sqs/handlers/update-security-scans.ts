@@ -63,7 +63,7 @@ function formatScansForBulkInsert(data: (Pick<Other.Type.Hit, "_id"> & Other.Typ
  * @returns A Promise that resolves to void.
  */
 export const handler = async function updateSecurityScans(event: SQSEvent): Promise<void> {
-    logger.info(`Records Length: ${event.Records.length}`);
+    logger.info(`Records Length: ${event?.Records?.length}`);
 
     for (const record of event.Records) {
         try {
@@ -81,7 +81,7 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
             const formattedTodaysScans = await searchedDataFormator(todaysScans);
 
             // will only update scans for today if no scans found for today
-            if (formattedTodaysScans.length === 0) {
+            if (formattedTodaysScans?.length === 0) {
 
                 // extracting yesterday's scans to be copied into today
                 const yesterDate = moment().subtract(1, 'days').format("YYYY-MM-DD");
@@ -94,7 +94,7 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
                 const formattedData = await searchedDataFormator(yesterdaysData);
 
                 // updating scans for today if yesterday's scans found
-                if (formattedData.length > 0) {
+                if (formattedData?.length > 0) {
                     // formatting yesterday's scans 
                     const updatedBody = formatScansForBulkInsert(formattedData);
 
