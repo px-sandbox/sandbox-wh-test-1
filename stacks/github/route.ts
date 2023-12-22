@@ -121,6 +121,7 @@ export function initializeRoutes(
         'GET /github/retry/failed': {
             function: {
                 handler: 'packages/github/src/cron/retry-process.handler',
+                timeout: '60 seconds',
                 bind: [
                     retryProcessTable,
                     userFormatDataQueue,

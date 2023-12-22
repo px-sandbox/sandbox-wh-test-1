@@ -39,7 +39,7 @@ export async function handler(): Promise<void> {
     const itemsToPick = githubRetryLimit.data.rate.remaining / 3;
     const limit = 500;
     const params = new RetryTableMapping().prepareScanParams(limit);
-    for (let i = 0; i < limit / itemsToPick; i++) {
+    for (let i = 0; i < Math.floor(itemsToPick / limit); i++) {
       logger.info(`RetryProcessHandler process count ${i} at: ${new Date().toISOString()}`);
       const processes = await new DynamoDbDocClient().scanAllItems(
         params,
@@ -52,7 +52,9 @@ export async function handler(): Promise<void> {
       await Promise.all(
         items.map((record: unknown) => processIt(record as Github.Type.QueueMessage))
       );
+      logger.info('RetryProcessHandler lastEvaluatedKey', { lastEvaluatedKey: processes.LastEvaluatedKey });
       params.ExclusiveStartKey = processes.LastEvaluatedKey
+
     }
   } else {
     logger.info('NO_REMANING_RATE_LIMIT', { githubRetryLimit: githubRetryLimit.data });
