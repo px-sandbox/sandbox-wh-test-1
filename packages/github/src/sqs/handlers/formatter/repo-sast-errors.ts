@@ -7,6 +7,7 @@ import {
     storeSastErrorReportToES,
 } from '../../../processors/repo-sast-errors';
 import { logProcessToRetry } from '../../../util/retry-process';
+import { Github } from 'abstraction';
 
 export const handler = async function repoSastErrorsDataReceiver(event: SQSEvent): Promise<void> {
     logger.info(`Records Length: ${event.Records.length}`);
@@ -16,10 +17,9 @@ export const handler = async function repoSastErrorsDataReceiver(event: SQSEvent
                 const messageBody = JSON.parse(record.body);
                 logger.info('REPO_SAST_SCAN_SQS_RECEIVER_HANDLER_FORMATTER', { messageBody });
                 const { s3Obj, repoId, branch, orgId, createdAt } = messageBody;
-                const data = await fetchDataFromS3(s3Obj.key);
+                const data: Github.ExternalType.Api.RepoSastErrors = await fetchDataFromS3(s3Obj.key);
                 const sastErrorFormattedData = await repoSastErrorsFormatter(data);
                 await storeSastErrorReportToES(sastErrorFormattedData, repoId, branch, orgId, createdAt);
-                logger.info('REPO_SAST_SCAN_SQS_RECEIVER_HANDLER_FORMATTER_FROM_S3', { data });
             } catch (error) {
                 await logProcessToRetry(record, Queue.qGhRepoSastError.queueUrl, error as Error);
                 logger.error('repoSastScanFormattedDataReceiver.error', error);

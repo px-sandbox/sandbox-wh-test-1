@@ -44,6 +44,7 @@ function initProcessRetryFunction(
     // we need to bind all necessary queues to the function
     const processRetryFunction = new Function(stack, 'fnRetryFailedProcessor', {
         handler: 'packages/github/src/cron/retry-process.handler',
+        timeout: '60 seconds',
         bind: [
             retryProcessTable,
             branchFormatDataQueue,
