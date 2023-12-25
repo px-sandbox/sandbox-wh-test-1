@@ -145,7 +145,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
    * @throws {Error} If an error occurs while updating the documents.
    */
   public async updateByQuery(indexName: string, query: object, script: object): Promise<void> {
-    logger.info('updateByQuery.updateData for index : ', { indexName });
+    logger.info(`updateByQuery.updateData for index : ${indexName}`);
     try {
       await this.client.updateByQuery({
         index: indexName,

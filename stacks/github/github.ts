@@ -30,13 +30,22 @@ export function gh({ stack }: StackContext): {
       },
     ],
   });
+  const versionUpgradeBucket = new Bucket(stack, 'versionUpgradeBucket', {
+    name: `${process.env.SST_STAGE}-version-upgrades`,
+    cors: [
+      {
+        allowedMethods: [HttpMethods.GET, HttpMethods.POST],
+        allowedOrigins: ['*'],
+      },
+    ],
+  });
   /**
    *  Initialize Queues
    */
   const restQueues = initializeQueue(
     stack,
     { githubMappingTable, retryProcessTable, libMasterTable },
-    sastErrorsBucket
+    { sastErrorsBucket, versionUpgradeBucket }
   );
   /**
    * Initialize Functions
@@ -56,7 +65,7 @@ export function gh({ stack }: StackContext): {
     stack,
     restQueues,
     { githubMappingTable, retryProcessTable, libMasterTable },
-    sastErrorsBucket
+    { sastErrorsBucket, versionUpgradeBucket }
   );
 
   stack.addOutputs({

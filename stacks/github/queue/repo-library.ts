@@ -1,11 +1,12 @@
-import { Stack } from "aws-cdk-lib";
-import { Function, Queue, use } from "sst/constructs";
-import { GithubTables } from "../../type/tables";
-import { commonConfig } from "../../common/config";
+import { Stack } from 'aws-cdk-lib';
+import { Bucket, Function, Queue, use } from 'sst/constructs';
+import { GithubTables } from '../../type/tables';
+import { commonConfig } from '../../common/config';
 
 // eslint-disable-next-line max-lines-per-function,
-export function initializeRepoLibraryQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
-    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
+export function initializeRepoLibraryQueue(stack: Stack, githubDDb: GithubTables, versionUpgradeBucket: Bucket): Queue[] {
+    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } =
+        use(commonConfig);
     const { retryProcessTable, libMasterTable } = githubDDb;
     const depRegistryQueue = new Queue(stack, 'qDepRegistry');
     depRegistryQueue.addConsumer(stack, {
@@ -19,7 +20,6 @@ export function initializeRepoLibraryQueue(stack: Stack, githubDDb: GithubTables
             },
         },
     });
-
 
     const currentDepRegistryQueue = new Queue(stack, 'qCurrentDepRegistry');
     currentDepRegistryQueue.addConsumer(stack, {
@@ -58,6 +58,28 @@ export function initializeRepoLibraryQueue(stack: Stack, githubDDb: GithubTables
             },
         },
     });
+
+    const repoLibS3Queue = new Queue(stack, 'qRepoLibS3');
+    repoLibS3Queue.addConsumer(stack, {
+        function: new Function(stack, 'fnRepoLibS3', {
+            handler: 'packages/github/src/sqs/handlers/repo-library/from-s3-repo-library.handler',
+            bind: [repoLibS3Queue],
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 5,
+            },
+        },
+    });
+
+    repoLibS3Queue.bind([
+        depRegistryQueue,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        versionUpgradeBucket,
+        retryProcessTable
+    ]);
     masterLibraryQueue.bind([
         retryProcessTable,
         OPENSEARCH_NODE,
@@ -83,5 +105,11 @@ export function initializeRepoLibraryQueue(stack: Stack, githubDDb: GithubTables
         latestDepRegistry,
     ]);
 
-    return [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry, masterLibraryQueue]
+    return [
+        depRegistryQueue,
+        currentDepRegistryQueue,
+        latestDepRegistry,
+        masterLibraryQueue,
+        repoLibS3Queue,
+    ];
 }

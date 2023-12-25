@@ -1,81 +1,31 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { logger } from 'core';
-import { Github } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
+import { Github } from 'abstraction';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { S3 } from 'aws-sdk';
+import { logger } from 'core';
+import moment from 'moment';
 import { Queue } from 'sst/node/queue';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
-import esb from 'elastic-builder';
-import { mappingPrefixes } from '../../constant/config';
 
-async function deletePrevDependencies(repoId: string): Promise<void> {
-    const esClientObj = new ElasticSearchClient({
-        host: Config.OPENSEARCH_NODE,
-        username: Config.OPENSEARCH_USERNAME ?? '',
-        password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const matchQry = esb.matchQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`).toJSON();
-    const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
-
-    await esClientObj.updateByQuery(
-        Github.Enums.IndexName.GitRepoLibrary,
-        matchQry,
-        script.toJSON()
-    );
-}
 export const handler = async (
     event: APIGatewayProxyEvent
 ): Promise<void | APIGatewayProxyResult> => {
     try {
         const data: Github.ExternalType.RepoLibrary = JSON.parse(event.body ?? '{}');
         logger.info('repoLibrary.handler.received', { data });
-
-        if (data) {
-            const sqsClient = new SQSClient();
-            const {
-                coreDependencies,
-                repositoryInfo: { repoId, repoOwner: orgName },
-                dependencies,
-            } = data;
-
-            const uniqueDeps = dependencies.filter(
-                (dep, index, self) =>
-                    index ===
-                    self.findIndex(
-                        (t) =>
-                            t.dependencyName === dep.dependencyName && t.currentVersion === dep.currentVersion
-                    )
-            );
-            await deletePrevDependencies(repoId);
-
-            await Promise.all(
-                [...uniqueDeps.map(async (dep) => {
-                    const message = {
-                        ...dep,
-                        repoId,
-                        orgName,
-                        isDeleted: false,
-                        isCore: false
-                    };
-
-                    await sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
-                }), ...coreDependencies.map(async (dep) => {
-                    const message = {
-                        ...dep,
-                        repoId,
-                        orgName,
-                        isDeleted: false,
-                        isCore: true
-                    };
-
-                    await sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
-                })]
-
-            );
-        } else {
-            logger.warn('repoLibrary.handler.noData');
-        }
+        const s3 = new S3();
+        const createdAt = moment().toISOString();
+        const params = {
+            Bucket: `${process.env.SST_STAGE}-version-upgrades`,
+            Key: `version_upgrade_${data.repositoryInfo.repoOwner}_${data.repositoryInfo.repoId}_${createdAt}.json`,
+            Body: JSON.stringify(data),
+            ContentType: 'application/json',
+        };
+        console.log('params', params);
+        const s3Obj = await s3.upload(params).promise();
+        logger.info('versionUpgrade.handler.s3Upload', { s3Obj });
+        await new SQSClient().sendMessage({ s3ObjKey: s3Obj.Key, repoId: data.repositoryInfo.repoId, orgName: data.repositoryInfo.repoOwner }, Queue.qRepoLibS3.queueUrl)
     } catch (error) {
-        logger.error('repoLibrary.handler.error', { error, event });
+        logger.error('repoLibrary.handler.error', { error });
     }
 };
+

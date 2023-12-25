@@ -76,12 +76,13 @@ export async function storeSastErrorReportToES(
         throw error;
     }
 }
-export async function fetchDataFromS3<T>(key: string): Promise<T> {
+export async function fetchDataFromS3<T>(key: string, bucketName: string): Promise<T> {
     const params: GetObjectRequest = {
-        Bucket: `${process.env.SST_STAGE}-sast-errors`,
+        Bucket: `${bucketName}`,
         Key: key,
         ResponseContentType: 'application/json',
     };
+    logger.info('fetchDataFromS3.params', { params });
     const s3 = new S3();
     try {
         const data = await s3.getObject(params).promise();
