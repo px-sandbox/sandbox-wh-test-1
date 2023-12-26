@@ -3,7 +3,7 @@ import { Jira } from 'abstraction';
 import { SprintState } from 'abstraction/jira/enums';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
-import { searchedDataFormator, Sprint } from '../util/response-formatter';
+import { Sprint, searchedDataFormator } from '../util/response-formatter';
 
 export async function getSprints(sprintId: string): Promise<Sprint> {
   const esClientObj = new ElasticSearchClient({
@@ -12,15 +12,23 @@ export async function getSprints(sprintId: string): Promise<Sprint> {
     password: Config.OPENSEARCH_PASSWORD ?? '',
   });
   const query = esb
-    .boolQuery()
-    .must(esb.termQuery('body.id', sprintId))
-    .should([
-      esb.termQuery('body.state', SprintState.ACTIVE),
-      esb.termQuery('body.state', SprintState.CLOSED),
-    ])
-    .minimumShouldMatch(1)
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
+        .must(esb.termQuery('body.id', sprintId))
+        .should([
+          esb.termQuery('body.state', SprintState.ACTIVE),
+          esb.termQuery('body.state', SprintState.CLOSED),
+        ])
+        .minimumShouldMatch(1)
+    )
+    .sort(esb.sort('body.startDate', 'desc'))
     .toJSON();
-  const data = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Sprint, query);
-  const [sprint] = await searchedDataFormator(data) as Sprint[];
+  const { body } = await esClientObj.getClient().search({
+    index: Jira.Enums.IndexName.Sprint,
+    body: query,
+  });
+  const [sprint] = (await searchedDataFormator(body)) as Sprint[];
   return sprint;
 }

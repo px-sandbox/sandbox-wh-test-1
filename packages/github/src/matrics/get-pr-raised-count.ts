@@ -88,7 +88,7 @@ export async function numberOfPrRaisedGraph(
   }
 }
 
-export async function numberOfPrRaisedtAvg(
+export async function numberOfPrRaisedAvg(
   startDate: string,
   endDate: string,
   repoIds: string[]
@@ -120,7 +120,7 @@ export async function numberOfPrRaisedtAvg(
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
     return { value: totalDoc / weekDaysCount };
   } catch (e) {
-    logger.error('numberOfPrRaisedtAvg.error', e);
+    logger.error('numberOfPrRaisedAvg.error', e);
     throw e;
   }
 }

@@ -35,5 +35,5 @@ export const commonConfig = ({ stack }: StackContext): {
   GITHUB_SG_INSTALLATION_ID: new Config.Secret(stack, 'GITHUB_SG_INSTALLATION_ID'),
   GITHUB_WEBHOOK_SECRET: new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET'),
   GITHUB_SG_ACCESS_TOKEN: new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN'),
-  GIT_ORGANIZATION_ID: new Config.Secret(stack, 'GIT_ORGANIZATION_ID')
+  GIT_ORGANIZATION_ID: new Config.Secret(stack, 'GIT_ORGANIZATION_ID'),
 });

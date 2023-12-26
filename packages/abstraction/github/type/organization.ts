@@ -14,6 +14,5 @@ export interface Organization {
     publicRepos: number;
     createdAt: string;
     updatedAt: string;
-    deletedAt: boolean;
   };
 }

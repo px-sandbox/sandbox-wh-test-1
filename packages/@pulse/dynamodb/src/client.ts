@@ -7,8 +7,11 @@ import {
   QueryCommandInput,
   ScanCommand,
   ScanCommandInput,
+  ScanCommandOutput,
   DeleteCommandInput,
   DeleteCommand,
+  BatchGetCommandInput,
+  BatchGetCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { IDynmoDbDocClient } from '../types';
 
@@ -54,6 +57,17 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
     return ddbRes.Items ? ddbRes.Items[0] : undefined;
   }
 
+  /**
+   * Retrieves items from one or more tables in a single operation.
+   * @param params - The input parameters for the batchGet operation.
+   * @returns A promise that resolves with the result of the batchGet operation.
+   */
+  public async batchGet(params: BatchGetCommandInput): Promise<Record<string, Record<string, unknown>[]> | undefined> {
+    const command = new BatchGetCommand(params);
+    const ddbRes = await this.getDdbDocClient().send(command);
+    return ddbRes?.Responses;
+  }
+
   public async put(putParams: PutCommandInput): Promise<void> {
     await this.getDdbDocClient().send(new PutCommand(putParams));
   }
@@ -66,5 +80,19 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
 
   public async delete(deleteParams: DeleteCommandInput): Promise<void> {
     await this.getDdbDocClient().send(new DeleteCommand(deleteParams));
+  }
+
+  /**
+   * Scans all items in the DynamoDB table based on the provided scan parameters.
+   * 
+   * @param scanParams - The scan parameters for the scan operation.
+   * @returns A promise that resolves to the scan command output.
+   */
+  public async scanAllItems(scanParams: ScanCommandInput): Promise<ScanCommandOutput> {
+    const params: ScanCommandInput = { ...scanParams }; // Create a new object
+
+    const data = await this.getDdbDocClient().send(new ScanCommand(params)) as ScanCommandOutput;
+
+    return data;
   }
 }

@@ -1,7 +1,7 @@
 import { transpileSchema } from '@middy/validator/transpile';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { numberOfPrRaisedGraph, numberOfPrRaisedtAvg } from '../matrics/get-pr-raised-count';
+import { numberOfPrRaisedGraph, numberOfPrRaisedAvg } from '../matrics/get-pr-raised-count';
 import { numberOfPrRaisedGraphSchema } from './validations';
 
 const numberOfPrRaised = async function getNumberOfPrRaised(
@@ -12,12 +12,12 @@ const numberOfPrRaised = async function getNumberOfPrRaised(
   const interval: string = event.queryStringParameters?.interval || '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
   try {
-    const [numberOfPrRaisedGraphData, numberOfPrRaisedAvg] = await Promise.all([
+    const [numberOfPrRaisedGraphData, numberOfPrRaisedStat] = await Promise.all([
       numberOfPrRaisedGraph(startDate, endDate, interval, repoIds),
-      numberOfPrRaisedtAvg(startDate, endDate, repoIds),
+      numberOfPrRaisedAvg(startDate, endDate, repoIds),
     ]);
     return responseParser
-      .setBody({ graphData: numberOfPrRaisedGraphData, headline: numberOfPrRaisedAvg })
+      .setBody({ graphData: numberOfPrRaisedGraphData, headline: numberOfPrRaisedStat })
       .setMessage('number of PR raised')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')

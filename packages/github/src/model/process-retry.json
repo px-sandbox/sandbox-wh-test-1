@@ -1,5 +1,5 @@
 {
-  "TableName": "process-retry",
+  "TableName": "${stack_name}-pulse-dx-process-retry",
   "KeySchema": [
     {
       "AttributeName": "processId",

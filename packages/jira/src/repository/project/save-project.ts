@@ -37,15 +37,14 @@ async function updateData(
     ]).toJSON();
 
   const data = await esClientObj.searchWithEsb(indexName, matchQry2);
-  const [formattedData] = await searchedDataFormatorWithDeleted(data);
 
-  if (formattedData) {
+  const formattedData = await searchedDataFormatorWithDeleted(data);
+
+  if (formattedData?.length > 0) {
     if (isDeleted) {
-      formattedData.isDeleted = true;
-      formattedData.deletedAt = new Date().toISOString();
+      await esClientObj.bulkUpdate(indexName, formattedData);
     }
-    const { _id: id, ...body } = formattedData;
-    await esClientObj.putDocument(indexName, { id, body });
+
     logger.info(`save${indexName}Details.successful`);
   }
 }

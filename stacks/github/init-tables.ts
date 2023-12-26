@@ -18,5 +18,13 @@ export function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
         },
         primaryIndex: { partitionKey: 'processId' },
     });
-    return { githubMappingTable, retryProcessTable };
+
+    const libMasterTable = new Table(stack, 'libMaster', {
+        fields: {
+            libName: 'string',
+        },
+        primaryIndex: { partitionKey: 'libName' },
+    });
+
+    return { githubMappingTable, retryProcessTable, libMasterTable };
 }

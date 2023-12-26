@@ -17,6 +17,29 @@ import { CalculateGraphAvgData } from './graph';
 import { GHCopilotReport } from './gh-copilot';
 import { ActiveBranches, RawActiveBRanches } from './active-branches';
 import { IndexMapping } from './index-mapping';
+import { RepoLibrary } from './repo-library';
+import { LibInfo } from './lib-info';
+import {
+  DDRecordType,
+  LibraryRecord,
+  RepoLibType,
+  RepoNameType,
+  VerUpgFinalRes,
+  VerUpgradeRes,
+  VersionUpgradeSortType,
+} from './aggregations/version-upgrades';
+import { ErrorsOverTimeBuckets, ProdSecurityAgg } from './aggregations/product-security';
+import { ProdSecurityGraphData, ProductSecurity } from './product-security';
+import { RepoSastErrors } from './repo-sast-errors';
+import {
+  SastErrorsData,
+  ISastErrorAggregationResult,
+  SastErrorReport,
+  SastErrorsAggregationData,
+  SastErrorsAggregation,
+} from './aggregations/repo-sast-errors';
+
+import { MetricCategories, MetricFunction, Metrics } from './aggregations/metric-categories';
 
 export {
   Branch,
@@ -48,4 +71,26 @@ export {
   ActiveBranches,
   RawActiveBRanches,
   IndexMapping,
+  RepoLibrary,
+  LibInfo,
+  VersionUpgradeSortType,
+  RepoLibType,
+  RepoNameType,
+  DDRecordType,
+  LibraryRecord,
+  VerUpgradeRes,
+  VerUpgFinalRes,
+  RepoSastErrors,
+  ProdSecurityAgg,
+  ErrorsOverTimeBuckets,
+  ProductSecurity,
+  ProdSecurityGraphData,
+  SastErrorsData,
+  ISastErrorAggregationResult,
+  SastErrorReport,
+  SastErrorsAggregationData,
+  SastErrorsAggregation,
+  MetricCategories,
+  MetricFunction,
+  Metrics
 };

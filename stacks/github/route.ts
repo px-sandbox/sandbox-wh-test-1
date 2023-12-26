@@ -6,6 +6,9 @@ export function initializeRoutes(
     queues: { [key: string]: Queue },
     githubDDb: GithubTables
 ): Record<string, ApiRouteProps<'universal' | 'admin'>> {
+
+    /* We are extracting the queues from the queues object 
+     * and bind them to their respective functions/handlers called within routes */
     const {
         userFormatDataQueue,
         repoFormatDataQueue,
@@ -17,8 +20,17 @@ export function initializeRoutes(
         prReviewFormatDataQueue,
         collectPRData,
         historicalBranch,
+        depRegistryQueue,
+        currentDepRegistryQueue,
+        latestDepRegistry,
+        repoSastErrors,
+        scansSaveQueue,
+        ghMergedCommitProcessQueue
     } = queues;
-    const { retryProcessTable, githubMappingTable } = githubDDb;
+
+    /* We aso extract and bind the tables 
+     * from the githubDDb object to their respective functions/handlers called within routes */
+    const { retryProcessTable, githubMappingTable, libMasterTable } = githubDDb;
     return {
         // GET Metadata route
         'GET /github/metadata': {
@@ -61,36 +73,39 @@ export function initializeRoutes(
             },
             authorizer: 'none',
         },
-        // GET GithubUser data
-        'GET /github/user/{githubUserId}': {
-            function: 'packages/github/src/service/get-user.handler',
-            authorizer: 'universal',
+
+        // POST handle repository's libraries info 
+        'POST /github/repo-libraries': {
+            function: {
+                handler: 'packages/github/src/service/repo-library/repo-library.handler',
+                bind: [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry],
+            },
+            authorizer: 'none',
         },
-        // GET GithubRepo data
-        'GET /github/repositories': {
-            function: 'packages/github/src/service/get-repo.handler',
-            authorizer: 'universal',
-        },
-        // GET PR comments graph data
-        'GET /github/graph/number-comments-added-to-prs': {
-            function: 'packages/github/src/service/get-pr-comment.handler',
-            authorizer: 'universal',
-        },
-        // GET Graph for frequency of code commits
-        'GET /github/graph/code-commit-frequency': {
-            function: 'packages/github/src/service/get-commit-frequency.handler',
-            authorizer: 'universal',
-        },
-        // GET Graph for number of PRs
-        'GET /github/graph/number-pr-raised': {
-            function: 'packages/github/src/service/pr-raised-count.handler',
+
+        // GET Github Branches data
+        'GET /github/branches': {
+            function: 'packages/github/src/service/get-branches.handler',
             authorizer: 'universal',
         },
 
-        // GET Graph for PRs review time
-        'GET /github/graph/pr-wait-time': {
-            function: 'packages/github/src/service/pr-wait-time.handler',
+        // GET Technical Success Criteria metrics
+        'GET /github/graph/version-upgrades': {
+            function: {
+                handler: 'packages/github/src/service/version-upgrades.handler',
+                bind: [libMasterTable],
+            },
             authorizer: 'universal',
+
+        },
+
+        // GET Technical Success Criteria metrics
+        'GET /github/graph/product-security': {
+            function: {
+                handler: 'packages/github/src/service/product-security.handler',
+            },
+            authorizer: 'universal',
+
         },
 
         // GET Historical Data
@@ -102,9 +117,11 @@ export function initializeRoutes(
         },
 
         // GET github data ingestion failed retry
+        // bind all the queues and tables needed to the retry-process.handler
         'GET /github/retry/failed': {
             function: {
                 handler: 'packages/github/src/cron/retry-process.handler',
+                timeout: '60 seconds',
                 bind: [
                     retryProcessTable,
                     userFormatDataQueue,
@@ -115,6 +132,11 @@ export function initializeRoutes(
                     prFormatDataQueue,
                     prReviewCommentFormatDataQueue,
                     prReviewFormatDataQueue,
+                    depRegistryQueue,
+                    currentDepRegistryQueue,
+                    repoSastErrors,
+                    scansSaveQueue,
+                    ghMergedCommitProcessQueue
                 ],
             },
         },
@@ -124,24 +146,50 @@ export function initializeRoutes(
             function: 'packages/github/src/service/create-indices.handler',
         },
 
-        // GET github active number of branches
-        'GET /github/graph/number-of-branches': {
-            function: 'packages/github/src/service/active-branches.handler',
-            authorizer: 'universal',
-        },
-
-        'GET /github/graph/number-of-branches-by-repo': {
-            function: 'packages/github/src/cron/branch-counter.handler',
-        },
-
-        // GET Graph for avg lines of code per day per developer
-        'GET /github/graph/lines-of-code': {
-            function: 'packages/github/src/service/get-lines-of-code.handler',
-            authorizer: 'universal',
-        },
         'GET /github/file-changes-of-commit': {
             function: 'packages/github/src/service/file-changes-of-commit.handler',
             authorizer: 'universal',
         },
-    };
+        'GET /github/version-upgrade-headline': {
+            function: {
+                handler: 'packages/github/src/service/get-version-upgrade-headline.handler',
+                bind: [libMasterTable]
+            },
+            authorizer: 'universal',
+        },
+        'POST /github/repo-sast-errors': {
+            function: {
+                handler: 'packages/github/src/service/repo-sast-errors.handler',
+                bind: [repoSastErrors]
+            },
+            authorizer: 'none',
+        },
+
+        // Cron to create security scans for today, if there aren't any, based on yesterday's data
+        'POST /github/cron/update-security-scans': {
+
+            function: {
+                handler: 'packages/github/src/service/update-security-scans.handler',
+                bind: [scansSaveQueue]
+            },
+            authorizer: 'none',
+        },
+
+        // GET github branches list from ES
+        'GET /github/branch-list': {
+            function: {
+                handler: 'packages/github/src/migrations/branch-protected.handler',
+                timeout: '15 minutes',
+                bind: [repoFormatDataQueue, branchFormatDataQueue],
+            },
+            authorizer: 'admin',
+        },
+        'GET /github/graph/product-security/detail': {
+            function: {
+                handler: 'packages/github/src/service/repo-sast-errors-details.handler',
+            },
+            authorizer: 'universal',
+        },
+
+    }
 }

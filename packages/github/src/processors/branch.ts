@@ -41,7 +41,7 @@ export class BranchProcessor extends DataProcessor<
         createdAtDay: moment(createdAt).format('dddd'),
         computationalDate: await this.calculateComputationalDate(createdAt),
         githubDate: moment(createdAt).format('YYYY-MM-DD'),
-        protected: this.ghApiData?.protected,
+        protected: this.ghApiData?.protected || false,
       },
     };
 

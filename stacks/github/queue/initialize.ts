@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { Queue } from 'sst/constructs';
+import { Bucket, Queue } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { initializeBranchQueue } from './branch';
 import { initializeCommitQueue } from './commit';
@@ -11,9 +11,16 @@ import { initializeRepoQueue } from './repo';
 import { initializePrReviewAndCommentsQueue } from './review';
 import { initializeUserQueue } from './user';
 import { initializeBranchCounterQueue } from './branch-counter';
+import { initializeRepoLibraryQueue } from './repo-library';
+import { initializeRepoSastErrorQueue } from './repo-sast-errors';
+import { initializeSecurityScanQueue } from './update-security-scan';
 
 // eslint-disable-next-line max-lines-per-function,
-export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: string]: Queue } {
+export function initializeQueue(
+    stack: Stack,
+    githubDDb: GithubTables,
+    sastErrorsBucket: Bucket
+): { [key: string]: Queue } {
     const [
         commitFormatDataQueue,
         commitIndexDataQueue,
@@ -59,6 +66,11 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         stack,
         githubDDb
     );
+    const [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry, masterLibraryQueue, repoLibS3Queue] =
+        initializeRepoLibraryQueue(stack, githubDDb);
+
+    const repoSastErrors = initializeRepoSastErrorQueue(stack, sastErrorsBucket, githubDDb);
+    const [scansSaveQueue] = initializeSecurityScanQueue(stack, githubDDb);
     return {
         branchFormatDataQueue,
         branchIndexDataQueue,
@@ -89,5 +101,13 @@ export function initializeQueue(stack: Stack, githubDDb: GithubTables): { [key: 
         branchCounterIndexQueue,
         prReviewCommentFormatDataQueue,
         prReviewFormatDataQueue,
+        depRegistryQueue,
+        currentDepRegistryQueue,
+        latestDepRegistry,
+        masterLibraryQueue,
+        repoSastErrors,
+        scansSaveQueue,
+        repoLibS3Queue,
+        ghMergedCommitProcessQueue
     };
 }

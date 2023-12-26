@@ -430,6 +430,53 @@ const indices = [
       },
     },
   },
+  {
+    name: Github.Enums.IndexName.GitRepoLibrary,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            repoId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            name: { type: 'keyword' },
+            libName: { type: 'keyword' },
+            version: { type: 'text' },
+            releaseDate: { type: 'date', format: 'strict_date_optional_time' },
+            isDeleted: { type: 'boolean' },
+            isCore: { type: 'boolean' },
+
+          }
+        }
+      }
+    }
+  },
+  {
+    name: Github.Enums.IndexName.GitRepoSastErrors,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            errorMsg: { type: 'keyword' },
+            ruleId: { type: 'keyword' },
+            repoId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            branch: { type: 'keyword' },
+            fileName: { type: 'keyword' },
+            lineNumber: { type: 'integer' },
+            codeSnippet: { type: 'text' },
+            date: { type: 'date', format: 'strict_date_optional_time' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            isDeleted: { type: 'boolean' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+          },
+        },
+      },
+    },
+  }
 ];
 
 async function createMapping(name: string, mappings: Github.Type.IndexMapping): Promise<void> {
