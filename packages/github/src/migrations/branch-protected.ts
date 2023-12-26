@@ -22,6 +22,7 @@ const getReposFromES = async (): Promise<any> => {
         });
 
         do {
+            reposFormatData = [];
             const query = esb
                 .requestBodySearch().size(size)
                 .query(
@@ -42,6 +43,7 @@ const getReposFromES = async (): Promise<any> => {
             const getBranchesPromises = reposData.map((repoData) =>
                 getBranches(repoData.githubRepoId, repoData.name, repoData.owner));
             await Promise.all(getBranchesPromises);
+
         } while (reposFormatData.length === size);
 
         return reposData;
