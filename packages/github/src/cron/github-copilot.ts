@@ -39,7 +39,7 @@ async function getGHCopilotReports(
     const perPage = 100; // max allowed by github
     const org = Github.Enums.OrgConst.SG;
     const ghCopilotResp = await octokit(
-      `GET /orgs/${org}/copilot/billing/seats?page=${pageNo}&per_page=${perPage}}`
+      `GET /orgs/${org}/copilot/billing/seats?page=${pageNo}&per_page=${perPage}`
     );
 
     const reportsPerPage = ghCopilotResp.data as {
