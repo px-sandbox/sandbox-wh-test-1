@@ -4,7 +4,11 @@ import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
 
 // eslint-disable-next-line max-lines-per-function,
-export function initializeRepoLibraryQueue(stack: Stack, githubDDb: GithubTables, versionUpgradeBucket: Bucket): Queue[] {
+export function initializeRepoLibraryQueue(
+    stack: Stack,
+    githubDDb: GithubTables,
+    versionUpgradeBucket: Bucket
+): Queue[] {
     const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } =
         use(commonConfig);
     const { retryProcessTable, libMasterTable } = githubDDb;
@@ -78,7 +82,7 @@ export function initializeRepoLibraryQueue(stack: Stack, githubDDb: GithubTables
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
         versionUpgradeBucket,
-        retryProcessTable
+        retryProcessTable,
     ]);
     masterLibraryQueue.bind([
         retryProcessTable,

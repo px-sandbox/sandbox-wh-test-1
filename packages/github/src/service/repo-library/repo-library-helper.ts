@@ -3,10 +3,9 @@ import { SQSClient } from "@pulse/event-handler";
 import { Github } from "abstraction";
 import { logger } from "core";
 import esb from "elastic-builder";
-import { mappingPrefixes } from "src/constant/config";
-import { fetchDataFromS3 } from "src/processors/repo-sast-errors";
 import { Config } from "sst/node/config";
 import { Queue } from "sst/node/queue";
+import { mappingPrefixes } from "../../constant/config";
 
 async function deletePrevDependencies(repoId: string): Promise<void> {
     const esClientObj = new ElasticSearchClient({

@@ -1,13 +1,13 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { Github } from 'abstraction';
 import {
     fetchDataFromS3,
     repoSastErrorsFormatter,
     storeSastErrorReportToES,
 } from '../../../processors/repo-sast-errors';
 import { logProcessToRetry } from '../../../util/retry-process';
-import { Github } from 'abstraction';
 
 export const handler = async function repoSastErrorsDataReceiver(event: SQSEvent): Promise<void> {
     logger.info(`Records Length: ${event.Records.length}`);

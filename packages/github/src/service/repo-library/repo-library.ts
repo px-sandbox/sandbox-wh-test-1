@@ -20,12 +20,17 @@ export const handler = async (
             Body: JSON.stringify(data),
             ContentType: 'application/json',
         };
-        console.log('params', params);
         const s3Obj = await s3.upload(params).promise();
         logger.info('versionUpgrade.handler.s3Upload', { s3Obj });
-        await new SQSClient().sendMessage({ s3ObjKey: s3Obj.Key, repoId: data.repositoryInfo.repoId, orgName: data.repositoryInfo.repoOwner }, Queue.qRepoLibS3.queueUrl)
+        await new SQSClient().sendMessage(
+            {
+                s3ObjKey: s3Obj.Key,
+                repoId: data.repositoryInfo.repoId,
+                orgName: data.repositoryInfo.repoOwner,
+            },
+            Queue.qRepoLibS3.queueUrl
+        );
     } catch (error) {
         logger.error('repoLibrary.handler.error', { error });
     }
 };
-
