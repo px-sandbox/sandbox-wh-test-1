@@ -1,0 +1,11 @@
+name: sg-sast-analytics
+
+on:
+  push:
+    branches: [dev,feature/PX-000]
+    
+jobs:
+  analytics:
+    uses: studiographene/nodejs-ci/.github/workflows/sast-analytics.yml@feature/pulse-report
+    secrets: inherit
+    permissions: write-all
