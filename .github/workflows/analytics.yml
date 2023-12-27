@@ -6,5 +6,8 @@ on:
 jobs:
   ci:
     uses: studiographene/nodejs-ci/.github/workflows/analytics.yml@feature/pulse-report
+    with:
+      SAST_RUN_BRANCHES: "dev,feature/PX-000"
+      DEP_REPORT_RUN_BRANCH: "dev"
     secrets: inherit
     permissions: write-all
