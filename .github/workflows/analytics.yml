@@ -2,7 +2,7 @@ name: sg-analytics
 
 on:
   push:
-    branches: [feature/PX-000]
+    branches: [dev]
     
 jobs:
   analytics:
