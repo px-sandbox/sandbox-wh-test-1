@@ -33,22 +33,28 @@ const getLibFromDB = async (
 ): Promise<{ countOutOfDateLib: number; countUpToDateLib: number }> => {
     let countOutOfDateLib = 0;
     let countUpToDateLib = 0;
-    const [operator, value] = range.split(' ');
-    const promises = libNameAndVersion.map(async (lib) => {
-        const records = await new DynamoDbDocClient().find(
-            new LibParamsMapping().prepareGetParams(lib.libName)
-        );
-        if (records && records.version) {
-            // const latestVer = records.version as string;
-            if (records.releaseDate && compare(operator, parseInt(value, 10),
-                String(records.releaseDate), lib.releaseDate)) {
-                countUpToDateLib += 1;
-            } else {
-                countOutOfDateLib += 1;
+    try {
+        const [operator, value] = range.split(' ');
+        const promises = libNameAndVersion?.map(async (lib) => {
+            const records = await new DynamoDbDocClient().find(
+                new LibParamsMapping().prepareGetParams(lib.libName)
+            );
+            if (records && records.version) {
+                // const latestVer = records.version as string;
+                if (records.releaseDate && compare(operator, parseInt(value, 10),
+                    String(records.releaseDate), lib.releaseDate)) {
+                    countUpToDateLib += 1;
+                } else {
+                    countOutOfDateLib += 1;
+                }
             }
-        }
-    });
-    await Promise.all(promises);
+        });
+        await Promise.all(promises);
+    } catch (err) {
+        logger.error('getLibFromDB.error', err);
+        throw err;
+    }
+    logger.info('up-to-date and out-of-date lib count', { countOutOfDateLib, countUpToDateLib });
     return { countOutOfDateLib, countUpToDateLib };
 };
 
@@ -85,19 +91,25 @@ const getLibFromES = async (
             libFormatData = await searchedDataFormator(esLibData);
             libData.push(...libFormatData)
             from += size;
-        }
-        while (libFormatData.length >= size)
+        } while (libFormatData.length >= size);
+
         const libNameAndVersion = libData.map((lib: { libName: string; version: string, releaseDate: string }) => ({
             libName: lib.libName,
             version: lib.version,
             releaseDate: lib.releaseDate
         }));
+
         logger.info('LIB_NAME_AND_VERSION', libNameAndVersion);
+
         return getLibFromDB(libNameAndVersion, range);
+
     } catch (error) {
         logger.error('getLibFromES.error', error);
         throw error;
     }
+    // finally {
+    //     await esClientObj.getClient().close();
+    // }
 };
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
