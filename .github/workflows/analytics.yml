@@ -1,0 +1,10 @@
+name: sg-analytics
+
+on:
+  push: {}
+
+jobs:
+  ci:
+    uses: studiographene/nodejs-ci/.github/workflows/analytics.yml@feature/pulse-report
+    secrets: inherit
+    permissions: write-all
