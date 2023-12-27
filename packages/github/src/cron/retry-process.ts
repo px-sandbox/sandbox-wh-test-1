@@ -39,8 +39,11 @@ export async function handler(): Promise<void> {
     const itemsToPick = githubRetryLimit.data.rate.remaining / 3;
     const limit = 200;
     const params = new RetryTableMapping().prepareScanParams(limit);
+
+    // eslint-disable-next-line no-plusplus
     for (let i = 0; i < Math.floor(itemsToPick / limit); i++) {
       logger.info(`RetryProcessHandler process count ${i} at: ${new Date().toISOString()}`);
+      // eslint-disable-next-line no-await-in-loop
       const processes = await new DynamoDbDocClient().scanAllItems(
         params,
       );
@@ -49,6 +52,7 @@ export async function handler(): Promise<void> {
         return;
       }
       const items = processes.Items ? processes.Items as Github.Type.QueueMessage[] : [];
+      // eslint-disable-next-line no-await-in-loop
       await Promise.all(
         items.map((record: unknown) => processIt(record as Github.Type.QueueMessage))
       );
