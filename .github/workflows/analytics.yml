@@ -1,5 +1,4 @@
 name: sg-analytics
-
 on:
   push: {}
 
