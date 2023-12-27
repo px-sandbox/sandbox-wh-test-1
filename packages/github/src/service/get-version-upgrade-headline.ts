@@ -10,6 +10,11 @@ import moment from 'moment';
 import { LibParamsMapping } from '../model/lib-master-mapping';
 import { searchedDataFormator } from '../util/response-formatter';
 
+const esClientObj = new ElasticSearchClient({
+    host: Config.OPENSEARCH_NODE,
+    username: Config.OPENSEARCH_USERNAME ?? '',
+    password: Config.OPENSEARCH_PASSWORD ?? '',
+});
 
 function compare(operator: string, value: number, latestReleaseDate: string, currReleaseDate: string): boolean {
     const diffInDays = moment(latestReleaseDate).diff(moment(currReleaseDate), 'months');
@@ -59,11 +64,7 @@ const getLibFromES = async (
         const libData = [];
         const size = 100;
         let from = 0;
-        const esClientObj = new ElasticSearchClient({
-            host: Config.OPENSEARCH_NODE,
-            username: Config.OPENSEARCH_USERNAME ?? '',
-            password: Config.OPENSEARCH_PASSWORD ?? '',
-        });
+
         do {
             const query = esb
                 .requestBodySearch().size(size)
@@ -101,7 +102,7 @@ const getLibFromES = async (
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [''];
-    const range = event.queryStringParameters?.range || '<= 1';
+    const range = event.queryStringParameters?.range ?? '<= 1';
     const lib = await getLibFromES(repoIds, range);
     return responseParser
         .setBody({ headline: lib })
