@@ -15,8 +15,8 @@ export default {
       region: AppConfig.REGION,
     };
   },
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  async stacks(app) {
+
+  async stacks(app): void | Promise<void> {
 
     Tags.of(app).add("Project_name", "pulse");
     Tags.of(app).add("Environment", app.stage);

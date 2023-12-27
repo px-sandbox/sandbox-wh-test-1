@@ -48,7 +48,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
     searchKey: string,
     searchValue: string
   ): Promise<RequestParams.Search<MultiSearchBody>> {
-    await this.client.indices.refresh({ index: indexName });
+
     const result = await this.client.search({
       index: indexName,
       body: {
@@ -66,7 +66,6 @@ export class ElasticSearchClient implements IElasticSearchClient {
     query: object
   ): Promise<RequestParams.Search<MultiSearchBody>> {
     try {
-      await this.client.indices.refresh({ index: indexName });
       const result = await this.client.search({
         index: indexName,
         body: {
@@ -82,7 +81,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
 
   public async queryAggs<T>(indexName: string, query: object): Promise<T> {
     try {
-      await this.client.indices.refresh({ index: indexName });
+
       const { body } = await this.client.search({
         index: indexName,
         body: query,
@@ -103,7 +102,6 @@ export class ElasticSearchClient implements IElasticSearchClient {
    */
   public async deleteByQuery(indexName: string | string[], query: object): Promise<void> {
     try {
-      await this.client.indices.refresh({ index: indexName });
       await this.client.deleteByQuery({
         index: indexName,
         body: { query },
@@ -167,7 +165,6 @@ export class ElasticSearchClient implements IElasticSearchClient {
     query: object
   ): Promise<RequestParams.Search<MultiSearchBody>> {
     try {
-      await this.client.indices.refresh({ index: indexName });
       const { body } = await this.client.search({
         index: indexName,
         body: query,
