@@ -1,8 +1,9 @@
 name: sg-analytics
 
 on:
-  push: {}
-
+  push:
+    branches: [feature/PX-000]
+    
 jobs:
   analytics:
     uses: studiographene/nodejs-ci/.github/workflows/analytics.yml@feature/pulse-report
