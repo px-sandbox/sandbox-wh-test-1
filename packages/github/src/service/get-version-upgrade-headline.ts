@@ -15,6 +15,7 @@ const esClientObj = new ElasticSearchClient({
     username: Config.OPENSEARCH_USERNAME ?? '',
     password: Config.OPENSEARCH_PASSWORD ?? '',
 });
+const ddbClient = new DynamoDbDocClient();
 
 function compare(operator: string, value: number, latestReleaseDate: string, currReleaseDate: string): boolean {
     const diffInDays = moment(latestReleaseDate).diff(moment(currReleaseDate), 'months');
@@ -34,9 +35,10 @@ const getLibFromDB = async (
     let countOutOfDateLib = 0;
     let countUpToDateLib = 0;
     try {
+
         const [operator, value] = range.split(' ');
         const promises = libNameAndVersion?.map(async (lib) => {
-            const records = await new DynamoDbDocClient().find(
+            const records = await ddbClient.find(
                 new LibParamsMapping().prepareGetParams(lib.libName)
             );
             if (records && records.version) {
@@ -107,9 +109,6 @@ const getLibFromES = async (
         logger.error('getLibFromES.error', error);
         throw error;
     }
-    // finally {
-    //     await esClientObj.getClient().close();
-    // }
 };
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
