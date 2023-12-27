@@ -9,7 +9,7 @@ export function initializeApi(
     stack: Stack,
     queue: { [key: string]: Queue },
     githubDDb: GithubTables,
-    sastErrorsBucket: Bucket
+    buckets: { [key: string]: Bucket }
 ): Api<{
     // eslint-disable-next-line @typescript-eslint/ban-types
     universal: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
@@ -63,7 +63,8 @@ export function initializeApi(
                     OPENSEARCH_NODE,
                     OPENSEARCH_PASSWORD,
                     OPENSEARCH_USERNAME,
-                    sastErrorsBucket,
+                    buckets.sastErrorsBucket,
+                    buckets.versionUpgradeBucket,
                 ]
             },
         },
