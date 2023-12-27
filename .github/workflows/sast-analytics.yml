@@ -2,7 +2,7 @@ name: sg-sast-analytics
 
 on:
   push:
-    branches: [dev,feature/PX-000]
+    branches: [dev, master, qa, uat, prod]
     
 jobs:
   analytics:
