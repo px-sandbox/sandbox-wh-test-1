@@ -92,6 +92,20 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         },
     });
 
+
+    const updateMergeCommit = new Queue(stack, 'qUpdateMergeCommit');
+    updateMergeCommit.addConsumer(stack, {
+        function: new Function(stack, 'fnUpdateMergeCommit', {
+            handler: 'packages/github/src/sqs/handlers/historical/merge-commit-update.handler',
+            bind: [updateMergeCommit],
+        }),
+        cdk: {
+            eventSource: {
+                batchSize: 1,
+            },
+        },
+    });
+
     commitFormatDataQueue.bind([
         githubMappingTable,
         retryProcessTable,
@@ -123,11 +137,24 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
     ]);
+    updateMergeCommit.bind([
+        githubMappingTable,
+        retryProcessTable,
+        commitIndexDataQueue,
+        GIT_ORGANIZATION_ID,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        GITHUB_SG_INSTALLATION_ID,
+        OPENSEARCH_NODE,
+        OPENSEARCH_USERNAME,
+        OPENSEARCH_PASSWORD,
+    ]);
 
     return [
         commitFormatDataQueue,
         commitIndexDataQueue,
         ghMergedCommitProcessQueue,
         commitFileChanges,
+        updateMergeCommit
     ];
 }
