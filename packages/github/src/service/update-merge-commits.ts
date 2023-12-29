@@ -9,7 +9,7 @@ import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const updateMergeCommit = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const repoId: string = event.queryStringParameters?.repoName || '';
+    const repoId: string = event.queryStringParameters?.repoId || '';
     const repoOwner: string = event.queryStringParameters?.repoOwner || '';
     try {
         logger.info({ level: 'info', message: 'repo name -->', repoId, repoOwner });
