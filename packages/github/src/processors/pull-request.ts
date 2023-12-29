@@ -1,10 +1,8 @@
-import moment from 'moment';
 import { Github } from 'abstraction';
+import { logger } from 'core';
+import moment from 'moment';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import { SQSClient } from '@pulse/event-handler';
-import { Queue } from 'sst/node/queue';
-import { logger } from 'core';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 
@@ -140,26 +138,28 @@ export class PRProcessor extends DataProcessor<
    */
   public async processor(): Promise<Github.Type.PullRequest> {
     await this.processPRAction();
-    if (
-      this.ghApiData.action === Github.Enums.PullRequest.Closed &&
-      this.ghApiData.merged === true
-    ) {
-      logger.info('PROCESS_MERGED_PR', this.ghApiData);
-      await new SQSClient().sendMessage(
-        {
-          commitId: this.ghApiData.merge_commit_sha,
-          isMergedCommit: this.ghApiData.merged,
-          mergedBranch: this.ghApiData.base.ref,
-          pushedBranch: this.ghApiData.head.ref,
-          repository: {
-            id: this.ghApiData.head.repo.id,
-            name: this.ghApiData.head.repo.name,
-            owner: this.ghApiData.head.repo.owner.login,
-          },
-        },
-        Queue.qGhMergeCommitProcess.queueUrl
-      );
-    }
+
+    // TODO: removing this as new logic for setting merge via parents object is implemented
+    // if (
+    //   this.ghApiData.action === Github.Enums.PullRequest.Closed &&
+    //   this.ghApiData.merged === true
+    // ) {
+    //   logger.info('PROCESS_MERGED_PR', this.ghApiData);
+    //   await new SQSClient().sendMessage(
+    //     {
+    //       commitId: this.ghApiData.merge_commit_sha,
+    //       isMergedCommit: this.ghApiData.merged,
+    //       mergedBranch: this.ghApiData.base.ref,
+    //       pushedBranch: this.ghApiData.head.ref,
+    //       repository: {
+    //         id: this.ghApiData.head.repo.id,
+    //         name: this.ghApiData.head.repo.name,
+    //         owner: this.ghApiData.head.repo.owner.login,
+    //       },
+    //     },
+    //     Queue.qGhMergeCommitProcess.queueUrl
+    //   );
+    // }
 
     const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
     const reqReviewersData: Array<Github.Type.RequestedReviewers> =
