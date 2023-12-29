@@ -49,7 +49,7 @@ export const handler = async function updateMergeCommitDataReceiver(event: SQSEv
                             pushedBranch,
                             timestamp: createdAt,
                         },
-                        repoId,
+                        repoId: repoId.replace(/gh_repo_/g, ''),
                     });
 
                     const validatedData = commitProcessor.validate();
