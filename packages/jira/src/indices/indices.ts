@@ -304,7 +304,7 @@ const indices = [
     },
   },
   {
-    name: Jira.Enums.IndexName.ReopenInfo,
+    name: Jira.Enums.IndexName.ReopenRate,
     _id: { type: 'uuid' },
     mapping: {
       properties: {

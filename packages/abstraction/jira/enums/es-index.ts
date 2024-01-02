@@ -6,5 +6,5 @@ export enum IndexName {
   Users = 'jira_users',
   Sprint = 'jira_sprint',
   Organization = 'jira_organization',
-  ReopenInfo = 'jira_reopen_info',
+  ReopenRate = 'jira_reopen_rate'
 }
