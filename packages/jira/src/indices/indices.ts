@@ -318,7 +318,7 @@ const indices = [
             boardId: { type: 'keyword' },
             reOpenCount: { type: 'integer' },
             isReOpen: { type: 'boolean' },
-            isDelete: { type: 'boolean' },
+            isDeleted: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time' },
           },
         }
