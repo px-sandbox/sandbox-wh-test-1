@@ -6,6 +6,6 @@ on:
     
 jobs:
   analytics:
-    uses: studiographene/nodejs-ci/.github/workflows/dependencies-analytics.yml@feature/pulse-report
+    uses: studiographene/nodejs-ci/.github/workflows/dependencies-analytics.yml@master
     secrets: inherit
     permissions: write-all
