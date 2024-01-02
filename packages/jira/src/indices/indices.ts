@@ -302,7 +302,28 @@ const indices = [
         },
       },
     },
-
+  },
+  {
+    name: Jira.Enums.IndexName.ReopenInfo,
+    _id: { type: 'uuid' },
+    mapping: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            organizationId: { type: 'keyword' },
+            issueId: { type: 'keyword' },
+            projectId: { type: 'keyword' },
+            sprintId: { type: 'keyword' },
+            boardId: { type: 'keyword' },
+            reOpenCount: { type: 'integer' },
+            isReOpen: { type: 'boolean' },
+            isDelete: { type: 'boolean' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+          },
+        }
+      }
+    }
   }
 ];
 async function createMapping(name: string, mappings: unknown): Promise<void> {
