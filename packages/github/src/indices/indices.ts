@@ -388,30 +388,30 @@ const indices = [
       },
     },
   },
-  {
-    name: Github.Enums.IndexName.GitCopilot,
-    _id: { type: 'uuid' },
-    mappings: {
-      properties: {
-        body: {
-          type: 'object',
-          properties: {
-            dataTimestamp: {
-              type: 'date',
-              format: 'strict_date_optional_time',
-            },
-            isUsedInLastHour: { type: 'boolean' },
-            lastUsedAt: { type: 'date', format: 'strict_date_optional_time' },
-            editor: { type: 'text' },
-            editorVersion: { type: 'text' },
-            featureUsed: { type: 'text' },
-            featureVersion: { type: 'text' },
-            userId: { type: 'keyword' },
-          },
-        },
-      },
-    },
-  },
+  // {
+  //   name: Github.Enums.IndexName.GitCopilot,
+  //   _id: { type: 'uuid' },
+  //   mappings: {
+  //     properties: {
+  //       body: {
+  //         type: 'object',
+  //         properties: {
+  //           dataTimestamp: {
+  //             type: 'date',
+  //             format: 'strict_date_optional_time',
+  //           },
+  //           isUsedInLastHour: { type: 'boolean' },
+  //           lastUsedAt: { type: 'date', format: 'strict_date_optional_time' },
+  //           editor: { type: 'text' },
+  //           editorVersion: { type: 'text' },
+  //           featureUsed: { type: 'text' },
+  //           featureVersion: { type: 'text' },
+  //           userId: { type: 'keyword' },
+  //         },
+  //       },
+  //     },
+  //   },
+  // },
   {
     name: Github.Enums.IndexName.GitActiveBranches,
     _id: { type: 'uuid' },
