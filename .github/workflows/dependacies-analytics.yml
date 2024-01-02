@@ -1,0 +1,11 @@
+name: sg-dependacies-analytics
+
+on:
+  push:
+    branches: [dev]
+    
+jobs:
+  analytics:
+    uses: studiographene/nodejs-ci/.github/workflows/dependencies-analytics.yml@master
+    secrets: inherit
+    permissions: write-all

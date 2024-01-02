@@ -19,13 +19,14 @@ import { initializeSecurityScanQueue } from './update-security-scan';
 export function initializeQueue(
     stack: Stack,
     githubDDb: GithubTables,
-    sastErrorsBucket: Bucket
+    buckets: { sastErrorsBucket: Bucket, versionUpgradeBucket: Bucket }
 ): { [key: string]: Queue } {
     const [
         commitFormatDataQueue,
         commitIndexDataQueue,
         ghMergedCommitProcessQueue,
         commitFileChanges,
+        updateMergeCommit
     ] = initializeCommitQueue(stack, githubDDb);
     const [
         prReviewCommentFormatDataQueue,
@@ -67,9 +68,9 @@ export function initializeQueue(
         githubDDb
     );
     const [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry, masterLibraryQueue, repoLibS3Queue] =
-        initializeRepoLibraryQueue(stack, githubDDb);
+        initializeRepoLibraryQueue(stack, githubDDb, buckets.versionUpgradeBucket);
 
-    const repoSastErrors = initializeRepoSastErrorQueue(stack, sastErrorsBucket, githubDDb);
+    const repoSastErrors = initializeRepoSastErrorQueue(stack, buckets.sastErrorsBucket, githubDDb);
     const [scansSaveQueue] = initializeSecurityScanQueue(stack, githubDDb);
     return {
         branchFormatDataQueue,
@@ -108,6 +109,7 @@ export function initializeQueue(
         repoSastErrors,
         scansSaveQueue,
         repoLibS3Queue,
-        ghMergedCommitProcessQueue
+        ghMergedCommitProcessQueue,
+        updateMergeCommit,
     };
 }

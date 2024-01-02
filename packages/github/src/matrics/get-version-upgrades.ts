@@ -24,13 +24,15 @@ const esClientObj = new ElasticSearchClient({
  * @returns A promise that resolves to an array of LibraryRecord objects.
  * @throws If there is an error fetching the items from DynamoDB.
  */
-async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRecord[]> {
+async function fetchDDRecords(libNames: string[]):
+    Promise<{ [key: string]: { libname: string, version: string, releaseDate: string } }> {
     const libKeys = libNames.map(libName => ({ libName }));
 
     const ddClient = new DynamoDbDocClient();
     const tableIndex = Table.libMaster.tableName;
     let results: Github.Type.LibraryRecord[] = [];
 
+    // we are chunking array of keys into 100 keys each, as dynamo db can only take 100 keys at a time
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chunk = (arr: any[], size: number): any[][] =>
         Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
@@ -38,6 +40,9 @@ async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRe
         );
 
     const keysChunks = chunk(libKeys, 100);
+
+    // will store final result in this obj
+    const resObj: { [key: string]: { libname: string, version: string, releaseDate: string } } = {};
 
     for (const keys of keysChunks) {
         const params = {
@@ -58,8 +63,13 @@ async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRe
             logger.error('Error fetching DD record items:', err);
         }
     }
+    // storing result in key format to optimise search
+    results.forEach((res) => {
+        resObj[res.libName] = { libname: res.libName, version: res.version, releaseDate: res.releaseDate };
 
-    return results;
+    });
+
+    return resObj;
 }
 
 /**
@@ -67,7 +77,8 @@ async function fetchDDRecords(libNames: string[]): Promise<Github.Type.LibraryRe
  * @param repoIds An array of repository IDs.
  * @returns A promise that resolves to an array of RepoLibType objects representing the upgraded version data.
  */
-async function getESVersionUpgradeData(repoIds: string[], searchString: string): Promise<Github.Type.RepoLibType[]> {
+async function getESVersionUpgradeData(repoIds: string[], searchString: string):
+    Promise<Github.Type.ESVersionUpgradeType> {
 
     /* ESB QUERY FOR SEARCHING AND GETTING REPO-LIBRARY DATA FROM ELASTIC SEARCH */
     const repoLibQuery = esb.boolQuery()
@@ -103,7 +114,7 @@ async function getESVersionUpgradeData(repoIds: string[], searchString: string):
             size: 100,
         });
 
-        repoLibs = await searchedDataFormator(data.body);
+        repoLibs = await searchedDataFormator(data?.body);
 
         if (repoLibs?.length) {
             repoLibData.push(...repoLibs);
@@ -145,16 +156,26 @@ async function getESVersionUpgradeData(repoIds: string[], searchString: string):
         }
     } while (repoNames?.length);
 
+    // making a dictionary with repoId as key and repoName as value for easy access
+    const repoNamesObj: { [key: string]: string } = {};
+    repoNamesArr.forEach((names) => {
+        repoNamesObj[names.id] = names.name
+    });
 
+    const libNames: string[] = []; // array to store libNames data. Will be used in getVersionUpgrades()
     /* ADDING REPONAME TO REPOLIBDATA */
     const updatedRepoLibs = repoLibData.map((lib: Github.Type.RepoLibType) => {
-        const matchingRepo = repoNamesArr.find((repo: Github.Type.RepoNameType) => repo.id === lib.repoId);
+        libNames.push(lib.libName);
+        return {
+            ...lib,
+            repoName: repoNamesObj[lib.repoId] ?? "",
+            currVerDate: lib.releaseDate,
+            currVer: lib.version
+        };
+    }
+    )
 
-        return matchingRepo ?
-            { ...lib, repoName: matchingRepo.name, currVerDate: lib.releaseDate, currVer: lib.version } :
-            { ...lib, repoName: "", currVerDate: lib.releaseDate, currVer: lib.version };
-    });
-    return updatedRepoLibs;
+    return { updatedRepoLibs, libNames };
 }
 
 
@@ -178,33 +199,31 @@ export async function getVersionUpgrades(
     try {
 
         // fetching repo-library data from elastic search
-        const updatedRepoLibs = await getESVersionUpgradeData(repoIds, search);
+        const { updatedRepoLibs, libNames } = await getESVersionUpgradeData(repoIds, search);
 
         if (!updatedRepoLibs?.length) {
             return { versionData: [], page, totalPages: 0 };
         }
 
-        const libNames = updatedRepoLibs?.map((lib: Github.Type.RepoLibType) => (lib.libName));
+        // const libNames = updatedRepoLibs?.map((lib: Github.Type.RepoLibType) => (lib.libName));
 
         // fetching records from dynamo db for latest version and release date
-        const ddRecords: Github.Type.DDRecordType[] = await fetchDDRecords([...(new Set(libNames))]);
+        const ddRecords = await fetchDDRecords([...(new Set(libNames))]);
 
         // adding latest version and release date to repo-library data
-        const finalData = updatedRepoLibs.map((lib: Github.Type.RepoLibType) => {
-            const latestVerData = ddRecords.
-                find((ddRecord: Github.Type.DDRecordType) => ddRecord.libName === lib.libName);
-            const date1 = moment(lib.currVerDate);
-            const date2 = moment(latestVerData?.releaseDate);
-            const diffMonth = date2.diff(date1, 'months');
-            return latestVerData ?
-                {
-                    ...lib, latestVerDate: latestVerData.releaseDate, latestVer: latestVerData.version,
-                    dateDiff: diffMonth
-                } :
-                { ...lib, latestVerDate: '', latestVer: '', dateDiff: undefined };
+        const finalData = updatedRepoLibs?.map((lib: Github.Type.RepoLibType) => {
+
+            const latestVerData = ddRecords[lib?.libName];
+            const current = moment(lib?.currVerDate);
+            const latest = moment(latestVerData?.releaseDate);
+            const diffMonth = latest?.diff(current, 'months');
+            return {
+                ...lib, latestVerDate: latestVerData?.releaseDate ?? "", latestVer: latestVerData?.version ?? "",
+                dateDiff: diffMonth ?? undefined
+            };
         });
         // If no final data then we return empty response
-        if (!finalData.length) {
+        if (!finalData?.length) {
             return { versionData: [], page, totalPages: 0 };
         }
         const totalPages = Math.ceil(finalData.length / limit);

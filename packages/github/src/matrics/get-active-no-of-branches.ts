@@ -133,7 +133,7 @@ export async function activeBranchesAvg(
 
     const totalRepo = Number(data.body.aggregations.repo_count.value);
     const totalBranchCount = Number(data.body.aggregations.branch_count.value);
-    return { value: totalBranchCount === 0 ? 0 : totalBranchCount / totalRepo };
+    return { value: parseFloat((totalBranchCount === 0 ? 0 : totalBranchCount / totalRepo).toFixed(2)) };
   } catch (e) {
     logger.error('activeBranchesAvg.error', e);
     throw e;

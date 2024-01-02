@@ -21,6 +21,7 @@ import { RepoLibrary } from './repo-library';
 import { LibInfo } from './lib-info';
 import {
   DDRecordType,
+  ESVersionUpgradeType,
   LibraryRecord,
   RepoLibType,
   RepoNameType,
@@ -92,5 +93,6 @@ export {
   SastErrorsAggregation,
   MetricCategories,
   MetricFunction,
-  Metrics
+  Metrics,
+  ESVersionUpgradeType,
 };

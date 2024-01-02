@@ -38,7 +38,8 @@ function initProcessRetryFunction(
         masterLibraryQueue,
         repoSastErrors,
         scansSaveQueue,
-        ghMergedCommitProcessQueue
+        ghMergedCommitProcessQueue,
+        repoLibS3Queue
     } = queues;
 
     // we need to bind all necessary queues to the function
@@ -75,7 +76,8 @@ function initProcessRetryFunction(
             GITHUB_APP_PRIVATE_KEY_PEM,
             GITHUB_APP_ID,
             GITHUB_SG_INSTALLATION_ID,
-            ghMergedCommitProcessQueue
+            ghMergedCommitProcessQueue,
+            repoLibS3Queue
         ],
     });
 

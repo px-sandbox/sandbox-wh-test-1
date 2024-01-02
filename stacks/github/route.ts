@@ -25,7 +25,9 @@ export function initializeRoutes(
         latestDepRegistry,
         repoSastErrors,
         scansSaveQueue,
-        ghMergedCommitProcessQueue
+        ghMergedCommitProcessQueue,
+        repoLibS3Queue,
+        updateMergeCommit
     } = queues;
 
     /* We aso extract and bind the tables 
@@ -78,7 +80,7 @@ export function initializeRoutes(
         'POST /github/repo-libraries': {
             function: {
                 handler: 'packages/github/src/service/repo-library/repo-library.handler',
-                bind: [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry],
+                bind: [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry, repoLibS3Queue],
             },
             authorizer: 'none',
         },
@@ -136,7 +138,8 @@ export function initializeRoutes(
                     currentDepRegistryQueue,
                     repoSastErrors,
                     scansSaveQueue,
-                    ghMergedCommitProcessQueue
+                    ghMergedCommitProcessQueue,
+                    repoLibS3Queue
                 ],
             },
         },
@@ -191,5 +194,12 @@ export function initializeRoutes(
             authorizer: 'universal',
         },
 
+        'GET /github/update-merge-commits': {
+            function: {
+                handler: 'packages/github/src/service/update-merge-commits.handler',
+                bind: [updateMergeCommit],
+            },
+            authorizer: 'admin',
+        },
     }
 }

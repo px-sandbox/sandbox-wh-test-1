@@ -121,7 +121,7 @@ export async function frequencyOfCodeCommitAvg(
     });
     const totalDoc = data.body.hits.total.value;
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
-    return { value: totalDoc / weekDaysCount };
+    return { value: parseFloat((totalDoc / weekDaysCount).toFixed(2)) };
   } catch (e) {
     logger.error('frequencyOfCodeCommitGraphAvg.error', e);
     throw e;
