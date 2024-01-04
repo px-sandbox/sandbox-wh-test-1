@@ -24,7 +24,7 @@ const esClient = new ElasticSearchClient({
  * @param date - The date of the scan.
  * @returns The query object.
  */
-function createScanQuery(repoId: string, branch: string, date: string, from: number = 0, size: number = 10): Object {
+function createScanQuery(repoId: string, branch: string, date: string, from: number = 0, size: number = 10): { query: Object } {
     return esb.requestBodySearch().query(esb.boolQuery().must([
         esb.termQuery('body.repoId', repoId),
         esb.termQuery('body.branch', branch),
@@ -68,9 +68,9 @@ async function getScans(repoId: string, branch: string, date: string, allScans: 
         let result = [];
         do {
             result = [];
-            const scanQuery = createScanQuery(repoId, branch, date, from, limit);
+            const { query } = createScanQuery(repoId, branch, date, from, limit);
             const scans = await esClient.
-                searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, scanQuery);
+                searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, query);
 
             result = await searchedDataFormator(scans);
             from += limit;
