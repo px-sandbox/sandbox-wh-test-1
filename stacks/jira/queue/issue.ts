@@ -40,6 +40,18 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     },
   });
 
+  const reOpenRateDataQueue = new Queue(stack, 'qReOpenRate');
+  reOpenRateDataQueue.addConsumer(stack, {
+    function: new Function(stack, 'fnReOpenRate', {
+      handler: 'packages/jira/src/sqs/handlers/formatter/reopen-rate.handler',
+      bind: [reOpenRateDataQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
 
   issueFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,
@@ -63,5 +75,12 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     OPENSEARCH_USERNAME,
   ]);
 
-  return [issueFormatDataQueue, issueIndexDataQueue];
+  reOpenRateDataQueue.bind([
+    jiraDDB.jiraCredsTable,
+    jiraDDB.processJiraRetryTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+  return [issueFormatDataQueue, issueIndexDataQueue, reOpenRateDataQueue];
 }
