@@ -8,10 +8,10 @@ import { DataProcessor } from './data-processor';
 import { Config } from 'sst/node/config';
 
 export class ReopenRateProcessor extends DataProcessor<
-    Jira.ExternalType.Webhook.Issue,
+    Jira.ExternalType.Webhook.ReopenRateIssue,
     Jira.Type.ReopenRate
 > {
-    constructor(data: Jira.ExternalType.Webhook.Issue) {
+    constructor(data: Jira.ExternalType.Webhook.ReopenRateIssue) {
         super(data);
     }
     public validate(): false | this {
@@ -19,32 +19,36 @@ export class ReopenRateProcessor extends DataProcessor<
         if (this.apiData !== undefined && projectKeys.includes(this.apiData.issue.fields.project.key)) {
             return this;
         }
-        logger.info({ message: 'EMPTY_DATA or projectKey not in available keys for this issue', data: this.apiData })
+        logger.info({
+            message: 'EMPTY_DATA or projectKey not in available keys for this issue',
+            data: this.apiData,
+        });
         return false;
     }
 
     public async processor(): Promise<Jira.Type.ReopenRate> {
         const orgData = await getOrganization(this.apiData.organization);
+
         if (!orgData) {
             logger.error(`Organization ${this.apiData.organization} not found`);
             throw new Error(`Organization ${this.apiData.organization} not found`);
         }
         const parentId: string | undefined = await this.getParentId(
-            `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}_${mappingPrefixes.org}_${orgData.orgId}`
+            `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}_${mappingPrefixes.org}_${orgData.orgId}}`
         );
         const repoRateObj = {
-            id: parentId || uuid(),
+            id: uuid(),
             body: {
-                id: `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}_${mappingPrefixes.org}_${orgData.orgId}`,
+                id: `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}`,
                 sprintId: `${mappingPrefixes.sprint}_${this.apiData.sprintId}`,
-                boardId: `${mappingPrefixes.board}_${this.apiData.boardId}`,
+                boardId: `${this.apiData.boardId}` ?? null,
                 projectId: `${mappingPrefixes.project}_${this.apiData.issue.fields.project.id}`,
                 projectKey: this.apiData.issue.fields.project.key,
                 issueId: `${mappingPrefixes.issue}_${this.apiData.issue.id}`,
                 issueKey: this.apiData.issue.key,
                 reOpenCount: this.apiData.reOpenCount ?? 0,
                 isReopen: this.apiData.reOpenCount ? true : false,
-                organizationId: `${mappingPrefixes.org}_${orgData.orgId}`,
+                organizationId: `${mappingPrefixes.organization}_${orgData.orgId}`,
                 isDeleted: false,
                 deteledAt: null,
             },
