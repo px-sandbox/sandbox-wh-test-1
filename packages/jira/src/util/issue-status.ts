@@ -64,7 +64,7 @@ export async function getIssueStatusForReopenRate(orgId: string): Promise<Other.
             acc[issueStatus.issueStatusId] = issueStatus.pxStatus;
             return acc;
         }, {});
-        //Put sprint status in issueStatusData
+        // Put sprint status in issueStatusData
         issueStatusData[99999] = 'Sprint';
         return issueStatusData;
     } catch (error) {

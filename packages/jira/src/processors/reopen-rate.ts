@@ -1,11 +1,10 @@
 import { Jira } from 'abstraction';
-import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
-import { JiraClient } from '../lib/jira-client';
+import { Config } from 'sst/node/config';
+import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
-import { Config } from 'sst/node/config';
 
 export class ReopenRateProcessor extends DataProcessor<
     Jira.ExternalType.Webhook.ReopenRateIssue,
@@ -34,10 +33,10 @@ export class ReopenRateProcessor extends DataProcessor<
             throw new Error(`Organization ${this.apiData.organization} not found`);
         }
         const parentId: string | undefined = await this.getParentId(
-            `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}_${mappingPrefixes.org}_${orgData.orgId}}`
+            `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}_${mappingPrefixes.org}_${orgData.orgId}`
         );
         const repoRateObj = {
-            id: uuid(),
+            id: parentId || uuid(),
             body: {
                 id: `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}`,
                 sprintId: `${mappingPrefixes.sprint}_${this.apiData.sprintId}`,
@@ -47,10 +46,10 @@ export class ReopenRateProcessor extends DataProcessor<
                 issueId: `${mappingPrefixes.issue}_${this.apiData.issue.id}`,
                 issueKey: this.apiData.issue.key,
                 reOpenCount: this.apiData.reOpenCount ?? 0,
-                isReopen: this.apiData.reOpenCount ? true : false,
+                isReopen: !!this.apiData.reOpenCount,
                 organizationId: `${mappingPrefixes.organization}_${orgData.orgId}`,
                 isDeleted: false,
-                deteledAt: null,
+                deletedAt: null,
             },
         };
         return repoRateObj;

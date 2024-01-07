@@ -2,9 +2,9 @@ import { SQSClient } from '@pulse/event-handler';
 import { Jira } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
 import { logger } from 'core';
-import { getOrganization } from 'src/repository/organization/get-organization';
-import { getIssueStatusForReopenRate } from 'src/util/issue-status';
 import { Queue } from 'sst/node/queue';
+import { getOrganization } from '../../repository/organization/get-organization';
+import { getIssueStatusForReopenRate } from '../../util/issue-status';
 /**
  * Updates a Jira issue using webhook data.
  * @param issue The Jira issue to update.

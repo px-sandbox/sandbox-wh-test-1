@@ -70,7 +70,6 @@ export async function getReopenRateDataById(
                     esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
                 ]).toJSON();
 
-
         const reopenRateData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.ReopenRate, matchQry);
         const [formattedIssueData] = await searchedDataFormatorWithDeleted(reopenRateData);
         return formattedIssueData;
