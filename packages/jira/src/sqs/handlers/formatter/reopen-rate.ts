@@ -20,20 +20,17 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
                 const inputData = await prepareReopenRate(messageBody, messageBody.typeOfChangelog);
                 if (inputData) {
                     const reOpenRateProcessor = new ReopenRateProcessor(inputData);
-                    if (inputData.shouldFormatData) {
-                        const validatedData = reOpenRateProcessor.validate();
-                        if (!validatedData) {
-                            logger.error('reopenRateInfoValidationQueue.error', { error: 'validation failed' });
-                            return;
-                        }
-                        const data = await reOpenRateProcessor.processor();
-                        if (!data) {
-                            logger.error('reopenRateInfoQueueDATA.error', { error: 'processor failed' });
-                            return;
-                        }
-                        await reOpenRateProcessor.sendDataToQueue(data, Queue.qReOpenRateIndex.queueUrl);
+                    const validatedData = reOpenRateProcessor.validate();
+                    if (!validatedData) {
+                        logger.error('reopenRateInfoValidationQueue.error', { error: 'validation failed' });
+                        return;
                     }
-                    await reOpenRateProcessor.sendDataToQueue(inputData, Queue.qReOpenRateIndex.queueUrl);
+                    const data = await reOpenRateProcessor.processor();
+                    if (!data) {
+                        logger.error('reopenRateInfoQueueDATA.error', { error: 'processor failed' });
+                        return;
+                    }
+                    await reOpenRateProcessor.sendDataToQueue(data, Queue.qReOpenRateIndex.queueUrl);
                 }
                 logger.info('reopenRateInfoQueue.success');
             } catch (error) {

@@ -1,60 +1,44 @@
 import { Jira } from 'abstraction';
+import { ChangelogTypes } from 'abstraction/jira/enums';
+import { Hit, HitBody } from 'abstraction/other/type';
+import { logger } from 'core';
 import { getIssueChangelogs } from 'src/lib/get-issue-changelogs';
 import { JiraClient } from 'src/lib/jira-client';
-import { getFailedStatusDetails } from './issue-status';
-import { logger } from 'core';
 import { getReopenRateDataById } from 'src/repository/issue/get-issue';
-import { Hit, HitBody } from 'abstraction/other/type';
-import { searchedDataFormator } from './response-formatter';
-
-enum ChangelogTypes {
-    SPRINT = 'Sprint',
-    QA_FAILED = 'QA Failed',
-    READY_FOR_QA = 'Ready for QA',
-}
 
 function getSprintForTo(to: string, from: string) {
-
-    const toElements = to.split(", ");
-    const fromElements = from.split(", ");
+    const toElements = to.split(', ');
+    const fromElements = from.split(', ');
 
     const result = toElements.filter((item) => !fromElements.includes(item));
 
     return result[0];
 }
 async function prepareData(
-    messageBody: Pick<Hit, '_id'> & HitBody | Jira.ExternalType.Webhook.ReopenRateIssue,
-    reOpenCount = 0,
-    shouldFormatData = true
+    messageBody: (Pick<Hit, '_id'> & HitBody) | Jira.ExternalType.Webhook.ReopenRateIssue,
+    reOpenCount = 0
 ) {
     try {
-        if (shouldFormatData) {
-            const jiraClient = await JiraClient.getClient(messageBody.organization);
-            const changelogArr = await getIssueChangelogs(
-                messageBody.organization,
-                messageBody.issue.id,
-                jiraClient
-            );
-            if (changelogArr) {
-                logger.info('changelogArr', { changelogLength: changelogArr.length });
-                const changelogItems = changelogArr.flatMap((changelog) => changelog.items);
-                const changelogSprint = changelogItems.findLast((item) => item.field === 'Sprint');
-                if (changelogSprint) {
-                    messageBody.sprintId = getSprintForTo(changelogSprint.to, changelogSprint.from);
-                }
-                if (reOpenCount) {
-                    messageBody.reOpenCount = reOpenCount;
-                }
+        const jiraClient = await JiraClient.getClient(messageBody.organization);
+        const changelogArr = await getIssueChangelogs(
+            messageBody.organization,
+            messageBody.issue.id,
+            jiraClient
+        );
+        if (changelogArr) {
+            logger.info('changelogArr', { changelogLength: changelogArr.length });
+            const changelogItems = changelogArr.flatMap((changelog) => changelog.items);
+            const changelogSprint = changelogItems.findLast((item) => item.field === 'Sprint');
+            if (changelogSprint) {
+                messageBody.sprintId = getSprintForTo(changelogSprint.to, changelogSprint.from);
             }
-            return { ...messageBody, shouldFormatData };
-        } else {
-            if (messageBody) {
-                messageBody.reOpenCount = messageBody.reOpenCount + reOpenCount;
-                messageBody.isReopen = reOpenCount ? true : false;
+            if (reOpenCount) {
+                messageBody.reOpenCount = reOpenCount;
             }
-            const { _id, ...body } = messageBody;
-            return { id: _id, body, shouldFormatData };
+            messageBody.reOpenCount = messageBody.reOpenCount + reOpenCount;
+            messageBody.isReopen = reOpenCount ? true : false;
         }
+        return { ...messageBody };
     } catch (error) {
         logger.error(`prepareReopenRate.error, ${error} `);
         throw error;
@@ -79,7 +63,7 @@ export async function prepareReopenRate(
                 );
                 return false;
             }
-            returnObj = await prepareData(messageBody, 0, true);
+            returnObj = await prepareData(messageBody, 0);
             break;
         case ChangelogTypes.QA_FAILED:
             if (!reOpenRateData) {
@@ -88,7 +72,7 @@ export async function prepareReopenRate(
                 );
                 return false;
             }
-            returnObj = await prepareData(reOpenRateData, 1, false);
+            returnObj = await prepareData(messageBody, 1);
             break;
         case ChangelogTypes.SPRINT:
             if (!reOpenRateData) {
@@ -97,7 +81,7 @@ export async function prepareReopenRate(
                 );
                 return false;
             }
-            returnObj = await prepareData(messageBody, reOpenRateData.reOpenCount, false);
+            returnObj = await prepareData(messageBody, reOpenRateData.reOpenCount);
             break;
         default:
             return messageBody;
