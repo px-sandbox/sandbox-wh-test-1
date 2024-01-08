@@ -23,14 +23,13 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
         .boolQuery()
         .must([
           esb.termsQuery('body.sprintId', sprintIds),
-          esb.termQuery('body.issueType', IssuesTypes.BUG),
           esb.termQuery('body.isDeleted', false),
         ])
     );
     reopenRateGraphQuery
       .agg(
         esb
-          .termsAggregation('sprint_buckets', 'body.sprintId')
+          .termsAggregation('sprint_buckets', 'body.sprintId.keyword')
           .size(sprintIds.length)
           .agg(esb.filterAggregation('reopen_count', esb.rangeQuery('body.reOpenCount').gt(0)))
       )
@@ -39,7 +38,7 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
     logger.info('reopenRateGraphQuery', reopenRateGraphQuery);
 
     const reopenRateGraphResponse: IReopenRateResponse = await esClientObj.queryAggs<IReopenRateResponse>(
-      Jira.Enums.IndexName.Issue,
+      Jira.Enums.IndexName.ReopenRate,
       reopenRateGraphQuery
     );
 
@@ -90,7 +89,6 @@ export async function reopenRateGraphAvg(
         .boolQuery()
         .must([
           esb.termsQuery('body.sprintId', sprintIds),
-          esb.termQuery('body.issueType', IssuesTypes.BUG),
           esb.termQuery('body.isDeleted', false),
         ])
     );
@@ -101,7 +99,7 @@ export async function reopenRateGraphAvg(
     logger.info('AvgReopenRateGraphQuery', reopenRateGraphQuery);
 
     const reopenRateGraphResponse = await esClientObj.getClient().search({
-      index: Jira.Enums.IndexName.Issue,
+      index: Jira.Enums.IndexName.ReopenRate,
       body: reopenRateGraphQuery,
     });
     return {
