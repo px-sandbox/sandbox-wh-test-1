@@ -317,7 +317,6 @@ const indices = [
             issueKey: { type: 'keyword' },
             projectId: { type: 'keyword' },
             sprintId: { type: 'keyword' },
-            boardId: { type: 'keyword' },
             reOpenCount: { type: 'integer' },
             isReOpen: { type: 'boolean' },
             isDeleted: { type: 'boolean' },

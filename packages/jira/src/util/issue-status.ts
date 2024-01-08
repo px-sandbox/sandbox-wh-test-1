@@ -56,7 +56,6 @@ export async function getIssueStatusForReopenRate(orgId: string): Promise<Other.
             body: issueStatusquery,
         });
         const issueStatusDataArr = await searchedDataFormator(data);
-        console.log('issueStatusDataArr', issueStatusDataArr);
         const issueStatusData = issueStatusDataArr.reduce((acc: Record<string, any>, issueStatus) => {
             acc[issueStatus.pxStatus] = issueStatus.issueStatusId;
             return acc;

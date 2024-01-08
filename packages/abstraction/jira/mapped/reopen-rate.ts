@@ -26,5 +26,4 @@ export type ReopenRateIssue = {
     reOpenCount: number;
     isReopen: boolean;
     sprintId: string;
-    boardId: string;
 };

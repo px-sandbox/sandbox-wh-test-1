@@ -33,11 +33,9 @@ async function prepareData(
             if (changelogSprint) {
                 issueWebhookData.sprintId = getSprintForTo(changelogSprint.to, changelogSprint.from);
             }
-            // console.log('issueWebhookData', issueWebhookData);
             issueWebhookData.reOpenCount = reOpenCount;
             issueWebhookData.isReopen = !!reOpenCount;
         }
-        console.log('issueWebhookData', issueWebhookData.reOpenCount);
         return { ...issueWebhookData };
     } catch (error) {
         logger.error(`prepareReopenRate.error, ${error} `);
@@ -74,8 +72,7 @@ export async function prepareReopenRate(
                 );
                 return false;
             }
-            const reopenCounter = reOpenRateData.reOpenCount + 1;
-            returnObj = await prepareData(messageBody, reopenCounter);
+            returnObj = await prepareData(messageBody, reOpenRateData.reOpenCount + 1);
             break;
         default:
             return false;

@@ -1,6 +1,6 @@
 import { SQSClient } from '@pulse/event-handler';
 import { Jira } from 'abstraction';
-import { ChangelogField, ChangelogStatus, IssuesTypes } from 'abstraction/jira/enums';
+import { ChangelogStatus, IssuesTypes } from 'abstraction/jira/enums';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getOrganization } from '../../repository/organization/get-organization';

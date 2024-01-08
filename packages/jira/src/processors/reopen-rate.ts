@@ -33,14 +33,15 @@ export class ReopenRateProcessor extends DataProcessor<
             throw new Error(`Organization ${this.apiData.organization} not found`);
         }
         const parentId: string | undefined = await this.getParentId(
+            // eslint-disable-next-line max-len
             `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}_${mappingPrefixes.org}_${orgData.orgId}`
         );
         const repoRateObj = {
             id: parentId || uuid(),
             body: {
+                // eslint-disable-next-line max-len
                 id: `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}`,
                 sprintId: `${mappingPrefixes.sprint}_${this.apiData.sprintId}`,
-                boardId: `${this.apiData.boardId}` ?? null,
                 projectId: `${mappingPrefixes.project}_${this.apiData.issue.fields.project.id}`,
                 projectKey: this.apiData.issue.fields.project.key,
                 issueId: `${mappingPrefixes.issue}_${this.apiData.issue.id}`,

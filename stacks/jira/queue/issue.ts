@@ -3,6 +3,7 @@ import { Function, Queue, use } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
 
+/* eslint-disable max-lines-per-function */
 export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[] {
   const {
     OPENSEARCH_NODE,

@@ -9,7 +9,6 @@ export type ReopenRate = {
         reOpenCount: number;
         isReopen: boolean;
         sprintId: string | null;
-        boardId: string | null
         isDeleted?: boolean | null;
         deletedAt?: string | null;
         organizationId: string;

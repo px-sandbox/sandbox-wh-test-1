@@ -61,11 +61,11 @@ export async function getReopenRateDataById(
             logger.error(`Organization ${organization} not found`);
             throw new Error(`Organization ${organization} not found`);
         }
-
         const matchQry =
             esb
                 .boolQuery()
                 .must([
+                    // eslint-disable-next-line max-len
                     esb.termsQuery('body.id', `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`),
                     esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
                 ]).toJSON();
