@@ -28,7 +28,8 @@ async function prepareData(
         );
         if (changelogArr.length > 0) {
             logger.info('changelogArr', { changelogLength: changelogArr.length });
-            const changelogSprint = changelogArr.findLast((item) => item.field === ChangelogField.SPRINT);
+            const reverseArrChangelog = changelogArr.reverse();
+            const changelogSprint = reverseArrChangelog.find((item) => item.field === ChangelogField.SPRINT);
             if (changelogSprint) {
                 issueWebhookData.sprintId = getSprintForTo(changelogSprint.to, changelogSprint.from);
             }
