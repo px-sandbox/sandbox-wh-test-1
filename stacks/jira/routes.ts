@@ -93,6 +93,14 @@ export function initializeRoutes(
             },
             authorizer: 'admin',
         },
+
+        'GET /jira/bugs': {
+            function: {
+                handler: 'packages/jira/src/service/reopen-rate-migrator.handler',
+                // bind: [reOpenRateMigratorQueue],
+            },
+            authorizer: 'admin',
+        },
     };
     return routesObj;
 }

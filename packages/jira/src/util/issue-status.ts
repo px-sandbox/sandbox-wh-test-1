@@ -66,3 +66,33 @@ export async function getIssueStatusForReopenRate(orgId: string): Promise<Other.
         throw error;
     }
 }
+
+export async function getIssueStatusIds(orgId: string): Promise<Other.Type.HitBody> {
+    try {
+        const esClient = new ElasticSearchClient({
+            host: Config.OPENSEARCH_NODE,
+            username: Config.OPENSEARCH_USERNAME ?? '',
+            password: Config.OPENSEARCH_PASSWORD ?? '',
+        });
+
+        const issueStatusquery = esb
+            .boolQuery()
+            .must([
+                esb.existsQuery('body.pxStatus'),
+                esb.termQuery('body.organizationId', orgId),
+            ])
+            .toJSON();
+
+        logger.info('ESB_QUERY_ISSUE_STATUS_QUERY', { issueStatusquery });
+        const data = await esClient.searchWithEsb(
+            Jira.Enums.IndexName.IssueStatus,
+            issueStatusquery,
+        );
+
+        const issueStatusIdsData = await searchedDataFormator(data);
+        return issueStatusIdsData;
+    } catch (error) {
+        logger.error('getIssueStatusIdsData.error', { error });
+        throw error;
+    }
+}
