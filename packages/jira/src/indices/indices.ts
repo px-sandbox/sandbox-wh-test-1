@@ -311,11 +311,12 @@ const indices = [
         body: {
           type: 'object',
           properties: {
+            id: { type: 'keyword' },
             organizationId: { type: 'keyword' },
             issueId: { type: 'keyword' },
+            issueKey: { type: 'keyword' },
             projectId: { type: 'keyword' },
             sprintId: { type: 'keyword' },
-            boardId: { type: 'keyword' },
             reOpenCount: { type: 'integer' },
             isReOpen: { type: 'boolean' },
             isDeleted: { type: 'boolean' },
