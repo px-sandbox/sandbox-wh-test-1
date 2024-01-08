@@ -15,4 +15,6 @@ export enum ChangelogStatus {
 export enum ChangelogField {
   SPRINT = 'Sprint',
   STATUS = 'status',
+  CUSTOM = 'custom',
+  JIRA = 'jira',
 }

@@ -1,5 +1,6 @@
 import { Jira } from 'abstraction';
 import { JiraClient } from './jira-client';
+import { ChangelogField, ChangelogStatus } from 'abstraction/jira/enums';
 
 export async function getIssueChangelogs(
     organization: string,
@@ -11,9 +12,9 @@ export async function getIssueChangelogs(
     const changelogValues: Jira.ExternalType.Api.Changelogs[] = changelogs.flatMap((changelog) => {
         const items = changelog.items.filter(
             (item) =>
-                (item.fieldtype === 'jira' && item.field === 'status') ||
-                (item.fieldtype === 'custom' && item.field === 'Sprint')
-        );
+                (item.fieldtype === ChangelogField.JIRA && item.field === ChangelogField.STATUS) ||
+                (item.fieldtype === ChangelogField.CUSTOM && item.field === ChangelogField.SPRINT
+                ));
         return { items };
     });
     return changelogValues;
