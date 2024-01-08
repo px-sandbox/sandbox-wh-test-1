@@ -49,9 +49,8 @@ export class IssueProcessor extends DataProcessor<
     const changelogArr = await getIssueChangelogs(this.apiData.organization, this.apiData.issue.id, jiraClient);
     let reOpenCount = 0;
     const QaFailed = await getFailedStatusDetails(orgData.id);
-    let changelogItems: Array<ChangelogItem> = [];
     if (changelogArr.length > 0) {
-      reOpenCount = changelogItems.filter(
+      reOpenCount = changelogArr.filter(
         (items) => items.to === QaFailed.issueStatusId && items.toString === QaFailed.name
       ).length;
     }
@@ -86,7 +85,7 @@ export class IssueProcessor extends DataProcessor<
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.id,
-        changelog: changelogItems,
+        changelog: changelogArr,
       },
     };
     return issueObj;
