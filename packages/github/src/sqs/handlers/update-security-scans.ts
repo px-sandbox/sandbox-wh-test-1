@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import esb, { BoolQuery } from 'elastic-builder';
+import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
 import { Github, Other } from 'abstraction';
@@ -24,12 +24,13 @@ const esClient = new ElasticSearchClient({
  * @param date - The date of the scan.
  * @returns The query object.
  */
-function createScanQuery(repoId: string, branch: string, date: string): BoolQuery {
-    return esb.boolQuery().must([
+function createScanQuery(repoId: string, branch: string, date: string): any {
+    return esb.requestBodySearch().query(esb.boolQuery().must([
         esb.termQuery('body.repoId', repoId),
         esb.termQuery('body.branch', branch),
         esb.termQuery('body.isDeleted', false),
-    ]).filter(esb.termQuery('body.date', date));
+        esb.termQuery('body.date', date),
+    ])).toJSON();
 }
 
 /**
@@ -57,6 +58,37 @@ function formatScansForBulkInsert(data: (Pick<Other.Type.Hit, "_id"> & Other.Typ
 }
 
 
+async function getScans(repoId: string, branch: string, date: string, allScans: boolean = false) {
+
+    try {
+        logger.info(`Fetching scans for repoId: ${repoId}, branch: ${branch} and date: ${date}`);
+
+        const limit = 100;
+        const records = [];
+        let from = 0;
+        let result = [];
+
+        const { query } = createScanQuery(repoId, branch, date);
+
+        do {
+            result = [];
+            const scans = await esClient.
+                searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, query, from, limit);
+
+            result = await searchedDataFormator(scans);
+            from += limit;
+            records.push(...result);
+        } while (allScans && result.length === limit)
+
+        logger.info(`Scans found for repoId: ${repoId}, branch: ${branch} and date: ${date} | Records Length: ${records.length}`);
+
+        return records;
+    } catch (error) {
+        logger.error(`Error while fetching scans for repoId: ${repoId}, branch: ${branch} and date: ${date}`);
+        throw error;
+    }
+}
+
 /**
  * Updates security scans for only for today based on yesterday's data.
  * @param event - The SQS event containing the records to update.
@@ -69,42 +101,35 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
         try {
 
             // parsing and extracting data from SQS queue's record body
-            const recordBody: { repoId: string, branch: string, currDate: string } = JSON.parse(record.body);
+            const { repoId, branch, currDate }: { repoId: string, branch: string, currDate: string } = JSON.parse(record.body);
 
-            // finding scans for today's date
-            const todaysScansQuery = createScanQuery(recordBody.repoId, recordBody.branch, recordBody.currDate);
-
-            const todaysScans = await esClient.
-                searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, todaysScansQuery.toJSON());
-
-            // formatting today's scans data into easily readable form
-            const formattedTodaysScans = await searchedDataFormator(todaysScans);
+            const todaysScans = await getScans(repoId, branch, currDate, false);
 
             // will only update scans for today if no scans found for today
-            if (formattedTodaysScans?.length === 0) {
-
-                // extracting yesterday's scans to be copied into today
-                const yesterDate = moment().subtract(1, 'days').format("YYYY-MM-DD");
-                const yesterScansQuery = createScanQuery(recordBody.repoId, recordBody.branch, yesterDate);
-
-                const yesterdaysData = await esClient.
-                    searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, yesterScansQuery.toJSON());
-
-                // formatting yesterday's scans data into easily readable form
-                const formattedData = await searchedDataFormator(yesterdaysData);
-
-                // updating scans for today if yesterday's scans found
-                if (formattedData?.length > 0) {
-                    // formatting yesterday's scans 
-                    const updatedBody = formatScansForBulkInsert(formattedData);
-
-                    // bulk inserting scans for today
-                    logger.info(`Updating scans for repoId: ${recordBody.repoId}, branch: ${recordBody.branch}`);
-                    await esClient.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, updatedBody);
-                }
-            } else {
-                logger.info('Scans found for today');
+            if (todaysScans.length > 0) {
+                logger.info(`Scans found for today (${currDate}) for repoId: ${repoId} and branch: ${branch}`);
+                return;
             }
+
+            // extracting yesterday's scans to be copied into today
+            const yesterDate = moment().subtract(1, 'days').format("YYYY-MM-DD");
+
+            const yesterdayScans = await getScans(repoId, branch, yesterDate, true);
+
+            // updating scans for today if yesterday's scans found
+            if (yesterdayScans.length === 0) {
+                logger.info(`No scans found for Yesterday (${yesterDate}) for repoId: ${repoId} and branch: ${branch}`);
+                return;
+            }
+
+            // formatting yesterday's scans 
+            const updatedBody = formatScansForBulkInsert(yesterdayScans);
+
+            // bulk inserting scans for today
+            logger.info(`Updating scans for repoId: ${repoId}, branch: ${branch}`);
+            await esClient.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, updatedBody);
+
+            logger.info(`Successfully copied scans for repoId: ${repoId}, branch: ${branch} from ${yesterDate} to ${currDate}`);
         } catch (error) {
             // retrying the update security scans process if any error occurs
             await logProcessToRetry(record, Queue.qGhScansSave.queueUrl, error as Error);

@@ -49,6 +49,10 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
                     sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl),
                 ]);
             } catch (error) {
+                if (error.status && error.status === 404) {
+                    logger.info('DEPENDENCIES_NOT_FOUND', { record });
+                    return;
+                }
                 await logProcessToRetry(record, Queue.qDepRegistry.queueUrl, error as Error);
                 logger.error('dependencyRegistry.error', { error });
             }
