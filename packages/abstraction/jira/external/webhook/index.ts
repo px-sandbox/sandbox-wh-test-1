@@ -3,4 +3,3 @@ export * from './project';
 export * from './sprint';
 export * from './board';
 export * from './issue';
-export * from './reopen-rate';

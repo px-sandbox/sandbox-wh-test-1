@@ -1,6 +1,6 @@
 import { SQSClient } from '@pulse/event-handler';
 import { Jira } from 'abstraction';
-import { IssuesTypes } from 'abstraction/jira/enums';
+import { ChangelogField, ChangelogStatus, IssuesTypes } from 'abstraction/jira/enums';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getOrganization } from '../../repository/organization/get-organization';
@@ -21,11 +21,15 @@ export async function update(issue: Jira.ExternalType.Webhook.Issue): Promise<vo
   if (orgData) {
     const issueStatus = await getIssueStatusForReopenRate(orgData.id);
     if (
-      (issueState.toString === issueStatus[issueState.to]) ||
-      (issueState.field === issueStatus[9999]) // for sprint change
+      [issueStatus[ChangelogStatus.READY_FOR_QA], issueStatus[ChangelogStatus.QA_FAILED]].includes(
+        issueState.to
+      )
     ) {
       logger.info('issue_info_ready_for_QA_update_event: Send message to SQS');
-      const typeOfChangelog = issueStatus[issueState.to];
+      const typeOfChangelog =
+        issueStatus[ChangelogStatus.READY_FOR_QA] == issueState.to
+          ? ChangelogStatus.READY_FOR_QA
+          : ChangelogStatus.QA_FAILED;
       await new SQSClient().sendMessage({ ...issue, typeOfChangelog }, Queue.qReOpenRate.queueUrl);
     }
   }

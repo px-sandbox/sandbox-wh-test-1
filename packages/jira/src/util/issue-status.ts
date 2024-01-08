@@ -17,7 +17,7 @@ export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.
             esb
                 .boolQuery()
                 .must([
-                    esb.termQuery('body.pxStatus', 'QA Failed'),
+                    esb.termQuery('body.pxStatus', 'QA_Failed'),
                     esb.termQuery('body.organizationId', orgId),
                 ])
         );
@@ -41,31 +41,26 @@ export async function getIssueStatusForReopenRate(orgId: string): Promise<Other.
             username: Config.OPENSEARCH_USERNAME ?? '',
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
-        const issueStatusquery = esb.requestBodySearch()
+        const issueStatusquery = esb.requestBodySearch().size(100);
         issueStatusquery.query(
             esb
                 .boolQuery()
                 .must([
                     esb.termQuery('body.organizationId', orgId),
-                    esb.boolQuery()
-                        .should([esb.termQuery('body.pxStatus', 'Ready for QA'),
-                        esb.termQuery('body.pxStatus', 'QA Failed')
-                        ])
-                ]))
-
-        logger.info('ESB_QUERY_ISSUE_STATUS_QUERY', { issueStatusquery });
+                    esb.existsQuery('body.pxStatus'),
+                ])
+        )
+        logger.info('ESB_QUERY_REOPEN_RATE_QUERY', { issueStatusquery });
         const { body: data } = await esClient.getClient().search({
             index: Jira.Enums.IndexName.IssueStatus,
             body: issueStatusquery,
         });
         const issueStatusDataArr = await searchedDataFormator(data);
-
+        console.log('issueStatusDataArr', issueStatusDataArr);
         const issueStatusData = issueStatusDataArr.reduce((acc: Record<string, any>, issueStatus) => {
-            acc[issueStatus.issueStatusId] = issueStatus.pxStatus;
+            acc[issueStatus.pxStatus] = issueStatus.issueStatusId;
             return acc;
         }, {});
-        // Put sprint status in issueStatusData
-        issueStatusData[99999] = 'Sprint';
         return issueStatusData;
     } catch (error) {
         logger.error('getIssueStatusData.error', { error });

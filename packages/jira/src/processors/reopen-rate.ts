@@ -7,10 +7,10 @@ import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
 
 export class ReopenRateProcessor extends DataProcessor<
-    Jira.ExternalType.Webhook.ReopenRateIssue,
+    Jira.Mapped.ReopenRateIssue,
     Jira.Type.ReopenRate
 > {
-    constructor(data: Jira.ExternalType.Webhook.ReopenRateIssue) {
+    constructor(data: Jira.Mapped.ReopenRateIssue) {
         super(data);
     }
     public validate(): false | this {

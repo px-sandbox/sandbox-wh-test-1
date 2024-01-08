@@ -1,4 +1,4 @@
-import { ChangelogItem } from "./issue";
+import { ChangelogItem } from "../external/webhook/issue";
 
 export type ReopenRateIssue = {
     _id: string;
@@ -27,5 +27,4 @@ export type ReopenRateIssue = {
     isReopen: boolean;
     sprintId: string;
     boardId: string;
-    shouldFormatData: boolean;
 };
