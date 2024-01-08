@@ -26,10 +26,9 @@ async function prepareData(
             issueWebhookData.issue.id,
             jiraClient
         );
-        if (changelogArr) {
+        if (changelogArr.length > 0) {
             logger.info('changelogArr', { changelogLength: changelogArr.length });
-            const changelogItems = changelogArr.flatMap((changelog) => changelog.items);
-            const changelogSprint = changelogItems.findLast((item) => item.field === ChangelogField.SPRINT);
+            const changelogSprint = changelogArr.findLast((item) => item.field === ChangelogField.SPRINT);
             if (changelogSprint) {
                 issueWebhookData.sprintId = getSprintForTo(changelogSprint.to, changelogSprint.from);
             }

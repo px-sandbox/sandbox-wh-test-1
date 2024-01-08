@@ -51,7 +51,6 @@ export class IssueProcessor extends DataProcessor<
     const QaFailed = await getFailedStatusDetails(orgData.id);
     let changelogItems: Array<ChangelogItem> = [];
     if (changelogArr.length > 0) {
-      changelogItems = changelogArr.flatMap((changelog) => changelog.items);
       reOpenCount = changelogItems.filter(
         (items) => items.to === QaFailed.issueStatusId && items.toString === QaFailed.name
       ).length;
