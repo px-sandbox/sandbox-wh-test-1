@@ -40,6 +40,7 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
                             esb.termQuery('body.issueType', Jira.Enums.IssuesTypes.BUG),
                             esb.termQuery('body.organizationId.keyword', jiraOrgId),
                             esb.termQuery('body.projectId', projectId),
+                            esb.termQuery('body.isDeleted', false),
                         ])
                 )
                 .toJSON() as { query: object };
@@ -58,7 +59,7 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
             libData.push(...libFormatData)
             from += size;
 
-            logger.info(`get existing bug for reopen data length', ${libData.length}`);
+            logger.info(`get existing bug for reopen data length ${libFormatData.length} from ${from} `);
 
         } while (libFormatData.length === size);
 
