@@ -93,6 +93,13 @@ export function initializeRoutes(
             },
             authorizer: 'admin',
         },
+
+        'GET /jira/bugs': {
+            function: {
+                handler: 'packages/jira/src/service/find-existing-bugs.handler',
+            },
+            authorizer: 'admin',
+        },
     };
     return routesObj;
 }

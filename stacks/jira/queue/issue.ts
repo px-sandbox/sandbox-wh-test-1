@@ -67,6 +67,20 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     },
   });
 
+  const reOpenRateMigratorQueue = new Queue(stack, 'qReOpenRateMigrator');
+  reOpenRateMigratorQueue.addConsumer(stack, {
+    function: new Function(stack, 'fnReOpenRateMigrator', {
+      handler: 'packages/jira/src/sqs/handlers/formatter/reopen-rate-migrator.handler',
+      bind: [reOpenRateMigratorQueue, reOpenRateIndexQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
+
+
   issueFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
@@ -108,5 +122,19 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
   ]);
-  return [issueFormatDataQueue, issueIndexDataQueue, reOpenRateDataQueue, reOpenRateIndexQueue];
+
+  reOpenRateMigratorQueue.bind([
+    jiraDDB.jiraCredsTable,
+    jiraDDB.processJiraRetryTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+
+  return [
+    issueFormatDataQueue,
+    issueIndexDataQueue,
+    reOpenRateDataQueue,
+    reOpenRateIndexQueue,
+    reOpenRateMigratorQueue];
 }

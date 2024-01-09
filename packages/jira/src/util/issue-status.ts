@@ -5,13 +5,15 @@ import esb from "elastic-builder";
 import { Config } from "sst/node/config";
 import { searchedDataFormator } from "./response-formatter";
 
+const esClientObj = new ElasticSearchClient({
+    host: Config.OPENSEARCH_NODE,
+    username: Config.OPENSEARCH_USERNAME ?? '',
+    password: Config.OPENSEARCH_PASSWORD ?? '',
+});
+
+
 export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.HitBody> {
     try {
-        const esClient = new ElasticSearchClient({
-            host: Config.OPENSEARCH_NODE,
-            username: Config.OPENSEARCH_USERNAME ?? '',
-            password: Config.OPENSEARCH_PASSWORD ?? '',
-        });
         const issueStatusquery = esb.requestBodySearch()
         issueStatusquery.query(
             esb
@@ -22,7 +24,7 @@ export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.
                 ])
         );
         logger.info('ESB_QUERY_ISSUE_STATUS_QUERY', { issueStatusquery });
-        const { body: data } = await esClient.getClient().search({
+        const { body: data } = await esClientObj.getClient().search({
             index: Jira.Enums.IndexName.IssueStatus,
             body: issueStatusquery,
         });
@@ -36,11 +38,6 @@ export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.
 
 export async function getIssueStatusForReopenRate(orgId: string): Promise<Other.Type.HitBody> {
     try {
-        const esClient = new ElasticSearchClient({
-            host: Config.OPENSEARCH_NODE,
-            username: Config.OPENSEARCH_USERNAME ?? '',
-            password: Config.OPENSEARCH_PASSWORD ?? '',
-        });
         const issueStatusquery = esb.requestBodySearch().size(100);
         issueStatusquery.query(
             esb
@@ -51,7 +48,7 @@ export async function getIssueStatusForReopenRate(orgId: string): Promise<Other.
                 ])
         )
         logger.info('ESB_QUERY_REOPEN_RATE_QUERY', { issueStatusquery });
-        const { body: data } = await esClient.getClient().search({
+        const { body: data } = await esClientObj.getClient().search({
             index: Jira.Enums.IndexName.IssueStatus,
             body: issueStatusquery,
         });
