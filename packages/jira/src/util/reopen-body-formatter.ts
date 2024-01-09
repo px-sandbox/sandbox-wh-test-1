@@ -54,6 +54,8 @@ export async function reopenChangelogCals(
     let currentSprint: string | null = sprintId || null;
     const issueStatus = await getIssueStatusForReopenRate(organizationId);
 
+    logger.info('reopen rate sprint id', { sprintId });
+
     // eslint-disable-next-line complexity
     input.forEach((item, index) => {
 
@@ -114,15 +116,16 @@ export async function reopenChangelogCals(
         }
     });
 
-    if (reopen[0] && reopen[0].sprintId === null) {
+    if (reopen[0] && !reopen[0].sprintId) {
+        logger.info('reopen rate sprint id is null', { issueId, sprintId });
         reopen[0].sprintId = sprintId;
         reopenObj.id = `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`;
     }
 
-
-    return reopen.map(({ sprintId: sprint, ...item }) => ({
+    return reopen.map(({ sprintId: sprint, issueId: bugId, ...item }) => ({
         id: `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprint}`,
         sprintId: `${mappingPrefixes.sprint}_${sprint}`,
+        issueId: `${mappingPrefixes.issue}_${bugId}`,
         ...item,
     }));
 }
