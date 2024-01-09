@@ -1,6 +1,7 @@
 /* eslint-disable max-lines-per-function */
 import { Jira } from 'abstraction';
 import { ChangelogItem } from 'abstraction/jira/external/webhook';
+import { logger } from 'core';
 import { mappingPrefixes } from 'src/constant/config';
 import { getIssueStatusForReopenRate } from 'src/util/issue-status';
 
@@ -54,8 +55,6 @@ export async function reopenChangelogCals(
     let currentSprint: string | null = sprintId || null;
     const issueStatus = await getIssueStatusForReopenRate(organizationId);
 
-    logger.info('reopen rate sprint id', { sprintId });
-
     // eslint-disable-next-line complexity
     input.forEach((item, index) => {
 
@@ -71,7 +70,6 @@ export async function reopenChangelogCals(
                         issueKey,
                         projectId,
                         boardId,
-                        issueId,
                         sprintId,
                         isReopen: false,
                         reOpenCount: 0,
@@ -122,8 +120,9 @@ export async function reopenChangelogCals(
         reopenObj.id = `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`;
     }
 
+
     return reopen.map(({ sprintId: sprint, issueId: bugId, ...item }) => ({
-        id: `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprint}`,
+        id: `${mappingPrefixes.reopen_rate}_${bugId}_${mappingPrefixes.sprint}_${sprint}`,
         sprintId: `${mappingPrefixes.sprint}_${sprint}`,
         issueId: `${mappingPrefixes.issue}_${bugId}`,
         ...item,
