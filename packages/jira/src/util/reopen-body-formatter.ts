@@ -53,6 +53,7 @@ export async function reopenChangelogCals(
     let reopenObj: any = null;
     let currentSprint: string | null = sprintId || null;
     const issueStatus = await getIssueStatusForReopenRate(organizationId);
+    console.log("🚀 ~ file: reopen-body-formatter.ts:56 ~ issueStatus:", issueStatus)
 
     // eslint-disable-next-line complexity
     input.forEach((item, index) => {
@@ -83,7 +84,7 @@ export async function reopenChangelogCals(
 
                     reopenObj = null;
 
-                } else if ([issueStatus.QA_PASSED,
+                } else if ([issueStatus.QA_Passed,
                 issueStatus.Ready_For_UAT,
                 issueStatus.Ready_For_Prod,
                 issueStatus.Done].
