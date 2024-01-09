@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { ElasticSearchClient } from "@pulse/elasticsearch";
 import { Jira, Other } from "abstraction";
 import { logger } from "core";
@@ -6,39 +7,55 @@ import esb from "elastic-builder";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { SQSClient } from "@pulse/event-handler";
 import { Queue } from "sst/node/queue";
+import { mappingPrefixes } from "src/constant/config";
 import { searchedDataFormator } from "../util/response-formatter";
 import { getOrganizationById } from "../repository/organization/get-organization";
 
+const esClientObj = new ElasticSearchClient({
+    host: Config.OPENSEARCH_NODE,
+    username: Config.OPENSEARCH_USERNAME ?? '',
+    password: Config.OPENSEARCH_PASSWORD ?? '',
+});
+
 export const handler = async function getIssuesList(event: APIGatewayProxyEvent): Promise<Other.Type.HitBody> {
+    let libFormatData;
+
     try {
+        const libData = [];
+        const size = 100;
+        let from = 0;
 
-        const jiraOrgId = `jira_org_${event?.queryStringParameters?.orgId}`;
+        const jiraOrgId = `${mappingPrefixes.organization}_${event?.queryStringParameters?.orgId}`;
 
-        const esClient = new ElasticSearchClient({
-            host: Config.OPENSEARCH_NODE,
-            username: Config.OPENSEARCH_USERNAME ?? '',
-            password: Config.OPENSEARCH_PASSWORD ?? '',
-        });
+        do {
+            const query = esb
+                .requestBodySearch().size(size)
+                .query(
+                    esb
+                        .boolQuery()
+                        .must([
+                            esb.termQuery('body.issueType', Jira.Enums.IssuesTypes.BUG),
+                            esb.termQuery('body.organizationId.keyword', jiraOrgId),
+                        ])
+                )
+                .from(from)
+                .toJSON() as { query: object };
+
+            const esLibData = await esClientObj.paginateSearch(
+                Jira.Enums.IndexName.Issue,
+                query
+            );
 
 
-        const issueStatusquery = esb
-            .boolQuery()
-            .must([
-                esb.termQuery('body.issueType', Jira.Enums.IssuesTypes.BUG),
-                esb.termQuery('body.organizationId.keyword', jiraOrgId),
-            ])
-            .toJSON();
 
-        logger.info('ESB_QUERY_ISSUE_STATUS_QUERY', { issueStatusquery });
-        const data = await esClient.searchWithEsb(
-            Jira.Enums.IndexName.Issue,
-            issueStatusquery,
-        );
+            libFormatData = await searchedDataFormator(esLibData);
+            libData.push(...libFormatData)
+            from += size;
+        } while (libFormatData.length === size);
 
-        const issueData = await searchedDataFormator(data);
         const orgData = await getOrganizationById(jiraOrgId);
 
-        issueData.forEach(async (bug) => {
+        await Promise.all(libData.map(bug => {
             const formattedBug = {
                 issue: {
                     id: bug.issueId,
@@ -54,13 +71,9 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
                 organization: orgData,
                 sprintId: bug?.sprintId.split('jira_sprint_')[1],
                 boardId: bug.boardId,
-
             }
-            await new SQSClient().sendMessage(formattedBug, Queue.qReOpenRateMigrator.queueUrl);
-
-        });
-
-        return issueData;
+            return new SQSClient().sendMessage(formattedBug, Queue.qReOpenRateMigrator.queueUrl);
+        }))
 
     } catch (error) {
         logger.error('get existing bug for reopen error', { error });

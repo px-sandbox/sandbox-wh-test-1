@@ -1,6 +1,8 @@
 /* eslint-disable max-lines-per-function */
 import { Jira } from 'abstraction';
+import { ChangelogItem } from 'abstraction/jira/external/webhook';
 import { mappingPrefixes } from 'src/constant/config';
+import { getIssueStatusForReopenRate } from 'src/util/issue-status';
 
 interface ReopenItem {
     organizationId: string;
@@ -39,8 +41,7 @@ function getSprintForTo(to: string, from: string): string {
 * @returns {Array} - Reopen Rate Data
 */
 export async function reopenChangelogCals(
-    STATUS: Jira.Type.reopenIssueStatusIds,
-    input: Jira.Type.ReopenRateChangeLog[],
+    input: ChangelogItem[],
     issueId: string,
     sprintId: string,
     organizationId: string,
@@ -51,6 +52,7 @@ export async function reopenChangelogCals(
     const reopen: ReopenItem[] = [];
     let reopenObj: any = null;
     let currentSprint: string | null = sprintId || null;
+    const issueStatus = await getIssueStatusForReopenRate(organizationId);
 
     // eslint-disable-next-line complexity
     input.forEach((item, index) => {
@@ -61,7 +63,7 @@ export async function reopenChangelogCals(
                     reopenObj = reopen.pop();
                 }
 
-                if (item.to === STATUS.Ready_For_QA || item.to === STATUS.Deployed_To_QA) {
+                if (item.to === issueStatus.Ready_For_QA || item.to === issueStatus.Deployed_To_QA) {
                     reopenObj = reopenObj || {
                         organizationId,
                         issueKey,
@@ -74,14 +76,17 @@ export async function reopenChangelogCals(
                         isDeleted: false,
                         deletedAt: null,
                     }
-                } else if (item.to === STATUS.QA_Failed) {
+                } else if (item.to === issueStatus.QA_Failed) {
                     reopenObj.isReopen = true;
                     reopenObj.reOpenCount += 1;
                     reopen.push(reopenObj);
 
                     reopenObj = null;
 
-                } else if ([STATUS.QA_PASSED, STATUS.Ready_For_UAT, STATUS.Ready_For_Prod, STATUS.Done].
+                } else if ([issueStatus.QA_PASSED,
+                issueStatus.Ready_For_UAT,
+                issueStatus.Ready_For_Prod,
+                issueStatus.Done].
                     includes(item.to)) {
                     reopen.push(reopenObj);
 
