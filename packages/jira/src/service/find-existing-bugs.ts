@@ -29,8 +29,9 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
         const projectId = event?.queryStringParameters?.projectId;
 
         do {
-            const query = esb
-                .requestBodySearch().size(size)
+            libFormatData = [];
+            const getBugsQuery = esb
+                .requestBodySearch()
                 .query(
                     esb
                         .boolQuery()
@@ -40,19 +41,24 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
                             esb.termQuery('body.projectId.keyword', projectId),
                         ])
                 )
-                .from(from)
                 .toJSON() as { query: object };
 
-            const esLibData = await esClientObj.paginateSearch(
+            logger.info('get existing bug for reopen query', { query: getBugsQuery.query });
+
+
+            const esLibData = await esClientObj.searchWithEsb(
                 Jira.Enums.IndexName.Issue,
-                query
+                getBugsQuery.query,
+                from,
+                size
             );
-
-
 
             libFormatData = await searchedDataFormator(esLibData);
             libData.push(...libFormatData)
             from += size;
+
+            logger.info('get existing bug for reopen data length', libData.length);
+
         } while (libFormatData.length === size);
 
         const orgData = await getOrganizationById(jiraOrgId);
