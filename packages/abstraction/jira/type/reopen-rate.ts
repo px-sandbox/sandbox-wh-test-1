@@ -39,15 +39,3 @@ export type ReopenRateChangeLog = {
     to: string;
     toString: string;
 }
-
-export type reopenIssueStatusIds = {
-    Ready_For_Prod: string;
-    QA_Pass_Deploy: string;
-    Ready_For_QA: string;
-    QA_Failed: string;
-    QA_PASSED: string;
-    Ready_For_UAT: string;
-    Deployed_To_QA: string;
-    Done: string;
-
-}

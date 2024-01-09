@@ -10,7 +10,8 @@ export enum ChangelogStatus {
   Ready_For_UAT = 'Ready_For_UAT',
   QA_PASSED = 'QA_Passed',
   Ready_For_Prod = 'Ready_For_Prod',
-  QA_Pass_Deployed = 'QA_Pass_Deployed',
+  QA_Pass_Deploy = 'QA_Pass_Deploy',
+  Done = 'Done',
 }
 export enum ChangelogField {
   SPRINT = 'Sprint',
