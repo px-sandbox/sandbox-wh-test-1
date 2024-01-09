@@ -26,6 +26,7 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
         let from = 0;
 
         const jiraOrgId = `${mappingPrefixes.organization}_${event?.queryStringParameters?.orgId}`;
+        const projectId = event?.queryStringParameters?.projectId;
 
         do {
             const query = esb
@@ -36,6 +37,7 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
                         .must([
                             esb.termQuery('body.issueType', Jira.Enums.IssuesTypes.BUG),
                             esb.termQuery('body.organizationId.keyword', jiraOrgId),
+                            esb.termQuery('body.projectId.keyword', projectId),
                         ])
                 )
                 .from(from)
