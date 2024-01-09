@@ -79,7 +79,7 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
                 },
                 bugId: bug.issueId,
                 organization: orgData,
-                sprintId: bug?.sprintId.split('jira_sprint_')[1],
+                sprintId: bug && bug.sprintId ? bug.sprintId.split('jira_sprint_')[1] : null,
                 boardId: bug.boardId,
             }
             return new SQSClient().sendMessage(formattedBug, Queue.qReOpenRateMigrator.queueUrl);
