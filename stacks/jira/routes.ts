@@ -96,8 +96,7 @@ export function initializeRoutes(
 
         'GET /jira/bugs': {
             function: {
-                handler: 'packages/jira/src/service/reopen-rate-migrator.handler',
-                // bind: [reOpenRateMigratorQueue],
+                handler: 'packages/jira/src/service/find-existing-bugs.handler',
             },
             authorizer: 'admin',
         },

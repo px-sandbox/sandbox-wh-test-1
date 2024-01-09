@@ -30,19 +30,19 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
                     jiraClient
                 );
 
+
                 // eslint-disable-next-line max-len
                 const reopenEntries = await reopenChangelogCals(changelogArr, messageBody.bugId, sprintId, organizationId, boardId, issueKey, projectId)
 
-                reopenEntries.map(async (entry) => {
+                await Promise.all(reopenEntries.map(async (entry) => {
                     const id = uuid();
                     const body = entry;
                     await new SQSClient().sendMessage({ id, body }, Queue.qReOpenRateIndex.queueUrl);
-                });
-
+                }));
                 logger.info('reopenRateInfoQueue.success');
             } catch (error) {
                 logger.error('reopenRateInfoQueue.error', { error });
-                await logProcessToRetry(record, Queue.qReOpenRateIndex.queueUrl, error as Error);
+                await logProcessToRetry(record, Queue.qReOpenRateMigrator.queueUrl, error as Error);
             }
         })
     );
