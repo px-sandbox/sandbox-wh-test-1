@@ -29,11 +29,13 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
                     messageBody.bugId,
                     jiraClient
                 );
+                logger.info('changelogArr length', changelogArr.length);
 
 
                 // eslint-disable-next-line max-len
                 const reopenEntries = await reopenChangelogCals(changelogArr, messageBody.bugId, sprintId, organizationId, boardId, issueKey, projectId)
 
+                logger.info('reopenEntries length', reopenEntries.length);
                 await Promise.all(reopenEntries.map(async (entry) => {
                     const id = uuid();
                     const body = entry;
