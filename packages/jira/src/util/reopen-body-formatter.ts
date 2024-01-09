@@ -70,6 +70,7 @@ export async function reopenChangelogCals(
                         issueKey,
                         projectId,
                         boardId,
+                        issueId,
                         sprintId,
                         isReopen: false,
                         reOpenCount: 0,
