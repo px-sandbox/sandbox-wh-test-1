@@ -101,6 +101,7 @@ const getLibFromES = async (
         let from = 0;
 
         do {
+            libFormatData = [];
             const query = esb
                 .requestBodySearch().size(size)
                 .query(
