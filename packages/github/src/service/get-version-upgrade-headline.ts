@@ -17,13 +17,21 @@ const esClientObj = new ElasticSearchClient({
 });
 const ddbClient = new DynamoDbDocClient();
 
-function compare(operator: string, value: number, latestReleaseDate: string, currReleaseDate: string): boolean {
+function compare(libName: string, operator: string, value: number, latestReleaseDate: string, currReleaseDate: string): boolean {
     const diffInDays = moment(latestReleaseDate).diff(moment(currReleaseDate), 'months');
+    let flag;
     switch (operator) {
-        case '<': return diffInDays < value;
-        case '<=': return diffInDays <= value;
+        case '<':
+            flag = diffInDays < value;
+            break;
+        case '<=':
+            flag = diffInDays <= value;
+            break;
         default: return false;
     }
+    logger.info(`comparator ${libName} ${operator} ${value} ${latestReleaseDate} ${currReleaseDate} ${flag} ${diffInDays}`)
+
+    return flag;
 }
 /**
  *  Considering that single repo will have less than 1000 libraries
@@ -55,7 +63,7 @@ const getLibFromDB = async (
             // } else {
             //     countOutOfDateLib += 1;
             // }
-            return !!(records && records.version && records.releaseDate && compare(operator, parseInt(value, 10),
+            return !!(records && records.version && records.releaseDate && compare(lib.libName, operator, parseInt(value, 10),
                 String(records.releaseDate), lib.releaseDate));
             // }
         }));
