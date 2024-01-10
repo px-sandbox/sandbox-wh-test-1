@@ -42,6 +42,11 @@ const getLibFromDB = async (
             const records = await ddbClient.find(
                 new LibParamsMapping().prepareGetParams(lib.libName)
             );
+
+            if (!records) {
+                logger.info(`getLibFromDB.response ${lib.libName}`, { libName: lib.libName });
+            }
+
             // if (records && records.version) {
             // const latestVer = records.version as string;
             // if (records.releaseDate && compare(operator, parseInt(value, 10),
@@ -54,6 +59,8 @@ const getLibFromDB = async (
                 String(records.releaseDate), lib.releaseDate));
             // }
         }));
+
+
 
         logger.info('getLibFromDB.response', { responses });
 
