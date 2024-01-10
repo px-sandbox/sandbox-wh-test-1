@@ -17,7 +17,7 @@ const esClientObj = new ElasticSearchClient({
 });
 const ddbClient = new DynamoDbDocClient();
 
-function compare(libName: string, operator: string, value: number, latestReleaseDate: string, currReleaseDate: string): boolean {
+function compare(operator: string, value: number, latestReleaseDate: string, currReleaseDate: string): boolean {
     const diffInDays = moment(latestReleaseDate).diff(moment(currReleaseDate), 'months');
     let flag;
     switch (operator) {
@@ -29,7 +29,7 @@ function compare(libName: string, operator: string, value: number, latestRelease
             break;
         default: return false;
     }
-    logger.info(`comparator ${libName} ${operator} ${value} ${latestReleaseDate} ${currReleaseDate} ${flag} ${diffInDays}`)
+    logger.info(`comparator ${operator} ${value} ${latestReleaseDate} ${currReleaseDate} ${flag} ${diffInDays}`)
 
     return flag;
 }
@@ -47,6 +47,7 @@ const getLibFromDB = async (
         const [operator, value] = range.split(' ');
         logger.info('getLibFromDB.input', { libNameAndVersion, operator, value });
         const responses: Array<boolean> = await Promise.all(libNameAndVersion?.map(async (lib) => {
+            let flag = false;
             const records = await ddbClient.find(
                 new LibParamsMapping().prepareGetParams(lib.libName)
             );
@@ -63,8 +64,18 @@ const getLibFromDB = async (
             // } else {
             //     countOutOfDateLib += 1;
             // }
-            return !!(records && records.version && records.releaseDate && compare(lib.libName, operator, parseInt(value, 10),
-                String(records.releaseDate), lib.releaseDate));
+            if (records && records.version && records.releaseDate) {
+
+                flag = compare(operator, parseInt(value, 10),
+                    String(records.releaseDate), lib.releaseDate);
+                logger.info(`compared: ${String(records.releaseDate)}`);
+            }
+
+            if (!flag) {
+                logger.info(`compared ${lib.libName} ${flag}`);
+            }
+
+            return flag;
             // }
         }));
 
