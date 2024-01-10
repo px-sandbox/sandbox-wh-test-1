@@ -18,6 +18,7 @@ const esClientObj = new ElasticSearchClient({
 const ddbClient = new DynamoDbDocClient();
 
 function compare(operator: string, value: number, latestReleaseDate: string, currReleaseDate: string): boolean {
+
     const diffInDays = moment(latestReleaseDate).diff(moment(currReleaseDate), 'months');
     switch (operator) {
         case '<': return diffInDays < value;
