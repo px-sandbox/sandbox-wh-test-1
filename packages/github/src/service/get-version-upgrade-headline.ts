@@ -37,21 +37,33 @@ const getLibFromDB = async (
     try {
 
         const [operator, value] = range.split(' ');
-        const promises = libNameAndVersion?.map(async (lib) => {
+        logger.info('getLibFromDB.input', { libNameAndVersion, operator, value });
+        const responses: Array<boolean> = await Promise.all(libNameAndVersion?.map(async (lib) => {
             const records = await ddbClient.find(
                 new LibParamsMapping().prepareGetParams(lib.libName)
             );
-            if (records && records.version) {
-                // const latestVer = records.version as string;
-                if (records.releaseDate && compare(operator, parseInt(value, 10),
-                    String(records.releaseDate), lib.releaseDate)) {
-                    countUpToDateLib += 1;
-                } else {
-                    countOutOfDateLib += 1;
-                }
+            // if (records && records.version) {
+            // const latestVer = records.version as string;
+            // if (records.releaseDate && compare(operator, parseInt(value, 10),
+            //     String(records.releaseDate), lib.releaseDate)) {
+            //     countUpToDateLib += 1;
+            // } else {
+            //     countOutOfDateLib += 1;
+            // }
+            return !!(records && records.version && records.releaseDate && compare(operator, parseInt(value, 10),
+                String(records.releaseDate), lib.releaseDate));
+            // }
+        }));
+
+        logger.info('getLibFromDB.response', { responses });
+
+        responses.forEach((res: boolean) => {
+            if (res) {
+                countUpToDateLib += 1;
+            } else {
+                countOutOfDateLib += 1;
             }
-        });
-        await Promise.all(promises);
+        })
     } catch (err) {
         logger.error('getLibFromDB.error', err);
         throw err;
