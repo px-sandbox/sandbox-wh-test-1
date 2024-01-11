@@ -29,7 +29,7 @@ function compare(operator: string, value: number, latestReleaseDate: string, cur
             break;
         default: return false;
     }
-    logger.info(`comparator ${operator} ${value} ${latestReleaseDate} ${currReleaseDate} ${flag} ${diffInDays}`)
+    // logger.info(`comparator ${operator} ${value} ${latestReleaseDate} ${currReleaseDate} ${flag} ${diffInDays}`)
 
     return flag;
 }
@@ -45,16 +45,16 @@ const getLibFromDB = async (
     try {
 
         const [operator, value] = range.split(' ');
-        logger.info('getLibFromDB.input', { libNameAndVersion, operator, value });
-        const responses: Array<boolean> = await Promise.all(libNameAndVersion?.map(async (lib) => {
+        // logger.info('getLibFromDB.input', { libNameAndVersion, operator, value });
+        const responses = await Promise.all(libNameAndVersion?.map(async (lib) => {
             let flag = false;
             const records = await ddbClient.find(
                 new LibParamsMapping().prepareGetParams(lib.libName)
             );
 
-            if (!records) {
-                logger.info(`getLibFromDB.response ${lib.libName}`, { libName: lib.libName });
-            }
+            // if (!records) {
+            //     logger.info(`getLibFromDB.response ${lib.libName}`, { libName: lib.libName });
+            // }
 
             // if (records && records.version) {
             // const latestVer = records.version as string;
@@ -68,14 +68,14 @@ const getLibFromDB = async (
 
                 flag = compare(operator, parseInt(value, 10),
                     String(records.releaseDate), lib.releaseDate);
-                logger.info(`compared: ${String(records.releaseDate)}`);
+                // logger.info(`compared: ${String(records.releaseDate)}`);
             }
 
-            if (!flag) {
-                logger.info(`compared ${lib.libName} ${flag}`);
-            }
+            // if (!flag) {
+            //     logger.info(`compared ${lib.libName} ${flag}`);
+            // }
 
-            return flag;
+            return { lib: lib.libName, flag };
             // }
         }));
 
@@ -83,8 +83,8 @@ const getLibFromDB = async (
 
         logger.info('getLibFromDB.response', { responses });
 
-        responses.forEach((res: boolean) => {
-            if (res) {
+        responses.forEach((res: { lib: string, flag: boolean }) => {
+            if (res.flag) {
                 countUpToDateLib += 1;
             } else {
                 countOutOfDateLib += 1;
@@ -140,7 +140,7 @@ const getLibFromES = async (
             releaseDate: lib.releaseDate
         }));
 
-        logger.info('LIB_NAME_AND_VERSION', libNameAndVersion);
+        // logger.info('LIB_NAME_AND_VERSION', libNameAndVersion);
 
         return getLibFromDB(libNameAndVersion, range);
 
