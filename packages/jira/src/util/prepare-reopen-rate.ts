@@ -32,6 +32,10 @@ async function prepareData(
             const changelogSprint = reverseArrChangelog.find((item) => item.field === ChangelogField.SPRINT);
             if (changelogSprint) {
                 issueWebhookData.sprintId = getSprintForTo(changelogSprint.to, changelogSprint.from);
+            } else {
+                issueWebhookData.sprintId
+                messageBody.issue.fields?.customfield_10007 &&
+                    messageBody.issue.fields.customfield_10007[0].id;
             }
             issueWebhookData.reOpenCount = reOpenCount;
             issueWebhookData.isReopen = !!reOpenCount;
