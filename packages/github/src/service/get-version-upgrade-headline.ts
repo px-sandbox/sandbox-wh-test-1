@@ -45,15 +45,12 @@ const getLibFromDB = async (
         const ddbClient = new DynamoDbDocClient();
 
         const [operator, value] = range.split(' ');
-        // logger.info('getLibFromDB.input', { libNameAndVersion, operator, value });
-        const dataFromDynamoDB: Array<any> = [];
-        const responses = await Promise.all(libNameAndVersion?.map(async (lib) => {
+
+        const responses = await Promise.all(libNameAndVersion.map(async (lib) => {
             let flag = false;
             const record = await ddbClient.find(
                 new LibParamsMapping().prepareGetParams(lib.libName)
             );
-
-            dataFromDynamoDB.push({ record, lib });
 
             if (record && record.version && record.releaseDate) {
 
@@ -62,13 +59,15 @@ const getLibFromDB = async (
 
             }
 
-            return { lib: lib.libName, flag };
+            return { lib, flag, record };
 
         }));
 
 
 
-        responses.forEach((res: { lib: string, flag: boolean }) => {
+        responses.forEach((res: {
+            flag: boolean
+        }) => {
             if (res.flag) {
                 countUpToDateLib += 1;
             } else {
@@ -76,9 +75,9 @@ const getLibFromDB = async (
             }
         })
 
-        logger.info('getLibFromDB.response', { ddb: dataFromDynamoDB, responses });
+        logger.info('getLibFromDB.response', { responses, countOutOfDateLib, countUpToDateLib });
 
-        logger.info('up-to-date and out-of-date lib count', { countOutOfDateLib, countUpToDateLib });
+
         return { countOutOfDateLib, countUpToDateLib };
 
     } catch (err) {
