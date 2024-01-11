@@ -114,6 +114,7 @@ const getLibFromES = async (
                         esb.termQuery('body.isDeleted', false)])
                 )
                 .from(from)
+                .sort(esb.sort('body.libName', 'desc'))
                 .toJSON() as { query: object };
 
             // const esLibData = await esClientObj.paginateSearch(
