@@ -117,6 +117,9 @@ const getLibFromES = async (
                 .from(from)
                 .toJSON();
 
+
+            logger.info("ES-Query", { query });
+
             const esLibData = await esClientObj.paginateSearch(
                 Github.Enums.IndexName.GitRepoLibrary,
                 query
