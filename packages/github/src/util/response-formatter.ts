@@ -26,7 +26,7 @@ export type Hit = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const searchedDataFormator = async (data: any): Promise<any> => {
-  if (data?.hits?.max_score != null) {
+  if (data?.hits?.total.value > 0) {
     return data.hits.hits
       .filter(
         (hit: Hit) =>
