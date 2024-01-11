@@ -90,12 +90,15 @@ const getLibFromDB = async (
                 countOutOfDateLib += 1;
             }
         })
+
+        logger.info('up-to-date and out-of-date lib count', { countOutOfDateLib, countUpToDateLib });
+        return { countOutOfDateLib, countUpToDateLib };
+
     } catch (err) {
         logger.error('getLibFromDB.error', err);
         throw err;
     }
-    logger.info('up-to-date and out-of-date lib count', { countOutOfDateLib, countUpToDateLib });
-    return { countOutOfDateLib, countUpToDateLib };
+
 };
 
 const getLibFromES = async (
@@ -111,9 +114,12 @@ const getLibFromES = async (
         const size = 100;
         let from = 0;
 
+        let counter = 0;
+
         do {
+            counter += 1;
             libFormatData = [];
-            const query = esb
+            const { query } = esb
                 .requestBodySearch().size(size)
                 .query(
                     esb
@@ -124,15 +130,26 @@ const getLibFromES = async (
                 .from(from)
                 .toJSON() as { query: object };
 
-            const esLibData = await esClientObj.paginateSearch(
+            // const esLibData = await esClientObj.paginateSearch(
+            //     Github.Enums.IndexName.GitRepoLibrary,
+            //     query
+            // );
+            const esLibData = await esClientObj.searchWithEsb(
                 Github.Enums.IndexName.GitRepoLibrary,
-                query
+                query,
+                from,
+                size
             );
 
+            logger.info(`getLibFromES - ES Query result `, { esLibData })
+
             libFormatData = await searchedDataFormator(esLibData);
+
+            logger.info(`getLibFromES.response ${counter}`, { libFormatData })
+
             libData.push(...libFormatData)
             from += size;
-        } while (libFormatData.length >= size);
+        } while (libFormatData.length == size);
 
         const libNameAndVersion = libData.map((lib: { libName: string; version: string, releaseDate: string }) => ({
             libName: lib.libName,
