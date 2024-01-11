@@ -15,7 +15,6 @@ const esClientObj = new ElasticSearchClient({
     username: Config.OPENSEARCH_USERNAME ?? '',
     password: Config.OPENSEARCH_PASSWORD ?? '',
 });
-const ddbClient = new DynamoDbDocClient();
 
 function compare(operator: string, value: number, latestReleaseDate: string, currReleaseDate: string): boolean {
     const diffInDays = moment(latestReleaseDate).diff(moment(currReleaseDate), 'months');
@@ -43,45 +42,31 @@ const getLibFromDB = async (
     let countOutOfDateLib = 0;
     let countUpToDateLib = 0;
     try {
+        const ddbClient = new DynamoDbDocClient();
 
         const [operator, value] = range.split(' ');
         // logger.info('getLibFromDB.input', { libNameAndVersion, operator, value });
+        const dataFromDynamoDB: Array<any> = [];
         const responses = await Promise.all(libNameAndVersion?.map(async (lib) => {
             let flag = false;
-            const records = await ddbClient.find(
+            const record = await ddbClient.find(
                 new LibParamsMapping().prepareGetParams(lib.libName)
             );
 
-            // if (!records) {
-            //     logger.info(`getLibFromDB.response ${lib.libName}`, { libName: lib.libName });
-            // }
+            dataFromDynamoDB.push({ record, lib });
 
-            // if (records && records.version) {
-            // const latestVer = records.version as string;
-            // if (records.releaseDate && compare(operator, parseInt(value, 10),
-            //     String(records.releaseDate), lib.releaseDate)) {
-            //     countUpToDateLib += 1;
-            // } else {
-            //     countOutOfDateLib += 1;
-            // }
-            if (records && records.version && records.releaseDate) {
+            if (record && record.version && record.releaseDate) {
 
                 flag = compare(operator, parseInt(value, 10),
-                    String(records.releaseDate), lib.releaseDate);
-                // logger.info(`compared: ${String(records.releaseDate)}`);
+                    String(record.releaseDate), lib.releaseDate);
+
             }
 
-            // if (!flag) {
-            //     logger.info(`compared ${lib.libName} ${flag}`);
-            // }
-
             return { lib: lib.libName, flag };
-            // }
+
         }));
 
 
-
-        logger.info('getLibFromDB.response', { responses });
 
         responses.forEach((res: { lib: string, flag: boolean }) => {
             if (res.flag) {
@@ -90,6 +75,8 @@ const getLibFromDB = async (
                 countOutOfDateLib += 1;
             }
         })
+
+        logger.info('getLibFromDB.response', { ddb: dataFromDynamoDB, responses });
 
         logger.info('up-to-date and out-of-date lib count', { countOutOfDateLib, countUpToDateLib });
         return { countOutOfDateLib, countUpToDateLib };
