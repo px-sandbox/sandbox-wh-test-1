@@ -129,7 +129,7 @@ const getLibFromES = async (
                 query,
                 from,
                 size,
-                [{ 'body.libName': 'asc' }]
+                ['body.libName']
             );
 
             logger.info(`getLibFromES - ES Query result `, { esLibData })
