@@ -105,7 +105,7 @@ const getLibFromES = async (
         do {
             counter += 1;
             libFormatData = [];
-            const { query } = esb
+            const query = esb
                 .requestBodySearch().size(size)
                 .query(
                     esb
@@ -113,20 +113,20 @@ const getLibFromES = async (
                         .must([esb.termsQuery('body.repoId', repoIds),
                         esb.termQuery('body.isDeleted', false)])
                 )
-                .from(from)
                 .sort(esb.sort('body.libName', 'desc'))
-                .toJSON() as { query: object };
+                .from(from)
+                .toJSON();
 
-            // const esLibData = await esClientObj.paginateSearch(
-            //     Github.Enums.IndexName.GitRepoLibrary,
-            //     query
-            // );
-            const esLibData = await esClientObj.searchWithEsb(
+            const esLibData = await esClientObj.paginateSearch(
                 Github.Enums.IndexName.GitRepoLibrary,
-                query,
-                from,
-                size
+                query
             );
+            // const esLibData = await esClientObj.searchWithEsb(
+            //     Github.Enums.IndexName.GitRepoLibrary,
+            //     query,
+            //     from,
+            //     size
+            // );
 
             logger.info(`getLibFromES - ES Query result `, { esLibData })
 
