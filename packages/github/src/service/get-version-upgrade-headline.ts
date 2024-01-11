@@ -105,7 +105,7 @@ const getLibFromES = async (
         do {
             counter += 1;
             libFormatData = [];
-            const query = esb
+            const { query } = esb
                 .requestBodySearch().size(size)
                 .query(
                     esb
@@ -115,7 +115,7 @@ const getLibFromES = async (
                 )
                 .sort(esb.sort('body.libName', 'desc'))
                 .from(from)
-                .toJSON();
+                .toJSON() as { query: object };
 
 
             logger.info("ES-Query", { query });
