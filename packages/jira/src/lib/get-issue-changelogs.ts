@@ -1,9 +1,9 @@
 import { Jira } from 'abstraction';
 import { ChangelogField } from 'abstraction/jira/enums';
 import { JiraClient } from './jira-client';
+import { logger } from 'core';
 
 export async function getIssueChangelogs(
-    organization: string,
     issueId: string,
     jira: JiraClient
 ): Promise<Array<Jira.ExternalType.Webhook.ChangelogItem>> {
