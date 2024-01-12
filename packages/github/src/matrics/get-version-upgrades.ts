@@ -112,6 +112,8 @@ async function getESVersionUpgradeData(repoIds: string[], searchString: string):
             },
             from: 100 * (counter - 1),
             size: 100,
+            sort: ['body.libName']
+
         });
 
         repoLibs = await searchedDataFormator(data?.body);
