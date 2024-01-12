@@ -12,10 +12,7 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
             try {
                 const messageBody = JSON.parse(record.body);
                 // store only when there is only one item in custom_10007 field of issue
-                const sprint =
-                    messageBody.issue.fields?.customfield_10007 &&
-                    messageBody.issue.fields.customfield_10007[0].id;
-                messageBody.sprintId = sprint ?? null;
+
                 logger.info('REOPEN_RATE_SQS_RECEIVER', { messageBody });
                 const inputData = await prepareReopenRate(messageBody, messageBody.typeOfChangelog);
                 if (inputData) {
