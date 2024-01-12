@@ -25,7 +25,6 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
                 const sprintId = messageBody?.sprintId;
                 const jiraClient = await JiraClient.getClient(organizationName);
                 const changelogArr = await getIssueChangelogs(
-                    messageBody.organization,
                     messageBody.bugId,
                     jiraClient
                 );

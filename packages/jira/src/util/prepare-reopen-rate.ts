@@ -32,7 +32,6 @@ async function getSprintId(messageBody: (Pick<Hit, '_id'> & HitBody) | Jira.Mapp
     let sprintId = null;
     const jiraClient = await JiraClient.getClient(messageBody.organization);
     const changelogArr = await getIssueChangelogs(
-        messageBody.organization,
         messageBody.issue.id,
         jiraClient
     );
