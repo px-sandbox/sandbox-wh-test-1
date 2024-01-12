@@ -7,7 +7,6 @@ export async function getIssueChangelogs(
     issueId: string,
     jira: JiraClient
 ): Promise<Array<Jira.ExternalType.Webhook.ChangelogItem>> {
-    logger.info('getIssueChangelogs.file', { issueId, jira });
     const changelogs = await jira.getIssueChangelogs(issueId);
 
     const changelogValues: Jira.ExternalType.Webhook.ChangelogItem[] = changelogs.flatMap((changelog) => {
