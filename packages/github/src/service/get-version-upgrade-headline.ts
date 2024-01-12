@@ -15,16 +15,23 @@ const esClientObj = new ElasticSearchClient({
     username: Config.OPENSEARCH_USERNAME ?? '',
     password: Config.OPENSEARCH_PASSWORD ?? '',
 });
-const ddbClient = new DynamoDbDocClient();
 
 function compare(operator: string, value: number, latestReleaseDate: string, currReleaseDate: string): boolean {
 
     const diffInDays = moment(latestReleaseDate).diff(moment(currReleaseDate), 'months');
+    let flag;
     switch (operator) {
-        case '<': return diffInDays < value;
-        case '<=': return diffInDays <= value;
+        case '<':
+            flag = diffInDays < value;
+            break;
+        case '<=':
+            flag = diffInDays <= value;
+            break;
         default: return false;
     }
+    // logger.info(`comparator ${operator} ${value} ${latestReleaseDate} ${currReleaseDate} ${flag} ${diffInDays}`)
+
+    return flag;
 }
 /**
  *  Considering that single repo will have less than 1000 libraries
@@ -36,29 +43,49 @@ const getLibFromDB = async (
     let countOutOfDateLib = 0;
     let countUpToDateLib = 0;
     try {
+        const ddbClient = new DynamoDbDocClient();
 
         const [operator, value] = range.split(' ');
-        const promises = libNameAndVersion?.map(async (lib) => {
-            const records = await ddbClient.find(
+
+        const responses = await Promise.all(libNameAndVersion.map(async (lib) => {
+            let flag = false;
+            const record = await ddbClient.find(
                 new LibParamsMapping().prepareGetParams(lib.libName)
             );
-            if (records && records.version) {
-                // const latestVer = records.version as string;
-                if (records.releaseDate && compare(operator, parseInt(value, 10),
-                    String(records.releaseDate), lib.releaseDate)) {
-                    countUpToDateLib += 1;
-                } else {
-                    countOutOfDateLib += 1;
-                }
+
+            if (record && record.version && record.releaseDate) {
+
+                flag = compare(operator, parseInt(value, 10),
+                    String(record.releaseDate), lib.releaseDate);
+
             }
-        });
-        await Promise.all(promises);
+
+            return { lib, flag, record };
+
+        }));
+
+
+
+        responses.forEach((res: {
+            flag: boolean
+        }) => {
+            if (res.flag) {
+                countUpToDateLib += 1;
+            } else {
+                countOutOfDateLib += 1;
+            }
+        })
+
+        logger.info('getLibFromDB.response', { responses, countOutOfDateLib, countUpToDateLib });
+
+
+        return { countOutOfDateLib, countUpToDateLib };
+
     } catch (err) {
         logger.error('getLibFromDB.error', err);
         throw err;
     }
-    logger.info('up-to-date and out-of-date lib count', { countOutOfDateLib, countUpToDateLib });
-    return { countOutOfDateLib, countUpToDateLib };
+
 };
 
 const getLibFromES = async (
@@ -74,27 +101,47 @@ const getLibFromES = async (
         const size = 100;
         let from = 0;
 
+        let counter = 0;
+
         do {
-            const query = esb
-                .requestBodySearch().size(size)
+            counter += 1;
+            libFormatData = [];
+            const { query } = esb
+                .requestBodySearch()
                 .query(
                     esb
                         .boolQuery()
                         .must([esb.termsQuery('body.repoId', repoIds),
                         esb.termQuery('body.isDeleted', false)])
                 )
-                .from(from)
+                // .sort(esb.sort('body.libName', 'desc'))
+                // .from(from)
+                // .size(size)
                 .toJSON() as { query: object };
 
-            const esLibData = await esClientObj.paginateSearch(
+            logger.info("ES-Query", { query });
+
+            // const esLibData = await esClientObj.paginateSearch(
+            //     Github.Enums.IndexName.GitRepoLibrary,
+            //     query
+            // );
+            const esLibData = await esClientObj.searchWithEsb(
                 Github.Enums.IndexName.GitRepoLibrary,
-                query
+                query,
+                from,
+                size,
+                ['body.libName']
             );
 
+            logger.info(`getLibFromES - ES Query result `, { esLibData })
+
             libFormatData = await searchedDataFormator(esLibData);
+
+            logger.info(`getLibFromES.response ${counter}`, { libFormatData })
+
             libData.push(...libFormatData)
             from += size;
-        } while (libFormatData.length >= size);
+        } while (libFormatData.length == size);
 
         const libNameAndVersion = libData.map((lib: { libName: string; version: string, releaseDate: string }) => ({
             libName: lib.libName,
@@ -102,7 +149,7 @@ const getLibFromES = async (
             releaseDate: lib.releaseDate
         }));
 
-        logger.info('LIB_NAME_AND_VERSION', libNameAndVersion);
+        // logger.info('LIB_NAME_AND_VERSION', libNameAndVersion);
 
         return getLibFromDB(libNameAndVersion, range);
 

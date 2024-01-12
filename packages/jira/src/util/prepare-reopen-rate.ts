@@ -20,38 +20,47 @@ async function prepareData(
 ): Promise<(Pick<Hit, '_id'> & HitBody) | Jira.Mapped.ReopenRateIssue> {
     try {
         const issueWebhookData = messageBody;
-        const jiraClient = await JiraClient.getClient(issueWebhookData.organization);
-        const changelogArr = await getIssueChangelogs(
-            issueWebhookData.organization,
-            issueWebhookData.issue.id,
-            jiraClient
-        );
-        if (changelogArr.length > 0) {
-            logger.info('changelogArr', { changelogLength: changelogArr.length });
-            const reverseArrChangelog = changelogArr.reverse();
-            const changelogSprint = reverseArrChangelog.find((item) => item.field === ChangelogField.SPRINT);
-            if (changelogSprint) {
-                issueWebhookData.sprintId = getSprintForTo(changelogSprint.to, changelogSprint.from);
-            }
-            issueWebhookData.reOpenCount = reOpenCount;
-            issueWebhookData.isReopen = !!reOpenCount;
-        }
-        return { ...issueWebhookData };
+        issueWebhookData.reOpenCount = reOpenCount;
+        issueWebhookData.isReopen = !!reOpenCount;
+        return { ...issueWebhookData }
     } catch (error) {
         logger.error(`prepareReopenRate.error, ${error} `);
         throw error;
     }
 }
+async function getSprintId(messageBody: (Pick<Hit, '_id'> & HitBody) | Jira.Mapped.ReopenRateIssue): Promise<string> {
+    let sprintId = null;
+    const jiraClient = await JiraClient.getClient(messageBody.organization);
+    const changelogArr = await getIssueChangelogs(
+        messageBody.organization,
+        messageBody.issue.id,
+        jiraClient
+    );
+    if (changelogArr.length > 0) {
+        logger.info('changelogArr', { changelogLength: changelogArr.length });
+        const reverseArrChangelog = changelogArr.reverse();
+        const changelogSprint = reverseArrChangelog.find((item) => item.field === ChangelogField.SPRINT);
+        if (changelogSprint) {
+            sprintId = getSprintForTo(changelogSprint.to, changelogSprint.from);
+        } else {
+            sprintId =
+                messageBody.issue.fields?.customfield_10007 &&
+                messageBody.issue.fields.customfield_10007[0].id;
+        }
+    }
+    return sprintId
+}
 export async function prepareReopenRate(
     messageBody: Jira.Mapped.ReopenRateIssue,
     typeOfChangelog: ChangelogStatus | ChangelogField
 ): Promise<Jira.Mapped.ReopenRateIssue | false> {
+    const sprintId = await getSprintId(messageBody);
+    messageBody.sprintId = sprintId;
     const reOpenRateData = await getReopenRateDataById(
         messageBody.issue.id,
-        messageBody.sprintId,
+        sprintId,
         messageBody.organization
     );
-
     let returnObj = {};
     switch (typeOfChangelog) {
         case ChangelogStatus.READY_FOR_QA:
