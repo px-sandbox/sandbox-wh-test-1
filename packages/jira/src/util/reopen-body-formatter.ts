@@ -133,7 +133,7 @@ export async function reopenChangelogCals(
     logger.info("🚀 ~ file: reopen-body-formatter.ts:128 ~ reopen:", { reopen })
 
 
-    return reopen.map(({ sprintId: sprint, issueId: bugId, ...item }) => ({
+    return reopen.filter((item) => item !== null).map(({ sprintId: sprint, issueId: bugId, ...item }) => ({
         id: `${mappingPrefixes.reopen_rate}_${bugId}_${mappingPrefixes.sprint}_${sprint}`,
         sprintId: `${mappingPrefixes.sprint}_${sprint}`,
         issueId: `${mappingPrefixes.issue}_${bugId}`,
