@@ -1,11 +1,11 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { getIssueChangelogs } from 'src/lib/get-issue-changelogs';
-import { JiraClient } from 'src/lib/jira-client';
 import { Queue } from 'sst/node/queue';
-import { reopenChangelogCals } from 'src/util/reopen-body-formatter';
 import { SQSClient } from '@pulse/event-handler';
 import { v4 as uuid } from 'uuid';
+import { getIssueChangelogs } from '../../../lib/get-issue-changelogs';
+import { JiraClient } from '../../../lib/jira-client';
+import { reopenChangelogCals } from '../../../util/reopen-body-formatter';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): Promise<void> {

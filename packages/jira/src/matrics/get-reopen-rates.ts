@@ -1,13 +1,12 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
-import { IssuesTypes } from 'abstraction/jira/enums';
 import { IReopenRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
 import _ from 'lodash';
-import { getBoardByOrgId } from '../repository/board/get-board';
+import { Config } from 'sst/node/config';
 import { getSprints } from '../lib/get-sprints';
+import { getBoardByOrgId } from '../repository/board/get-board';
 import { IssueReponse } from '../util/response-formatter';
 
 export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {

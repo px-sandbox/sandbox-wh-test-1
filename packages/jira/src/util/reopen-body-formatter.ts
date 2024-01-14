@@ -2,8 +2,8 @@
 import { Jira } from 'abstraction';
 import { ChangelogItem } from 'abstraction/jira/external/webhook';
 import { logger } from 'core';
-import { mappingPrefixes } from 'src/constant/config';
-import { getIssueStatusForReopenRate } from 'src/util/issue-status';
+import { mappingPrefixes } from '../constant/config';
+import { getIssueStatusForReopenRate } from "./issue-status";
 
 interface ReopenItem {
     organizationId: string;

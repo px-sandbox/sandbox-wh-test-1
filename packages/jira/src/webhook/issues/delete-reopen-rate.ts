@@ -1,11 +1,9 @@
+import { Jira } from 'abstraction';
+import { Hit, HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import moment from 'moment';
-import { Jira } from 'abstraction';
-import { getIssueById, getReopenRateDataById } from '../../repository/issue/get-issue';
-import { saveIssueDetails } from '../../repository/issue/save-issue';
-import { saveReOpenRate } from 'src/repository/issue/save-reopen-rate';
-import { getSprintId } from 'src/util/prepare-reopen-rate';
-import { Hit, HitBody } from 'abstraction/other/type';
+import { saveReOpenRate } from '../../repository/issue/save-reopen-rate';
+import { getReopenRateDataById } from '../../repository/issue/get-issue';
 
 
 /**
