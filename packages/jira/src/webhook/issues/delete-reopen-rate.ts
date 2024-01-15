@@ -1,11 +1,9 @@
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { Hit, HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import moment from 'moment';
 import { saveReOpenRate } from '../../repository/issue/save-reopen-rate';
-import { getReopenRateDataById } from '../../repository/issue/get-issue';
-
-
+import { getReopenRateDataByIssueId } from '../../repository/issue/get-issue';
 /**
  * Removes the reopen issue with the given ID and marks it as deleted.
  * @param issueId - The ID of the issue to be removed.
@@ -19,18 +17,17 @@ export async function removeReopenRate(
     eventTime: moment.Moment,
 ): Promise<void | false> {
     try {
-        const sprintId = issue.issue.fields?.customfield_10007;
-        sprintId.forEach(async (sprint: { id: string }) => {
-            const reopenRateData = await getReopenRateDataById(issue.issue.id, sprint.id, issue.organization);
-            if (reopenRateData) {
-                reopenRateData.isDeleted = true;
-                reopenRateData.deletedAt = moment(eventTime).toISOString();
-                const { _id, ...reopenData } = reopenRateData;
+        const reopenRateData = await getReopenRateDataByIssueId(issue.issue.id, issue.organization);
+        if (reopenRateData.length > 0) {
+            reopenRateData.forEach(async (issueData: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody) => {
+                issueData.isDeleted = true;
+                issueData.deletedAt = moment(eventTime).toISOString();
+                const { _id, ...reopenData } = issueData;
                 await saveReOpenRate({ id: _id, body: reopenData } as Jira.Type.Issue);
-            } else {
-                logger.info(`Reopen Rate Data not found for issueId: ${issue.issue.id} and sprintId: ${sprint.id}`);
-            }
-        });
+            });
+        } else {
+            logger.info(`Reopen Rate Data not found for issueId: ${issue.issue.id}`);
+        }
     } catch (error) {
         logger.error(`removeReopenRate.error, ${error}`);
     }
