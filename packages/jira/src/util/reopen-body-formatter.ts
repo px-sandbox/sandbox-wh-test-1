@@ -129,7 +129,7 @@ export async function reopenChangelogCals(
         reopenObj.id = `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`;
     }
 
-    logger.info('final reopen rate data', { reopen });
+    logger.info(`final reopen rate data length to return ${reopen.length} issuekey ${issueKey}`);
 
     return reopen.filter((item) => item !== null).map(({ sprintId: sprint, issueId: bugId, ...item }) => ({
         id: `${mappingPrefixes.reopen_rate}_${bugId}_${mappingPrefixes.sprint}_${sprint}`,
