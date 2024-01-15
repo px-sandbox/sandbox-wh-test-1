@@ -36,7 +36,7 @@ export function initializeQueues(
         jiraCredsTable,
         processJiraRetryTable,
     });
-    const [issueFormatter, issueIndexer, reOpenRateDataQueue, reOpenRateIndexQueue, reOpenRateMigratorQueue] =
+    const [issueFormatter, issueIndexer, reOpenRateDataQueue, reOpenRateIndexQueue, reOpenRateMigratorQueue, reOpenRateDeleteQueue] =
         initializeIssueQueue(stack, {
             jiraMappingTable,
             jiraCredsTable,
@@ -91,6 +91,7 @@ export function initializeQueues(
         issueStatusIndexer,
         reOpenRateDataQueue,
         reOpenRateIndexQueue,
-        reOpenRateMigratorQueue
+        reOpenRateMigratorQueue,
+        reOpenRateDeleteQueue
     };
 }

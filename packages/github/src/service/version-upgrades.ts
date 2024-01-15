@@ -26,11 +26,6 @@ const versionUpgrades = async function versionUpgrades(
         if (!search) {
             search = '';
         }
-        // TODO: uncomment this once FE is ready
-        // else if (search?.length < 3) {
-        //     logger.error('versionUpgradesService.error: Search query must be at least 3 characters long');
-        //     throw new Error('Search query must be at least 3 characters long');
-        // }
 
         const verUpgrades = await getVersionUpgrades(search, parseInt(page, 10), parseInt(limit, 10), repoIds,
             sort);
