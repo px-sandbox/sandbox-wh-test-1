@@ -7,8 +7,8 @@ import esb from "elastic-builder";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { SQSClient } from "@pulse/event-handler";
 import { Queue } from "sst/node/queue";
-import { mappingPrefixes } from "src/constant/config";
 import { HttpStatusCode, logger, responseParser } from 'core';
+import { mappingPrefixes } from "../constant/config";
 import { searchedDataFormator } from "../util/response-formatter";
 import { getOrganizationById } from "../repository/organization/get-organization";
 

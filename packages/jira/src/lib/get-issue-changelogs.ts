@@ -1,7 +1,6 @@
 import { Jira } from 'abstraction';
 import { ChangelogField } from 'abstraction/jira/enums';
 import { JiraClient } from './jira-client';
-import { logger } from 'core';
 
 export async function getIssueChangelogs(
     issueId: string,
