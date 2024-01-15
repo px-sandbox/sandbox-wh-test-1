@@ -46,7 +46,7 @@ export class IssueProcessor extends DataProcessor<
     );
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
-    const changelogArr = await getIssueChangelogs(this.apiData.organization, this.apiData.issue.id, jiraClient);
+    const changelogArr = await getIssueChangelogs(this.apiData.issue.id, jiraClient);
     let reOpenCount = 0;
     const QaFailed = await getFailedStatusDetails(orgData.id);
     if (changelogArr.length > 0) {
