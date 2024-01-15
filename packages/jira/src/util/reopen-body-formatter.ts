@@ -60,7 +60,7 @@ export async function reopenChangelogCals(
 
         switch (item.field) {
             case Jira.Enums.ChangelogField.STATUS:
-                if (reopen.length > 0 && reopen[reopen.length - 1]?.sprintId == currentSprint) {
+                if (reopen.length > 0 && reopen[reopen.length - 1]?.sprintId === currentSprint) {
                     reopenObj = reopen.pop();
                 }
 
@@ -77,6 +77,10 @@ export async function reopenChangelogCals(
                         isDeleted: false,
                         deletedAt: null,
                     }
+
+                    reopen.push(reopenObj);
+                    reopenObj = null;
+
                 } else if (item.to === issueStatus.QA_Failed) {
                     reopenObj.isReopen = true;
                     reopenObj.reOpenCount += 1;
@@ -109,6 +113,7 @@ export async function reopenChangelogCals(
                 }
 
                 currentSprint = isMultipleSprints(item.to) ? getSprintForTo(item.to, item.from) : item.to;
+
                 // eslint-disable-next-line no-param-reassign
                 sprintId = currentSprint;
 
@@ -124,8 +129,9 @@ export async function reopenChangelogCals(
         reopenObj.id = `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`;
     }
 
+    logger.info('final reopen rate data', { reopen });
 
-    return reopen.map(({ sprintId: sprint, issueId: bugId, ...item }) => ({
+    return reopen.filter((item) => item !== null).map(({ sprintId: sprint, issueId: bugId, ...item }) => ({
         id: `${mappingPrefixes.reopen_rate}_${bugId}_${mappingPrefixes.sprint}_${sprint}`,
         sprintId: `${mappingPrefixes.sprint}_${sprint}`,
         issueId: `${mappingPrefixes.issue}_${bugId}`,

@@ -70,6 +70,7 @@ async function getScans(
     date: string,
     allScans = false
 ): Promise<(Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]> {
+
     try {
         logger.info(`Fetching scans for repoId: ${repoId}, branch: ${branch} and date: ${date}`);
 
@@ -98,6 +99,10 @@ async function getScans(
             `Scans found for repoId: ${repoId}, branch: ${branch} and date: ${date} | Records Length: ${records.length}`
         );
 
+        logger.info(`Scans found for repoId: ${repoId}, branch: ${branch} and date: ${date} | 
+                    Records Length: ${records.length}`);
+
+
         return records;
     } catch (error) {
         logger.error(
@@ -118,8 +123,13 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
     for (const record of event.Records) {
         try {
             // parsing and extracting data from SQS queue's record body
+
             const { repoId, branch, currDate }: { repoId: string; branch: string; currDate: string } =
                 JSON.parse(record.body);
+
+            const { repoId, branch, currDate }: { repoId: string, branch: string, currDate: string }
+                = JSON.parse(record.body);
+
 
             const todaysScans = await getScans(repoId, branch, currDate, false);
 

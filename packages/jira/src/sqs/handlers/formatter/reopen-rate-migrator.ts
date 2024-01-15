@@ -17,23 +17,26 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
 
                 logger.info('REOPEN_RATE_MIGRATOR_SQS_RECEIVER', { messageBody });
 
-                const organizationId = messageBody?.organization[0].id;
-                const organizationName = messageBody?.organization[0].name;
+                const organizationId = messageBody?.organization[0]?.id;
+                const organizationName = messageBody?.organization[0]?.name;
                 const boardId = messageBody?.boardId;
-                const issueKey = messageBody?.issue.key;
-                const projectId = messageBody?.issue.fields.project.id;
+                const issueKey = messageBody?.issue?.key;
+                const projectId = messageBody?.issue?.fields?.project?.id;
                 const sprintId = messageBody?.sprintId;
                 const jiraClient = await JiraClient.getClient(organizationName);
                 const changelogArr = await getIssueChangelogs(
                     messageBody.bugId,
                     jiraClient
                 );
+                logger.info('changelogArr data', { changelogArr });
+
                 logger.info('changelogArr length', { changelogArr: changelogArr.length });
 
 
                 // eslint-disable-next-line max-len
                 const reopenEntries = await reopenChangelogCals(changelogArr, messageBody.bugId, sprintId, organizationId, boardId, issueKey, projectId)
 
+                logger.info('reopenEntries data', { reopenEntries });
                 logger.info('reopenEntries length', { reopenEntries: reopenEntries.length });
                 await Promise.all(reopenEntries.map(async (entry) => {
                     const id = uuid();
