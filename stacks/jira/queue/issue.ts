@@ -80,6 +80,18 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     },
   });
 
+  const reOpenRateDeleteQueue = new Queue(stack, 'qReOpenRateDelete');
+  reOpenRateDeleteQueue.addConsumer(stack, {
+    function: new Function(stack, 'fnReOpenRateDelete', {
+      handler: 'packages/jira/src/sqs/handlers/reopen-rate-delete.handler',
+      bind: [reOpenRateDeleteQueue],
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 5,
+      },
+    },
+  });
 
   issueFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,
@@ -131,10 +143,20 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     OPENSEARCH_USERNAME,
   ]);
 
+  reOpenRateDeleteQueue.bind([
+    jiraDDB.processJiraRetryTable,
+    jiraDDB.jiraMappingTable,
+    reOpenRateIndexQueue,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+  ]);
+
   return [
     issueFormatDataQueue,
     issueIndexDataQueue,
     reOpenRateDataQueue,
     reOpenRateIndexQueue,
-    reOpenRateMigratorQueue];
+    reOpenRateMigratorQueue,
+    reOpenRateDeleteQueue];
 }

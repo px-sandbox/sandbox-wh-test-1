@@ -44,7 +44,7 @@ async function getSprintId(messageBody: (Pick<Hit, '_id'> & HitBody) | Jira.Mapp
         } else {
             sprintId =
                 messageBody.issue.fields?.customfield_10007 &&
-                messageBody.issue.fields.customfield_10007[0].id;
+                messageBody.issue.fields.customfield_10007[0]?.id;
         }
     }
     return sprintId
