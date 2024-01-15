@@ -54,6 +54,10 @@ export async function prepareReopenRate(
     typeOfChangelog: ChangelogStatus | ChangelogField
 ): Promise<Jira.Mapped.ReopenRateIssue | false> {
     const sprintId = await getSprintId(messageBody);
+    if (!sprintId || sprintId === 'null') {
+        logger.info(`No sprint found for issueId: ${messageBody.issue.id}`)
+        return false
+    }
     messageBody.sprintId = sprintId;
     const reOpenRateData = await getReopenRateDataById(
         messageBody.issue.id,
