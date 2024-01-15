@@ -122,14 +122,8 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
 
     for (const record of event.Records) {
         try {
-            // parsing and extracting data from SQS queue's record body
-
             const { repoId, branch, currDate }: { repoId: string; branch: string; currDate: string } =
                 JSON.parse(record.body);
-
-            const { repoId, branch, currDate }: { repoId: string, branch: string, currDate: string }
-                = JSON.parse(record.body);
-
 
             const todaysScans = await getScans(repoId, branch, currDate, false);
 
