@@ -54,16 +54,13 @@ export async function reopenChangelogCals(
     let reopenObj: any = null;
     let currentSprint: string | null = sprintId || null;
     const issueStatus = await getIssueStatusForReopenRate(organizationId);
-    logger.info("🚀 ~ file: reopen-body-formatter.ts:57 ~ issueStatus:", { issueStatus })
 
     // eslint-disable-next-line complexity
     input.forEach((item, index) => {
 
         switch (item.field) {
             case Jira.Enums.ChangelogField.STATUS:
-                if (reopen.length > 0 && reopen[reopen.length - 1]?.sprintId == currentSprint) {
-                    logger.info("🚀 ~ file: reopen-body-formatter.ts:6889 ~ input.forEach ~ reopenObj:", { reopenObj })
-
+                if (reopen.length > 0 && reopen[reopen.length - 1]?.sprintId === currentSprint) {
                     reopenObj = reopen.pop();
                 }
 
@@ -81,11 +78,13 @@ export async function reopenChangelogCals(
                         deletedAt: null,
                     }
 
+                    reopen.push(reopenObj);
+                    reopenObj = null;
+
                 } else if (item.to === issueStatus.QA_Failed) {
                     reopenObj.isReopen = true;
                     reopenObj.reOpenCount += 1;
                     reopen.push(reopenObj);
-                    logger.info("🚀 ~ file: reopen-body-formatter.ts:6833389 ~ input.forEach ~ reopenObj:", { reopenObj })
 
                     reopenObj = null;
 
@@ -95,7 +94,6 @@ export async function reopenChangelogCals(
                 issueStatus.Done].
                     includes(item.to)) {
                     reopen.push(reopenObj);
-                    logger.info("🚀 ~ file: reopen-body-formatter.ts:68829 ~ input.forEach ~ reopenObj:", { reopenObj })
 
                     reopenObj = null;
                 }
@@ -115,7 +113,7 @@ export async function reopenChangelogCals(
                 }
 
                 currentSprint = isMultipleSprints(item.to) ? getSprintForTo(item.to, item.from) : item.to;
-                console.log("🚀 ~ file: reopen-body-formatter.ts:115 ~ input.forEach ~ currentSprint:", currentSprint)
+
                 // eslint-disable-next-line no-param-reassign
                 sprintId = currentSprint;
 
@@ -130,8 +128,8 @@ export async function reopenChangelogCals(
         reopen[0].sprintId = sprintId;
         reopenObj.id = `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`;
     }
-    logger.info("🚀 ~ file: reopen-body-formatter.ts:128 ~ reopen:", { reopen })
 
+    logger.info('final reopen rate data', { reopen });
 
     return reopen.filter((item) => item !== null).map(({ sprintId: sprint, issueId: bugId, ...item }) => ({
         id: `${mappingPrefixes.reopen_rate}_${bugId}_${mappingPrefixes.sprint}_${sprint}`,
