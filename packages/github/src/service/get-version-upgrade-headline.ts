@@ -141,7 +141,7 @@ const getLibFromES = async (
 
             libData.push(...libFormatData)
             from += size;
-        } while (libFormatData.length == size);
+        } while (libFormatData.length === size);
 
         const libNameAndVersion = libData.map((lib: { libName: string; version: string, releaseDate: string }) => ({
             libName: lib.libName,

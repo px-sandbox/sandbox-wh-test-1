@@ -58,7 +58,7 @@ function formatScansForBulkInsert(data: (Pick<Other.Type.Hit, "_id"> & Other.Typ
 }
 
 
-async function getScans(repoId: string, branch: string, date: string, allScans: boolean = false) {
+async function getScans(repoId: string, branch: string, date: string, allScans = false): Promise<any[]> {
 
     try {
         logger.info(`Fetching scans for repoId: ${repoId}, branch: ${branch} and date: ${date}`);
@@ -80,7 +80,8 @@ async function getScans(repoId: string, branch: string, date: string, allScans: 
             records.push(...result);
         } while (allScans && result.length === limit)
 
-        logger.info(`Scans found for repoId: ${repoId}, branch: ${branch} and date: ${date} | Records Length: ${records.length}`);
+        logger.info(`Scans found for repoId: ${repoId}, branch: ${branch} and date: ${date} | 
+                    Records Length: ${records.length}`);
 
         return records;
     } catch (error) {
@@ -101,7 +102,8 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
         try {
 
             // parsing and extracting data from SQS queue's record body
-            const { repoId, branch, currDate }: { repoId: string, branch: string, currDate: string } = JSON.parse(record.body);
+            const { repoId, branch, currDate }: { repoId: string, branch: string, currDate: string }
+                = JSON.parse(record.body);
 
             const todaysScans = await getScans(repoId, branch, currDate, false);
 
@@ -129,7 +131,9 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
             logger.info(`Updating scans for repoId: ${repoId}, branch: ${branch}`);
             await esClient.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, updatedBody);
 
-            logger.info(`Successfully copied scans for repoId: ${repoId}, branch: ${branch} from ${yesterDate} to ${currDate}`);
+            logger.info(
+                `Successfully copied scans for repoId: ${repoId}, branch: ${branch} from ${yesterDate} to ${currDate}`
+            );
         } catch (error) {
             // retrying the update security scans process if any error occurs
             await logProcessToRetry(record, Queue.qGhScansSave.queueUrl, error as Error);

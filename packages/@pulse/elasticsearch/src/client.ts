@@ -64,8 +64,8 @@ export class ElasticSearchClient implements IElasticSearchClient {
   public async searchWithEsb(
     indexName: string,
     query: object,
-    from: number = 0,
-    size: number = 10,
+    from = 0,
+    size = 10,
     sort: string[] = []
   ): Promise<RequestParams.Search<MultiSearchBody>> {
     try {
