@@ -26,7 +26,8 @@ export function initializeRoutes(
         repoSastErrors,
         scansSaveQueue,
         ghMergedCommitProcessQueue,
-        repoLibS3Queue
+        repoLibS3Queue,
+        updateMergeCommit
     } = queues;
 
     /* We aso extract and bind the tables 
@@ -193,5 +194,12 @@ export function initializeRoutes(
             authorizer: 'universal',
         },
 
+        'GET /github/update-merge-commits': {
+            function: {
+                handler: 'packages/github/src/service/update-merge-commits.handler',
+                bind: [updateMergeCommit],
+            },
+            authorizer: 'admin',
+        },
     }
 }

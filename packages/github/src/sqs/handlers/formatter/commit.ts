@@ -28,6 +28,7 @@ async function checkCommitExists(isMergedCommit: string, commitId: string): Prom
   }
   return true;
 }
+// eslint-disable-next-line max-lines-per-function
 export const handler = async function commitFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
 
@@ -38,12 +39,13 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
         logger.info('COMMIT_SQS_RECIEVER_HANDLER_FORMATER', { messageBody });
         const {
           commitId,
-          isMergedCommit,
           mergedBranch,
           pushedBranch,
           repository: { id: repoId, name: repoName, owner: repoOwner },
           timestamp,
         } = messageBody;
+
+        let { isMergedCommit } = messageBody;
         /**
          * ------------------------------------
          * Get commit details from Github API
@@ -66,6 +68,11 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           if (filesLink) {
             const files = await processFileChanges(responseData.data.files, filesLink, octokit);
             responseData.data.files = files;
+          }
+          const parentCommit = responseData.data.parents.length >= 2;
+          if (parentCommit) {
+            logger.info(`parent_commit_found_for_commit_id:  ${commitId}`);
+            isMergedCommit = true;
           }
 
           logger.info(`FILE_COUNT: ${responseData.data.files.length}`);

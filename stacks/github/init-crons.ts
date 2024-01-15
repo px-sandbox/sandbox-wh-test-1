@@ -37,9 +37,7 @@ export function initializeCron(
      */
     // eslint-disable-next-line no-new
     new Cron(stack, 'cronBranchCounter', {
-        // schedule: 'cron(30 23 ? * * *)',
-        // run every 5 minutes for testing
-        schedule: 'cron(0/5 * ? * * *)',
+        schedule: 'cron(30 23 ? * * *)',
         job: ghBranchCounterFunction,
     });
 

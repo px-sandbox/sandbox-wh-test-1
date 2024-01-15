@@ -26,6 +26,7 @@ export function initializeQueue(
         commitIndexDataQueue,
         ghMergedCommitProcessQueue,
         commitFileChanges,
+        updateMergeCommit
     ] = initializeCommitQueue(stack, githubDDb);
     const [
         prReviewCommentFormatDataQueue,
@@ -108,6 +109,7 @@ export function initializeQueue(
         repoSastErrors,
         scansSaveQueue,
         repoLibS3Queue,
-        ghMergedCommitProcessQueue
+        ghMergedCommitProcessQueue,
+        updateMergeCommit,
     };
 }
