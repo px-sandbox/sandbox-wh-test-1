@@ -123,7 +123,7 @@ export async function reopenChangelogCals(
     try {
         const reopen: ReopenItem[] = [];
         let reopenObject: ReopenItem | null | undefined = null;
-        let currentSprint: string | null = sprintId || null;
+        let currentSprint: string | null = null;
         const isValidChangelog = isValid(input, issueStatus, issueKey);
 
         logger.info(`validity.check: ${issueKey} - ${isValidChangelog}`)
@@ -215,6 +215,9 @@ export async function reopenChangelogCals(
                         currentSprint = isMultipleSprints(item.to)
                             ? getSprintForTo(item.to, item.from)
                             : item.to;
+                        // eslint-disable-next-line no-param-reassign
+                        sprintId = currentSprint;
+
                         break;
 
                     default:
