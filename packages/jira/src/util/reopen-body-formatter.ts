@@ -181,7 +181,8 @@ export async function reopenChangelogCals(
                             if (isMultipleSprints(item.from)) {
                                 const sprintItem = input
                                     .slice(0, index - 1)
-                                    .findLast(
+                                    .reverse()
+                                    .find(
                                         (lastItem) =>
                                             lastItem.field ===
                                             Jira.Enums.ChangelogField.SPRINT
