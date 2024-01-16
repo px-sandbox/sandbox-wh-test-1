@@ -53,7 +53,7 @@ function isValid(input: ChangelogItem[], issueStatus: HitBody, issueKey: string)
     for (const item of input) {
         switch (item.field) {
             case Jira.Enums.ChangelogField.STATUS:
-                if ([issueStatus[ChangelogStatus.READY_FOR_QA]].includes(item.to)) {
+                if (item.to === issueStatus[ChangelogStatus.READY_FOR_QA]) {
                     isReadyForQA = true;
                     isSprintChanged = false;
                 } else if (
@@ -147,7 +147,7 @@ export async function reopenChangelogCals(
 
                 switch (item.field) {
                     case Jira.Enums.ChangelogField.STATUS:
-                        if ([issueStatus[ChangelogStatus.READY_FOR_QA]].includes(item.to)) {
+                        if (item.to === issueStatus[ChangelogStatus.READY_FOR_QA]) {
                             reopenObject = reopenObject || {
                                 organizationId,
                                 issueKey,
