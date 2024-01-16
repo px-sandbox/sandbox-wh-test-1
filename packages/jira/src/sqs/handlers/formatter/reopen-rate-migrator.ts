@@ -22,6 +22,7 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
                 const boardId = messageBody?.boardId;
                 const issueKey = messageBody?.issue?.key;
                 const projectId = messageBody?.issue?.fields?.project?.id;
+                const projectKey = messageBody?.issue?.fields?.project?.key;
                 const sprintId = messageBody?.sprintId;
                 const jiraClient = await JiraClient.getClient(organizationName);
                 const changelogArr = await getIssueChangelogs(
@@ -29,12 +30,10 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
                     jiraClient
                 );
 
-                logger.info(`changelogArr length, ${changelogArr.length}, issueKey ${issueKey}`);
-
                 // eslint-disable-next-line max-len
-                const reopenEntries = await reopenChangelogCals(changelogArr, messageBody.bugId, sprintId, organizationId, boardId, issueKey, projectId)
+                const reopenEntries = await reopenChangelogCals(changelogArr, messageBody.bugId, sprintId, organizationId, boardId, issueKey, projectId, projectKey)
 
-                logger.info(`Final reopen entries length, ${reopenEntries.length}, issueKey ${issueKey}`);
+                logger.info(`reopen.generated.entries, ${reopenEntries.length}, issueKey ${issueKey}`);
 
                 await Promise.all(reopenEntries.map(async (entry) => {
                     const id = uuid();

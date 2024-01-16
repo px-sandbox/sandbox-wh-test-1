@@ -12,6 +12,10 @@ export enum ChangelogStatus {
   READY_FOR_PROD = 'Ready_For_Prod',
   QA_PASS_DEPLOY = 'QA_Pass_Deploy',
   DONE = 'Done',
+  TO_DO = 'To_Do',
+  IN_PROGRESS = 'In_Progress',
+  DEV_COMPLETE = 'Dev_Complete',
+  CODE_REVIEW = 'Code_Review',
 }
 export enum ChangelogField {
   SPRINT = 'Sprint',
