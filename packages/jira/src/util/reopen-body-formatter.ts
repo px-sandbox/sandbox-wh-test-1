@@ -124,7 +124,7 @@ export async function reopenChangelogCals(
         const reopen: ReopenItem[] = [];
         let reopenObject: ReopenItem | null | undefined = null;
         let currentSprint: string | null = sprintId || null;
-        const isValidChangelog = await isValid(input, issueStatus, issueKey);
+        const isValidChangelog = isValid(input, issueStatus, issueKey);
 
         logger.info(`validity.check: ${issueKey} - ${isValidChangelog}`)
         logger.info(`issuestatus.check: ${issueStatus}`)
