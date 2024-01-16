@@ -43,7 +43,6 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
                             esb.termQuery('body.isDeleted', false),
                         ])
                 )
-                .sort(esb.sort('body.issueId', 'asc'))
                 .toJSON() as { query: object };
 
             logger.info('get existing bug for reopen query', { query: getBugsQuery.query });
@@ -53,7 +52,8 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
                 Jira.Enums.IndexName.Issue,
                 getBugsQuery.query,
                 from,
-                size
+                size,
+                ["body.issueId"]
             );
 
             libFormatData = await searchedDataFormator(esLibData);
