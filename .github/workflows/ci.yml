@@ -8,7 +8,7 @@ on:
 
 jobs:
   call-workflow:
-    uses: studiographene/nodejs-ci/.github/workflows/ci.yml@feature/single-yml
+    uses: studiographene/nodejs-ci/.github/workflows/ci.yml@master
     with:
       project_name: pulse-data-integration
       package_manager: pnpm
