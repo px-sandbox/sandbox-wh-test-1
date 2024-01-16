@@ -215,6 +215,9 @@ export async function reopenChangelogCals(
                         currentSprint = isMultipleSprints(item.to)
                             ? getSprintForTo(item.to, item.from)
                             : item.to;
+                        // eslint-disable-next-line no-param-reassign
+                        sprintId = currentSprint;
+
                         break;
 
                     default:
