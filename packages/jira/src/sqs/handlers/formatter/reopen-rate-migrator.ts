@@ -34,7 +34,7 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
 
                 const issueStatus: HitBody = await getIssueStatusForReopenRate(organizationId);
 
-                logger.info(`reopen.issueStatus.entries, ${issueStatus}, issueKey ${issueKey}`);
+                logger.info(`reopen.issueStatus.entries, ${JSON.stringify(issueStatus)}, issueKey ${issueKey}`);
 
                 // eslint-disable-next-line max-len
                 const reopenEntries = await reopenChangelogCals(changelogArr, messageBody.bugId, sprintId, organizationId, boardId, issueKey, projectId, projectKey, issueStatus)
