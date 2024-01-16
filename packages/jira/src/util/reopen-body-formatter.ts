@@ -5,8 +5,6 @@ import { logger } from 'core';
 import { ChangelogStatus } from 'abstraction/jira/enums';
 import { HitBody } from 'abstraction/other/type';
 import { mappingPrefixes } from '../constant/config';
-import { getIssueStatusForReopenRate } from "./issue-status";
-
 
 
 interface ReopenItem {
@@ -102,6 +100,7 @@ async function isValid(input: ChangelogItem[], issueStatus: HitBody): Promise<bo
  * @param {String} issueKey - Issue Key
  * @param {String} projectId - Project Id
  * @param {String} projectKey - Project Key
+ * @param {Object} issueStatus - Issue Status
  */
 export async function reopenChangelogCals(
     input: ChangelogItem[],
@@ -112,107 +111,120 @@ export async function reopenChangelogCals(
     issueKey: string,
     projectId: string,
     projectKey: string,
+    issueStatus: HitBody
 ): Promise<ReopenItem[]> {
-    const reopen: ReopenItem[] = [];
-    let reopenObject: ReopenItem | null | undefined = null;
-    let currentSprint: string | null = sprintId || null;
-    const issueStatus: HitBody = await getIssueStatusForReopenRate(organizationId);
+    try {
+        const reopen: ReopenItem[] = [];
+        let reopenObject: ReopenItem | null | undefined = null;
+        let currentSprint: string | null = sprintId || null;
 
-    if (!isValid(input, issueStatus)) {
-        logger.info(`reopen-rate.changelog.invalid', { issueKey: ${issueKey} }`);
-        return [];
-    }
-
-    // eslint-disable-next-line complexity
-    input.forEach((item, index) => {
-
-        if (
-            reopen.length > 0
-            && reopen[reopen.length - 1].sprintId === currentSprint
-        ) {
-            reopenObject = reopen.pop();
+        if (!isValid(input, issueStatus)) {
+            logger.info(`reopen-rate.changelog.invalid with issueKey: ${issueKey}. Reopen rate calculation skipped.`);
+            return [];
         }
 
-
-        switch (item.field) {
-            case Jira.Enums.ChangelogField.STATUS:
-                if (issueStatus[ChangelogStatus.READY_FOR_QA].includes(item.to)) {
-                    reopenObject = reopenObject || {
-                        organizationId,
-                        issueKey,
-                        projectId,
-                        projectKey,
-                        boardId,
-                        issueId,
-                        sprintId,
-                        isReopen: false,
-                        reOpenCount: 0,
-                        isDeleted: false,
-                        deletedAt: null,
-                    }
-
-                    reopen.push(reopenObject);
-                    reopenObject = null;
-                } else if (reopenObject && item.to === issueStatus[ChangelogStatus.QA_FAILED]) {
-                    reopenObject.isReopen = true;
-                    reopenObject.reOpenCount += 1;
-
-                    reopen.push(reopenObject);
-                    reopenObject = null;
-                } else if (reopenObject &&
-                    [
-                        issueStatus[ChangelogStatus.QA_PASSED],
-                        issueStatus[ChangelogStatus.READY_FOR_UAT],
-                        issueStatus[ChangelogStatus.READY_FOR_PROD],
-                        issueStatus[ChangelogStatus.DONE],
-                        issueStatus[ChangelogStatus.QA_PASS_DEPLOY],
-                    ].includes(item.to)
+        // eslint-disable-next-line complexity
+        input.forEach((item, index) => {
+            try {
+                if (
+                    reopen.length > 0 &&
+                    reopen[reopen.length - 1].sprintId === currentSprint
                 ) {
-
-                    reopen.push(reopenObject);
-                    reopenObject = null;
-                }
-                break;
-
-            case Jira.Enums.ChangelogField.SPRINT:
-
-                if (reopenObject) {
-
-                    if (isMultipleSprints(item.from)) {
-
-                        const sprintItem = input
-                            .slice(0, index - 1)
-                            .findLast((lastItem) =>
-                                lastItem.field === Jira.Enums.ChangelogField.SPRINT) as changeLogItem;
-
-                        reopenObject.sprintId = getSprintForTo(sprintItem.to, sprintItem.from);
-                    } else {
-                        reopenObject.sprintId = item.from;
-                    }
-
-                    reopen.push(reopenObject);
-                    reopenObject = null;
+                    reopenObject = reopen.pop();
                 }
 
-                currentSprint = isMultipleSprints(item.to)
-                    ? getSprintForTo(item.to, item.from)
-                    : item.to;
-                break;
+                switch (item.field) {
+                    case Jira.Enums.ChangelogField.STATUS:
+                        if (issueStatus[ChangelogStatus.READY_FOR_QA].includes(item.to)) {
+                            reopenObject = reopenObject || {
+                                organizationId,
+                                issueKey,
+                                projectId,
+                                projectKey,
+                                boardId,
+                                issueId,
+                                sprintId,
+                                isReopen: false,
+                                reOpenCount: 0,
+                                isDeleted: false,
+                                deletedAt: null,
+                            };
 
-            default:
-                break;
+                            reopen.push(reopenObject);
+                            reopenObject = null;
+                        } else if (
+                            reopenObject &&
+                            item.to === issueStatus[ChangelogStatus.QA_FAILED]
+                        ) {
+                            reopenObject.isReopen = true;
+                            reopenObject.reOpenCount += 1;
+
+                            reopen.push(reopenObject);
+                            reopenObject = null;
+                        } else if (
+                            reopenObject &&
+                            [
+                                issueStatus[ChangelogStatus.QA_PASSED],
+                                issueStatus[ChangelogStatus.READY_FOR_UAT],
+                                issueStatus[ChangelogStatus.READY_FOR_PROD],
+                                issueStatus[ChangelogStatus.DONE],
+                                issueStatus[ChangelogStatus.QA_PASS_DEPLOY],
+                            ].includes(item.to)
+                        ) {
+                            reopen.push(reopenObject);
+                            reopenObject = null;
+                        }
+                        break;
+
+                    case Jira.Enums.ChangelogField.SPRINT:
+                        if (reopenObject) {
+                            if (isMultipleSprints(item.from)) {
+                                const sprintItem = input
+                                    .slice(0, index - 1)
+                                    .findLast(
+                                        (lastItem) =>
+                                            lastItem.field ===
+                                            Jira.Enums.ChangelogField.SPRINT
+                                    ) as changeLogItem;
+
+                                reopenObject.sprintId = getSprintForTo(
+                                    sprintItem.to,
+                                    sprintItem.from
+                                );
+                            } else {
+                                reopenObject.sprintId = item.from;
+                            }
+
+                            reopen.push(reopenObject);
+                            reopenObject = null;
+                        }
+
+                        currentSprint = isMultipleSprints(item.to)
+                            ? getSprintForTo(item.to, item.from)
+                            : item.to;
+                        break;
+
+                    default:
+                        break;
+                }
+            } catch (error) {
+                logger.error(`reopen-rate.processor.error', ${error}`);
+            }
+        });
+
+        if (reopen[0] && reopen[0].sprintId === null) {
+            reopen[0].sprintId = sprintId;
         }
-    });
-
-    if (reopen[0] && reopen[0].sprintId === null) {
-        reopen[0].sprintId = sprintId;
+        return reopen
+            .filter((item) => item !== null)
+            .map(({ sprintId: sprint, issueId: bugId, ...item }) => ({
+                ...item,
+                id: `${mappingPrefixes.reopen_rate}_${bugId}_${mappingPrefixes.sprint}_${sprint}`,
+                sprintId: `${mappingPrefixes.sprint}_${sprint}`,
+                issueId: `${mappingPrefixes.issue}_${bugId}`,
+            }));
+    } catch (error) {
+        logger.error(`error.reopen.calculator, ${error}`);
+        throw error;
     }
-
-    return reopen.filter((item) => item !== null).map(({ sprintId: sprint, issueId: bugId, ...item }) => ({
-        ...item,
-        id: `${mappingPrefixes.reopen_rate}_${bugId}_${mappingPrefixes.sprint}_${sprint}`,
-        sprintId: `${mappingPrefixes.sprint}_${sprint}`,
-        issueId: `${mappingPrefixes.issue}_${bugId}`,
-
-    }));
 }

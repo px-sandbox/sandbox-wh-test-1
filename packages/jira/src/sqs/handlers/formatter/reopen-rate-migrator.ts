@@ -3,10 +3,12 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
 import { v4 as uuid } from 'uuid';
+import { HitBody } from 'abstraction/other/type';
 import { getIssueChangelogs } from '../../../lib/get-issue-changelogs';
 import { JiraClient } from '../../../lib/jira-client';
 import { reopenChangelogCals } from '../../../util/reopen-body-formatter';
 import { logProcessToRetry } from '../../../util/retry-process';
+import { getIssueStatusForReopenRate } from "../../../util/issue-status";
 
 export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): Promise<void> {
     logger.info(`Records Length: ${event.Records.length}`);
@@ -30,8 +32,12 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
                     jiraClient
                 );
 
+                const issueStatus: HitBody = await getIssueStatusForReopenRate(organizationId);
+
+                logger.info(`reopen.issueStatus.entries, ${issueStatus}, issueKey ${issueKey}`);
+
                 // eslint-disable-next-line max-len
-                const reopenEntries = await reopenChangelogCals(changelogArr, messageBody.bugId, sprintId, organizationId, boardId, issueKey, projectId, projectKey)
+                const reopenEntries = await reopenChangelogCals(changelogArr, messageBody.bugId, sprintId, organizationId, boardId, issueKey, projectId, projectKey, issueStatus)
 
                 logger.info(`reopen.generated.entries, ${reopenEntries.length}, issueKey ${issueKey}`);
 
