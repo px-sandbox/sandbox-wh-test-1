@@ -123,7 +123,7 @@ export async function reopenChangelogCals(
     try {
         const reopen: ReopenItem[] = [];
         let reopenObject: ReopenItem | null | undefined = null;
-        let currentSprint: string | null = sprintId || null;
+        let currentSprint: string | null = null;
         const isValidChangelog = isValid(input, issueStatus, issueKey);
 
         logger.info(`validity.check: ${issueKey} - ${isValidChangelog}`)
