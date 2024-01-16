@@ -53,7 +53,7 @@ function isValid(input: ChangelogItem[], issueStatus: HitBody, issueKey: string)
     for (const item of input) {
         switch (item.field) {
             case Jira.Enums.ChangelogField.STATUS:
-                if (issueStatus[ChangelogStatus.READY_FOR_QA].includes(item.to)) {
+                if ([issueStatus[ChangelogStatus.READY_FOR_QA]].includes(item.to)) {
                     isReadyForQA = true;
                     isSprintChanged = false;
                 } else if (
@@ -127,7 +127,7 @@ export async function reopenChangelogCals(
         const isValidChangelog = isValid(input, issueStatus, issueKey);
 
         logger.info(`validity.check: ${issueKey} - ${isValidChangelog}`)
-        logger.info(`issuestatus.check: ${issueStatus}`)
+        logger.info(`issuestatus.check: ${JSON.stringify(issueStatus)}`)
 
 
         if (!isValidChangelog) {
@@ -147,7 +147,7 @@ export async function reopenChangelogCals(
 
                 switch (item.field) {
                     case Jira.Enums.ChangelogField.STATUS:
-                        if (issueStatus[ChangelogStatus.READY_FOR_QA].includes(item.to)) {
+                        if ([issueStatus[ChangelogStatus.READY_FOR_QA]].includes(item.to)) {
                             reopenObject = reopenObject || {
                                 organizationId,
                                 issueKey,
