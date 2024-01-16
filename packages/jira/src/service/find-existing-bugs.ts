@@ -66,6 +66,8 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
 
         const orgData = await getOrganizationById(jiraOrgId);
 
+        logger.info("issue.migrate", { issues: libData.map(l => l.issueKey) });
+
         await Promise.all(libData.map(bug => {
             const formattedBug = {
                 issue: {
