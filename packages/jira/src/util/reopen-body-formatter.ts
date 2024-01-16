@@ -44,11 +44,12 @@ function getSprintForTo(to: string, from: string): string {
     return result[0];
 }
 
-async function isValid(input: ChangelogItem[], issueStatus: HitBody): Promise<boolean> {
+function isValid(input: ChangelogItem[], issueStatus: HitBody, issueKey: string): boolean {
     let flag = true;
     let isReadyForQA = false;
     let isSprintChanged = false;
 
+    logger.info(`validity.check.started: ${issueKey}`)
     for (const item of input) {
         switch (item.field) {
             case Jira.Enums.ChangelogField.STATUS:
@@ -63,7 +64,6 @@ async function isValid(input: ChangelogItem[], issueStatus: HitBody): Promise<bo
                         issueStatus[ChangelogStatus.DONE],
                         issueStatus[ChangelogStatus.QA_PASS_DEPLOY],
                         issueStatus[ChangelogStatus.QA_FAILED],
-
                         issueStatus[ChangelogStatus.TO_DO],
                         issueStatus[ChangelogStatus.IN_PROGRESS],
                         issueStatus[ChangelogStatus.DEV_COMPLETE],
@@ -81,13 +81,20 @@ async function isValid(input: ChangelogItem[], issueStatus: HitBody): Promise<bo
                 break;
 
             default:
+                logger.info(`validity.default.case.check: 
+                ${issueKey} - ${item.toString} - ${isReadyForQA} - ${isSprintChanged}
+                `)
                 break;
         }
+        logger.info(`validity.check.flag: ${issueKey} - ${item.toString} - ${isReadyForQA} - ${isSprintChanged}`)
+
         if (isReadyForQA && isSprintChanged) {
             flag = false;
             break;
         }
     }
+
+    logger.info(`validity.check.ended: ${issueKey} , ${flag}`)
     return flag;
 }
 
@@ -117,8 +124,13 @@ export async function reopenChangelogCals(
         const reopen: ReopenItem[] = [];
         let reopenObject: ReopenItem | null | undefined = null;
         let currentSprint: string | null = sprintId || null;
+        const isValidChangelog = isValid(input, issueStatus, issueKey);
 
-        if (!isValid(input, issueStatus)) {
+        logger.info(`validity.check: ${issueKey} - ${isValidChangelog}`)
+        logger.info(`issuestatus.check: ${issueStatus}`)
+
+
+        if (!isValidChangelog) {
             logger.info(`reopen-rate.changelog.invalid with issueKey: ${issueKey}. Reopen rate calculation skipped.`);
             return [];
         }
