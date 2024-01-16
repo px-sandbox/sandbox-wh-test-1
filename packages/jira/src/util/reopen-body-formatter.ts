@@ -209,6 +209,8 @@ export async function reopenChangelogCals(
                 }
             } catch (error) {
                 logger.error(`reopen-rate.processor.error', ${error}`);
+                throw error;
+
             }
         });
 
