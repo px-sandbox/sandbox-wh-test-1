@@ -22,12 +22,12 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
     let libFormatData;
 
     try {
-        const libData = [];
         const size = 100;
         let from = 0;
 
         const jiraOrgId = `${mappingPrefixes.organization}_${event?.queryStringParameters?.orgId}`;
         const projectId = event?.queryStringParameters?.projectId;
+        const orgData = await getOrganizationById(jiraOrgId);
 
         do {
             libFormatData = [];
@@ -54,34 +54,32 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
             );
 
             libFormatData = await searchedDataFormator(esLibData);
-            libData.push(...libFormatData)
             from += size;
 
-        } while (libFormatData.length === size);
+            logger.info("issue.migrate", { issues: libFormatData.map(l => l.issueKey).join(","), from });
 
-        const orgData = await getOrganizationById(jiraOrgId);
-
-        logger.info("issue.migrate", { issues: libData.map(l => l.issueKey).join(",") });
-
-        await Promise.all(libData.map(bug => {
-            const formattedBug = {
-                issue: {
-                    id: bug.issueId,
-                    key: bug.issueKey,
-                    fields: {
-                        project: {
-                            id: bug.projectId,
-                            key: bug.projectKey,
+            await Promise.all(libFormatData.map(bug => {
+                const formattedBug = {
+                    issue: {
+                        id: bug.issueId,
+                        key: bug.issueKey,
+                        fields: {
+                            project: {
+                                id: bug.projectId,
+                                key: bug.projectKey,
+                            }
                         }
-                    }
-                },
-                bugId: bug.issueId,
-                organization: orgData,
-                sprintId: bug && bug.sprintId ? bug.sprintId.split('jira_sprint_')[1] : null,
-                boardId: bug.boardId,
-            }
-            return new SQSClient().sendMessage(formattedBug, Queue.qReOpenRateMigrator.queueUrl);
-        }))
+                    },
+                    bugId: bug.issueId,
+                    organization: orgData,
+                    sprintId: bug && bug.sprintId ? bug.sprintId.split('jira_sprint_')[1] : null,
+                    boardId: bug.boardId,
+                }
+                return new SQSClient().sendMessage(formattedBug, Queue.qReOpenRateMigrator.queueUrl);
+            }))
+
+
+        } while (libFormatData.length === size);
 
         return responseParser
             .setBody({ message: 'Existing bugs fetched successfully for reopen' })
