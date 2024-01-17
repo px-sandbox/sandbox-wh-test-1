@@ -125,6 +125,7 @@ export async function reopenChangelogCals(
         const {
             input,
             issueId,
+            sprintId,
             organizationId,
             boardId,
             issueKey,
@@ -132,7 +133,6 @@ export async function reopenChangelogCals(
             projectKey,
             issueStatus,
         } = params;
-        let { sprintId } = params;
 
         const reopen: ReopenItem[] = [];
         let reopenObject: ReopenItem | null | undefined = null;
@@ -229,7 +229,6 @@ export async function reopenChangelogCals(
                             ? getSprintForTo(item.to, item.from)
                             : item.to;
 
-                        sprintId = currentSprint;
                         break;
 
                     default:
