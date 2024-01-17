@@ -54,9 +54,9 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
             );
 
             libFormatData = await searchedDataFormator(esLibData);
-            from += size;
-
             logger.info("issue.migrate", { issues: libFormatData.map(l => l.issueKey).join(","), from });
+
+            from += size;
 
             await Promise.all(libFormatData.map(bug => {
                 const formattedBug = {
