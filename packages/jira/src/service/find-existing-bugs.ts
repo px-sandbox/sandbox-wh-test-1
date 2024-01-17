@@ -25,6 +25,7 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
         const size = 100;
         let from = 0;
 
+        const sqsClient = new SQSClient();
         const jiraOrgId = `${mappingPrefixes.organization}_${event?.queryStringParameters?.orgId}`;
         const projectId = event?.queryStringParameters?.projectId;
         const orgData = await getOrganizationById(jiraOrgId);
@@ -75,7 +76,7 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
                     sprintId: bug && bug.sprintId ? bug.sprintId.split('jira_sprint_')[1] : null,
                     boardId: bug.boardId,
                 }
-                return new SQSClient().sendMessage(formattedBug, Queue.qReOpenRateMigrator.queueUrl);
+                return sqsClient.sendMessage(formattedBug, Queue.qReOpenRateMigrator.queueUrl);
             }))
 
 
