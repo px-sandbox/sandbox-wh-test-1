@@ -1,13 +1,14 @@
+import { SQSClient } from '@pulse/event-handler';
+import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
+import axios from 'axios';
 import { logger } from 'core';
+import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
-import { Github } from 'abstraction';
-import { SQSClient } from '@pulse/event-handler';
-import { Config } from 'sst/node/config';
 import { mappingPrefixes } from '../../../constant/config';
-import { logProcessToRetry } from '../../../util/retry-process';
 import { getNodeLibInfo } from "../../../util/node-library-info";
+import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function dependencyRegistry(event: SQSEvent): Promise<void> {
     logger.info(`Records Length: ${event.Records.length}`);
@@ -49,9 +50,11 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
                     sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl),
                 ]);
             } catch (error) {
-                if (error.status && error.status === 404) {
-                    logger.info('DEPENDENCIES_NOT_FOUND', { record });
-                    return;
+                if (axios.isAxiosError(error)) {
+                    if (error.response && error.response.status === 404) {
+                        logger.info('DEPENDENCIES_NOT_FOUND', { record });
+                        return;
+                    }
                 }
                 await logProcessToRetry(record, Queue.qDepRegistry.queueUrl, error as Error);
                 logger.error('dependencyRegistry.error', { error });
