@@ -155,7 +155,7 @@ export async function reopenChangelogCals(
                                 projectKey,
                                 boardId,
                                 issueId,
-                                sprintId,
+                                sprintId: currentSprint,
                                 isReopen: false,
                                 reOpenCount: 0,
                                 isDeleted: false,
