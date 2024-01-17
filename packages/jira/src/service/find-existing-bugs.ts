@@ -45,9 +45,6 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
                 )
                 .toJSON() as { query: object };
 
-            logger.info('get existing bug for reopen query', { query: getBugsQuery.query });
-
-
             const esLibData = await esClientObj.searchWithEsb(
                 Jira.Enums.IndexName.Issue,
                 getBugsQuery.query,
@@ -60,13 +57,11 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
             libData.push(...libFormatData)
             from += size;
 
-            logger.info(`get existing bug for reopen data length ${libFormatData.length} from ${from} `);
-
         } while (libFormatData.length === size);
 
         const orgData = await getOrganizationById(jiraOrgId);
 
-        logger.info("issue.migrate", { issues: libData.map(l => l.issueKey) });
+        logger.info("issue.migrate", { issues: libData.map(l => l.issueKey).join(",") });
 
         await Promise.all(libData.map(bug => {
             const formattedBug = {
@@ -97,7 +92,7 @@ export const handler = async function getIssuesList(event: APIGatewayProxyEvent)
 
 
     } catch (error) {
-        logger.error('get existing bug for reopen error', { error });
+        logger.error(`get existing bug for reopen error ${error}`);
         throw error;
     }
 }

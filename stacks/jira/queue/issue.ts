@@ -137,6 +137,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
 
   reOpenRateMigratorQueue.bind([
     jiraDDB.jiraCredsTable,
+    jiraDDB.jiraMappingTable,
     jiraDDB.processJiraRetryTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
