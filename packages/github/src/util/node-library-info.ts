@@ -29,7 +29,7 @@ export async function getNodeLibInfo(libName: string, currentVersion: string): P
             },
         };
     } catch (error) {
-        logger.error('get-library-info.error', { errorInfo: JSON.stringify(error) });
+        logger.error('get-library-info.error', { errorInfo: error });
         throw error;
     }
 }

@@ -4,6 +4,7 @@ import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getNodeLibInfo } from "../../../util/node-library-info";
+import { AxiosError } from 'axios';
 
 export const handler = async function masterLibrary(event: SQSEvent): Promise<void> {
     logger.info(`Records Length: ${event.Records.length}`);
@@ -27,8 +28,13 @@ export const handler = async function masterLibrary(event: SQSEvent): Promise<vo
                 }
 
             } catch (error) {
+                const errorWithStatus = error as AxiosError;
+                if (errorWithStatus.response && errorWithStatus.response.status === 404) {
+                    logger.info('DEPENDENCIES_NOT_FOUND', { record });
+                    return;
+                }
                 await logProcessToRetry(record, Queue.qMasterLibInfo.queueUrl, error as Error);
-                logger.error('masterLibrary.error', { error });
+                logger.error(`masterLibrary.error', ${error}`);
             }
         })
     );

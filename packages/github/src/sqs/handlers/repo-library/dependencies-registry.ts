@@ -8,6 +8,7 @@ import { Config } from 'sst/node/config';
 import { mappingPrefixes } from '../../../constant/config';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getNodeLibInfo } from "../../../util/node-library-info";
+import { AxiosError } from 'axios';
 
 export const handler = async function dependencyRegistry(event: SQSEvent): Promise<void> {
     logger.info(`Records Length: ${event.Records.length}`);
@@ -49,7 +50,8 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
                     sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl),
                 ]);
             } catch (error) {
-                if (error.status && error.status === 404) {
+                const errorWithStatus = error as AxiosError;
+                if (errorWithStatus.response && errorWithStatus.response.status === 404) {
                     logger.info('DEPENDENCIES_NOT_FOUND', { record });
                     return;
                 }
