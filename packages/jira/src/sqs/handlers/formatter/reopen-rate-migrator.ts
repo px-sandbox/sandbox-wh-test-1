@@ -4,11 +4,21 @@ import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
 import { v4 as uuid } from 'uuid';
 import { HitBody } from 'abstraction/other/type';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ParamsMapping } from 'src/model/params-mapping';
+import { mappingPrefixes as mp } from 'src/constant/config';
+import { ChangelogItem } from 'abstraction/jira/external/webhook';
 import { getIssueChangelogs } from '../../../lib/get-issue-changelogs';
 import { JiraClient } from '../../../lib/jira-client';
 import { reopenChangelogCals } from '../../../util/reopen-body-formatter';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getIssueStatusForReopenRate } from "../../../util/issue-status";
+
+async function getParentId(id: string): Promise<string | undefined> {
+    const ddbRes = await new DynamoDbDocClient().find(new ParamsMapping().prepareGetParams(id));
+
+    return ddbRes?.parentId as string | undefined;
+}
 
 export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): Promise<void> {
     logger.info(`Records Length: ${event.Records.length}`);
@@ -27,28 +37,41 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
                 const projectKey = messageBody?.issue?.fields?.project?.key;
                 const sprintId = messageBody?.sprintId;
                 const jiraClient = await JiraClient.getClient(organizationName);
-                const changelogArr = await getIssueChangelogs(
+                const changelogArr: ChangelogItem[] = await getIssueChangelogs(
                     messageBody.bugId,
                     jiraClient
                 );
 
                 const issueStatus: HitBody = await getIssueStatusForReopenRate(organizationId);
 
-                logger.info(`reopen.issueStatus.entries, ${issueStatus}, issueKey ${issueKey}`);
+                logger.info(`reopen.issueStatus.entries, ${JSON.stringify(issueStatus)}, issueKey ${issueKey}`);
 
-                // eslint-disable-next-line max-len
-                const reopenEntries = await reopenChangelogCals(changelogArr, messageBody.bugId, sprintId, organizationId, boardId, issueKey, projectId, projectKey, issueStatus)
+                const reopenEntries = await reopenChangelogCals({
+                    input: changelogArr,
+                    issueId: messageBody.bugId,
+                    sprintId, organizationId,
+                    boardId,
+                    issueKey,
+                    projectId,
+                    projectKey,
+                    issueStatus
+                });
 
                 logger.info(`reopen.generated.entries, ${reopenEntries.length}, issueKey ${issueKey}`);
 
+                const newOrganizationID = organizationId?.split('_')[2];
+                const parentId = await getParentId(
+                    `${mp.reopen_rate}_${messageBody.bugId}_${mp.sprint}_${sprintId}_${mp.org}_${newOrganizationID}`
+                );
+
                 await Promise.all(reopenEntries.map(async (entry) => {
-                    const id = uuid();
+                    const id = parentId || uuid();
                     const body = entry;
                     await new SQSClient().sendMessage({ id, body }, Queue.qReOpenRateIndex.queueUrl);
                 }));
                 logger.info('reopenRateInfoQueue.success');
             } catch (error) {
-                logger.error('reopenRateInfoQueue.error', { error });
+                logger.error(`reopenRateInfoQueue.error ${error}`);
                 await logProcessToRetry(record, Queue.qReOpenRateMigrator.queueUrl, error as Error);
             }
         })

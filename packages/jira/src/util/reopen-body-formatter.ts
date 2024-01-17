@@ -6,7 +6,6 @@ import { ChangelogStatus } from 'abstraction/jira/enums';
 import { HitBody } from 'abstraction/other/type';
 import { mappingPrefixes } from '../constant/config';
 
-
 interface ReopenItem {
     organizationId: string;
     issueKey: string;
@@ -53,7 +52,7 @@ function isValid(input: ChangelogItem[], issueStatus: HitBody, issueKey: string)
     for (const item of input) {
         switch (item.field) {
             case Jira.Enums.ChangelogField.STATUS:
-                if ([issueStatus[ChangelogStatus.READY_FOR_QA]].includes(item.to)) {
+                if (item.to === issueStatus[ChangelogStatus.READY_FOR_QA]) {
                     isReadyForQA = true;
                     isSprintChanged = false;
                 } else if (
@@ -110,17 +109,31 @@ function isValid(input: ChangelogItem[], issueStatus: HitBody, issueKey: string)
  * @param {Object} issueStatus - Issue Status
  */
 export async function reopenChangelogCals(
-    input: ChangelogItem[],
-    issueId: string,
-    sprintId: string,
-    organizationId: string,
-    boardId: string,
-    issueKey: string,
-    projectId: string,
-    projectKey: string,
-    issueStatus: HitBody
+    params: {
+        input: ChangelogItem[],
+        issueId: string,
+        sprintId: string,
+        organizationId: string,
+        boardId: string,
+        issueKey: string,
+        projectId: string,
+        projectKey: string,
+        issueStatus: HitBody
+    }
 ): Promise<ReopenItem[]> {
     try {
+        const {
+            input,
+            issueId,
+            sprintId,
+            organizationId,
+            boardId,
+            issueKey,
+            projectId,
+            projectKey,
+            issueStatus,
+        } = params;
+
         const reopen: ReopenItem[] = [];
         let reopenObject: ReopenItem | null | undefined = null;
         let currentSprint: string | null = null;
@@ -147,7 +160,7 @@ export async function reopenChangelogCals(
 
                 switch (item.field) {
                     case Jira.Enums.ChangelogField.STATUS:
-                        if ([issueStatus[ChangelogStatus.READY_FOR_QA]].includes(item.to)) {
+                        if (item.to === issueStatus[ChangelogStatus.READY_FOR_QA]) {
                             reopenObject = reopenObject || {
                                 organizationId,
                                 issueKey,
@@ -155,7 +168,7 @@ export async function reopenChangelogCals(
                                 projectKey,
                                 boardId,
                                 issueId,
-                                sprintId,
+                                sprintId: currentSprint,
                                 isReopen: false,
                                 reOpenCount: 0,
                                 isDeleted: false,
@@ -215,12 +228,11 @@ export async function reopenChangelogCals(
                         currentSprint = isMultipleSprints(item.to)
                             ? getSprintForTo(item.to, item.from)
                             : item.to;
-                        // eslint-disable-next-line no-param-reassign
-                        sprintId = currentSprint;
 
                         break;
 
                     default:
+                        logger.info(`reopen-rate.default.case.check: ${issueKey} - ${item.toString}`)
                         break;
                 }
             } catch (error) {
