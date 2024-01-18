@@ -18,7 +18,7 @@ export type VersionUpgradeSortType = {
     order: SortOrder;
 };
 
-type UpdatedRepoLibsType = BaseRepoType & {
+export type RepoLibType = BaseRepoType & {
     repoName?: string;
     currVerDate?: string;
     currVer?: string;
@@ -27,10 +27,8 @@ type UpdatedRepoLibsType = BaseRepoType & {
     dateDiff?: number;
 };
 
-export type RepoLibType = UpdatedRepoLibsType;
-
 export type ESVersionUpgradeType = {
-    updatedRepoLibs: UpdatedRepoLibsType[];
+    updatedRepoLibs: RepoLibType[];
     libNames: string[];
 };
 

@@ -1,13 +1,12 @@
 import { Jira } from 'abstraction';
-import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
-import { ChangelogItem } from 'abstraction/jira/external/webhook';
 import { Config } from 'sst/node/config';
-import { getFailedStatusDetails } from '../util/issue-status';
+import { v4 as uuid } from 'uuid';
+import { mappingPrefixes } from '../constant/config';
 import { getIssueChangelogs } from '../lib/get-issue-changelogs';
 import { JiraClient } from '../lib/jira-client';
-import { mappingPrefixes } from '../constant/config';
 import { getOrganization } from '../repository/organization/get-organization';
+import { getFailedStatusDetails } from '../util/issue-status';
 import { DataProcessor } from './data-processor';
 
 export class IssueProcessor extends DataProcessor<
@@ -46,13 +45,11 @@ export class IssueProcessor extends DataProcessor<
     );
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
-    const changelogArr = await getIssueChangelogs(this.apiData.organization, this.apiData.issue.id, jiraClient);
+    const changelogArr = await getIssueChangelogs(this.apiData.issue.id, jiraClient);
     let reOpenCount = 0;
     const QaFailed = await getFailedStatusDetails(orgData.id);
-    let changelogItems: Array<ChangelogItem> = [];
     if (changelogArr.length > 0) {
-      changelogItems = changelogArr.flatMap((changelog) => changelog.items);
-      reOpenCount = changelogItems.filter(
+      reOpenCount = changelogArr.filter(
         (items) => items.to === QaFailed.issueStatusId && items.toString === QaFailed.name
       ).length;
     }
@@ -87,7 +84,7 @@ export class IssueProcessor extends DataProcessor<
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.id,
-        changelog: changelogItems,
+        changelog: changelogArr,
       },
     };
     return issueObj;

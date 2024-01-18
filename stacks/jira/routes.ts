@@ -93,6 +93,14 @@ export function initializeRoutes(
             },
             authorizer: 'admin',
         },
+
+        'GET /jira/reopen/migrate': {
+            function: {
+                handler: 'packages/jira/src/service/find-existing-bugs.handler',
+                timeout: '2 minutes',
+            },
+            authorizer: 'admin',
+        },
     };
     return routesObj;
 }

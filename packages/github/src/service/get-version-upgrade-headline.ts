@@ -17,6 +17,7 @@ const esClientObj = new ElasticSearchClient({
 });
 
 function compare(operator: string, value: number, latestReleaseDate: string, currReleaseDate: string): boolean {
+
     const diffInDays = moment(latestReleaseDate).diff(moment(currReleaseDate), 'months');
     let flag;
     switch (operator) {
@@ -140,7 +141,7 @@ const getLibFromES = async (
 
             libData.push(...libFormatData)
             from += size;
-        } while (libFormatData.length == size);
+        } while (libFormatData.length === size);
 
         const libNameAndVersion = libData.map((lib: { libName: string; version: string, releaseDate: string }) => ({
             libName: lib.libName,

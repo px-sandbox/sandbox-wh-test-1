@@ -3,7 +3,7 @@ name: sg-sast-analytics
 on:
   push:
     branches: [dev, master, qa, uat, prod]
-    
+
 jobs:
   analytics:
     uses: studiographene/nodejs-ci/.github/workflows/sast-analytics.yml@master

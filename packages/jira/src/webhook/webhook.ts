@@ -8,6 +8,7 @@ import * as project from './projects';
 import * as sprint from './sprints';
 import * as board from './boards';
 import * as issue from './issues';
+import { removeReopenRate } from './issues/delete-reopen-rate';
 
 /**
  * Processes the webhook event based on the event name and performs the corresponding action.
@@ -86,6 +87,10 @@ async function processWebhookEvent(
         eventTime,
         organization,
       );
+      await removeReopenRate(
+        { issue: body.issue, changelog: body.changelog, organization } as Jira.Mapped.ReopenRateIssue,
+        eventTime,
+      )
       break;
     default:
       logger.info(`No case found for ${eventName} in Jira webhook event`);
