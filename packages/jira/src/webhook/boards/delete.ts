@@ -2,8 +2,6 @@
 import { logger } from 'core';
 import moment from 'moment';
 import { Jira } from 'abstraction';
-import { Config } from 'sst/node/config';
-import { JiraClient } from '../../lib/jira-client';
 import { getBoardById } from '../../repository/board/get-board';
 import { saveBoardDetails } from '../../repository/board/save-board';
 
@@ -21,16 +19,8 @@ export async function deleteBoard(
     eventTime: moment.Moment,
     organization: string
 ): Promise<void | false> {
-    const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
-    const jiraClient = await JiraClient.getClient(organization);
-    const data = await jiraClient.getBoard(boardId);
 
-    logger.info('boardDeletedEvent', { projectKey: data.location.projectKey, availableProjectKeys: projectKeys });
-
-    if (!projectKeys.includes(data.location.projectKey)) {
-        logger.info('boardDeletedEvent: Project not available in our system');
-        return;
-    }
+    logger.info('boardDeletedEvent started for board id: ', boardId);
 
     const boardData = await getBoardById(boardId, organization);
     if (!boardData) {
