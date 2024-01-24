@@ -12,34 +12,31 @@ import { getGitRepoSchema } from './validations';
 async function fetchReposData(repoIds: string[], esClient: ElasticSearchClient,
   gitRepoName: string, page: number, size: number): Promise<IRepo[]> {
 
-  let data = null;
-  let formattedData: IRepo[] = [];
+  let esbQuery;
 
   if (repoIds.length > 0) {
-
-    const repoName = esb.requestBodySearch().query(
+    const repoNameQuery = esb.requestBodySearch().query(
       esb
         .boolQuery()
         .must(esb.termsQuery('body.id', repoIds))
     ).toJSON() as { query: object };
+    esbQuery = repoNameQuery.query;
 
-    data = await esClient.searchWithEsb(Github.Enums.IndexName.GitRepo, repoName.query, 0, 1000);
 
   }
   else {
-
     const query = esb.boolQuery()
 
     if (gitRepoName) {
       query.must(esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`));
     }
     const finalQ = esb.requestBodySearch().query(query).toJSON() as { query: object };
-
-    data = await esClient.searchWithEsb(Github.Enums.IndexName.GitRepo, finalQ.query, (page - 1) * size, size);
+    esbQuery = finalQ.query;
 
   }
-  formattedData = await searchedDataFormator(data);
-  return formattedData;
+  const data = await esClient.searchWithEsb(Github.Enums.IndexName.GitRepo, esbQuery, (page - 1) * size, size);
+
+  return searchedDataFormator(data);
 }
 
 const gitRepos = async function getRepoData(
