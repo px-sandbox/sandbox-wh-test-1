@@ -17,30 +17,13 @@ async function fetchReposData(repoIds: string[], esClient: ElasticSearchClient,
 
   if (repoIds.length > 0) {
 
-    let p = page;
     const repoName = esb.requestBodySearch().query(
       esb
         .boolQuery()
         .must(esb.termsQuery('body.id', repoIds))
     ).toJSON() as { query: object };
 
-    while (p) { // p is page number
-
-      data = await esClient.searchWithEsb(Github.Enums.IndexName.GitRepo, repoName.query, (p - 1) * size, size);
-
-      const fData = await searchedDataFormator(data);
-
-
-      if (fData.length > 0) {
-        formattedData.push(...fData);
-      }
-      else {
-        break;
-      }
-
-      p += 1;
-    }
-
+    data = await esClient.searchWithEsb(Github.Enums.IndexName.GitRepo, repoName.query, 0, 1000);
 
   }
   else {
@@ -53,11 +36,9 @@ async function fetchReposData(repoIds: string[], esClient: ElasticSearchClient,
     const finalQ = esb.requestBodySearch().query(query).toJSON() as { query: object };
 
     data = await esClient.searchWithEsb(Github.Enums.IndexName.GitRepo, finalQ.query, (page - 1) * size, size);
-    const fData = await searchedDataFormator(data);
-    formattedData = fData;
 
   }
-
+  formattedData = await searchedDataFormator(data);
   return formattedData;
 }
 
