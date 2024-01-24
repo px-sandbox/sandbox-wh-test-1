@@ -7,17 +7,27 @@ import { Config } from 'sst/node/config';
 import _ from 'lodash';
 import { getBoardByOrgId } from '../repository/board/get-board';
 import { getSprints } from '../lib/get-sprints';
-import { IssueReponse } from '../util/response-formatter';
+import { IssueReponse, searchedDataFormator } from '../util/response-formatter';
+import { getOrganizationById } from 'src/repository/organization/get-organization';
+
+function getJiraLink(orgName: string, projectKey: string, sprintId: string): string {
+  return encodeURI(
+    `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=project = "${projectKey}" and sprint = ${sprintId} and labels in (FTP, FTF) ORDER BY created DESC`
+  );
+}
 
 // eslint-disable-next-line max-lines-per-function,
 export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
   try {
+    let orgName = "";
+    let projectKey = "";
+
     const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const ftpRateGraphQuery = esb.requestBodySearch().size(0);
+    const ftpRateGraphQuery = esb.requestBodySearch().size(1);
     ftpRateGraphQuery.query(
       esb
         .boolQuery()
@@ -48,6 +58,16 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
       ftpRateGraphQuery
     );
 
+    const [issue] = await searchedDataFormator(ftpRateGraphResponse);
+
+    if (issue) {
+      const [{ name }] = await getOrganizationById(issue.organizationId);
+      const { projectKey: key } = issue;
+
+      projectKey = key;
+      orgName = name;
+    }
+
     let response: IssueReponse[] = (await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
@@ -71,6 +91,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
           startDate: sprintData?.startDate,
           endDate: sprintData?.endDate,
           percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
+          linkToJira: getJiraLink(orgName, projectKey, sprintId)
         };
       })
     ));
