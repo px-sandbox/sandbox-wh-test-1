@@ -24,7 +24,7 @@ function getEsClientObj() {
   return esClient;
 }
 
-function getJiraLink(orgName: string, projectKey: string, sprintId: string): string {
+function getJiraLink(orgName: string, projectKey: string, sprintId: number): string {
   return encodeURI(
     `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=project = "${projectKey}" and sprint = ${sprintId} and labels in (FTP, FTF) ORDER BY created DESC`
   );
@@ -107,7 +107,7 @@ export async function ftpRateGraph(organizationId: string, projectId: string, sp
           startDate: sprintData?.startDate,
           endDate: sprintData?.endDate,
           percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
-          linkToJira: getJiraLink(orgName, projectKey, sprintId)
+          linkToJira: getJiraLink(orgName, projectKey, sprintData.sprintId)
         };
       })
     ));
