@@ -7,17 +7,53 @@ import { Config } from 'sst/node/config';
 import _ from 'lodash';
 import { getBoardByOrgId } from '../repository/board/get-board';
 import { getSprints } from '../lib/get-sprints';
-import { IssueReponse } from '../util/response-formatter';
+import { IssueReponse, searchedDataFormator } from '../util/response-formatter';
+import { getOrganizationById } from 'src/repository/organization/get-organization';
 
-// eslint-disable-next-line max-lines-per-function,
-export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
-  try {
-    const esClientObj = new ElasticSearchClient({
+
+let esClient: ElasticSearchClient;
+
+function getEsClientObj() {
+  if (!esClient) {
+    esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const ftpRateGraphQuery = esb.requestBodySearch().size(0);
+  }
+  return esClient;
+}
+
+function getJiraLink(orgName: string, projectKey: string, sprintId: string): string {
+  return encodeURI(
+    `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=project = "${projectKey}" and sprint = ${sprintId} and labels in (FTP, FTF) ORDER BY created DESC`
+  );
+}
+
+// eslint-disable-next-line max-lines-per-function,
+export async function ftpRateGraph(organizationId: string, projectId: string, sprintIds: string[]): Promise<IssueReponse[]> {
+  try {
+    let orgName: string = "";
+    let projectKey: string = "";
+
+    const esClientObj = getEsClientObj();
+
+    const [orgData, projects] = await Promise.all([
+      getOrganizationById(organizationId),
+      esClientObj.search(Jira.Enums.IndexName.Project, 'id', projectId),
+    ]);
+
+    const projectData = await searchedDataFormator(projects);
+
+    if (orgData.length === 0 || projectData.length === 0) {
+      logger.error(`Organization ${organizationId} or Project ${projectId} not found`);
+      throw new Error(`Organization ${organizationId} or Project ${projectId} not found`);
+    }
+
+    orgName = orgData[0].body.name;
+    projectKey = projectData[0].body.key;
+
+    const ftpRateGraphQuery = esb.requestBodySearch().size(1);
     ftpRateGraphQuery.query(
       esb
         .boolQuery()
@@ -71,6 +107,7 @@ export async function ftpRateGraph(sprintIds: string[]): Promise<IssueReponse[]>
           startDate: sprintData?.startDate,
           endDate: sprintData?.endDate,
           percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
+          linkToJira: getJiraLink(orgName, projectKey, sprintId)
         };
       })
     ));
