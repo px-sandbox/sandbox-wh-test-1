@@ -50,8 +50,8 @@ export async function ftpRateGraph(organizationId: string, projectId: string, sp
       throw new Error(`Organization ${organizationId} or Project ${projectId} not found`);
     }
 
-    orgName = orgData[0].body.name;
-    projectKey = projectData[0].body.key;
+    orgName = orgData[0].name;
+    projectKey = projectData[0].key;
 
     const ftpRateGraphQuery = esb.requestBodySearch().size(1);
     ftpRateGraphQuery.query(
