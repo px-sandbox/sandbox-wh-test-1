@@ -10,6 +10,20 @@ import { getSprints } from '../lib/get-sprints';
 import { IssueReponse, searchedDataFormator } from '../util/response-formatter';
 import { getOrganizationById } from 'src/repository/organization/get-organization';
 
+
+let esClient: ElasticSearchClient;
+
+function getEsClientObj() {
+  if (!esClient) {
+    esClient = new ElasticSearchClient({
+      host: Config.OPENSEARCH_NODE,
+      username: Config.OPENSEARCH_USERNAME ?? '',
+      password: Config.OPENSEARCH_PASSWORD ?? '',
+    });
+  }
+  return esClient;
+}
+
 function getJiraLink(orgName: string, projectKey: string, sprintId: string): string {
   return encodeURI(
     `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=project = "${projectKey}" and sprint = ${sprintId} and labels in (FTP, FTF) ORDER BY created DESC`
@@ -22,11 +36,7 @@ export async function ftpRateGraph(organizationId: string, projectId: string, sp
     let orgName: string = "";
     let projectKey: string = "";
 
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+    const esClientObj = getEsClientObj();
 
     const [orgData, projects] = await Promise.all([
       getOrganizationById(organizationId),
