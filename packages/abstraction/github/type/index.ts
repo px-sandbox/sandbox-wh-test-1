@@ -41,7 +41,7 @@ import {
 } from './aggregations/repo-sast-errors';
 
 import { MetricCategories, MetricFunction, Metrics } from './aggregations/metric-categories';
-
+import { PrDetails, PrDetailsSort, prDetailsData, PrDetailsGraph } from './aggregations/pr-details';
 export {
   Branch,
   Organization,
@@ -95,4 +95,8 @@ export {
   MetricFunction,
   Metrics,
   ESVersionUpgradeType,
+  PrDetails,
+  PrDetailsSort,
+  prDetailsData,
+  PrDetailsGraph
 };

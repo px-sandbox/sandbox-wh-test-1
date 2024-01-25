@@ -66,6 +66,13 @@ export function initializeRoutes(
                 handler: 'packages/github/src/service/tsc-rags.handler',
             },
             authorizer: 'none',
+        },
+
+        'GET /github/graph/pr-wait-time/details': {
+            function: {
+                handler: 'packages/github/src/service/pr-wait-time-details.handler',
+            },
+            authorizer: 'none',
         }
     };
 }

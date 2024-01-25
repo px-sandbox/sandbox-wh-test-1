@@ -18,3 +18,17 @@ export async function getOrganization(
 
     return formattedUserData;
 }
+
+export async function getOrganizationById(
+    orgId: string
+): Promise<{ name: string }> {
+    const esClientObj = new ElasticSearchClient({
+        host: Config.OPENSEARCH_NODE,
+        username: Config.OPENSEARCH_USERNAME ?? '',
+        password: Config.OPENSEARCH_PASSWORD ?? '',
+    });
+    const matchQry = esb.matchQuery('body.id', orgId).toJSON();
+    const orgData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitOrganization, matchQry);
+    const [formattedUserData] = await searchedDataFormator(orgData);
+    return formattedUserData;
+}
