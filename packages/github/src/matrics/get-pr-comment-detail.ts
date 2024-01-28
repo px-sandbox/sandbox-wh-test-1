@@ -54,8 +54,8 @@ export async function prCommentsDetailMetrics(
 
         let repoIdArray = []; // will store all the repoId from the response
         // extracting repoId from the response into an array
-        for (let i = 0; i < response.length; i += 1) {
-            repoIdArray.push(response[i].repoId);
+        for (let i = 0; i < response?.length; i += 1) {
+            repoIdArray.push(response[i]?.repoId);
 
         }
         repoIdArray = [...new Set(repoIdArray)]; // removing duplicate repoId from the array
@@ -68,7 +68,7 @@ export async function prCommentsDetailMetrics(
                 Github.Enums.IndexName.GitRepo,
                 repoNameQuery,
                 0,
-                response.length,
+                response?.length,
                 [],
                 ['body.id', 'body.name']
             )
@@ -77,12 +77,12 @@ export async function prCommentsDetailMetrics(
 
         // repo object with repoId as key and repoName as value for easy access when formatting final response
         const repoObj: Record<string, string> = {};
-        repoNames.forEach((repo: { _id: string, id: string, name: string }) => {
-            repoObj[`${repo.id}`] = repo.name;
+        repoNames?.forEach((repo: { _id: string, id: string, name: string }) => {
+            repoObj[`${repo.id}`] = repo?.name ?? '';
         });
 
         // adding repoName to the finalResponse
-        const finalResponse = response.map((ele: { repoId: string | number; }) => ({
+        const finalResponse = response?.map((ele: { repoId: string | number; }) => ({
             ...ele,
             repoName: repoObj[ele.repoId] ?? ''
         }));
