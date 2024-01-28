@@ -41,8 +41,6 @@ export async function prCommentsDetailMetrics(
             "body.pullNumber",
             "body.reviewComments",
             "body.repoId",
-            "body.createdAt",
-            "body.reviewedAt",
         ];
 
         // Fetching data from ES and formatting it
@@ -81,8 +79,6 @@ export async function prCommentsDetailMetrics(
         const finalResponse = response?.map((ele: Github.Type.PRCommentsDetail) => ({
             pullNumber: ele?.pullNumber ?? 0,
             prName: ele?.title ?? '',
-            prRaisedAt: ele?.createdAt ?? '',
-            prPickedAt: ele?.reviewedAt ?? '',
             numOfComments: ele?.reviewComments ?? 0,
             repoName: repoObj[ele.repoId] ?? '',
             prLink: `https://github.com/studiographene/${repoObj[ele.repoId]}/pull/${ele?.pullNumber}`,
