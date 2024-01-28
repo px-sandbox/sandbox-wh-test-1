@@ -4,10 +4,11 @@ import { ftpRateGraph, ftpRateGraphAvg } from '../matrics/get-ftp-rate';
 
 const ftpRate = async function ftpRateGraphs(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [''];
+  const { organizationId, projectId } = event.queryStringParameters as { [key: string]: string };
 
   try {
     const [graphData, graphAvgData] = await Promise.all([
-      await ftpRateGraph(sprintIds),
+      await ftpRateGraph(organizationId, projectId, sprintIds),
       await ftpRateGraphAvg(sprintIds),
     ]);
     return responseParser

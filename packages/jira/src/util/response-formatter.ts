@@ -93,6 +93,7 @@ export const formatProjectsResponse = (
 
 export interface Sprint {
   id: number;
+  sprintId: number;
   name: string;
   state: SprintState;
   startDate: string;
@@ -113,6 +114,7 @@ export interface IssueReponse {
   startDate: string;
   endDate?: string;
   percentValue?: number;
+  linkToJira: string;
 }
 
 export const formatBoardResponse = (
