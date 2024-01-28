@@ -11,7 +11,7 @@ export function initializeRoutes(
         },
 
         // GET PR comments graph data detail view
-        'GET /github/number-comments-added-to-prs/details': {
+        'GET /github/graph/number-comments-added-to-prs/details': {
             function: 'packages/github/src/service/get-pr-comment-detail.handler',
             authorizer: 'universal',
         },
