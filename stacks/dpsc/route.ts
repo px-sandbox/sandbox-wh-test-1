@@ -9,6 +9,13 @@ export function initializeRoutes(
             function: 'packages/github/src/service/get-pr-comment.handler',
             authorizer: 'universal',
         },
+
+        // GET PR comments graph data detail view
+        'GET /github/number-comments-added-to-prs/details': {
+            function: 'packages/github/src/service/get-pr-comment-detail.handler',
+            authorizer: 'universal',
+        },
+
         // GET Graph for frequency of code commits
         'GET /github/graph/code-commit-frequency': {
             function: 'packages/github/src/service/get-commit-frequency.handler',

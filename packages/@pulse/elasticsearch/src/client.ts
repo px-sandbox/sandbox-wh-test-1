@@ -66,7 +66,8 @@ export class ElasticSearchClient implements IElasticSearchClient {
     query: object,
     from = 0,
     size = 10,
-    sort: string[] = []
+    sort: string[] = [],
+    source: string[] = []
   ): Promise<RequestParams.Search<MultiSearchBody>> {
     try {
       const result = await this.client.search({
@@ -76,7 +77,8 @@ export class ElasticSearchClient implements IElasticSearchClient {
         },
         from,
         size,
-        sort
+        sort,
+        ...(source.length > 0 ? { _source: source } : {})
       });
       return result.body;
     } catch (err) {
