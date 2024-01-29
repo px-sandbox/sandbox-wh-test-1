@@ -14,7 +14,7 @@ const prWaitTimeBreakdown = async function getprWaitTimeBreakdown(
     const page: string = event.queryStringParameters?.page ?? '1';
     const limit: string = event.queryStringParameters?.limit ?? '10';
     const sortKey: Github.Enums.SortKey = event.queryStringParameters?.sortKey as Github.Enums.SortKey ??
-        Github.Enums.SortKey.DATEDIFF;
+        Github.Enums.SortKey.WAITTIME;
     const sortOrder: Github.Enums.SortOrder = event.queryStringParameters?.sortOrder as Github.Enums.SortOrder ??
         Github.Enums.SortOrder.DESC;
 
