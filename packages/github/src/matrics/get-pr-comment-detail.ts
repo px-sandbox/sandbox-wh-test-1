@@ -1,6 +1,6 @@
 import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../util/response-formatter';
@@ -20,7 +20,7 @@ export async function prCommentsDetailMetrics(
     limit: number,
     sortKey: string,
     sortOrder: string
-): Promise<Github.Type.PRCommentsDetail[]> {
+): Promise<Github.Type.PRCommentsDetail> {
     logger.info('Get PR Comment Detail');
     try {
         // esb query to fetch pull request data
@@ -44,9 +44,9 @@ export async function prCommentsDetailMetrics(
         ];
 
         // Fetching data from ES and formatting it
-        const response = await searchedDataFormator(
-            await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPull, query, (page - 1), limit, sort, source)
-        );
+        const unformattedData: Other.Type.HitBody = await esClientObj.searchWithEsb(
+            Github.Enums.IndexName.GitPull, query, (page - 1), limit, sort, source);
+        const response = await searchedDataFormator(unformattedData);
 
         logger.info(`PR-Comment-Detail-Pull-Requests: ${JSON.stringify(response)}`);
 
@@ -76,7 +76,7 @@ export async function prCommentsDetailMetrics(
 
         // adding repoName to the finalResponse
         // eslint-disable-next-line max-len
-        const finalResponse = response?.map((ele: Github.Type.PRCommentsDetail) => ({
+        const finalResponse = response?.map((ele: Github.Type.CommentsDetailResponse) => ({
             pullNumber: ele?.pullNumber ?? 0,
             prName: ele?.title ?? '',
             numOfComments: ele?.reviewComments ?? 0,
@@ -84,7 +84,12 @@ export async function prCommentsDetailMetrics(
             prLink: `https://github.com/studiographene/${repoObj[ele.repoId]}/pull/${ele?.pullNumber}`,
         }));
 
-        return finalResponse;
+
+        return {
+            totalPages: Math.ceil(unformattedData.hits.total.value / limit),
+            page,
+            data: finalResponse
+        };
     } catch (e) {
         logger.error(`Get PR Comment Detail.Error: ${e}`);
         throw new Error(`Get PR Comment Detail.Error: ${e}`);
