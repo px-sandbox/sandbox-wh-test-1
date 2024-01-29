@@ -1,6 +1,11 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github, Other } from 'abstraction';
-import { PrDetails, PrDetailsGraph, PrDetailsSort, PrDetailsSorting } from 'abstraction/github/type';
+import {
+    PrDetails,
+    PrDetailsGraph,
+    PrDetailsSort,
+    PrDetailsSorting,
+} from 'abstraction/github/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
@@ -50,28 +55,25 @@ export async function prWaitTimeDetailsData(
             limit,
             [`${PrDetailsSorting[sort.key]}:${sort.order}`]
         );
-        const formattedPrData = await searchedDataFormator(prData);
+        const [formattedPrData, repoNames] = await Promise.all([
+            searchedDataFormator(prData),
+            getRepoNames(repoIds),
+        ]);
+        const finalData = formattedPrData.map((item: PrDetailsGraph) => {
+            const repoName = repoNames.find((repo: Github.Type.RepoNameType) => repo.id === item.repoId);
 
-        const repoNames = await getRepoNames(repoIds);
-        const finalData = formattedPrData.map(
-            (item: PrDetailsGraph) => {
-                const repoName = repoNames.find(
-                    (repo: Github.Type.RepoNameType) => repo.id === item.repoId
-                );
-
-                return {
-                    prName: item.title,
-                    pullNumber: item.pullNumber,
-                    repoName: repoName?.name,
-                    prRaisedAt: item.createdAt,
-                    prPickedAt: item.githubDate,
-                    prWaitTime: item.reviewSeconds,
-                    prLink: encodeURI(
-                        `https://github.com/${orgName}/${repoName?.name}/pull/${item.pullNumber}`
-                    ),
-                };
-            }
-        );
+            return {
+                prName: item.title,
+                pullNumber: item.pullNumber,
+                repoName: repoName?.name,
+                prRaisedAt: item.createdAt,
+                prPickedAt: item.githubDate,
+                prWaitTime: item.reviewSeconds,
+                prLink: encodeURI(
+                    `https://github.com/${orgName}/${repoName?.name}/pull/${item.pullNumber}`
+                ),
+            };
+        });
         if (!finalData?.length) {
             return { data: [], totalPages: 0, page: 0 };
         }

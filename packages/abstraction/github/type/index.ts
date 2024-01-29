@@ -103,7 +103,7 @@ export {
   PrDetailsSort,
   prDetailsData,
   PrDetailsGraph,
-  PrDetailsSorting
+  PrDetailsSorting,
   PRCommentsDetail,
   CommentsDetailResponse
 };
