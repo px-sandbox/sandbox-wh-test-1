@@ -3,30 +3,10 @@ import { Github, Other } from 'abstraction';
 import { PrDetails, PrDetailsGraph, PrDetailsSort, PrDetailsSorting } from 'abstraction/github/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import _ from 'lodash';
 import { getOrganizationById } from 'src/lib/get-organization';
 import { searchedDataFormator } from 'src/util/response-formatter';
-import { paginate } from 'src/util/version-upgrades';
 import { Config } from 'sst/node/config';
 import { getRepoNames } from './get-sast-errors-details';
-
-async function sortData(
-    data: Github.Type.prDetailsData[],
-    sort?: PrDetailsSort
-): Promise<Github.Type.prDetailsData[]> {
-    console.log(data);
-    const sortKeys = ['waitTime'];
-    const sortDir = [Github.Enums.SortOrder.DESC];
-
-    if (sort) {
-        sortKeys.push(sort.key);
-        sortDir.push(sort.order);
-    } else {
-        sortKeys.push(Github.Enums.SortKey.DATEDIFF);
-        sortDir.push(Github.Enums.SortOrder.DESC);
-    }
-    return _.orderBy(data, sortKeys, sortDir);
-}
 
 async function getOrgName(query: object, esClientObj: ElasticSearchClient) {
     try {
@@ -85,11 +65,13 @@ export async function prWaitTimeDetailsData(
                 let waitTime = `${hours}h` + (minutes > 0 ? ` ${minutes}m` : '');
                 return {
                     id: item._id,
-                    name: item.title,
-                    prCreatedAt: item.createdAt,
+                    prName: item.title,
+                    pullNumber: item.pullNumber,
+                    repoName: repoName?.name,
+                    prRaisedAt: item.createdAt,
                     prPickedAt: item.githubDate,
-                    waitTime: waitTime,
-                    link: encodeURI(
+                    prWaitTime: waitTime,
+                    prLink: encodeURI(
                         `https://github.com/${orgName}/${repoName?.name}/pull/${item.pullNumber}`
                     ),
                 };
