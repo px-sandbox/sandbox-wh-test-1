@@ -50,16 +50,9 @@ export async function prCommentsDetailMetrics(
 
         logger.info(`PR-Comment-Detail-Pull-Requests: ${JSON.stringify(response)}`);
 
-        let repoIdArray = []; // will store all the repoId from the response
-        // extracting repoId from the response into an array
-        for (let i = 0; i < response?.length; i += 1) {
-            repoIdArray.push(response[i]?.repoId);
-
-        }
-        repoIdArray = [...new Set(repoIdArray)]; // removing duplicate repoId from the array
 
         // esb query to fetch repo name from ES
-        const repoNameQuery = esb.boolQuery().must(esb.termsQuery('body.id', repoIdArray));
+        const repoNameQuery = esb.boolQuery().must(esb.termsQuery('body.id', repoIds));
         // Fetching repo name from ES and formatting it
         const repoNames = await searchedDataFormator(
             await esClientObj.searchWithEsb(
@@ -75,13 +68,12 @@ export async function prCommentsDetailMetrics(
         });
 
         // adding repoName to the finalResponse
-        // eslint-disable-next-line max-len
         const finalResponse = response?.map((ele: Github.Type.CommentsDetailResponse) => ({
             pullNumber: ele?.pullNumber ?? 0,
             prName: ele?.title ?? '',
             numOfComments: ele?.reviewComments ?? 0,
-            repoName: repoObj[ele.repoId] ?? '',
-            prLink: `https://github.com/studiographene/${repoObj[ele.repoId]}/pull/${ele?.pullNumber}`,
+            repoName: repoObj[ele?.repoId] ?? '',
+            prLink: `https://github.com/studiographene/${repoObj[ele?.repoId]}/pull/${ele?.pullNumber}`,
         }));
 
 
