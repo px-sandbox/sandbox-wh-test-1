@@ -69,7 +69,8 @@ export async function prCommentsDetailMetrics(
     page: number,
     limit: number,
     sortKey: string,
-    sortOrder: string
+    sortOrder: string,
+    orgId: string
 ): Promise<Github.Type.PRCommentsDetail> {
     logger.info('Get PR Comment Detail');
     try {
@@ -89,7 +90,6 @@ export async function prCommentsDetailMetrics(
             "body.pullNumber",
             "body.reviewComments",
             "body.repoId",
-            "body.organizationId"
         ];
 
         // Fetching data from ES and formatting it
@@ -100,7 +100,7 @@ export async function prCommentsDetailMetrics(
         logger.info(`PR-Comment-Detail-Pull-Requests: ${JSON.stringify(response)}`);
 
         // Calling a function to get repoNames and orgname
-        const { repoNames, orgname } = await getRepoNamesAndOrg(repoIds, response[0]?.organizationId, response?.length);
+        const { repoNames, orgname } = await getRepoNamesAndOrg(repoIds, orgId, response?.length);
 
         logger.info(`PR-Comment-Detail-Repo-Names: ${JSON.stringify(repoNames)}`);
 
