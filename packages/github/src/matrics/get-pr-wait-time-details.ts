@@ -67,7 +67,7 @@ export async function prWaitTimeDetailsData(
         const prData: Other.Type.HitBody = await esClientObj.searchWithEsb(
             Github.Enums.IndexName.GitPull,
             query,
-            page - 1,
+            (page - 1) * limit,
             limit,
             [`${PrDetailsSorting[sort.key]}:${sort.order}`]
         );

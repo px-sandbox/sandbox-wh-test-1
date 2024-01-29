@@ -24,9 +24,8 @@ const prWaitTimeBreakdown = async function getprWaitTimeBreakdown(
             order: sortOrder
         }
 
-        const [prCommentGraphData] = await Promise.all([
-            prWaitTimeDetailsData(startDate, endDate, parseInt(page, 10), parseInt(limit, 10), repoIds, sort),
-        ]);
+        const prCommentGraphData = await prWaitTimeDetailsData(startDate, endDate, parseInt(page, 10), parseInt(limit, 10), repoIds, sort)
+
         return responseParser
             .setBody({ ...prCommentGraphData })
             .setMessage('pr wait breakdown data')
