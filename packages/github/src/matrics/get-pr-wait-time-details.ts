@@ -1,6 +1,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github, Other } from 'abstraction';
-import { PrDetails, PrDetailsGraph, PrDetailsSort } from 'abstraction/github/type';
+import { PrDetails, PrDetailsGraph, PrDetailsSort, PrDetailsSorting } from 'abstraction/github/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import _ from 'lodash';
@@ -29,10 +29,15 @@ async function sortData(
 }
 
 async function getOrgName(query: object, esClientObj: ElasticSearchClient) {
-    const prData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPull, query, 0, 1);
-    const [formattedPrData] = await searchedDataFormator(prData);
-    const orgName = await getOrganizationById(formattedPrData.organizationId);
-    return orgName.name;
+    try {
+        const prData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPull, query, 0, 1);
+        const [formattedPrData] = await searchedDataFormator(prData);
+        const orgName = await getOrganizationById(formattedPrData.organizationId);
+        return orgName.name;
+    } catch (e) {
+        logger.error(`getOrgName.error, ${e}`);
+        throw e;
+    }
 }
 export async function prWaitTimeDetailsData(
     startDate: string,
@@ -59,13 +64,12 @@ export async function prWaitTimeDetailsData(
 
         logger.info('PR_WAIT_TIME_DETAILS_GRAPH_ESB_QUERY', query);
         const orgName = await getOrgName(query, esClientObj);
-
         const prData: Other.Type.HitBody = await esClientObj.searchWithEsb(
             Github.Enums.IndexName.GitPull,
             query,
             page - 1,
             limit,
-            [`${sort.key}: ${sort.order}`]
+            [`${PrDetailsSorting[sort.key]}:${sort.order}`]
         );
         formattedPrData = await searchedDataFormator(prData);
 

@@ -13,15 +13,15 @@ const prWaitTimeBreakdown = async function getprWaitTimeBreakdown(
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
     const page: string = event.queryStringParameters?.page ?? '1';
     const limit: string = event.queryStringParameters?.limit ?? '10';
-    const sortKey: Github.Enums.SortKey = event.queryStringParameters?.sortKey as Github.Enums.SortKey ??
-        Github.Enums.SortKey.WAITTIME;
+    const sortKey: Github.Enums.PrDetailsSortKey = event.queryStringParameters?.sortKey as Github.Enums.PrDetailsSortKey ??
+        Github.Enums.PrDetailsSortKey.WAITTIME;
     const sortOrder: Github.Enums.SortOrder = event.queryStringParameters?.sortOrder as Github.Enums.SortOrder ??
         Github.Enums.SortOrder.DESC;
 
     try {
         const sort = {
-            key: sortKey as Github.Enums.SortKey,
-            order: sortOrder as Github.Enums.SortOrder,
+            key: sortKey,
+            order: sortOrder
         }
 
         const [prCommentGraphData] = await Promise.all([
