@@ -13,24 +13,14 @@ import { getOrganizationById } from '../lib/get-organization';
 import { searchedDataFormator } from '../util/response-formatter';
 import { getRepoNames } from './get-sast-errors-details';
 
-async function getOrgName(query: object, esClientObj: ElasticSearchClient): Promise<string> {
-    try {
-        const prData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPull, query, 0, 1);
-        const [formattedPrData] = await searchedDataFormator(prData);
-        const orgName = await getOrganizationById(formattedPrData.organizationId);
-        return orgName.name;
-    } catch (e) {
-        logger.error(`getOrgName.error, ${e}`);
-        throw e;
-    }
-}
 export async function prWaitTimeDetailsData(
     startDate: string,
     endDate: string,
     page: number,
     limit: number,
     repoIds: string[],
-    sort: PrDetailsSort
+    sort: PrDetailsSort,
+    orgId: string
 ): Promise<PrDetails> {
     try {
         const esClientObj = new ElasticSearchClient({
@@ -49,7 +39,7 @@ export async function prWaitTimeDetailsData(
         logger.info('PR_WAIT_TIME_DETAILS_GRAPH_ESB_QUERY', query);
 
         const [orgName, prData, repoNames] = await Promise.all([
-            await getOrgName(query, esClientObj),
+            await getOrganizationById(orgId),
             (await esClientObj.searchWithEsb(
                 Github.Enums.IndexName.GitPull,
                 query,
@@ -73,7 +63,7 @@ export async function prWaitTimeDetailsData(
                 prPickedAt: item.githubDate,
                 prWaitTime: item.reviewSeconds,
                 prLink: encodeURI(
-                    `https://github.com/${orgName}/${repoName?.name}/pull/${item.pullNumber}`
+                    `https://github.com/${orgName.name}/${repoName?.name}/pull/${item.pullNumber}`
                 ),
             };
         });
