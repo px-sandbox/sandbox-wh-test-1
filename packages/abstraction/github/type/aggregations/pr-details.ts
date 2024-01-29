@@ -1,4 +1,4 @@
-import { SortKey, SortOrder } from "../../enums";
+import { SortOrder } from "../../enums";
 import { PrDetailsSortKey } from "../../enums/version-upgrades";
 
 export type prDetailsData = {

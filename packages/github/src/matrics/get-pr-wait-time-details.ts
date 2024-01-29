@@ -3,12 +3,12 @@ import { Github, Other } from 'abstraction';
 import { PrDetails, PrDetailsGraph, PrDetailsSort, PrDetailsSorting } from 'abstraction/github/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { getOrganizationById } from 'src/lib/get-organization';
-import { searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
+import { getOrganizationById } from '../lib/get-organization';
+import { searchedDataFormator } from '../util/response-formatter';
 import { getRepoNames } from './get-sast-errors-details';
 
-async function getOrgName(query: object, esClientObj: ElasticSearchClient) {
+async function getOrgName(query: object, esClientObj: ElasticSearchClient): Promise<string> {
     try {
         const prData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPull, query, 0, 1);
         const [formattedPrData] = await searchedDataFormator(prData);
@@ -27,7 +27,6 @@ export async function prWaitTimeDetailsData(
     repoIds: string[],
     sort: PrDetailsSort
 ): Promise<PrDetails> {
-    let formattedPrData = [];
     try {
         const esClientObj = new ElasticSearchClient({
             host: Config.OPENSEARCH_NODE,
@@ -51,7 +50,7 @@ export async function prWaitTimeDetailsData(
             limit,
             [`${PrDetailsSorting[sort.key]}:${sort.order}`]
         );
-        formattedPrData = await searchedDataFormator(prData);
+        const formattedPrData = await searchedDataFormator(prData);
 
         const repoNames = await getRepoNames(repoIds);
         const finalData = formattedPrData.map(
@@ -59,18 +58,14 @@ export async function prWaitTimeDetailsData(
                 const repoName = repoNames.find(
                     (repo: Github.Type.RepoNameType) => repo.id === item.repoId
                 );
-                let totalSeconds = item.reviewSeconds;
-                let hours = Math.floor(totalSeconds / 3600);
-                let minutes = Math.floor((totalSeconds % 3600) / 60);
-                let waitTime = `${hours}h` + (minutes > 0 ? ` ${minutes}m` : '');
+
                 return {
-                    id: item._id,
                     prName: item.title,
                     pullNumber: item.pullNumber,
                     repoName: repoName?.name,
                     prRaisedAt: item.createdAt,
                     prPickedAt: item.githubDate,
-                    prWaitTime: waitTime,
+                    prWaitTime: item.reviewSeconds,
                     prLink: encodeURI(
                         `https://github.com/${orgName}/${repoName?.name}/pull/${item.pullNumber}`
                     ),
