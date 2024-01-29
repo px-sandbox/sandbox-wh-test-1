@@ -41,7 +41,7 @@ import {
 } from './aggregations/repo-sast-errors';
 
 import { MetricCategories, MetricFunction, Metrics } from './aggregations/metric-categories';
-import { CommentsDetailResponse, PRCommentsDetail } from './pr-comments-detail';
+import { CommentsDetailResponse, PRCommentsDetail, RepoNamesResponse } from './pr-comments-detail';
 
 export {
   Branch,
@@ -97,5 +97,6 @@ export {
   Metrics,
   ESVersionUpgradeType,
   PRCommentsDetail,
-  CommentsDetailResponse
+  CommentsDetailResponse,
+  RepoNamesResponse
 };
