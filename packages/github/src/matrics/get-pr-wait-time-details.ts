@@ -47,18 +47,21 @@ export async function prWaitTimeDetailsData(
             .toJSON();
 
         logger.info('PR_WAIT_TIME_DETAILS_GRAPH_ESB_QUERY', query);
-        const orgName = await getOrgName(query, esClientObj);
-        const prData: Other.Type.HitBody = await esClientObj.searchWithEsb(
-            Github.Enums.IndexName.GitPull,
-            query,
-            (page - 1) * limit,
-            limit,
-            [`${PrDetailsSorting[sort.key]}:${sort.order}`]
-        );
-        const [formattedPrData, repoNames] = await Promise.all([
-            searchedDataFormator(prData),
-            getRepoNames(repoIds),
+
+        const [orgName, prData, repoNames] = await Promise.all([
+            await getOrgName(query, esClientObj),
+            (await esClientObj.searchWithEsb(
+                Github.Enums.IndexName.GitPull,
+                query,
+                (page - 1) * limit,
+                limit,
+                [`${PrDetailsSorting[sort.key]}:${sort.order}`]
+            )) as Other.Type.HitBody,
+            await getRepoNames(repoIds),
         ]);
+
+        const formattedPrData = await searchedDataFormator(prData);
+
         const finalData = formattedPrData.map((item: PrDetailsGraph) => {
             const repoName = repoNames.find((repo: Github.Type.RepoNameType) => repo.id === item.repoId);
 
