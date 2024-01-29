@@ -45,7 +45,7 @@ export async function prCommentsDetailMetrics(
 
         // Fetching data from ES and formatting it
         const unformattedData: Other.Type.HitBody = await esClientObj.searchWithEsb(
-            Github.Enums.IndexName.GitPull, query, (page - 1), limit, sort, source);
+            Github.Enums.IndexName.GitPull, query, ((page - 1) * limit), limit, sort, source);
         const response = await searchedDataFormator(unformattedData);
 
         logger.info(`PR-Comment-Detail-Pull-Requests: ${JSON.stringify(response)}`);
