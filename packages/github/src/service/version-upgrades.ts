@@ -18,8 +18,8 @@ const versionUpgrades = async function versionUpgrades(
 
     try {
         const sort = {
-            key: sortKey as Github.Enums.SortKey,
-            order: sortOrder as Github.Enums.SortOrder,
+            key: sortKey,
+            order: sortOrder,
         }
 
         // we will throw error if search query is less than 3 characters to ensure FE doesn't send invalid data
