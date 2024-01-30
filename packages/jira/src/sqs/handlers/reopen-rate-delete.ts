@@ -2,9 +2,9 @@ import { Jira, Other } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import moment from 'moment';
-import { getReopenRateDataByIssueId } from 'src/repository/issue/get-issue';
-import { saveReOpenRate } from 'src/repository/issue/save-reopen-rate';
 import { Queue } from 'sst/node/queue';
+import { getReopenRateDataByIssueId } from '../../repository/issue/get-issue';
+import { saveReOpenRate } from '../../repository/issue/save-reopen-rate';
 import { logProcessToRetry } from '../../util/retry-process';
 
 export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<void> {

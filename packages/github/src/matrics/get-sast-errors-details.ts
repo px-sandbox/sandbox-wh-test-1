@@ -140,7 +140,7 @@ async function getRepoSastErrorsQuery(
     return query;
 }
 /* eslint-disable no-await-in-loop */
-async function getRepoNames(repoIds: string[]): Promise<Github.Type.RepoNameType[]> {
+export async function getRepoNames(repoIds: string[]): Promise<Github.Type.RepoNameType[]> {
     const repoNamesQuery = esb.boolQuery()
         .should([
             esb.termsQuery('body.repoId', repoIds),
