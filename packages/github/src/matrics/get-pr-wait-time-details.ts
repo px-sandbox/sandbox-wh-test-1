@@ -60,7 +60,7 @@ export async function prWaitTimeDetailsData(
                 pullNumber: item.pullNumber,
                 repoName: repoName?.name,
                 prRaisedAt: item.createdAt,
-                prPickedAt: item.githubDate,
+                prPickedAt: item.reviewedAt,
                 prWaitTime: item.reviewSeconds,
                 prLink: encodeURI(
                     `https://github.com/${orgName.name}/${repoName?.name}/pull/${item.pullNumber}`
