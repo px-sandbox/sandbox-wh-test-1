@@ -12,7 +12,7 @@ export enum SortOrder {
 }
 
 export enum PrDetailsSortKey {
-    WAITTIME = 'waitTime',
+    WAITTIME = 'prWaitTime',
     PRPICKEDAT = 'prPickedAt',
-    PRCREATEDAT = 'prCreatedAt',
+    PRRAISEDAT = 'prRaisedAt',
 }

@@ -114,7 +114,7 @@ export async function prCommentsDetailMetrics(
         const finalResponse = response?.map((ele: Github.Type.CommentsDetailResponse) => ({
             pullNumber: ele?.pullNumber ?? 0,
             prName: ele?.title ?? '',
-            numOfComments: ele?.reviewComments ?? 0,
+            reviewComments: ele?.reviewComments ?? 0,
             repoName: repoObj[ele?.repoId] ?? '',
             prLink: `https://github.com/${orgname}/${repoObj[ele?.repoId]}/pull/${ele?.pullNumber}`,
         }));
