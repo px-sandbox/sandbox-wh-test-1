@@ -12,6 +12,7 @@ const prCommentsDetail = async function getPRCommentsDetail(
     const limit: number = event.queryStringParameters?.limit ? parseInt(event.queryStringParameters?.limit, 10) : 10;
     const sortKey = event.queryStringParameters?.sortKey ?? 'reviewComments';
     const sortOrder = event.queryStringParameters?.sortOrder ?? 'desc';
+    const orgId = event.queryStringParameters?.orgId ?? '';
 
     try {
         const responseBody = await prCommentsDetailMetrics(
@@ -21,7 +22,8 @@ const prCommentsDetail = async function getPRCommentsDetail(
             page,
             limit,
             sortKey,
-            sortOrder
+            sortOrder,
+            orgId,
         );
         return responseParser
             .setBody(responseBody)

@@ -12,3 +12,5 @@ export type PRCommentsDetail = {
     totalPages: number;
     data: CommentsDetailResponse[];
 }
+
+export type RepoNamesResponse = { _id: string, id: string, name: string }
