@@ -19,6 +19,7 @@ const prWaitTimeBreakdown = async function getprWaitTimeBreakdown(
     const sortOrder: Github.Enums.SortOrder =
         (event.queryStringParameters?.sortOrder as Github.Enums.SortOrder) ??
         Github.Enums.SortOrder.DESC;
+    const orgId: string = event.queryStringParameters?.orgId ?? '';
 
     try {
         const sort = {
@@ -32,7 +33,8 @@ const prWaitTimeBreakdown = async function getprWaitTimeBreakdown(
             parseInt(page, 10),
             parseInt(limit, 10),
             repoIds,
-            sort
+            sort,
+            orgId
         );
 
         return responseParser
