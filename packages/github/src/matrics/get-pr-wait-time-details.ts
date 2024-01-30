@@ -45,7 +45,7 @@ export async function prWaitTimeDetailsData(
                 query,
                 (page - 1) * limit,
                 limit,
-                [`${PrDetailsSorting[sort.key]}:${sort.order}`]
+                [`${PrDetailsSorting[sort.key] ?? PrDetailsSorting.prWaitTime}:${sort.order}`],
             )) as Other.Type.HitBody,
             await getRepoNames(repoIds),
         ]);
