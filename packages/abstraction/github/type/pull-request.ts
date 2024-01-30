@@ -45,6 +45,7 @@ export type PullRequestBody = {
   repoId: string;
   organizationId: string;
   action: actions;
+  githubDate: string;
 };
 
 export interface PullRequest {
