@@ -5,7 +5,7 @@ import { GithubTables } from "../../type/tables";
 
 export function initializeRepoSastErrorQueue(stack: Stack, sastErrorsBucket: Bucket, githubDDb: GithubTables): Queue {
 
-    const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } =
+    const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, NODE_VERSION } =
         use(commonConfig);
     const repoSastErrorsQueue = new Queue(stack, 'qGhRepoSastError');
     repoSastErrorsQueue.addConsumer(stack, {
@@ -15,6 +15,7 @@ export function initializeRepoSastErrorQueue(stack: Stack, sastErrorsBucket: Buc
                 OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME,
                 sastErrorsBucket, repoSastErrorsQueue, githubDDb.retryProcessTable,
             ],
+            runtime: NODE_VERSION,
 
         }),
     });

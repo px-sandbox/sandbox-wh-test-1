@@ -4,7 +4,7 @@ import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
 
 export function initializePushQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
-    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } =
+    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, NODE_VERSION } =
         use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDb;
     const pushIndexDataQueue = new Queue(stack, 'qGhPushIndex');
@@ -12,6 +12,8 @@ export function initializePushQueue(stack: Stack, githubDDb: GithubTables): Queu
         function: new Function(stack, 'fnGhPushIndex', {
             handler: 'packages/github/src/sqs/handlers/indexer/push.handler',
             bind: [pushIndexDataQueue],
+            runtime: NODE_VERSION,
+
         }),
         cdk: {
             eventSource: {
@@ -24,6 +26,7 @@ export function initializePushQueue(stack: Stack, githubDDb: GithubTables): Queu
         function: new Function(stack, 'fnGhPushFormat', {
             handler: 'packages/github/src/sqs/handlers/formatter/push.handler',
             bind: [pushFormatDataQueue, pushIndexDataQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {

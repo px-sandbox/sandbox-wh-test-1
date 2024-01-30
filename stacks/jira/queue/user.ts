@@ -11,6 +11,7 @@ export function initializeUserQueue(stack: Stack, jiraDDB: JiraTables): Queue[] 
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    NODE_VERSION
   } = use(commonConfig);
 
   const userIndexDataQueue = new Queue(stack, 'qUserIndex', {
@@ -29,6 +30,7 @@ export function initializeUserQueue(stack: Stack, jiraDDB: JiraTables): Queue[] 
     function: new Function(stack, 'fnUserFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/user.handler',
       bind: [userFormatDataQueue],
+      runtime: NODE_VERSION,
     }),
     cdk: {
       eventSource: {

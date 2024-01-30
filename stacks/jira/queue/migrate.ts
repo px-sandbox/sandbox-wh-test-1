@@ -10,7 +10,7 @@ export function initializeMigrateQueue(
   formatterQueues: Queue[]
 ): Queue[] {
   const envs = use(commonConfig);
-
+  const { NODE_VERSION, ...restEnvs } = envs;
   const [
     projectFormatter,
     sprintFormatter,
@@ -31,12 +31,12 @@ export function initializeMigrateQueue(
     function: new Function(stack, 'fnSprintMigrate', {
       handler: 'packages/jira/src/migrations/sprint.handler',
       timeout: '300 seconds',
-      runtime: 'nodejs18.x',
+      runtime: NODE_VERSION,
       bind: [
         sprintMigrateQueue,
         sprintFormatter,
         ...Object.values(jiraDDB),
-        ...Object.values(envs)
+        ...Object.values(restEnvs)
       ],
     }),
     cdk: {
@@ -58,12 +58,12 @@ export function initializeMigrateQueue(
     function: new Function(stack, 'fnBoardMigrate', {
       handler: 'packages/jira/src/migrations/board.handler',
       timeout: '300 seconds',
-      runtime: 'nodejs18.x',
+      runtime: NODE_VERSION,
       bind: [
         boardMigrateQueue,
         boardFormatter,
         ...Object.values(jiraDDB),
-        ...Object.values(envs)
+        ...Object.values(restEnvs)
       ],
     }),
     cdk: {
@@ -85,12 +85,12 @@ export function initializeMigrateQueue(
     function: new Function(stack, 'fnProjectMigrate', {
       handler: 'packages/jira/src/migrations/project.handler',
       timeout: '300 seconds',
-      runtime: 'nodejs18.x',
+      runtime: NODE_VERSION,
       bind: [
         projectMigrateQueue,
         projectFormatter,
         ...Object.values(jiraDDB),
-        ...Object.values(envs)
+        ...Object.values(restEnvs)
       ],
     }),
     cdk: {
@@ -110,12 +110,12 @@ export function initializeMigrateQueue(
     function: new Function(stack, 'fnIssueStatusMigrate', {
       handler: 'packages/jira/src/migrations/issue-status.handler',
       timeout: '300 seconds',
-      runtime: 'nodejs18.x',
+      runtime: NODE_VERSION,
       bind: [
         issueStatusMigrateQueue,
         issueStatusFormatter,
         ...Object.values(jiraDDB),
-        ...Object.values(envs)
+        ...Object.values(restEnvs)
       ],
     }),
     cdk: {
@@ -136,12 +136,12 @@ export function initializeMigrateQueue(
     function: new Function(stack, 'fnIssueMigrate', {
       handler: 'packages/jira/src/migrations/issue.handler',
       timeout: '300 seconds',
-      runtime: 'nodejs18.x',
+      runtime: NODE_VERSION,
       bind: [
         issueMigrateQueue,
         issueFormatter,
         ...Object.values(jiraDDB),
-        ...Object.values(envs)
+        ...Object.values(restEnvs)
       ],
     }),
     cdk: {
@@ -163,12 +163,12 @@ export function initializeMigrateQueue(
     function: new Function(stack, 'fnUserMigrate', {
       handler: 'packages/jira/src/migrations/user.handler',
       timeout: '300 seconds',
-      runtime: 'nodejs18.x',
+      runtime: NODE_VERSION,
       bind: [
         userMigrateQueue,
         userFormatter,
         ...Object.values(jiraDDB),
-        ...Object.values(envs)
+        ...Object.values(restEnvs)
       ],
     }),
     cdk: {

@@ -11,12 +11,14 @@ export function initializeIssueStatusQueue(stack: Stack, jiraDDB: JiraTables): Q
         JIRA_CLIENT_ID,
         JIRA_CLIENT_SECRET,
         JIRA_REDIRECT_URI,
+        NODE_VERSION
     } = use(commonConfig);
 
     const issueStatusIndexDataQueue = new Queue(stack, 'qIssueStatusIndex', {
         consumer: {
             function: {
                 handler: 'packages/jira/src/sqs/handlers/indexer/issue-status.handler',
+                runtime: NODE_VERSION,
             },
             cdk: {
                 eventSource: {
@@ -31,6 +33,7 @@ export function initializeIssueStatusQueue(stack: Stack, jiraDDB: JiraTables): Q
         function: new Function(stack, 'fnIssueStatusFormat', {
             handler: 'packages/jira/src/sqs/handlers/formatter/issue-status.handler',
             bind: [issueStatusFormatDataQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
