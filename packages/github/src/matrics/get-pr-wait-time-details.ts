@@ -28,7 +28,7 @@ export async function prWaitTimeDetailsData(
             username: Config.OPENSEARCH_USERNAME ?? '',
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
-        const query = await esb
+        const query = esb
             .boolQuery()
             .must([
                 esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
