@@ -18,7 +18,8 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS
+    AVAILABLE_PROJECT_KEYS,
+    NODE_VERSION
   } = use(commonConfig);
 
   const projectIndexDataQueue = new Queue(stack, 'qProjectIndex', {
@@ -37,6 +38,7 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     function: new Function(stack, 'fnProjectFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/project.handler',
       bind: [projectFormatDataQueue],
+      runtime: NODE_VERSION,
     }),
     cdk: {
       eventSource: {

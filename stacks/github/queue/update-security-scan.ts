@@ -16,6 +16,7 @@ export function initializeSecurityScanQueue(
         GITHUB_APP_ID,
         GITHUB_APP_PRIVATE_KEY_PEM,
         GITHUB_SG_INSTALLATION_ID,
+        NODE_VERSION,
     } = use(commonConfig);
 
     const { retryProcessTable } = githubDDb;
@@ -25,6 +26,7 @@ export function initializeSecurityScanQueue(
         function: new Function(stack, 'fnGhScansSave', {
             handler: 'packages/github/src/sqs/handlers/update-security-scans.handler',
             bind: [scansSaveQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {

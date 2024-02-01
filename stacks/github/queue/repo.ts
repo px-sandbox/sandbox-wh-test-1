@@ -18,6 +18,7 @@ export function initializeRepoQueue(
         GITHUB_APP_ID,
         GITHUB_APP_PRIVATE_KEY_PEM,
         GITHUB_SG_INSTALLATION_ID,
+        NODE_VERSION,
     } = use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDb;
     const repoIndexDataQueue = new Queue(stack, 'qGhRepoIndex')
@@ -25,6 +26,7 @@ export function initializeRepoQueue(
         function: new Function(stack, 'fnRepoIndex', {
             handler: 'packages/github/src/sqs/handlers/indexer/repo.handler',
             bind: [repoIndexDataQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
@@ -37,6 +39,7 @@ export function initializeRepoQueue(
         function: new Function(stack, 'fnRepoFormat', {
             handler: 'packages/github/src/sqs/handlers/formatter/repo.handler',
             bind: [repoIndexDataQueue, repoFormatDataQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {

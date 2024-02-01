@@ -9,7 +9,7 @@ export function initializeRepoLibraryQueue(
     githubDDb: GithubTables,
     versionUpgradeBucket: Bucket
 ): Queue[] {
-    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } =
+    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, NODE_VERSION } =
         use(commonConfig);
     const { retryProcessTable, libMasterTable } = githubDDb;
     const depRegistryQueue = new Queue(stack, 'qDepRegistry');
@@ -17,6 +17,7 @@ export function initializeRepoLibraryQueue(
         function: new Function(stack, 'fnDepRegistry', {
             handler: 'packages/github/src/sqs/handlers/repo-library/dependencies-registry.handler',
             bind: [depRegistryQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
@@ -30,6 +31,7 @@ export function initializeRepoLibraryQueue(
         function: new Function(stack, 'fnCurrentDepRegistry', {
             handler: 'packages/github/src/sqs/handlers/repo-library/current-dependencies.handler',
             bind: [currentDepRegistryQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
@@ -43,6 +45,7 @@ export function initializeRepoLibraryQueue(
         function: new Function(stack, 'fnLatestDepRegistry', {
             handler: 'packages/github/src/sqs/handlers/repo-library/latest-dependencies.handler',
             bind: [libMasterTable],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
@@ -55,6 +58,7 @@ export function initializeRepoLibraryQueue(
         function: new Function(stack, 'fnMasterLibrary', {
             handler: 'packages/github/src/sqs/handlers/repo-library/master-library.handler',
             bind: [masterLibraryQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
@@ -68,6 +72,7 @@ export function initializeRepoLibraryQueue(
         function: new Function(stack, 'fnRepoLibS3', {
             handler: 'packages/github/src/sqs/handlers/repo-library/from-s3-repo-library.handler',
             bind: [repoLibS3Queue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {

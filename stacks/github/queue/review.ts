@@ -5,7 +5,7 @@ import { commonConfig } from '../../common/config';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
-    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } =
+    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, NODE_VERSION } =
         use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDb;
     const prReviewCommentIndexDataQueue = new Queue(stack, 'qGhPrReviewCommentIndex');
@@ -13,6 +13,7 @@ export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: Gith
         function: new Function(stack, 'fnGhPrReviewCommentIndex', {
             handler: 'packages/github/src/sqs/handlers/indexer/pr-review-comment.handler',
             bind: [prReviewCommentIndexDataQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
@@ -25,6 +26,7 @@ export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: Gith
         function: new Function(stack, 'fnGhPrReviewCommentFormat', {
             handler: 'packages/github/src/sqs/handlers/formatter/pr-review-comment.handler',
             bind: [prReviewCommentFormatDataQueue, prReviewCommentIndexDataQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
@@ -38,6 +40,7 @@ export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: Gith
         function: new Function(stack, 'fnGhPrReviewIndex', {
             handler: 'packages/github/src/sqs/handlers/indexer/pr-review.handler',
             bind: [prReviewIndexDataQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
@@ -51,6 +54,7 @@ export function initializePrReviewAndCommentsQueue(stack: Stack, githubDDb: Gith
         function: new Function(stack, 'fnGhPrReviewFormat', {
             handler: 'packages/github/src/sqs/handlers/formatter/pr-review.handler',
             bind: [prReviewFormatDataQueue, prReviewIndexDataQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {

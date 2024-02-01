@@ -28,6 +28,7 @@ export function initializeApi(
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
+        NODE_VERSION,
     } = use(commonConfig);
     const ghAPI = new Api(stack, 'api', {
         authorizers: {
@@ -37,6 +38,7 @@ export function initializeApi(
                 function: new Function(stack, 'fnUniversalAuth', {
                     handler: 'packages/auth/src/auth.handler',
                     bind: [AUTH_PUBLIC_KEY],
+                    runtime: NODE_VERSION,
                 }),
             },
             admin: {
@@ -45,6 +47,7 @@ export function initializeApi(
                 function: new Function(stack, 'fnAdminAuth', {
                     handler: 'packages/auth/src/admin-auth.handler',
                     bind: [AUTH_PUBLIC_KEY],
+                    runtime: NODE_VERSION,
                 }),
             },
         },
@@ -65,7 +68,8 @@ export function initializeApi(
                     OPENSEARCH_USERNAME,
                     buckets.sastErrorsBucket,
                     buckets.versionUpgradeBucket,
-                ]
+                ],
+                runtime: NODE_VERSION,
             },
         },
         routes: initializeRoutes(queue, githubDDb),

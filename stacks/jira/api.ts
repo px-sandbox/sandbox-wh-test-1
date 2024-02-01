@@ -20,7 +20,8 @@ export function initializeApi(stack: Stack, tables: JiraTables, queues: Queue[])
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
         AVAILABLE_PROJECT_KEYS,
-        PROJECT_DELETION_AGE
+        PROJECT_DELETION_AGE,
+        NODE_VERSION,
     } = use(commonConfig);
     const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } = tables;
     const [
@@ -48,6 +49,7 @@ export function initializeApi(stack: Stack, tables: JiraTables, queues: Queue[])
                 function: new Function(stack, 'fnUniversalJiraAuth', {
                     handler: 'packages/auth/src/auth.handler',
                     bind: [AUTH_PUBLIC_KEY],
+                    runtime: NODE_VERSION,
                 }),
             },
             admin: {
@@ -56,6 +58,7 @@ export function initializeApi(stack: Stack, tables: JiraTables, queues: Queue[])
                 function: new Function(stack, 'fnAdminJiraAuth', {
                     handler: 'packages/auth/src/admin-auth.handler',
                     bind: [AUTH_PUBLIC_KEY],
+                    runtime: NODE_VERSION,
                 }),
             },
         },
@@ -77,6 +80,7 @@ export function initializeApi(stack: Stack, tables: JiraTables, queues: Queue[])
                     AVAILABLE_PROJECT_KEYS,
                     PROJECT_DELETION_AGE
                 ],
+                runtime: NODE_VERSION,
             },
         },
         routes: routeObj,
