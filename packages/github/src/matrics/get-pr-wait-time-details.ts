@@ -28,7 +28,7 @@ export async function prWaitTimeDetailsData(
             username: Config.OPENSEARCH_USERNAME ?? '',
             password: Config.OPENSEARCH_PASSWORD ?? '',
         });
-        const query = await esb
+        const query = esb
             .boolQuery()
             .must([
                 esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
@@ -45,7 +45,7 @@ export async function prWaitTimeDetailsData(
                 query,
                 (page - 1) * limit,
                 limit,
-                [`${PrDetailsSorting[sort.key]}:${sort.order}`]
+                [`${PrDetailsSorting[sort.key] ?? PrDetailsSorting.prWaitTime}:${sort.order}`],
             )) as Other.Type.HitBody,
             await getRepoNames(repoIds),
         ]);
@@ -60,7 +60,7 @@ export async function prWaitTimeDetailsData(
                 pullNumber: item.pullNumber,
                 repoName: repoName?.name,
                 prRaisedAt: item.createdAt,
-                prPickedAt: item.githubDate,
+                prPickedAt: item.reviewedAt,
                 prWaitTime: item.reviewSeconds,
                 prLink: encodeURI(
                     `https://github.com/${orgName.name}/${repoName?.name}/pull/${item.pullNumber}`

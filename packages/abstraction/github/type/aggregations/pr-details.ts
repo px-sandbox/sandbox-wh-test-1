@@ -2,12 +2,11 @@ import { SortOrder } from "../../enums";
 import { PrDetailsSortKey } from "../../enums/version-upgrades";
 
 export type prDetailsData = {
-    id: string;
-    name: string;
-    prCreatedAt: string;
+    prName: string;
+    prRaisedAt: string;
     prPickedAt: string;
-    waitTime: string;
-    link: string;
+    prWaitTime: string;
+    prlink: string;
 }
 export type PrDetails = {
     data: prDetailsData[]
@@ -22,14 +21,14 @@ export type PrDetailsGraph = {
     _id: string;
     title: string;
     createdAt: string;
-    githubDate: string;
+    reviewedAt: string;
     reviewSeconds: number;
     repoId: string;
     pullNumber: string;
 }
 
 export enum PrDetailsSorting {
-    waitTime = 'body.reviewSeconds',
-    prPickedAt = 'body.githubDate',
-    prCreatedAt = 'body.createdAt',
+    prWaitTime = 'body.reviewSeconds',
+    prPickedAt = 'body.reviewedAt',
+    prRaisedAt = 'body.createdAt',
 }
