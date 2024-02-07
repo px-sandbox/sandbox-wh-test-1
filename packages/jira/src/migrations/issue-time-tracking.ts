@@ -53,7 +53,7 @@ async function sendIssuesToIndexer(
             },
           };
           // sending updated issue data to indexer
-          sqsClient.sendMessage(modifiedIssue, Queue.qIssueIndex.queueUrl);
+          await sqsClient.sendMessage(modifiedIssue, Queue.qIssueIndex.queueUrl);
           callback();
         } catch (e) {
           logger.error(
@@ -90,7 +90,15 @@ async function migration(projectId: string, organization: string): Promise<void>
     const issues = [];
     const requestBodySearchquery = esb
       .requestBodySearch()
-      .query(esb.boolQuery().must(esb.termQuery('body.projectId', projectId)))
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termQuery('body.projectId', projectId),
+            esb.termsQuery('body.issueType', ['Story', 'Task', 'Bug', 'Epic']),
+          ])
+          .mustNot(esb.existsQuery('body.timeTracker'))
+      )
       .size(1000)
       .sort(esb.sort('_id'));
 
