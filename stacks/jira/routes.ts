@@ -2,15 +2,16 @@ import { Queue, Table, use, ApiRouteProps } from 'sst/constructs';
 import { commonConfig } from '../common/config';
 
 // eslint-disable-next-line max-lines-per-function,
-export function initializeRoutes(
+export function initializeRoutes (
     migrateQueues: Record<string, Queue>,
     jiraCredsTable: Table
-): Record<string, ApiRouteProps<"universal" | "admin">> {
+): Record<string, ApiRouteProps<"universal" | "admin">>
+{
     const {
         JIRA_CLIENT_ID,
         JIRA_CLIENT_SECRET,
         JIRA_REDIRECT_URI,
-    } = use(commonConfig);
+    } = use( commonConfig );
     let routesObj: Record<string, ApiRouteProps<"universal" | "admin">> = {};
     const {
         projectMigrateQueue,
@@ -53,14 +54,14 @@ export function initializeRoutes(
         'GET /jira/migrate': {
             function: {
                 handler: 'packages/jira/src/service/migrate.handler',
-                bind: [projectMigrateQueue, userMigrateQueue, sprintMigrateQueue, issueMigrateQueue],
+                bind: [ projectMigrateQueue, userMigrateQueue, sprintMigrateQueue, issueMigrateQueue ],
             },
             authorizer: 'admin',
         },
         'GET /jira/migrate/issue-status': {
             function: {
                 handler: 'packages/jira/src/service/migrate.issueStatusHandler',
-                bind: [issueStatusMigrateQueue],
+                bind: [ issueStatusMigrateQueue ],
             },
             authorizer: 'admin',
         },
@@ -82,7 +83,7 @@ export function initializeRoutes(
         'GET /jira/refresh-token': {
             function: {
                 handler: 'packages/jira/src/cron/refresh-token.updateRefreshToken',
-                bind: [jiraCredsTable, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET, JIRA_REDIRECT_URI],
+                bind: [ jiraCredsTable, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET, JIRA_REDIRECT_URI ],
             },
             authorizer: 'admin',
         },
@@ -101,6 +102,15 @@ export function initializeRoutes(
             },
             authorizer: 'admin',
         },
+
+        // jira issue migration for time tracking (estimated vs actual)
+        'GET /jira/{projectId}/issue/migrate': {
+            function: {
+                handler: 'packages/jira/src/migrations/issue-time-tracking.handler',
+                timeout: '5 minutes',
+            },
+            authorizer: 'admin'
+        }
     };
     return routesObj;
 }

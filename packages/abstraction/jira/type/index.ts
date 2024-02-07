@@ -9,3 +9,4 @@ export * from './retry-process';
 export * from './aggrigation/ftp-rate';
 export * from './issue-status';
 export * from './reopen-rate';
+export * from './index-mapping';
