@@ -226,7 +226,7 @@ const indices = [
             timeTracker: {
               type: 'object',
               properties: {
-                estimated: { type: 'integer' },
+                estimate: { type: 'integer' },
                 actual: { type: 'integer' },
               }
             }

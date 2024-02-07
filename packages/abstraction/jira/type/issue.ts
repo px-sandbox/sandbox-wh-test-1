@@ -31,7 +31,7 @@ export type Issue = {
     organizationId: string;
     changelog: ChangelogItem[];
     timeTracker: {
-      estimated: number;
+      estimate: number;
       actual: number;
     }
   };
