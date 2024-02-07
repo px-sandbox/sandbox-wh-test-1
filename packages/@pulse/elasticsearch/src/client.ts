@@ -3,84 +3,73 @@ import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
 import { logger } from 'core';
 import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
 
-export class ElasticSearchClient implements IElasticSearchClient
-{
+export class ElasticSearchClient implements IElasticSearchClient {
   private client: Client;
-  constructor( options: ConnectionOptions )
-  {
-    this.client = new Client( {
+  constructor(options: ConnectionOptions) {
+    this.client = new Client({
       node: options.host,
       auth: {
         username: options.username,
         password: options.password,
       },
-    } );
+    });
   }
 
-  public getClient (): Client
-  {
+  public getClient(): Client {
     return this.client;
   }
 
-  public async bulkUpdate ( indexName: string, data: any[] ): Promise<void>
-  {
-    try
-    {
-      const body = data.flatMap( ( doc ) => [
+  public async bulkUpdate(indexName: string, data: any[]): Promise<void> {
+    try {
+      const body = data.flatMap((doc) => [
         { update: { _index: indexName, _id: doc._id } },
         {
           doc: { body: { isDeleted: true, deletedAt: new Date().toISOString() } },
         },
-      ] );
+      ]);
 
-      await this.client.bulk( { refresh: true, body } );
-    } catch ( err )
-    {
-      logger.error( 'bulkUpdate.error: ', { err } );
+      await this.client.bulk({ refresh: true, body });
+    } catch (err) {
+      logger.error('bulkUpdate.error: ', { err });
     }
   }
 
-  public async putDocument ( index: string, document: ElasticSearchDocument ): Promise<void>
-  {
+  public async putDocument(index: string, document: ElasticSearchDocument): Promise<void> {
     const { id, ...body } = document;
-    await this.client.index( {
+    await this.client.index({
       index,
       id,
       body,
-    } );
+    });
   }
 
-  public async search (
+  public async search(
     indexName: string,
     searchKey: string,
     searchValue: string
-  ): Promise<RequestParams.Search<MultiSearchBody>>
-  {
-
-    const result = await this.client.search( {
+  ): Promise<RequestParams.Search<MultiSearchBody>> {
+    const result = await this.client.search({
       index: indexName,
       body: {
         query: {
-          match: { [ `body.${ searchKey }` ]: searchValue },
+          match: { [`body.${searchKey}`]: searchValue },
         },
       },
-    } );
+    });
 
     return result.body;
   }
 
-  public async searchWithEsb (
+  public async searchWithEsb(
     indexName: string,
     query: object,
     from = 0,
     size = 10,
     sort: string[] = [],
     source: string[] = []
-  ): Promise<RequestParams.Search<MultiSearchBody>>
-  {
-    try
-    {
-      const result = await this.client.search( {
+  ): Promise<RequestParams.Search<MultiSearchBody>> {
+    try {
+      const result = await this.client.search({
         index: indexName,
         body: {
           query,
@@ -88,12 +77,11 @@ export class ElasticSearchClient implements IElasticSearchClient
         from,
         size,
         sort,
-        ...( source.length > 0 ? { _source: source } : {} ),
-      } );
+        ...(source.length > 0 ? { _source: source } : {}),
+      });
       return result.body;
-    } catch ( err )
-    {
-      logger.error( 'searchWithEsb.error: ', { err } );
+    } catch (err) {
+      logger.error('searchWithEsb.error: ', { err });
       throw err;
     }
   }
@@ -105,38 +93,31 @@ export class ElasticSearchClient implements IElasticSearchClient
    * @returns A promise that resolves to the search result.
    * @throws If an error occurs during the search request.
    */
-  public async esbRequestBodySearch (
+  public async esbRequestBodySearch(
     indexName: string,
-    body: object,
-  ): Promise<RequestParams.Search<MultiSearchBody>>
-  {
-    try
-    {
-      const result = await this.client.search( {
+    body: object
+  ): Promise<RequestParams.Search<MultiSearchBody>> {
+    try {
+      const result = await this.client.search({
         index: indexName,
         body,
-      } );
+      });
       return result.body;
-    } catch ( err )
-    {
-      logger.error( 'searchWithEsb.error: ', { err } );
+    } catch (err) {
+      logger.error('searchWithEsb.error: ', { err });
       throw err;
     }
   }
 
-  public async queryAggs<T> ( indexName: string, query: object ): Promise<T>
-  {
-    try
-    {
-
-      const { body } = await this.client.search( {
+  public async queryAggs<T>(indexName: string, query: object): Promise<T> {
+    try {
+      const { body } = await this.client.search({
         index: indexName,
         body: query,
-      } );
+      });
       return body.aggregations;
-    } catch ( err )
-    {
-      logger.error( 'queryAggs.error : ', { err } );
+    } catch (err) {
+      logger.error('queryAggs.error : ', { err });
       throw err;
     }
   }
@@ -148,17 +129,14 @@ export class ElasticSearchClient implements IElasticSearchClient
    * @returns A Promise that resolves to void.
    * @throws Throws an error if the deletion fails.
    */
-  public async deleteByQuery ( indexName: string | string[], query: object ): Promise<void>
-  {
-    try
-    {
-      await this.client.deleteByQuery( {
+  public async deleteByQuery(indexName: string | string[], query: object): Promise<void> {
+    try {
+      await this.client.deleteByQuery({
         index: indexName,
         body: { query },
-      } );
-    } catch ( err )
-    {
-      logger.error( 'deleteByQuery.error : ', { err } );
+      });
+    } catch (err) {
+      logger.error('deleteByQuery.error : ', { err });
       throw err;
     }
   }
@@ -171,20 +149,17 @@ export class ElasticSearchClient implements IElasticSearchClient
    * @returns A Promise that resolves with void when the update is complete.
    * @throws An error if the update fails.
    */
-  public async updateDocument ( indexName: string, id: string, updatedDoc: object ): Promise<void>
-  {
-    try
-    {
-      await this.client.update( {
+  public async updateDocument(indexName: string, id: string, updatedDoc: object): Promise<void> {
+    try {
+      await this.client.update({
         index: indexName,
         id,
         body: {
           doc: updatedDoc,
         },
-      } );
-    } catch ( err )
-    {
-      logger.error( 'updateDocument.error : ', { err } );
+      });
+    } catch (err) {
+      logger.error('updateDocument.error : ', { err });
       throw err;
     }
   }
@@ -196,65 +171,55 @@ export class ElasticSearchClient implements IElasticSearchClient
    * @param script - The script object containing the update logic.
    * @throws {Error} If an error occurs while updating the documents.
    */
-  public async updateByQuery ( indexName: string, query: object, script: object ): Promise<void>
-  {
-    logger.info( `updateByQuery.updateData for index : ${ indexName }` );
-    try
-    {
-      await this.client.updateByQuery( {
+  public async updateByQuery(indexName: string, query: object, script: object): Promise<void> {
+    logger.info(`updateByQuery.updateData for index : ${indexName}`);
+    try {
+      await this.client.updateByQuery({
         index: indexName,
         body: {
           query,
           script,
         },
-      } );
-    } catch ( err )
-    {
-      logger.error( 'updateByQuery.error : ', { err } );
+      });
+    } catch (err) {
+      logger.error('updateByQuery.error : ', { err });
       throw err;
     }
   }
   /**
    * paginate a document from the specified Elasticsearch index.
    */
-  public async paginateSearch (
+  public async paginateSearch(
     indexName: string,
     query: object
-  ): Promise<RequestParams.Search<MultiSearchBody>>
-  {
-    try
-    {
-      const { body } = await this.client.search( {
+  ): Promise<RequestParams.Search<MultiSearchBody>> {
+    try {
+      const { body } = await this.client.search({
         index: indexName,
         body: query,
-      } );
+      });
       return body;
-    } catch ( err )
-    {
-      logger.error( 'searchWithEsb.error: ', { err } );
+    } catch (err) {
+      logger.error('searchWithEsb.error: ', { err });
       throw err;
     }
   }
 
-  public async bulkInsert ( indexName: string, data: any[] ): Promise<void>
-  {
-    try
-    {
-      const body = data.flatMap( ( doc ) => [
+  public async bulkInsert(indexName: string, data: any[]): Promise<void> {
+    try {
+      const body = data.flatMap((doc) => [
         { index: { _index: indexName, _id: doc._id } },
         { body: { ...doc.body } },
-      ] );
+      ]);
 
-      await this.client.bulk( { refresh: true, body } );
-    } catch ( err )
-    {
-      logger.error( 'bulkInsert.error: ', { err } );
+      await this.client.bulk({ refresh: true, body });
+    } catch (err) {
+      logger.error('bulkInsert.error: ', { err });
     }
   }
 
-  public async updateDeletePreference ( indexName: string, matchQry: any ): Promise<void>
-  {
-    await this.client.updateByQuery( {
+  public async updateDeletePreference(indexName: string, matchQry: any): Promise<void> {
+    await this.client.updateByQuery({
       index: indexName,
       body: {
         query: matchQry,
@@ -263,6 +228,6 @@ export class ElasticSearchClient implements IElasticSearchClient
           lang: 'painless',
         },
       },
-    } );
+    });
   }
 }
