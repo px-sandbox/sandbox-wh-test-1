@@ -25,7 +25,7 @@ export type Issue = {
     lastViewed: string;
     lastUpdated: string;
     sprintId: string | null;
-    boardId: string | null
+    boardId: string | null;
     isDeleted?: boolean | null;
     deletedAt?: string | null;
     organizationId: string;
@@ -33,6 +33,6 @@ export type Issue = {
     timeTracker: {
       estimate: number;
       actual: number;
-    }
+    };
   };
 };

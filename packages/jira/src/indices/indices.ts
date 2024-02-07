@@ -228,8 +228,8 @@ const indices = [
               properties: {
                 estimate: { type: 'integer' },
                 actual: { type: 'integer' },
-              }
-            }
+              },
+            },
           },
         },
       },
@@ -329,45 +329,41 @@ const indices = [
             isDeleted: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time' },
           },
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
 ];
 /**
  * Creates a mapping for an index in Elasticsearch.
- * 
+ *
  * @param name - The name of the index.
  * @param mappings - The mapping definition for the index.
  * @returns A promise that resolves when the mapping is created successfully.
  * @throws An error if there is an issue creating the mapping.
  */
-async function createMapping ( name: string, mappings: Jira.Type.IndexMapping ): Promise<void>
-{
-  try
-  {
-    const esClient = new ElasticSearchClient( {
+async function createMapping(name: string, mappings: Jira.Type.IndexMapping): Promise<void> {
+  try {
+    const esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
-    } ).getClient();
+    }).getClient();
 
-    const { statusCode } = await esClient.indices.exists( { index: name } );
-    if ( statusCode === 200 )
-    {
-      logger.info( `Index '${ name }' already exists.` );
-      await esClient.indices.putMapping( { index: name, body: mappings } );
+    const { statusCode } = await esClient.indices.exists({ index: name });
+    if (statusCode === 200) {
+      logger.info(`Index '${name}' already exists.`);
+      await esClient.indices.putMapping({ index: name, body: mappings });
       return;
     }
 
-    logger.info( `Creating mapping for index '${ name }'...` );
+    logger.info(`Creating mapping for index '${name}'...`);
 
-    await esClient.indices.create( { index: name, body: { mappings } } );
+    await esClient.indices.create({ index: name, body: { mappings } });
 
-    logger.info( `Created mapping for '${ name }' successful` );
-  } catch ( error )
-  {
-    logger.error( `Error creating mapping for '${ name }':`, error );
+    logger.info(`Created mapping for '${name}' successful`);
+  } catch (error) {
+    logger.error(`Error creating mapping for '${name}':`, error);
     throw error;
   }
 }
@@ -376,11 +372,10 @@ async function createMapping ( name: string, mappings: Jira.Type.IndexMapping ):
  * Creates all indices.
  * @returns A Promise that resolves when all indices are created successfully.
  */
-export async function createIndices (): Promise<void>
-{
-  logger.info( 'Creating all indices...' );
+export async function createIndices(): Promise<void> {
+  logger.info('Creating all indices...');
 
-  await Promise.all( indices.map( async ( { name, mappings } ) => createMapping( name, mappings ) ) );
+  await Promise.all(indices.map(async ({ name, mappings }) => createMapping(name, mappings)));
 
-  logger.info( 'All indices created successfully' );
+  logger.info('All indices created successfully');
 }
