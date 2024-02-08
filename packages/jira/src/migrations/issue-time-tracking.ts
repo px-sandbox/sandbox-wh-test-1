@@ -33,7 +33,6 @@ async function sendIssuesToIndexer(
 ): Promise<void> {
   try {
     const jiraClient = await JiraClient.getClient(organization);
-
     await async.eachLimit(issues, 500, async (issue) => {
       try {
         const issueDataFromApi = await jiraClient.getIssue(issue._id);
