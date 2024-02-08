@@ -28,7 +28,7 @@ export type Issue = {
       key: string;
       name: string;
     };
-    timeTracking: {
+    timetracking: {
       originalEstimateSeconds: number;
       remainingEstimateSeconds: number;
       timeSpentSeconds: number;

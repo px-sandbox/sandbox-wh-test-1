@@ -43,8 +43,8 @@ async function sendIssuesToIndexer(
           body: {
             ...rest,
             timeTracker: {
-              estimated: issueDataFromApi?.fields?.timeTracking?.originalEstimateSeconds ?? 0,
-              actual: issueDataFromApi?.fields?.timeTracking?.timeSpentSeconds ?? 0,
+              estimate: issueDataFromApi?.fields?.timetracking?.originalEstimateSeconds ?? 0,
+              actual: issueDataFromApi?.fields?.timetracking?.timeSpentSeconds ?? 0,
             },
           },
         };
