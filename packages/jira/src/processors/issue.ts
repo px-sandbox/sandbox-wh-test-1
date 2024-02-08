@@ -99,8 +99,8 @@ export class IssueProcessor extends DataProcessor<
         organizationId: orgData.id,
         changelog: changelogArr,
         timeTracker: {
-          estimate: issueDataFromApi?.fields?.timeTracking?.originalEstimateSeconds ?? 0,
-          actual: issueDataFromApi?.fields?.timeTracking?.timeSpentSeconds ?? 0,
+          estimate: issueDataFromApi?.fields?.timetracking?.originalEstimateSeconds ?? 0,
+          actual: issueDataFromApi?.fields?.timetracking?.timeSpentSeconds ?? 0,
         },
       },
     };
