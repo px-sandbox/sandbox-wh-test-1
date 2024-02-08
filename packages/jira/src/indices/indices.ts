@@ -226,8 +226,8 @@ const indices = [
             timeTracker: {
               type: 'object',
               properties: {
-                estimate: { type: 'integer' },
-                actual: { type: 'integer' },
+                estimate: { type: 'long' },
+                actual: { type: 'long' },
               },
             },
           },
