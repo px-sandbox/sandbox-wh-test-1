@@ -35,7 +35,7 @@ async function sendIssuesToIndexer(
     const jiraClient = await JiraClient.getClient(organization);
     await async.eachLimit(issues, 500, async (issue) => {
       try {
-        const issueDataFromApi = await jiraClient.getIssue(issue._id);
+        const issueDataFromApi = await jiraClient.getIssue(issue?.issueId);
         const { _id, ...rest } = issue;
 
         const modifiedIssue = {
