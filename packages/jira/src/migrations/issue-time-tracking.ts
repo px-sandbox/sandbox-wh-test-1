@@ -34,42 +34,29 @@ async function sendIssuesToIndexer(
   try {
     const jiraClient = await JiraClient.getClient(organization);
 
-    async.eachLimit(
-      issues,
-      500,
-      async (issue, callback) => {
-        try {
-          const issueDataFromApi = await jiraClient.getIssue(issue._id);
-          const { _id, ...rest } = issue;
+    await async.eachLimit(issues, 500, async (issue) => {
+      try {
+        const issueDataFromApi = await jiraClient.getIssue(issue._id);
+        const { _id, ...rest } = issue;
 
-          const modifiedIssue = {
-            id: _id,
-            body: {
-              ...rest,
-              timeTracker: {
-                estimated: issueDataFromApi?.fields?.timeTracking?.originalEstimateSeconds ?? 0,
-                actual: issueDataFromApi?.fields?.timeTracking?.timeSpentSeconds ?? 0,
-              },
+        const modifiedIssue = {
+          id: _id,
+          body: {
+            ...rest,
+            timeTracker: {
+              estimated: issueDataFromApi?.fields?.timeTracking?.originalEstimateSeconds ?? 0,
+              actual: issueDataFromApi?.fields?.timeTracking?.timeSpentSeconds ?? 0,
             },
-          };
-          // sending updated issue data to indexer
-          await sqsClient.sendMessage(modifiedIssue, Queue.qIssueIndex.queueUrl);
-          callback();
-        } catch (e) {
-          logger.error(
-            `Error in issue(time tracking) migration while sending issue to indexer loop: ${e}`
-          );
-          callback(e as Error);
-        }
-      },
-      (err) => {
-        if (err) {
-          logger.error(
-            `Error in issue(time tracking) migration while sending issue to indexer: ${err}`
-          );
-        }
+          },
+        };
+        // sending updated issue data to indexer
+        await sqsClient.sendMessage(modifiedIssue, Queue.qIssueIndex.queueUrl);
+      } catch (e) {
+        logger.error(
+          `Error in issue(time tracking) migration while sending issue to indexer loop: ${e}`
+        );
       }
-    );
+    });
   } catch (e) {
     logger.error(`Error in issue(time tracking) migration while sending issue to indexer: ${e}`);
   }
@@ -95,7 +82,7 @@ async function migration(projectId: string, organization: string): Promise<void>
           .boolQuery()
           .must([
             esb.termQuery('body.projectId', projectId),
-            esb.termsQuery('body.issueType', ['Story', 'Task', 'Bug', 'Epic']),
+            esb.termsQuery('body.issueType', ['Story', 'Task', 'Bug', 'SubTask']),
           ])
           .mustNot(esb.existsQuery('body.timeTracker'))
       )
