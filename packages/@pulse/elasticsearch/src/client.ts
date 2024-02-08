@@ -48,7 +48,6 @@ export class ElasticSearchClient implements IElasticSearchClient {
     searchKey: string,
     searchValue: string
   ): Promise<RequestParams.Search<MultiSearchBody>> {
-
     const result = await this.client.search({
       index: indexName,
       body: {
@@ -78,7 +77,30 @@ export class ElasticSearchClient implements IElasticSearchClient {
         from,
         size,
         sort,
-        ...(source.length > 0 ? { _source: source } : {})
+        ...(source.length > 0 ? { _source: source } : {}),
+      });
+      return result.body;
+    } catch (err) {
+      logger.error('searchWithEsb.error: ', { err });
+      throw err;
+    }
+  }
+
+  /**
+   * Executes an Elasticsearch search request with the specified index name and request body.
+   * @param indexName - The name of the index to search.
+   * @param body - The request body containing the search query.
+   * @returns A promise that resolves to the search result.
+   * @throws If an error occurs during the search request.
+   */
+  public async esbRequestBodySearch(
+    indexName: string,
+    body: object
+  ): Promise<RequestParams.Search<MultiSearchBody>> {
+    try {
+      const result = await this.client.search({
+        index: indexName,
+        body,
       });
       return result.body;
     } catch (err) {
@@ -89,7 +111,6 @@ export class ElasticSearchClient implements IElasticSearchClient {
 
   public async queryAggs<T>(indexName: string, query: object): Promise<T> {
     try {
-
       const { body } = await this.client.search({
         index: indexName,
         body: query,

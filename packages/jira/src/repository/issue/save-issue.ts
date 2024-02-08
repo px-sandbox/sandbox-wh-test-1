@@ -18,22 +18,24 @@ export async function saveIssueDetails(data: Jira.Type.Issue): Promise<void> {
   try {
     const updatedData = { ...data };
     const orgId = data.body.organizationId.split('org_')[1];
-    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(
-      data.id,
-      `${data.body.id}_${mappingPrefixes.org}_${orgId}`
-    ));
+    await new DynamoDbDocClient().put(
+      new ParamsMapping().preparePutParams(
+        data.id,
+        `${data.body.id}_${mappingPrefixes.org}_${orgId}`
+      )
+    );
     const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const matchQry =
-      esb
-        .boolQuery()
-        .must([
-          esb.termsQuery('body.id', data.body.id),
-          esb.termQuery('body.organizationId.keyword', data.body.organizationId),
-        ]).toJSON();
+    const matchQry = esb
+      .boolQuery()
+      .must([
+        esb.termsQuery('body.id', data.body.id),
+        esb.termQuery('body.organizationId.keyword', data.body.organizationId),
+      ])
+      .toJSON();
     const issueData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Issue, matchQry);
     const [formattedData] = await searchedDataFormator(issueData);
     if (formattedData) {

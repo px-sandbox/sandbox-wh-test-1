@@ -21,8 +21,8 @@ async function checkAndSave(
   projectId: ${projectId}
   organization: ${organization}
   issues: ${issues.length}
-  total: ${Array.from(new Set(issues.map(issue => issue.id))).length}
-  `)
+  total: ${Array.from(new Set(issues.map((issue) => issue.id))).length}
+  `);
   const sqsClient = new SQSClient();
 
   await Promise.all(

@@ -50,9 +50,11 @@ export class JiraClient {
       throw new Error(`Credential for given Organisation ${orgName} is not found`);
     }
 
-    const { refresh_token: refreshToken, access_token: accessToken } = creds as Jira.ExternalType.Api.Credentials;
+    const { refresh_token: refreshToken, access_token: accessToken } =
+      creds as Jira.ExternalType.Api.Credentials;
 
     const instance = new JiraClient(orgId.orgId, accessToken, refreshToken);
+
     return instance;
   }
 
@@ -164,9 +166,10 @@ export class JiraClient {
 
   public async getIssueStatuses(): Promise<Jira.ExternalType.Api.IssueStatus[]> {
     try {
-      const { values: statuses } = await this.paginateResultsForIssueStatuses<Jira.ExternalType.Api.IssueStatus>(
-        `/rest/api/3/statuses/search`
-      );
+      const { values: statuses } =
+        await this.paginateResultsForIssueStatuses<Jira.ExternalType.Api.IssueStatus>(
+          `/rest/api/3/statuses/search`
+        );
       return statuses;
     } catch (error) {
       logger.error({ message: 'JIRA_ISSUE_STATUS_FETCH_FAILED', error });
@@ -221,8 +224,6 @@ export class JiraClient {
       values: [],
     }
   ): Promise<Jira.ExternalType.Api.Response<T>> {
-
-
     const { data } = await axios.get<Jira.ExternalType.Api.Response<T>>(`${this.baseUrl}${path}`, {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
@@ -244,7 +245,6 @@ export class JiraClient {
 
     // return data;
 
-
     if (data.isLast) {
       return newResult;
     }
@@ -262,16 +262,19 @@ export class JiraClient {
       issues: [],
     }
   ): Promise<Jira.ExternalType.Api.IssuesResponse<T>> {
-    const { data } = await axios.get<Jira.ExternalType.Api.IssuesResponse<T>>(`${this.baseUrl}${path}`, {
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-      },
-      params: {
-        ...query,
-        startAt: result.startAt,
-        maxResults: result.maxResults,
-      },
-    });
+    const { data } = await axios.get<Jira.ExternalType.Api.IssuesResponse<T>>(
+      `${this.baseUrl}${path}`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+        params: {
+          ...query,
+          startAt: result.startAt,
+          maxResults: result.maxResults,
+        },
+      }
+    );
 
     const newResult = {
       issues: [...result.issues, ...data.issues],
@@ -279,7 +282,6 @@ export class JiraClient {
       maxResults: data.maxResults,
       total: data.total,
     };
-
 
     // return data;
 
@@ -296,7 +298,6 @@ export class JiraClient {
     maxResults = 50,
     users: Array<T> = []
   ): Promise<Array<T>> {
-
     const { data } = await axios.get<Array<T>>(`${this.baseUrl}${path}`, {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
@@ -309,7 +310,6 @@ export class JiraClient {
 
     const userData = users.concat(data);
     const startAtCount = startAt + data.length;
-
 
     // return data;
 

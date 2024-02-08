@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
@@ -22,15 +23,24 @@ export class IssueProcessor extends DataProcessor<
     if (this.apiData !== undefined && projectKeys.includes(this.apiData.issue.fields.project.key)) {
       return this;
     }
-    logger.info({ message: 'EMPTY_DATA or projectKey not in available keys for this issue', data: this.apiData })
+    logger.info({
+      message: 'EMPTY_DATA or projectKey not in available keys for this issue',
+      data: this.apiData,
+    });
     return false;
   }
 
-  public getSprintAndBoardId(issue: Jira.ExternalType.Api.Issue): { sprintId: string | null, boardId: string | null } {
+  public getSprintAndBoardId(issue: Jira.ExternalType.Api.Issue): {
+    sprintId: string | null;
+    boardId: string | null;
+  } {
     const sprint = issue.fields?.customfield_10007 && issue.fields.customfield_10007[0];
-    return sprint ? {
-      sprintId: `${mappingPrefixes.sprint}_${sprint.id}`, boardId: `${mappingPrefixes.board}_${sprint.boardId}`
-    } : { sprintId: null, boardId: null };
+    return sprint
+      ? {
+          sprintId: `${mappingPrefixes.sprint}_${sprint.id}`,
+          boardId: `${mappingPrefixes.board}_${sprint.boardId}`,
+        }
+      : { sprintId: null, boardId: null };
   }
 
   // eslint-disable-next-line complexity
@@ -54,7 +64,7 @@ export class IssueProcessor extends DataProcessor<
       ).length;
     }
     const issueObj = {
-      id: parentId || uuid(),
+      id: parentId ?? uuid(),
       body: {
         id: `${mappingPrefixes.issue}_${this.apiData.issue.id}`,
         issueId: this.apiData.issue.id,
@@ -69,12 +79,15 @@ export class IssueProcessor extends DataProcessor<
         priority: this.apiData.issue.fields.priority.name,
         label: this.apiData.issue.fields.labels,
         issueLinks: this.apiData.issue.fields.issuelinks,
-        assigneeId: this.apiData.issue.fields.assignee?.accountId ?
-          `${mappingPrefixes.user}_${this.apiData.issue.fields.assignee.accountId}` : null,
-        reporterId: this.apiData.issue.fields.reporter?.accountId ?
-          `${mappingPrefixes.user}_${this.apiData.issue.fields.reporter.accountId}` : null,
-        creatorId: this.apiData.issue.fields.creator?.accountId ?
-          `${mappingPrefixes.user}_${this.apiData.issue.fields.creator.accountId}` : null,
+        assigneeId: this.apiData.issue.fields.assignee?.accountId
+          ? `${mappingPrefixes.user}_${this.apiData.issue.fields.assignee.accountId}`
+          : null,
+        reporterId: this.apiData.issue.fields.reporter?.accountId
+          ? `${mappingPrefixes.user}_${this.apiData.issue.fields.reporter.accountId}`
+          : null,
+        creatorId: this.apiData.issue.fields.creator?.accountId
+          ? `${mappingPrefixes.user}_${this.apiData.issue.fields.creator.accountId}`
+          : null,
         status: this.apiData.issue.fields.status.name,
         subtasks: this.apiData.issue.fields.subtasks,
         createdDate: this.apiData.issue.fields.created,
@@ -85,9 +98,12 @@ export class IssueProcessor extends DataProcessor<
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.id,
         changelog: changelogArr,
+        timeTracker: {
+          estimate: issueDataFromApi?.fields?.timeTracking?.originalEstimateSeconds ?? 0,
+          actual: issueDataFromApi?.fields?.timeTracking?.timeSpentSeconds ?? 0,
+        },
       },
     };
     return issueObj;
   }
-
 }
