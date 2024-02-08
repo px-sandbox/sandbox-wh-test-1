@@ -321,7 +321,7 @@ const indices = [
             id: { type: 'keyword' },
             organizationId: { type: 'keyword' },
             issueId: { type: 'keyword' },
-            issueKey: { type: 'keyword' },
+            issueKey: { type: 'text' }, // TODO: change this back to keyword type
             projectId: { type: 'keyword' },
             sprintId: { type: 'keyword' },
             reOpenCount: { type: 'integer' },
