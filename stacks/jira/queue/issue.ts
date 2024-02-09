@@ -12,13 +12,15 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS
+    AVAILABLE_PROJECT_KEYS,
+    NODE_VERSION,
   } = use(commonConfig);
 
   const issueIndexDataQueue = new Queue(stack, 'qIssueIndex', {
     consumer: {
       function: {
         handler: 'packages/jira/src/sqs/handlers/indexer/issue.handler',
+        runtime: NODE_VERSION,
       },
       cdk: {
         eventSource: {
@@ -33,6 +35,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     function: new Function(stack, 'fnIssueFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/issue.handler',
       bind: [issueFormatDataQueue],
+      runtime: NODE_VERSION,
     }),
     cdk: {
       eventSource: {
@@ -46,6 +49,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     function: new Function(stack, 'fnReOpenRate', {
       handler: 'packages/jira/src/sqs/handlers/formatter/reopen-rate.handler',
       bind: [reOpenRateDataQueue],
+      runtime: NODE_VERSION,
     }),
     cdk: {
       eventSource: {
@@ -59,6 +63,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     function: new Function(stack, 'fnReOpenRateIndex', {
       handler: 'packages/jira/src/sqs/handlers/indexer/reopen-rate.handler',
       bind: [reOpenRateIndexQueue],
+      runtime: NODE_VERSION,
     }),
     cdk: {
       eventSource: {
@@ -72,6 +77,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     function: new Function(stack, 'fnReOpenRateMigrator', {
       handler: 'packages/jira/src/sqs/handlers/formatter/reopen-rate-migrator.handler',
       bind: [reOpenRateMigratorQueue, reOpenRateIndexQueue],
+      runtime: NODE_VERSION,
     }),
     cdk: {
       eventSource: {
@@ -85,6 +91,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     function: new Function(stack, 'fnReOpenRateDelete', {
       handler: 'packages/jira/src/sqs/handlers/reopen-rate-delete.handler',
       bind: [reOpenRateDeleteQueue],
+      runtime: NODE_VERSION,
     }),
     cdk: {
       eventSource: {
@@ -104,7 +111,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS
+    AVAILABLE_PROJECT_KEYS,
   ]);
   issueIndexDataQueue.bind([
     jiraDDB.jiraCredsTable,
@@ -123,7 +130,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     reOpenRateIndexQueue,
-    AVAILABLE_PROJECT_KEYS
+    AVAILABLE_PROJECT_KEYS,
   ]);
 
   reOpenRateIndexQueue.bind([
@@ -159,5 +166,6 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     reOpenRateDataQueue,
     reOpenRateIndexQueue,
     reOpenRateMigratorQueue,
-    reOpenRateDeleteQueue];
+    reOpenRateDeleteQueue,
+  ];
 }

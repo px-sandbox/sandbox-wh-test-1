@@ -21,6 +21,7 @@ export function initializeApi(
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
+        NODE_VERSION,
     } = use(commonConfig);
     const dpscAPI = new Api(stack, 'dpscAPI', {
         authorizers: {
@@ -30,6 +31,7 @@ export function initializeApi(
                 function: new Function(stack, 'universalAuth', {
                     handler: 'packages/auth/src/auth.handler',
                     bind: [AUTH_PUBLIC_KEY],
+                    runtime: NODE_VERSION,
                 }),
             },
         },
@@ -49,7 +51,8 @@ export function initializeApi(
                     OPENSEARCH_PASSWORD,
                     OPENSEARCH_USERNAME,
 
-                ]
+                ],
+                runtime: NODE_VERSION,
             },
         },
         routes: initializeRoutes(),

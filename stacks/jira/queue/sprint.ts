@@ -11,13 +11,15 @@ export function initializeSprintQueue(stack: Stack, jiraDDB: JiraTables): Queue[
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS
+    AVAILABLE_PROJECT_KEYS,
+    NODE_VERSION
   } = use(commonConfig);
 
   const sprintIndexDataQueue = new Queue(stack, 'qSprintIndex', {
     consumer: {
       function: {
         handler: 'packages/jira/src/sqs/handlers/indexer/sprint.handler',
+        runtime: NODE_VERSION,
       },
       cdk: {
         eventSource: {
@@ -32,6 +34,7 @@ export function initializeSprintQueue(stack: Stack, jiraDDB: JiraTables): Queue[
     function: new Function(stack, 'fnSprintFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/sprint.handler',
       bind: [sprintFormatDataQueue],
+      runtime: NODE_VERSION,
     }),
     cdk: {
       eventSource: {

@@ -1,4 +1,8 @@
+import { Issue } from "../issue";
 export interface IFtpRateResponse {
+  hits: {
+    hits: Issue[];
+  },
   sprint_buckets: {
     buckets: [
       {

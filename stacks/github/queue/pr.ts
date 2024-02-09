@@ -8,7 +8,7 @@ export function initializePrQueue(
     ghMergedCommitProcessQueue: Queue,
     githubDDb: GithubTables
 ): Queue[] {
-    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD } =
+    const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD, NODE_VERSION } =
         use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDb;
     const prIndexDataQueue = new Queue(stack, 'qGhPrIndex');
@@ -16,6 +16,8 @@ export function initializePrQueue(
         function: new Function(stack, 'fnGhPrIndex', {
             handler: 'packages/github/src/sqs/handlers/indexer/pull-request.handler',
             bind: [prIndexDataQueue],
+            runtime: NODE_VERSION,
+
         }),
         cdk: {
             eventSource: {
@@ -29,6 +31,7 @@ export function initializePrQueue(
             handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
             timeout: '30 seconds',
             bind: [prFormatDataQueue, prIndexDataQueue, ghMergedCommitProcessQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {

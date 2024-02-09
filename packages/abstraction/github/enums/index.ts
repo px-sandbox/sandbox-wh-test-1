@@ -1,4 +1,4 @@
-import { SortKey, SortOrder } from './version-upgrades';
+import { SortKey, SortOrder, PrDetailsSortKey } from './version-upgrades';
 import { IndexName } from './es-index';
 import { Event } from './webhook-event';
 import { Repo, Branch, Organization, Comments, PullRequest } from './webhook-action';
@@ -20,5 +20,6 @@ export {
   UserType,
   OrgConst,
   SortKey,
-  SortOrder
+  SortOrder,
+  PrDetailsSortKey
 };

@@ -12,6 +12,7 @@ export interface IRepo {
   githubId: string;
   name: string;
   topics: string;
+  organizationId: string;
 }
 export type Hit = {
   _id: string;
@@ -52,10 +53,11 @@ export const formatUserDataResponse = (
 
 export const formatRepoDataResponse = (
   data: Array<IRepo>
-): Array<{ id: number; githubId: number; name: string; topics: string }> =>
+): Array<{ id: number; githubId: number; name: string; topics: string; organizationId: string }> =>
   data.map((repo: IRepo) => ({
     id: repo._id,
     githubId: repo.id,
     name: repo.name,
     topics: repo.topics,
+    organizationId: repo.organizationId
   }));

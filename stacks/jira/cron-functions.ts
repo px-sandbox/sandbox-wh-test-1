@@ -13,12 +13,14 @@ export function initializeFunctions(stack: Stack, queues: Queue[], tables: JiraT
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
         PROJECT_DELETION_AGE,
+        NODE_VERSION
     } = use(commonConfig);
     const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } = tables;
 
     const refreshToken = new Function(stack, 'fnRefreshToken', {
         handler: 'packages/jira/src/cron/refresh-token.updateRefreshToken',
         bind: [jiraCredsTable, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET, JIRA_REDIRECT_URI],
+        runtime: NODE_VERSION,
     });
     const processJiraRetryFunction = new Function(stack, 'fnRetryProcess', {
         handler: 'packages/jira/src/cron/process-jira-retry.handler',
@@ -31,6 +33,7 @@ export function initializeFunctions(stack: Stack, queues: Queue[], tables: JiraT
             JIRA_REDIRECT_URI,
             ...queues,
         ],
+        runtime: NODE_VERSION,
     });
 
     const hardDeleteProjectsData = new Function(stack, 'hard-delete-projects-data', {
@@ -44,7 +47,8 @@ export function initializeFunctions(stack: Stack, queues: Queue[], tables: JiraT
             OPENSEARCH_USERNAME,
             PROJECT_DELETION_AGE,
             ...queues,
-        ]
+        ],
+        runtime: NODE_VERSION,
     });
     return [refreshToken, processJiraRetryFunction, hardDeleteProjectsData];
 }

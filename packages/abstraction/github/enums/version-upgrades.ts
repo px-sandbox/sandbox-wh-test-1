@@ -3,9 +3,16 @@ export enum SortKey {
     REPONAME = 'repoName',
     DATEDIFF = 'dateDiff',
     ERRORFIRSTOCCURRED = 'errorFirstOccurred',
+
 }
 
 export enum SortOrder {
     ASC = 'asc',
     DESC = 'desc'
+}
+
+export enum PrDetailsSortKey {
+    WAITTIME = 'prWaitTime',
+    PRPICKEDAT = 'prPickedAt',
+    PRRAISEDAT = 'prRaisedAt',
 }

@@ -5,7 +5,7 @@ import { commonConfig } from "../../common/config";
 
 export function initializeBranchCounterQueue(stack: Stack, githubDDB: GithubTables): Queue[] {
     const branchCounterIndexQueue = new Queue(stack, 'qGhActiveBranchCounterIndex');
-    const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } = use(commonConfig);
+    const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, NODE_VERSION } = use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDB;
     branchCounterIndexQueue.addConsumer(stack, {
         function: new Function(stack, 'fnGhActiveBranchCounterIndex', {
@@ -18,6 +18,7 @@ export function initializeBranchCounterQueue(stack: Stack, githubDDB: GithubTabl
                 githubMappingTable,
                 branchCounterIndexQueue,
             ],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
@@ -40,6 +41,7 @@ export function initializeBranchCounterQueue(stack: Stack, githubDDB: GithubTabl
                 retryProcessTable,
                 githubMappingTable,
             ],
+            runtime: NODE_VERSION,
         }),
 
         cdk: {

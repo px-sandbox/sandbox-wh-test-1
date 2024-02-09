@@ -13,6 +13,7 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         OPENSEARCH_NODE,
         OPENSEARCH_USERNAME,
         OPENSEARCH_PASSWORD,
+        NODE_VERSION,
     } = use(commonConfig);
     const { retryProcessTable, githubMappingTable } = githubDDb;
     const commitIndexDataQueue = new Queue(stack, 'qGhCommitIndex');
@@ -20,6 +21,7 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         function: new Function(stack, 'fnGhCommitIndex', {
             handler: 'packages/github/src/sqs/handlers/indexer/commit.handler',
             bind: [commitIndexDataQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
@@ -38,6 +40,7 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         function: new Function(stack, 'fnGhCommitFormat', {
             handler: 'packages/github/src/sqs/handlers/formatter/commit.handler',
             bind: [commitFormatDataQueue, commitIndexDataQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
@@ -51,6 +54,7 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         function: new Function(stack, 'fnGhMergeCommitProcess', {
             handler: 'packages/github/src/sqs/handlers/merge-commit.handler',
             bind: [ghMergedCommitProcessQueue, commitFormatDataQueue],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {
@@ -70,7 +74,7 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         function: new Function(stack, 'fnCommitFileChanges', {
             handler: 'packages/github/src/sqs/handlers/historical/migrate-commit-file-changes.handler',
             timeout: '300 seconds',
-            runtime: 'nodejs18.x',
+            runtime: NODE_VERSION,
             bind: [
                 commitIndexDataQueue,
                 commitFileChanges,
@@ -98,6 +102,7 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
         function: new Function(stack, 'fnUpdateMergeCommit', {
             handler: 'packages/github/src/sqs/handlers/historical/merge-commit-update.handler',
             bind: [updateMergeCommit],
+            runtime: NODE_VERSION,
         }),
         cdk: {
             eventSource: {

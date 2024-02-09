@@ -62,7 +62,9 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
    * @param params - The input parameters for the batchGet operation.
    * @returns A promise that resolves with the result of the batchGet operation.
    */
-  public async batchGet(params: BatchGetCommandInput): Promise<Record<string, Record<string, unknown>[]> | undefined> {
+  public async batchGet(
+    params: BatchGetCommandInput
+  ): Promise<Record<string, Record<string, unknown>[]> | undefined> {
     const command = new BatchGetCommand(params);
     const ddbRes = await this.getDdbDocClient().send(command);
     return ddbRes?.Responses;
@@ -84,14 +86,14 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
 
   /**
    * Scans all items in the DynamoDB table based on the provided scan parameters.
-   * 
+   *
    * @param scanParams - The scan parameters for the scan operation.
    * @returns A promise that resolves to the scan command output.
    */
   public async scanAllItems(scanParams: ScanCommandInput): Promise<ScanCommandOutput> {
     const params: ScanCommandInput = { ...scanParams }; // Create a new object
 
-    const data = await this.getDdbDocClient().send(new ScanCommand(params)) as ScanCommandOutput;
+    const data = (await this.getDdbDocClient().send(new ScanCommand(params))) as ScanCommandOutput;
 
     return data;
   }

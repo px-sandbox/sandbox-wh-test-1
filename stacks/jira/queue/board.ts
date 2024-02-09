@@ -11,7 +11,8 @@ export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS
+    AVAILABLE_PROJECT_KEYS,
+    NODE_VERSION
   } = use(commonConfig);
 
   const boardIndexDataQueue = new Queue(stack, 'qBoardIndex', {
@@ -31,6 +32,7 @@ export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     function: new Function(stack, 'fnBoardFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/board.handler',
       bind: [boardFormatDataQueue],
+      runtime: NODE_VERSION,
     }),
     cdk: {
       eventSource: {

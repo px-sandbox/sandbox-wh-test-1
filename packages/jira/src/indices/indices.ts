@@ -223,6 +223,13 @@ const indices = [
             boardId: { type: 'keyword' },
             projectId: { type: 'keyword' },
             organizationID: { type: 'keyword' },
+            timeTracker: {
+              type: 'object',
+              properties: {
+                estimate: { type: 'long' },
+                actual: { type: 'long' },
+              },
+            },
           },
         },
       },
@@ -303,31 +310,39 @@ const indices = [
       },
     },
   },
-  {
-    name: Jira.Enums.IndexName.ReopenRate,
-    _id: { type: 'uuid' },
-    mapping: {
-      properties: {
-        body: {
-          type: 'object',
-          properties: {
-            id: { type: 'keyword' },
-            organizationId: { type: 'keyword' },
-            issueId: { type: 'keyword' },
-            issueKey: { type: 'keyword' },
-            projectId: { type: 'keyword' },
-            sprintId: { type: 'keyword' },
-            reOpenCount: { type: 'integer' },
-            isReOpen: { type: 'boolean' },
-            isDeleted: { type: 'boolean' },
-            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
-          },
-        }
-      }
-    }
-  }
+  // {
+  //   name: Jira.Enums.IndexName.ReopenRate,
+  //   _id: { type: 'uuid' },
+  //   mappings: {
+  //     properties: {
+  //       body: {
+  //         type: 'object',
+  //         properties: {
+  //           id: { type: 'keyword' },
+  //           organizationId: { type: 'keyword' },
+  //           issueId: { type: 'keyword' },
+  //           issueKey: { type: 'text' }, // TODO: change this back to keyword type
+  //           projectId: { type: 'keyword' },
+  //           sprintId: { type: 'keyword' },
+  //           reOpenCount: { type: 'integer' },
+  //           isReOpen: { type: 'boolean' },
+  //           isDeleted: { type: 'boolean' },
+  //           deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+  //         },
+  //       },
+  //     },
+  //   },
+  // },
 ];
-async function createMapping(name: string, mappings: unknown): Promise<void> {
+/**
+ * Creates a mapping for an index in Elasticsearch.
+ *
+ * @param name - The name of the index.
+ * @param mappings - The mapping definition for the index.
+ * @returns A promise that resolves when the mapping is created successfully.
+ * @throws An error if there is an issue creating the mapping.
+ */
+async function createMapping(name: string, mappings: Jira.Type.IndexMapping): Promise<void> {
   try {
     const esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -338,6 +353,7 @@ async function createMapping(name: string, mappings: unknown): Promise<void> {
     const { statusCode } = await esClient.indices.exists({ index: name });
     if (statusCode === 200) {
       logger.info(`Index '${name}' already exists.`);
+      await esClient.indices.putMapping({ index: name, body: mappings });
       return;
     }
 
@@ -352,6 +368,10 @@ async function createMapping(name: string, mappings: unknown): Promise<void> {
   }
 }
 
+/**
+ * Creates all indices.
+ * @returns A Promise that resolves when all indices are created successfully.
+ */
 export async function createIndices(): Promise<void> {
   logger.info('Creating all indices...');
 

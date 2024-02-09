@@ -17,6 +17,7 @@ export function initializeMigrationQueue(
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
+        NODE_VERSION,
     } = use(commonConfig);
     const [
         prFormatDataQueue,
@@ -37,7 +38,7 @@ export function initializeMigrationQueue(
         function: new Function(stack, 'fnHistoricalPR', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-pr.handler',
             timeout: '300 seconds',
-            runtime: 'nodejs18.x',
+            runtime: NODE_VERSION,
             bind: [collectPRData],
         }),
         cdk: {
@@ -59,7 +60,7 @@ export function initializeMigrationQueue(
         function: new Function(stack, 'fnHistPrReview', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-review.handler',
             timeout: '30 seconds',
-            runtime: 'nodejs18.x',
+            runtime: NODE_VERSION,
             bind: [collectReviewsData],
         }),
         cdk: {
@@ -80,7 +81,7 @@ export function initializeMigrationQueue(
         function: new Function(stack, 'fnHistPrByNumber', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-pr-by-number.handler',
             timeout: '300 seconds',
-            runtime: 'nodejs18.x',
+            runtime: NODE_VERSION,
             bind: [collecthistoricalPrByumber],
         }),
         cdk: {
@@ -101,7 +102,7 @@ export function initializeMigrationQueue(
         function: new Function(stack, 'fnHistCommit', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-commit.handler',
             timeout: '300 seconds',
-            runtime: 'nodejs18.x',
+            runtime: NODE_VERSION,
             bind: [collectCommitsData],
         }),
         cdk: {
@@ -124,7 +125,7 @@ export function initializeMigrationQueue(
         function: new Function(stack, 'fnHistBranch', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-branch.handler',
             bind: [historicalBranch],
-            runtime: 'nodejs18.x',
+            runtime: NODE_VERSION,
             timeout: '300 seconds',
         }),
         cdk: {
@@ -146,7 +147,7 @@ export function initializeMigrationQueue(
         function: new Function(stack, 'fnHistPRCommit', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-pr-commit.handler',
             timeout: '30 seconds',
-            runtime: 'nodejs18.x',
+            runtime: NODE_VERSION,
             bind: [collectPRCommitsData],
         }),
         cdk: {
@@ -167,7 +168,7 @@ export function initializeMigrationQueue(
         function: new Function(stack, 'fnHistPRReviewComments', {
             handler: 'packages/github/src/sqs/handlers/historical/historical-pr-comment.handler',
             timeout: '300 seconds',
-            runtime: 'nodejs18.x',
+            runtime: NODE_VERSION,
             bind: [collectPRReviewCommentsData],
         }),
         cdk: {

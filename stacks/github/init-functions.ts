@@ -9,7 +9,7 @@ function initProcessRetryFunction(
     queues: { [key: string]: Queue },
     githubDDb: GithubTables,
 ): Function {// eslint-disable-line @typescript-eslint/ban-types
-    const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID } =
+    const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID, NODE_VERSION } =
         use(commonConfig);
     const { retryProcessTable } = githubDDb;
     const {
@@ -79,6 +79,8 @@ function initProcessRetryFunction(
             ghMergedCommitProcessQueue,
             repoLibS3Queue
         ],
+        runtime: NODE_VERSION,
+
     });
 
     return processRetryFunction;
@@ -96,6 +98,7 @@ export function initializeFunctions(
         OPENSEARCH_NODE,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
+        NODE_VERSION,
     } = use(commonConfig);
 
     const {
@@ -114,11 +117,13 @@ export function initializeFunctions(
             GITHUB_APP_ID,
             GITHUB_SG_INSTALLATION_ID,
         ],
+        runtime: NODE_VERSION,
     });
 
     const ghBranchCounterFunction = new Function(stack, 'fnBranchCounter', {
         handler: 'packages/github/src/cron/branch-counter.handler',
         bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchCounterFormatterQueue],
+        runtime: NODE_VERSION,
     });
 
     const initProcessRetry = initProcessRetryFunction(stack, queuesForFunctions, githubDDb);
@@ -127,6 +132,7 @@ export function initializeFunctions(
         handler: 'packages/github/src/cron/update-latest-dep.handler',
         timeout: '300 seconds',
         bind: [githubDDb.libMasterTable, masterLibraryQueue],
+        runtime: NODE_VERSION,
     });
 
     return {

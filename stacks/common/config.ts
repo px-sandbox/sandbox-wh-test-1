@@ -1,4 +1,4 @@
-import { StackContext, Config } from 'sst/constructs';
+import { StackContext, Config, Runtime } from 'sst/constructs';
 
 export const commonConfig = ({ stack }: StackContext): {
   OPENSEARCH_NODE: Config.Secret;
@@ -17,6 +17,7 @@ export const commonConfig = ({ stack }: StackContext): {
   GITHUB_SG_ACCESS_TOKEN: Config.Secret;
   AVAILABLE_PROJECT_KEYS: Config.Secret;
   PROJECT_DELETION_AGE: Config.Secret;
+  NODE_VERSION: Runtime;
 } => ({
   OPENSEARCH_NODE: new Config.Secret(stack, 'OPENSEARCH_NODE'),
   OPENSEARCH_USERNAME: new Config.Secret(stack, 'OPENSEARCH_USERNAME'),
@@ -36,4 +37,7 @@ export const commonConfig = ({ stack }: StackContext): {
   GITHUB_WEBHOOK_SECRET: new Config.Secret(stack, 'GITHUB_WEBHOOK_SECRET'),
   GITHUB_SG_ACCESS_TOKEN: new Config.Secret(stack, 'GITHUB_SG_ACCESS_TOKEN'),
   GIT_ORGANIZATION_ID: new Config.Secret(stack, 'GIT_ORGANIZATION_ID'),
+
+  // Runtime Node version
+  NODE_VERSION: "nodejs18.x",
 });

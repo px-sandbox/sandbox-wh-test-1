@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { ApiRouteProps } from 'sst/constructs';
 
 export function initializeRoutes(
@@ -9,6 +10,13 @@ export function initializeRoutes(
             function: 'packages/github/src/service/get-pr-comment.handler',
             authorizer: 'universal',
         },
+
+        // GET PR comments graph data detail view
+        'GET /github/graph/number-comments-added-to-prs/details': {
+            function: 'packages/github/src/service/get-pr-comment-detail.handler',
+            authorizer: 'universal',
+        },
+
         // GET Graph for frequency of code commits
         'GET /github/graph/code-commit-frequency': {
             function: 'packages/github/src/service/get-commit-frequency.handler',
@@ -64,6 +72,13 @@ export function initializeRoutes(
         'GET /tsc/rags': {
             function: {
                 handler: 'packages/github/src/service/tsc-rags.handler',
+            },
+            authorizer: 'none',
+        },
+
+        'GET /github/graph/pr-wait-time/details': {
+            function: {
+                handler: 'packages/github/src/service/pr-wait-time-details.handler',
             },
             authorizer: 'none',
         }

@@ -12,13 +12,15 @@ export type Issue = {
       originBoardId: string;
       goal: string;
     };
-    closedSprints: [{
-      id: string;
-      self: string;
-      state: string;
-      name: string;
-      goal: string;
-    }];
+    closedSprints: [
+      {
+        id: string;
+        self: string;
+        state: string;
+        name: string;
+        goal: string;
+      }
+    ];
     description: string;
     project: {
       self: string;
@@ -26,18 +28,20 @@ export type Issue = {
       key: string;
       name: string;
     };
-    timeTracking: {
-      originalEstimate: string;
-      remainingEstimate: string;
-      timeSpent: string;
+    timetracking: {
+      originalEstimateSeconds: number;
+      remainingEstimateSeconds: number;
+      timeSpentSeconds: number;
     };
-    customfield_10007: [{
-      id: string;
-      self: string;
-      state: string;
-      name: string;
-      boardId: string;
-      goal: string;
-    }]
+    customfield_10007: [
+      {
+        id: string;
+        self: string;
+        state: string;
+        name: string;
+        boardId: string;
+        goal: string;
+      }
+    ];
   };
 };
