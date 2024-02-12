@@ -1,3 +1,4 @@
+import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import { sprintVarianceGraph, sprintVarianceGraphAvg } from 'src/matrics/get-sprint-variance';
@@ -7,9 +8,12 @@ const sprintVariance = async function sprintVariance(
 ): Promise<APIGatewayProxyResult> {
   const projectId: string = event.queryStringParameters?.projectId || '';
   const startDate: string = event.queryStringParameters?.startDate || '';
+
   const endDate: string = event.queryStringParameters?.endDate || '';
   const afterKey: string | undefined = event.queryStringParameters?.afterKey ?? '';
-  const sortKey = event.queryStringParameters?.sortKey ?? 'body.timeTracker.estimate';
+  const sortKey: Jira.Enums.IssueTimeTracker =
+    (event.queryStringParameters?.sortKey as Jira.Enums.IssueTimeTracker) ??
+    Jira.Enums.IssueTimeTracker.estimates;
   const sortOrder = event.queryStringParameters?.sortOrder ?? 'desc';
 
   try {

@@ -12,7 +12,7 @@ export async function sprintVarianceGraph(
   startDate: string,
   endDate: string,
   afterKey: object | undefined,
-  sortKey: string,
+  sortKey: Jira.Enums.IssueTimeTracker,
   sortOrder: string
 ): Promise<SprintVariancenData> {
   try {
@@ -92,7 +92,7 @@ export async function sprintVarianceGraph(
           ])
           .minimumShouldMatch(1)
       )
-      .sort(esb.sort(sortKey, sortOrder))
+      .sort(esb.sort(`${Jira.Enums.IssueTimeTrackerSort[sortKey]}`, sortOrder))
       .toJSON() as { query: object };
     logger.info('issue_sprint_query', query);
     const ftpRateGraph: any = await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);

@@ -24,3 +24,13 @@ export enum ChangelogField {
   CUSTOM = 'custom',
   JIRA = 'jira',
 }
+
+export enum IssueTimeTrackerSort {
+  estimates = 'body.timeTracker.estimate',
+  actual = 'body.timeTracker.actual',
+}
+
+export enum IssueTimeTracker {
+  estimates = 'estimates',
+  actual = 'actual',
+}
