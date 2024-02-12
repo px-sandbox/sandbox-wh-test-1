@@ -1,7 +1,7 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { IssuesTypes, SprintState } from 'abstraction/jira/enums';
-import { SprintVariancenData } from 'abstraction/jira/type';
+import { SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from 'src/util/response-formatter';
@@ -14,7 +14,7 @@ export async function sprintVarianceGraph(
   afterKey: object | undefined,
   sortKey: Jira.Enums.IssueTimeTracker,
   sortOrder: string
-): Promise<SprintVariancenData> {
+): Promise<SprintVarianceData> {
   try {
     const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -134,7 +134,6 @@ export async function sprintVarianceGraphAvg(
     });
     const sprintQuery = esb
       .requestBodySearch()
-      .size(1)
       .source(['body.id'])
       .query(
         esb
@@ -151,21 +150,18 @@ export async function sprintVarianceGraphAvg(
           .minimumShouldMatch(1)
       )
       .sort(esb.sort('body.sprintId'));
-
-    let body: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
-      Jira.Enums.IndexName.Sprint,
-      sprintQuery.toJSON()
-    );
-    let sprintIds = await searchedDataFormator(body);
-
-    sprintIdsArr.push(...sprintIds);
-    while (sprintIds?.length) {
-      const lastHit = body.hits.hits[body.hits.hits.length - 1];
-      const query = sprintQuery.searchAfter([lastHit.sort[0]]).toJSON();
-      body = await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Sprint, query);
+    let sprintIds = [];
+    let lastHit;
+    do {
+      const query = sprintQuery.searchAfter(lastHit);
+      const body: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
+        Jira.Enums.IndexName.Sprint,
+        query
+      );
+      lastHit = body.hits.hits[body.hits.hits?.length - 1]?.sort;
       sprintIds = await searchedDataFormator(body);
       sprintIdsArr.push(...sprintIds);
-    }
+    } while (sprintIds?.length);
     const sprintIdsObj = sprintIdsArr.reduce((acc: any, item: any) => {
       acc[item.id] = item;
       return acc;
