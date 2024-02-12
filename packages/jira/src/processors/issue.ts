@@ -98,10 +98,10 @@ export class IssueProcessor extends DataProcessor<
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.id,
         changelog: changelogArr,
-        // timeTracker: {
-        //   estimate: issueDataFromApi?.fields?.timetracking?.originalEstimateSeconds ?? 0,
-        //   actual: issueDataFromApi?.fields?.timetracking?.timeSpentSeconds ?? 0,
-        // },
+        timeTracker: {
+          estimate: issueDataFromApi?.fields?.timetracking?.originalEstimateSeconds ?? 0,
+          actual: issueDataFromApi?.fields?.timetracking?.timeSpentSeconds ?? 0,
+        },
       },
     };
     return issueObj;
