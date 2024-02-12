@@ -9,7 +9,9 @@ const sprintVariance = async function sprintVariance(
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const afterKey: string | undefined = event.queryStringParameters?.afterKey ?? '';
-  console.log(afterKey, 'afterKey');
+  const sortKey = event.queryStringParameters?.sortKey ?? 'body.timeTracker.estimate';
+  const sortOrder = event.queryStringParameters?.sortOrder ?? 'desc';
+
   try {
     const afterKeyObj =
       afterKey.length > 0
@@ -17,7 +19,7 @@ const sprintVariance = async function sprintVariance(
         : undefined;
 
     const [graphData, headline] = await Promise.all([
-      await sprintVarianceGraph(projectId, startDate, endDate, afterKeyObj),
+      await sprintVarianceGraph(projectId, startDate, endDate, afterKeyObj, sortKey, sortOrder),
       await sprintVarianceGraphAvg(projectId, startDate, endDate),
     ]);
     return responseParser

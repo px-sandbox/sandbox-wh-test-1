@@ -11,7 +11,9 @@ export async function sprintVarianceGraph(
   projectId: string,
   startDate: string,
   endDate: string,
-  afterKey: object | undefined
+  afterKey: object | undefined,
+  sortKey: string,
+  sortOrder: string
 ): Promise<SprintVariancenData> {
   try {
     const esClientObj = new ElasticSearchClient({
@@ -47,6 +49,8 @@ export async function sprintVarianceGraph(
           .minimumShouldMatch(1)
       )
       .toJSON() as { query: object };
+
+    logger.info('sprintQuery', sprintQuery);
     const body: { sprints: { buckets: []; after_key: string } } = await esClientObj.queryAggs(
       Jira.Enums.IndexName.Sprint,
       sprintQuery
@@ -80,6 +84,7 @@ export async function sprintVarianceGraph(
         esb
           .boolQuery()
           .must([esb.termsQuery('body.sprintId', Object.keys(issueData))])
+          .filter(esb.rangeQuery('body.timeTracker.estimate').gte(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),
             esb.termQuery('body.issueType', IssuesTypes.TASK),
@@ -87,8 +92,9 @@ export async function sprintVarianceGraph(
           ])
           .minimumShouldMatch(1)
       )
-      .sort(esb.sort('_id', 'desc'))
+      .sort(esb.sort(sortKey, sortOrder))
       .toJSON() as { query: object };
+    logger.info('issue_sprint_query', query);
     const ftpRateGraph: any = await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
     const sprintEstimate = ftpRateGraph.sprint_aggregation.buckets.map((item: any) => {
       return {
@@ -97,7 +103,10 @@ export async function sprintVarianceGraph(
           estimated: item.estimatedTime.value,
           actual: item.actualTime.value,
         },
-        variance: (item.estimatedTime.value - item.actualTime.value) / 100,
+        variance:
+          item.estimatedTime.value === 0
+            ? 0
+            : ((item.actualTime.value - item.estimatedTime.value) * 100) / item.estimatedTime.value,
       };
     });
     return {
@@ -173,6 +182,7 @@ export async function sprintVarianceGraphAvg(
         esb
           .boolQuery()
           .must([esb.termsQuery('body.sprintId', Object.keys(sprintIdsObj))])
+          .filter(esb.rangeQuery('body.timeTracker.estimate').gte(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),
             esb.termQuery('body.issueType', IssuesTypes.TASK),
@@ -182,7 +192,10 @@ export async function sprintVarianceGraphAvg(
       )
       .toJSON() as { query: object };
     const ftpRateGraph: any = await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
-    return (ftpRateGraph.estimatedTime.value - ftpRateGraph.actualTime.value) / 100;
+    return ftpRateGraph.estimatedTime.value === 0
+      ? 0
+      : ((ftpRateGraph.actualTime.value - ftpRateGraph.estimatedTime.value) * 100) /
+          ftpRateGraph.estimatedTime.value;
   } catch (e) {
     throw new Error(`Something went wrong : ${e}`);
   }
