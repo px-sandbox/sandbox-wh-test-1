@@ -7,6 +7,7 @@ import { commonConfig } from './stacks/common/config';
 
 import { AppConfig, Stage } from './stacks/type/stack-config';
 import { dpscStack } from './stacks/dpsc/dpsc';
+import { pmStack } from './stacks/pm/pm';
 
 export default {
   config(): { name: string; region: string } {
@@ -26,6 +27,7 @@ export default {
     app.stack(jira);
     app.stack(devops);
     app.stack(dpscStack);
+    app.stack(pmStack);
 
     if (app.stage !== Stage.LIVE) {
       app.setDefaultRemovalPolicy('destroy');

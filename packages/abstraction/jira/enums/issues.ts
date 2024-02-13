@@ -3,6 +3,7 @@ export enum IssuesTypes {
   TASK = 'Task',
   BUG = 'Bug',
   EPIC = 'Epic',
+  SUBTASK = 'Sub-task',
 }
 export enum ChangelogStatus {
   QA_FAILED = 'QA_Failed',
@@ -22,4 +23,14 @@ export enum ChangelogField {
   STATUS = 'status',
   CUSTOM = 'custom',
   JIRA = 'jira',
+}
+
+export enum IssueTimeTrackerSort {
+  estimates = 'body.timeTracker.estimate',
+  actual = 'body.timeTracker.actual',
+}
+
+export enum IssueTimeTracker {
+  estimates = 'estimates',
+  actual = 'actual',
 }
