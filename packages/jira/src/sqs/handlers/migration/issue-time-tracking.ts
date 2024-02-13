@@ -3,6 +3,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
 import { logProcessToRetry } from '../../../util/retry-process';
+import { JiraClient } from '../../../lib/jira-client';
 
 const sqsClient = new SQSClient();
 
@@ -17,9 +18,10 @@ export const handler = async function issueTimeTrackingMigration(event: SQSEvent
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
       try {
-        const messageBody = JSON.parse(record.body);
-        const issueDataFromApi = await messageBody.jiraClient.getIssue(messageBody.issue?.issueId);
-        const { _id, ...rest } = messageBody.issue;
+        const { issue, organization } = JSON.parse(record.body);
+        const jiraClient = await JiraClient.getClient(organization);
+        const issueDataFromApi = await jiraClient.getIssue(issue?.issueId);
+        const { _id, ...rest } = issue;
 
         const modifiedIssue = {
           id: _id,
@@ -32,6 +34,7 @@ export const handler = async function issueTimeTrackingMigration(event: SQSEvent
           },
         };
         // sending updated issue data to indexer
+        logger.info(`issueTimeTrackingMigration: sending issue to indexer: ${modifiedIssue}`);
         await sqsClient.sendMessage(modifiedIssue, Queue.qIssueIndex.queueUrl);
       } catch (error) {
         await logProcessToRetry(record, Queue.qIssueTimeTrackingMigration.queueUrl, error as Error);
