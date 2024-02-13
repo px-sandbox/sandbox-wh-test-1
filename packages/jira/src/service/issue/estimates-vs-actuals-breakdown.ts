@@ -20,20 +20,25 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const limit = parseInt(event?.queryStringParameters?.limit ?? '10', 10);
   const sortKey = event?.queryStringParameters?.sortKey ?? 'estimate';
   const SortOrder = event?.queryStringParameters?.sortOrder ?? 'asc';
-  const organization = event?.queryStringParameters?.organization ?? '';
-  const orgIdQuery = esb
+  const orgId = event?.queryStringParameters?.orgId ?? '';
+  const orgnameQuery = esb
     .requestBodySearch()
-    .query(esb.boolQuery().must(esb.termQuery('body.name', organization)))
-    .source(['body.id']);
-  const orgIdRes = await searchedDataFormator(
-    await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Organization, orgIdQuery.toJSON())
+    .query(esb.boolQuery().must(esb.termQuery('body.id', orgId)))
+    .source(['body.name']);
+  const orgnameRes = await searchedDataFormator(
+    await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Organization, orgnameQuery.toJSON())
   );
 
-  if (!projectId || !sprintId || !orgIdRes[0]) {
+  if (!projectId || !sprintId || !orgId) {
     throw new Error(
-      'estimates-VS-actuals-breakdown: projectId, sprintId and organization are required'
+      'estimates-VS-actuals-breakdown: projectId, sprintId and organization are required!'
     );
   }
+
+  if (!orgnameRes[0]?.name) {
+    throw new Error('estimates-VS-actuals-breakdown: organization not found!');
+  }
+
   const response = await estimatesVsActualsBreakdown(
     projectId,
     sprintId,
@@ -41,8 +46,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     limit,
     sortKey,
     SortOrder,
-    orgIdRes[0].id,
-    organization
+    orgId,
+    orgnameRes[0].name
   );
   return responseParser
     .setBody(response)
