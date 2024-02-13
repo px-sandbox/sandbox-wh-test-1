@@ -36,3 +36,20 @@ export type Issue = {
     };
   };
 };
+
+// estimates vs actuals breakdown view api
+
+type SubtaskArray = {
+  id: string;
+  estimate: number;
+  actual: number;
+  variance: number;
+  link: string;
+};
+export type EstimatesVsActualsBreakdownResponse = SubtaskArray & {
+  overallEstimate: number;
+  overallActual: number;
+  overallVariance: number;
+  hasSubtasks: boolean;
+  subtasks: SubtaskArray[];
+};
