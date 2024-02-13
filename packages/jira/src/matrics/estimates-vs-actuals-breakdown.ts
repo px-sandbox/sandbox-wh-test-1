@@ -88,9 +88,11 @@ export const estimatesVsActualsBreakdown = async (
           .source(['body.id', 'body.issueKey', 'body.timeTracker'])
           .toJSON();
 
-        const subtaskData = await searchedDataFormator(
-          await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Issue, query)
-        );
+        const subtaskData = keys.length
+          ? await searchedDataFormator(
+              await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Issue, query)
+            )
+          : [];
 
         const estimate = issue?.timeTracker?.estimate ?? 0;
         const actual = issue?.timeTracker?.actual ?? 0;
