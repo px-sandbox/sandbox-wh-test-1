@@ -102,7 +102,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
 
   const issueTimeTrackingMigrationQueue = new Queue(stack, 'qIssueTimeTrackingMigration');
   issueTimeTrackingMigrationQueue.addConsumer(stack, {
-    function: new Function(stack, 'qIssueTimeTrackingMigration', {
+    function: new Function(stack, 'fnIssueTimeTrackingMigration', {
       handler: 'packages/jira/src/sqs/handlers/migration/issue-time-tracking.handler',
       bind: [issueTimeTrackingMigrationQueue],
       runtime: NODE_VERSION,
