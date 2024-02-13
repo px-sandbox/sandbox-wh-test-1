@@ -106,6 +106,15 @@ export function initializeRoutes(
       },
       authorizer: 'admin',
     },
+
+    // estimates vs actuals breakdown view api
+    'GET /jira/{projectId}/{sprintId}/metrics/pm/estimates-vs-actuals': {
+      function: {
+        handler: 'packages/jira/src/service/issue/estimates-vs-actuals-breakdown.handler',
+        timeout: '5 minutes',
+      },
+      authorizer: 'universal',
+    },
   };
   return routesObj;
 }

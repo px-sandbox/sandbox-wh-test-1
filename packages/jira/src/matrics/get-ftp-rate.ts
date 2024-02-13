@@ -5,11 +5,10 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
 import _ from 'lodash';
+import { getOrganizationById } from '../repository/organization/get-organization';
 import { getBoardByOrgId } from '../repository/board/get-board';
 import { getSprints } from '../lib/get-sprints';
 import { IssueReponse, searchedDataFormator } from '../util/response-formatter';
-import { getOrganizationById } from 'src/repository/organization/get-organization';
-
 
 let esClient: ElasticSearchClient;
 
@@ -31,10 +30,14 @@ function getJiraLink(orgName: string, projectKey: string, sprintId: number): str
 }
 
 // eslint-disable-next-line max-lines-per-function,
-export async function ftpRateGraph(organizationId: string, projectId: string, sprintIds: string[]): Promise<IssueReponse[]> {
+export async function ftpRateGraph(
+  organizationId: string,
+  projectId: string,
+  sprintIds: string[]
+): Promise<IssueReponse[]> {
   try {
-    let orgName: string = "";
-    let projectKey: string = "";
+    let orgName = '';
+    let projectKey = '';
 
     const esClientObj = getEsClientObj();
 
@@ -84,11 +87,14 @@ export async function ftpRateGraph(organizationId: string, projectId: string, sp
       ftpRateGraphQuery
     );
 
-    let response: IssueReponse[] = (await Promise.all(
+    let response: IssueReponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
 
-        const boardName = await getBoardByOrgId(sprintData?.originBoardId, sprintData?.organizationId)
+        const boardName = await getBoardByOrgId(
+          sprintData?.originBoardId,
+          sprintData?.organizationId
+        );
 
         const ftpData = ftpRateGraphResponse.sprint_buckets.buckets.find(
           (obj) => obj.key === sprintId
@@ -107,11 +113,13 @@ export async function ftpRateGraph(organizationId: string, projectId: string, sp
           startDate: sprintData?.startDate,
           endDate: sprintData?.endDate,
           percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
-          linkToJira: getJiraLink(orgName, projectKey, sprintData.sprintId)
+          linkToJira: getJiraLink(orgName, projectKey, sprintData.sprintId),
         };
       })
-    ));
-    response = _.sortBy(response, [(item: IssueReponse): Date => new Date(item.startDate)]).reverse();
+    );
+    response = _.sortBy(response, [
+      (item: IssueReponse): Date => new Date(item.startDate),
+    ]).reverse();
     return response.filter((obj) => obj.sprintName !== undefined);
   } catch (e) {
     logger.error('ftpRateGraphQuery.error', e);
@@ -162,12 +170,12 @@ export async function ftpRateGraphAvg(
         ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count === 0
           ? 0
           : Number(
-            (
-              (ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count /
-                ftpRateGraphResponse.body.hits.total.value) *
-              100
-            ).toFixed(2)
-          ),
+              (
+                (ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count /
+                  ftpRateGraphResponse.body.hits.total.value) *
+                100
+              ).toFixed(2)
+            ),
     };
   } catch (e) {
     logger.error('ftpRateGraphQuery.error', e);
