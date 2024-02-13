@@ -178,6 +178,12 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
     jiraDDB.processJiraRetryTable,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    JIRA_CLIENT_ID,
+    JIRA_CLIENT_SECRET,
+    JIRA_REDIRECT_URI,
   ]);
 
   return [
