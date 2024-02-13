@@ -46,15 +46,10 @@ type SubtaskArray = {
   variance: number;
   link: string;
 };
-export type EstimatesVsActualsBreakdownResponse = {
-  id: string; // or number, depending on what `issue.id` is
-  estimate: number;
-  actual: number;
-  variance: number;
+export type EstimatesVsActualsBreakdownResponse = SubtaskArray & {
   overallEstimate: number;
   overallActual: number;
   overallVariance: number;
   hasSubtasks: boolean;
-  link: string;
   subtasks: SubtaskArray[];
 };
