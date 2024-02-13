@@ -187,5 +187,6 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     reOpenRateIndexQueue,
     reOpenRateMigratorQueue,
     reOpenRateDeleteQueue,
+    issueTimeTrackingMigrationQueue,
   ];
 }
