@@ -100,6 +100,20 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     },
   });
 
+  const issueTimeTrackingMigrationQueue = new Queue(stack, 'qIssueTimeTrackingMigration');
+  issueTimeTrackingMigrationQueue.addConsumer(stack, {
+    function: new Function(stack, 'qIssueTimeTrackingMigration', {
+      handler: 'packages/jira/src/sqs/handlers/migration/issue-time-tracking.handler',
+      bind: [issueTimeTrackingMigrationQueue],
+      runtime: NODE_VERSION,
+    }),
+    cdk: {
+      eventSource: {
+        batchSize: 10,
+      },
+    },
+  });
+
   issueFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
@@ -158,6 +172,12 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
+  ]);
+
+  issueTimeTrackingMigrationQueue.bind([
+    jiraDDB.jiraCredsTable,
+    jiraDDB.jiraMappingTable,
+    jiraDDB.processJiraRetryTable,
   ]);
 
   return [

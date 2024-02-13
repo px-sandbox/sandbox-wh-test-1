@@ -14,6 +14,7 @@ export function initializeRoutes(
     sprintMigrateQueue,
     issueStatusMigrateQueue,
     issueMigrateQueue,
+    issueTimeTrackingMigrationQueue,
   } = migrateQueues;
   routesObj = {
     // GET create all Jira indices into ES
@@ -103,6 +104,7 @@ export function initializeRoutes(
       function: {
         handler: 'packages/jira/src/migrations/issue-time-tracking.handler',
         timeout: '5 minutes',
+        bind: [issueTimeTrackingMigrationQueue],
       },
       authorizer: 'admin',
     },
