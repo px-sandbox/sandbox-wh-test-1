@@ -6,7 +6,7 @@ import { Config } from 'sst/node/config';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
-import { logger } from 'core';
+import { HttpStatusCode, logger, responseParser } from 'core';
 import async from 'async';
 
 import { searchedDataFormator } from '../util/response-formatter';
@@ -110,11 +110,15 @@ async function migration(projectId: string, organization: string): Promise<void>
  */
 export const handler = async function migrateIssueTimeTracking(
   event: APIGatewayProxyEvent
-): Promise<void> {
+): Promise<unknown> {
   const projectId = event?.pathParameters?.projectId ?? '';
   const organization = event?.queryStringParameters?.organization ?? '';
   logger.info(
     `issue-time-tracking-migration: projectId: ${projectId} organization: ${organization}`
   );
   await migration(projectId, organization);
+  return responseParser
+    .setMessage('Successfully ran time tracking issue migration')
+    .setResponseBodyCode('SUCCESS')
+    .setStatusCode(HttpStatusCode['200']);
 };
