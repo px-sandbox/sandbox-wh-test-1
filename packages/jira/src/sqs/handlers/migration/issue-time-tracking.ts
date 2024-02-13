@@ -34,9 +34,6 @@ export const handler = async function issueTimeTrackingMigration(event: SQSEvent
           },
         };
         // sending updated issue data to indexer
-        logger.info(
-          `issueTimeTrackingMigration: sending issue to indexer: ${JSON.stringify(modifiedIssue)}`
-        );
         await sqsClient.sendMessage(modifiedIssue, Queue.qIssueIndex.queueUrl);
       } catch (error) {
         await logProcessToRetry(record, Queue.qIssueTimeTrackingMigration.queueUrl, error as Error);
