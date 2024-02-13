@@ -30,10 +30,10 @@ export type Issue = {
     deletedAt?: string | null;
     organizationId: string;
     changelog: ChangelogItem[];
-    // timeTracker: {
-    //   estimate: number;
-    //   actual: number;
-    // };
+    timeTracker: {
+      estimate: number;
+      actual: number;
+    };
   };
 };
 
