@@ -14,7 +14,6 @@ export function jira({ stack }: StackContext): {
     admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
   }>;
 } {
-
   const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } =
     initializeDynamoDBTables(stack);
 
@@ -24,13 +23,9 @@ export function jira({ stack }: StackContext): {
     sprintMigrateQueue,
     issueStatusMigrateQueue,
     issueMigrateQueue,
+    issueTimeTrackingMigrationQueue,
     ...restQueues
-  } = initializeQueues(
-    stack,
-    jiraMappingTable,
-    jiraCredsTable,
-    processJiraRetryTable
-  );
+  } = initializeQueues(stack, jiraMappingTable, jiraCredsTable, processJiraRetryTable);
 
   const [refreshToken, processJiraRetryFunction, hardDeleteProjectsData] = initializeFunctions(
     stack,
@@ -47,6 +42,7 @@ export function jira({ stack }: StackContext): {
       sprintMigrateQueue,
       issueStatusMigrateQueue,
       issueMigrateQueue,
+      issueTimeTrackingMigrationQueue,
       ...Object.values(restQueues),
     ]
   );
@@ -58,4 +54,3 @@ export function jira({ stack }: StackContext): {
   });
   return { jiraApi };
 }
-
