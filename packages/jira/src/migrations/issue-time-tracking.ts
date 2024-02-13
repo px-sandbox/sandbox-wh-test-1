@@ -8,7 +8,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
 import async from 'async';
-import { JiraClient } from '../lib/jira-client';
+
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = new ElasticSearchClient({
@@ -24,14 +24,13 @@ async function sendIssuesToMigrationQueue(
   issues: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]
 ): Promise<void> {
   try {
-    const jiraClient = await JiraClient.getClient(organization);
     await async.eachLimit(issues, 50, async (issue) => {
       try {
         logger.info(
           `issue-time-tracking-migration: sending issue to migration queue for: ${issue._id}`
         );
         await sqsClient.sendMessage(
-          { issue, jiraClient },
+          { issue, organization },
           Queue.qIssueTimeTrackingMigration.queueUrl
         );
       } catch (e) {
