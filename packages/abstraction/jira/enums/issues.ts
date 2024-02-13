@@ -3,7 +3,7 @@ export enum IssuesTypes {
   TASK = 'Task',
   BUG = 'Bug',
   EPIC = 'Epic',
-  SUBTASK = 'Subtask',
+  SUBTASK = 'Sub-task',
 }
 export enum ChangelogStatus {
   QA_FAILED = 'QA_Failed',

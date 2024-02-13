@@ -160,13 +160,9 @@ export async function sprintVarianceGraphAvg(
       );
       lastHit = body.hits.hits[body.hits.hits?.length - 1]?.sort;
       sprintIds = await searchedDataFormator(body);
-      sprintIdsArr.push(...sprintIds);
+      sprintIdsArr.push(...sprintIds.map((id) => id.id));
     } while (sprintIds?.length);
-    const sprintIdsObj = sprintIdsArr.reduce((acc: any, item: any) => {
-      acc[item.id] = item;
-      return acc;
-    }, {});
-    logger.info('sprintIdsObj', sprintIdsObj);
+    logger.info('sprintIds', { sprintIdsArr });
     const query = esb
       .requestBodySearch()
       .size(0)
@@ -177,7 +173,7 @@ export async function sprintVarianceGraphAvg(
       .query(
         esb
           .boolQuery()
-          .must([esb.termsQuery('body.sprintId', Object.keys(sprintIdsObj))])
+          .must([esb.termsQuery('body.sprintId', sprintIdsArr)])
           .filter(esb.rangeQuery('body.timeTracker.estimate').gte(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),
@@ -187,6 +183,7 @@ export async function sprintVarianceGraphAvg(
           .minimumShouldMatch(1)
       )
       .toJSON() as { query: object };
+    logger.info('issue_for_sprints_query', query);
     const ftpRateGraph: any = await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
     return ftpRateGraph.estimatedTime.value === 0
       ? 0
