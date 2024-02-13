@@ -14,8 +14,8 @@ const esClientObj = new ElasticSearchClient({
 });
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const projectId = event?.pathParameters?.projectId;
-  const sprintId = event?.pathParameters?.sprintId;
+  const projectId = event?.queryStringParameters?.projectId;
+  const sprintId = event?.queryStringParameters?.sprintId;
   const page = parseInt(event?.queryStringParameters?.page ?? '1', 10);
   const limit = parseInt(event?.queryStringParameters?.limit ?? '10', 10);
   const sortKey = event?.queryStringParameters?.sortKey ?? 'estimate';
