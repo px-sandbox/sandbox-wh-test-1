@@ -27,7 +27,7 @@ async function sendIssuesToMigrationQueue(
     await async.eachLimit(issues, 50, async (issue) => {
       try {
         logger.info(
-          `issue-time-tracking-migration: sending issue ${issue.body.issueKey} to migration queue`
+          `issueTimeTrackingMigr: sending issue ${issue.body.issueKey} to migration queue`
         );
         await sqsClient.sendMessage(
           { issue, organization },
@@ -42,7 +42,7 @@ async function sendIssuesToMigrationQueue(
   } catch (e) {
     logger.error(`Error in issue(time tracking) migration while sending issue to indexer: ${e}`);
   }
-  logger.info('Successfully sent all issues to migration queue');
+  logger.info(`Successfully sent all issues to migration queue for projectID: ${projectId}`);
 }
 
 /**
