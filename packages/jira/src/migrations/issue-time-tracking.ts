@@ -6,7 +6,7 @@ import { Config } from 'sst/node/config';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
-import { HttpStatusCode, logger, responseParser } from 'core';
+import { logger } from 'core';
 import async from 'async';
 
 import { searchedDataFormator } from '../util/response-formatter';
@@ -27,7 +27,7 @@ async function sendIssuesToMigrationQueue(
     await async.eachLimit(issues, 50, async (issue) => {
       try {
         logger.info(
-          `issue-time-tracking-migration: sending issue to migration queue for: ${issue._id}`
+          `issueTimeTrackingMigr: sending issue ${issue.body.issueKey} to migration queue`
         );
         await sqsClient.sendMessage(
           { issue, organization },
@@ -42,7 +42,7 @@ async function sendIssuesToMigrationQueue(
   } catch (e) {
     logger.error(`Error in issue(time tracking) migration while sending issue to indexer: ${e}`);
   }
-  logger.info('issuesTimeTrackMigration.successful');
+  logger.info(`Successfully sent all issues to migration queue for projectID: ${projectId}`);
 }
 
 /**
@@ -66,7 +66,7 @@ async function migration(projectId: string, organization: string): Promise<void>
             esb.termQuery('body.projectId', projectId),
             esb.termsQuery('body.issueType', ['Story', 'Task', 'Bug', 'SubTask']),
           ])
-        // .mustNot(esb.existsQuery('body.timeTracker'))
+          .filter(esb.boolQuery().mustNot(esb.existsQuery('body.timeTracker')))
       )
       .size(1000)
       .sort(esb.sort('_id'));
@@ -110,15 +110,11 @@ async function migration(projectId: string, organization: string): Promise<void>
  */
 export const handler = async function migrateIssueTimeTracking(
   event: APIGatewayProxyEvent
-): Promise<unknown> {
+): Promise<void> {
   const projectId = event?.pathParameters?.projectId ?? '';
   const organization = event?.queryStringParameters?.organization ?? '';
   logger.info(
     `issue-time-tracking-migration: projectId: ${projectId} organization: ${organization}`
   );
   await migration(projectId, organization);
-  return responseParser
-    .setMessage('Successfully ran time tracking issue migration')
-    .setResponseBodyCode('SUCCESS')
-    .setStatusCode(HttpStatusCode['200']);
 };
