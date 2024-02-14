@@ -70,7 +70,7 @@ export const estimatesVsActualsBreakdown = async (
 
     const response = await Promise.all(
       issueData?.map(async (issue) => {
-        const keys = issue.subtasks.map((ele: { key: string }) => ele.key);
+        const keys = issue.subtasks?.map((ele: { key: string }) => ele.key);
 
         const query = esb
           .requestBodySearch()
