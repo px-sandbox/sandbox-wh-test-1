@@ -23,7 +23,6 @@ export function jira({ stack }: StackContext): {
     sprintMigrateQueue,
     issueStatusMigrateQueue,
     issueMigrateQueue,
-    issueTimeTrackingMigrationQueue,
     ...restQueues
   } = initializeQueues(stack, jiraMappingTable, jiraCredsTable, processJiraRetryTable);
 
@@ -42,7 +41,6 @@ export function jira({ stack }: StackContext): {
       sprintMigrateQueue,
       issueStatusMigrateQueue,
       issueMigrateQueue,
-      issueTimeTrackingMigrationQueue,
       ...Object.values(restQueues),
     ]
   );

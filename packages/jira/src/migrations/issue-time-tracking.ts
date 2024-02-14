@@ -66,7 +66,7 @@ async function migration(projectId: string, organization: string): Promise<void>
             esb.termQuery('body.projectId', projectId),
             esb.termsQuery('body.issueType', ['Story', 'Task', 'Bug', 'SubTask']),
           ])
-        // .mustNot(esb.existsQuery('body.timeTracker'))
+          .filter(esb.boolQuery().mustNot(esb.existsQuery('body.timeTracker')))
       )
       .size(1000)
       .sort(esb.sort('_id'));
