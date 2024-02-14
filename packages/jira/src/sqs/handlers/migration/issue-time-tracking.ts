@@ -2,6 +2,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
+import axios from 'axios';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { JiraClient } from '../../../lib/jira-client';
 
@@ -24,6 +25,7 @@ export const handler = async function issueTimeTrackingMigration(event: SQSEvent
           `issueTimeTrackingMigrQueue: Fetching issue ${issue.issueKey} | ${issue.issueId} from API`
         );
         const issueDataFromApi = await jiraClient.getIssue(issue?.issueId);
+
         logger.info(`issueTimeTrackingMigrQueue: Fetched issue successfully`);
         const { _id, ...rest } = issue;
 
@@ -40,6 +42,9 @@ export const handler = async function issueTimeTrackingMigration(event: SQSEvent
         // sending updated issue data to indexer
         await sqsClient.sendMessage(modifiedIssue, Queue.qIssueIndex.queueUrl);
       } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status) {
+          return;
+        }
         await logProcessToRetry(record, Queue.qIssueTimeTrackingMigration.queueUrl, error as Error);
         logger.error('issueTimeTrackingMigrationQueue.error', error);
       }
