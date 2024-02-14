@@ -42,7 +42,7 @@ export const handler = async function issueTimeTrackingMigration(event: SQSEvent
         // sending updated issue data to indexer
         await sqsClient.sendMessage(modifiedIssue, Queue.qIssueIndex.queueUrl);
       } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
           return;
         }
         await logProcessToRetry(record, Queue.qIssueTimeTrackingMigration.queueUrl, error as Error);
