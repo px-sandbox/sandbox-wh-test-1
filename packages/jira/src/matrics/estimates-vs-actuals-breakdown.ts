@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import esb from 'elastic-builder';
@@ -15,11 +16,14 @@ const fetchIssueData = async (
   projectId: string,
   sprintId: string,
   orgId: string,
-  sortKey: string,
-  sortOrder: string,
   page: number,
-  limit: number
-): Promise<Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]>> => {
+  limit: number,
+  sortKey: string,
+  sortOrder: string
+): Promise<{
+  issueData: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
+  totalPages: number;
+}> => {
   const issueQuery = esb
     .requestBodySearch()
     .query(
@@ -30,6 +34,19 @@ const fetchIssueData = async (
           esb.termQuery('body.sprintId', sprintId),
           esb.termQuery('body.organizationId.keyword', orgId),
           esb.termsQuery('body.issueType', ['Story', 'Bug', 'Task']),
+        ])
+        .should([
+          esb
+            .boolQuery()
+            .filter([
+              esb.scriptQuery(
+                esb.script().lang('painless').source("doc['body.timeTracker.estimate'].value <= 0")
+              ),
+              esb.scriptQuery(
+                esb.script().lang('painless').source("doc['body.subtasks'].size() > 0")
+              ),
+            ]),
+          esb.boolQuery().filter(esb.rangeQuery('body.timeTracker.estimate').gt(0)),
         ])
     )
     .sort(esb.sort(`body.timeTracker.${sortKey}`, sortOrder))
@@ -43,10 +60,17 @@ const fetchIssueData = async (
       'body.timeTracker',
       'body.subtasks',
     ]);
-  return searchedDataFormator(
-    await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Issue, issueQuery.toJSON())
+
+  const unformattedData: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
+    Jira.Enums.IndexName.Issue,
+    issueQuery.toJSON()
   );
+
+  const totalPages = unformattedData?.hits?.total?.value;
+
+  return { issueData: await searchedDataFormator(unformattedData), totalPages };
 };
+
 export const estimatesVsActualsBreakdown = async (
   projectId: string,
   sprintId: string,
@@ -56,16 +80,20 @@ export const estimatesVsActualsBreakdown = async (
   sortOrder: string,
   orgId: string,
   orgname: string
-): Promise<Jira.Type.EstimatesVsActualsBreakdownResponse[]> => {
+): Promise<{
+  data: Jira.Type.EstimatesVsActualsBreakdownResponse[];
+  totalPages: number;
+  page: number;
+}> => {
   try {
-    const issueData = await fetchIssueData(
+    const { issueData, totalPages } = await fetchIssueData(
       projectId,
       sprintId,
       orgId,
-      sortKey,
-      sortOrder,
       page,
-      limit
+      limit,
+      sortKey,
+      sortOrder
     );
 
     const response = await Promise.all(
@@ -79,7 +107,7 @@ export const estimatesVsActualsBreakdown = async (
               .boolQuery()
               .must([
                 esb.termQuery('body.projectId', projectId),
-                esb.termQuery('body.sprintId', sprintId),
+
                 esb.termQuery('body.organizationId.keyword', orgId),
                 esb.termsQuery('body.issueKey', keys),
               ])
@@ -137,7 +165,8 @@ export const estimatesVsActualsBreakdown = async (
         };
       })
     );
-    return response.filter((ele) => ele.overallEstimate !== 0);
+
+    return { data: response.filter((ele) => ele.overallEstimate !== 0), totalPages, page };
   } catch (e) {
     throw new Error(`estimates-vs-actuals-breakdown-error: ${e}`);
   }
