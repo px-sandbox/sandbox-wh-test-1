@@ -1,8 +1,11 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import esb from 'elastic-builder';
 import { Jira, Other } from 'abstraction';
 import { Config } from 'sst/node/config';
+import _ from 'lodash';
+import { paginate } from '../util/pagination';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = new ElasticSearchClient({
@@ -14,12 +17,8 @@ const esClientObj = new ElasticSearchClient({
 const fetchIssueData = async (
   projectId: string,
   sprintId: string,
-  orgId: string,
-  sortKey: string,
-  sortOrder: string,
-  page: number,
-  limit: number
-): Promise<Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]>> => {
+  orgId: string
+): Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]> => {
   const issueQuery = esb
     .requestBodySearch()
     .query(
@@ -32,9 +31,8 @@ const fetchIssueData = async (
           esb.termsQuery('body.issueType', ['Story', 'Bug', 'Task']),
         ])
     )
-    .sort(esb.sort(`body.timeTracker.${sortKey}`, sortOrder))
-    .from((page - 1) * limit)
-    .size(limit)
+    .sort(esb.sort('_id'))
+    .size(1000)
     .source([
       'body.id',
       'body.projectKey',
@@ -43,10 +41,31 @@ const fetchIssueData = async (
       'body.timeTracker',
       'body.subtasks',
     ]);
-  return searchedDataFormator(
-    await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Issue, issueQuery.toJSON())
+  let unformattedData: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
+    Jira.Enums.IndexName.Issue,
+    issueQuery.toJSON()
   );
+
+  let formattedRes = await searchedDataFormator(unformattedData);
+  const issues = [];
+  issues.push(...formattedRes);
+
+  while (formattedRes?.length) {
+    const lastHit = unformattedData.hits.hits[unformattedData.hits.hits.length - 1];
+    const requestBodyQuery = issueQuery.searchAfter([lastHit.sort[0]]).toJSON();
+
+    unformattedData = await esClientObj.esbRequestBodySearch(
+      Jira.Enums.IndexName.Issue,
+      requestBodyQuery
+    );
+
+    formattedRes = await searchedDataFormator(unformattedData);
+    issues.push(...formattedRes);
+  }
+
+  return issues;
 };
+
 export const estimatesVsActualsBreakdown = async (
   projectId: string,
   sprintId: string,
@@ -56,17 +75,13 @@ export const estimatesVsActualsBreakdown = async (
   sortOrder: string,
   orgId: string,
   orgname: string
-): Promise<Jira.Type.EstimatesVsActualsBreakdownResponse[]> => {
+): Promise<{
+  data: Jira.Type.EstimatesVsActualsBreakdownResponse[];
+  totalPages: number;
+  page: number;
+}> => {
   try {
-    const issueData = await fetchIssueData(
-      projectId,
-      sprintId,
-      orgId,
-      sortKey,
-      sortOrder,
-      page,
-      limit
-    );
+    const issueData = await fetchIssueData(projectId, sprintId, orgId);
 
     const response = await Promise.all(
       issueData?.map(async (issue) => {
@@ -137,7 +152,10 @@ export const estimatesVsActualsBreakdown = async (
         };
       })
     );
-    return response.filter((ele) => ele.overallEstimate !== 0);
+    const data = response.filter((ele) => ele.overallEstimate !== 0);
+    const orderedData = _.orderBy(data, [sortKey], [sortOrder as 'asc' | 'desc']);
+    const paginatedData = await paginate(orderedData, page, limit);
+    return { data: paginatedData, totalPages: Math.ceil(paginatedData.length / limit), page };
   } catch (e) {
     throw new Error(`estimates-vs-actuals-breakdown-error: ${e}`);
   }
