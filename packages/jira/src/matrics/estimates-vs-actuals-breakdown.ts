@@ -70,7 +70,7 @@ export const estimatesVsActualsBreakdown = async (
 
     const response = await Promise.all(
       issueData?.map(async (issue) => {
-        const keys = issue.subtasks.map((ele: { key: string }) => ele.key);
+        const keys = issue.subtasks?.map((ele: { key: string }) => ele.key);
 
         const query = esb
           .requestBodySearch()
@@ -89,7 +89,7 @@ export const estimatesVsActualsBreakdown = async (
           .toJSON();
 
         const subtaskData =
-          keys.length > 0
+          keys?.length > 0
             ? await searchedDataFormator(
                 await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Issue, query)
               )
@@ -118,7 +118,7 @@ export const estimatesVsActualsBreakdown = async (
             estimate: subEstimate,
             actual: subActual,
             variance: parseFloat((((subActual - subEstimate) / subEstimate) * 100).toFixed(1)),
-            link: `https://${orgname}.atlassian.net/browse/${subtask.issueKey}`,
+            link: `https://${orgname}.atlassian.net/browse/${subtask?.issueKey}`,
           });
         });
         return {
@@ -131,7 +131,7 @@ export const estimatesVsActualsBreakdown = async (
           overallVariance: parseFloat(
             (((overallActual - overallEstimate) / overallEstimate) * 100).toFixed(1)
           ),
-          hasSubtasks: subtasksArr.length > 0,
+          hasSubtasks: subtasksArr?.length > 0,
           link: `https://${orgname}.atlassian.net/browse/${issue.issueKey}`,
           subtasks: subtasksArr,
         };
