@@ -4,8 +4,6 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import esb from 'elastic-builder';
 import { Jira, Other } from 'abstraction';
 import { Config } from 'sst/node/config';
-import _ from 'lodash';
-import { paginate } from '../util/pagination';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = new ElasticSearchClient({
@@ -17,8 +15,15 @@ const esClientObj = new ElasticSearchClient({
 const fetchIssueData = async (
   projectId: string,
   sprintId: string,
-  orgId: string
-): Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]> => {
+  orgId: string,
+  page: number,
+  limit: number,
+  sortKey: string,
+  sortOrder: string
+): Promise<{
+  issueData: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
+  totalPages: number;
+}> => {
   const issueQuery = esb
     .requestBodySearch()
     .query(
@@ -30,9 +35,23 @@ const fetchIssueData = async (
           esb.termQuery('body.organizationId.keyword', orgId),
           esb.termsQuery('body.issueType', ['Story', 'Bug', 'Task']),
         ])
+        .should([
+          esb
+            .boolQuery()
+            .filter([
+              esb.scriptQuery(
+                esb.script().lang('painless').source("doc['body.timeTracker.estimate'].value <= 0")
+              ),
+              esb.scriptQuery(
+                esb.script().lang('painless').source("doc['body.subtasks'].size() > 0")
+              ),
+            ]),
+          esb.boolQuery().filter(esb.rangeQuery('body.timeTracker.estimate').gt(0)),
+        ])
     )
-    .sort(esb.sort('_id'))
-    .size(1000)
+    .sort(esb.sort(`body.timeTracker.${sortKey}`, sortOrder))
+    .from((page - 1) * limit)
+    .size(limit)
     .source([
       'body.id',
       'body.projectKey',
@@ -41,29 +60,15 @@ const fetchIssueData = async (
       'body.timeTracker',
       'body.subtasks',
     ]);
-  let unformattedData: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
+
+  const unformattedData: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
     Jira.Enums.IndexName.Issue,
     issueQuery.toJSON()
   );
 
-  let formattedRes = await searchedDataFormator(unformattedData);
-  const issues = [];
-  issues.push(...formattedRes);
+  const totalPages = unformattedData?.hits?.total?.value;
 
-  while (formattedRes?.length) {
-    const lastHit = unformattedData.hits.hits[unformattedData.hits.hits.length - 1];
-    const requestBodyQuery = issueQuery.searchAfter([lastHit.sort[0]]).toJSON();
-
-    unformattedData = await esClientObj.esbRequestBodySearch(
-      Jira.Enums.IndexName.Issue,
-      requestBodyQuery
-    );
-
-    formattedRes = await searchedDataFormator(unformattedData);
-    issues.push(...formattedRes);
-  }
-
-  return issues;
+  return { issueData: await searchedDataFormator(unformattedData), totalPages };
 };
 
 export const estimatesVsActualsBreakdown = async (
@@ -81,7 +86,15 @@ export const estimatesVsActualsBreakdown = async (
   page: number;
 }> => {
   try {
-    const issueData = await fetchIssueData(projectId, sprintId, orgId);
+    const { issueData, totalPages } = await fetchIssueData(
+      projectId,
+      sprintId,
+      orgId,
+      page,
+      limit,
+      sortKey,
+      sortOrder
+    );
 
     const response = await Promise.all(
       issueData?.map(async (issue) => {
@@ -94,7 +107,7 @@ export const estimatesVsActualsBreakdown = async (
               .boolQuery()
               .must([
                 esb.termQuery('body.projectId', projectId),
-                esb.termQuery('body.sprintId', sprintId),
+
                 esb.termQuery('body.organizationId.keyword', orgId),
                 esb.termsQuery('body.issueKey', keys),
               ])
@@ -152,10 +165,8 @@ export const estimatesVsActualsBreakdown = async (
         };
       })
     );
-    const data = response.filter((ele) => ele.overallEstimate !== 0);
-    const orderedData = _.orderBy(data, [sortKey], [sortOrder as 'asc' | 'desc']);
-    const paginatedData = await paginate(orderedData, page, limit);
-    return { data: paginatedData, totalPages: Math.ceil(paginatedData.length / limit), page };
+
+    return { data: response.filter((ele) => ele.overallEstimate !== 0), totalPages, page };
   } catch (e) {
     throw new Error(`estimates-vs-actuals-breakdown-error: ${e}`);
   }
