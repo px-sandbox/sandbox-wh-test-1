@@ -20,7 +20,11 @@ export const handler = async function issueTimeTrackingMigration(event: SQSEvent
       try {
         const { issue, organization } = JSON.parse(record.body);
         const jiraClient = await JiraClient.getClient(organization);
+        logger.info(
+          `issueTimeTrackingMigrQueue: Fetching issue ${issue.issueKey} | ${issue.issueId} from API`
+        );
         const issueDataFromApi = await jiraClient.getIssue(issue?.issueId);
+        logger.info(`issueTimeTrackingMigrQueue: Fetched issue successfully`);
         const { _id, ...rest } = issue;
 
         const modifiedIssue = {
