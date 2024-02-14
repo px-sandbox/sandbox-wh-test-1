@@ -27,7 +27,7 @@ const sprintVariance = async function sprintVariance(
       await sprintVarianceGraphAvg(projectId, startDate, endDate),
     ]);
     return responseParser
-      .setBody({ graphData, headline })
+      .setBody({ graphData: graphData.data, afterKey: graphData.afterKey, headline })
       .setMessage('sprint variance fetched successfully')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')

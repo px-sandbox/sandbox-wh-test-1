@@ -1,10 +1,10 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { IssuesTypes, SprintState } from 'abstraction/jira/enums';
-import { SprintVarianceData } from 'abstraction/jira/type';
+import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from 'src/util/response-formatter';
+import { searchedDataFormator } from '../util/response-formatter';
 import { Config } from 'sst/node/config';
 
 export async function sprintVarianceGraph(
@@ -55,17 +55,22 @@ export async function sprintVarianceGraph(
       Jira.Enums.IndexName.Sprint,
       sprintQuery
     );
-    let issueData: any = {};
+    const issueData: Record<
+      string,
+      { name: string; state: string; startDate: string; endDate: string }
+    > = {};
     await Promise.all(
-      body.sprints.buckets.map(async (item: any) => {
-        const [sprintHits] = await searchedDataFormator(item.sprint_hits);
-        issueData[item.key.sprintId] = {
-          id: sprintHits.id,
-          name: sprintHits.name,
-          startDate: sprintHits.startDate,
-          endDate: sprintHits.endDate,
-        };
-      })
+      body.sprints.buckets.map(
+        async (item: { sprint_hits: esb.CompositeAggregation; key: { sprintId: string } }) => {
+          const [sprintHits] = await searchedDataFormator(item.sprint_hits);
+          issueData[item.key.sprintId] = {
+            name: sprintHits.name,
+            state: sprintHits.state,
+            startDate: sprintHits.startDate,
+            endDate: sprintHits.endDate,
+          };
+        }
+      )
     );
     const afterKeyData = body.sprints.after_key;
     const query = esb
@@ -95,10 +100,11 @@ export async function sprintVarianceGraph(
       .sort(esb.sort(`${Jira.Enums.IssueTimeTrackerSort[sortKey]}`, sortOrder))
       .toJSON() as { query: object };
     logger.info('issue_sprint_query', query);
-    const ftpRateGraph: any = await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
-    const sprintEstimate = ftpRateGraph.sprint_aggregation.buckets.map((item: any) => {
-      return {
-        sprintId: issueData[item.key],
+    const ftpRateGraph: { sprint_aggregation: { buckets: BucketItem[] } } =
+      await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
+    const sprintEstimate: SprintVariance[] = ftpRateGraph.sprint_aggregation.buckets.map(
+      (item: BucketItem): SprintVariance => ({
+        sprint: issueData[item.key],
         time: {
           estimated: item.estimatedTime.value,
           actual: item.actualTime.value,
@@ -107,8 +113,8 @@ export async function sprintVarianceGraph(
           item.estimatedTime.value === 0
             ? 0
             : ((item.actualTime.value - item.estimatedTime.value) * 100) / item.estimatedTime.value,
-      };
-    });
+      })
+    );
     return {
       data: sprintEstimate,
       afterKey: afterKeyData
@@ -125,7 +131,7 @@ export async function sprintVarianceGraphAvg(
   startDate: string,
   endDate: string
 ): Promise<number> {
-  let sprintIdsArr = [];
+  const sprintIdsArr = [];
   try {
     const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
@@ -184,7 +190,8 @@ export async function sprintVarianceGraphAvg(
       )
       .toJSON() as { query: object };
     logger.info('issue_for_sprints_query', query);
-    const ftpRateGraph: any = await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
+    const ftpRateGraph: { estimatedTime: { value: number }; actualTime: { value: number } } =
+      await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
     return ftpRateGraph.estimatedTime.value === 0
       ? 0
       : ((ftpRateGraph.actualTime.value - ftpRateGraph.estimatedTime.value) * 100) /
