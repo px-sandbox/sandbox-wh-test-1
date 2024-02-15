@@ -64,18 +64,23 @@ async function migration(projectId: string, organization: string): Promise<void>
           .boolQuery()
           .must([
             esb.termQuery('body.projectId', projectId),
-            esb.termsQuery('body.issueType', ['Story', 'Task', 'Bug', 'SubTask']),
+            esb.termsQuery('body.issueType', ['Story', 'Task', 'Bug', 'Sub-task']),
           ])
           .mustNot(esb.existsQuery('body.timeTracker'))
       )
       .size(1000)
       .sort(esb.sort('_id'));
 
+    logger.info(
+      'issue-time-tracking: requestBodySearchquery: ',
+      JSON.stringify(requestBodySearchquery)
+    );
+
     let response: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
       Jira.Enums.IndexName.Issue,
       requestBodySearchquery.toJSON()
     );
-
+    logger.info('issue-time-tracking: response: ', JSON.stringify(response?.hits?.total));
     let formattedResponse = await searchedDataFormator(response);
 
     issues.push(...formattedResponse);
