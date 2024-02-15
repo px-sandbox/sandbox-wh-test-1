@@ -27,7 +27,7 @@ async function sendIssuesToMigrationQueue(
     await async.eachLimit(issues, 50, async (issue) => {
       try {
         logger.info(
-          `issueTimeTrackingMigr: sending issue ${issue.body.issueKey} to migration queue`
+          `issueTimeTrackingMigr: sending issue ${issue?.body?.issueKey} to migration queue`
         );
         await sqsClient.sendMessage(
           { issue, organization },
@@ -87,9 +87,9 @@ async function migration(projectId: string, organization: string): Promise<void>
 
     // fetching issues from ES using search_after concept because count of issues can be more than 10000
     while (formattedResponse?.length) {
-      const lastHit = response.hits.hits[response.hits.hits.length - 1];
+      const lastHit = response?.hits?.hits[response.hits.hits.length - 1];
 
-      const requestBodyQuery = requestBodySearchquery.searchAfter([lastHit.sort[0]]).toJSON();
+      const requestBodyQuery = requestBodySearchquery.searchAfter([lastHit?.sort[0]]).toJSON();
 
       response = await esClientObj.esbRequestBodySearch(
         Jira.Enums.IndexName.Issue,
