@@ -27,7 +27,7 @@ async function sendIssuesToMigrationQueue(
     await async.eachLimit(issues, 50, async (issue) => {
       try {
         logger.info(
-          `issueTimeTrackingMigr: sending issue ${issue.body.issueKey} to migration queue`
+          `issueTimeTrackingMigr: sending issue ${issue?.body?.issueKey} to migration queue`
         );
         await sqsClient.sendMessage(
           { issue, organization },
@@ -71,10 +71,7 @@ async function migration(projectId: string, organization: string): Promise<void>
       .size(1000)
       .sort(esb.sort('_id'));
 
-    logger.info(
-      'issue-time-tracking: requestBodySearchquery: ',
-      JSON.stringify(requestBodySearchquery)
-    );
+    logger.info('issue-time-tracking: requestBodySearchquery: ', requestBodySearchquery);
 
     let response: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
       Jira.Enums.IndexName.Issue,
@@ -87,9 +84,9 @@ async function migration(projectId: string, organization: string): Promise<void>
 
     // fetching issues from ES using search_after concept because count of issues can be more than 10000
     while (formattedResponse?.length) {
-      const lastHit = response.hits.hits[response.hits.hits.length - 1];
+      const lastHit = response?.hits?.hits[response.hits.hits.length - 1];
 
-      const requestBodyQuery = requestBodySearchquery.searchAfter([lastHit.sort[0]]).toJSON();
+      const requestBodyQuery = requestBodySearchquery.searchAfter([lastHit?.sort[0]]).toJSON();
 
       response = await esClientObj.esbRequestBodySearch(
         Jira.Enums.IndexName.Issue,
