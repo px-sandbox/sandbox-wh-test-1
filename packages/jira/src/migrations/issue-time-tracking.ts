@@ -71,10 +71,7 @@ async function migration(projectId: string, organization: string): Promise<void>
       .size(1000)
       .sort(esb.sort('_id'));
 
-    logger.info(
-      'issue-time-tracking: requestBodySearchquery: ',
-      JSON.stringify(requestBodySearchquery)
-    );
+    logger.info('issue-time-tracking: requestBodySearchquery: ', requestBodySearchquery);
 
     let response: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
       Jira.Enums.IndexName.Issue,
