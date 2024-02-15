@@ -107,7 +107,7 @@ export async function sprintVarianceGraph(
       (item: BucketItem): SprintVariance => ({
         sprint: issueData[item.key],
         time: {
-          estimated: item.estimatedTime.value,
+          estimate: item.estimatedTime.value,
           actual: item.actualTime.value,
         },
         variance: parseFloat(

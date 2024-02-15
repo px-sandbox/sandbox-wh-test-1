@@ -17,7 +17,7 @@ export type BucketItem = {
 export type SprintVariance = {
   sprint: sprint;
   time: {
-    estimated: number;
+    estimate: number;
     actual: number;
   };
   variance: number;
