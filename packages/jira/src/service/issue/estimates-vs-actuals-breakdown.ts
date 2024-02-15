@@ -13,11 +13,15 @@ const esClientObj = new ElasticSearchClient({
   password: Config.OPENSEARCH_PASSWORD ?? '',
 });
 
+/**
+ * Handles the API Gateway event for fetching estimates vs actuals breakdown view.
+ * @param event - The API Gateway event.
+ * @returns A promise that resolves to the API Gateway proxy result.
+ * @throws Error if projectId, sprintId, or orgId is missing, or if the organization is not found.
+ */
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const projectId = event?.queryStringParameters?.projectId;
   const sprintId = event?.queryStringParameters?.sprintId;
-  const page = parseInt(event?.queryStringParameters?.page ?? '1', 10);
-  const limit = parseInt(event?.queryStringParameters?.limit ?? '10', 10);
   const sortKey = event?.queryStringParameters?.sortKey ?? 'estimate';
   const SortOrder = event?.queryStringParameters?.sortOrder ?? 'asc';
   const orgId = event?.queryStringParameters?.orgId ?? '';
@@ -42,8 +46,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const response = await estimatesVsActualsBreakdown(
     projectId,
     sprintId,
-    page,
-    limit,
     sortKey,
     SortOrder,
     orgId,
