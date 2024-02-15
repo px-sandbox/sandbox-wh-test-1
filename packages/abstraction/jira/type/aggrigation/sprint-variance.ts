@@ -1,4 +1,5 @@
 type sprint = {
+  id: string;
   name: string;
   state: string;
   startDate: string;
@@ -17,10 +18,10 @@ export type SprintVariance = {
   sprint: sprint;
   time: {
     estimate: number;
-    timeSpend: string;
+    actual: number;
   };
   variance: number;
-}[];
+};
 
 export type SprintVarianceData = {
   data: SprintVariance[];

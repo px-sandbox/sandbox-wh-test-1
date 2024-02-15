@@ -57,13 +57,14 @@ export async function sprintVarianceGraph(
     );
     const issueData: Record<
       string,
-      { name: string; state: string; startDate: string; endDate: string }
+      { id: string; name: string; state: string; startDate: string; endDate: string }
     > = {};
     await Promise.all(
       body.sprints.buckets.map(
         async (item: { sprint_hits: esb.CompositeAggregation; key: { sprintId: string } }) => {
           const [sprintHits] = await searchedDataFormator(item.sprint_hits);
           issueData[item.key.sprintId] = {
+            id: sprintHits.id,
             name: sprintHits.name,
             state: sprintHits.state,
             startDate: sprintHits.startDate,
@@ -106,13 +107,15 @@ export async function sprintVarianceGraph(
       (item: BucketItem): SprintVariance => ({
         sprint: issueData[item.key],
         time: {
-          estimated: item.estimatedTime.value,
+          estimate: item.estimatedTime.value,
           actual: item.actualTime.value,
         },
-        variance:
-          item.estimatedTime.value === 0
+        variance: parseFloat(
+          (item.estimatedTime.value === 0
             ? 0
-            : ((item.actualTime.value - item.estimatedTime.value) * 100) / item.estimatedTime.value,
+            : ((item.actualTime.value - item.estimatedTime.value) * 100) / item.estimatedTime.value
+          ).toFixed(2)
+        ),
       })
     );
     return {
@@ -192,10 +195,13 @@ export async function sprintVarianceGraphAvg(
     logger.info('issue_for_sprints_query', query);
     const ftpRateGraph: { estimatedTime: { value: number }; actualTime: { value: number } } =
       await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
-    return ftpRateGraph.estimatedTime.value === 0
-      ? 0
-      : ((ftpRateGraph.actualTime.value - ftpRateGraph.estimatedTime.value) * 100) /
-          ftpRateGraph.estimatedTime.value;
+    return parseFloat(
+      (ftpRateGraph.estimatedTime.value === 0
+        ? 0
+        : ((ftpRateGraph.actualTime.value - ftpRateGraph.estimatedTime.value) * 100) /
+          ftpRateGraph.estimatedTime.value
+      ).toFixed(2)
+    );
   } catch (e) {
     throw new Error(`Something went wrong : ${e}`);
   }
