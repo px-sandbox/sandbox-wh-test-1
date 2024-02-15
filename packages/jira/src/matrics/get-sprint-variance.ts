@@ -95,6 +95,7 @@ export async function sprintVarianceGraph(
             esb.termQuery('body.issueType', IssuesTypes.STORY),
             esb.termQuery('body.issueType', IssuesTypes.TASK),
             esb.termQuery('body.issueType', IssuesTypes.SUBTASK),
+            esb.termQuery('body.issueType', IssuesTypes.BUG),
           ])
           .minimumShouldMatch(1)
       )
@@ -188,6 +189,7 @@ export async function sprintVarianceGraphAvg(
             esb.termQuery('body.issueType', IssuesTypes.STORY),
             esb.termQuery('body.issueType', IssuesTypes.TASK),
             esb.termQuery('body.issueType', IssuesTypes.SUBTASK),
+            esb.termQuery('body.issueType', IssuesTypes.BUG),
           ])
           .minimumShouldMatch(1)
       )
