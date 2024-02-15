@@ -26,9 +26,7 @@ async function sendIssuesToMigrationQueue(
   try {
     await async.eachLimit(issues, 50, async (issue) => {
       try {
-        logger.info(
-          `issueTimeTrackingMigr: sending issue ${issue?.body?.issueKey} to migration queue`
-        );
+        logger.info(`issueTimeTrackingMigr: sending issue ${issue?.issueKey} to migration queue`);
         await sqsClient.sendMessage(
           { issue, organization },
           Queue.qIssueTimeTrackingMigration.queueUrl
