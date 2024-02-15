@@ -1,7 +1,7 @@
 type sprint = {
   id: string;
   name: string;
-  state: string;
+  status: string;
   startDate: string;
   endDate: string;
 };

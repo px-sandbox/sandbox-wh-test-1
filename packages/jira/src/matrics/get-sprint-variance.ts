@@ -57,7 +57,7 @@ export async function sprintVarianceGraph(
     );
     const issueData: Record<
       string,
-      { id: string; name: string; state: string; startDate: string; endDate: string }
+      { id: string; name: string; status: string; startDate: string; endDate: string }
     > = {};
     await Promise.all(
       body.sprints.buckets.map(
@@ -66,7 +66,7 @@ export async function sprintVarianceGraph(
           issueData[item.key.sprintId] = {
             id: sprintHits.id,
             name: sprintHits.name,
-            state: sprintHits.state,
+            status: sprintHits.state,
             startDate: sprintHits.startDate,
             endDate: sprintHits.endDate,
           };
