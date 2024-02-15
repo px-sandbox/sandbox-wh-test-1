@@ -138,7 +138,7 @@ export const estimatesVsActualsBreakdown = async (
             id: subtask.id,
             estimate: subEstimate,
             actual: subActual,
-            variance: parseFloat((((subActual - subEstimate) / subEstimate) * 100).toFixed(1)),
+            variance: parseFloat((((subActual - subEstimate) / subEstimate) * 100).toFixed(2)),
             link: `https://${orgname}.atlassian.net/browse/${subtask?.issueKey}`,
           });
         });
@@ -146,11 +146,11 @@ export const estimatesVsActualsBreakdown = async (
           id: issue.id,
           estimate,
           actual,
-          variance: parseFloat((((actual - estimate) / estimate) * 100).toFixed(1)),
+          variance: parseFloat((((actual - estimate) / estimate) * 100).toFixed(2)),
           overallEstimate,
           overallActual,
           overallVariance: parseFloat(
-            (((overallActual - overallEstimate) / overallEstimate) * 100).toFixed(1)
+            (((overallActual - overallEstimate) / overallEstimate) * 100).toFixed(2)
           ),
           hasSubtasks: subtasksArr?.length > 0,
           link: `https://${orgname}.atlassian.net/browse/${issue.issueKey}`,
