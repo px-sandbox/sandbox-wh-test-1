@@ -110,7 +110,7 @@ export async function sprintVarianceGraph(
           estimated: item.estimatedTime.value,
           actual: item.actualTime.value,
         },
-        variance: parseInt(
+        variance: parseFloat(
           (item.estimatedTime.value === 0
             ? 0
             : ((item.actualTime.value - item.estimatedTime.value) * 100) / item.estimatedTime.value
@@ -195,7 +195,7 @@ export async function sprintVarianceGraphAvg(
     logger.info('issue_for_sprints_query', query);
     const ftpRateGraph: { estimatedTime: { value: number }; actualTime: { value: number } } =
       await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
-    return parseInt(
+    return parseFloat(
       (ftpRateGraph.estimatedTime.value === 0
         ? 0
         : ((ftpRateGraph.actualTime.value - ftpRateGraph.estimatedTime.value) * 100) /
