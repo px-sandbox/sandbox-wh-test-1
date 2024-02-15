@@ -52,21 +52,14 @@ const fetchIssueData = async (
     .sort(esb.sort(`body.timeTracker.${sortKey}`, sortOrder))
     .from((page - 1) * limit)
     .size(limit)
-    .source([
-      'body.id',
-      'body.projectKey',
-      'body.issueKey',
-      'body.boardId',
-      'body.timeTracker',
-      'body.subtasks',
-    ]);
+    .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.subtasks']);
 
   const unformattedData: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
     Jira.Enums.IndexName.Issue,
     issueQuery.toJSON()
   );
 
-  const totalPages = unformattedData?.hits?.total?.value;
+  const totalPages = Math.ceil(unformattedData.hits.total.value / limit);
 
   return { issueData: await searchedDataFormator(unformattedData), totalPages };
 };
@@ -166,7 +159,7 @@ export const estimatesVsActualsBreakdown = async (
       })
     );
 
-    return { data: response.filter((ele) => ele.overallEstimate !== 0), totalPages, page };
+    return { data: response, totalPages, page };
   } catch (e) {
     throw new Error(`estimates-vs-actuals-breakdown-error: ${e}`);
   }
