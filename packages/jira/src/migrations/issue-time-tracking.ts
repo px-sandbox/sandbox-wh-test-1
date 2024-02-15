@@ -77,7 +77,7 @@ async function migration(projectId: string, organization: string): Promise<void>
       Jira.Enums.IndexName.Issue,
       requestBodySearchquery.toJSON()
     );
-    logger.info('issue-time-tracking: response: ', JSON.stringify(response?.hits?.total));
+    logger.info('issue-time-tracking: response: ', response?.hits?.total);
     let formattedResponse = await searchedDataFormator(response);
 
     issues.push(...formattedResponse);
