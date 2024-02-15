@@ -12,9 +12,9 @@ import { searchedDataFormatorWithDeleted } from '../util/response-formatter';
 
 // initializing elastic search client
 const esClientObj = new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
+  host: Config.OPENSEARCH_NODE,
+  username: Config.OPENSEARCH_USERNAME ?? '',
+  password: Config.OPENSEARCH_PASSWORD ?? '',
 });
 
 /**
@@ -22,49 +22,55 @@ const esClientObj = new ElasticSearchClient({
  * @param result The search result containing the project IDs to delete.
  * @returns A Promise that resolves when the deletion is complete.
  */
-async function deleteProjectData(result: (Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody)[]): Promise<void> {
-    try {
-        logger.info('starting to delete project, sprint, boards and issues data from elastic search');
-        const projectData = result?.
-            map((hit) => ({
-                projectId: hit.id,
-                organizationId: hit.organizationId
-            }));
+async function deleteProjectData(
+  result: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]
+): Promise<void> {
+  try {
+    logger.info('starting to delete project, sprint, boards and issues data from elastic search');
+    const projectData = result?.map((hit) => ({
+      projectId: hit.id,
+      organizationId: hit.organizationId,
+    }));
 
-        const indexArr = [
-            Jira.Enums.IndexName.Project,
-            Jira.Enums.IndexName.Issue,
-            Jira.Enums.IndexName.Sprint,
-            Jira.Enums.IndexName.Board
-        ];
-        let deleteQuery = {};
+    const indexArr = [
+      Jira.Enums.IndexName.Project,
+      Jira.Enums.IndexName.Issue,
+      Jira.Enums.IndexName.Sprint,
+      Jira.Enums.IndexName.Board,
+    ];
+    let deleteQuery = {};
 
-        const deletePromises = projectData.map(data => {
+    const deletePromises = projectData.map((data) => {
+      deleteQuery = esb
+        .boolQuery()
+        .must([
+          esb
+            .boolQuery()
+            .should([
+              esb.termQuery('body.id', data.projectId),
+              esb.termQuery('body.projectId', data.projectId),
+            ])
+            .minimumShouldMatch(1),
+          esb
+            .boolQuery()
+            .should([
+              esb.termQuery('body.organizationId', data.organizationId),
+              esb.termQuery('body.organizationId.keyword', data.organizationId),
+            ])
+            .minimumShouldMatch(1),
+        ])
+        .toJSON();
 
-            deleteQuery = esb.boolQuery()
-                .must([
-                    esb.boolQuery().should([
-                        esb.termQuery('body.id', data.projectId),
-                        esb.termQuery('body.projectId', data.projectId)
-                    ])
-                        .minimumShouldMatch(1),
-                    esb.boolQuery().should([
-                        esb.termQuery('body.organizationId', data.organizationId),
-                        esb.termQuery('body.organizationId.keyword', data.organizationId)
-                    ]).minimumShouldMatch(1)
-                ]).toJSON();
+      // deleting all data from ES for project and related sprint, boards and issues
+      return esClientObj.deleteByQuery(indexArr, deleteQuery);
+    });
 
-            // deleting all data from ES for project and related sprint, boards and issues
-            return esClientObj.deleteByQuery(indexArr, deleteQuery);
-        });
-
-        await Promise.all(deletePromises);
-        logger.info('deleted project, sprint, boards and issues data from elastic search');
-    } catch (err) {
-        logger.error('error while deleting project data from elastic search', err);
-        throw err;
-    }
-
+    await Promise.all(deletePromises);
+    logger.info('deleted project, sprint, boards and issues data from elastic search');
+  } catch (err) {
+    logger.error('error while deleting project data from elastic search', err);
+    throw err;
+  }
 }
 
 /**
@@ -72,36 +78,36 @@ async function deleteProjectData(result: (Pick<Other.Type.Hit, "_id"> & Other.Ty
  * @param result - The search result from DD.
  * @returns A Promise that resolves when all projects have been deleted from DynamoDB.
  */
-async function deleteProjectfromDD(result: (Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody)[]): Promise<void> {
-    try {
-        logger.info('starting to delete project from dynamo db');
+async function deleteProjectfromDD(
+  result: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]
+): Promise<void> {
+  try {
+    logger.info('starting to delete project from dynamo db');
 
-        const parentIds = result?.map((hit) => hit._id);
+    const parentIds = result?.map((hit) => hit._id);
 
+    // Deleting from dynamo DB in batches of 20
+    await async.eachLimit(parentIds, 50, async (parentId: any) => {
+      const params = {
+        TableName: Table.jiraMapping.tableName,
+        Key: {
+          parentId,
+        },
+      };
 
-        // Deleting from dynamo DB in batches of 20
-        await async.eachLimit(parentIds, 50, async (parentId: any) => {
-            const params = {
-                TableName: Table.jiraMapping.tableName,
-                Key: {
-                    'parentId': parentId
-                }
-            };
+      try {
+        await new DynamoDbDocClient().delete(params);
 
-            try {
-                await new DynamoDbDocClient().delete(params);
-
-                logger.info(`Entry with parentId ${parentId} deleted from dynamo db`);
-            } catch (error) {
-                logger.error(`Error while deleting entry with parentId ${parentId} from dynamo DB`, error);
-                throw error;
-            }
-
-        });
-    } catch (err) {
-        logger.error("Error while preparing delete requests", err);
-        throw err;
-    }
+        logger.info(`Entry with parentId ${parentId} deleted from dynamo db`);
+      } catch (error) {
+        logger.error(`Error while deleting entry with parentId ${parentId} from dynamo DB`, error);
+        throw error;
+      }
+    });
+  } catch (err) {
+    logger.error('Error while preparing delete requests', err);
+    throw err;
+  }
 }
 
 /**
@@ -110,35 +116,34 @@ async function deleteProjectfromDD(result: (Pick<Other.Type.Hit, "_id"> & Other.
  * @returns Promise<void>
  */
 export async function handler(): Promise<void> {
-    logger.info('Hard delete projects from elastic search and dynamo db function invoked');
+  logger.info('Hard delete projects from elastic search and dynamo db function invoked');
 
-    const duration = Config.PROJECT_DELETION_AGE;
-    const [value, unit] = duration.split(" ");
+  const duration = Config.PROJECT_DELETION_AGE;
+  const [value, unit] = duration.split(' ');
 
-    if (!value || !unit) {
-        throw new Error(`Invalid duration format: ${duration}`);
-    }
-    const dateToCompare = moment().subtract(value, unit as any);
+  if (!value || !unit) {
+    throw new Error(`Invalid duration format: ${duration}`);
+  }
+  const dateToCompare = moment().subtract(value, unit as any);
 
-    const query = esb.boolQuery().must([
-        esb.termQuery('body.isDeleted', true),
-        esb.rangeQuery('body.deletedAt').lte(dateToCompare.toISOString())
-    ]).toJSON();
+  const query = esb
+    .boolQuery()
+    .must([
+      esb.termQuery('body.isDeleted', true),
+      esb.rangeQuery('body.deletedAt').lte(dateToCompare.toISOString()),
+    ])
+    .toJSON();
 
-    logger.info('searching for projects that have been soft-deleted >=PROJECT_DELETION_AGE');
+  logger.info('searching for projects that have been soft-deleted >=PROJECT_DELETION_AGE');
 
-    const result = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Project, query);
-    const res = await searchedDataFormatorWithDeleted(result);
+  const result = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Project, query);
+  const res = await searchedDataFormatorWithDeleted(result);
 
-    if (res.length > 0) {
+  if (res.length > 0) {
+    // deleting projects data from projects/sprints/boards/issues document
+    await deleteProjectData(res);
 
-        // deleting projects data from projects/sprints/boards/issues document
-        await deleteProjectData(res);
-
-        // deleting project record from dynamo DB
-        await deleteProjectfromDD(res)
-
-    }
-
+    // deleting project record from dynamo DB
+    await deleteProjectfromDD(res);
+  }
 }
-

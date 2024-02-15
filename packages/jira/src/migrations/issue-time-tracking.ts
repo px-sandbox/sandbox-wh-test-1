@@ -8,7 +8,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
 import async from 'async';
-import { JiraClient } from '../lib/jira-client';
+
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = new ElasticSearchClient({
@@ -18,38 +18,19 @@ const esClientObj = new ElasticSearchClient({
 });
 const sqsClient = new SQSClient();
 
-/**
- * Sends issues to the indexer.
- *
- * @param projectId - The ID of the project.
- * @param organization - The organization name.
- * @param issues - An array of issues to be sent to the indexer.
- * @returns A Promise that resolves when the issues are sent successfully.
- */
-async function sendIssuesToIndexer(
+async function sendIssuesToMigrationQueue(
   projectId: string,
   organization: string,
   issues: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]
 ): Promise<void> {
   try {
-    const jiraClient = await JiraClient.getClient(organization);
-    await async.eachLimit(issues, 500, async (issue) => {
+    await async.eachLimit(issues, 50, async (issue) => {
       try {
-        const issueDataFromApi = await jiraClient.getIssue(issue?.issueId);
-        const { _id, ...rest } = issue;
-
-        const modifiedIssue = {
-          id: _id,
-          body: {
-            ...rest,
-            timeTracker: {
-              estimate: issueDataFromApi?.fields?.timetracking?.originalEstimateSeconds ?? 0,
-              actual: issueDataFromApi?.fields?.timetracking?.timeSpentSeconds ?? 0,
-            },
-          },
-        };
-        // sending updated issue data to indexer
-        await sqsClient.sendMessage(modifiedIssue, Queue.qIssueIndex.queueUrl);
+        logger.info(`issueTimeTrackingMigr: sending issue ${issue?.issueKey} to migration queue`);
+        await sqsClient.sendMessage(
+          { issue, organization },
+          Queue.qIssueTimeTrackingMigration.queueUrl
+        );
       } catch (e) {
         logger.error(
           `Error in issue(time tracking) migration while sending issue to indexer loop: ${e}`
@@ -59,7 +40,7 @@ async function sendIssuesToIndexer(
   } catch (e) {
     logger.error(`Error in issue(time tracking) migration while sending issue to indexer: ${e}`);
   }
-  logger.info('issuesTimeTrackMigration.successful');
+  logger.info(`Successfully sent all issues to migration queue for projectID: ${projectId}`);
 }
 
 /**
@@ -81,27 +62,29 @@ async function migration(projectId: string, organization: string): Promise<void>
           .boolQuery()
           .must([
             esb.termQuery('body.projectId', projectId),
-            esb.termsQuery('body.issueType', ['Story', 'Task', 'Bug', 'SubTask']),
+            esb.termsQuery('body.issueType', ['Story', 'Task', 'Bug', 'Sub-task']),
           ])
-        // .mustNot(esb.existsQuery('body.timeTracker'))
+          .mustNot(esb.existsQuery('body.timeTracker'))
       )
       .size(1000)
       .sort(esb.sort('_id'));
+
+    logger.info('issue-time-tracking: requestBodySearchquery: ', requestBodySearchquery);
 
     let response: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
       Jira.Enums.IndexName.Issue,
       requestBodySearchquery.toJSON()
     );
-
+    logger.info('issue-time-tracking: response: ', response?.hits?.total);
     let formattedResponse = await searchedDataFormator(response);
 
     issues.push(...formattedResponse);
 
     // fetching issues from ES using search_after concept because count of issues can be more than 10000
     while (formattedResponse?.length) {
-      const lastHit = response.hits.hits[response.hits.hits.length - 1];
+      const lastHit = response?.hits?.hits[response.hits.hits.length - 1];
 
-      const requestBodyQuery = requestBodySearchquery.searchAfter([lastHit.sort[0]]).toJSON();
+      const requestBodyQuery = requestBodySearchquery.searchAfter([lastHit?.sort[0]]).toJSON();
 
       response = await esClientObj.esbRequestBodySearch(
         Jira.Enums.IndexName.Issue,
@@ -113,7 +96,7 @@ async function migration(projectId: string, organization: string): Promise<void>
     }
     logger.info(`issue-time-tracking: num of issues fetched: ${issues?.length}`);
 
-    await sendIssuesToIndexer(projectId, organization, issues);
+    await sendIssuesToMigrationQueue(projectId, organization, issues);
   } catch (e) {
     logger.error(`Error in issue(time tracking) migration: ${e}`);
   }

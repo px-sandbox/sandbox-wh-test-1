@@ -30,9 +30,26 @@ export type Issue = {
     deletedAt?: string | null;
     organizationId: string;
     changelog: ChangelogItem[];
-    // timeTracker: {
-    //   estimate: number;
-    //   actual: number;
-    // };
+    timeTracker: {
+      estimate: number;
+      actual: number;
+    };
   };
+};
+
+// estimates vs actuals breakdown view api
+
+type SubtaskArray = {
+  id: string;
+  estimate: number;
+  actual: number;
+  variance: number;
+  link: string;
+};
+export type EstimatesVsActualsBreakdownResponse = SubtaskArray & {
+  overallEstimate: number;
+  overallActual: number;
+  overallVariance: number;
+  hasSubtasks: boolean;
+  subtasks: SubtaskArray[];
 };
