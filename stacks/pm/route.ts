@@ -12,6 +12,7 @@ export function initializeRoutes(): Record<string, ApiRouteProps<'universal'>> {
     'GET /jira/graph/estimates-vs-actuals/details': {
       function: {
         handler: 'packages/jira/src/service/issue/estimates-vs-actuals-breakdown.handler',
+        timeout: '5 minutes',
       },
       authorizer: 'universal',
     },
