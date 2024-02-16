@@ -13,7 +13,7 @@ export async function sprintVarianceGraph(
   endDate: string,
   afterKey: object | undefined,
   sortKey: Jira.Enums.IssueTimeTracker,
-  sortOrder: string
+  sortOrder: 'asc' | 'desc'
 ): Promise<SprintVarianceData> {
   try {
     const esClientObj = new ElasticSearchClient({
@@ -80,10 +80,11 @@ export async function sprintVarianceGraph(
       .agg(
         esb
           .termsAggregation('sprint_aggregation', 'body.sprintId')
+          .order(sortKey, sortOrder)
           .size(10)
           .aggs([
-            esb.sumAggregation('estimatedTime', 'body.timeTracker.estimate'),
-            esb.sumAggregation('actualTime', 'body.timeTracker.actual'),
+            esb.sumAggregation('estimate', 'body.timeTracker.estimate'),
+            esb.sumAggregation('actual', 'body.timeTracker.actual'),
           ])
       )
       .query(
@@ -99,7 +100,6 @@ export async function sprintVarianceGraph(
           ])
           .minimumShouldMatch(1)
       )
-      .sort(esb.sort(`${Jira.Enums.IssueTimeTrackerSort[sortKey]}`, sortOrder))
       .toJSON() as { query: object };
     logger.info('issue_sprint_query', query);
     const ftpRateGraph: { sprint_aggregation: { buckets: BucketItem[] } } =
@@ -108,13 +108,13 @@ export async function sprintVarianceGraph(
       (item: BucketItem): SprintVariance => ({
         sprint: issueData[item.key],
         time: {
-          estimate: item.estimatedTime.value,
-          actual: item.actualTime.value,
+          estimate: item.estimate.value,
+          actual: item.actual.value,
         },
         variance: parseFloat(
-          (item.estimatedTime.value === 0
+          (item.estimate.value === 0
             ? 0
-            : ((item.actualTime.value - item.estimatedTime.value) * 100) / item.estimatedTime.value
+            : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
           ).toFixed(2)
         ),
       })

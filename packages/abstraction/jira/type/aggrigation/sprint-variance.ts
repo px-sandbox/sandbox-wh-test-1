@@ -7,10 +7,10 @@ type sprint = {
 };
 export type BucketItem = {
   key: string;
-  estimatedTime: {
+  estimate: {
     value: number;
   };
-  actualTime: {
+  actual: {
     value: number;
   };
 };
