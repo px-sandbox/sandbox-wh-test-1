@@ -31,6 +31,6 @@ export enum IssueTimeTrackerSort {
 }
 
 export enum IssueTimeTracker {
-  estimates = 'estimates',
+  estimate = 'estimate',
   actual = 'actual',
 }
