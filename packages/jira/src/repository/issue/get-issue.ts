@@ -14,100 +14,107 @@ import { getOrganization } from '../organization/get-organization';
  * @throws An error if the user cannot be retrieved.
  */
 export async function getIssueById(
-    issueId: string,
-    organization: string
+  issueId: string,
+  organization: string
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
-    try {
-        const esClientObj = new ElasticSearchClient({
-            host: Config.OPENSEARCH_NODE,
-            username: Config.OPENSEARCH_USERNAME ?? '',
-            password: Config.OPENSEARCH_PASSWORD ?? '',
-        });
-        const orgData = await getOrganization(organization);
-        if (!orgData) {
-            logger.error(`Organization ${organization} not found`);
-            throw new Error(`Organization ${organization} not found`);
-        }
-        const matchQry =
-            esb
-                .boolQuery()
-                .must([
-                    esb.termsQuery('body.id', `${mappingPrefixes.issue}_${issueId}`),
-                    esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
-                ]).toJSON();
-        const issueData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Issue, matchQry);
-        const [formattedIssueData] = await searchedDataFormatorWithDeleted(issueData);
-        return formattedIssueData;
-    } catch (error: unknown) {
-        logger.error('getIssueById.error', { error });
-        throw error;
+  try {
+    const esClientObj = new ElasticSearchClient({
+      host: Config.OPENSEARCH_NODE,
+      username: Config.OPENSEARCH_USERNAME ?? '',
+      password: Config.OPENSEARCH_PASSWORD ?? '',
+    });
+    const orgData = await getOrganization(organization);
+    if (!orgData) {
+      logger.error(`Organization ${organization} not found`);
+      throw new Error(`Organization ${organization} not found`);
     }
+    const matchQry = esb
+      .boolQuery()
+      .must([
+        esb.termsQuery('body.id', `${mappingPrefixes.issue}_${issueId}`),
+        esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
+      ])
+      .toJSON();
+    const issueData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Issue, matchQry);
+    const [formattedIssueData] = await searchedDataFormatorWithDeleted(issueData);
+    return formattedIssueData;
+  } catch (error: unknown) {
+    logger.error('getIssueById.error', { error });
+    throw error;
+  }
 }
-
 
 export async function getReopenRateDataById(
-    issueId: string,
-    sprintId: string,
-    organization: string
+  issueId: string,
+  sprintId: string,
+  organization: string
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
-    try {
-        const esClientObj = new ElasticSearchClient({
-            host: Config.OPENSEARCH_NODE,
-            username: Config.OPENSEARCH_USERNAME ?? '',
-            password: Config.OPENSEARCH_PASSWORD ?? '',
-        });
-        const orgData = await getOrganization(organization);
-        if (!orgData) {
-            logger.error(`Organization ${organization} not found`);
-            throw new Error(`Organization ${organization} not found`);
-        }
-        const matchQry =
-            esb
-                .boolQuery()
-                .must([
-                    // eslint-disable-next-line max-len
-                    esb.termsQuery('body.id', `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`),
-                    esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
-                ]).toJSON();
-
-        const reopenRateData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.ReopenRate, matchQry);
-        const [formattedIssueData] = await searchedDataFormatorWithDeleted(reopenRateData);
-        return formattedIssueData;
-    } catch (error: unknown) {
-        logger.error('getReopenRateDataById.error', { error });
-        throw error;
+  try {
+    const esClientObj = new ElasticSearchClient({
+      host: Config.OPENSEARCH_NODE,
+      username: Config.OPENSEARCH_USERNAME ?? '',
+      password: Config.OPENSEARCH_PASSWORD ?? '',
+    });
+    const orgData = await getOrganization(organization);
+    if (!orgData) {
+      logger.error(`Organization ${organization} not found`);
+      throw new Error(`Organization ${organization} not found`);
     }
+    const matchQry = esb
+      .boolQuery()
+      .must([
+        // eslint-disable-next-line max-len
+        esb.termsQuery(
+          'body.id',
+          `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`
+        ),
+        esb.termQuery('body.organizationId', `${orgData.id}`),
+      ])
+      .toJSON();
+
+    const reopenRateData = await esClientObj.searchWithEsb(
+      Jira.Enums.IndexName.ReopenRate,
+      matchQry
+    );
+    const [formattedIssueData] = await searchedDataFormatorWithDeleted(reopenRateData);
+    return formattedIssueData;
+  } catch (error: unknown) {
+    logger.error('getReopenRateDataById.error', { error });
+    throw error;
+  }
 }
 
-
 export async function getReopenRateDataByIssueId(
-    issueId: string,
-    organization: string
+  issueId: string,
+  organization: string
 ): Promise<Pick<Other.Type.Hit, '_id'>[] & Other.Type.HitBody> {
-    try {
-        const esClientObj = new ElasticSearchClient({
-            host: Config.OPENSEARCH_NODE,
-            username: Config.OPENSEARCH_USERNAME ?? '',
-            password: Config.OPENSEARCH_PASSWORD ?? '',
-        });
-        const orgData = await getOrganization(organization);
-        if (!orgData) {
-            logger.error(`Organization ${organization} not found`);
-            throw new Error(`Organization ${organization} not found`);
-        }
-        const matchQry =
-            esb
-                .boolQuery()
-                .must([
-                    esb.termsQuery('body.issueId', `${mappingPrefixes.issue}_${issueId}`),
-                    esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
-                ]).toJSON();
-
-        const reopenRateData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.ReopenRate, matchQry);
-        const formattedIssueData = await searchedDataFormatorWithDeleted(reopenRateData);
-        return formattedIssueData;
-    } catch (error: unknown) {
-        logger.error('getReopenRateDataByIssueId.error', { error });
-        throw error;
+  try {
+    const esClientObj = new ElasticSearchClient({
+      host: Config.OPENSEARCH_NODE,
+      username: Config.OPENSEARCH_USERNAME ?? '',
+      password: Config.OPENSEARCH_PASSWORD ?? '',
+    });
+    const orgData = await getOrganization(organization);
+    if (!orgData) {
+      logger.error(`Organization ${organization} not found`);
+      throw new Error(`Organization ${organization} not found`);
     }
+    const matchQry = esb
+      .boolQuery()
+      .must([
+        esb.termsQuery('body.issueId', `${mappingPrefixes.issue}_${issueId}`),
+        esb.termQuery('body.organizationId', `${orgData.id}`),
+      ])
+      .toJSON();
+
+    const reopenRateData = await esClientObj.searchWithEsb(
+      Jira.Enums.IndexName.ReopenRate,
+      matchQry
+    );
+    const formattedIssueData = await searchedDataFormatorWithDeleted(reopenRateData);
+    return formattedIssueData;
+  } catch (error: unknown) {
+    logger.error('getReopenRateDataByIssueId.error', { error });
+    throw error;
+  }
 }

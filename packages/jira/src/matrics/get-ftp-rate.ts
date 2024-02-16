@@ -12,7 +12,7 @@ import { IssueReponse, searchedDataFormator } from '../util/response-formatter';
 
 let esClient: ElasticSearchClient;
 
-function getEsClientObj() {
+function getEsClientObj(): ElasticSearchClient {
   if (!esClient) {
     esClient = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,

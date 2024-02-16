@@ -17,7 +17,6 @@ export interface IRepo {
   topics: string;
 }
 
-
 export const searchedDataFormator = async (
   data: any // eslint-disable-line @typescript-eslint/no-explicit-any
 ): Promise<(Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[] | []> => {
@@ -47,11 +46,10 @@ export const searchedDataFormatorWithDeleted = async (
   data: any // eslint-disable-line @typescript-eslint/no-explicit-any
 ): Promise<(Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[] | []> => {
   if (data?.hits?.total?.value > 0) {
-    return data.hits.hits
-      .map((hit: Other.Type.Hit) => ({
-        _id: hit._id,
-        ...hit._source.body,
-      }));
+    return data.hits.hits.map((hit: Other.Type.Hit) => ({
+      _id: hit._id,
+      ...hit._source.body,
+    }));
   }
   return [];
 };
@@ -65,7 +63,6 @@ export const formatUserDataResponse = (
   avatarUrl: data.avatarUrl,
   organizationId: data.organizationId,
 });
-
 
 /**
  * Formats the response of Jira projects API to a specific format.
@@ -88,7 +85,7 @@ export const formatProjectsResponse = (
     name: project.name,
     key: project.key,
     lead: project.lead.displayName,
-    organizationId: project.organizationId
+    organizationId: project.organizationId,
   }));
 
 export interface Sprint {
@@ -114,11 +111,11 @@ export interface IssueReponse {
   startDate: string;
   endDate?: string;
   percentValue?: number;
-  linkToJira: string;
+  linkToJira?: string;
 }
 
 export const formatBoardResponse = (
-  data: (Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody)[]
+  data: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]
 ): Array<{
   id: string;
   jiraId: string;
@@ -129,16 +126,17 @@ export const formatBoardResponse = (
     sprintName: string;
     startDate: string;
     endDate: string;
-  }>
-}> => data.map((board: Pick<Other.Type.Hit, "_id"> & Other.Type.HitBody) => ({
-  id: board._id,
-  jiraId: board.id,
-  name: board.name,
-  createdAt: board.createdAt,
-  sprints: board.sprints.map((sprint: Sprint) => ({
-    id: sprint.id,
-    sprintName: sprint.name,
-    startDate: sprint.startDate,
-    endDate: sprint.endDate,
-  })),
-}));
+  }>;
+}> =>
+  data.map((board: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody) => ({
+    id: board._id,
+    jiraId: board.id,
+    name: board.name,
+    createdAt: board.createdAt,
+    sprints: board.sprints.map((sprint: Sprint) => ({
+      id: sprint.id,
+      sprintName: sprint.name,
+      startDate: sprint.startDate,
+      endDate: sprint.endDate,
+    })),
+  }));
