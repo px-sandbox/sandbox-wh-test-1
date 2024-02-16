@@ -13,7 +13,7 @@ const sprintVariance = async function sprintVariance(
   const afterKey: string | undefined = event.queryStringParameters?.afterKey ?? '';
   const sortKey: Jira.Enums.IssueTimeTracker =
     (event.queryStringParameters?.sortKey as Jira.Enums.IssueTimeTracker) ??
-    Jira.Enums.IssueTimeTracker.estimates;
+    Jira.Enums.IssueTimeTracker.estimate;
   const sortOrder = event.queryStringParameters?.sortOrder ?? 'desc';
 
   try {
