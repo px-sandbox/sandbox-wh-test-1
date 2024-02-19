@@ -50,4 +50,5 @@ export enum PullRequest {
   Unassigned = 'unassigned',
   Unlabeled = 'unlabeled',
   Unlocked = 'unlocked',
+  REVIEW_COMMENTED_DELETED = 'review_commented_deleted',
 }
