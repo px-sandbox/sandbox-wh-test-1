@@ -91,7 +91,7 @@ export async function sprintVarianceGraph(
         esb
           .boolQuery()
           .must([esb.termsQuery('body.sprintId', Object.keys(issueData))])
-          .filter(esb.rangeQuery('body.timeTracker.estimate').gte(0))
+          .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),
             esb.termQuery('body.issueType', IssuesTypes.TASK),
@@ -184,7 +184,7 @@ export async function sprintVarianceGraphAvg(
         esb
           .boolQuery()
           .must([esb.termsQuery('body.sprintId', sprintIdsArr)])
-          .filter(esb.rangeQuery('body.timeTracker.estimate').gte(0))
+          .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),
             esb.termQuery('body.issueType', IssuesTypes.TASK),
