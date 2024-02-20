@@ -39,9 +39,13 @@ export async function sprintVarianceGraph(
           .boolQuery()
           .must([
             esb.termQuery('body.projectId', projectId),
-            esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
             esb.termQuery('body.isDeleted', false),
           ])
+          .should([
+            esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
+            esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
+          ])
+          .minimumShouldMatch(1)
           .should([
             esb.termQuery('body.state', SprintState.ACTIVE),
             esb.termQuery('body.state', SprintState.CLOSED),
@@ -150,9 +154,13 @@ export async function sprintVarianceGraphAvg(
           .boolQuery()
           .must([
             esb.termQuery('body.projectId', projectId),
-            esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
             esb.termQuery('body.isDeleted', false),
           ])
+          .should([
+            esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
+            esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
+          ])
+          .minimumShouldMatch(1)
           .should([
             esb.termQuery('body.state', SprintState.ACTIVE),
             esb.termQuery('body.state', SprintState.CLOSED),
