@@ -12,7 +12,8 @@ export async function sprintVarianceGraph(
   projectId: string,
   startDate: string,
   endDate: string,
-  afterKey: object | undefined,
+  page: number,
+  limit: number,
   sortKey: Jira.Enums.IssueTimeTracker,
   sortOrder: 'asc' | 'desc'
 ): Promise<SprintVarianceData> {
@@ -22,19 +23,9 @@ export async function sprintVarianceGraph(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    let compositeAgg = esb
-      .compositeAggregation('sprints')
-      .agg(esb.topHitsAggregation('sprint_hits').size(10))
-      .sources(esb.CompositeAggregation.termsValuesSource('sprintId', 'body.id'));
 
-    if (afterKey) {
-      compositeAgg = compositeAgg.after(afterKey);
-    }
     const sprintQuery = esb
       .requestBodySearch()
-      .size(0)
-      .agg(compositeAgg)
-
       .query(
         esb
           .boolQuery()
@@ -56,29 +47,28 @@ export async function sprintVarianceGraph(
       .toJSON() as { query: object };
 
     logger.info('sprintQuery', sprintQuery);
-    const body: { sprints: { buckets: []; after_key: string } } = await esClientObj.queryAggs(
+    const body = (await esClientObj.searchWithEsb(
       Jira.Enums.IndexName.Sprint,
-      sprintQuery
-    );
-    const issueData: Record<
-      string,
-      { id: string; name: string; status: string; startDate: string; endDate: string }
-    > = {};
+      sprintQuery.query,
+      (page - 1) * limit,
+      limit,
+      ['body.startDate:desc']
+    )) as Other.Type.HitBody;
+    const sprintHits = await searchedDataFormator(body);
+    console.log('bodysss', sprintHits);
+    const issueData: any = {};
     await Promise.all(
-      body.sprints.buckets.map(
-        async (item: { sprint_hits: esb.CompositeAggregation; key: { sprintId: string } }) => {
-          const [sprintHits] = await searchedDataFormator(item.sprint_hits);
-          issueData[item.key.sprintId] = {
-            id: sprintHits.id,
-            name: sprintHits.name,
-            status: sprintHits.state,
-            startDate: sprintHits.startDate,
-            endDate: sprintHits.endDate,
-          };
-        }
-      )
+      sprintHits.map(async (item: Other.Type.HitBody) => {
+        issueData[item.id] = {
+          id: item.id,
+          name: item.name,
+          status: item.state,
+          startDate: item.startDate,
+          endDate: item.endDate,
+        };
+      })
     );
-    const afterKeyData = body.sprints.after_key;
+
     const query = esb
       .requestBodySearch()
       .size(0)
@@ -96,7 +86,7 @@ export async function sprintVarianceGraph(
         esb
           .boolQuery()
           .must([esb.termsQuery('body.sprintId', Object.keys(issueData))])
-          .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
+          // .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),
             esb.termQuery('body.issueType', IssuesTypes.TASK),
@@ -125,15 +115,12 @@ export async function sprintVarianceGraph(
       })
     );
 
-    sprintEstimate = _.sortBy(sprintEstimate, [
-      (item: Jira.Type.SprintVariance): Date => new Date(item.sprint.startDate),
-    ]).reverse();
+    const totalPages = Math.ceil(body.hits.total.value / limit);
 
     return {
       data: sprintEstimate,
-      afterKey: afterKeyData
-        ? Buffer.from(JSON.stringify(afterKeyData), 'utf-8').toString('base64')
-        : '',
+      totalPages,
+      page,
     };
   } catch (e) {
     throw new Error(`Something went wrong: ${e}`);
