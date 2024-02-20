@@ -4,8 +4,9 @@ import { IssuesTypes, SprintState } from 'abstraction/jira/enums';
 import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from '../util/response-formatter';
+import _ from 'lodash';
 import { Config } from 'sst/node/config';
+import { searchedDataFormator } from '../util/response-formatter';
 
 export async function sprintVarianceGraph(
   projectId: string,
@@ -108,7 +109,7 @@ export async function sprintVarianceGraph(
     logger.info('issue_sprint_query', query);
     const ftpRateGraph: { sprint_aggregation: { buckets: BucketItem[] } } =
       await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
-    const sprintEstimate: SprintVariance[] = ftpRateGraph.sprint_aggregation.buckets.map(
+    let sprintEstimate: SprintVariance[] = ftpRateGraph.sprint_aggregation.buckets.map(
       (item: BucketItem): SprintVariance => ({
         sprint: issueData[item.key],
         time: {
@@ -123,6 +124,11 @@ export async function sprintVarianceGraph(
         ),
       })
     );
+
+    sprintEstimate = _.sortBy(sprintEstimate, [
+      (item: Jira.Type.SprintVariance): Date => new Date(item.sprint.startDate),
+    ]).reverse();
+
     return {
       data: sprintEstimate,
       afterKey: afterKeyData
