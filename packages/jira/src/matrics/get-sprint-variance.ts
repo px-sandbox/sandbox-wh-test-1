@@ -55,7 +55,7 @@ export async function sprintVarianceGraph(
       ['body.startDate:desc']
     )) as Other.Type.HitBody;
     const sprintHits = await searchedDataFormator(body);
-    console.log('bodysss', sprintHits);
+
     const issueData: any = {};
     await Promise.all(
       sprintHits.map(async (item: Other.Type.HitBody) => {
@@ -86,7 +86,7 @@ export async function sprintVarianceGraph(
         esb
           .boolQuery()
           .must([esb.termsQuery('body.sprintId', Object.keys(issueData))])
-          // .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
+          .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),
             esb.termQuery('body.issueType', IssuesTypes.TASK),
@@ -99,7 +99,7 @@ export async function sprintVarianceGraph(
     logger.info('issue_sprint_query', query);
     const ftpRateGraph: { sprint_aggregation: { buckets: BucketItem[] } } =
       await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
-    let sprintEstimate: SprintVariance[] = ftpRateGraph.sprint_aggregation.buckets.map(
+    const sprintEstimate: SprintVariance[] = ftpRateGraph.sprint_aggregation.buckets.map(
       (item: BucketItem): SprintVariance => ({
         sprint: issueData[item.key],
         time: {
@@ -123,7 +123,7 @@ export async function sprintVarianceGraph(
       page,
     };
   } catch (e) {
-    throw new Error(`Something went wrong: ${e}`);
+    throw new Error(`error_occured_sprint_variance: ${e}`);
   }
 }
 
@@ -206,6 +206,6 @@ export async function sprintVarianceGraphAvg(
       ).toFixed(2)
     );
   } catch (e) {
-    throw new Error(`Something went wrong : ${e}`);
+    throw new Error(`error_occured_sprint_variance_avg: ${e}`);
   }
 }
