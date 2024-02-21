@@ -58,16 +58,18 @@ export async function sprintVarianceGraph(
     )) as Other.Type.HitBody;
     const sprintHits = await searchedDataFormator(body);
 
-    const issueData: any = {};
+    const sprintData: any = [];
+    const sprintIds: any = [];
     await Promise.all(
       sprintHits.map(async (item: Other.Type.HitBody) => {
-        issueData[item.id] = {
+        sprintData.push({
           id: item.id,
           name: item.name,
           status: item.state,
           startDate: item.startDate,
           endDate: item.endDate,
-        };
+        });
+        sprintIds.push(item.id);
       })
     );
 
@@ -87,7 +89,7 @@ export async function sprintVarianceGraph(
       .query(
         esb
           .boolQuery()
-          .must([esb.termsQuery('body.sprintId', Object.keys(issueData))])
+          .must([esb.termsQuery('body.sprintId', sprintIds)])
           .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),
@@ -102,21 +104,35 @@ export async function sprintVarianceGraph(
 
     const estimateActualGraph: { sprint_aggregation: { buckets: BucketItem[] } } =
       await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
-    const sprintEstimate: SprintVariance[] = estimateActualGraph.sprint_aggregation.buckets.map(
-      (item: BucketItem): SprintVariance => ({
-        sprint: issueData[item.key],
-        time: {
-          estimate: item.estimate.value,
-          actual: item.actual.value,
-        },
-        variance: parseFloat(
-          (item.estimate.value === 0
-            ? 0
-            : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
-          ).toFixed(2)
-        ),
-      })
-    );
+    const sprintEstimate: SprintVariance[] = sprintData.map((sprintDetails: any) => {
+      const item = estimateActualGraph.sprint_aggregation.buckets.find(
+        (bucketItem: BucketItem) => bucketItem.key == sprintDetails.id
+      );
+      if (item) {
+        return {
+          sprint: sprintDetails,
+          time: {
+            estimate: item.estimate.value,
+            actual: item.actual.value,
+          },
+          variance: parseFloat(
+            (item.estimate.value === 0
+              ? 0
+              : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
+            ).toFixed(2)
+          ),
+        };
+      } else {
+        return {
+          sprint: sprintDetails,
+          time: {
+            estimate: 0,
+            actual: 0,
+          },
+          variance: 0,
+        };
+      }
+    });
 
     const totalPages = Math.ceil(body.hits.total.value / limit);
 
