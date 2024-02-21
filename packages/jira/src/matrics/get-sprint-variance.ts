@@ -36,13 +36,10 @@ export async function sprintVarianceGraph(
           .should([
             esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
             esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
-          ])
-          .minimumShouldMatch(1)
-          .should([
             esb.termQuery('body.state', SprintState.ACTIVE),
             esb.termQuery('body.state', SprintState.CLOSED),
           ])
-          .minimumShouldMatch(1)
+          .minimumShouldMatch(2)
       )
       .toJSON() as { query: object };
 
