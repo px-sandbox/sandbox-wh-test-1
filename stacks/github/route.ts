@@ -27,6 +27,7 @@ export function initializeRoutes(
     ghMergedCommitProcessQueue,
     repoLibS3Queue,
     updateMergeCommit,
+    prReviewCommentMigrationQueue,
   } = queues;
 
   /* We aso extract and bind the tables
