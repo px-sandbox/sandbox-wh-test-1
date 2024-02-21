@@ -8,27 +8,28 @@ const sprintVariance = async function sprintVariance(
 ): Promise<APIGatewayProxyResult> {
   const projectId: string = event.queryStringParameters?.projectId || '';
   const startDate: string = event.queryStringParameters?.startDate || '';
-
   const endDate: string = event.queryStringParameters?.endDate || '';
-  const afterKey: string | undefined = event.queryStringParameters?.afterKey ?? '';
   const sortKey: Jira.Enums.IssueTimeTracker =
     (event.queryStringParameters?.sortKey as Jira.Enums.IssueTimeTracker) ??
     Jira.Enums.IssueTimeTracker.estimate;
   const sortOrder: 'asc' | 'desc' =
     (event.queryStringParameters?.sortOrder as 'asc' | 'desc') ?? 'desc';
+  const page: number = parseInt(event.queryStringParameters?.page || '1');
+  const limit: number = parseInt(event.queryStringParameters?.limit || '10');
 
   try {
-    const afterKeyObj =
-      afterKey.length > 0
-        ? JSON.parse(Buffer.from(afterKey, 'base64').toString('utf-8'))
-        : undefined;
-
     const [graphData, headline] = await Promise.all([
-      await sprintVarianceGraph(projectId, startDate, endDate, afterKeyObj, sortKey, sortOrder),
+      await sprintVarianceGraph(projectId, startDate, endDate, page, limit, sortKey, sortOrder),
       await sprintVarianceGraphAvg(projectId, startDate, endDate),
     ]);
+
     return responseParser
-      .setBody({ graphData: graphData.data, afterKey: graphData.afterKey, headline })
+      .setBody({
+        graphData: graphData.data,
+        page: graphData.page,
+        totalPages: graphData.totalPages,
+        headline,
+      })
       .setMessage('sprint variance fetched successfully')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')
