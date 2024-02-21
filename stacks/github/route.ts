@@ -202,6 +202,8 @@ export function initializeRoutes(
     'GET /github/migration/pr-comments': {
       function: {
         handler: 'packages/github/src/migrations/pr-comments.handler',
+        timeout: '5 minutes',
+        bind: [prReviewCommentMigrationQueue],
       },
       authorizer: 'admin',
     },
