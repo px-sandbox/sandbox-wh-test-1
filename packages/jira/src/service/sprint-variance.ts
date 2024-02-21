@@ -24,7 +24,12 @@ const sprintVariance = async function sprintVariance(
     ]);
 
     return responseParser
-      .setBody({ graphData, headline })
+      .setBody({
+        graphData: graphData.data,
+        page: graphData.page,
+        totalPages: graphData.totalPages,
+        headline,
+      })
       .setMessage('sprint variance fetched successfully')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')

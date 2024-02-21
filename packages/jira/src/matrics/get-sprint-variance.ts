@@ -27,19 +27,24 @@ export async function sprintVarianceGraph(
     const sprintQuery = esb
       .requestBodySearch()
       .query(
-        esb
-          .boolQuery()
-          .must([
-            esb.termQuery('body.projectId', projectId),
-            esb.termQuery('body.isDeleted', false),
-          ])
-          .should([
-            esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
-            esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
-            esb.termQuery('body.state', SprintState.ACTIVE),
-            esb.termQuery('body.state', SprintState.CLOSED),
-          ])
-          .minimumShouldMatch(2)
+        esb.boolQuery().must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.isDeleted', false),
+          esb
+            .boolQuery()
+            .should([
+              esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
+              esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
+            ])
+            .minimumShouldMatch(1),
+          esb
+            .boolQuery()
+            .should([
+              esb.termQuery('body.state', SprintState.ACTIVE),
+              esb.termQuery('body.state', SprintState.CLOSED),
+            ])
+            .minimumShouldMatch(1),
+        ])
       )
       .toJSON() as { query: object };
 
@@ -94,9 +99,10 @@ export async function sprintVarianceGraph(
       )
       .toJSON() as { query: object };
     logger.info('issue_sprint_query', query);
-    const ftpRateGraph: { sprint_aggregation: { buckets: BucketItem[] } } =
+
+    const estimateActualGraph: { sprint_aggregation: { buckets: BucketItem[] } } =
       await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
-    const sprintEstimate: SprintVariance[] = ftpRateGraph.sprint_aggregation.buckets.map(
+    const sprintEstimate: SprintVariance[] = estimateActualGraph.sprint_aggregation.buckets.map(
       (item: BucketItem): SprintVariance => ({
         sprint: issueData[item.key],
         time: {
@@ -138,26 +144,28 @@ export async function sprintVarianceGraphAvg(
     });
     const sprintQuery = esb
       .requestBodySearch()
-      .source(['body.id'])
       .query(
-        esb
-          .boolQuery()
-          .must([
-            esb.termQuery('body.projectId', projectId),
-            esb.termQuery('body.isDeleted', false),
-          ])
-          .should([
-            esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
-            esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
-          ])
-          .minimumShouldMatch(1)
-          .should([
-            esb.termQuery('body.state', SprintState.ACTIVE),
-            esb.termQuery('body.state', SprintState.CLOSED),
-          ])
-          .minimumShouldMatch(1)
+        esb.boolQuery().must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.isDeleted', false),
+          esb
+            .boolQuery()
+            .should([
+              esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
+              esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
+            ])
+            .minimumShouldMatch(1),
+          esb
+            .boolQuery()
+            .should([
+              esb.termQuery('body.state', SprintState.ACTIVE),
+              esb.termQuery('body.state', SprintState.CLOSED),
+            ])
+            .minimumShouldMatch(1),
+        ])
       )
       .sort(esb.sort('body.sprintId'));
+
     let sprintIds = [];
     let lastHit;
     do {
