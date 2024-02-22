@@ -73,6 +73,7 @@ const fetchIssueData = async (
           esb.termQuery('body.sprintId', sprintId),
           esb.termQuery('body.organizationId.keyword', orgId),
           esb.termQuery('body.issueType', 'Sub-task'),
+          esb.rangeQuery('body.timeTracker.estimate').gt(0),
         ])
         .must(esb.existsQuery('body.timeTracker'))
     )
