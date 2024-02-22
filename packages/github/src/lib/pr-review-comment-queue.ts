@@ -40,7 +40,6 @@ export async function pRReviewCommentOnQueue(
           reviewed_at: pullData.reviewedAt,
           approved_at: pullData.approvedAt,
           review_seconds: pullData.reviewSeconds,
-          action: Github.Enums.PullRequest.REVIEW_COMMENTED_DELETED,
         },
         Queue.qGhPrFormat.queueUrl
       ),

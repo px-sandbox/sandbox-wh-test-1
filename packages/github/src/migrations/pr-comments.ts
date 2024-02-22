@@ -2,7 +2,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, responseParser } from 'core';
+import { HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
@@ -20,13 +20,12 @@ async function fetchPRComments(repoId: string, owner: string, repoName: string):
     let from = 0;
     let size = 100;
 
+    const { query } = esb
+      .requestBodySearch()
+      .query(esb.boolQuery().must(esb.termQuery('body.repoId', repoId)))
+      .toJSON() as { query: object };
     // fetch All PR data for given repo from Elasticsearch
     do {
-      const { query } = esb
-        .requestBodySearch()
-        .query(esb.boolQuery().must(esb.termQuery('body.repoId', repoId)))
-        .toJSON() as { query: object };
-
       const getPrData = await esClient.searchWithEsb(
         Github.Enums.IndexName.GitPull,
         query,
@@ -34,14 +33,18 @@ async function fetchPRComments(repoId: string, owner: string, repoName: string):
         size
       );
       prFormattedData = await searchedDataFormator(getPrData);
-      sqs.sendMessage(
-        { prFormattedData, repoId, owner, repoName },
-        Queue.qGhPrReviewCommentMigration.queueUrl
+      await Promise.all(
+        prFormattedData.map(async (prData: any) => {
+          await sqs.sendMessage(
+            { prData, owner, repoName },
+            Queue.qGhPrReviewCommentMigration.queueUrl
+          );
+        })
       );
       from += size;
     } while (prFormattedData.length == size);
   } catch (error) {
-    console.error('Error fetching PR comments:', error);
+    logger.error(`error_fetching_PR_comments:, ${error}`);
   }
 }
 
