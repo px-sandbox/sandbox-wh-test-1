@@ -6,5 +6,5 @@ export enum IndexName {
   Users = 'jira_users',
   Sprint = 'jira_sprint',
   Organization = 'jira_organization',
-  ReopenRate = 'jira_reopen_rate_temp', // TODO: it's actual name was  = jira_reopen_rate
+  ReopenRate = 'jira_reopen_rate',
 }

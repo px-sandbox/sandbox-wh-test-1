@@ -132,6 +132,7 @@ export const estimatesVsActualsBreakdown = async (
 
         const subtasksArr: {
           id: string;
+          issueKey: string;
           estimate: number;
           actual: number;
           variance: number;
@@ -149,6 +150,7 @@ export const estimatesVsActualsBreakdown = async (
 
             subtasksArr.push({
               id: subtask?.id,
+              issueKey: subtask?.issueKey,
               estimate: subEstimate,
               actual: subActual,
               variance: parseFloat((((subActual - subEstimate) / subEstimate) * 100).toFixed(2)),
@@ -159,6 +161,7 @@ export const estimatesVsActualsBreakdown = async (
 
         return {
           id: issue?.id,
+          issueKey: issue?.issueKey,
           estimate,
           actual,
           variance: parseFloat((((actual - estimate) / estimate) * 100).toFixed(2)),

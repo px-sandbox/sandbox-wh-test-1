@@ -4,14 +4,16 @@ import { IssuesTypes, SprintState } from 'abstraction/jira/enums';
 import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from '../util/response-formatter';
+import _ from 'lodash';
 import { Config } from 'sst/node/config';
+import { searchedDataFormator } from '../util/response-formatter';
 
 export async function sprintVarianceGraph(
   projectId: string,
   startDate: string,
   endDate: string,
-  afterKey: object | undefined,
+  page: number,
+  limit: number,
   sortKey: Jira.Enums.IssueTimeTracker,
   sortOrder: 'asc' | 'desc'
 ): Promise<SprintVarianceData> {
@@ -21,59 +23,56 @@ export async function sprintVarianceGraph(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    let compositeAgg = esb
-      .compositeAggregation('sprints')
-      .agg(esb.topHitsAggregation('sprint_hits').size(10))
-      .sources(esb.CompositeAggregation.termsValuesSource('sprintId', 'body.id'));
 
-    if (afterKey) {
-      compositeAgg = compositeAgg.after(afterKey);
-    }
     const sprintQuery = esb
       .requestBodySearch()
-      .size(0)
-      .agg(compositeAgg)
-
       .query(
-        esb
-          .boolQuery()
-          .must([
-            esb.termQuery('body.projectId', projectId),
-            esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
-            esb.termQuery('body.isDeleted', false),
-          ])
-          .should([
-            esb.termQuery('body.state', SprintState.ACTIVE),
-            esb.termQuery('body.state', SprintState.CLOSED),
-          ])
-          .minimumShouldMatch(1)
+        esb.boolQuery().must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.isDeleted', false),
+          esb
+            .boolQuery()
+            .should([
+              esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
+              esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
+            ])
+            .minimumShouldMatch(1),
+          esb
+            .boolQuery()
+            .should([
+              esb.termQuery('body.state', SprintState.ACTIVE),
+              esb.termQuery('body.state', SprintState.CLOSED),
+            ])
+            .minimumShouldMatch(1),
+        ])
       )
       .toJSON() as { query: object };
 
     logger.info('sprintQuery', sprintQuery);
-    const body: { sprints: { buckets: []; after_key: string } } = await esClientObj.queryAggs(
+    const body = (await esClientObj.searchWithEsb(
       Jira.Enums.IndexName.Sprint,
-      sprintQuery
-    );
-    const issueData: Record<
-      string,
-      { id: string; name: string; status: string; startDate: string; endDate: string }
-    > = {};
+      sprintQuery.query,
+      (page - 1) * limit,
+      limit,
+      ['body.startDate:desc']
+    )) as Other.Type.HitBody;
+    const sprintHits = await searchedDataFormator(body);
+
+    const sprintData: any = [];
+    const sprintIds: any = [];
     await Promise.all(
-      body.sprints.buckets.map(
-        async (item: { sprint_hits: esb.CompositeAggregation; key: { sprintId: string } }) => {
-          const [sprintHits] = await searchedDataFormator(item.sprint_hits);
-          issueData[item.key.sprintId] = {
-            id: sprintHits.id,
-            name: sprintHits.name,
-            status: sprintHits.state,
-            startDate: sprintHits.startDate,
-            endDate: sprintHits.endDate,
-          };
-        }
-      )
+      sprintHits.map(async (item: Other.Type.HitBody) => {
+        sprintData.push({
+          id: item.id,
+          name: item.name,
+          status: item.state,
+          startDate: item.startDate,
+          endDate: item.endDate,
+        });
+        sprintIds.push(item.id);
+      })
     );
-    const afterKeyData = body.sprints.after_key;
+
     const query = esb
       .requestBodySearch()
       .size(0)
@@ -90,7 +89,7 @@ export async function sprintVarianceGraph(
       .query(
         esb
           .boolQuery()
-          .must([esb.termsQuery('body.sprintId', Object.keys(issueData))])
+          .must([esb.termsQuery('body.sprintId', sprintIds)])
           .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),
@@ -102,31 +101,48 @@ export async function sprintVarianceGraph(
       )
       .toJSON() as { query: object };
     logger.info('issue_sprint_query', query);
-    const ftpRateGraph: { sprint_aggregation: { buckets: BucketItem[] } } =
+
+    const estimateActualGraph: { sprint_aggregation: { buckets: BucketItem[] } } =
       await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
-    const sprintEstimate: SprintVariance[] = ftpRateGraph.sprint_aggregation.buckets.map(
-      (item: BucketItem): SprintVariance => ({
-        sprint: issueData[item.key],
-        time: {
-          estimate: item.estimate.value,
-          actual: item.actual.value,
-        },
-        variance: parseFloat(
-          (item.estimate.value === 0
-            ? 0
-            : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
-          ).toFixed(2)
-        ),
-      })
-    );
+    const sprintEstimate: SprintVariance[] = sprintData.map((sprintDetails: any) => {
+      const item = estimateActualGraph.sprint_aggregation.buckets.find(
+        (bucketItem: BucketItem) => bucketItem.key == sprintDetails.id
+      );
+      if (item) {
+        return {
+          sprint: sprintDetails,
+          time: {
+            estimate: item.estimate.value,
+            actual: item.actual.value,
+          },
+          variance: parseFloat(
+            (item.estimate.value === 0
+              ? 0
+              : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
+            ).toFixed(2)
+          ),
+        };
+      } else {
+        return {
+          sprint: sprintDetails,
+          time: {
+            estimate: 0,
+            actual: 0,
+          },
+          variance: 0,
+        };
+      }
+    });
+
+    const totalPages = Math.ceil(body.hits.total.value / limit);
+
     return {
       data: sprintEstimate,
-      afterKey: afterKeyData
-        ? Buffer.from(JSON.stringify(afterKeyData), 'utf-8').toString('base64')
-        : '',
+      totalPages,
+      page,
     };
   } catch (e) {
-    throw new Error(`Something went wrong: ${e}`);
+    throw new Error(`error_occured_sprint_variance: ${e}`);
   }
 }
 
@@ -144,22 +160,28 @@ export async function sprintVarianceGraphAvg(
     });
     const sprintQuery = esb
       .requestBodySearch()
-      .source(['body.id'])
       .query(
-        esb
-          .boolQuery()
-          .must([
-            esb.termQuery('body.projectId', projectId),
-            esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
-            esb.termQuery('body.isDeleted', false),
-          ])
-          .should([
-            esb.termQuery('body.state', SprintState.ACTIVE),
-            esb.termQuery('body.state', SprintState.CLOSED),
-          ])
-          .minimumShouldMatch(1)
+        esb.boolQuery().must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.isDeleted', false),
+          esb
+            .boolQuery()
+            .should([
+              esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
+              esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
+            ])
+            .minimumShouldMatch(1),
+          esb
+            .boolQuery()
+            .should([
+              esb.termQuery('body.state', SprintState.ACTIVE),
+              esb.termQuery('body.state', SprintState.CLOSED),
+            ])
+            .minimumShouldMatch(1),
+        ])
       )
       .sort(esb.sort('body.sprintId'));
+
     let sprintIds = [];
     let lastHit;
     do {
@@ -205,6 +227,6 @@ export async function sprintVarianceGraphAvg(
       ).toFixed(2)
     );
   } catch (e) {
-    throw new Error(`Something went wrong : ${e}`);
+    throw new Error(`error_occured_sprint_variance_avg: ${e}`);
   }
 }

@@ -25,5 +25,6 @@ export type SprintVariance = {
 
 export type SprintVarianceData = {
   data: SprintVariance[];
-  afterKey: string | undefined;
+  page: number;
+  totalPages: number;
 };
