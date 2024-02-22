@@ -111,7 +111,6 @@ export interface IssueReponse {
   startDate: string;
   endDate?: string;
   percentValue?: number;
-  linkToJira?: string;
 }
 
 export const formatBoardResponse = (

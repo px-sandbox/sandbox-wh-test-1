@@ -310,28 +310,6 @@ const indices = [
       },
     },
   },
-  // {
-  //   name: Jira.Enums.IndexName.ReopenRate,
-  //   _id: { type: 'uuid' },
-  //   mappings: {
-  //     properties: {
-  //       body: {
-  //         type: 'object',
-  //         properties: {
-  //           organizationId: { type: 'text' },
-  //           issueId: { type: 'text' },
-  //           projectId: { type: 'text' },
-  //           sprintId: { type: 'text' },
-  //           boardId: { type: 'text' },
-  //           reOpenCount: { type: 'long' },
-  //           isReOpen: { type: 'boolean' },
-  //           isDeleted: { type: 'boolean' },
-  //           // deletedAt: { type: 'date', format: 'strict_date_optional_time' },
-  //         },
-  //       },
-  //     },
-  //   },
-  // },
 
   {
     name: Jira.Enums.IndexName.ReopenRate,
