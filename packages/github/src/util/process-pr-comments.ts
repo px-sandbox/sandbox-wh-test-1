@@ -1,0 +1,28 @@
+import { logger } from 'core';
+
+export async function processPRComments(
+  owner: string,
+  repo: string,
+  pull_number: number,
+  octokit: any,
+  commentLength: number = 0,
+  filesLink: string = `GET /repos/${owner}/${repo}/pulls/${pull_number}/comments`
+): Promise<number> {
+  let nextLink = filesLink;
+  let commentLengths = commentLength || 0;
+  try {
+    const response = await octokit(nextLink);
+    commentLengths += response.data.length;
+    nextLink = response.headers.link;
+    const nextLinkRegex = /<([^>]+)>;\s*rel="next"/;
+    const nextLinkMatch = nextLink?.match(nextLinkRegex);
+    if (!nextLinkMatch) {
+      logger.info('PR_REVIEW_COMMENTS_LEN', { commentLengths });
+      return commentLengths;
+    }
+    return processPRComments(owner, repo, pull_number, octokit, commentLengths, nextLinkMatch[1]);
+  } catch (error) {
+    logger.error('ERROR_IN_PROCESS_FILE_CHANGES_COMMIT', error);
+    throw error;
+  }
+}

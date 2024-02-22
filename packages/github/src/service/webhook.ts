@@ -25,7 +25,7 @@ interface ReviewProcessType {
 function generateHMACToken(payload: crypto.BinaryLike): Buffer {
   const hmac = Buffer.from(
     'sha256' +
-    `=${crypto.createHmac('sha256', Config.GITHUB_WEBHOOK_SECRET).update(payload).digest('hex')}`
+      `=${crypto.createHmac('sha256', Config.GITHUB_WEBHOOK_SECRET).update(payload).digest('hex')}`
   );
   return hmac;
 }
@@ -119,7 +119,13 @@ async function processPREvent(
   await pROnQueue(pr, action);
 }
 async function processPRReviewCommentEvent(data: ReviewCommentProcessType): Promise<void> {
-  await pRReviewCommentOnQueue(data.comment, data.pull_request.id, data.repository.id, data.action);
+  await pRReviewCommentOnQueue(
+    data.comment,
+    data.pull_request.id,
+    data.repository.id,
+    data.action,
+    data.pull_request as Github.ExternalType.Webhook.PullRequest
+  );
 }
 async function processPRReviewEvent(data: ReviewProcessType): Promise<void> {
   await pRReviewOnQueue(

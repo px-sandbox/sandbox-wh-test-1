@@ -3,12 +3,14 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getPullRequestById } from './get-pull-request';
+import { processPRComments } from '../util/process-pr-comments';
 
 export async function pRReviewCommentOnQueue(
   prReviewComment: Github.ExternalType.Webhook.PRReviewComment,
   pullId: number,
   repoId: number,
-  action: string
+  action: string,
+  pullRequestData: Github.ExternalType.Webhook.PullRequest
 ): Promise<void> {
   try {
     /**
@@ -26,11 +28,22 @@ export async function pRReviewCommentOnQueue(
       });
       return;
     }
-
-    await new SQSClient().sendMessage(
-      { comment: prReviewComment, pullId, repoId, action },
-      Queue.qGhPrReviewCommentFormat.queueUrl
-    );
+    const sqs = new SQSClient();
+    await Promise.all([
+      sqs.sendMessage(
+        { comment: prReviewComment, pullId, repoId, action },
+        Queue.qGhPrReviewCommentFormat.queueUrl
+      ),
+      sqs.sendMessage(
+        {
+          ...pullRequestData,
+          reviewed_at: pullData.reviewedAt,
+          approved_at: pullData.approvedAt,
+          review_seconds: pullData.reviewSeconds,
+        },
+        Queue.qGhPrFormat.queueUrl
+      ),
+    ]);
   } catch (error: unknown) {
     logger.error({
       error,

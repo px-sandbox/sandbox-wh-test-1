@@ -6,7 +6,7 @@ import { Github } from 'abstraction';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
-async function initializeOctokit(): Promise<
+export async function initializeOctokit(): Promise<
   RequestInterface<
     object & {
       headers: {
