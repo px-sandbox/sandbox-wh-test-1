@@ -138,6 +138,7 @@ export function initializeRoutes(
           scansSaveQueue,
           ghMergedCommitProcessQueue,
           repoLibS3Queue,
+          prReviewCommentMigrationQueue,
         ],
       },
     },
