@@ -15,7 +15,7 @@ const sqsClient = new SQSClient();
  * @returns A Promise that resolves to void.
  */
 export const handler = async function issueTimeTrackingMigration(event: SQSEvent): Promise<void> {
-  logger.info(`issueTimeTrackingMigration: Records Length: ${event.Records.length}`);
+  logger.info(`issueTimeTrackingMigration: Records Length: ${event?.Records?.length}`);
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
       try {
