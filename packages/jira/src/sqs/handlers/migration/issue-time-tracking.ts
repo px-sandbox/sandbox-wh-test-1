@@ -33,6 +33,7 @@ export const handler = async function issueTimeTrackingMigration(event: SQSEvent
           id: _id,
           body: {
             ...rest,
+            summary: issueDataFromApi?.fields?.summary ?? '',
             timeTracker: {
               estimate: issueDataFromApi?.fields?.timetracking?.originalEstimateSeconds ?? 0,
               actual: issueDataFromApi?.fields?.timetracking?.timeSpentSeconds ?? 0,
