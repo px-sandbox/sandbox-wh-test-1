@@ -3,11 +3,7 @@ import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
 
-export function initializePrQueue(
-  stack: Stack,
-  ghMergedCommitProcessQueue: Queue,
-  githubDDb: GithubTables
-): Queue[] {
+export function initializePrQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
   const {
     GIT_ORGANIZATION_ID,
     OPENSEARCH_NODE,
@@ -37,7 +33,7 @@ export function initializePrQueue(
     function: new Function(stack, 'fnGhPrFormat', {
       handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',
       timeout: '30 seconds',
-      bind: [prFormatDataQueue, prIndexDataQueue, ghMergedCommitProcessQueue],
+      bind: [prFormatDataQueue, prIndexDataQueue],
       runtime: NODE_VERSION,
     }),
     cdk: {
@@ -55,7 +51,6 @@ export function initializePrQueue(
     OPENSEARCH_NODE,
     OPENSEARCH_USERNAME,
     OPENSEARCH_PASSWORD,
-    ghMergedCommitProcessQueue,
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,

@@ -21,18 +21,9 @@ export function initializeQueue(
   githubDDb: GithubTables,
   buckets: { sastErrorsBucket: Bucket; versionUpgradeBucket: Bucket }
 ): { [key: string]: Queue } {
-  const [
-    commitFormatDataQueue,
-    commitIndexDataQueue,
-    ghMergedCommitProcessQueue,
-    commitFileChanges,
-    updateMergeCommit,
-  ] = initializeCommitQueue(stack, githubDDb);
-  const [prFormatDataQueue, prIndexDataQueue] = initializePrQueue(
-    stack,
-    ghMergedCommitProcessQueue,
-    githubDDb
-  );
+  const [commitFormatDataQueue, commitIndexDataQueue, commitFileChanges, updateMergeCommit] =
+    initializeCommitQueue(stack, githubDDb);
+  const [prFormatDataQueue, prIndexDataQueue] = initializePrQueue(stack, githubDDb);
   const [
     prReviewCommentFormatDataQueue,
     prReviewCommentIndexDataQueue,
@@ -115,7 +106,6 @@ export function initializeQueue(
     repoSastErrors,
     scansSaveQueue,
     repoLibS3Queue,
-    ghMergedCommitProcessQueue,
     updateMergeCommit,
     prReviewCommentMigrationQueue,
   };

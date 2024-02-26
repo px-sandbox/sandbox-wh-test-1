@@ -12,7 +12,7 @@ export async function getCommits(commits: Github.ExternalType.Webhook.Commit): P
           await new SQSClient().sendMessage(
             {
               commitId: commit.id,
-              isMergedCommit: false,
+              isMergedCommit: false, //by default setting a commit to merge false
               mergedBranch: null,
               pushedBranch: commits.ref.split('/heads/').slice(-1)[0],
               repository: {
