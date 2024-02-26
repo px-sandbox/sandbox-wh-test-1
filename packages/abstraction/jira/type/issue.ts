@@ -45,6 +45,7 @@ type SubtaskArray = {
   actual: number;
   variance: number;
   link: string;
+  title: string;
 };
 export type EstimatesVsActualsBreakdownResponse = SubtaskArray & {
   overallEstimate: number;

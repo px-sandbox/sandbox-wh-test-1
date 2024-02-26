@@ -78,6 +78,7 @@ export class IssueProcessor extends DataProcessor<
         isPrimary: true,
         priority: this.apiData.issue.fields.priority.name,
         label: this.apiData.issue.fields.labels,
+        summary: issueDataFromApi?.fields?.summary ?? '',
         issueLinks: this.apiData.issue.fields.issuelinks,
         assigneeId: this.apiData.issue.fields.assignee?.accountId
           ? `${mappingPrefixes.user}_${this.apiData.issue.fields.assignee.accountId}`

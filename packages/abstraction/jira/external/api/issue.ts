@@ -43,5 +43,6 @@ export type Issue = {
         goal: string;
       }
     ];
+    summary: string;
   };
 };

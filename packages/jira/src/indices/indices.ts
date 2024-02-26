@@ -161,6 +161,7 @@ const indices = [
             isPrimary: { type: 'boolean' },
             priority: { type: 'keyword' },
             label: { type: 'keyword' },
+            summary: { type: 'text' },
             issuelinks: {
               properties: {
                 issueKey: { type: 'keyword' },
