@@ -4,7 +4,6 @@ import moment from 'moment';
 import { getSprintById } from '../../repository/sprint/get-sprint';
 import { saveSprintDetails } from '../../repository/sprint/save-sprint';
 
-
 /**
  * Deletes a sprint by ID.
  * @param sprintId - The ID of the sprint to delete.
@@ -18,19 +17,22 @@ export async function deleteSprint(
   eventTime: moment.Moment,
   organization: string
 ): Promise<void | false> {
+  try {
+    logger.info('sprint delete event started for sprint id: ', sprint.id);
 
-  logger.info('sprint delete event started for sprint id: ', sprint.id);
+    const sprintData = await getSprintById(sprint.id, organization);
+    if (!sprintData) {
+      logger.info('sprintDeletedEvent: Sprint not found');
+      return false;
+    }
 
-  const sprintData = await getSprintById(sprint.id, organization);
-  if (!sprintData) {
-    logger.info('sprintDeletedEvent: Sprint not found');
-    return false;
+    const { _id, ...processSprintData } = sprintData;
+    processSprintData.isDeleted = true;
+    processSprintData.deletedAt = eventTime.toISOString();
+
+    logger.info(`sprintDeletedEvent: Delete Sprint id ${_id}`);
+    await saveSprintDetails({ id: _id, body: processSprintData } as Jira.Type.Sprint);
+  } catch (e) {
+    logger.error('sprintDeletedEvent: Error in deleting sprint', e);
   }
-
-  const { _id, ...processSprintData } = sprintData;
-  processSprintData.isDeleted = true;
-  processSprintData.deletedAt = eventTime.toISOString();
-
-  logger.info(`sprintDeletedEvent: Delete Sprint id ${_id}`);
-  await saveSprintDetails({ id: _id, body: processSprintData } as Jira.Type.Sprint);
 }
