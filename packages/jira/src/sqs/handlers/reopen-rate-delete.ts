@@ -44,7 +44,8 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
             .params({
               deletedAt: moment(messageBody.eventTime).toISOString(),
               isDeleted: true,
-            });
+            })
+            .toJSON();
 
           await esClientObj.updateByQuery(Jira.Enums.IndexName.ReopenRate, query, script);
           //   await Promise.all(
