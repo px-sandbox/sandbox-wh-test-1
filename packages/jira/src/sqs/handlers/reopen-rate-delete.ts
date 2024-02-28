@@ -6,6 +6,7 @@ import { Queue } from 'sst/node/queue';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
+import { getOrganization } from '../../repository/organization/get-organization';
 import { mappingPrefixes } from '../../constant/config';
 import { getReopenRateDataByIssueId } from '../../repository/issue/get-issue';
 // import { saveReOpenRate } from '../../repository/issue/save-reopen-rate';
@@ -27,13 +28,19 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
           messageBody.issue.id,
           messageBody.organization
         );
+        const orgData = await getOrganization(messageBody.organization);
+
+        if (!orgData) {
+          logger.error(`Organization ${messageBody.organization} not found`);
+          throw new Error(`Organization ${messageBody.organization} not found`);
+        }
 
         if (reopenRateData.length > 0) {
           const query = esb
             .boolQuery()
             .must([
               esb.termQuery('body.issueId', `${mappingPrefixes.issue}_${messageBody.issue.id}`),
-              esb.termQuery('body.organizationId', messageBody.organization),
+              esb.termQuery('body.organizationId', `${orgData.id}`),
             ])
             .toJSON();
 
