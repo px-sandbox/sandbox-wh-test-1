@@ -66,6 +66,7 @@ export const handler = async function collectBranchData(event: SQSEvent): Promis
     event.Records.filter((record: SQSRecord) => {
       const body = JSON.parse(record.body);
       if (body.owner && body.name) {
+        logger.info(`BRANCH_MESSAGE_BODY_INSIDE_IF: ${body}`);
         return true;
       }
       logger.info(`
