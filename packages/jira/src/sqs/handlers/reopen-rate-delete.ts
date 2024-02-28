@@ -6,6 +6,7 @@ import { Queue } from 'sst/node/queue';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
+import { mappingPrefixes } from '../../constant/config';
 import { getReopenRateDataByIssueId } from '../../repository/issue/get-issue';
 // import { saveReOpenRate } from '../../repository/issue/save-reopen-rate';
 import { logProcessToRetry } from '../../util/retry-process';
@@ -31,7 +32,7 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
           const query = esb
             .boolQuery()
             .must([
-              esb.termQuery('body.id', messageBody.issue.id),
+              esb.termQuery('body.issueId', `${mappingPrefixes.issue}_${messageBody.issue.id}`),
               esb.termQuery('body.organizationId', messageBody.organization),
             ])
             .toJSON();
