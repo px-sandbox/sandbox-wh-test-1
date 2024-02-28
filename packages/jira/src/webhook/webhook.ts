@@ -25,76 +25,86 @@ async function processWebhookEvent(
   body: Jira.Type.Webhook,
   organization: string
 ): Promise<void> {
-
-  switch (eventName?.toLowerCase()) {
-    case Jira.Enums.Event.ProjectCreated:
-      await project.create(body.project, eventTime, organization);
-      break;
-    case Jira.Enums.Event.ProjectUpdated:
-      await project.update(body.project, eventTime, organization);
-      break;
-    case Jira.Enums.Event.ProjectSoftDeleted:
-      await project.delete(body.project.id, eventTime, organization);
-      break;
-    case Jira.Enums.Event.ProjectRestoreDeleted:
-      await project.restoreDeleted(body.project.id, eventTime, organization);
-      break;
-    case Jira.Enums.Event.UserCreated:
-      await user.create(body.user, eventTime, organization);
-      break;
-    case Jira.Enums.Event.UserUpdated:
-      await user.update(body.user, organization);
-      break;
-    case Jira.Enums.Event.UserDeleted:
-      await user.deleted(body.accountId, eventTime, organization);
-      break;
-    case Jira.Enums.Event.SprintCreated:
-      await sprint.create(body.sprint, organization);
-      break;
-    case Jira.Enums.Event.SprintStarted:
-      await sprint.start(body.sprint, organization);
-      break;
-    case Jira.Enums.Event.SprintUpdated:
-      await sprint.update(body.sprint, organization);
-      break;
-    case Jira.Enums.Event.SprintDeleted:
-      await sprint.delete(body.sprint, eventTime, organization);
-      break;
-    case Jira.Enums.Event.SprintClosed:
-      await sprint.close(body.sprint, organization);
-      break;
-    case Jira.Enums.Event.BoardCreated:
-      await board.create(body.board, eventTime, organization);
-      break;
-    case Jira.Enums.Event.BoardConfigUpdated:
-      await board.updateConfig(body.configuration, organization);
-      break;
-    case Jira.Enums.Event.BoardUpdated:
-      await board.update(body.board, organization);
-      break;
-    case Jira.Enums.Event.BoardDeleted:
-      await board.delete(body.board.id, eventTime, organization);
-      break;
-    case Jira.Enums.Event.IssueCreated:
-      await issue.create({ issue: body.issue, changelog: body.changelog, organization });
-      break;
-    case Jira.Enums.Event.IssueUpdated:
-      await issue.update({ issue: body.issue, changelog: body.changelog, organization });
-      break;
-    case Jira.Enums.Event.IssueDeleted:
-      await issue.remove(
-        body.issue.id,
-        eventTime,
-        organization,
-      );
-      await removeReopenRate(
-        { issue: body.issue, changelog: body.changelog, organization } as Jira.Mapped.ReopenRateIssue,
-        eventTime,
-      )
-      break;
-    default:
-      logger.info(`No case found for ${eventName} in Jira webhook event`);
-      break;
+  try {
+    switch (eventName?.toLowerCase()) {
+      case Jira.Enums.Event.ProjectCreated:
+        await project.create(body.project, eventTime, organization);
+        break;
+      case Jira.Enums.Event.ProjectUpdated:
+        await project.update(body.project, eventTime, organization);
+        break;
+      case Jira.Enums.Event.ProjectSoftDeleted:
+        await project.delete(body.project.id, eventTime, organization);
+        break;
+      case Jira.Enums.Event.ProjectRestoreDeleted:
+        await project.restoreDeleted(body.project.id, eventTime, organization);
+        break;
+      case Jira.Enums.Event.UserCreated:
+        await user.create(body.user, eventTime, organization);
+        break;
+      case Jira.Enums.Event.UserUpdated:
+        await user.update(body.user, organization);
+        break;
+      case Jira.Enums.Event.UserDeleted:
+        await user.deleted(body.accountId, eventTime, organization);
+        break;
+      case Jira.Enums.Event.SprintCreated:
+        await sprint.create(body.sprint, organization);
+        break;
+      case Jira.Enums.Event.SprintStarted:
+        await sprint.start(body.sprint, organization);
+        break;
+      case Jira.Enums.Event.SprintUpdated:
+        await sprint.update(body.sprint, organization);
+        break;
+      case Jira.Enums.Event.SprintDeleted:
+        await sprint.delete(body.sprint, eventTime, organization);
+        break;
+      case Jira.Enums.Event.SprintClosed:
+        await sprint.close(body.sprint, organization);
+        break;
+      case Jira.Enums.Event.BoardCreated:
+        await board.create(body.board, eventTime, organization);
+        break;
+      case Jira.Enums.Event.BoardConfigUpdated:
+        await board.updateConfig(body.configuration, organization);
+        break;
+      case Jira.Enums.Event.BoardUpdated:
+        await board.update(body.board, organization);
+        break;
+      case Jira.Enums.Event.BoardDeleted:
+        await board.delete(body.board.id, eventTime, organization);
+        break;
+      case Jira.Enums.Event.IssueCreated:
+        await issue.create({ issue: body.issue, changelog: body.changelog, organization });
+        break;
+      case Jira.Enums.Event.IssueUpdated:
+        await issue.update({ issue: body.issue, changelog: body.changelog, organization });
+        break;
+      case Jira.Enums.Event.IssueDeleted:
+        await issue.remove(body.issue.id, eventTime, organization);
+        await removeReopenRate(
+          {
+            issue: body.issue,
+            changelog: body.changelog,
+            organization,
+          } as Jira.Mapped.ReopenRateIssue,
+          eventTime
+        );
+        break;
+      default:
+        logger.info(`No case found for ${eventName} in Jira webhook event`);
+        break;
+    }
+  } catch (error) {
+    logger.error('webhook.handler.processWebhookEvent.error', {
+      error,
+      eventName,
+      eventTime,
+      body,
+      organization,
+    });
+    throw error;
   }
 }
 

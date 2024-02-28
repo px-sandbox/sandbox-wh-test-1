@@ -13,6 +13,11 @@ export async function create(
   sprint: Jira.ExternalType.Webhook.Sprint,
   organization: string
 ): Promise<void> {
-  logger.info('sprint_event: Send message to SQS');
-  await new SQSClient().sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
+  try {
+    logger.info('sprint_event: Send message to SQS');
+    await new SQSClient().sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
+  } catch (e) {
+    logger.error('sprintCreateEvent: Error in creating sprint', e);
+    throw e;
+  }
 }
