@@ -9,7 +9,6 @@ import esb from 'elastic-builder';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { mappingPrefixes } from '../../constant/config';
 import { getReopenRateDataByIssueId } from '../../repository/issue/get-issue';
-// import { saveReOpenRate } from '../../repository/issue/save-reopen-rate';
 import { logProcessToRetry } from '../../util/retry-process';
 
 const esClientObj = new ElasticSearchClient({
@@ -56,16 +55,6 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
             .toJSON();
 
           await esClientObj.updateByQuery(Jira.Enums.IndexName.ReopenRate, query, script);
-          //   await Promise.all(
-          //     reopenRateData.map(
-          //       async (issueData: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody) => {
-          //         // issueData.isDeleted = true;
-          //         // issueData.deletedAt = moment(messageBody.eventTime).toISOString();
-          //         // const { _id, ...reopenData } = issueData;
-          //         // await saveReOpenRate({ id: _id, body: reopenData } as Jira.Type.Issue);
-          //       }
-          //     )
-          //   );
         } else {
           logger.info(`Delete reopen rate data not found for issueId : ${messageBody.issue.id}`);
         }
