@@ -38,9 +38,12 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
 
           const script = esb
             .script()
-            .source(`ctx._source.body.isDeleted=true;ctx._source.body.deletedAt=params.deletedAt`)
+            .source(
+              'ctx._source.body.isDeleted=params.isDeleted;ctx._source.body.deletedAt=params.deletedAt'
+            )
             .params({
               deletedAt: moment(messageBody.eventTime).toISOString(),
+              isDeleted: true,
             });
 
           await esClientObj.updateByQuery(Jira.Enums.IndexName.ReopenRate, query, script);
