@@ -1,12 +1,20 @@
-import { Other } from 'abstraction';
+import { Jira } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import { getReopenRateDataByIssueId } from '../../repository/issue/get-issue';
-import { saveReOpenRate } from '../../repository/issue/save-reopen-rate';
+// import { saveReOpenRate } from '../../repository/issue/save-reopen-rate';
 import { logProcessToRetry } from '../../util/retry-process';
 
+const esClientObj = new ElasticSearchClient({
+  host: Config.OPENSEARCH_NODE,
+  username: Config.OPENSEARCH_USERNAME ?? '',
+  password: Config.OPENSEARCH_PASSWORD ?? '',
+});
 export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(
@@ -20,22 +28,33 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
         );
 
         if (reopenRateData.length > 0) {
-          await Promise.all(
-            reopenRateData.map(
-              async (issueData: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody) => {
-                // issueData.isDeleted = true;
-                // issueData.deletedAt = moment(messageBody.eventTime).toISOString();
-                // const { _id, ...reopenData } = issueData;
-                // await saveReOpenRate({ id: _id, body: reopenData } as Jira.Type.Issue);
+          const query = esb
+            .boolQuery()
+            .must([
+              esb.termQuery('body.id', messageBody.issue.id),
+              esb.termQuery('body.organizationId', messageBody.organization),
+            ])
+            .toJSON();
 
-                await saveReOpenRate({
-                  ...issueData,
-                  isDeleted: true,
-                  deletedAt: moment(messageBody.eventTime).toISOString(),
-                });
-              }
-            )
-          );
+          const script = esb
+            .script()
+            .source(`ctx._source.isDeleted=true;ctx._source.deletedAt=params.deletedAt`)
+            .params({
+              deletedAt: moment(messageBody.eventTime).toISOString(),
+              isDeleted: true,
+            });
+
+          await esClientObj.updateByQuery(Jira.Enums.IndexName.ReopenRate, query, script);
+          //   await Promise.all(
+          //     reopenRateData.map(
+          //       async (issueData: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody) => {
+          //         // issueData.isDeleted = true;
+          //         // issueData.deletedAt = moment(messageBody.eventTime).toISOString();
+          //         // const { _id, ...reopenData } = issueData;
+          //         // await saveReOpenRate({ id: _id, body: reopenData } as Jira.Type.Issue);
+          //       }
+          //     )
+          //   );
         } else {
           logger.info(`Delete reopen rate data not found for issueId : ${messageBody.issue.id}`);
         }
