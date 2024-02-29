@@ -108,6 +108,17 @@ export function initializeRoutes(
       },
       authorizer: 'admin',
     },
+
+    // jira  reopen rate migration in case of issue delete
+    // we need projectId and organization as query params in this API
+    'POST /jira/issue-delete/reopen-rate/migrate': {
+      function: {
+        handler: 'packages/jira/src/migrations/issue-delete-reopen-rate.handler',
+        timeout: '5 minutes',
+      },
+      authorizer: 'admin',
+    },
   };
+
   return routesObj;
 }
