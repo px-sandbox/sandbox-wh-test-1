@@ -24,19 +24,24 @@ export async function sprintVarianceGraph(
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
 
+    let dateRangeQueries = [
+      esb.rangeQuery('body.startDate').gte(startDate),
+      esb.rangeQuery('body.endDate').gte(startDate),
+    ];
+
+    if (endDate) {
+      dateRangeQueries = [
+        esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
+        esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
+      ];
+    }
     const sprintQuery = esb
       .requestBodySearch()
       .query(
         esb.boolQuery().must([
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
-          esb
-            .boolQuery()
-            .should([
-              esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
-              esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
-            ])
-            .minimumShouldMatch(1),
+          esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
           esb
             .boolQuery()
             .should([
@@ -158,19 +163,25 @@ export async function sprintVarianceGraphAvg(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
+
+    let dateRangeQueries = [
+      esb.rangeQuery('body.startDate').gte(startDate),
+      esb.rangeQuery('body.endDate').gte(startDate),
+    ];
+
+    if (endDate) {
+      dateRangeQueries = [
+        esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
+        esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
+      ];
+    }
     const sprintQuery = esb
       .requestBodySearch()
       .query(
         esb.boolQuery().must([
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
-          esb
-            .boolQuery()
-            .should([
-              esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
-              esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
-            ])
-            .minimumShouldMatch(1),
+          esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
           esb
             .boolQuery()
             .should([
