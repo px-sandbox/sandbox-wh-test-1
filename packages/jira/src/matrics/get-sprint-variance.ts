@@ -73,7 +73,7 @@ export async function sprintVarianceGraph(
       )) as Other.Type.HitBody;
       sprintHits = await searchedDataFormator(body);
       await Promise.all(
-        sprintHits.map(async (item: Other.Type.HitBody) => {
+        sprintHits.map((item: Other.Type.HitBody) => {
           sprintData.push({
             id: item.id,
             name: item.name,
