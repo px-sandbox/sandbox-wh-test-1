@@ -118,6 +118,14 @@ export function initializeRoutes(
       },
       authorizer: 'admin',
     },
+
+    'GET /jira/subtask/migrate': {
+      function: {
+        handler: 'packages/jira/src/service/subtask-migration.handler',
+        timeout: '5 minutes',
+      },
+      authorizer: 'admin',
+    },
   };
 
   return routesObj;
