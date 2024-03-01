@@ -181,7 +181,7 @@ export const estimatesVsActualsBreakdown = async (
       })
     );
     const filteredResp = response?.filter((ele) => ele?.overallEstimate !== 0);
-    const data = _.orderBy(response, [sortKey], [sortOrder as 'asc' | 'desc']);
+    const data = _.orderBy(filteredResp, [sortKey], [sortOrder as 'asc' | 'desc']);
 
     return data;
   } catch (e) {
