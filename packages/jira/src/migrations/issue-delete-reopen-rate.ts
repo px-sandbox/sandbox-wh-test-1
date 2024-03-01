@@ -118,7 +118,7 @@ export const handler = async function issueDeleteReopenRateMigration(
     }
 
     const issueKeys = [...new Set(issueData.map((issue) => issue.issueKey))];
-    logger.info('issue-delete-reopen-rate: issueKeys: ', issueKeys);
+    logger.info(`issue-delete-reopen-rate: issueKeys: ${issueKeys}`);
     await fetchReopenRateData(projectId, issueKeys, `${orgData.id}`);
   } catch (error) {
     logger.error(`issue-delete-reopen-rate.error:  ${error}`);
