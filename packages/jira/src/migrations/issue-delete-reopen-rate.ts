@@ -90,7 +90,7 @@ export const handler = async function issueDeleteReopenRateMigration(
         esb
           .boolQuery()
           .must([
-            esb.termQuery('body.organizationId', `${orgData.id}`),
+            esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
             esb.termQuery('body.projectId', `${projectId}`),
             esb.termQuery('body.isDeleted', true),
           ])
