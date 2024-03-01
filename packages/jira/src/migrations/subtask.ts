@@ -1,9 +1,9 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Jira, Other } from 'abstraction';
+import { IssuesTypes } from 'abstraction/jira/enums';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { JiraClient } from 'src/lib/jira-client';
 import { searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
@@ -24,7 +24,7 @@ async function fetchJiraIssues(projectId: string, orgId: string): Promise<Other.
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.organizationId.keyword', orgId),
           esb.termQuery('body.isDeleted', false),
-          esb.termsQuery('body.issueType', ['Story', 'Task']),
+          esb.termsQuery('body.issueType', [IssuesTypes.STORY, IssuesTypes.TASK, IssuesTypes.BUG]),
         ])
     )
     .sort(esb.sort('_id'))
@@ -54,12 +54,47 @@ async function updateIssuesWithSubtasks(
   organization: string,
   issueIdsArr: Other.Type.HitBody[]
 ): Promise<void> {
+  const sqsClient = new SQSClient();
   await Promise.all(
     issueIdsArr.map(async (issueData: Other.Type.HitBody) => {
       try {
-        const jira = await JiraClient.getClient(organization);
-        const issue = await jira.getIssue(issueData.issueId);
-
+        const issue = {
+          id: issueData.issueId,
+          key: issueData.issueKey,
+          fields: {
+            project: {
+              id: issueData.projectId.replace(/jira_project_/g, ''),
+              key: issueData.projectKey,
+            },
+            labels: issueData.labels,
+            summary: issueData.summary,
+            issuetype: {
+              name: issueData.issueType,
+            },
+            priority: {
+              name: issueData.priority,
+            },
+            issueLinks: issueData.issuelinks,
+            assignee: {
+              accountId: issueData.assigneeId.replace(/jira_user_/g, ''),
+            },
+            reporter: {
+              accountId: issueData.reporterId.replace(/jira_user_/g, ''),
+            },
+            creatorId: {
+              accountId: issueData.creatorId.replace(/jira_user_/g, ''),
+            },
+            status: {
+              name: issueData.status,
+            },
+            subtasks: issueData.subtasks,
+            created: issueData.createdDate,
+            updated: issueData.lastUpdated,
+            lastViewed: issueData.lastViewed,
+            isDeleted: issueData.isDeleted,
+            deletedAt: issueData.deletedAt,
+          },
+        };
         logger.info(`
   FETCHING ISSUES FOR THIS 
   projectId: ${issueData.projectId}
@@ -67,7 +102,6 @@ async function updateIssuesWithSubtasks(
   issueId: ${issueData.issueId},
   sprintId: ${issueData.sprintId},
   `);
-        const sqsClient = new SQSClient();
 
         await sqsClient.sendMessage(
           {
