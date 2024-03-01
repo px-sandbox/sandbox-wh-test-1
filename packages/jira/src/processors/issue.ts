@@ -70,14 +70,14 @@ export class IssueProcessor extends DataProcessor<
     // sending parent issue to issue format queue so that it gets updated along with it's subtask
     if (issueDataFromApi?.fields?.parent) {
       const parentIssueData = await jiraClient.getIssue(issueDataFromApi.fields.parent.key);
-      const sprint =
-        parentIssueData.fields?.customfield_10007 && parentIssueData.fields.customfield_10007[0];
+      // const sprint =
+      //   parentIssueData.fields?.customfield_10007 && parentIssueData.fields.customfield_10007[0];
       sqsClient.sendMessage(
         {
           organization: this?.apiData?.organization ?? '',
-          projectId: this?.apiData?.issue?.fields?.project?.id ?? '',
-          boardId: sprint?.boardId ?? '',
-          sprintId: parentIssueData?.fields?.sprint?.id ?? '',
+          // projectId: this?.apiData?.issue?.fields?.project?.id ?? '',
+          // boardId: sprint?.boardId ?? '',
+          // sprintId: parentIssueData?.fields?.sprint?.id ?? '',
           issue: parentIssueData,
         },
         Queue.qIssueFormat.queueUrl
