@@ -75,15 +75,21 @@ async function updateIssuesWithSubtasks(
               name: issueData.priority,
             },
             issueLinks: issueData.issuelinks,
-            assignee: {
-              accountId: issueData.assigneeId.replace(/jira_user_/g, ''),
-            },
-            reporter: {
-              accountId: issueData.reporterId.replace(/jira_user_/g, ''),
-            },
-            creatorId: {
-              accountId: issueData.creatorId.replace(/jira_user_/g, ''),
-            },
+            assignee: issueData.assigneeId
+              ? {
+                  accountId: issueData.assigneeId.replace(/jira_user_/g, ''),
+                }
+              : null,
+            reporter: issueData.reporterId
+              ? {
+                  accountId: issueData.reporterId.replace(/jira_user_/g, ''),
+                }
+              : null,
+            creatorId: issueData.creatorId
+              ? {
+                  accountId: issueData.creatorId.replace(/jira_user_/g, ''),
+                }
+              : null,
             status: {
               name: issueData.status,
             },
