@@ -4,6 +4,12 @@ export type Issue = {
   key: string;
   self: string;
   fields: {
+    subtasks: Array<{
+      id: string;
+      key: string;
+      self: string;
+      fields: { summary: string; status: string; issuetype: string; priority: string };
+    }>;
     sprint: {
       id: string;
       self: string;

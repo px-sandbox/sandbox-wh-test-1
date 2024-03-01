@@ -111,7 +111,7 @@ export class IssueProcessor extends DataProcessor<
           ? `${mappingPrefixes.user}_${this.apiData.issue.fields.creator.accountId}`
           : null,
         status: this.apiData.issue.fields.status.name,
-        subtasks: this.apiData.issue.fields.subtasks,
+        subtasks: issueDataFromApi.fields.subtasks ?? [],
         createdDate: this.apiData.issue.fields.created,
         lastUpdated: this.apiData.issue.fields.updated,
         lastViewed: this.apiData.issue.fields.lastViewed,
