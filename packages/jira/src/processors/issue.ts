@@ -3,6 +3,8 @@ import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
+import { SQSClient } from '@pulse/event-handler';
+import { Queue } from 'sst/node/queue';
 import { mappingPrefixes } from '../constant/config';
 import { getIssueChangelogs } from '../lib/get-issue-changelogs';
 import { JiraClient } from '../lib/jira-client';
@@ -10,6 +12,7 @@ import { getOrganization } from '../repository/organization/get-organization';
 import { getFailedStatusDetails } from '../util/issue-status';
 import { DataProcessor } from './data-processor';
 
+const sqsClient = new SQSClient();
 export class IssueProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Issue,
   Jira.Type.Issue
@@ -63,6 +66,24 @@ export class IssueProcessor extends DataProcessor<
         (items) => items.to === QaFailed.issueStatusId && items.toString === QaFailed.name
       ).length;
     }
+
+    // sending parent issue to issue format queue so that it gets updated along with it's subtask
+    if (issueDataFromApi?.fields?.parent) {
+      const parentIssueData = await jiraClient.getIssue(issueDataFromApi.fields.parent.key);
+      // const sprint =
+      //   parentIssueData.fields?.customfield_10007 && parentIssueData.fields.customfield_10007[0];
+      await sqsClient.sendMessage(
+        {
+          organization: this?.apiData?.organization ?? '',
+          // projectId: this?.apiData?.issue?.fields?.project?.id ?? '',
+          // boardId: sprint?.boardId ?? '',
+          // sprintId: parentIssueData?.fields?.sprint?.id ?? '',
+          issue: parentIssueData,
+        },
+        Queue.qIssueFormat.queueUrl
+      );
+    }
+
     const issueObj = {
       id: parentId ?? uuid(),
       body: {
