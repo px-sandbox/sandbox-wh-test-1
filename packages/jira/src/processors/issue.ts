@@ -72,7 +72,7 @@ export class IssueProcessor extends DataProcessor<
       const parentIssueData = await jiraClient.getIssue(issueDataFromApi.fields.parent.key);
       // const sprint =
       //   parentIssueData.fields?.customfield_10007 && parentIssueData.fields.customfield_10007[0];
-      sqsClient.sendMessage(
+      await sqsClient.sendMessage(
         {
           organization: this?.apiData?.organization ?? '',
           // projectId: this?.apiData?.issue?.fields?.project?.id ?? '',
