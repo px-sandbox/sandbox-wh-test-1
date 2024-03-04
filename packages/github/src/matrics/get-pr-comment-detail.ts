@@ -6,10 +6,9 @@ import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = new ElasticSearchClient({
-
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
+  host: Config.OPENSEARCH_NODE,
+  username: Config.OPENSEARCH_USERNAME ?? '',
+  password: Config.OPENSEARCH_PASSWORD ?? '',
 });
 
 /**
@@ -20,37 +19,49 @@ const esClientObj = new ElasticSearchClient({
  * @returns A promise that resolves to an object containing the repository names and organization name.
  */
 async function getRepoNamesAndOrg(
-    repoIds: string[],
-    orgId: string,
-    prRespLen: number
+  repoIds: string[],
+  orgId: string,
+  prRespLen: number
 ): Promise<{ repoNames: Github.Type.RepoNamesResponse[]; orgname: string }> {
-    // esb query to fetch repo name from ES
-    const repoNameQuery = esb.boolQuery().must(esb.termsQuery('body.id', repoIds));
-    const orgNameQuery = esb.boolQuery().must(esb.termQuery('body.id', orgId));
+  // esb query to fetch repo name from ES
+  const repoNameQuery = esb.boolQuery().must(esb.termsQuery('body.id', repoIds));
+  const orgNameQuery = esb.boolQuery().must(esb.termQuery('body.id', orgId));
 
-    // Fetching reponame and orgname from ES
-    const [unformattedRepoNames, unformattedOrgName] = await Promise.all([
-        esClientObj.searchWithEsb(
-            Github.Enums.IndexName.GitRepo, repoNameQuery, 0, prRespLen, [], ['body.id', 'body.name']
-        ),
-        esClientObj.searchWithEsb(Github.Enums.IndexName.GitOrganization, orgNameQuery, 0, 10, [], ['body.name'])
-    ]);
+  // Fetching reponame and orgname from ES
+  const [unformattedRepoNames, unformattedOrgName] = await Promise.all([
+    esClientObj.searchWithEsb(
+      Github.Enums.IndexName.GitRepo,
+      repoNameQuery,
+      0,
+      repoIds.length,
+      [],
+      ['body.id', 'body.name']
+    ),
+    esClientObj.searchWithEsb(
+      Github.Enums.IndexName.GitOrganization,
+      orgNameQuery,
+      0,
+      10,
+      [],
+      ['body.name']
+    ),
+  ]);
 
-    // formatting the reponames and orgname data coming from elastic search
-    const [repoNames, orgnames] = await Promise.all([
-        searchedDataFormator(unformattedRepoNames),
-        searchedDataFormator(unformattedOrgName)
-    ]);
+  // formatting the reponames and orgname data coming from elastic search
+  const [repoNames, orgnames] = await Promise.all([
+    searchedDataFormator(unformattedRepoNames),
+    searchedDataFormator(unformattedOrgName),
+  ]);
 
-    return {
-        repoNames,
-        orgname: orgnames[0]?.name ?? ''
-    }
+  return {
+    repoNames,
+    orgname: orgnames[0]?.name ?? '',
+  };
 }
 
 /**
  * Retrieves detailed metrics for pull request comments.
- * 
+ *
  * @param startDate The start date for filtering the pull request comments.
  * @param endDate The end date for filtering the pull request comments.
  * @param repoIds An array of repository IDs to filter the pull request comments.
@@ -58,75 +69,76 @@ async function getRepoNamesAndOrg(
  * @param limit The maximum number of results per page.
  * @param sortKey The key to sort the results by.
  * @param sortOrder The order in which to sort the results (asc or desc).
- * @returns A Promise that resolves to an object containing the total number of pages, 
+ * @returns A Promise that resolves to an object containing the total number of pages,
  * the current page number, and the formatted pull request comment details.
  * @throws If there is an error retrieving the pull request comment details.
  */
 export async function prCommentsDetailMetrics(
-    startDate: string,
-    endDate: string,
-    repoIds: string[],
-    page: number,
-    limit: number,
-    sortKey: string,
-    sortOrder: string,
-    orgId: string
+  startDate: string,
+  endDate: string,
+  repoIds: string[],
+  page: number,
+  limit: number,
+  sortKey: string,
+  sortOrder: string,
+  orgId: string
 ): Promise<Github.Type.PRCommentsDetail> {
-    logger.info('Get PR Comment Detail');
-    try {
-        // esb query to fetch pull request data
-        const query =
-            esb.boolQuery().must([
-                esb.termsQuery('body.repoId', repoIds),
-                esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-            ]);
+  logger.info('Get PR Comment Detail');
+  try {
+    // esb query to fetch pull request data
+    const query = esb
+      .boolQuery()
+      .must([
+        esb.termsQuery('body.repoId', repoIds),
+        esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
+      ]);
 
-        // We are going to result based on the sort key and sort order
-        const sort = [`body.${sortKey}:${sortOrder}`];
+    // We are going to result based on the sort key and sort order
+    const sort = [`body.${sortKey}:${sortOrder}`];
 
-        // We are only going to fetch limited number of fields
-        const source = [
-            "body.title",
-            "body.pullNumber",
-            "body.reviewComments",
-            "body.repoId",
-        ];
+    // We are only going to fetch limited number of fields
+    const source = ['body.title', 'body.pullNumber', 'body.reviewComments', 'body.repoId'];
 
-        // Fetching data from ES and formatting it
-        const unformattedData: Other.Type.HitBody = await esClientObj.searchWithEsb(
-            Github.Enums.IndexName.GitPull, query, ((page - 1) * limit), limit, sort, source);
-        const response = await searchedDataFormator(unformattedData);
+    // Fetching data from ES and formatting it
+    const unformattedData: Other.Type.HitBody = await esClientObj.searchWithEsb(
+      Github.Enums.IndexName.GitPull,
+      query,
+      (page - 1) * limit,
+      limit,
+      sort,
+      source
+    );
+    const response = await searchedDataFormator(unformattedData);
 
-        logger.info(`PR-Comment-Detail-Pull-Requests: ${JSON.stringify(response)}`);
+    logger.info(`PR-Comment-Detail-Pull-Requests: ${JSON.stringify(response)}`);
 
-        // Calling a function to get repoNames and orgname
-        const { repoNames, orgname } = await getRepoNamesAndOrg(repoIds, orgId, response?.length);
+    // Calling a function to get repoNames and orgname
+    const { repoNames, orgname } = await getRepoNamesAndOrg(repoIds, orgId, response?.length);
 
-        logger.info(`PR-Comment-Detail-Repo-Names: ${JSON.stringify(repoNames)}`);
+    logger.info(`PR-Comment-Detail-Repo-Names: ${JSON.stringify(repoNames)}`);
 
-        // repo object with repoId as key and repoName as value for easy access when formatting final response
-        const repoObj: Record<string, string> = {};
-        repoNames?.forEach((repo: Github.Type.RepoNamesResponse) => {
-            repoObj[`${repo.id}`] = repo?.name ?? '';
-        });
+    // repo object with repoId as key and repoName as value for easy access when formatting final response
+    const repoObj: Record<string, string> = {};
+    repoNames?.forEach((repo: Github.Type.RepoNamesResponse) => {
+      repoObj[`${repo.id}`] = repo?.name ?? '';
+    });
 
-        // formatting finalResponse keys and values
-        const finalResponse = response?.map((ele: Github.Type.CommentsDetailResponse) => ({
-            pullNumber: ele?.pullNumber ?? 0,
-            prName: ele?.title ?? '',
-            reviewComments: ele?.reviewComments ?? 0,
-            repoName: repoObj[ele?.repoId] ?? '',
-            prLink: `https://github.com/${orgname}/${repoObj[ele?.repoId]}/pull/${ele?.pullNumber}`,
-        }));
+    // formatting finalResponse keys and values
+    const finalResponse = response?.map((ele: Github.Type.CommentsDetailResponse) => ({
+      pullNumber: ele?.pullNumber ?? 0,
+      prName: ele?.title ?? '',
+      reviewComments: ele?.reviewComments ?? 0,
+      repoName: repoObj[ele?.repoId] ?? '',
+      prLink: `https://github.com/${orgname}/${repoObj[ele?.repoId]}/pull/${ele?.pullNumber}`,
+    }));
 
-        return {
-            totalPages: Math.ceil(unformattedData.hits.total.value / limit),
-            page,
-            data: finalResponse
-        };
-
-    } catch (e) {
-        logger.error(`Get PR Comment Detail.Error: ${e}`);
-        throw new Error(`Get PR Comment Detail.Error: ${e}`);
-    }
+    return {
+      totalPages: Math.ceil(unformattedData.hits.total.value / limit),
+      page,
+      data: finalResponse,
+    };
+  } catch (e) {
+    logger.error(`Get PR Comment Detail.Error: ${e}`);
+    throw new Error(`Get PR Comment Detail.Error: ${e}`);
+  }
 }
