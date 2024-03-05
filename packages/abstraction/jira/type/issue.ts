@@ -20,7 +20,12 @@ export type Issue = {
     reporterId: string | null;
     creatorId: string | null;
     status: string;
-    subtasks: Array<string>;
+    subtasks: Array<{
+      id: string;
+      key: string;
+      self: string;
+      fields: { summary: string; status: string; issuetype: string; priority: string };
+    }>;
     createdDate: string;
     lastViewed: string;
     lastUpdated: string;
