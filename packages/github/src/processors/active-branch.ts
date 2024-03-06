@@ -14,10 +14,13 @@ export class ActiveBranchProcessor extends DataProcessor<
   public async processor(): Promise<Github.Type.ActiveBranches> {
     const bodyId = `${mappingPrefixes.branch_count}_${this.ghApiData.repoId}_${this.ghApiData.createdAt}`;
 
-    const parentId: string = await this.getParentId(bodyId);
-
+    let parentId: string = await this.getParentId(bodyId);
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(bodyId, bodyId);
+    }
     return {
-      id: parentId || uuid(),
+      id: parentId,
       body: {
         id: bodyId,
         repoId: this.ghApiData.repoId,

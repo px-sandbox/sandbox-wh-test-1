@@ -1,18 +1,15 @@
-import esb from 'elastic-builder';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import { Queue } from 'sst/node/queue';
+import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
+import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
-import { ParamsMapping } from '../model/params-mapping';
 
 export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<void> {
   try {
     const updatedData = { ...data };
-    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
     const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',

@@ -7,6 +7,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { ActiveBranchProcessor } from '../../../processors/active-branch';
 import { logProcessToRetry } from '../../../util/retry-process';
+import async from 'async';
 
 async function countBranchesAndSendToSQS(
   repo: Github.Type.Repository,
@@ -66,7 +67,6 @@ async function countBranchesAndSendToSQS(
     }
 
     const data = await branchProcessor.processor();
-
     await branchProcessor.sendDataToQueue(data, Queue.qGhActiveBranchCounterIndex.queueUrl);
   } catch (error: unknown) {
     logger.error(`
@@ -79,21 +79,14 @@ async function countBranchesAndSendToSQS(
 }
 
 export async function handler(event: SQSEvent): Promise<void> {
-  await Promise.all(
-    event.Records.map(async (record: SQSRecord) => {
-      try {
-        const { repo, date }: { date: string; repo: Github.Type.Repository } = JSON.parse(
-          record.body
-        );
-
-        await countBranchesAndSendToSQS(repo, date);
-      } catch (error) {
-        await logProcessToRetry(
-          record,
-          Queue.qGhActiveBranchCounterFormat.queueUrl,
-          error as Error
-        );
-      }
-    })
-  );
+  await async.eachSeries(event.Records, async (record: SQSRecord) => {
+    try {
+      const { repo, date }: { date: string; repo: Github.Type.Repository } = JSON.parse(
+        record.body
+      );
+      await countBranchesAndSendToSQS(repo, date);
+    } catch (error) {
+      await logProcessToRetry(record, Queue.qGhActiveBranchCounterFormat.queueUrl, error as Error);
+    }
+  });
 }

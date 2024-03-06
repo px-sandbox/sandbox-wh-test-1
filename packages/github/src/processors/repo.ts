@@ -14,7 +14,11 @@ export class RepositoryProcessor extends DataProcessor<
     super(data);
   }
   public async processor(): Promise<Github.Type.RepoFormatter> {
-    const parentId: string = await this.getParentId(`${mappingPrefixes.repo}_${this.ghApiData.id}`);
+    let parentId: string = await this.getParentId(`${mappingPrefixes.repo}_${this.ghApiData.id}`);
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(parentId, `${mappingPrefixes.repo}_${this.ghApiData.id}`);
+    }
     const action = [
       {
         action: this.ghApiData.action ?? 'initialized',
@@ -23,11 +27,14 @@ export class RepositoryProcessor extends DataProcessor<
       },
     ];
     if (!parentId && this.ghApiData?.action !== Github.Enums.Repo.Created) {
-      logger.error('REPOSITORY_PROCESSOR_ERROR', { error: 'Repository not found', data: this.ghApiData });
+      logger.error('REPOSITORY_PROCESSOR_ERROR', {
+        error: 'Repository not found',
+        data: this.ghApiData,
+      });
       throw new Error('Repository not found');
     }
     const repoObj = {
-      id: parentId || uuid(),
+      id: parentId,
       body: {
         id: `${mappingPrefixes.repo}_${this.ghApiData.id}`,
         githubRepoId: this.ghApiData.id,

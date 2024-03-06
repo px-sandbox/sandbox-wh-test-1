@@ -31,7 +31,7 @@ export class PRProcessor extends DataProcessor<
     action: Github.Type.actions
   ): Promise<Github.Type.PullRequest> {
     const pullObj = {
-      id: parentId || uuid(),
+      id: parentId,
       body: {
         id: `${mappingPrefixes.pull}_${this.ghApiData.id}`,
         githubPullId: this.ghApiData.id,
@@ -137,19 +137,27 @@ export class PRProcessor extends DataProcessor<
    * If commit id exists then update commit and proceed with PR.
    */
   public async processor(): Promise<Github.Type.PullRequest> {
-    await this.processPRAction();
+    try {
+      await this.processPRAction();
+      let parentId = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
+      if (!parentId) {
+        parentId = uuid();
+        await this.putDataToDynamoDB(parentId, `${mappingPrefixes.pull}_${this.ghApiData.id}`);
+      }
+      const reqReviewersData: Array<Github.Type.RequestedReviewers> =
+        this.ghApiData.requested_reviewers.map((reqReviewer) => ({
+          userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
+        }));
 
-    const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
-    const reqReviewersData: Array<Github.Type.RequestedReviewers> =
-      this.ghApiData.requested_reviewers.map((reqReviewer) => ({
-        userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
+      const labelsData: Array<Github.Type.Labels> = this.ghApiData.labels.map((label) => ({
+        name: label.name,
       }));
-
-    const labelsData: Array<Github.Type.Labels> = this.ghApiData.labels.map((label) => ({
-      name: label.name,
-    }));
-    const action = this.setAction();
-    const pullObj = await this.setPullObj(parentId, reqReviewersData, labelsData, action);
-    return pullObj;
+      const action = this.setAction();
+      const pullObj = await this.setPullObj(parentId, reqReviewersData, labelsData, action);
+      return pullObj;
+    } catch (error) {
+      logger.error(`PRProcessor.processor.error, ${error}`);
+      throw error;
+    }
   }
 }

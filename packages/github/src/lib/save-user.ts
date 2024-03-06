@@ -1,16 +1,13 @@
-import esb from 'elastic-builder';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
+import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../util/response-formatter';
-import { ParamsMapping } from '../model/params-mapping';
 
 export async function saveUserDetails(data: Github.Type.User): Promise<void> {
   try {
     const updatedData = { ...data };
-    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
     const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',

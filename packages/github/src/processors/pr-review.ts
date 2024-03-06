@@ -24,9 +24,12 @@ export class PRReviewProcessor extends DataProcessor<
     this.action = action;
   }
   public async processor(): Promise<Github.Type.PRReview> {
-    const parentId: string = await this.getParentId(
+    let parentId: string = await this.getParentId(
       `${mappingPrefixes.pRReview}_${this.ghApiData.id}`
     );
+    if (!parentId) {
+      await this.putDataToDynamoDB(uuid(), `${mappingPrefixes.pRReview}_${this.ghApiData.id}`);
+    }
     const action = [
       {
         action: this.action ?? 'initialized',
@@ -36,7 +39,7 @@ export class PRReviewProcessor extends DataProcessor<
     ];
 
     const pRReviewObj = {
-      id: parentId || uuid(),
+      id: parentId,
       body: {
         id: `${mappingPrefixes.pRReview}_${this.ghApiData.id}`,
         githubPRReviewId: this.ghApiData.id,
