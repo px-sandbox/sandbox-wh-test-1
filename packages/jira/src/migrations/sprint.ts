@@ -5,14 +5,18 @@ import { Queue } from 'sst/node/queue';
 import { logProcessToRetry } from '../util/retry-process';
 import { JiraClient } from '../lib/jira-client';
 
-async function checkAndSave(organization: string, projectId: string, originBoardId: string): Promise<void> {
+async function checkAndSave(
+  organization: string,
+  projectId: string,
+  originBoardId: string
+): Promise<void> {
   const jira = await JiraClient.getClient(organization);
   const sprints = await jira.getSprints(originBoardId);
 
   const sqsClient = new SQSClient();
 
-  await Promise.all(
-    [...sprints.map(async (sprint) =>
+  await Promise.all([
+    ...sprints.map(async (sprint) =>
       sqsClient.sendMessage(
         {
           organization,
@@ -21,15 +25,16 @@ async function checkAndSave(organization: string, projectId: string, originBoard
           ...sprint,
         },
         Queue.qSprintFormat.queueUrl
-      ),
+      )
     ),
-    ...sprints.map(async (sprint) =>
-      sqsClient.sendMessage(
-        { organization, projectId, originBoardId, sprintId: sprint.id },
-        Queue.qIssueMigrate.queueUrl
-      ),
-    )]
-  );
+    // TODO: Uncomment this code after migration of sprint is done
+    // ...sprints.map(async (sprint) =>
+    //   sqsClient.sendMessage(
+    //     { organization, projectId, originBoardId, sprintId: sprint.id },
+    //     Queue.qIssueMigrate.queueUrl
+    //   ),
+    // )
+  ]);
 }
 
 export const handler = async function migrateSprint(event: SQSEvent): Promise<void> {

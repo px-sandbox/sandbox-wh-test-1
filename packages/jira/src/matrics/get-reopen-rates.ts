@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { IReopenRateResponse } from 'abstraction/jira/type';
@@ -20,15 +21,12 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
     reopenRateGraphQuery.query(
       esb
         .boolQuery()
-        .must([
-          esb.termsQuery('body.sprintId', sprintIds),
-          esb.termQuery('body.isDeleted', false),
-        ])
+        .must([esb.termsQuery('body.sprintId', sprintIds), esb.termQuery('body.isDeleted', false)])
     );
     reopenRateGraphQuery
       .agg(
         esb
-          .termsAggregation('sprint_buckets', 'body.sprintId.keyword')
+          .termsAggregation('sprint_buckets', 'body.sprintId')
           .size(sprintIds.length)
           .agg(esb.filterAggregation('reopen_count', esb.rangeQuery('body.reOpenCount').gt(0)))
       )
@@ -36,15 +34,19 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
 
     logger.info('reopenRateGraphQuery', reopenRateGraphQuery);
 
-    const reopenRateGraphResponse: IReopenRateResponse = await esClientObj.queryAggs<IReopenRateResponse>(
-      Jira.Enums.IndexName.ReopenRate,
-      reopenRateGraphQuery
-    );
+    const reopenRateGraphResponse: IReopenRateResponse =
+      await esClientObj.queryAggs<IReopenRateResponse>(
+        Jira.Enums.IndexName.ReopenRate,
+        reopenRateGraphQuery
+      );
 
-    let response: IssueReponse[] = (await Promise.all(
+    let response: IssueReponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
-        const boardName = await getBoardByOrgId(sprintData?.originBoardId, sprintData?.organizationId)
+        const boardName = await getBoardByOrgId(
+          sprintData?.originBoardId,
+          sprintData?.organizationId
+        );
         const bugsData = reopenRateGraphResponse.sprint_buckets.buckets.find(
           (obj) => obj.key === sprintId
         );
@@ -64,8 +66,10 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
           percentValue: Number.isNaN(percentValue) ? 0 : Number(percentValue.toFixed(2)),
         };
       })
-    ));
-    response = _.sortBy(response, [(item: IssueReponse): Date => new Date(item.startDate)]).reverse();
+    );
+    response = _.sortBy(response, [
+      (item: IssueReponse): Date => new Date(item.startDate),
+    ]).reverse();
     return response.filter((obj) => obj.sprintName !== undefined);
   } catch (e) {
     logger.error('reopenRateGraphQuery.error', e);
@@ -86,10 +90,7 @@ export async function reopenRateGraphAvg(
     reopenRateGraphQuery.query(
       esb
         .boolQuery()
-        .must([
-          esb.termsQuery('body.sprintId', sprintIds),
-          esb.termQuery('body.isDeleted', false),
-        ])
+        .must([esb.termsQuery('body.sprintId', sprintIds), esb.termQuery('body.isDeleted', false)])
     );
     reopenRateGraphQuery
       .agg(esb.filterAggregation('reopenRate', esb.rangeQuery('body.reOpenCount').gt(0)))
@@ -108,12 +109,12 @@ export async function reopenRateGraphAvg(
         reopenRateGraphResponse.body.aggregations.reopenRate.doc_count === 0
           ? 0
           : Number(
-            (
-              (reopenRateGraphResponse.body.aggregations.reopenRate.doc_count /
-                reopenRateGraphResponse.body.hits.total.value) *
-              100
-            ).toFixed(2)
-          ),
+              (
+                (reopenRateGraphResponse.body.aggregations.reopenRate.doc_count /
+                  reopenRateGraphResponse.body.hits.total.value) *
+                100
+              ).toFixed(2)
+            ),
     };
   } catch (e) {
     logger.error('AvgReopenRateGraphQuery.error', e);

@@ -161,6 +161,7 @@ const indices = [
             isPrimary: { type: 'boolean' },
             priority: { type: 'keyword' },
             label: { type: 'keyword' },
+            summary: { type: 'text' },
             issuelinks: {
               properties: {
                 issueKey: { type: 'keyword' },
@@ -310,29 +311,29 @@ const indices = [
       },
     },
   },
-  // {
-  //   name: Jira.Enums.IndexName.ReopenRate,
-  //   _id: { type: 'uuid' },
-  //   mappings: {
-  //     properties: {
-  //       body: {
-  //         type: 'object',
-  //         properties: {
-  //           id: { type: 'keyword' },
-  //           organizationId: { type: 'keyword' },
-  //           issueId: { type: 'keyword' },
-  //           issueKey: { type: 'text' }, // TODO: change this back to keyword type
-  //           projectId: { type: 'keyword' },
-  //           sprintId: { type: 'keyword' },
-  //           reOpenCount: { type: 'integer' },
-  //           isReOpen: { type: 'boolean' },
-  //           isDeleted: { type: 'boolean' },
-  //           deletedAt: { type: 'date', format: 'strict_date_optional_time' },
-  //         },
-  //       },
-  //     },
-  //   },
-  // },
+
+  {
+    name: Jira.Enums.IndexName.ReopenRate,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            organizationId: { type: 'keyword' },
+            issueId: { type: 'keyword' },
+            projectId: { type: 'keyword' },
+            sprintId: { type: 'keyword' },
+            boardId: { type: 'keyword' },
+            reOpenCount: { type: 'long' },
+            isReOpen: { type: 'boolean' },
+            isDeleted: { type: 'boolean' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+          },
+        },
+      },
+    },
+  },
 ];
 /**
  * Creates a mapping for an index in Elasticsearch.

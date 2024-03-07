@@ -7,10 +7,10 @@ type sprint = {
 };
 export type BucketItem = {
   key: string;
-  estimatedTime: {
+  estimate: {
     value: number;
   };
-  actualTime: {
+  actual: {
     value: number;
   };
 };
@@ -25,5 +25,6 @@ export type SprintVariance = {
 
 export type SprintVarianceData = {
   data: SprintVariance[];
-  afterKey: string | undefined;
+  page: number;
+  totalPages: number;
 };

@@ -35,7 +35,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       await new SQSClient().sendMessage(repoData, queueUrl);
     }
   } catch (error) {
-    logger.error('HISTORY_DATA_ERROR', { error });
+    logger.error(`HISTORY_DATA_ERROR:, ${error}`);
   }
   return responseParser
     .setBody('DONE')

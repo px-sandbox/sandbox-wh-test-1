@@ -44,7 +44,7 @@ const fetchIssueData = async (
     )
     .sort(esb.sort('_id'))
     .size(100)
-    .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.subtasks']);
+    .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.subtasks', 'body.summary']);
 
   let unformattedIssues: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
     Jira.Enums.IndexName.Issue,
@@ -73,12 +73,13 @@ const fetchIssueData = async (
           esb.termQuery('body.sprintId', sprintId),
           esb.termQuery('body.organizationId.keyword', orgId),
           esb.termQuery('body.issueType', 'Sub-task'),
+          esb.rangeQuery('body.timeTracker.estimate').gt(0),
         ])
         .must(esb.existsQuery('body.timeTracker'))
     )
     .sort(esb.sort('_id'))
     .size(100)
-    .source(['body.id', 'body.issueKey', 'body.timeTracker']);
+    .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.summary']);
 
   let unformattedSubtasks: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
     Jira.Enums.IndexName.Issue,
@@ -132,6 +133,8 @@ export const estimatesVsActualsBreakdown = async (
 
         const subtasksArr: {
           id: string;
+          issueKey: string;
+          title: string;
           estimate: number;
           actual: number;
           variance: number;
@@ -149,6 +152,8 @@ export const estimatesVsActualsBreakdown = async (
 
             subtasksArr.push({
               id: subtask?.id,
+              issueKey: subtask?.issueKey,
+              title: subtask?.summary,
               estimate: subEstimate,
               actual: subActual,
               variance: parseFloat((((subActual - subEstimate) / subEstimate) * 100).toFixed(2)),
@@ -159,6 +164,8 @@ export const estimatesVsActualsBreakdown = async (
 
         return {
           id: issue?.id,
+          issueKey: issue?.issueKey,
+          title: issue?.summary,
           estimate,
           actual,
           variance: parseFloat((((actual - estimate) / estimate) * 100).toFixed(2)),
