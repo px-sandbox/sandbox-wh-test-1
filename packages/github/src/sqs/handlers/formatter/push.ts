@@ -4,6 +4,7 @@ import { Queue } from 'sst/node/queue';
 import { PushProcessor } from '../../../processors/push';
 import { logProcessToRetry } from '../../../util/retry-process';
 import async from 'async';
+import { Github } from 'abstraction';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   try {
@@ -17,7 +18,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       return;
     }
     const data = await pushProcessor.processor();
-    await pushProcessor.sendDataToQueue(data, Queue.qGhPushIndex.queueUrl);
+    await pushProcessor.indexDataToES({ data, eventType: Github.Enums.Event.Push });
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPushFormat.queueUrl, error as Error);
     logger.error('pushFormattedDataReceiver.error', error);

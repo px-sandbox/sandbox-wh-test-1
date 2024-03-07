@@ -7,6 +7,7 @@ import { Queue } from 'sst/node/queue';
 import { PRProcessor } from '../../../processors/pull-request';
 import { logProcessToRetry } from '../../../util/retry-process';
 import async from 'async';
+import { Github } from 'abstraction';
 
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
@@ -33,7 +34,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       octokit
     );
     data.body.reviewComments = reviewCommentCount;
-    await pullProcessor.sendDataToQueue(data, Queue.qGhPrIndex.queueUrl);
+    await pullProcessor.indexDataToES({ data, eventType: Github.Enums.Event.PullRequest });
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPrFormat.queueUrl, error as Error);
     logger.error(`pRFormattedDataReceiver.error, ${error}`);

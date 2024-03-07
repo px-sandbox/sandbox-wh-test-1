@@ -14,6 +14,7 @@ import { initializeBranchCounterQueue } from './branch-counter';
 import { initializeRepoLibraryQueue } from './repo-library';
 import { initializeRepoSastErrorQueue } from './repo-sast-errors';
 import { initializeSecurityScanQueue } from './update-security-scan';
+import { initializeIndexerQueue } from './indexer';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeQueue(
@@ -21,18 +22,26 @@ export function initializeQueue(
   githubDDb: GithubTables,
   buckets: { sastErrorsBucket: Bucket; versionUpgradeBucket: Bucket }
 ): { [key: string]: Queue } {
+  const indexerQueue = initializeIndexerQueue(stack, githubDDb);
   const [commitFormatDataQueue, commitIndexDataQueue, commitFileChanges, updateMergeCommit] =
-    initializeCommitQueue(stack, githubDDb);
-  const [prFormatDataQueue, prIndexDataQueue] = initializePrQueue(stack, githubDDb);
+    initializeCommitQueue(stack, githubDDb, indexerQueue);
+  const [prFormatDataQueue, prIndexDataQueue] = initializePrQueue(stack, githubDDb, indexerQueue);
   const [
     prReviewCommentFormatDataQueue,
     prReviewCommentIndexDataQueue,
     prReviewFormatDataQueue,
     prReviewIndexDataQueue,
     prReviewCommentMigrationQueue,
-  ] = initializePrReviewAndCommentsQueue(stack, githubDDb, prIndexDataQueue);
-  const [branchFormatDataQueue, branchIndexDataQueue] = initializeBranchQueue(stack, githubDDb);
-  const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue] = initializeCopilotQueue(stack);
+  ] = initializePrReviewAndCommentsQueue(stack, githubDDb, prIndexDataQueue, indexerQueue);
+  const [branchFormatDataQueue, branchIndexDataQueue] = initializeBranchQueue(
+    stack,
+    githubDDb,
+    indexerQueue
+  );
+  const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue] = initializeCopilotQueue(
+    stack,
+    indexerQueue
+  );
   const [
     collectCommitsData,
     collectPRCommitsData,
@@ -47,14 +56,23 @@ export function initializeQueue(
     prReviewCommentFormatDataQueue,
     commitFormatDataQueue,
   ]);
-  const [pushFormatDataQueue, pushIndexDataQueue] = initializePushQueue(stack, githubDDb);
+  const [pushFormatDataQueue, pushIndexDataQueue] = initializePushQueue(
+    stack,
+    githubDDb,
+    indexerQueue
+  );
   const [repoFormatDataQueue, repoIndexDataQueue, afterRepoSaveQueue] = initializeRepoQueue(
     stack,
     githubDDb,
     branchFormatDataQueue,
-    branchIndexDataQueue
+    branchIndexDataQueue,
+    indexerQueue
   );
-  const [userFormatDataQueue, userIndexDataQueue] = initializeUserQueue(stack, githubDDb);
+  const [userFormatDataQueue, userIndexDataQueue] = initializeUserQueue(
+    stack,
+    githubDDb,
+    indexerQueue
+  );
   const [branchCounterFormatterQueue, branchCounterIndexQueue] = initializeBranchCounterQueue(
     stack,
     githubDDb
@@ -108,5 +126,6 @@ export function initializeQueue(
     repoLibS3Queue,
     updateMergeCommit,
     prReviewCommentMigrationQueue,
+    indexerQueue,
   };
 }

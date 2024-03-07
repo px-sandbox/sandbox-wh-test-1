@@ -4,6 +4,7 @@ import { Queue } from 'sst/node/queue';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { RepositoryProcessor } from '../../../processors/repo';
 import async from 'async';
+import { Github } from 'abstraction';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   try {
@@ -17,7 +18,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       return;
     }
     const data = await repoProcessor.processor();
-    await repoProcessor.sendDataToQueue(data, Queue.qGhRepoIndex.queueUrl);
+    await repoProcessor.indexDataToES({ data, eventType: Github.Enums.Event.Repo });
   } catch (error) {
     logger.error(`repoFormattedDataReceiver.error, ${error}`);
     await logProcessToRetry(record, Queue.qGhRepoFormat.queueUrl, error as Error);

@@ -3,6 +3,7 @@ import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { ParamsMapping } from '../model/params-mapping';
+import { Queue } from 'sst/node/queue';
 
 export abstract class DataProcessor<T, S> {
   protected ghApiData: T;
@@ -27,8 +28,8 @@ export abstract class DataProcessor<T, S> {
     return ddbRes?.parentId as string;
   }
 
-  public async sendDataToQueue<U>(data: U, url: string): Promise<void> {
-    await new SQSClient().sendMessage(data, url);
+  public async indexDataToES<U>(data: U): Promise<void> {
+    await new SQSClient().sendMessage(data, Queue.qGhIndex.queueUrl);
   }
 
   public async calculateComputationalDate(date: string): Promise<string> {

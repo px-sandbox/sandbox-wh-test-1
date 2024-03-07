@@ -8,6 +8,7 @@ import { getOctokitResp } from '../../../util/octokit-response';
 import { processFileChanges } from '../../../util/process-commit-changes';
 import { logProcessToRetry } from '../../../util/retry-process';
 import async from 'async';
+import { Github } from 'abstraction';
 
 // eslint-disable-next-line max-lines-per-function
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
@@ -65,7 +66,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       return;
     }
     const data = await commitProcessor.processor();
-    await commitProcessor.sendDataToQueue(data, Queue.qGhCommitIndex.queueUrl);
+    await commitProcessor.indexDataToES({ data, eventType: Github.Enums.Event.Commit });
   } catch (error) {
     logger.error(`commitFormattedDataReceiver.error, ${error}`);
     await logProcessToRetry(record, Queue.qGhCommitFormat.queueUrl, error as Error);

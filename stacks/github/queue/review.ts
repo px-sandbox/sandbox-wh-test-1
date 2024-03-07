@@ -7,7 +7,8 @@ import { commonConfig } from '../../common/config';
 export function initializePrReviewAndCommentsQueue(
   stack: Stack,
   githubDDb: GithubTables,
-  prIndexDataQueue: Queue
+  prIndexDataQueue: Queue,
+  indexerQueue: Queue
 ): Queue[] {
   const {
     GIT_ORGANIZATION_ID,
@@ -93,6 +94,7 @@ export function initializePrReviewAndCommentsQueue(
     retryProcessTable,
     prReviewCommentIndexDataQueue,
     GIT_ORGANIZATION_ID,
+    indexerQueue,
   ]);
 
   prReviewCommentIndexDataQueue.bind([
@@ -107,6 +109,7 @@ export function initializePrReviewAndCommentsQueue(
     retryProcessTable,
     prReviewIndexDataQueue,
     GIT_ORGANIZATION_ID,
+    indexerQueue,
   ]);
   prReviewIndexDataQueue.bind([
     githubMappingTable,

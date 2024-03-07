@@ -3,6 +3,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { UsersProcessor } from '../../../processors/users';
 import async from 'async';
+import { Github } from 'abstraction';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   try {
@@ -16,7 +17,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       return;
     }
     const data = await userProcessor.processor();
-    await userProcessor.sendDataToQueue(data, Queue.qGhUsersIndex.queueUrl);
+    await userProcessor.indexDataToES({ data, eventType: Github.Enums.Event.Organization });
   } catch (error) {
     logger.error('userFormattedDataReceiver.error', error);
   }

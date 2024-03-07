@@ -3,6 +3,7 @@ export enum Event {
   Branch = 'branch',
   Organization = 'organization',
   Commit = 'push',
+  Push = 'push',
   PullRequest = 'pull_request',
   PRReviewComment = 'pull_request_review_comment',
   PRReview = 'pull_request_review',

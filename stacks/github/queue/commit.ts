@@ -4,7 +4,11 @@ import { commonConfig } from '../../common/config';
 import { GithubTables } from '../../type/tables';
 
 // eslint-disable-next-line max-lines-per-function
-export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
+export function initializeCommitQueue(
+  stack: Stack,
+  githubDDb: GithubTables,
+  indexerQueue: Queue
+): Queue[] {
   const {
     GIT_ORGANIZATION_ID,
     GITHUB_APP_PRIVATE_KEY_PEM,
@@ -16,19 +20,7 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
     NODE_VERSION,
   } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDb;
-  const commitIndexDataQueue = new Queue(stack, 'qGhCommitIndex');
-  commitIndexDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnGhCommitIndex', {
-      handler: 'packages/github/src/sqs/handlers/indexer/commit.handler',
-      bind: [commitIndexDataQueue],
-      runtime: NODE_VERSION,
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
+
   const commitFormatDataQueue = new Queue(stack, 'qGhCommitFormat', {
     cdk: {
       queue: {
@@ -39,7 +31,7 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
   commitFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhCommitFormat', {
       handler: 'packages/github/src/sqs/handlers/formatter/commit.handler',
-      bind: [commitFormatDataQueue, commitIndexDataQueue],
+      bind: [commitFormatDataQueue],
       runtime: NODE_VERSION,
     }),
     cdk: {
@@ -62,7 +54,6 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
       timeout: '300 seconds',
       runtime: NODE_VERSION,
       bind: [
-        commitIndexDataQueue,
         commitFileChanges,
         GITHUB_SG_INSTALLATION_ID,
         GITHUB_APP_PRIVATE_KEY_PEM,
@@ -99,7 +90,6 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
   commitFormatDataQueue.bind([
     githubMappingTable,
     retryProcessTable,
-    commitIndexDataQueue,
     GIT_ORGANIZATION_ID,
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_APP_ID,
@@ -107,19 +97,13 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
     OPENSEARCH_NODE,
     OPENSEARCH_USERNAME,
     OPENSEARCH_PASSWORD,
+    indexerQueue,
   ]);
 
-  commitIndexDataQueue.bind([
-    githubMappingTable,
-    retryProcessTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
   updateMergeCommit.bind([
     githubMappingTable,
     retryProcessTable,
-    commitIndexDataQueue,
+    indexerQueue,
     GIT_ORGANIZATION_ID,
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_APP_ID,
@@ -129,5 +113,5 @@ export function initializeCommitQueue(stack: Stack, githubDDb: GithubTables): Qu
     OPENSEARCH_PASSWORD,
   ]);
 
-  return [commitFormatDataQueue, commitIndexDataQueue, commitFileChanges, updateMergeCommit];
+  return [commitFormatDataQueue, commitFileChanges, updateMergeCommit];
 }

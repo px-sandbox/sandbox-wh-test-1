@@ -3,7 +3,11 @@ import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
 
-export function initializePrQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
+export function initializePrQueue(
+  stack: Stack,
+  githubDDb: GithubTables,
+  indexerQueue: Queue
+): Queue[] {
   const {
     GIT_ORGANIZATION_ID,
     OPENSEARCH_NODE,
@@ -54,6 +58,7 @@ export function initializePrQueue(stack: Stack, githubDDb: GithubTables): Queue[
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
+    indexerQueue,
   ]);
 
   prIndexDataQueue.bind([

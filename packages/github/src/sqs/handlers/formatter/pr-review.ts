@@ -4,6 +4,7 @@ import { Queue } from 'sst/node/queue';
 import { PRReviewProcessor } from '../../../processors/pr-review';
 import { logProcessToRetry } from '../../../util/retry-process';
 import async from 'async';
+import { Github } from 'abstraction';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   try {
@@ -17,7 +18,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       return;
     }
     const data = await prReviewProcessor.processor();
-    await prReviewProcessor.sendDataToQueue(data, Queue.qGhPrReviewIndex.queueUrl);
+    await prReviewProcessor.indexDataToES({ data, eventType: Github.Enums.Event.PRReview });
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPrReviewFormat.queueUrl, error as Error);
     logger.error('pRReviewFormattedDataReceiver.error', error);

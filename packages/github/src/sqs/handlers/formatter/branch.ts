@@ -3,6 +3,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { BranchProcessor } from '../../../processors/branch';
 import async from 'async';
+import { Github } from 'abstraction';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   try {
@@ -15,7 +16,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       return;
     }
     const data = await branchProcessor.processor();
-    await branchProcessor.sendDataToQueue(data, Queue.qGhBranchIndex.queueUrl);
+    await branchProcessor.indexDataToES({ data, eventType: Github.Enums.Event.Branch });
   } catch (error) {
     logger.error(`branchFormattedDataReceiver.error, ${error}`);
   }

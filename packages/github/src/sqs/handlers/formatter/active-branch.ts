@@ -67,7 +67,7 @@ async function countBranchesAndSendToSQS(
     }
 
     const data = await branchProcessor.processor();
-    await branchProcessor.sendDataToQueue(data, Queue.qGhActiveBranchCounterIndex.queueUrl);
+    await branchProcessor.indexDataToES({ data, eventType: 'active-branch' });
   } catch (error: unknown) {
     logger.error(`
     countBranchesAndSendToSQS.error for ${JSON.stringify(repo)} at ${date}

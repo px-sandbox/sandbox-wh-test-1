@@ -41,9 +41,7 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
 
     logger.info('saveCommitDetails.successful');
   } catch (error: unknown) {
-    logger.error('saveCommitDetails.error', {
-      errorInfo: JSON.stringify(error),
-    });
+    logger.error(`saveCommitDetails.error, ${error}`);
     throw error;
   }
 }
