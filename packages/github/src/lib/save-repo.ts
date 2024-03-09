@@ -31,9 +31,7 @@ export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<
     }
     logger.info('saveRepoDetails.successful');
   } catch (error: unknown) {
-    logger.error('saveRepoDetails.error', {
-      error,
-    });
+    logger.error(`saveRepoDetails.error, ${error}`);
     throw error;
   }
 }

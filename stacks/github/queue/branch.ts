@@ -7,9 +7,8 @@ export function initializeBranchQueue(
   stack: Stack,
   githubDDb: GithubTables,
   indexerQueue: Queue
-): Queue[] {
-  const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } =
-    use(commonConfig);
+): Queue {
+  const { GIT_ORGANIZATION_ID } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDb;
 
   const branchFormatDataQueue = new Queue(stack, 'qGhBranchFormat', {
@@ -32,5 +31,5 @@ export function initializeBranchQueue(
     indexerQueue,
   ]);
 
-  return [branchFormatDataQueue];
+  return branchFormatDataQueue;
 }

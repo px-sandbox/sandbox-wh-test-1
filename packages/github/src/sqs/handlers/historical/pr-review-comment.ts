@@ -84,7 +84,7 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
               reviewComments: prReviewCommentIdfromApi.length,
             },
           },
-          Queue.qGhPrIndex.queueUrl
+          Queue.qGhIndex.queueUrl
         );
       } catch (error) {
         logger.error(`migration.reviews_comment.error: ${error}`);

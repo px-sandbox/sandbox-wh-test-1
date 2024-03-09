@@ -26,7 +26,7 @@ export async function fetchAndSaveOrganizationDetails(
     if (responseData?.data) {
       const result = new Organization(responseData.data).validate();
       if (result) {
-        const formattedData = await result.processor(records?.parentId);
+        const formattedData = await result.processor(records?.parentId as string);
         if (records === undefined) {
           logger.info('---NEW_RECORD_FOUND---');
           await new DynamoDbDocClient().put(

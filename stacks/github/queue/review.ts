@@ -7,7 +7,6 @@ import { commonConfig } from '../../common/config';
 export function initializePrReviewAndCommentsQueue(
   stack: Stack,
   githubDDb: GithubTables,
-  prIndexDataQueue: Queue,
   indexerQueue: Queue
 ): Queue[] {
   const {
@@ -21,24 +20,12 @@ export function initializePrReviewAndCommentsQueue(
     GITHUB_SG_INSTALLATION_ID,
   } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDb;
-  const prReviewCommentIndexDataQueue = new Queue(stack, 'qGhPrReviewCommentIndex');
-  prReviewCommentIndexDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnGhPrReviewCommentIndex', {
-      handler: 'packages/github/src/sqs/handlers/indexer/pr-review-comment.handler',
-      bind: [prReviewCommentIndexDataQueue],
-      runtime: NODE_VERSION,
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
+
   const prReviewCommentFormatDataQueue = new Queue(stack, 'qGhPrReviewCommentFormat');
   prReviewCommentFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhPrReviewCommentFormat', {
       handler: 'packages/github/src/sqs/handlers/formatter/pr-review-comment.handler',
-      bind: [prReviewCommentFormatDataQueue, prReviewCommentIndexDataQueue],
+      bind: [prReviewCommentFormatDataQueue],
       runtime: NODE_VERSION,
     }),
     cdk: {
@@ -48,25 +35,11 @@ export function initializePrReviewAndCommentsQueue(
     },
   });
 
-  const prReviewIndexDataQueue = new Queue(stack, 'qGhPrReviewIndex');
-  prReviewIndexDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnGhPrReviewIndex', {
-      handler: 'packages/github/src/sqs/handlers/indexer/pr-review.handler',
-      bind: [prReviewIndexDataQueue],
-      runtime: NODE_VERSION,
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
-
   const prReviewFormatDataQueue = new Queue(stack, 'qGhPrReviewFormat');
   prReviewFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhPrReviewFormat', {
       handler: 'packages/github/src/sqs/handlers/formatter/pr-review.handler',
-      bind: [prReviewFormatDataQueue, prReviewIndexDataQueue],
+      bind: [prReviewFormatDataQueue],
       runtime: NODE_VERSION,
     }),
     cdk: {
@@ -92,31 +65,15 @@ export function initializePrReviewAndCommentsQueue(
   prReviewCommentFormatDataQueue.bind([
     githubMappingTable,
     retryProcessTable,
-    prReviewCommentIndexDataQueue,
     GIT_ORGANIZATION_ID,
     indexerQueue,
   ]);
 
-  prReviewCommentIndexDataQueue.bind([
-    githubMappingTable,
-    retryProcessTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
   prReviewFormatDataQueue.bind([
     githubMappingTable,
     retryProcessTable,
-    prReviewIndexDataQueue,
     GIT_ORGANIZATION_ID,
     indexerQueue,
-  ]);
-  prReviewIndexDataQueue.bind([
-    githubMappingTable,
-    retryProcessTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
   ]);
 
   prReviewCommentMigrationQueue.bind([
@@ -128,14 +85,8 @@ export function initializePrReviewAndCommentsQueue(
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
     GIT_ORGANIZATION_ID,
-    prIndexDataQueue,
+    indexerQueue,
   ]);
 
-  return [
-    prReviewCommentFormatDataQueue,
-    prReviewCommentIndexDataQueue,
-    prReviewFormatDataQueue,
-    prReviewIndexDataQueue,
-    prReviewCommentMigrationQueue,
-  ];
+  return [prReviewCommentFormatDataQueue, prReviewFormatDataQueue, prReviewCommentMigrationQueue];
 }

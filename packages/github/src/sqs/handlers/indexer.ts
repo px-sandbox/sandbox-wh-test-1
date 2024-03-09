@@ -12,6 +12,8 @@ import { savePRDetails } from 'src/lib/save-pull-request';
 import { savePushDetails } from 'src/lib/save-push';
 import async from 'async';
 import { saveUserDetails } from 'src/lib/save-user';
+import { saveActiveBranch } from 'src/lib/save-active-branches';
+import { saveGHCopilotReport } from 'src/lib/save-copilot-report';
 
 export const handler = async function indexDataReceiver(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
@@ -29,7 +31,7 @@ export const handler = async function indexDataReceiver(event: SQSEvent): Promis
         case Github.Enums.Event.Commit:
           await saveCommitDetails(messageBody.data);
           break;
-        case Github.Enums.Event.Push:
+        case Github.Enums.Event.Commit_Push:
           await savePushDetails(messageBody.data);
           break;
         case Github.Enums.Event.PRReview:
@@ -44,13 +46,19 @@ export const handler = async function indexDataReceiver(event: SQSEvent): Promis
         case Github.Enums.Event.Organization:
           await saveUserDetails(messageBody.data);
           break;
+        case Github.Enums.Event.ActiveBranches:
+          await saveActiveBranch(messageBody.data);
+          break;
+        case Github.Enums.Event.Copilot:
+          await saveGHCopilotReport(messageBody.data);
+          break;
         default:
-          logger.error('commitIndexDataReceiver.error', { error: 'action not found' });
+          logger.error('indexDataReceiver.error', { error: 'action not found' });
           break;
       }
     } catch (error) {
       await logProcessToRetry(record, Queue.qGhIndex.queueUrl, error as Error);
-      logger.error('commitIndexDataReceiver.error', { errorInfo: JSON.stringify(error) });
+      logger.error('indexDataReceiver.error', { errorInfo: JSON.stringify(error) });
     }
   });
 };

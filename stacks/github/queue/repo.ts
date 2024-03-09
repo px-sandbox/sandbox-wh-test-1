@@ -8,38 +8,22 @@ export function initializeRepoQueue(
   stack: Stack,
   githubDDb: GithubTables,
   branchFormatDataQueue: Queue,
-  branchIndexDataQueue: Queue,
   indexerQueue: Queue
 ): Queue[] {
   const {
     GIT_ORGANIZATION_ID,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
     GITHUB_APP_ID,
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_SG_INSTALLATION_ID,
     NODE_VERSION,
   } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDb;
-  const repoIndexDataQueue = new Queue(stack, 'qGhRepoIndex');
-  repoIndexDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnRepoIndex', {
-      handler: 'packages/github/src/sqs/handlers/indexer/repo.handler',
-      bind: [repoIndexDataQueue],
-      runtime: NODE_VERSION,
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
+
   const repoFormatDataQueue = new Queue(stack, 'qGhRepoFormat');
   repoFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnRepoFormat', {
       handler: 'packages/github/src/sqs/handlers/formatter/repo.handler',
-      bind: [repoIndexDataQueue, repoFormatDataQueue],
+      bind: [repoFormatDataQueue],
       runtime: NODE_VERSION,
     }),
     cdk: {
@@ -62,18 +46,9 @@ export function initializeRepoQueue(
   repoFormatDataQueue.bind([
     githubMappingTable,
     retryProcessTable,
-    repoIndexDataQueue,
+    indexerQueue,
     GIT_ORGANIZATION_ID,
     indexerQueue,
-  ]);
-
-  repoIndexDataQueue.bind([
-    githubMappingTable,
-    retryProcessTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-    afterRepoSaveQueue,
   ]);
 
   afterRepoSaveQueue.bind([
@@ -81,7 +56,7 @@ export function initializeRepoQueue(
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
     branchFormatDataQueue,
-    branchIndexDataQueue,
+    indexerQueue,
   ]);
-  return [repoFormatDataQueue, repoIndexDataQueue, afterRepoSaveQueue];
+  return [repoFormatDataQueue, afterRepoSaveQueue];
 }

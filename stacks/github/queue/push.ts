@@ -7,33 +7,15 @@ export function initializePushQueue(
   stack: Stack,
   githubDDb: GithubTables,
   indexerQueue: Queue
-): Queue[] {
-  const {
-    GIT_ORGANIZATION_ID,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-    NODE_VERSION,
-  } = use(commonConfig);
+): Queue {
+  const { GIT_ORGANIZATION_ID, NODE_VERSION } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDb;
-  const pushIndexDataQueue = new Queue(stack, 'qGhPushIndex');
-  pushIndexDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnGhPushIndex', {
-      handler: 'packages/github/src/sqs/handlers/indexer/push.handler',
-      bind: [pushIndexDataQueue],
-      runtime: NODE_VERSION,
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
+
   const pushFormatDataQueue = new Queue(stack, 'qGhPushFormat');
   pushFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhPushFormat', {
       handler: 'packages/github/src/sqs/handlers/formatter/push.handler',
-      bind: [pushFormatDataQueue, pushIndexDataQueue],
+      bind: [pushFormatDataQueue],
       runtime: NODE_VERSION,
     }),
     cdk: {
@@ -46,16 +28,9 @@ export function initializePushQueue(
   pushFormatDataQueue.bind([
     githubMappingTable,
     retryProcessTable,
-    pushIndexDataQueue,
     GIT_ORGANIZATION_ID,
     indexerQueue,
   ]);
-  pushIndexDataQueue.bind([
-    githubMappingTable,
-    retryProcessTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
-  return [pushFormatDataQueue, pushIndexDataQueue];
+
+  return pushFormatDataQueue;
 }

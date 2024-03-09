@@ -22,7 +22,7 @@ function initProcessRetryFunction(
     collectPRReviewCommentsData,
     collectReviewsData,
     historicalBranch,
-    collecthistoricalPrByumber,
+    collecthistoricalPrBynumber,
     pushFormatDataQueue,
     repoFormatDataQueue,
     afterRepoSaveQueue,
@@ -56,7 +56,7 @@ function initProcessRetryFunction(
       collectPRReviewCommentsData,
       collectReviewsData,
       historicalBranch,
-      collecthistoricalPrByumber,
+      collecthistoricalPrBynumber,
       pushFormatDataQueue,
       repoFormatDataQueue,
       afterRepoSaveQueue,
@@ -100,18 +100,13 @@ export function initializeFunctions(
     NODE_VERSION,
   } = use(commonConfig);
 
-  const {
-    ghCopilotFormatDataQueue,
-    ghCopilotIndexDataQueue,
-    branchCounterFormatterQueue,
-    masterLibraryQueue,
-  } = queuesForFunctions;
+  const { ghCopilotFormatDataQueue, branchCounterFormatterQueue, masterLibraryQueue } =
+    queuesForFunctions;
 
   const ghCopilotFunction = new Function(stack, 'fnGithubCopilot', {
     handler: 'packages/github/src/cron/github-copilot.handler',
     bind: [
       ghCopilotFormatDataQueue,
-      ghCopilotIndexDataQueue,
       GITHUB_APP_PRIVATE_KEY_PEM,
       GITHUB_APP_ID,
       GITHUB_SG_INSTALLATION_ID,

@@ -60,14 +60,14 @@ async function countBranchesAndSendToSQS(
     if (!isValid) {
       logger.error(`
       countBranchesAndSendToSQS.validationError for ${JSON.stringify(repo)} at ${date}
-      Error: Not valids
+      Error: Not valid
       `);
 
       return;
     }
 
     const data = await branchProcessor.processor();
-    await branchProcessor.indexDataToES({ data, eventType: 'active-branch' });
+    await branchProcessor.indexDataToES({ data, eventType: Github.Enums.Event.ActiveBranches });
   } catch (error: unknown) {
     logger.error(`
     countBranchesAndSendToSQS.error for ${JSON.stringify(repo)} at ${date}
