@@ -1,7 +1,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable no-await-in-loop */
 import { logger } from 'core';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
 import { Table } from 'sst/node/table';
 import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
@@ -29,7 +29,7 @@ async function fetchDDRecords(
 ): Promise<{ [key: string]: { libname: string; version: string; releaseDate: string } }> {
   const libKeys = libNames.map((libName) => ({ libName }));
 
-  const ddClient = new DynamoDbDocClient();
+  const ddClient = DynamoDbDocClientGh.getInstance();
   const tableIndex = Table.libMaster.tableName;
   let results: Github.Type.LibraryRecord[] = [];
 

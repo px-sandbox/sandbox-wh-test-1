@@ -1,4 +1,4 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
 import { Github } from 'abstraction';
@@ -9,17 +9,13 @@ import { ActiveBranchProcessor } from '../../../processors/active-branch';
 import { logProcessToRetry } from '../../../util/retry-process';
 import async from 'async';
 
+const esClient = ElasticSearchClientGh.getInstance();
+
 async function countBranchesAndSendToSQS(
   repo: Github.Type.Repository,
   date: string
 ): Promise<void> {
   try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-
     const body = esb
       .requestBodySearch()
       .size(0)

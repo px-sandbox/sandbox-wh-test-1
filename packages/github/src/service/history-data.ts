@@ -1,4 +1,4 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
@@ -7,17 +7,12 @@ import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
+const esClientObj = ElasticSearchClientGh.getInstance();
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const historyType = event?.queryStringParameters?.type || '';
   const repo = event?.queryStringParameters?.repo || '';
   const branch = event?.queryStringParameters?.branch || '';
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-
     const data = await esClientObj.search(Github.Enums.IndexName.GitRepo, 'name', repo);
 
     const [repoData] = await searchedDataFormator(data);

@@ -1,4 +1,4 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
@@ -8,13 +8,10 @@ import { searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 
+const esClient = ElasticSearchClientGh.getInstance();
+
 async function fetchPRComments(repoId: string, owner: string, repoName: string): Promise<void> {
   try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const sqs = new SQSClient();
     let prFormattedData: any = [];
     let from = 0;

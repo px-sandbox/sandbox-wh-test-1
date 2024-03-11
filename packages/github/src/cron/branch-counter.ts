@@ -1,4 +1,9 @@
-import { ElasticSearchClient, SearchResponse, Hit } from '@pulse/elasticsearch';
+import {
+  ElasticSearchClient,
+  SearchResponse,
+  Hit,
+  ElasticSearchClientGh,
+} from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 import moment from 'moment';
@@ -8,6 +13,7 @@ import { Github } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 
+const esClient = ElasticSearchClientGh.getInstance();
 // get all repos from ES which are not deleted and send to SQS
 async function getReposAndSendToSQS(
   currentDate: string,
@@ -15,12 +21,6 @@ async function getReposAndSendToSQS(
   perPage = 100
 ): Promise<number> {
   try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-
     const body = esb
       .requestBodySearch()
       .size(perPage)

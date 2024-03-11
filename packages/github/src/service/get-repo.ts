@@ -1,40 +1,44 @@
 /* eslint-disable no-await-in-loop */
 import { transpileSchema } from '@middy/validator/transpile';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 import { IRepo, formatRepoDataResponse, searchedDataFormator } from '../util/response-formatter';
 import { getGitRepoSchema } from './validations';
 
-async function fetchReposData(repoIds: string[], esClient: ElasticSearchClient,
-  gitRepoName: string, page: number, size: number): Promise<IRepo[]> {
-
+const esClient = ElasticSearchClientGh.getInstance();
+async function fetchReposData(
+  repoIds: string[],
+  esClient: ElasticSearchClient,
+  gitRepoName: string,
+  page: number,
+  size: number
+): Promise<IRepo[]> {
   let esbQuery;
 
   if (repoIds.length > 0) {
-    const repoNameQuery = esb.requestBodySearch().query(
-      esb
-        .boolQuery()
-        .must(esb.termsQuery('body.id', repoIds))
-    ).toJSON() as { query: object };
+    const repoNameQuery = esb
+      .requestBodySearch()
+      .query(esb.boolQuery().must(esb.termsQuery('body.id', repoIds)))
+      .toJSON() as { query: object };
     esbQuery = repoNameQuery.query;
-
-
-  }
-  else {
-    const query = esb.boolQuery()
+  } else {
+    const query = esb.boolQuery();
 
     if (gitRepoName) {
       query.must(esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`));
     }
     const finalQ = esb.requestBodySearch().query(query).toJSON() as { query: object };
     esbQuery = finalQ.query;
-
   }
-  const data = await esClient.searchWithEsb(Github.Enums.IndexName.GitRepo, esbQuery, (page - 1) * size, size);
+  const data = await esClient.searchWithEsb(
+    Github.Enums.IndexName.GitRepo,
+    esbQuery,
+    (page - 1) * size,
+    size
+  );
 
   return searchedDataFormator(data);
 }
@@ -48,11 +52,6 @@ const gitRepos = async function getRepoData(
   const size = Number(event?.queryStringParameters?.size ?? 10);
   let response: IRepo[] = [];
   try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     response = await fetchReposData(repoIds, esClient, gitRepoName, page, size);
 
     logger.info({ level: 'info', message: 'github repo data', data: response });

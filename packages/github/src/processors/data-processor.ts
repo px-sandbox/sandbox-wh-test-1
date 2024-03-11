@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { ParamsMapping } from '../model/params-mapping';
@@ -23,7 +23,8 @@ export abstract class DataProcessor<T, S> {
   public abstract processor(id: string): Promise<S>;
 
   public async getParentId(id: string): Promise<string> {
-    const ddbRes = await new DynamoDbDocClient().find(new ParamsMapping().prepareGetParams(id));
+    const dynamodbClient = DynamoDbDocClientGh.getInstance();
+    const ddbRes = await dynamodbClient.find(new ParamsMapping().prepareGetParams(id));
 
     return ddbRes?.parentId as string;
   }
@@ -44,6 +45,7 @@ export abstract class DataProcessor<T, S> {
   }
 
   public async putDataToDynamoDB(parentId: string, githubId: string): Promise<void> {
-    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(parentId, githubId));
+    const dynamodbClient = DynamoDbDocClientGh.getInstance();
+    await dynamodbClient.put(new ParamsMapping().preparePutParams(parentId, githubId));
   }
 }

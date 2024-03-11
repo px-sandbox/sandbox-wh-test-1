@@ -1,4 +1,4 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
@@ -11,11 +11,7 @@ import { logProcessToRetry } from 'src/util/retry-process';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 
-const esClient = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClient = ElasticSearchClientGh.getInstance();
 
 export const handler = async function pr_review_comment(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
