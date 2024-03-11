@@ -4,13 +4,13 @@ import { ISQSClient } from '../types';
 
 export class SQSClientGh implements ISQSClient {
   private sqs: SQS;
-  private static instance: ISQSClient;
+  private static instance: SQSClientGh;
 
   private constructor() {
     this.sqs = new SQS();
   }
 
-  public static getInstance(): ISQSClient {
+  public static getInstance(): SQSClientGh {
     if (!SQSClientGh.instance) {
       SQSClientGh.instance = new SQSClientGh();
     }

@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -7,6 +7,7 @@ import { getWorkingTime } from '../util/timezone-calculation';
 import { getPullRequestById } from './get-pull-request';
 import { getTimezoneOfUser } from './get-user-timezone';
 
+const sqsClient = SQSClientGh.getInstance();
 export async function pROnQueue(
   pull: Github.ExternalType.Webhook.PullRequest,
   action: string
@@ -45,7 +46,7 @@ export async function pROnQueue(
         }
       }
     }
-    await new SQSClient().sendMessage(
+    await sqsClient.sendMessage(
       {
         ...pull,
         reviewed_at: reviewedAt,

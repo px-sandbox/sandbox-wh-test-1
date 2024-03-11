@@ -1,5 +1,5 @@
 import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Github } from 'abstraction';
 import { RetryTableMapping } from '../model/retry-table-mapping';
@@ -7,12 +7,14 @@ import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
 const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
+
 async function processIt(record: Github.Type.QueueMessage): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId } = record;
   logger.info('RetryProcessHandlerProcessData', { processId, messageBody, queue });
   try {
     // send to queue
-    await new SQSClient()
+    await sqsClient
       .sendMessage(JSON.parse(messageBody), queue, MessageDeduplicationId)
       .then(async () => {
         logger.info('RetryProcessHandlerProcess.success', { processId, queue });
@@ -61,6 +63,6 @@ export async function handler(): Promise<void> {
       params.ExclusiveStartKey = processes.LastEvaluatedKey;
     }
   } else {
-    logger.info('NO_REMANING_RATE_LIMIT', { githubRetryLimit: githubRetryLimit.data });
+    logger.info('NO_REMAINING_RATE_LIMIT', { githubRetryLimit: githubRetryLimit.data });
   }
 }

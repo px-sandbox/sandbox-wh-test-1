@@ -3,13 +3,17 @@ import { Github } from 'abstraction';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 
+const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 export class GHCopilotProcessor extends DataProcessor<
   Github.ExternalType.Api.GHCopilotReport,
   Github.Type.GHCopilotReport
 > {
   constructor(data: Github.ExternalType.Api.GHCopilotReport) {
-    super(data);
+    super(data, sqsClient, dynamodbClient);
   }
   public async processor(): Promise<Github.Type.GHCopilotReport> {
     const lastActivityAt = this.ghApiData.last_activity_at;

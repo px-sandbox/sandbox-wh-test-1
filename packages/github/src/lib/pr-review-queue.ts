@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -17,6 +17,8 @@ async function getGithubApiToken(): Promise<string> {
   const installationAccessToken = await getInstallationAccessToken();
   return `Bearer ${installationAccessToken.body.token}`;
 }
+
+const sqsClient = SQSClientGh.getInstance();
 
 // Get pull request details through Github Api and update the same into index.
 async function getPullRequestDetails<T>(
@@ -91,11 +93,11 @@ export async function pRReviewOnQueue(
     } = await setReviewTime(pullData, prReview);
 
     await Promise.all([
-      new SQSClient().sendMessage(
+      sqsClient.sendMessage(
         { review: prReview, pullId, repoId, action },
         Queue.qGhPrReviewFormat.queueUrl
       ),
-      new SQSClient().sendMessage(
+      sqsClient.sendMessage(
         {
           ...octokitRespData,
           reviewed_at: reviewedAt,

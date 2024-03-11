@@ -15,7 +15,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       return;
     }
     const data = await ghCopilotProcessor.processor();
-    await ghCopilotProcessor.indexDataToES({ data, eventType: Github.Enums.Event.Copilot });
+    await ghCopilotProcessor.save({ data, eventType: Github.Enums.Event.Copilot });
   } catch (error) {
     logger.error(`ghCopilotFormattedDataReceiver.error, ${error}`);
   }

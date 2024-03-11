@@ -1,5 +1,5 @@
 import { ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
@@ -8,6 +8,7 @@ import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esObj = ElasticSearchClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 const updateMergeCommit = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const repoId: string = event.queryStringParameters?.repoId || '';
   const repoOwner: string = event.queryStringParameters?.repoOwner || '';
@@ -28,7 +29,6 @@ const updateMergeCommit = async (event: APIGatewayProxyEvent): Promise<APIGatewa
         query.toJSON()
       );
       const commitData = await searchedDataFormator(searchInEsb);
-      const sqsClient = new SQSClient();
       await Promise.all(
         commitData.map(async (commit: Github.Type.Commits) => {
           await sqsClient.sendMessage(

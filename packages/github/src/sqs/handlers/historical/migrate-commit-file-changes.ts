@@ -81,7 +81,7 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           return;
         }
         const data = await commitProcessor.processor();
-        await commitProcessor.indexDataToES({ data, eventType: Github.Enums.Event.Commit });
+        await commitProcessor.save({ data, eventType: Github.Enums.Event.Commit });
       } catch (error) {
         logger.error('migrate-commitFormattedDataReciever', error);
         await logProcessToRetry(record, Queue.qGhCommitFileChanges.queueUrl, error as Error);

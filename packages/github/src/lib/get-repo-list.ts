@@ -1,10 +1,11 @@
 import { OctokitResponse, RequestInterface } from '@octokit/types';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 import { ghRequest } from './request-default';
 
+const sqsClient = SQSClientGh.getInstance();
 async function getReposList(
   octokit: RequestInterface<
     object & {
@@ -28,9 +29,7 @@ async function getReposList(
     const newCounter = counter + reposPerPage.length;
 
     await Promise.all(
-      reposPerPage.map(async (repo) =>
-        new SQSClient().sendMessage(repo, Queue.qGhRepoFormat.queueUrl)
-      )
+      reposPerPage.map(async (repo) => sqsClient.sendMessage(repo, Queue.qGhRepoFormat.queueUrl))
     );
 
     if (reposPerPage.length < perPage) {

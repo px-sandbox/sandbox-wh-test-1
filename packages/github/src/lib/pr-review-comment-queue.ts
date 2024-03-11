@@ -1,10 +1,10 @@
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getPullRequestById } from './get-pull-request';
-import { processPRComments } from '../util/process-pr-comments';
 
+const sqsClient = SQSClientGh.getInstance();
 export async function pRReviewCommentOnQueue(
   prReviewComment: Github.ExternalType.Webhook.PRReviewComment,
   pullId: number,
@@ -28,13 +28,12 @@ export async function pRReviewCommentOnQueue(
       });
       return;
     }
-    const sqs = new SQSClient();
     await Promise.all([
-      sqs.sendMessage(
+      sqsClient.sendMessage(
         { comment: prReviewComment, pullId, repoId, action },
         Queue.qGhPrReviewCommentFormat.queueUrl
       ),
-      sqs.sendMessage(
+      sqsClient.sendMessage(
         {
           ...pullRequestData,
           reviewed_at: pullData.reviewedAt,

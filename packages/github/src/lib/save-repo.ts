@@ -1,5 +1,5 @@
 import { ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
@@ -7,6 +7,7 @@ import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<void> {
   try {
     const updatedData = { ...data };
@@ -22,7 +23,7 @@ export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<
     await esClientObj.putDocument(Github.Enums.IndexName.GitRepo, updatedData);
     const lastAction = updatedData.body.action.slice(-1).pop();
     if (lastAction && lastAction.action !== 'deleted') {
-      await new SQSClient().sendMessage(updatedData, Queue.qGhAfterRepoSave.queueUrl);
+      await sqsClient.sendMessage(updatedData, Queue.qGhAfterRepoSave.queueUrl);
     }
     logger.info('saveRepoDetails.successful');
   } catch (error: unknown) {

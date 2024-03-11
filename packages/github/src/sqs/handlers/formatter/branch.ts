@@ -16,7 +16,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       return;
     }
     const data = await branchProcessor.processor();
-    await branchProcessor.indexDataToES({ data, eventType: Github.Enums.Event.Branch });
+    await branchProcessor.save({ data, eventType: Github.Enums.Event.Branch });
   } catch (error) {
     logger.error(`branchFormattedDataReceiver.error, ${error}`);
   }

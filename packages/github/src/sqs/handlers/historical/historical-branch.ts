@@ -1,4 +1,4 @@
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -8,6 +8,8 @@ import { getOctokitResp } from '../../../util/octokit-response';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 const installationAccessToken = await getInstallationAccessToken();
+const sqsClient = SQSClientGh.getInstance();
+
 const octokit = ghRequest.request.defaults({
   headers: {
     Authorization: `Bearer ${installationAccessToken.body.token}`,
@@ -31,9 +33,9 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
         .filter((branchName: { name: string }) => branchNameRegx.test(branchName.name))
         .map((branch: { name: string }) => branch.name);
     }
-    logger.info(`Proccessing data for repo: ${branches}`);
+    logger.info(`Processing data for repo: ${branches}`);
     const queueProcessed = branches.map((branch: { name: string }) =>
-      new SQSClient().sendMessage(
+      sqsClient.sendMessage(
         {
           branchName: branch,
           owner,

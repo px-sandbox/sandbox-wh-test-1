@@ -5,12 +5,12 @@ import moment from 'moment';
 import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClientGh.getInstance();
-
+const sqsClient = SQSClientGh.getInstance();
 /**
  * Fetches branches data for the given repository IDs.
  * @param repoIds - An array of repository IDs.
@@ -46,8 +46,6 @@ async function fetchBranchesData(repoId: string, currDate: string): Promise<void
   logger.info(
     `GET_GITHUB_BRANCH_DETAILS: sending data to SQS for repoId: ${repoId}, branches: ${branchesArr}`
   );
-
-  const sqsClient = new SQSClient();
 
   await Promise.all(
     branchesArr.map(async (branch) =>

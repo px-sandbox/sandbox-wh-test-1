@@ -2,13 +2,17 @@ import { Github } from 'abstraction';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 
+const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 export class ActiveBranchProcessor extends DataProcessor<
   Github.Type.RawActiveBRanches,
   Github.Type.ActiveBranches
 > {
   constructor(data: Github.Type.RawActiveBRanches) {
-    super(data);
+    super(data, sqsClient, dynamodbClient);
   }
 
   public async processor(): Promise<Github.Type.ActiveBranches> {

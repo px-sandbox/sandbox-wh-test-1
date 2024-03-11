@@ -4,10 +4,14 @@ import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 
+const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, Github.Type.User> {
   constructor(data: Github.ExternalType.Api.User) {
-    super(data);
+    super(data, sqsClient, dynamodbClient);
   }
   public async processor(): Promise<Github.Type.User> {
     let parentId = await this.getParentId(`${mappingPrefixes.user}_${this.ghApiData.id}`);

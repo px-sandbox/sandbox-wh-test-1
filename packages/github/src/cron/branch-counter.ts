@@ -10,10 +10,11 @@ import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { logger } from 'core';
 import { Github } from 'abstraction';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 
 const esClient = ElasticSearchClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 // get all repos from ES which are not deleted and send to SQS
 async function getReposAndSendToSQS(
   currentDate: string,
@@ -50,7 +51,7 @@ async function getReposAndSendToSQS(
     await Promise.all(
       repos.map((repo: Hit<{ body: Github.Type.Repository }>) => {
         if (repo._source && repo._source.body) {
-          return new SQSClient().sendMessage(
+          return sqsClient.sendMessage(
             {
               repo: repo._source.body as Github.Type.Repository,
               date: currentDate,
@@ -90,7 +91,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     } while (processingCount === perPage);
 
     logger.info(
-      `getReposAndSendToSQS.handler.successfull for ${pageNo} pages at: ${new Date().toISOString()}`
+      `getReposAndSendToSQS.handler.successful for ${pageNo} pages at: ${new Date().toISOString()}`
     );
   } catch (error: unknown) {
     logger.error(`

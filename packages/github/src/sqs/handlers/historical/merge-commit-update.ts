@@ -63,7 +63,7 @@ export const handler = async function updateMergeCommitDataReceiver(
             return;
           }
           const data = await commitProcessor.processor();
-          await commitProcessor.indexDataToES({ data, eventType: Github.Enums.Event.Commit });
+          await commitProcessor.save({ data, eventType: Github.Enums.Event.Commit });
         }
       } catch (error) {
         logger.error('updateMergeCommitFormattedDataReceiver', error);

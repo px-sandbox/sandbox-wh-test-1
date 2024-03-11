@@ -1,11 +1,12 @@
 import { RequestInterface } from '@octokit/types';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Github } from 'abstraction';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 import { ghRequest } from './request-default';
 
+const sqsClient = SQSClientGh.getInstance();
 async function getBranchList(
   octokit: RequestInterface<
     object & {
@@ -36,12 +37,12 @@ async function getBranchList(
         const branchInfo = { ...branch };
         branchInfo.id = Buffer.from(`${repoId}_${branchInfo.name}`, 'binary').toString('base64');
         branchInfo.repo_id = repoId;
-        await new SQSClient().sendMessage(branchInfo, Queue.qGhBranchFormat.queueUrl);
+        await sqsClient.sendMessage(branchInfo, Queue.qGhBranchFormat.queueUrl);
       }),
     ]);
 
     if (branchesPerPage.length < perPage) {
-      logger.info('getBranchList.successfull');
+      logger.info('getBranchList.successful');
       return newCounter;
     }
     return getBranchList(octokit, repoId, repoName, repoOwner, page + 1, newCounter);

@@ -1,5 +1,5 @@
 import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
@@ -12,6 +12,7 @@ import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 
 const esClient = ElasticSearchClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 
 export const handler = async function pr_review_comment(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
@@ -72,7 +73,7 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
         );
 
         //Update PR Data
-        await new SQSClient().sendMessage(
+        await sqsClient.sendMessage(
           {
             id: prData._id,
             body: {

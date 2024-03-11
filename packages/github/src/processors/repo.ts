@@ -5,13 +5,17 @@ import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 
+const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 export class RepositoryProcessor extends DataProcessor<
   Github.ExternalType.Api.Repository,
   Github.Type.RepoFormatter
 > {
   constructor(data: Github.ExternalType.Api.Repository) {
-    super(data);
+    super(data, sqsClient, dynamodbClient);
   }
   public async processor(): Promise<Github.Type.RepoFormatter> {
     let parentId: string = await this.getParentId(`${mappingPrefixes.repo}_${this.ghApiData.id}`);

@@ -34,7 +34,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       octokit
     );
     data.body.reviewComments = reviewCommentCount;
-    await pullProcessor.indexDataToES({ data, eventType: Github.Enums.Event.PullRequest });
+    await pullProcessor.save({ data, eventType: Github.Enums.Event.PullRequest });
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPrFormat.queueUrl, error as Error);
     logger.error(`pRFormattedDataReceiver.error, ${error}`);

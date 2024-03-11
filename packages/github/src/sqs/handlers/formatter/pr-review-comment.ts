@@ -20,7 +20,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       return;
     }
     const data = await prReviewCommentProcessor.processor();
-    await prReviewCommentProcessor.indexDataToES({
+    await prReviewCommentProcessor.save({
       data,
       eventType: Github.Enums.Event.PRReviewComment,
     });

@@ -18,7 +18,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       return;
     }
     const data = await repoProcessor.processor();
-    await repoProcessor.indexDataToES({ data, eventType: Github.Enums.Event.Repo });
+    await repoProcessor.save({ data, eventType: Github.Enums.Event.Repo });
   } catch (error) {
     logger.error(`repoFormattedDataReceiver.error, ${error}`);
     await logProcessToRetry(record, Queue.qGhRepoFormat.queueUrl, error as Error);

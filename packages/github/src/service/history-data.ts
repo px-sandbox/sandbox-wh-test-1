@@ -1,5 +1,5 @@
 import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
@@ -8,6 +8,7 @@ import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const historyType = event?.queryStringParameters?.type || '';
   const repo = event?.queryStringParameters?.repo || '';
@@ -27,7 +28,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     }
 
     if (repoData) {
-      await new SQSClient().sendMessage(repoData, queueUrl);
+      await sqsClient.sendMessage(repoData, queueUrl);
     }
   } catch (error) {
     logger.error(`HISTORY_DATA_ERROR:, ${error}`);

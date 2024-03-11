@@ -4,13 +4,17 @@ import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 
+const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 export class BranchProcessor extends DataProcessor<
   Github.ExternalType.Api.Branch,
   Github.Type.Branch
 > {
   constructor(data: Github.ExternalType.Api.Branch) {
-    super(data);
+    super(data, sqsClient, dynamodbClient);
   }
   public async processor(): Promise<Github.Type.Branch> {
     let parentId: string = await this.getParentId(`${mappingPrefixes.branch}_${this.ghApiData.id}`);

@@ -1,6 +1,6 @@
 import moment from 'moment';
 import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { logger } from 'core';
 import { ParamsMapping } from '../model/params-mapping';
 import { Queue } from 'sst/node/queue';
@@ -8,7 +8,11 @@ import { Queue } from 'sst/node/queue';
 export abstract class DataProcessor<T, S> {
   protected ghApiData: T;
 
-  constructor(data: T) {
+  constructor(
+    data: T,
+    private SQSClient: SQSClientGh,
+    private DynamoDbDocClient: DynamoDbDocClientGh
+  ) {
     this.ghApiData = data;
   }
 
@@ -23,14 +27,13 @@ export abstract class DataProcessor<T, S> {
   public abstract processor(id: string): Promise<S>;
 
   public async getParentId(id: string): Promise<string> {
-    const dynamodbClient = DynamoDbDocClientGh.getInstance();
-    const ddbRes = await dynamodbClient.find(new ParamsMapping().prepareGetParams(id));
+    const ddbRes = await this.DynamoDbDocClient.find(new ParamsMapping().prepareGetParams(id));
 
     return ddbRes?.parentId as string;
   }
 
-  public async indexDataToES<U>(data: U): Promise<void> {
-    await new SQSClient().sendMessage(data, Queue.qGhIndex.queueUrl);
+  public async save<U>(data: U): Promise<void> {
+    await this.SQSClient.sendMessage(data, Queue.qGhIndex.queueUrl);
   }
 
   public async calculateComputationalDate(date: string): Promise<string> {
@@ -45,7 +48,6 @@ export abstract class DataProcessor<T, S> {
   }
 
   public async putDataToDynamoDB(parentId: string, githubId: string): Promise<void> {
-    const dynamodbClient = DynamoDbDocClientGh.getInstance();
-    await dynamodbClient.put(new ParamsMapping().preparePutParams(parentId, githubId));
+    await this.DynamoDbDocClient.put(new ParamsMapping().preparePutParams(parentId, githubId));
   }
 }

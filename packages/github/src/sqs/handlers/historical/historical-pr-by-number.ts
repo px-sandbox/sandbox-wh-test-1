@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -11,9 +11,10 @@ import { logProcessToRetry } from '../../../util/retry-process';
 import { getWorkingTime } from '../../../util/timezone-calculation';
 import { getOctokitResp } from '../../../util/octokit-response';
 
+const sqsClient = SQSClientGh.getInstance();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function processQueueOnMergedPR(octokitRespData: any, messageBody: any): Promise<void> {
-  await new SQSClient().sendMessage(
+  await sqsClient.sendMessage(
     {
       commitId: octokitRespData.merge_commit_sha,
       isMergedCommit: octokitRespData.merged,
@@ -64,7 +65,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
           createdTimezone
         );
 
-        await new SQSClient().sendMessage(
+        await sqsClient.sendMessage(
           {
             ...octokitRespData,
             reviewed_at: messageBody.submittedAt,
