@@ -12,11 +12,6 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     logger.info('PULL_REQUEST_REVIEW_SQS_RECEIVER_HANDLER', { messageBody });
     const { review, pullId, repoId, action } = messageBody;
     const prReviewProcessor = new PRReviewProcessor(review, pullId, repoId, action);
-    const validatedData = prReviewProcessor.validate();
-    if (!validatedData) {
-      logger.error('pRReviewFormattedDataReceiver.error', { error: 'validation failed' });
-      return;
-    }
     const data = await prReviewProcessor.processor();
     await prReviewProcessor.save({ data, eventType: Github.Enums.Event.PRReview });
   } catch (error) {

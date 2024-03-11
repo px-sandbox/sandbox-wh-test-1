@@ -12,11 +12,6 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     logger.info('REPO_SQS_RECEIVER_HANDLER', { messageBody });
 
     const repoProcessor = new RepositoryProcessor(messageBody);
-    const validatedData = repoProcessor.validate();
-    if (!validatedData) {
-      logger.error('repoFormattedDataReceiver.error', { error: 'validation failed' });
-      return;
-    }
     const data = await repoProcessor.processor();
     await repoProcessor.save({ data, eventType: Github.Enums.Event.Repo });
   } catch (error) {

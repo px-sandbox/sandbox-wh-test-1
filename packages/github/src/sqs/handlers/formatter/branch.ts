@@ -10,11 +10,6 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     const messageBody = JSON.parse(record.body);
     logger.info('BRANCH_SQS_RECEIVER_HANDLER', { messageBody });
     const branchProcessor = new BranchProcessor(messageBody);
-    const validatedData = branchProcessor.validate();
-    if (!validatedData) {
-      logger.error('branchFormattedDataReceiver.error', { error: 'validation error' });
-      return;
-    }
     const data = await branchProcessor.processor();
     await branchProcessor.save({ data, eventType: Github.Enums.Event.Branch });
   } catch (error) {

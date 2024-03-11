@@ -10,11 +10,6 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     logger.info('USER_SQS_RECEIVER_HANDLER_FORMATTER', { messageBody });
 
     const userProcessor = new UsersProcessor(messageBody);
-    const validatedData = userProcessor.validate();
-    if (!validatedData) {
-      logger.error('userFormattedDataReceiver.error', { error: 'validation failed' });
-      return;
-    }
     const data = await userProcessor.processor();
     await userProcessor.save({ data, eventType: Github.Enums.Event.Organization });
   } catch (error) {

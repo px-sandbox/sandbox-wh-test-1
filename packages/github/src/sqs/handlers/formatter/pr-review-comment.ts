@@ -12,13 +12,6 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     logger.info('PULL_REQUEST_REVIEW_COMMENT_SQS_RECEIVER_HANDLER', { messageBody });
     const { comment, pullId, repoId, action } = messageBody;
     const prReviewCommentProcessor = new PRReviewCommentProcessor(comment, pullId, repoId, action);
-    const validatedData = prReviewCommentProcessor.validate();
-    if (!validatedData) {
-      logger.error('pRReviewCommentFormattedDataReceiver.error', {
-        error: 'validation failed',
-      });
-      return;
-    }
     const data = await prReviewCommentProcessor.processor();
     await prReviewCommentProcessor.save({
       data,

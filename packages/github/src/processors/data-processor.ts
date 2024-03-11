@@ -33,6 +33,10 @@ export abstract class DataProcessor<T, S> {
   }
 
   public async save<U>(data: U): Promise<void> {
+    const validated = this.validate();
+    if (!validated) {
+      throw new Error('data_validation_failed');
+    }
     await this.SQSClient.sendMessage(data, Queue.qGhIndex.queueUrl);
   }
 

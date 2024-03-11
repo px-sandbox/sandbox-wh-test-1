@@ -21,11 +21,6 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     const messageBody = JSON.parse(record.body);
     logger.info('PULL_SQS_RECEIVER_HANDLER', { messageBody });
     const pullProcessor = new PRProcessor(messageBody);
-    const validatedData = pullProcessor.validate();
-    if (!validatedData) {
-      logger.error('pRFormattedDataReceiver.error', { error: 'validation failed' });
-      return;
-    }
     const data = await pullProcessor.processor();
     const reviewCommentCount = await processPRComments(
       messageBody.head.repo.owner.login,

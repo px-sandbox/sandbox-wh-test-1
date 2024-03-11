@@ -54,14 +54,6 @@ export const handler = async function updateMergeCommitDataReceiver(
             },
             repoId: repoId.replace(/gh_repo_/g, ''),
           });
-
-          const validatedData = commitProcessor.validate();
-          if (!validatedData) {
-            logger.error('updateMergeCommitFormattedDataReceiver.error', {
-              error: 'validation failed',
-            });
-            return;
-          }
           const data = await commitProcessor.processor();
           await commitProcessor.save({ data, eventType: Github.Enums.Event.Commit });
         }

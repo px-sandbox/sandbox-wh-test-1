@@ -9,11 +9,6 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     const messageBody = JSON.parse(record.body);
     logger.info('GH_COPILOT_SQS_RECEIVER_HANDLER', { messageBody });
     const ghCopilotProcessor = new GHCopilotProcessor(messageBody);
-    const validatedData = ghCopilotProcessor.validate();
-    if (!validatedData) {
-      logger.error('ghCopilotFormattedDataReceiver.error', { error: 'validation error' });
-      return;
-    }
     const data = await ghCopilotProcessor.processor();
     await ghCopilotProcessor.save({ data, eventType: Github.Enums.Event.Copilot });
   } catch (error) {

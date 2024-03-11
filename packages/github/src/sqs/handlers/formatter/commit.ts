@@ -59,12 +59,6 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       },
       repoId,
     });
-
-    const validatedData = commitProcessor.validate();
-    if (!validatedData) {
-      logger.error('commitFormattedDataReceiver.error', { error: 'validation failed' });
-      return;
-    }
     const data = await commitProcessor.processor();
     await commitProcessor.save({ data, eventType: Github.Enums.Event.Commit });
   } catch (error) {
