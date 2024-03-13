@@ -1,5 +1,5 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { SQSClient } from '@pulse/event-handler';
+import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
@@ -11,11 +11,8 @@ import { logProcessToRetry } from 'src/util/retry-process';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 
-const esClient = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClient = ElasticSearchClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 
 export const handler = async function pr_review_comment(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
@@ -76,7 +73,7 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
         );
 
         //Update PR Data
-        await new SQSClient().sendMessage(
+        await sqsClient.sendMessage(
           {
             id: prData._id,
             body: {
@@ -84,7 +81,7 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
               reviewComments: prReviewCommentIdfromApi.length,
             },
           },
-          Queue.qGhPrIndex.queueUrl
+          Queue.qGhIndex.queueUrl
         );
       } catch (error) {
         logger.error(`migration.reviews_comment.error: ${error}`);

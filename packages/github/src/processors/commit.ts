@@ -4,18 +4,28 @@ import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 
+const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 export class CommitProcessor extends DataProcessor<
   Github.ExternalType.Api.Commit,
   Github.Type.Commits
 > {
   constructor(data: Github.ExternalType.Api.Commit) {
-    super(data);
+    super(data, sqsClient, dynamodbClient);
   }
   public async processor(): Promise<Github.Type.Commits> {
-    const parentId: string = await this.getParentId(
-      `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`
-    );
+    let parentId = await this.getParentId(`${mappingPrefixes.commit}_${this.ghApiData.commits.id}`);
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(
+        parentId,
+        `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`
+      );
+    }
+
     const filesArr: Array<Github.Type.CommitedFiles> = this.ghApiData.files.map(
       (data: Github.Type.CommitedFiles) => ({
         filename: data.filename,
@@ -27,7 +37,7 @@ export class CommitProcessor extends DataProcessor<
     );
 
     const orgObj = {
-      id: parentId || uuid(),
+      id: parentId,
       body: {
         id: `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`,
         githubCommitId: this.ghApiData.commits.id,

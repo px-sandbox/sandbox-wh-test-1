@@ -2,7 +2,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { processFileChanges } from '../../../util/process-commit-changes';
 import { logProcessToRetry } from '../../../util/retry-process';
@@ -18,13 +18,10 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+const esclient = ElasticSearchClientGh.getInstance();
 
 async function getRepoNameById(repoId: string): Promise<string> {
-  const repoData = await new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-  }).search(Github.Enums.IndexName.GitRepo, 'id', repoId);
+  const repoData = esclient.search(Github.Enums.IndexName.GitRepo, 'id', repoId);
   const [repoName] = await searchedDataFormator(repoData);
   if (!repoName) {
     throw new Error(`repoName not found for data: ${repoId}`);
@@ -77,14 +74,8 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           },
           repoId: repoId.replace(/gh_repo_/g, ''),
         });
-
-        const validatedData = commitProcessor.validate();
-        if (!validatedData) {
-          logger.error('migrate-commitFormattedDataReciever.error', { error: 'validation failed' });
-          return;
-        }
         const data = await commitProcessor.processor();
-        await commitProcessor.sendDataToQueue(data, Queue.qGhCommitIndex.queueUrl);
+        await commitProcessor.save({ data, eventType: Github.Enums.Event.Commit });
       } catch (error) {
         logger.error('migrate-commitFormattedDataReciever', error);
         await logProcessToRetry(record, Queue.qGhCommitFileChanges.queueUrl, error as Error);

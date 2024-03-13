@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { logger } from 'core';
@@ -10,6 +10,7 @@ import { pRReviewCommentOnQueue } from '../lib/pr-review-comment-queue';
 import { pRReviewOnQueue } from '../lib/pr-review-queue';
 import { pROnQueue } from '../lib/pull-request-queue';
 
+const sqsClient = SQSClientGh.getInstance();
 interface ReviewCommentProcessType {
   comment: Github.ExternalType.Webhook.PRReviewComment;
   pull_request: { id: number };
@@ -45,7 +46,7 @@ async function processRepoEvent(
   data: Github.ExternalType.Webhook.Repository,
   action: string
 ): Promise<void> {
-  await new SQSClient().sendMessage({ ...data, action }, Queue.qGhRepoFormat.queueUrl);
+  await sqsClient.sendMessage({ ...data, action }, Queue.qGhRepoFormat.queueUrl);
 }
 async function processBranchEvent(
   data: Github.ExternalType.Webhook.Branch,
@@ -77,7 +78,7 @@ async function processBranchEvent(
   }
   logger.info('-------Branch event --------');
   logger.info(obj);
-  await new SQSClient().sendMessage(obj, Queue.qGhBranchFormat.queueUrl);
+  await sqsClient.sendMessage(obj, Queue.qGhBranchFormat.queueUrl);
 }
 async function processOrgEvent(
   data: Github.ExternalType.Webhook.User,
@@ -106,7 +107,7 @@ async function processOrgEvent(
   if (Object.keys(obj).length === 0) return false;
   logger.info('-------User event --------');
   logger.info(obj);
-  await new SQSClient().sendMessage(obj, Queue.qGhUsersFormat.queueUrl);
+  await sqsClient.sendMessage(obj, Queue.qGhUsersFormat.queueUrl);
 }
 async function processCommitEvent(data: Github.ExternalType.Webhook.Commit): Promise<void> {
   const commitData = data;

@@ -1,5 +1,5 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { SQSClient } from '@pulse/event-handler';
+import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
@@ -8,14 +8,11 @@ import { searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 
+const esClient = ElasticSearchClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
+
 async function fetchPRComments(repoId: string, owner: string, repoName: string): Promise<void> {
   try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const sqs = new SQSClient();
     let prFormattedData: any = [];
     let from = 0;
     let size = 100;
@@ -35,7 +32,7 @@ async function fetchPRComments(repoId: string, owner: string, repoName: string):
       prFormattedData = await searchedDataFormator(getPrData);
       await Promise.all(
         prFormattedData.map(async (prData: any) => {
-          await sqs.sendMessage(
+          await sqsClient.sendMessage(
             { prData, owner, repoName },
             Queue.qGhPrReviewCommentMigration.queueUrl
           );

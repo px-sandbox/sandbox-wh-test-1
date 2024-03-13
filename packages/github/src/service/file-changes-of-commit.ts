@@ -1,5 +1,5 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { SQSClient } from '@pulse/event-handler';
+import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
@@ -8,15 +8,11 @@ import { Queue } from 'sst/node/queue';
 import esb, { Script } from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
 
+const esClientObj = ElasticSearchClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const orgName = event?.queryStringParameters?.orgName || '';
   try {
-    const esClientObj = await new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-
     const fileChangeQuery = esb
       .scriptQuery(new Script('source', "doc['body.changes.changes'].size() >= 300"))
       .toJSON();
@@ -33,7 +29,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     });
     await Promise.all(
       commits.map(async (commit: Github.Type.Commits) => {
-        new SQSClient().sendMessage(
+        sqsClient.sendMessage(
           { ...commit, repoOwner: orgName },
           Queue.qGhCommitFileChanges.queueUrl
         );

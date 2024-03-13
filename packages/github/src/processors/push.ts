@@ -4,18 +4,24 @@ import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 
+const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 export class PushProcessor extends DataProcessor<
   Github.ExternalType.Webhook.Push,
   Github.Type.Push
 > {
   constructor(data: Github.ExternalType.Webhook.Push) {
-    super(data);
+    super(data, sqsClient, dynamodbClient);
   }
   public async processor(): Promise<Github.Type.Push> {
-    const parentId: string = await this.getParentId(
-      `${mappingPrefixes.commit}_${this.ghApiData.id}`
-    );
+    let parentId = await this.getParentId(`${mappingPrefixes.push}_${this.ghApiData.id}`);
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(parentId, `${mappingPrefixes.push}_${this.ghApiData.id}`);
+    }
     const commitsArr: Array<string> = this.ghApiData.commits.map(
       (data: { id: string }) => `${mappingPrefixes.commit}_${data.id}`
     );
@@ -28,7 +34,7 @@ export class PushProcessor extends DataProcessor<
     ];
     const createdAt = new Date().toISOString();
     const orgObj = {
-      id: parentId || uuid(),
+      id: parentId,
       body: {
         id: `${mappingPrefixes.push}_${this.ghApiData.id}`,
         githubPushId: `${this.ghApiData.id}`,

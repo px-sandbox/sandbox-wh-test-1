@@ -1,4 +1,4 @@
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -8,6 +8,7 @@ import { getOctokitResp } from '../../../util/octokit-response';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 const installationAccessToken = await getInstallationAccessToken();
+const sqsClient = SQSClientGh.getInstance();
 const octokit = ghRequest.request.defaults({
   headers: {
     Authorization: `Bearer ${installationAccessToken.body.token}`,
@@ -25,7 +26,7 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
     let queueProcessed = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     queueProcessed = octokitRespData.map((commitData: any) =>
-      new SQSClient().sendMessage(
+      sqsClient.sendMessage(
         {
           commitId: commitData.sha,
           isMergedCommit: false,

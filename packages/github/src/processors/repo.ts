@@ -5,16 +5,24 @@ import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 
+const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 export class RepositoryProcessor extends DataProcessor<
   Github.ExternalType.Api.Repository,
   Github.Type.RepoFormatter
 > {
   constructor(data: Github.ExternalType.Api.Repository) {
-    super(data);
+    super(data, sqsClient, dynamodbClient);
   }
   public async processor(): Promise<Github.Type.RepoFormatter> {
-    const parentId: string = await this.getParentId(`${mappingPrefixes.repo}_${this.ghApiData.id}`);
+    let parentId: string = await this.getParentId(`${mappingPrefixes.repo}_${this.ghApiData.id}`);
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(parentId, `${mappingPrefixes.repo}_${this.ghApiData.id}`);
+    }
     const action = [
       {
         action: this.ghApiData.action ?? 'initialized',
@@ -23,11 +31,14 @@ export class RepositoryProcessor extends DataProcessor<
       },
     ];
     if (!parentId && this.ghApiData?.action !== Github.Enums.Repo.Created) {
-      logger.error('REPOSITORY_PROCESSOR_ERROR', { error: 'Repository not found', data: this.ghApiData });
+      logger.error('REPOSITORY_PROCESSOR_ERROR', {
+        error: 'Repository not found',
+        data: this.ghApiData,
+      });
       throw new Error('Repository not found');
     }
     const repoObj = {
-      id: parentId || uuid(),
+      id: parentId,
       body: {
         id: `${mappingPrefixes.repo}_${this.ghApiData.id}`,
         githubRepoId: this.ghApiData.id,

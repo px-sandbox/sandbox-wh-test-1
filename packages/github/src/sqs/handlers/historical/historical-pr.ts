@@ -1,4 +1,4 @@
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -13,12 +13,13 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+const sqsClient = SQSClientGh.getInstance();
 
 async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   logger.info(JSON.stringify(messageBody));
   if (!messageBody && !messageBody.head) {
-    logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
+    logger.info('HISTORY_MESSAGE_BODY_EMPTY', messageBody);
     return false;
   }
   const { page = 1 } = messageBody;
@@ -42,10 +43,10 @@ async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
     let processes = [];
     processes = [
       ...octokitRespData.map((prData: unknown) =>
-        new SQSClient().sendMessage(prData, Queue.qGhHistoricalReviews.queueUrl)
+        sqsClient.sendMessage(prData, Queue.qGhHistoricalReviews.queueUrl)
       ),
       ...octokitRespData.map((prData: unknown) =>
-        new SQSClient().sendMessage(prData, Queue.qGhHistoricalPrComments.queueUrl)
+        sqsClient.sendMessage(prData, Queue.qGhHistoricalPrComments.queueUrl)
       ),
     ];
     await Promise.all(processes);

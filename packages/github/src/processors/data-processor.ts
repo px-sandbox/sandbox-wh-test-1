@@ -1,13 +1,18 @@
 import moment from 'moment';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { SQSClient } from '@pulse/event-handler';
+import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { logger } from 'core';
 import { ParamsMapping } from '../model/params-mapping';
+import { Queue } from 'sst/node/queue';
 
 export abstract class DataProcessor<T, S> {
   protected ghApiData: T;
 
-  constructor(data: T) {
+  constructor(
+    data: T,
+    private SQSClient: SQSClientGh,
+    private DynamoDbDocClient: DynamoDbDocClientGh
+  ) {
     this.ghApiData = data;
   }
 
@@ -22,13 +27,17 @@ export abstract class DataProcessor<T, S> {
   public abstract processor(id: string): Promise<S>;
 
   public async getParentId(id: string): Promise<string> {
-    const ddbRes = await new DynamoDbDocClient().find(new ParamsMapping().prepareGetParams(id));
+    const ddbRes = await this.DynamoDbDocClient.find(new ParamsMapping().prepareGetParams(id));
 
-    return ddbRes?.parentId;
+    return ddbRes?.parentId as string;
   }
 
-  public async sendDataToQueue<U>(data: U, url: string): Promise<void> {
-    await new SQSClient().sendMessage(data, url);
+  public async save<U>(data: U): Promise<void> {
+    const validated = this.validate();
+    if (!validated) {
+      throw new Error('data_validation_failed');
+    }
+    await this.SQSClient.sendMessage(data, Queue.qGhIndex.queueUrl);
   }
 
   public async calculateComputationalDate(date: string): Promise<string> {
@@ -40,5 +49,9 @@ export abstract class DataProcessor<T, S> {
       return moment(date).add(1, 'days').format('YYYY-MM-DD');
     }
     return moment(date).format('YYYY-MM-DD');
+  }
+
+  public async putDataToDynamoDB(parentId: string, githubId: string): Promise<void> {
+    await this.DynamoDbDocClient.put(new ParamsMapping().preparePutParams(parentId, githubId));
   }
 }

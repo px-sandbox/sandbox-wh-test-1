@@ -1,4 +1,4 @@
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -7,6 +7,7 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitResp } from '../../../util/octokit-response';
 
+const sqsClient = SQSClientGh.getInstance();
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
   headers: {
@@ -19,7 +20,7 @@ async function saveCommit(commitData: any, messageBody: any): Promise<void> {
   modifiedCommitData.isMergedCommit = false;
   modifiedCommitData.mergedBranch = null;
   modifiedCommitData.pushedBranch = null;
-  await new SQSClient().sendMessage(
+  await sqsClient.sendMessage(
     {
       commitId: modifiedCommitData.sha,
       isMergedCommit: modifiedCommitData.isMergedCommit,
@@ -38,7 +39,7 @@ async function saveCommit(commitData: any, messageBody: any): Promise<void> {
 async function getPRCommits(record: SQSRecord): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
-    logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
+    logger.info('HISTORY_MESSAGE_BODY_EMPTY', messageBody);
     return false;
   }
   const {
@@ -50,7 +51,7 @@ async function getPRCommits(record: SQSRecord): Promise<boolean | undefined> {
   } = messageBody;
   try {
     if (!messageBody && !messageBody.head) {
-      logger.info('HISTORY_MESSGE_BODY', messageBody);
+      logger.info('HISTORY_MESSAGE_BODY', messageBody);
       return;
     }
     const commentsDataOnPr = await octokit(

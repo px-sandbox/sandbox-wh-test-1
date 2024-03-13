@@ -4,7 +4,11 @@ import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 
+const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 export class PRReviewProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PRReview,
   Github.Type.PRReview
@@ -18,15 +22,18 @@ export class PRReviewProcessor extends DataProcessor<
     repoId: number,
     action: string
   ) {
-    super(data);
+    super(data, sqsClient, dynamodbClient);
     this.pullId = pullId;
     this.repoId = repoId;
     this.action = action;
   }
   public async processor(): Promise<Github.Type.PRReview> {
-    const parentId: string = await this.getParentId(
+    let parentId: string = await this.getParentId(
       `${mappingPrefixes.pRReview}_${this.ghApiData.id}`
     );
+    if (!parentId) {
+      await this.putDataToDynamoDB(uuid(), `${mappingPrefixes.pRReview}_${this.ghApiData.id}`);
+    }
     const action = [
       {
         action: this.action ?? 'initialized',
@@ -36,7 +43,7 @@ export class PRReviewProcessor extends DataProcessor<
     ];
 
     const pRReviewObj = {
-      id: parentId || uuid(),
+      id: parentId,
       body: {
         id: `${mappingPrefixes.pRReview}_${this.ghApiData.id}`,
         githubPRReviewId: this.ghApiData.id,

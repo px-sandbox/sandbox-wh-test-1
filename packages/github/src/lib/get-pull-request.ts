@@ -1,18 +1,13 @@
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
+import esb from 'elastic-builder';
 import { mappingPrefixes } from '../constant/config';
 import { searchedDataFormator } from '../util/response-formatter';
 
+const esClientObj = ElasticSearchClientGh.getInstance();
 export async function getPullRequestById(
   pullId: number
 ): Promise<Array<{ _id: string } & Github.Type.PullRequestBody>> {
-  const esClientObj = new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-  });
   const matchQry = esb.matchQuery('body.id', `${mappingPrefixes.pull}_${pullId}`).toJSON();
   const pullData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPull, matchQry);
   const formattedPullData = await searchedDataFormator(pullData);

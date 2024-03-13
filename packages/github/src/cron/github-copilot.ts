@@ -1,11 +1,12 @@
 import { RequestInterface } from '@octokit/types';
 import { Queue } from 'sst/node/queue';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Github } from 'abstraction';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
+const sqsClient = SQSClientGh.getInstance();
 export async function initializeOctokit(): Promise<
   RequestInterface<
     object & {
@@ -51,12 +52,12 @@ async function getGHCopilotReports(
 
     await Promise.all(
       reportsPerPage.seats.map((seat) =>
-        new SQSClient().sendMessage(seat, Queue.qGhCopilotFormat.queueUrl)
+        sqsClient.sendMessage(seat, Queue.qGhCopilotFormat.queueUrl)
       )
     );
 
     if (reportsPerPage.seats.length < perPage) {
-      logger.info(`getGHCopilotReports.successfull for ${newCounter} records`);
+      logger.info(`getGHCopilotReports.successful for ${newCounter} records`);
       return newCounter;
     }
 

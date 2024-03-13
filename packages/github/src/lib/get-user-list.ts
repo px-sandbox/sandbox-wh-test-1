@@ -1,10 +1,12 @@
 import { RequestInterface } from '@octokit/types';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 import { ghRequest } from './request-default';
+
+const sqsClient = SQSClientGh.getInstance();
 
 async function getUserList(
   octokit: RequestInterface<
@@ -31,7 +33,7 @@ async function getUserList(
 
     await Promise.all(
       membersPerPage.map(async (member) =>
-        new SQSClient().sendMessage(member, Queue.qGhUsersFormat.queueUrl)
+        sqsClient.sendMessage(member, Queue.qGhUsersFormat.queueUrl)
       )
     );
 

@@ -1,7 +1,8 @@
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+const sqsClient = SQSClientGh.getInstance();
 
 export async function preparePush(
   commits: Array<Github.ExternalType.Webhook.Commits>,
@@ -11,7 +12,7 @@ export async function preparePush(
   repoId: string
 ): Promise<void> {
   try {
-    await new SQSClient().sendMessage(
+    await sqsClient.sendMessage(
       { commits, ref, pusherId, id: lastCommitId, repoId },
       Queue.qGhPushFormat.queueUrl
     );

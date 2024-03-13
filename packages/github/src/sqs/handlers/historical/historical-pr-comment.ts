@@ -1,4 +1,4 @@
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -7,6 +7,7 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitResp } from '../../../util/octokit-response';
 
+const sqsClient = SQSClientGh.getInstance();
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
   headers: {
@@ -35,7 +36,7 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
     let queueProcessed = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     queueProcessed = octokitRespData.map((comments: any) =>
-      new SQSClient().sendMessage(
+      sqsClient.sendMessage(
         {
           comment: comments,
           pullId: messageBody.id,

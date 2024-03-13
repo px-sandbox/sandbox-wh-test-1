@@ -1,18 +1,20 @@
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { preparePush } from './push';
+
+const sqsClient = SQSClientGh.getInstance();
 
 export async function getCommits(commits: Github.ExternalType.Webhook.Commit): Promise<void> {
   try {
     if (commits.commits.length > 0) {
       await Promise.all([
         commits.commits.map(async (commit: Github.ExternalType.Webhook.Commits): Promise<void> => {
-          await new SQSClient().sendMessage(
+          await sqsClient.sendMessage(
             {
               commitId: commit.id,
-              isMergedCommit: false,
+              isMergedCommit: false, //by default setting a commit to merge false
               mergedBranch: null,
               pushedBranch: commits.ref.split('/heads/').slice(-1)[0],
               repository: {
