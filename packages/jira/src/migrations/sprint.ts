@@ -27,13 +27,12 @@ async function checkAndSave(
         Queue.qSprintFormat.queueUrl
       )
     ),
-    // TODO: Uncomment this code after migration of sprint is done
-    // ...sprints.map(async (sprint) =>
-    //   sqsClient.sendMessage(
-    //     { organization, projectId, originBoardId, sprintId: sprint.id },
-    //     Queue.qIssueMigrate.queueUrl
-    //   ),
-    // )
+    ...sprints.map(async (sprint) =>
+      sqsClient.sendMessage(
+        { organization, projectId, originBoardId, sprintId: sprint.id },
+        Queue.qIssueMigrate.queueUrl
+      )
+    ),
   ]);
 }
 
