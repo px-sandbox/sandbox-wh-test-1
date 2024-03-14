@@ -139,28 +139,6 @@ export class PRProcessor extends DataProcessor<
   public async processor(): Promise<Github.Type.PullRequest> {
     await this.processPRAction();
 
-    // TODO: removing this as new logic for setting merge via parents object is implemented
-    // if (
-    //   this.ghApiData.action === Github.Enums.PullRequest.Closed &&
-    //   this.ghApiData.merged === true
-    // ) {
-    //   logger.info('PROCESS_MERGED_PR', this.ghApiData);
-    //   await new SQSClient().sendMessage(
-    //     {
-    //       commitId: this.ghApiData.merge_commit_sha,
-    //       isMergedCommit: this.ghApiData.merged,
-    //       mergedBranch: this.ghApiData.base.ref,
-    //       pushedBranch: this.ghApiData.head.ref,
-    //       repository: {
-    //         id: this.ghApiData.head.repo.id,
-    //         name: this.ghApiData.head.repo.name,
-    //         owner: this.ghApiData.head.repo.owner.login,
-    //       },
-    //     },
-    //     Queue.qGhMergeCommitProcess.queueUrl
-    //   );
-    // }
-
     const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
     const reqReviewersData: Array<Github.Type.RequestedReviewers> =
       this.ghApiData.requested_reviewers.map((reqReviewer) => ({

@@ -39,7 +39,6 @@ function initProcessRetryFunction(
     masterLibraryQueue,
     repoSastErrors,
     scansSaveQueue,
-    ghMergedCommitProcessQueue,
     repoLibS3Queue,
   } = queues;
 
@@ -77,7 +76,6 @@ function initProcessRetryFunction(
       GITHUB_APP_PRIVATE_KEY_PEM,
       GITHUB_APP_ID,
       GITHUB_SG_INSTALLATION_ID,
-      ghMergedCommitProcessQueue,
       repoLibS3Queue,
     ],
     runtime: NODE_VERSION,
