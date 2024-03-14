@@ -21,7 +21,7 @@ export function initializeCron(
      */
     // eslint-disable-next-line no-new
     new Cron(stack, 'cronFailedProcessRetry', {
-        schedule: 'cron(0/30 * ? * * *)',
+        schedule: 'cron(0/5 * ? * * *)',
         job: processRetryFunction,
     });
 
