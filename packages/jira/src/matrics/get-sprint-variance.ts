@@ -104,8 +104,11 @@ export async function sprintVarianceGraph(
       .query(
         esb
           .boolQuery()
-          .must([esb.termsQuery('body.sprintId', sprintIds)])
-          .filter(esb.rangeQuery('body.timeTracker.estimate').gte(0))
+          .must([
+            esb.termsQuery('body.sprintId', sprintIds),
+            esb.termQuery('body.isDeleted', false),
+          ])
+          .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),
             esb.termQuery('body.issueType', IssuesTypes.TASK),
@@ -225,7 +228,10 @@ export async function sprintVarianceGraphAvg(
       .query(
         esb
           .boolQuery()
-          .must([esb.termsQuery('body.sprintId', sprintIdsArr)])
+          .must([
+            esb.termsQuery('body.sprintId', sprintIdsArr),
+            esb.termQuery('body.isDeleted', false),
+          ])
           .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),

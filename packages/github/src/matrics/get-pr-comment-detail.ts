@@ -20,8 +20,7 @@ const esClientObj = new ElasticSearchClient({
  */
 async function getRepoNamesAndOrg(
   repoIds: string[],
-  orgId: string,
-  prRespLen: number
+  orgId: string
 ): Promise<{ repoNames: Github.Type.RepoNamesResponse[]; orgname: string }> {
   // esb query to fetch repo name from ES
   const repoNameQuery = esb.boolQuery().must(esb.termsQuery('body.id', repoIds));
@@ -33,7 +32,7 @@ async function getRepoNamesAndOrg(
       Github.Enums.IndexName.GitRepo,
       repoNameQuery,
       0,
-      repoIds.length,
+      100,
       [],
       ['body.id', 'body.name']
     ),
@@ -113,7 +112,7 @@ export async function prCommentsDetailMetrics(
     logger.info(`PR-Comment-Detail-Pull-Requests: ${JSON.stringify(response)}`);
 
     // Calling a function to get repoNames and orgname
-    const { repoNames, orgname } = await getRepoNamesAndOrg(repoIds, orgId, response?.length);
+    const { repoNames, orgname } = await getRepoNamesAndOrg(repoIds, orgId);
 
     logger.info(`PR-Comment-Detail-Repo-Names: ${JSON.stringify(repoNames)}`);
 
