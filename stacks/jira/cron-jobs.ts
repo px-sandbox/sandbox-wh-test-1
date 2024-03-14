@@ -22,7 +22,7 @@ export function intializeJiraCron(
 
     // eslint-disable-next-line no-new
     new Cron(stack, 'cronRetryProcess', {
-        schedule: 'cron(0/30 * ? * * *)',
+        schedule: 'cron(0/5 * ? * * *)',
         job: processJiraRetryFunction,
     });
 
