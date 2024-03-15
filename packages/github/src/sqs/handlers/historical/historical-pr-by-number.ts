@@ -10,6 +10,7 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getWorkingTime } from '../../../util/timezone-calculation';
 import { getOctokitResp } from '../../../util/octokit-response';
+import { v4 as uuid } from 'uuid';
 
 const sqsClient = SQSClientGh.getInstance();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -72,7 +73,9 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
             approved_at: messageBody.approvedAt,
             review_seconds: reviewSeconds,
           },
-          Queue.qGhPrFormat.queueUrl
+          Queue.qGhPrFormat.queueUrl,
+          octokitRespData.id,
+          uuid()
         );
 
         // setting the `isMergedCommit` for commit
