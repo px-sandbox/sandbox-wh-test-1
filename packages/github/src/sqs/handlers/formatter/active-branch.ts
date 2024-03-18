@@ -8,6 +8,7 @@ import { logger } from 'core';
 import { ActiveBranchProcessor } from '../../../processors/active-branch';
 import { logProcessToRetry } from '../../../util/retry-process';
 import async from 'async';
+import { HitBody } from 'abstraction/other/type';
 
 const esClient = ElasticSearchClientGh.getInstance();
 
@@ -31,10 +32,10 @@ async function countBranchesAndSendToSQS(
       )
       .toJSON();
 
-    const esData = await esClient.getClient().search({
-      index: Github.Enums.IndexName.GitBranch,
+    const esData:HitBody = await esClient.searchWithEsb(
+       Github.Enums.IndexName.GitBranch,
       body,
-    });
+    );
 
     const {
       body: {

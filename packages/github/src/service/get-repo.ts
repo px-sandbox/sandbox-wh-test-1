@@ -11,7 +11,7 @@ import { getGitRepoSchema } from './validations';
 const esClient = ElasticSearchClientGh.getInstance();
 async function fetchReposData(
   repoIds: string[],
-  esClient: ElasticSearchClient,
+  esClient: ElasticSearchClientGh,
   gitRepoName: string,
   page: number,
   size: number

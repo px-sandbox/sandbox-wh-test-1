@@ -107,15 +107,13 @@ async function getESVersionUpgradeData(
 
   // we will fetch data from elastic search continuously, until we get empty array, to get all records
   do {
-    const data = await esClientObj.getClient().search({
-      index: Github.Enums.IndexName.GitRepoLibrary,
-      body: {
-        query: finalRepoLibQuery,
-      },
-      from: 100 * (counter - 1),
-      size: 100,
-      sort: ['body.libName'],
-    });
+    const data = await esClientObj.searchWithEsb(
+      Github.Enums.IndexName.GitRepoLibrary,
+      finalRepoLibQuery,
+      100 * (counter - 1),
+      100,
+      ['body.libName'],
+  );
 
     repoLibs = await searchedDataFormator(data?.body);
 
@@ -139,14 +137,12 @@ async function getESVersionUpgradeData(
 
   // we will fetch data from elastic search continuously, until we get empty array, to get all records
   do {
-    const repoNamesData = await esClientObj.getClient().search({
-      index: Github.Enums.IndexName.GitRepo,
-      body: {
-        query: repoNamesQuery,
-      },
-      from: 100 * (counter2 - 1),
-      size: 100,
-    });
+    const repoNamesData = await esClientObj.searchWithEsb(
+      Github.Enums.IndexName.GitRepo,
+      repoNamesQuery,  
+      100 * (counter2 - 1),
+      100,
+    );
 
     repoNames = await searchedDataFormator(repoNamesData.body);
 

@@ -14,8 +14,8 @@ const updateMergeCommit = async (event: APIGatewayProxyEvent): Promise<APIGatewa
   const repoOwner: string = event.queryStringParameters?.repoOwner || '';
   try {
     logger.info({ level: 'info', message: 'repo name -->', repoId, repoOwner });
-
-    const repoData = await esObj.search(Github.Enums.IndexName.GitRepo, 'id', repoId);
+    const query = esb.matchQuery('body.id', repoId).toJSON();
+    const repoData = await esObj.searchWithEsb(Github.Enums.IndexName.GitRepo, query);
     if (repoData) {
       const [repo] = await searchedDataFormator(repoData);
       logger.info({ level: 'info', message: 'repo name -->', repoName: repo.name });

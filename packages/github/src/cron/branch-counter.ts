@@ -12,6 +12,7 @@ import { logger } from 'core';
 import { Github } from 'abstraction';
 import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { APIGatewayProxyEvent } from 'aws-lambda';
+import { searchedDataFormator } from 'src/util/response-formatter';
 
 const esClient = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
@@ -22,7 +23,7 @@ async function getReposAndSendToSQS(
   perPage = 100
 ): Promise<number> {
   try {
-    const body = esb
+    const query = esb
       .requestBodySearch()
       .size(perPage)
       .from((pageNo - 1) * perPage)
@@ -36,17 +37,9 @@ async function getReposAndSendToSQS(
           .minimumShouldMatch(1)
       )
       .toJSON();
-
-    const {
-      body: {
-        hits: { hits: repos },
-      },
-    } = (await esClient.getClient().search({
-      index: Github.Enums.IndexName.GitRepo,
-      body,
-    })) as { body: SearchResponse<{ body: Github.Type.Repository }> };
-
-    logger.info(`BODY: ${JSON.stringify(body)}`);
+    const data = await esClient.searchWithEsb(Github.Enums.IndexName.GitRepo, query);
+    const repos = await searchedDataFormator(data);
+    logger.info(`BODY: ${JSON.stringify(data)}`);
 
     await Promise.all(
       repos.map((repo: Hit<{ body: Github.Type.Repository }>) => {

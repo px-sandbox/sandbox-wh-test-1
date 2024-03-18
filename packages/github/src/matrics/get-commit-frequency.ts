@@ -6,6 +6,8 @@ import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { esbDateHistogramInterval } from '../constant/config';
 import { getWeekDaysCount } from '../util/weekend-calculations';
+import { searchedDataFormator } from 'src/util/response-formatter';
+import { HitBody } from 'abstraction/other/type';
 
 function processGraphInterval(
   intervals: string,
@@ -101,8 +103,7 @@ export async function frequencyOfCodeCommitAvg(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const prCommentAvgQuery = esb.requestBodySearch().size(0);
-    prCommentAvgQuery
+    const { query } = esb.requestBodySearch().size(0)
       .query(
         esb
           .boolQuery()
@@ -112,14 +113,15 @@ export async function frequencyOfCodeCommitAvg(
             esb.termsQuery('body.isMergedCommit', 'false'),
           ])
       )
-      .size(0)
-      .toJSON();
-    logger.info('FREQUENCY_CODE_COMMIT_AVG_ESB_QUERY', prCommentAvgQuery);
-    const data = await esClientObj.getClient().search({
-      index: Github.Enums.IndexName.GitCommits,
-      body: prCommentAvgQuery,
-    });
-    const totalDoc = data.body.hits.total.value;
+      .toJSON() as { query: object };;
+    logger.info('FREQUENCY_CODE_COMMIT_AVG_ESB_QUERY', query);
+
+    const data:HitBody = await esClientObj.searchWithEsb(
+       Github.Enums.IndexName.GitCommits,
+      query
+    );
+      
+    const totalDoc = data.hits.total.value;
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
     return { value: parseFloat((totalDoc / weekDaysCount).toFixed(2)) };
   } catch (e) {

@@ -126,13 +126,12 @@ export async function activeBranchesAvg(
       .size(0)
       .toJSON();
     logger.info('ACTIVE_BRANCHES_AVG_ESB_QUERY', activeBranchesAvgQuery);
-    const data = await esClientObj.getClient().search({
-      index: Github.Enums.IndexName.GitActiveBranches,
-      body: activeBranchesAvgQuery,
-    });
-
-    const totalRepo = Number(data.body.aggregations.repo_count.value);
-    const totalBranchCount = Number(data.body.aggregations.branch_count.value);
+    const data:any = await esClientObj.queryAggs(
+      Github.Enums.IndexName.GitActiveBranches,
+      activeBranchesAvgQuery
+    );
+    const totalRepo = Number(data.buckets.repo_count.value);
+    const totalBranchCount = Number(data.bucket.branch_count.value);
     return { value: parseFloat((totalBranchCount === 0 ? 0 : totalBranchCount / totalRepo).toFixed(2)) };
   } catch (e) {
     logger.error('activeBranchesAvg.error', e);

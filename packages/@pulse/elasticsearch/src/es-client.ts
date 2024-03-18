@@ -32,47 +32,6 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
     return this.client;
   }
 
-  public async bulkUpdate(indexName: string, data: any[]): Promise<void> {
-    try {
-      const body = data.flatMap((doc) => [
-        { update: { _index: indexName, _id: doc._id } },
-        {
-          doc: { body: { isDeleted: true, deletedAt: new Date().toISOString() } },
-        },
-      ]);
-
-      await this.client.bulk({ refresh: true, body });
-    } catch (err) {
-      logger.error('bulkUpdate.error: ', { err });
-    }
-  }
-
-  public async putDocument(index: string, document: ElasticSearchDocument): Promise<void> {
-    const { id, ...body } = document;
-    await this.client.index({
-      index,
-      id,
-      body,
-    });
-  }
-
-  public async search(
-    indexName: string,
-    searchKey: string,
-    searchValue: string
-  ): Promise<RequestParams.Search<MultiSearchBody>> {
-    const result = await this.client.search({
-      index: indexName,
-      body: {
-        query: {
-          match: { [`body.${searchKey}`]: searchValue },
-        },
-      },
-    });
-
-    return result.body;
-  }
-
   public async searchWithEsb(
     indexName: string,
     query: object,
@@ -84,36 +43,11 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
     try {
       const result = await this.client.search({
         index: indexName,
-        body: {
-          query,
-        },
+        body: query,
         from,
         size,
         sort,
         ...(source.length > 0 ? { _source: source } : {}),
-      });
-      return result.body;
-    } catch (err) {
-      logger.error('searchWithEsb.error: ', { err });
-      throw err;
-    }
-  }
-
-  /**
-   * Executes an Elasticsearch search request with the specified index name and request body.
-   * @param indexName - The name of the index to search.
-   * @param body - The request body containing the search query.
-   * @returns A promise that resolves to the search result.
-   * @throws If an error occurs during the search request.
-   */
-  public async esbRequestBodySearch(
-    indexName: string,
-    body: object
-  ): Promise<RequestParams.Search<MultiSearchBody>> {
-    try {
-      const result = await this.client.search({
-        index: indexName,
-        body,
       });
       return result.body;
     } catch (err) {
@@ -135,6 +69,15 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
     }
   }
 
+  public async putDocument(index: string, document: ElasticSearchDocument): Promise<void> {
+    const { id, ...body } = document;
+    await this.client.index({
+      index,
+      id,
+      body,
+    });
+  }
+  
   /**
    * Deletes documents from the specified index based on a query.
    * @param indexName - The name of the index to delete documents from.
@@ -150,29 +93,6 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
       });
     } catch (err) {
       logger.error('deleteByQuery.error : ', { err });
-      throw err;
-    }
-  }
-
-  /**
-   * Updates a document in the specified Elasticsearch index.
-   * @param indexName - The name of the Elasticsearch index.
-   * @param id - The ID of the document to update.
-   * @param updatedDoc - The updated document object.
-   * @returns A Promise that resolves with void when the update is complete.
-   * @throws An error if the update fails.
-   */
-  public async updateDocument(indexName: string, id: string, updatedDoc: object): Promise<void> {
-    try {
-      await this.client.update({
-        index: indexName,
-        id,
-        body: {
-          doc: updatedDoc,
-        },
-      });
-    } catch (err) {
-      logger.error('updateDocument.error : ', { err });
       throw err;
     }
   }
@@ -231,16 +151,18 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
     }
   }
 
-  public async updateDeletePreference(indexName: string, matchQry: any): Promise<void> {
-    await this.client.updateByQuery({
-      index: indexName,
-      body: {
-        query: matchQry,
-        script: {
-          source: 'ctx._source.body.isDeleted = true',
-          lang: 'painless',
+  public async bulkUpdate(indexName: string, data: any[]): Promise<void> {
+    try {
+      const body = data.flatMap((doc) => [
+        { update: { _index: indexName, _id: doc._id } },
+        {
+          doc: { body: { isDeleted: true, deletedAt: new Date().toISOString() } },
         },
-      },
-    });
+      ]);
+
+      await this.client.bulk({ refresh: true, body });
+    } catch (err) {
+      logger.error('bulkUpdate.error: ', { err });
+    }
   }
 }

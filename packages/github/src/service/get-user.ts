@@ -1,15 +1,15 @@
 import { transpileSchema } from '@middy/validator/transpile';
-import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { Config } from 'sst/node/config';
 import {
   IformatUserDataResponse,
   formatUserDataResponse,
   searchedDataFormator,
 } from '../util/response-formatter';
 import { getGitUserSchema } from './validations';
+import esb from 'elastic-builder';
 
 const esClient = ElasticSearchClientGh.getInstance();
 const githubUser = async function getUserData(
@@ -18,10 +18,10 @@ const githubUser = async function getUserData(
   const githubUserId: string = event?.pathParameters?.githubUserId || '';
   let response: IformatUserDataResponse[] = [];
   try {
-    const data = await esClient.search(
-      Github.Enums.IndexName.GitUsers,
-      Github.Enums.SearchKey.GitUserId,
-      githubUserId
+    const query = esb.matchQuery('body.id', githubUserId).toJSON();
+    const data = await esClient.searchWithEsb(
+      Github.Enums.IndexName.GitUsers,  
+      query
     );
 
     response = await searchedDataFormator(data);

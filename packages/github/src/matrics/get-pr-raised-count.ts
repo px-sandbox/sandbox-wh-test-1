@@ -6,6 +6,7 @@ import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { esbDateHistogramInterval } from '../constant/config';
 import { getWeekDaysCount } from '../util/weekend-calculations';
+import { HitBody } from 'abstraction/other/type';
 
 function processGraphInterval(
   intervals: string,
@@ -99,9 +100,7 @@ export async function numberOfPrRaisedAvg(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const numberOfPrRaisedAvgQuery = await esb.requestBodySearch().size(0);
-    numberOfPrRaisedAvgQuery
-      .query(
+    const {query} = await esb.requestBodySearch().query(
         esb
           .boolQuery()
           .must([
@@ -110,13 +109,13 @@ export async function numberOfPrRaisedAvg(
           ])
       )
       .size(0)
-      .toJSON();
-    logger.info('NUMBER_OF_PR_RAISED_AVG_ESB_QUERY', numberOfPrRaisedAvgQuery);
-    const data = await esClientObj.getClient().search({
-      index: Github.Enums.IndexName.GitPull,
-      body: numberOfPrRaisedAvgQuery,
-    });
-    const totalDoc = data.body.hits.total.value;
+      .toJSON() as { query: object };
+    logger.info('NUMBER_OF_PR_RAISED_AVG_ESB_QUERY', query);
+    const data:HitBody = await esClientObj.searchWithEsb(
+      Github.Enums.IndexName.GitPull,
+      query
+    )
+    const totalDoc = data.hits.total.value;
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
     return { value: totalDoc / weekDaysCount };
   } catch (e) {

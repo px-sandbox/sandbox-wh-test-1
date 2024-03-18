@@ -5,6 +5,7 @@ import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { esbDateHistogramInterval } from '../constant/config';
+import { HitBody } from 'abstraction/other/type';
 
 function processGraphInterval(
   intervals: string,
@@ -127,13 +128,13 @@ export async function prWaitTimeAvg(
       .size(0)
       .toJSON();
     logger.info('NUMBER_OF_PR_WAIT_TIME_AVG_ESB_QUERY', prWaitTimeAvgQuery);
-    const data = await esClientObj.getClient().search({
-      index: Github.Enums.IndexName.GitPull,
-      body: prWaitTimeAvgQuery,
-    });
+    const data:HitBody = await esClientObj.queryAggs(
+      Github.Enums.IndexName.GitPull,
+      prWaitTimeAvgQuery,
+    );
 
-    const totalTime = Number((data.body.aggregations.total_time.value / 3600).toFixed(2));
-    const totalPr = Number(data.body.aggregations.pr_count.value);
+    const totalTime = Number((data.total_time.value / 3600).toFixed(2));
+    const totalPr = Number(data.pr_count.value);
     // const weekDaysCount = getWeekDaysCount(startDate, endDate);
     return { value: totalTime === 0 ? 0 : totalTime / totalPr };
   } catch (e) {

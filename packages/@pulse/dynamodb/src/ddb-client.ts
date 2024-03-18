@@ -82,12 +82,6 @@ export class DynamoDbDocClientGh implements IDynmoDbDocClient {
     await this.getDdbDocClient().send(new PutCommand(putParams));
   }
 
-  public async scan(scanParams: ScanCommandInput): Promise<Array<unknown>> {
-    const ddbRes = await this.getDdbDocClient().send(new ScanCommand(scanParams));
-
-    return ddbRes?.Items?.length ? ddbRes.Items : [];
-  }
-
   public async delete(deleteParams: DeleteCommandInput): Promise<void> {
     await this.getDdbDocClient().send(new DeleteCommand(deleteParams));
   }

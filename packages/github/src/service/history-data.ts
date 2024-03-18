@@ -6,6 +6,7 @@ import { HttpStatusCode, logger, responseParser } from 'core';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
+import esb from 'elastic-builder';
 
 const esClientObj = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
@@ -14,7 +15,8 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
   const repo = event?.queryStringParameters?.repo || '';
   const branch = event?.queryStringParameters?.branch || '';
   try {
-    const data = await esClientObj.search(Github.Enums.IndexName.GitRepo, 'name', repo);
+    const query = esb.matchQuery('body.name', repo).toJSON();
+    const data = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepo, query);
 
     const [repoData] = await searchedDataFormator(data);
     logger.info({ level: 'info', message: 'github repo data', repoData });
