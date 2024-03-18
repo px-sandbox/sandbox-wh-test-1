@@ -8,6 +8,7 @@ import { PRProcessor } from '../../../processors/pull-request';
 import { logProcessToRetry } from '../../../util/retry-process';
 import async from 'async';
 import { Github } from 'abstraction';
+import _ from 'lodash';
 
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
@@ -36,10 +37,15 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   }
 }
 export const handler = async function pRFormattedDataReceiver(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
-  await await async.eachSeries(event.Records, processAndStoreSQSRecord, (error) => {
-    if (error) {
-      logger.error(`pRFormattedDataReceiver.error, ${error}`);
-    }
-  });
+  logger.info(`Records Length: ${event.Records.length}`); 
+  const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
+  await Promise.all(
+    Object.values(messageGroups).map(async (group) => {
+      async.eachSeries(group, processAndStoreSQSRecord, (error) => {
+        if (error) {
+          logger.error(`pRFormattedDataReceiver.error, ${error}`);
+        }
+      });
+    })
+  );
 };

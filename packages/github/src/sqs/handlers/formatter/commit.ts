@@ -9,6 +9,7 @@ import { processFileChanges } from '../../../util/process-commit-changes';
 import { logProcessToRetry } from '../../../util/retry-process';
 import async from 'async';
 import { Github } from 'abstraction';
+import _ from 'lodash';
 
 // eslint-disable-next-line max-lines-per-function
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
@@ -68,9 +69,14 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
 }
 export const handler = async function commitFormattedDataReceiver(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
-  await async.eachSeries(event.Records, processAndStoreSQSRecord, (error) => {
-    if (error) {
-      logger.error(`commitFormattedDataReceiver.error, ${error}`);
-    }
-  });
+  const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
+  await Promise.all(
+    Object.values(messageGroups).map(async (group) => {
+      await async.eachSeries(group, processAndStoreSQSRecord, (error) => {
+        if (error) {
+          logger.error(`commitFormattedDataReceiver.error, ${error}`);
+        }
+      });
+    })
+  );  
 };
