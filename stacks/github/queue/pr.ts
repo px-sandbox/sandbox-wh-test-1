@@ -20,7 +20,13 @@ export function initializePrQueue(
   } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDb;
 
-  const prFormatDataQueue = new Queue(stack, 'qGhPrFormat');
+  const prFormatDataQueue = new Queue(stack, 'qGhPrFormat', {
+    cdk: {
+      queue: {
+        fifo: true,
+      },
+    },
+  });
   prFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhPrFormat', {
       handler: 'packages/github/src/sqs/handlers/formatter/pull-request.handler',

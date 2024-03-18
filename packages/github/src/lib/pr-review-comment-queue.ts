@@ -3,6 +3,7 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getPullRequestById } from './get-pull-request';
+import { v4 as uuid } from 'uuid';
 
 const sqsClient = SQSClientGh.getInstance();
 export async function pRReviewCommentOnQueue(
@@ -40,7 +41,9 @@ export async function pRReviewCommentOnQueue(
           approved_at: pullData.approvedAt,
           review_seconds: pullData.reviewSeconds,
         },
-        Queue.qGhPrFormat.queueUrl
+        Queue.qGhPrFormat.queueUrl,
+        String(pullId),
+        uuid()
       ),
     ]);
   } catch (error: unknown) {

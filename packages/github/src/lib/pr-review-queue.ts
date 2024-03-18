@@ -11,7 +11,7 @@ import { getOctokitResp } from '../util/octokit-response';
 import { ghRequest } from './request-default';
 import { getPullRequestById } from './get-pull-request';
 import { getTimezoneOfUser } from './get-user-timezone';
-
+import { v4 as uuid } from 'uuid';
 // Get token to pass into header of Github Api call
 async function getGithubApiToken(): Promise<string> {
   const installationAccessToken = await getInstallationAccessToken();
@@ -105,7 +105,9 @@ export async function pRReviewOnQueue(
           review_seconds: reviewSeconds,
           action: Github.Enums.Comments.REVIEW_COMMENTED,
         },
-        Queue.qGhPrFormat.queueUrl
+        Queue.qGhPrFormat.queueUrl,
+        String(pullId),
+        uuid()
       ),
     ]);
   } catch (error: unknown) {

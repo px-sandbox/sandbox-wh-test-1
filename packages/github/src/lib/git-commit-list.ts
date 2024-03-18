@@ -3,6 +3,7 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { preparePush } from './push';
+import { v4 as uuid } from 'uuid';
 
 const sqsClient = SQSClientGh.getInstance();
 
@@ -25,7 +26,8 @@ export async function getCommits(commits: Github.ExternalType.Webhook.Commit): P
               timestamp: commit.timestamp,
             },
             Queue.qGhCommitFormat.queueUrl,
-            commit.id
+            commit.id,
+            uuid()
           );
         }),
         await preparePush(

@@ -6,6 +6,7 @@ import { Queue } from 'sst/node/queue';
 import { getWorkingTime } from '../util/timezone-calculation';
 import { getPullRequestById } from './get-pull-request';
 import { getTimezoneOfUser } from './get-user-timezone';
+import { v4 as uuid } from 'uuid';
 
 const sqsClient = SQSClientGh.getInstance();
 export async function pROnQueue(
@@ -54,7 +55,9 @@ export async function pROnQueue(
         review_seconds: reviewSeconds,
         action,
       },
-      Queue.qGhPrFormat.queueUrl
+      Queue.qGhPrFormat.queueUrl,
+      String(pull.id),
+      uuid()
     );
   } catch (error: unknown) {
     logger.error({
