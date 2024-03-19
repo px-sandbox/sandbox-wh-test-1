@@ -6,6 +6,7 @@ import { Github } from 'abstraction';
 import moment from 'moment';
 import { esbDateHistogramInterval } from '../constant/config';
 import { searchedDataFormator } from '../util/response-formatter';
+import { HitBody } from 'abstraction/other/type';
 
 // initializing elastic search client
 const esClientObj = new ElasticSearchClient({
@@ -91,7 +92,7 @@ export async function getHeadlineStat(repoIds: string[], branch: string): Promis
         ]);
 
 
-    const data = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
+    const data:HitBody = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
 
     return data?.hits?.total?.value;
 }

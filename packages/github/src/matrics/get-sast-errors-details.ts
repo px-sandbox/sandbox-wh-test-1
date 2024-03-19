@@ -155,14 +155,12 @@ export async function getRepoNames(repoIds: string[]): Promise<Github.Type.RepoN
     try {
         do {
 
-            const repoNamesData = await esClientObj.getClient().search({
-                index: Github.Enums.IndexName.GitRepo,
-                body: {
-                    query: repoNamesQuery,
-                },
-                from: 100 * (counter2 - 1),
-                size: 100,
-            });
+            const repoNamesData = await esClientObj.searchWithEsb(
+                 Github.Enums.IndexName.GitRepo,
+              repoNamesQuery,
+                100 * (counter2 - 1),
+                 100,
+            );
 
             repoNames = await searchedDataFormator(repoNamesData.body);
 

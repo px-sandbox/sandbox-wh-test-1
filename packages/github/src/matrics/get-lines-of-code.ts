@@ -1,4 +1,4 @@
-import esb, { Script } from 'elastic-builder';
+import esb, { Query, Script } from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { IPrCommentAggregationResponse } from 'abstraction/github/type';
@@ -6,6 +6,7 @@ import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { esbDateHistogramInterval } from '../constant/config';
 import { getWeekDaysCount } from '../util/weekend-calculations';
+import { HitBody } from 'abstraction/other/type';
 
 // script for sum of file changes
 const sumScript = new Script().inline(`def files = params._source.body.changes;
@@ -126,8 +127,7 @@ export async function linesOfCodeAvg(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const prCommentAvgQuery = esb.requestBodySearch().size(0);
-    prCommentAvgQuery
+    const query = esb.requestBodySearch()
       .query(
         esb
           .boolQuery()
@@ -141,13 +141,14 @@ export async function linesOfCodeAvg(
       .agg(esb.cardinalityAggregation('authorId', 'body.authorId'))
       .size(0)
       .toJSON();
-    logger.info('LINES_OF_CODE_AVG_ESB_QUERY', prCommentAvgQuery);
-    const data = await esClientObj.getClient().search({
-      index: Github.Enums.IndexName.GitCommits,
-      body: prCommentAvgQuery,
-    });
-    const totalChanges = Number(data.body.aggregations.file_changes_sum.value);
-    const totalAuthor = Number(data.body.aggregations.authorId.value);
+    logger.info('LINES_OF_CODE_AVG_ESB_QUERY', Query);
+    const data:HitBody = await esClientObj.queryAggs(
+       Github.Enums.IndexName.GitCommits,
+      query,
+    );
+
+    const totalChanges = Number(data.file_changes_sum.value);
+    const totalAuthor = Number(data.authorId.value);
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
     const totalPerAuthor = totalChanges === 0 ? 0 : totalChanges / totalAuthor;
     return { value: parseFloat((totalPerAuthor / weekDaysCount).toFixed(2)) };

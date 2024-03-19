@@ -11,6 +11,7 @@ import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { searchedDataFormator } from '../../../util/response-formatter';
+import esb from 'elastic-builder';
 
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
@@ -21,7 +22,8 @@ const octokit = ghRequest.request.defaults({
 const esclient = ElasticSearchClientGh.getInstance();
 
 async function getRepoNameById(repoId: string): Promise<string> {
-  const repoData = esclient.search(Github.Enums.IndexName.GitRepo, 'id', repoId);
+  const query = esb.matchQuery('body.id', repoId).toJSON();
+  const repoData = esclient.searchWithEsb(Github.Enums.IndexName.GitRepo,query);
   const [repoName] = await searchedDataFormator(repoData);
   if (!repoName) {
     throw new Error(`repoName not found for data: ${repoId}`);
