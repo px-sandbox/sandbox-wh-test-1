@@ -1,12 +1,12 @@
-import moment from 'moment';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
+import moment from 'moment';
 import { Queue } from 'sst/node/queue';
+import { v4 as uuid } from 'uuid';
 import { getWorkingTime } from '../util/timezone-calculation';
 import { getPullRequestById } from './get-pull-request';
 import { getTimezoneOfUser } from './get-user-timezone';
-import { v4 as uuid } from 'uuid';
 
 const sqsClient = SQSClientGh.getInstance();
 export async function pROnQueue(
@@ -47,18 +47,34 @@ export async function pROnQueue(
         }
       }
     }
-    await sqsClient.sendFifoMessage(
-      {
-        ...pull,
-        reviewed_at: reviewedAt,
-        approved_at: approvedAt,
-        review_seconds: reviewSeconds,
-        action,
-      },
-      Queue.qGhPrFormat.queueUrl,
-      String(pull.id),
-      uuid()
-    );
+    if (action !== Github.Enums.PullRequest.Opened) {
+      await sqsClient.sendFifoMessage(
+        {
+          ...pull,
+          reviewed_at: reviewedAt,
+          approved_at: approvedAt,
+          review_seconds: reviewSeconds,
+          action,
+        },
+        Queue.qGhPrFormat.queueUrl,
+        String(pull.id),
+        uuid(),
+        5000
+      );
+    } else {
+      await sqsClient.sendFifoMessage(
+        {
+          ...pull,
+          reviewed_at: reviewedAt,
+          approved_at: approvedAt,
+          review_seconds: reviewSeconds,
+          action,
+        },
+        Queue.qGhPrFormat.queueUrl,
+        String(pull.id),
+        uuid()
+      );
+    }
   } catch (error: unknown) {
     logger.error({
       error,

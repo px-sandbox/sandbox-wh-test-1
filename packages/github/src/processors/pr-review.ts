@@ -27,6 +27,9 @@ export class PRReviewProcessor extends DataProcessor<
     let parentId: string = await this.getParentId(
       `${mappingPrefixes.pRReview}_${this.ghApiData.id}`
     );
+    if (!parentId && this.action !== Github.Enums.PullRequest.Opened) {
+      throw new Error(`pr_not_found_for_event: ${this.pullId}, ${this.repoId}, ${this.action}`);
+    }
       if (!parentId) {
         parentId = uuid();
         await this.putDataToDynamoDB(parentId, `${mappingPrefixes.pRReview}_${this.ghApiData.id}`);
