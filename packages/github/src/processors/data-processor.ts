@@ -5,15 +5,15 @@ import { logger } from 'core';
 import { ParamsMapping } from '../model/params-mapping';
 import { Queue } from 'sst/node/queue';
 
-export abstract class DataProcessor<T, S> {
-  protected ghApiData: T;
 
+export abstract class DataProcessor<T, S> {
+  private SQSClient: SQSClientGh;
+  protected DynamoDbDocClient: DynamoDbDocClientGh;
   constructor(
-    data: T,
-    private SQSClient: SQSClientGh,
-    private DynamoDbDocClient: DynamoDbDocClientGh
+    protected ghApiData: T,
   ) {
-    this.ghApiData = data;
+    this.SQSClient = SQSClientGh.getInstance();
+    this.DynamoDbDocClient = DynamoDbDocClientGh.getInstance();
   }
 
   public validate(): DataProcessor<T, S> | false {

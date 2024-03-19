@@ -56,9 +56,9 @@ async function fetchBranchesData(repoId: string, currDate: string): Promise<void
   );
 
   await Promise.all(
-    branchesArr.map(async (branch) =>
-      sqsClient.sendMessage({ repoId, branch, currDate }, Queue.qGhScansSave.queueUrl)
-    )
+      branchesArr.map(async (branch) => {
+          return sqsClient.sendMessage({ repoId, branch, currDate }, Queue.qGhScansSave.queueUrl)
+      })
   );
 }
 

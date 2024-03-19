@@ -34,7 +34,7 @@ export async function pRReviewCommentOnQueue(
         { comment: prReviewComment, pullId, repoId, action },
         Queue.qGhPrReviewCommentFormat.queueUrl
       ),
-      sqsClient.sendMessage(
+      sqsClient.sendFifoMessage(
         {
           ...pullRequestData,
           reviewed_at: pullData.reviewedAt,

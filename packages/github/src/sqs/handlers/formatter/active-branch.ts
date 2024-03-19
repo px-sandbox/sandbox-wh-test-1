@@ -1,14 +1,13 @@
-import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
-import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
-import { Queue } from 'sst/node/queue';
+import { HitBody } from 'abstraction/other/type';
+import async from 'async';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
+import esb from 'elastic-builder';
+import { Queue } from 'sst/node/queue';
 import { ActiveBranchProcessor } from '../../../processors/active-branch';
 import { logProcessToRetry } from '../../../util/retry-process';
-import async from 'async';
-import { HitBody } from 'abstraction/other/type';
 
 const esClient = ElasticSearchClientGh.getInstance();
 const getBranches = async (repoId: string, date: string): Promise<HitBody> => {

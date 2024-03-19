@@ -10,7 +10,6 @@ export type ElasticSearchDocument = {
 };
 
 export interface IElasticSearchClient {
-  getClient(): Client;
   putDocument(index: string, document: ElasticSearchDocument): Promise<void>;
 }
 

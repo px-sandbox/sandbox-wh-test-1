@@ -76,7 +76,7 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
         );
         logger.info(`to_be_marked_deleted_commentIds:${deletedCommentIds}`);
        
-        updateDeletedComments(deletedCommentIds, prData.repoId);
+        await updateDeletedComments(deletedCommentIds, prData.repoId);
         //Update PR Data
         await sqsClient.sendMessage(
           {

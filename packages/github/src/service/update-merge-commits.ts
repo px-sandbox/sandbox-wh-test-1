@@ -41,7 +41,7 @@ const updateMergeCommit = async (event: APIGatewayProxyEvent): Promise<APIGatewa
       if (commitData.length > 0) {
         await Promise.all(
           commitData.map(async (commit: Github.Type.Commits) => {
-            await sqsClient.sendMessage(
+            return sqsClient.sendMessage(
               { ...commit, repoName: repo.name, repoOwner },
               Queue.qUpdateMergeCommit.queueUrl
             );

@@ -15,11 +15,12 @@ const getOrganizationData = async (
   return formattedUserData;
 };
 
-export async function getOrganization(
-  orgName: string
-): Promise<Github.Type.Organization> {
-  return  await getOrganizationData('name', orgName);
-}
+//Not being used
+// export async function getOrganizationName(
+//   orgName: string
+// ): Promise<Github.Type.Organization> {
+//   return  await getOrganizationData('name', orgName);
+// }
 
 export async function getOrganizationById(orgId: string): Promise<Github.Type.Organization> {
   return await getOrganizationData('id', orgId);

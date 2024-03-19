@@ -72,7 +72,7 @@ export const handler = async function commitFormattedDataReceiver(event: SQSEven
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
     Object.values(messageGroups).map(async (group) => {
-      await async.eachSeries(group, processAndStoreSQSRecord, (error) => {
+      return async.eachSeries(group, processAndStoreSQSRecord, (error) => {
         if (error) {
           logger.error(`commitFormattedDataReceiver.error, ${error}`);
         }

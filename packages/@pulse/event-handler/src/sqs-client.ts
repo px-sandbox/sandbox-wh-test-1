@@ -17,6 +17,28 @@ export class SQSClientGh implements ISQSClient {
     return SQSClientGh.instance;
   }
 
+  public async sendFifoMessage<T>(
+    message: T,
+    queueUrl: string,
+    messageGroupId: string,
+    messageDeduplicationId: string,
+    delay?: number
+  ): Promise<void> {
+    const queueName = queueUrl.split('/').slice(-1).toString();
+    try {
+      let queueObj: AWS_SQS.SendMessageCommandInput = {
+        MessageBody: JSON.stringify(message),
+        QueueUrl: queueUrl,
+        MessageGroupId: messageGroupId,
+        MessageDeduplicationId: messageDeduplicationId,
+        DelaySeconds: delay,
+      };
+      await this.sqs.sendMessage(queueObj);
+    } catch (error) {
+      logger.error({ message: 'ERROR_SQS_SEND_MESSAGE', error, queueName });
+    }
+  }
+  
   public async sendMessage<T>(
     message: T,
     queueUrl: string,

@@ -47,7 +47,7 @@ export async function pROnQueue(
         }
       }
     }
-    await sqsClient.sendMessage(
+    await sqsClient.sendFifoMessage(
       {
         ...pull,
         reviewed_at: reviewedAt,

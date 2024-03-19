@@ -51,9 +51,9 @@ export async function prWaitTimeDetailsData(
   try {
     const query = await getGraphData(startDate, endDate, repoIds,page, limit,sort);
     const [orgName, prData, repoNames] = await Promise.all([
-      await getOrganizationById(orgId),
-      (await esClientObj.search(Github.Enums.IndexName.GitPull, query) as Other.Type.HitBody),
-      await getRepoNames(repoIds),
+      getOrganizationById(orgId),
+      esClientObj.search(Github.Enums.IndexName.GitPull, query) as Other.Type.HitBody,
+      getRepoNames(repoIds),
     ]);
 
     const formattedPrData = await searchedDataFormator(prData);

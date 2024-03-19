@@ -44,7 +44,7 @@ export async function repoLibHelper(data: Github.ExternalType.RepoLibrary): Prom
           isCore: false,
         };
 
-        await sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
+        return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
       }),
       ...coreDependencies.map(async (dep) => {
         const message = {
@@ -55,7 +55,7 @@ export async function repoLibHelper(data: Github.ExternalType.RepoLibrary): Prom
           isCore: true,
         };
 
-        await sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
+        return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
       }),
     ]);
   }

@@ -6,6 +6,7 @@ import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitResp } from '../../../util/octokit-response';
+import { v4 as uuid } from 'uuid';
 
 const sqsClient = SQSClientGh.getInstance();
 const installationAccessToken = await getInstallationAccessToken();
@@ -20,7 +21,7 @@ async function saveCommit(commitData: any, messageBody: any): Promise<void> {
   modifiedCommitData.isMergedCommit = false;
   modifiedCommitData.mergedBranch = null;
   modifiedCommitData.pushedBranch = null;
-  await sqsClient.sendMessage(
+  await sqsClient.sendFifoMessage(
     {
       commitId: modifiedCommitData.sha,
       isMergedCommit: modifiedCommitData.isMergedCommit,
@@ -33,7 +34,9 @@ async function saveCommit(commitData: any, messageBody: any): Promise<void> {
       },
       timestamp: new Date(),
     },
-    Queue.qGhCommitFormat.queueUrl
+    Queue.qGhCommitFormat.queueUrl,
+    modifiedCommitData.sha,
+    uuid()
   );
 }
 async function getPRCommits(record: SQSRecord): Promise<boolean | undefined> {

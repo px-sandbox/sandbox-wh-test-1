@@ -5,17 +5,13 @@ import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { SQSClientGh } from '@pulse/event-handler';
 
-const dynamodbClient = DynamoDbDocClientGh.getInstance();
-const sqsClient = SQSClientGh.getInstance();
 export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
   Github.Type.PullRequest
 > {
   constructor(data: Github.ExternalType.Webhook.PullRequest) {
-    super(data, sqsClient, dynamodbClient);
+    super(data);
   }
 
   private setAction(): Github.Type.actions {

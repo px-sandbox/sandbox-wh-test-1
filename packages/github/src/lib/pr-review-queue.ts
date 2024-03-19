@@ -97,7 +97,7 @@ export async function pRReviewOnQueue(
         { review: prReview, pullId, repoId, action },
         Queue.qGhPrReviewFormat.queueUrl
       ),
-      sqsClient.sendMessage(
+      sqsClient.sendFifoMessage(
         {
           ...octokitRespData,
           reviewed_at: reviewedAt,

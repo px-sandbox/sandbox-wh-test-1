@@ -15,7 +15,7 @@ import { v4 as uuid } from 'uuid';
 const sqsClient = SQSClientGh.getInstance();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function processQueueOnMergedPR(octokitRespData: any, messageBody: any): Promise<void> {
-  await sqsClient.sendMessage(
+  await sqsClient.sendFifoMessage(
     {
       commitId: octokitRespData.merge_commit_sha,
       isMergedCommit: octokitRespData.merged,
@@ -29,7 +29,8 @@ async function processQueueOnMergedPR(octokitRespData: any, messageBody: any): P
       timestamp: new Date(),
     },
     Queue.qGhCommitFormat.queueUrl,
-    octokitRespData.merge_commit_sha
+    octokitRespData.merge_commit_sha,
+    uuid()
   );
 }
 export const handler = async function collectPrByNumberData(event: SQSEvent): Promise<void> {
@@ -66,7 +67,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
           createdTimezone
         );
 
-        await sqsClient.sendMessage(
+        await sqsClient.sendFifoMessage(
           {
             ...octokitRespData,
             reviewed_at: messageBody.submittedAt,

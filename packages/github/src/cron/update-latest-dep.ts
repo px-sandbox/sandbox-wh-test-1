@@ -1,7 +1,7 @@
-import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
 import { ScanCommandInput, ScanCommandOutput } from '@aws-sdk/lib-dynamodb';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 import { logger } from 'core';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { LibParamsMapping } from '../model/lib-master-mapping';
 
@@ -16,7 +16,7 @@ async function sendAllDepsToQueue(
         const { libName, version } = item;
         const depName = libName.split('npm_')[1];
         logger.info(`sendAllDepsToQueue: libname: ${depName}, version: ${version}`);
-        await sqsClient.sendMessage({ depName, version }, Queue.qMasterLibInfo.queueUrl);
+        return sqsClient.sendMessage({ depName, version }, Queue.qMasterLibInfo.queueUrl);
       })
     );
   } catch (err) {
