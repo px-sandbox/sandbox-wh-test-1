@@ -4,59 +4,40 @@ import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { esbDateHistogramInterval } from '../constant/config';
 import { getWeekDaysCount } from '../util/weekend-calculations';
+import { processGraphInterval } from 'src/util/process-graph-intervals';
 
 const esClientObj = ElasticSearchClientGh.getInstance();
-function processGraphInterval(
-  intervals: string,
-  startDate: string,
-  endDate: string
-): esb.DateHistogramAggregation {
-  // By default graph interval is day
-  let graphIntervals: esb.DateHistogramAggregation;
-  switch (intervals) {
-    case esbDateHistogramInterval.day:
-    case esbDateHistogramInterval.month:
-    case esbDateHistogramInterval.year:
-      graphIntervals = esb
-        .dateHistogramAggregation('commentsPerDay')
-        .field('body.createdAt')
-        .format('yyyy-MM-dd')
-        .calendarInterval(intervals)
-        .extendedBounds(startDate, endDate)
-        .minDocCount(0);
-      break;
-    case esbDateHistogramInterval['2d']:
-    case esbDateHistogramInterval['3d']:
-      graphIntervals = esb
-        .dateHistogramAggregation('commentsPerDay')
-        .field('body.createdAt')
-        .format('yyyy-MM-dd')
-        .fixedInterval(intervals)
-        .extendedBounds(startDate, endDate)
-        .minDocCount(0);
-      break;
-    default:
-      graphIntervals = esb
-        .dateHistogramAggregation('commentsPerDay')
-        .field('body.createdAt')
-        .format('yyyy-MM-dd')
-        .calendarInterval(esbDateHistogramInterval.month)
-        .extendedBounds(startDate, endDate)
-        .minDocCount(0);
-  }
-  return graphIntervals;
-}
-export async function frequencyOfCodeCommitGraph(
+
+const getGraphDataQuery = (
   startDate: string,
   endDate: string,
   intervals: string,
   repoIds: string[]
-): Promise<GraphResponse[]> {
-  try {
-    const frquencyOfCodeCommitGraphQuery = esb.requestBodySearch().size(0);
-    frquencyOfCodeCommitGraphQuery.query(
+) => {
+  const frquencyOfCodeCommitGraphQuery = esb.requestBodySearch().size(0);
+  frquencyOfCodeCommitGraphQuery.query(
+    esb
+      .boolQuery()
+      .must([
+        esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
+        esb.termsQuery('body.repoId', repoIds),
+        esb.termsQuery('body.isMergedCommit', 'false'),
+      ])
+  );
+
+  const graphIntervals = processGraphInterval(intervals, startDate, endDate);
+
+  frquencyOfCodeCommitGraphQuery.agg(graphIntervals).toJSON();
+
+  logger.info('FREQUENCY_CODE_COMMIT_GRAPH_ESB_QUERY', frquencyOfCodeCommitGraphQuery);
+  return frquencyOfCodeCommitGraphQuery;
+}; 
+const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[]) => {
+  const { query } = esb
+    .requestBodySearch()
+    .size(0)
+    .query(
       esb
         .boolQuery()
         .must([
@@ -64,13 +45,19 @@ export async function frequencyOfCodeCommitGraph(
           esb.termsQuery('body.repoId', repoIds),
           esb.termsQuery('body.isMergedCommit', 'false'),
         ])
-    );
-
-    const graphIntervals = processGraphInterval(intervals, startDate, endDate);
-
-    frquencyOfCodeCommitGraphQuery.agg(graphIntervals).toJSON();
-
-    logger.info('FREQUENCY_CODE_COMMIT_GRAPH_ESB_QUERY', frquencyOfCodeCommitGraphQuery);
+    )
+    .toJSON() as { query: object };
+  logger.info('FREQUENCY_CODE_COMMIT_AVG_ESB_QUERY', query);
+  return query;
+};
+export async function frequencyOfCodeCommitGraph(
+  startDate: string,
+  endDate: string,
+  intervals: string,
+  repoIds: string[]
+): Promise<GraphResponse[]> {
+  try { 
+    const frquencyOfCodeCommitGraphQuery = getGraphDataQuery( startDate, endDate, intervals, repoIds);  
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitCommits,
@@ -92,20 +79,7 @@ export async function frequencyOfCodeCommitAvg(
   repoIds: string[]
 ): Promise<{ value: number } | null> {
   try {
-    
-    const { query } = esb.requestBodySearch().size(0)
-      .query(
-        esb
-          .boolQuery()
-          .must([
-            esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-            esb.termsQuery('body.repoId', repoIds),
-            esb.termsQuery('body.isMergedCommit', 'false'),
-          ])
-      )
-      .toJSON() as { query: object };;
-    logger.info('FREQUENCY_CODE_COMMIT_AVG_ESB_QUERY', query);
-
+    const query = await getHeadlineQuery(startDate, endDate, repoIds);
     const data:HitBody = await esClientObj.search(
        Github.Enums.IndexName.GitCommits,
       query

@@ -14,24 +14,27 @@ import { Queue } from 'sst/node/queue';
 const esClient = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
 
-const getRepos = async () => {
- const query = esb
-   .requestBodySearch()
-   .size(perPage)
-   .from((pageNo - 1) * perPage)
-   .query(
-     esb
-       .boolQuery()
-       .should([
-         esb.termQuery('body.isDeleted', false),
-         esb.boolQuery().mustNot(esb.existsQuery('body.isDeleted')),
-       ])
-       .minimumShouldMatch(1)
-   )
-   .toJSON();
- const data = await esClient.search(Github.Enums.IndexName.GitRepo, query);
- const repos = await searchedDataFormator(data);
-}
+const getRepos = async (
+  pageNo: number,
+  perPage: number
+): Promise<Hit<{ body: Github.Type.Repository }>[]> => {
+  const query = esb
+    .requestBodySearch()
+    .size(perPage)
+    .from((pageNo - 1) * perPage)
+    .query(
+      esb
+        .boolQuery()
+        .should([
+          esb.termQuery('body.isDeleted', false),
+          esb.boolQuery().mustNot(esb.existsQuery('body.isDeleted')),
+        ])
+        .minimumShouldMatch(1)
+    )
+    .toJSON();
+  const data = await esClient.search(Github.Enums.IndexName.GitRepo, query);
+  return await searchedDataFormator(data);
+};
 // get all repos from ES which are not deleted and send to SQS
 async function getReposAndSendToSQS(
   currentDate: string,
@@ -39,9 +42,7 @@ async function getReposAndSendToSQS(
   perPage = 100
 ): Promise<number> {
   try {
-    
-    logger.info(`BODY: ${JSON.stringify(data)}`);
-
+    const repos = await getRepos(pageNo, perPage);
     await Promise.all(
       repos.map((repo: Hit<{ body: Github.Type.Repository }>) => {
         if (repo._source && repo._source.body) {

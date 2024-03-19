@@ -30,14 +30,7 @@ export async function repoSastErrorsFormatter(
   }));
 }
 
-export async function storeSastErrorReportToES(
-  data: Github.Type.RepoSastErrors[],
-  repoId: string,
-  branch: string,
-  orgId: string,
-  createdAt: string
-): Promise<void> {
-  try {
+const getQuery = (repoId: string, branch: string, orgId: string, createdAt: string):object => {
     const matchQry = esb
       .boolQuery()
       .must([
@@ -51,6 +44,18 @@ export async function storeSastErrorReportToES(
         esb.termQuery('body.isDeleted', false),
       ])
       .toJSON();
+  return matchQry;
+}
+export async function storeSastErrorReportToES(
+  data: Github.Type.RepoSastErrors[],
+  repoId: string,
+  branch: string,
+  orgId: string,
+  createdAt: string
+): Promise<void> {
+  try {
+    
+   const matchQry = getQuery(repoId, branch, orgId, createdAt);
     const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
     await esClientObj.updateByQuery(
       Github.Enums.IndexName.GitRepoSastErrors,

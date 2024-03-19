@@ -5,18 +5,22 @@ import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClientGh.getInstance();
 
+const getOrganizationData = async (
+  key: string,
+  value: string
+): Promise<Github.Type.Organization> => {
+  const matchQry = esb.matchQuery(`body.${key}`, value).toJSON();
+  const orgData = await esClientObj.search(Github.Enums.IndexName.GitOrganization, matchQry);
+  const [formattedUserData] = await searchedDataFormator(orgData);
+  return formattedUserData;
+};
+
 export async function getOrganization(
   orgName: string
-): Promise<{ _id: string } & Github.Type.Organization> {
-  const matchQry = esb.matchQuery('body.name', orgName).toJSON();
-  const orgData = await esClientObj.search(Github.Enums.IndexName.GitOrganization, matchQry);
-  const [formattedUserData] = await searchedDataFormator(orgData);
-  return formattedUserData;
+): Promise<Github.Type.Organization> {
+  return  await getOrganizationData('name', orgName);
 }
 
-export async function getOrganizationById(orgId: string): Promise<{ name: string }> {
-  const matchQry = esb.matchQuery('body.id', orgId).toJSON();
-  const orgData = await esClientObj.search(Github.Enums.IndexName.GitOrganization, matchQry);
-  const [formattedUserData] = await searchedDataFormator(orgData);
-  return formattedUserData;
+export async function getOrganizationById(orgId: string): Promise<Github.Type.Organization> {
+  return await getOrganizationData('id', orgId);
 }

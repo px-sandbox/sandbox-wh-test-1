@@ -16,17 +16,18 @@ async function fetchPRComments(repoId: string, owner: string, repoName: string):
     let from = 0;
     let size = 100;
 
-    const { query } = esb
-      .requestBodySearch()
-      .query(esb.boolQuery().must(esb.termQuery('body.repoId', repoId)))
-      .toJSON() as { query: object };
+    
     // fetch All PR data for given repo from Elasticsearch
     do {
+      const query = esb
+        .requestBodySearch()
+        .size(size)
+        .from(from)
+        .query(esb.boolQuery().must(esb.termQuery('body.repoId', repoId)))
+        .toJSON();
       const getPrData = await esClient.search(
         Github.Enums.IndexName.GitPull,
         query,
-        from,
-        size
       );
       prFormattedData = await searchedDataFormator(getPrData);
       await Promise.all(

@@ -30,14 +30,20 @@ async function fetchReposData(
     if (gitRepoName) {
       query.must(esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`));
     }
-    const finalQ = esb.requestBodySearch().query(query).toJSON() as { query: object };
+    const finalQ = esb
+      .requestBodySearch()
+      .size(size)
+      .from((page - 1) * size)
+      .query(query)
+      .toJSON() as { query: object };
+
     esbQuery = finalQ.query;
+    
+
   }
   const data = await esClient.search(
     Github.Enums.IndexName.GitRepo,
-    esbQuery,
-    (page - 1) * size,
-    size
+    esbQuery
   );
 
   return searchedDataFormator(data);

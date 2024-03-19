@@ -9,15 +9,18 @@ import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
+const getRepo = async (repo: string): Promise<any> => {
+  const query = esb.matchQuery('body.name', repo).toJSON();
+  const data = await esClientObj.search(Github.Enums.IndexName.GitRepo, query);
+  const [repoData] = await searchedDataFormator(data);
+  return repoData;
+}
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const historyType = event?.queryStringParameters?.type || '';
   const repo = event?.queryStringParameters?.repo || '';
   const branch = event?.queryStringParameters?.branch || '';
   try {
-    const query = esb.matchQuery('body.name', repo).toJSON();
-    const data = await esClientObj.search(Github.Enums.IndexName.GitRepo, query);
-
-    const [repoData] = await searchedDataFormator(data);
+    const repoData = await getRepo(repo);
     logger.info({ level: 'info', message: 'github repo data', repoData });
 
     let queueUrl = '';
