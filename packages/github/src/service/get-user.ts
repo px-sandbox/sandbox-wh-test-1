@@ -12,19 +12,20 @@ import { getGitUserSchema } from './validations';
 import esb from 'elastic-builder';
 
 const esClient = ElasticSearchClientGh.getInstance();
+
+const getGitUser = async (githubUserId: string): Promise<IformatUserDataResponse[]> => {
+  const query = esb.matchQuery('body.id', githubUserId).toJSON();
+  const data = await esClient.search(Github.Enums.IndexName.GitUsers, query);
+  const response = await searchedDataFormator(data);
+  return  response;
+};
 const githubUser = async function getUserData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const githubUserId: string = event?.pathParameters?.githubUserId || '';
-  let response: IformatUserDataResponse[] = [];
+   let response: IformatUserDataResponse[] = [];
   try {
-    const query = esb.matchQuery('body.id', githubUserId).toJSON();
-    const data = await esClient.search(
-      Github.Enums.IndexName.GitUsers,  
-      query
-    );
-
-    response = await searchedDataFormator(data);
+    response = await getGitUser(githubUserId);
     logger.info({ level: 'info', message: 'github user data', data: response });
   } catch (error) {
     logger.error('GET_GITHUB_USER_DETAILS', { error });

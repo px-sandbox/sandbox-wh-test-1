@@ -71,6 +71,33 @@ async function fetchDDRecords(
   return resObj;
 }
 
+const repoLibQuery = async (repoIds:string[],searchString:string,counter:number): Promise<any> => {
+  const repoLibQuery = esb
+    .requestBodySearch()
+    .source(['body.libName'])
+    .size(100)
+    .from(100 * (counter - 1))
+    .query(
+    esb.boolQuery()
+    .must(esb.termQuery('body.isDeleted', false))
+    .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
+    .minimumShouldMatch(1));
+
+  if (searchString) {
+    repoLibQuery.query(esb.boolQuery().must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`)));
+  }
+
+  const finalRepoLibQuery = repoLibQuery.toJSON();
+
+
+    const data = await esClientObj.search(
+      Github.Enums.IndexName.GitRepoLibrary,
+      finalRepoLibQuery,
+  );
+
+  const repoLibs = await searchedDataFormator(data?.body);
+  return repoLibs;
+}
 /**
  * Retrieves the upgraded version data for the given repository IDs.
  * @param repoIds An array of repository IDs.
@@ -80,38 +107,12 @@ async function getESVersionUpgradeData(
   repoIds: string[],
   searchString: string
 ): Promise<Github.Type.ESVersionUpgradeType> {
-  /* ESB QUERY FOR SEARCHING AND GETTING REPO-LIBRARY DATA FROM ELASTIC SEARCH */
-  const repoLibQuery = esb
-    .boolQuery()
-    .must(esb.termQuery('body.isDeleted', false))
-    .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
-    .minimumShouldMatch(1);
+  const repoLibData = []; 
+  let counter = 1; 
+  let repoLibs; 
 
-  // If search is given then we add that to query to fetched only searched records
-  if (searchString) {
-    repoLibQuery.must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`));
-  }
-
-  // final repo Libs query to be passed to elastic search
-  const finalRepoLibQuery = repoLibQuery.toJSON();
-
-  // continually fetching repo-library data from elastic search until all data is fetched
-  const repoLibData = []; // array to store repo-library data
-  let counter = 1; // counter for the loop to fetch data from elastic search
-  let repoLibs; // variable to store fetched-formatted-data from elastic search inside loop
-
-  // we will fetch data from elastic search continuously, until we get empty array, to get all records
   do {
-    const data = await esClientObj.search(
-      Github.Enums.IndexName.GitRepoLibrary,
-      finalRepoLibQuery,
-      100 * (counter - 1),
-      100,
-      ['body.libName'],
-  );
-
-    repoLibs = await searchedDataFormator(data?.body);
-
+    repoLibs = await repoLibQuery(repoIds, searchString, counter);
     if (repoLibs?.length) {
       repoLibData.push(...repoLibs);
       counter += 1;

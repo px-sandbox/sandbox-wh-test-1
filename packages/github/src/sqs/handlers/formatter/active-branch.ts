@@ -11,32 +11,34 @@ import async from 'async';
 import { HitBody } from 'abstraction/other/type';
 
 const esClient = ElasticSearchClientGh.getInstance();
+const getBranches = async (repoId: string, date: string): Promise<HitBody> => {
+  const body = esb
+    .requestBodySearch()
+    .size(0)
+    .query(
+      esb
+        .boolQuery()
+        .must(esb.termQuery('body.repoId', repoId))
+        .should([
+          esb.termQuery('body.isDeleted', false),
+          esb.rangeQuery('body.deletedAt').gte(date),
+        ])
+        .minimumShouldMatch(1)
+    )
+    .toJSON();
 
+  const esData: HitBody = await esClient.search(
+    Github.Enums.IndexName.GitBranch,
+    body,
+  );
+  return esData
+}
 async function countBranchesAndSendToSQS(
   repo: Github.Type.Repository,
   date: string
 ): Promise<void> {
   try {
-    const body = esb
-      .requestBodySearch()
-      .size(0)
-      .query(
-        esb
-          .boolQuery()
-          .must(esb.termQuery('body.repoId', repo.id))
-          .should([
-            esb.termQuery('body.isDeleted', false),
-            esb.rangeQuery('body.deletedAt').gte(date),
-          ])
-          .minimumShouldMatch(1)
-      )
-      .toJSON();
-
-    const esData:HitBody = await esClient.search(
-       Github.Enums.IndexName.GitBranch,
-      body,
-    );
-
+    const esData = await getBranches(repo.id, date);  
     const {
       body: {
         hits: {

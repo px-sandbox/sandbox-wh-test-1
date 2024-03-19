@@ -10,6 +10,74 @@ import { searchedDataFormator } from '../util/response-formatter';
 // initializing elastic search client
 const esClientObj = ElasticSearchClientGh.getInstance();
 
+const getAggrigatedProductSecurityData = async (
+  repoIds: string[],
+  startDate: string,
+  endDate: string,
+  branch: string,
+  graphInterval: esb.DateHistogramAggregation
+): Promise<Github.Type.ProdSecurityAgg> => {
+  // query for fetching and aggregating records based on branch and date range
+  const query = esb
+    .requestBodySearch()
+    .size(0)
+    .query(
+      esb
+        .boolQuery()
+        .filter(esb.termQuery('body.isDeleted', false))
+        .filter(esb.termsQuery('body.repoId', repoIds))
+        .filter(esb.termQuery('body.branch', branch))
+        .filter(esb.rangeQuery('body.date').gte(startDate).lte(endDate).format('yyyy-MM-dd'))
+    )
+    .agg(graphInterval);
+
+  const data = await esClientObj.queryAggs<Github.Type.ProdSecurityAgg>(
+    Github.Enums.IndexName.GitRepoSastErrors,
+    query.toJSON()
+  );
+  return data;
+};
+
+const getHeadline = async (repoIds: string[], branch: string): Promise<HitBody> => {
+    const query = esb.boolQuery()
+        .must([
+            esb.termQuery('body.isDeleted', false),
+            esb.termsQuery('body.repoId', repoIds),
+            esb.termQuery('body.branch', branch),
+            esb.termQuery('body.date', moment().format('YYYY-MM-DD'))
+        ]);
+
+
+    const data: HitBody = await esClientObj.search(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
+    return data;
+}
+
+const getWeeklyHeadline = async (
+  branch: { repoId: string; branch: string }[]
+): Promise<HitBody> => {
+  const query = esb
+    .boolQuery()
+    .should(
+      branch.map((branchData) =>
+        esb
+          .boolQuery()
+          .must([
+            esb.termQuery('body.branch', branchData.branch),
+            esb.termQuery('body.repoId', branchData.repoId),
+          ])
+      )
+    )
+    .minimumShouldMatch(1)
+    .must([
+      esb.termQuery('body.isDeleted', false),
+      esb.termQuery('body.date', moment().format('YYYY-MM-DD')),
+    ])
+    .toJSON();
+  const data = await esClientObj.search(Github.Enums.IndexName.GitRepoSastErrors, query);
+  const formattedData = await searchedDataFormator(data);
+  return formattedData;
+};
+
 /**
  * Retrieves graph data for a specified date range, interval, and branch.
  * @param startDate The start date of the range in the format 'yyyy-MM-dd'.
@@ -42,27 +110,7 @@ async function getGraphData(repoIds: string[], startDate: string, endDate: strin
             .minDocCount(0);
     }
 
-
-    // query for fetching and aggregating records based on branch and date range
-    const query =
-        esb.requestBodySearch().size(0).query(esb.boolQuery()
-            .filter(esb.termQuery('body.isDeleted', false))
-            .filter(esb.termsQuery('body.repoId', repoIds))
-            .filter(esb.termQuery('body.branch', branch))
-            .filter(
-                esb.rangeQuery('body.date')
-                    .gte(startDate)
-                    .lte(endDate)
-                    .format('yyyy-MM-dd')
-            )).agg(
-                graphInterval
-            );
-
-
-    const data = await
-        esClientObj.queryAggs<Github.Type.ProdSecurityAgg>(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
-
-
+    const data = await getAggrigatedProductSecurityData(repoIds, startDate, endDate, branch, graphInterval);
     // returning bucketed data
     return data?.errorsOverTime?.buckets?.map((item: Github.Type.ErrorsOverTimeBuckets) => ({
         date: item.key_as_string,
@@ -77,18 +125,7 @@ async function getGraphData(repoIds: string[], startDate: string, endDate: strin
  * @returns A promise that resolves to the number of headline statistics.
  */
 export async function getHeadlineStat(repoIds: string[], branch: string): Promise<number> {
-    const query = esb.boolQuery()
-
-        .must([
-            esb.termQuery('body.isDeleted', false),
-            esb.termsQuery('body.repoId', repoIds),
-            esb.termQuery('body.branch', branch),
-            esb.termQuery('body.date', moment().format('YYYY-MM-DD'))
-        ]);
-
-
-    const data:HitBody = await esClientObj.search(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
-
+    const data = await getHeadline(repoIds, branch);
     return data?.hits?.total?.value;
 }
 
@@ -129,20 +166,7 @@ export async function getProductSecurity(
 }
 
 export async function weeklyHeadlineStat(branch: { repoId: string, branch: string }[]): Promise<number> {
-    const query = esb.boolQuery()
-        .should(
-            branch.map((branchData) =>
-                esb.boolQuery().must([
-                    esb.termQuery('body.branch', branchData.branch),
-                    esb.termQuery('body.repoId', branchData.repoId)
-                ]))).minimumShouldMatch(1)
-        .must([
-            esb.termQuery('body.isDeleted', false),
-            esb.termQuery('body.date', moment().format('YYYY-MM-DD'))
-        ]).toJSON();
-    const data = await esClientObj.search(Github.Enums.IndexName.GitRepoSastErrors, query);
-    const formattedData = await searchedDataFormator(data);
-
+    const formattedData = await getWeeklyHeadline(branch);
     return formattedData.length;
 }
 

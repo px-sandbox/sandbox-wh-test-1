@@ -19,26 +19,22 @@ async function getRepoNamesAndOrg(
   prRespLen: number
 ): Promise<{ repoNames: Github.Type.RepoNamesResponse[]; orgname: string }> {
   // esb query to fetch repo name from ES
-  const repoNameQuery = esb.boolQuery().must(esb.termsQuery('body.id', repoIds));
-  const orgNameQuery = esb.boolQuery().must(esb.termQuery('body.id', orgId));
+  const repoNameQuery = esb
+    .requestBodySearch()
+    .source(['body.id', 'body.name'])
+    .size(repoIds.length)
+    .query(esb.boolQuery().must(esb.termsQuery('body.id', repoIds)));
+  const orgNameQuery = esb
+    .requestBodySearch()
+    .source(['body.name'])
+    .query(esb.boolQuery().must(esb.termQuery('body.id', orgId)));
 
   // Fetching reponame and orgname from ES
   const [unformattedRepoNames, unformattedOrgName] = await Promise.all([
-    esClientObj.search(
-      Github.Enums.IndexName.GitRepo,
-      repoNameQuery,
-      0,
-      repoIds.length,
-      [],
-      ['body.id', 'body.name']
-    ),
+    esClientObj.search(Github.Enums.IndexName.GitRepo, repoNameQuery),
     esClientObj.search(
       Github.Enums.IndexName.GitOrganization,
-      orgNameQuery,
-      0,
-      10,
-      [],
-      ['body.name']
+      orgNameQuery
     ),
   ]);
 

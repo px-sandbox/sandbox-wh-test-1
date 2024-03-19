@@ -11,6 +11,27 @@ import { searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
+
+const fetBranchesData = async (repoId: string, currDate: string): Promise<any> => {
+    try {
+        const query = esb
+            .boolQuery()
+            .must([
+                esb.termQuery('body.repoId', repoId),
+                esb.termQuery('body.protected', true),
+                esb.termQuery('body.isDeleted', false),
+            ])
+            .toJSON();
+
+        const branches = await esClient.search(Github.Enums.IndexName.GitBranch, query);
+
+        // formatting data into easily readable form
+        const formattedData = await searchedDataFormator(branches);
+        return formattedData
+    } catch (e) {
+        logger.error('GET_GITHUB_BRANCH_DETAILS', { error: e });
+    }
+}
 /**
  * Fetches branches data for the given repository IDs.
  * @param repoIds - An array of repository IDs.
@@ -18,20 +39,7 @@ const sqsClient = SQSClientGh.getInstance();
  */
 async function fetchBranchesData(repoId: string, currDate: string): Promise<void> {
   // query to extract protected branches with matching repoId
-  const query = esb
-    .boolQuery()
-    .must([
-      esb.termQuery('body.repoId', repoId),
-      esb.termQuery('body.protected', true),
-      esb.termQuery('body.isDeleted', false),
-    ])
-    .toJSON();
-
-  const branches = await esClient.search(Github.Enums.IndexName.GitBranch, query);
-
-  // formatting data into easily readable form
-  const formattedData = await searchedDataFormator(branches);
-
+ const formattedData = await fetBranchesData(repoId, currDate);
   if (!formattedData?.length) {
     logger.info(`GET_GITHUB_BRANCH_DETAILS: No branches found for repoId: ${repoId}`);
     return;
