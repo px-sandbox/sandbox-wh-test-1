@@ -35,19 +35,11 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
   public async search(
     indexName: string,
     query: object,
-    from = 0,
-    size = 10,
-    sort: string[] = [],
-    source: string[] = []
   ): Promise<RequestParams.Search<MultiSearchBody>> {
     try {
       const result = await this.client.search({
         index: indexName,
-        body: query,
-        from,
-        size,
-        sort,
-        ...(source.length > 0 ? { _source: source } : {}),
+        body: query
       });
       return result.body;
     } catch (err) {

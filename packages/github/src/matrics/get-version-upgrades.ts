@@ -98,6 +98,25 @@ const repoLibQuery = async (repoIds:string[],searchString:string,counter:number)
   const repoLibs = await searchedDataFormator(data?.body);
   return repoLibs;
 }
+
+const getRepoName = async (repoIds: string[], counter2:number): Promise<Github.Type.RepoNameType[]> => {
+  const repoNamesQuery = esb
+    .requestBodySearch()
+    .from(100 * (counter2 - 1))
+    .size(100)
+    .query(
+    esb.boolQuery()
+    .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
+    .minimumShouldMatch(1))
+    .toJSON();
+    const repoNamesData = await esClientObj.search(
+      Github.Enums.IndexName.GitRepo,
+      repoNamesQuery,  
+    );
+
+  const repoNames = await searchedDataFormator(repoNamesData.body);
+  return repoNames;
+}
 /**
  * Retrieves the upgraded version data for the given repository IDs.
  * @param repoIds An array of repository IDs.
@@ -119,29 +138,11 @@ async function getESVersionUpgradeData(
     }
   } while (repoLibs?.length);
 
-  /* FETCHING REPONAMES DATA FROM ELASTIC SEARCH */
-
-  const repoNamesQuery = esb
-    .boolQuery()
-    .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
-    .minimumShouldMatch(1)
-    .toJSON();
-
-  const repoNamesArr: Github.Type.RepoNameType[] = []; // array to store repoNames data
-  let counter2 = 1; // counter for the loop to fetch data from elastic search
-  let repoNames; // variable to store fetched-formatted-data from elastic search inside loop
-
-  // we will fetch data from elastic search continuously, until we get empty array, to get all records
+  const repoNamesArr: Github.Type.RepoNameType[] = []; 
+  let counter2 = 1; 
+  let repoNames; 
   do {
-    const repoNamesData = await esClientObj.search(
-      Github.Enums.IndexName.GitRepo,
-      repoNamesQuery,  
-      100 * (counter2 - 1),
-      100,
-    );
-
-    repoNames = await searchedDataFormator(repoNamesData.body);
-
+    repoNames = await getRepoName(repoIds, counter2);
     if (repoNames?.length) {
       repoNamesArr.push(...repoNames);
       counter2 += 1;

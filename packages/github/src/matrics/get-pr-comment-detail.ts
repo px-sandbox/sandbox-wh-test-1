@@ -77,26 +77,22 @@ export async function prCommentsDetailMetrics(
   try {
     // esb query to fetch pull request data
     const query = esb
-      .boolQuery()
+      .requestBodySearch()
+      .source(['body.title', 'body.pullNumber', 'body.reviewComments', 'body.repoId'])
+      .from((page - 1) * limit)
+      .size(limit)
+      .query(
+      esb.boolQuery()
       .must([
         esb.termsQuery('body.repoId', repoIds),
         esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-      ]);
-
-    // We are going to result based on the sort key and sort order
-    const sort = [`body.${sortKey}:${sortOrder}`];
-
-    // We are only going to fetch limited number of fields
-    const source = ['body.title', 'body.pullNumber', 'body.reviewComments', 'body.repoId'];
+      ])).
+      sort(esb.sort(sortKey, sortOrder));
 
     // Fetching data from ES and formatting it
     const unformattedData: Other.Type.HitBody = await esClientObj.search(
       Github.Enums.IndexName.GitPull,
       query,
-      (page - 1) * limit,
-      limit,
-      sort,
-      source
     );
     const response = await searchedDataFormator(unformattedData);
 
