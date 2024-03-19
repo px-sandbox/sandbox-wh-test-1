@@ -23,7 +23,7 @@ const esclient = ElasticSearchClientGh.getInstance();
 
 async function getRepoNameById(repoId: string): Promise<string> {
   const query = esb.matchQuery('body.id', repoId).toJSON();
-  const repoData = esclient.searchWithEsb(Github.Enums.IndexName.GitRepo,query);
+  const repoData = esclient.search(Github.Enums.IndexName.GitRepo,query);
   const [repoName] = await searchedDataFormator(repoData);
   if (!repoName) {
     throw new Error(`repoName not found for data: ${repoId}`);

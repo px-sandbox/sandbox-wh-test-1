@@ -10,7 +10,7 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
   try {
     const updatedData = { ...data };
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
-    const commitData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitCommits, matchQry);
+    const commitData = await esClientObj.search(Github.Enums.IndexName.GitCommits, matchQry);
 
     const [formattedData] = await searchedDataFormator(commitData);
 

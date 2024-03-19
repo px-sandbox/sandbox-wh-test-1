@@ -1,11 +1,10 @@
 /* eslint-disable no-await-in-loop */
-import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
 import moment from 'moment';
 import { LibParamsMapping } from '../model/lib-master-mapping';
 import { searchedDataFormator } from '../util/response-formatter';
@@ -119,7 +118,7 @@ const getLibFromES = async (
       //     Github.Enums.IndexName.GitRepoLibrary,
       //     query
       // );
-      const esLibData = await esClientObj.searchWithEsb(
+      const esLibData = await esClientObj.search(
         Github.Enums.IndexName.GitRepoLibrary,
         query,
         from,

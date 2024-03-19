@@ -78,7 +78,7 @@ async function getScans(
 
     do {
       result = [];
-      const scans = await esClient.searchWithEsb(
+      const scans = await esClient.search(
         Github.Enums.IndexName.GitRepoSastErrors,
         query,
         from,

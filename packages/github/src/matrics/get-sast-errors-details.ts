@@ -1,16 +1,10 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../util/response-formatter';
 
-
-const esClientObj = new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClientGh.getInstance();
 async function searchSastErrors(
     repoIds: string[],
     // orgName: string,
@@ -155,7 +149,7 @@ export async function getRepoNames(repoIds: string[]): Promise<Github.Type.RepoN
     try {
         do {
 
-            const repoNamesData = await esClientObj.searchWithEsb(
+            const repoNamesData = await esClientObj.search(
                  Github.Enums.IndexName.GitRepo,
               repoNamesQuery,
                 100 * (counter2 - 1),

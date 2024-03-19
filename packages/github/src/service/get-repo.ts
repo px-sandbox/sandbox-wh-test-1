@@ -33,7 +33,7 @@ async function fetchReposData(
     const finalQ = esb.requestBodySearch().query(query).toJSON() as { query: object };
     esbQuery = finalQ.query;
   }
-  const data = await esClient.searchWithEsb(
+  const data = await esClient.search(
     Github.Enums.IndexName.GitRepo,
     esbQuery,
     (page - 1) * size,

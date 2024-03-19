@@ -1,4 +1,4 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github, Other } from 'abstraction';
 import {
     PrDetails,
@@ -8,11 +8,11 @@ import {
 } from 'abstraction/github/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
 import { getOrganizationById } from '../lib/get-organization';
 import { searchedDataFormator } from '../util/response-formatter';
 import { getRepoNames } from './get-sast-errors-details';
 
+const esClientObj = ElasticSearchClientGh.getInstance();
 export async function prWaitTimeDetailsData(
     startDate: string,
     endDate: string,
@@ -23,11 +23,6 @@ export async function prWaitTimeDetailsData(
     orgId: string
 ): Promise<PrDetails> {
     try {
-        const esClientObj = new ElasticSearchClient({
-            host: Config.OPENSEARCH_NODE,
-            username: Config.OPENSEARCH_USERNAME ?? '',
-            password: Config.OPENSEARCH_PASSWORD ?? '',
-        });
         const query = esb
             .boolQuery()
             .must([
@@ -40,7 +35,7 @@ export async function prWaitTimeDetailsData(
 
         const [orgName, prData, repoNames] = await Promise.all([
             await getOrganizationById(orgId),
-            (await esClientObj.searchWithEsb(
+            (await esClientObj.search(
                 Github.Enums.IndexName.GitPull,
                 query,
                 (page - 1) * limit,

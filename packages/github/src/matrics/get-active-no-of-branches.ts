@@ -1,11 +1,11 @@
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import { esbDateHistogramInterval } from '../constant/config';
 
+const esClientObj = ElasticSearchClientGh.getInstance();
 function processGraphInterval(
   intervals: string,
   startDate: string,
@@ -53,11 +53,7 @@ export async function activeBranchGraphData(
   repoIds: string[]
 ): Promise<{ date: string; value: number }[]> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+
     const activeBranchGraphQuery = esb.requestBodySearch().size(0);
     activeBranchGraphQuery.query(
       esb
@@ -106,11 +102,7 @@ export async function activeBranchesAvg(
   repoIds: string[]
 ): Promise<{ value: number } | null> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+
     const activeBranchesAvgQuery = await esb.requestBodySearch().size(0);
     activeBranchesAvgQuery
       .query(

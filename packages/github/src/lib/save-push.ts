@@ -9,7 +9,7 @@ export async function savePushDetails(data: Github.Type.Push): Promise<void> {
   try {
     const updatedData = { ...data };
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
-    const pushData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPush, matchQry);
+    const pushData = await esClientObj.search(Github.Enums.IndexName.GitPush, matchQry);
     const [formattedData] = await searchedDataFormator(pushData);
     if (formattedData) {
       // TODO: remove actions from push

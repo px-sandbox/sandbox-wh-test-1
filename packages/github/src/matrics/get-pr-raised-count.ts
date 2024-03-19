@@ -1,13 +1,13 @@
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github/type';
+import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import { esbDateHistogramInterval } from '../constant/config';
 import { getWeekDaysCount } from '../util/weekend-calculations';
-import { HitBody } from 'abstraction/other/type';
 
+const esClientObj = ElasticSearchClientGh.getInstance();
 function processGraphInterval(
   intervals: string,
   startDate: string,
@@ -56,11 +56,7 @@ export async function numberOfPrRaisedGraph(
   repoIds: string[]
 ): Promise<GraphResponse[]> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+
     const numberOfPrRaisedGraphQuery = await esb.requestBodySearch().size(0);
     numberOfPrRaisedGraphQuery.query(
       esb
@@ -95,11 +91,6 @@ export async function numberOfPrRaisedAvg(
   repoIds: string[]
 ): Promise<{ value: number } | null> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const {query} = await esb.requestBodySearch().query(
         esb
           .boolQuery()
@@ -111,7 +102,7 @@ export async function numberOfPrRaisedAvg(
       .size(0)
       .toJSON() as { query: object };
     logger.info('NUMBER_OF_PR_RAISED_AVG_ESB_QUERY', query);
-    const data:HitBody = await esClientObj.searchWithEsb(
+    const data:HitBody = await esClientObj.search(
       Github.Enums.IndexName.GitPull,
       query
     )

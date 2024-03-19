@@ -1,21 +1,37 @@
 import {
-  ElasticSearchClient,
-  SearchResponse,
-  Hit,
   ElasticSearchClientGh,
+  Hit
 } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
+import { SQSClientGh } from '@pulse/event-handler';
+import { Github } from 'abstraction';
+import { APIGatewayProxyEvent } from 'aws-lambda';
+import { logger } from 'core';
 import esb from 'elastic-builder';
 import moment from 'moment';
-import { Queue } from 'sst/node/queue';
-import { logger } from 'core';
-import { Github } from 'abstraction';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
-import { APIGatewayProxyEvent } from 'aws-lambda';
 import { searchedDataFormator } from 'src/util/response-formatter';
+import { Queue } from 'sst/node/queue';
 
 const esClient = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
+
+const getRepos = async () => {
+ const query = esb
+   .requestBodySearch()
+   .size(perPage)
+   .from((pageNo - 1) * perPage)
+   .query(
+     esb
+       .boolQuery()
+       .should([
+         esb.termQuery('body.isDeleted', false),
+         esb.boolQuery().mustNot(esb.existsQuery('body.isDeleted')),
+       ])
+       .minimumShouldMatch(1)
+   )
+   .toJSON();
+ const data = await esClient.search(Github.Enums.IndexName.GitRepo, query);
+ const repos = await searchedDataFormator(data);
+}
 // get all repos from ES which are not deleted and send to SQS
 async function getReposAndSendToSQS(
   currentDate: string,
@@ -23,22 +39,7 @@ async function getReposAndSendToSQS(
   perPage = 100
 ): Promise<number> {
   try {
-    const query = esb
-      .requestBodySearch()
-      .size(perPage)
-      .from((pageNo - 1) * perPage)
-      .query(
-        esb
-          .boolQuery()
-          .should([
-            esb.termQuery('body.isDeleted', false),
-            esb.boolQuery().mustNot(esb.existsQuery('body.isDeleted')),
-          ])
-          .minimumShouldMatch(1)
-      )
-      .toJSON();
-    const data = await esClient.searchWithEsb(Github.Enums.IndexName.GitRepo, query);
-    const repos = await searchedDataFormator(data);
+    
     logger.info(`BODY: ${JSON.stringify(data)}`);
 
     await Promise.all(

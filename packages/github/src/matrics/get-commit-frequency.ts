@@ -1,14 +1,13 @@
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github/type';
+import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import { esbDateHistogramInterval } from '../constant/config';
 import { getWeekDaysCount } from '../util/weekend-calculations';
-import { searchedDataFormator } from 'src/util/response-formatter';
-import { HitBody } from 'abstraction/other/type';
 
+const esClientObj = ElasticSearchClientGh.getInstance();
 function processGraphInterval(
   intervals: string,
   startDate: string,
@@ -56,11 +55,6 @@ export async function frequencyOfCodeCommitGraph(
   repoIds: string[]
 ): Promise<GraphResponse[]> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const frquencyOfCodeCommitGraphQuery = esb.requestBodySearch().size(0);
     frquencyOfCodeCommitGraphQuery.query(
       esb
@@ -98,11 +92,7 @@ export async function frequencyOfCodeCommitAvg(
   repoIds: string[]
 ): Promise<{ value: number } | null> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+    
     const { query } = esb.requestBodySearch().size(0)
       .query(
         esb
@@ -116,7 +106,7 @@ export async function frequencyOfCodeCommitAvg(
       .toJSON() as { query: object };;
     logger.info('FREQUENCY_CODE_COMMIT_AVG_ESB_QUERY', query);
 
-    const data:HitBody = await esClientObj.searchWithEsb(
+    const data:HitBody = await esClientObj.search(
        Github.Enums.IndexName.GitCommits,
       query
     );

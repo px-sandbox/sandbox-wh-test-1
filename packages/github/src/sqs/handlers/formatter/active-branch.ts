@@ -32,7 +32,7 @@ async function countBranchesAndSendToSQS(
       )
       .toJSON();
 
-    const esData:HitBody = await esClient.searchWithEsb(
+    const esData:HitBody = await esClient.search(
        Github.Enums.IndexName.GitBranch,
       body,
     );

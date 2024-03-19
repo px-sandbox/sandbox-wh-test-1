@@ -1,15 +1,10 @@
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github, Other } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClientGh.getInstance();
 
 /**
  * Retrieves the repository names and organization name based on the provided parameters.
@@ -29,7 +24,7 @@ async function getRepoNamesAndOrg(
 
   // Fetching reponame and orgname from ES
   const [unformattedRepoNames, unformattedOrgName] = await Promise.all([
-    esClientObj.searchWithEsb(
+    esClientObj.search(
       Github.Enums.IndexName.GitRepo,
       repoNameQuery,
       0,
@@ -37,7 +32,7 @@ async function getRepoNamesAndOrg(
       [],
       ['body.id', 'body.name']
     ),
-    esClientObj.searchWithEsb(
+    esClientObj.search(
       Github.Enums.IndexName.GitOrganization,
       orgNameQuery,
       0,
@@ -100,7 +95,7 @@ export async function prCommentsDetailMetrics(
     const source = ['body.title', 'body.pullNumber', 'body.reviewComments', 'body.repoId'];
 
     // Fetching data from ES and formatting it
-    const unformattedData: Other.Type.HitBody = await esClientObj.searchWithEsb(
+    const unformattedData: Other.Type.HitBody = await esClientObj.search(
       Github.Enums.IndexName.GitPull,
       query,
       (page - 1) * limit,

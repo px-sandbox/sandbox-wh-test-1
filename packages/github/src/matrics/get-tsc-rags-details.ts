@@ -1,16 +1,11 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../util/response-formatter';
 import { weeklyHeadlineStat } from './get-product-security';
 
+const esClientObj = ElasticSearchClientGh.getInstance();
 export async function getTscRagsDetails(repoIds: string[]): Promise<{ product_security: number }> {
-    const esClientObj = new ElasticSearchClient({
-        host: Config.OPENSEARCH_NODE,
-        username: Config.OPENSEARCH_USERNAME ?? '',
-        password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const branchesList = ['prod', 'master', 'main', 'uat', 'stage', 'qa', 'dev', 'develop'];
 
     const getBranchesQuery = esb
@@ -18,7 +13,7 @@ export async function getTscRagsDetails(repoIds: string[]): Promise<{ product_se
         .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', true)])
         .toJSON();
 
-    const getBranches = await esClientObj.searchWithEsb(
+    const getBranches = await esClientObj.search(
         Github.Enums.IndexName.GitBranch,
         getBranchesQuery
     );

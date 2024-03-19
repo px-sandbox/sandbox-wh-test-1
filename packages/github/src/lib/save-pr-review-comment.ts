@@ -10,7 +10,7 @@ export async function savePRReviewComment(data: Github.Type.PRReviewComment): Pr
   try {
     const updatedData = { ...data };
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
-    const userData = await esClientObj.searchWithEsb(
+    const userData = await esClientObj.search(
       Github.Enums.IndexName.GitPRReviewComment,
       matchQry
     );
