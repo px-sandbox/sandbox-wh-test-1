@@ -1,22 +1,17 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable no-await-in-loop */
-import { logger } from 'core';
-import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { Table } from 'sst/node/table';
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
+import { logger } from 'core';
+import esb from 'elastic-builder';
 import moment from 'moment';
-import { paginate, sortData } from '../util/version-upgrades';
+import { Table } from 'sst/node/table';
 import { searchedDataFormator } from '../util/response-formatter';
+import { paginate, sortData } from '../util/version-upgrades';
 
 // initializing elastic search client
-const esClientObj = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClientGh.getInstance();
 
 /**
  * Fetches library records from DynamoDB based on the provided library names.
@@ -107,7 +102,7 @@ async function getESVersionUpgradeData(
 
   // we will fetch data from elastic search continuously, until we get empty array, to get all records
   do {
-    const data = await esClientObj.searchWithEsb(
+    const data = await esClientObj.search(
       Github.Enums.IndexName.GitRepoLibrary,
       finalRepoLibQuery,
       100 * (counter - 1),
@@ -137,7 +132,7 @@ async function getESVersionUpgradeData(
 
   // we will fetch data from elastic search continuously, until we get empty array, to get all records
   do {
-    const repoNamesData = await esClientObj.searchWithEsb(
+    const repoNamesData = await esClientObj.search(
       Github.Enums.IndexName.GitRepo,
       repoNamesQuery,  
       100 * (counter2 - 1),

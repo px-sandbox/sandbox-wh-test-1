@@ -19,7 +19,7 @@ const githubUser = async function getUserData(
   let response: IformatUserDataResponse[] = [];
   try {
     const query = esb.matchQuery('body.id', githubUserId).toJSON();
-    const data = await esClient.searchWithEsb(
+    const data = await esClient.search(
       Github.Enums.IndexName.GitUsers,  
       query
     );

@@ -1,13 +1,13 @@
-import esb, { Query, Script } from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { IPrCommentAggregationResponse } from 'abstraction/github/type';
+import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
+import esb, { Query, Script } from 'elastic-builder';
 import { esbDateHistogramInterval } from '../constant/config';
 import { getWeekDaysCount } from '../util/weekend-calculations';
-import { HitBody } from 'abstraction/other/type';
 
+const esClientObj = ElasticSearchClientGh.getInstance();
 // script for sum of file changes
 const sumScript = new Script().inline(`def files = params._source.body.changes;
             if (files.size()>0){
@@ -68,11 +68,7 @@ export async function linesOfCodeGraph(
   repoIds: string[]
 ): Promise<{ date: string; value: number }[]> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+   
     const linesOfCodeGraphQuery = esb.requestBodySearch().size(0);
 
     linesOfCodeGraphQuery.query(
@@ -122,11 +118,7 @@ export async function linesOfCodeAvg(
   repoIds: string[]
 ): Promise<{ value: number } | null> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+
     const query = esb.requestBodySearch()
       .query(
         esb

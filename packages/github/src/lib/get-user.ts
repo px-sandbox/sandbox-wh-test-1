@@ -8,7 +8,7 @@ export async function getUserById(
   userId: string
 ): Promise<Array<{ _id: string } & Github.Type.UserBody>> {
   const matchQry = esb.matchQuery('body.id', userId).toJSON();
-  const userData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitUsers, matchQry);
+  const userData = await esClientObj.search(Github.Enums.IndexName.GitUsers, matchQry);
   const formattedUserData = await searchedDataFormator(userData);
 
   return formattedUserData;

@@ -16,7 +16,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     const fileChangeQuery = esb
       .scriptQuery(new Script('source', "doc['body.changes.changes'].size() >= 300"))
       .toJSON();
-    const commitData = await esClientObj.searchWithEsb(
+    const commitData = await esClientObj.search(
       Github.Enums.IndexName.GitCommits,
       fileChangeQuery
     );

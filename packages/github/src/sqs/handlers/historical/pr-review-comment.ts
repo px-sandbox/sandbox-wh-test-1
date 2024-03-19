@@ -38,7 +38,7 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
           .requestBodySearch() // assumed that there will not be more than 200 comments on a PR
           .query(esb.boolQuery().must(esb.termQuery('body.pullId', prData.id)))
           .toJSON() as { query: object };
-        const prReviewCommentData = await esClient.searchWithEsb(
+        const prReviewCommentData = await esClient.search(
           Github.Enums.IndexName.GitPRReviewComment,
           query,
           0,

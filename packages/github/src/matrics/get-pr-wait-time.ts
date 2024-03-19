@@ -1,12 +1,12 @@
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github/type';
-import { logger } from 'core';
-import { Config } from 'sst/node/config';
-import { esbDateHistogramInterval } from '../constant/config';
 import { HitBody } from 'abstraction/other/type';
+import { logger } from 'core';
+import esb from 'elastic-builder';
+import { esbDateHistogramInterval } from '../constant/config';
 
+const esClientObj = ElasticSearchClientGh.getInstance();
 function processGraphInterval(
   intervals: string,
   startDate: string,
@@ -54,11 +54,6 @@ export async function prWaitTimeGraphData(
   repoIds: string[]
 ): Promise<GraphResponse[]> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const prWaitTimeGraphQuery = await esb.requestBodySearch().size(0);
     prWaitTimeGraphQuery.query(
       esb
@@ -108,11 +103,6 @@ export async function prWaitTimeAvg(
   repoIds: string[]
 ): Promise<{ value: number } | null> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const prWaitTimeAvgQuery = await esb.requestBodySearch().size(0);
     prWaitTimeAvgQuery
       .query(

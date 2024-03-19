@@ -1,19 +1,14 @@
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { Github } from 'abstraction';
+import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
-import { Github } from 'abstraction';
 import moment from 'moment';
 import { esbDateHistogramInterval } from '../constant/config';
 import { searchedDataFormator } from '../util/response-formatter';
-import { HitBody } from 'abstraction/other/type';
 
 // initializing elastic search client
-const esClientObj = new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClientGh.getInstance();
 
 /**
  * Retrieves graph data for a specified date range, interval, and branch.
@@ -92,7 +87,7 @@ export async function getHeadlineStat(repoIds: string[], branch: string): Promis
         ]);
 
 
-    const data:HitBody = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
+    const data:HitBody = await esClientObj.search(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
 
     return data?.hits?.total?.value;
 }
@@ -145,7 +140,7 @@ export async function weeklyHeadlineStat(branch: { repoId: string, branch: strin
             esb.termQuery('body.isDeleted', false),
             esb.termQuery('body.date', moment().format('YYYY-MM-DD'))
         ]).toJSON();
-    const data = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepoSastErrors, query);
+    const data = await esClientObj.search(Github.Enums.IndexName.GitRepoSastErrors, query);
     const formattedData = await searchedDataFormator(data);
 
     return formattedData.length;

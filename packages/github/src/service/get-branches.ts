@@ -20,7 +20,7 @@ async function fetchBranchesData(repoIds: string[]): Promise<string[]> {
     .toJSON();
 
   logger.info('GET_GITHUB_BRANCH_DETAILS: will now fetch data from ES');
-  const branches = await esClient.searchWithEsb(Github.Enums.IndexName.GitBranch, query);
+  const branches = await esClient.search(Github.Enums.IndexName.GitBranch, query);
 
   const formattedData = await searchedDataFormator(branches);
 

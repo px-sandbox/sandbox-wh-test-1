@@ -1,11 +1,11 @@
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import { esbDateHistogramInterval } from '../constant/config';
 
+const esClientObj = ElasticSearchClientGh.getInstance();
 function processGraphInterval(
   intervals: string,
   startDate: string,
@@ -53,11 +53,7 @@ export async function prCommentsGraphData(
   repoIds: string[]
 ): Promise<{ date: string; value: number }[]> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+
     const prCommentGraphQuery = esb.requestBodySearch().size(0);
     prCommentGraphQuery.query(
       esb
@@ -161,12 +157,6 @@ export async function prCommentsAvg(
   repoIds: string[]
 ): Promise<string | null> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-
     const prCommentAvgQuery = getPRCommentAvgQuery(startDate, endDate, repoIds);
     logger.info('PR_COMMENT_AVG_ESB_QUERY', prCommentAvgQuery);
     const data: { pr_comment_avg: string } = await esClientObj.queryAggs<{

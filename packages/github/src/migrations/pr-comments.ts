@@ -1,11 +1,10 @@
-import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from 'src/util/response-formatter';
-import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 
 const esClient = ElasticSearchClientGh.getInstance();
@@ -23,7 +22,7 @@ async function fetchPRComments(repoId: string, owner: string, repoName: string):
       .toJSON() as { query: object };
     // fetch All PR data for given repo from Elasticsearch
     do {
-      const getPrData = await esClient.searchWithEsb(
+      const getPrData = await esClient.search(
         Github.Enums.IndexName.GitPull,
         query,
         from,

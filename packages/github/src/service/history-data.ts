@@ -1,12 +1,11 @@
-import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
-import esb from 'elastic-builder';
 
 const esClientObj = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
@@ -16,7 +15,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
   const branch = event?.queryStringParameters?.branch || '';
   try {
     const query = esb.matchQuery('body.name', repo).toJSON();
-    const data = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepo, query);
+    const data = await esClientObj.search(Github.Enums.IndexName.GitRepo, query);
 
     const [repoData] = await searchedDataFormator(data);
     logger.info({ level: 'info', message: 'github repo data', repoData });

@@ -10,7 +10,7 @@ export async function savePRReview(data: Github.Type.PRReview): Promise<void> {
   try {
     const updatedData = { ...data };
     const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
-    const userData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPRReview, matchQry);
+    const userData = await esClientObj.search(Github.Enums.IndexName.GitPRReview, matchQry);
     const [formattedData] = await searchedDataFormator(userData);
     if (formattedData) {
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);

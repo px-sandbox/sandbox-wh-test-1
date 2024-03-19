@@ -32,7 +32,7 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
     return this.client;
   }
 
-  public async searchWithEsb(
+  public async search(
     indexName: string,
     query: object,
     from = 0,
