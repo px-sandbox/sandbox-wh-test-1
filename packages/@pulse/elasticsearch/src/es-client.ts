@@ -1,8 +1,8 @@
 import { Client, RequestParams } from '@elastic/elasticsearch';
 import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
 import { logger } from 'core';
-import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
 import { Config } from 'sst/node/config';
+import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
 
 export class ElasticSearchClientGh implements IElasticSearchClient {
   private client: Client;
@@ -14,6 +14,7 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
         username: options.username,
         password: options.password,
       },
+      requestTimeout: 2000,
     });
   }
 
@@ -77,7 +78,7 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
       body,
     });
   }
-  
+
   /**
    * Deletes documents from the specified index based on a query.
    * @param indexName - The name of the index to delete documents from.
