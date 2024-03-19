@@ -3,7 +3,7 @@ import { Jira, Other } from 'abstraction';
 import { IssuesTypes, SprintState } from 'abstraction/jira/enums';
 import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
-import esb, { Script } from 'elastic-builder';
+import esb from 'elastic-builder';
 import _ from 'lodash';
 import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../util/response-formatter';
@@ -15,8 +15,7 @@ export async function sprintVarianceGraph(
   page: number,
   limit: number,
   sortKey: Jira.Enums.IssueTimeTracker,
-  sortOrder: 'asc' | 'desc',
-  afterKey?: object | undefined
+  sortOrder: 'asc' | 'desc'
 ): Promise<SprintVarianceData> {
   try {
     const esClientObj = new ElasticSearchClient({
@@ -24,11 +23,6 @@ export async function sprintVarianceGraph(
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    let sprintData: any = [];
-    let sprintIds: any = [];
-    let sprintHits: any = [];
-    let size = 100;
-    let from = 0;
 
     let dateRangeQueries = [
       esb.rangeQuery('body.startDate').gte(startDate),
@@ -60,52 +54,51 @@ export async function sprintVarianceGraph(
       .toJSON() as { query: object };
 
     logger.info('sprintQuery', sprintQuery);
-    const sumActualScript = new Script().inline(
-      "return params._source.body.timeTracker.estimate == 0 ? 0 : doc['body.timeTracker.actual'].value"
+    const body = (await esClientObj.searchWithEsb(
+      Jira.Enums.IndexName.Sprint,
+      sprintQuery.query,
+      (page - 1) * limit,
+      limit,
+      ['body.startDate:desc']
+    )) as Other.Type.HitBody;
+    const sprintHits = await searchedDataFormator(body);
+
+    const sprintData: any = [];
+    const sprintIds: any = [];
+    await Promise.all(
+      sprintHits.map(async (item: Other.Type.HitBody) => {
+        sprintData.push({
+          id: item.id,
+          name: item.name,
+          status: item.state,
+          startDate: item.startDate,
+          endDate: item.endDate,
+        });
+        sprintIds.push(item.id);
+      })
     );
-    do {
-      const body = (await esClientObj.searchWithEsb(
-        Jira.Enums.IndexName.Sprint,
-        sprintQuery.query,
-        from,
-        size,
-        ['body.startDate:desc']
-      )) as Other.Type.HitBody;
-      sprintHits = await searchedDataFormator(body);
-      await Promise.all(
-        sprintHits.map((item: Other.Type.HitBody) => {
-          sprintData.push({
-            id: item.id,
-            name: item.name,
-            status: item.state,
-            startDate: item.startDate,
-            endDate: item.endDate,
-          });
-          sprintIds.push(item.id);
-        })
-      );
-      from += size;
-    } while (sprintData.length == limit);
-    let compositeAgg = esb
-      .compositeAggregation('sprint_aggregation')
-      .sources(esb.CompositeAggregation.termsValuesSource('sprintId', 'body.sprintId'))
-      .size(10)
-      .aggs([
-        esb.sumAggregation('estimate', 'body.timeTracker.estimate'),
-        esb.sumAggregation('actual', 'body.timeTracker.actual').script(sumActualScript),
-      ]);
-    if (afterKey) {
-      compositeAgg = compositeAgg.after(afterKey);
-    }
+
     const query = esb
       .requestBodySearch()
       .size(0)
-      .agg(compositeAgg)
+      .agg(
+        esb
+          .termsAggregation('sprint_aggregation', 'body.sprintId')
+          .order(sortKey, sortOrder)
+          .size(10)
+          .aggs([
+            esb.sumAggregation('estimate', 'body.timeTracker.estimate'),
+            esb.sumAggregation('actual', 'body.timeTracker.actual'),
+          ])
+      )
       .query(
         esb
           .boolQuery()
-          .must([esb.termsQuery('body.sprintId', sprintIds)])
-          .filter(esb.rangeQuery('body.timeTracker.estimate').gte(0))
+          .must([
+            esb.termsQuery('body.sprintId', sprintIds),
+            esb.termQuery('body.isDeleted', false),
+          ])
+          .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),
             esb.termQuery('body.issueType', IssuesTypes.TASK),
@@ -149,7 +142,8 @@ export async function sprintVarianceGraph(
       }
     });
 
-    const totalPages = Math.ceil(sprintEstimate.length / limit);
+    const totalPages = Math.ceil(body.hits.total.value / limit);
+
     return {
       data: sprintEstimate,
       totalPages,
@@ -225,7 +219,10 @@ export async function sprintVarianceGraphAvg(
       .query(
         esb
           .boolQuery()
-          .must([esb.termsQuery('body.sprintId', sprintIdsArr)])
+          .must([
+            esb.termsQuery('body.sprintId', sprintIdsArr),
+            esb.termQuery('body.isDeleted', false),
+          ])
           .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
           .should([
             esb.termQuery('body.issueType', IssuesTypes.STORY),
