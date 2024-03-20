@@ -1,6 +1,6 @@
 import {
-  ElasticSearchClientGh,
-  Hit
+  Hit,
+  ElasticSearchClientGh
 } from '@pulse/elasticsearch';
 import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';

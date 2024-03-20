@@ -8,7 +8,7 @@ const esClientObj = ElasticSearchClientGh.getInstance();
 export async function savePushDetails(data: Github.Type.Push): Promise<void> {
   try {
     const updatedData = { ...data };
-    const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
+    const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.id', data.body.id)).toJSON();
     const pushData = await esClientObj.search(Github.Enums.IndexName.GitPush, matchQry);
     const [formattedData] = await searchedDataFormator(pushData);
     if (formattedData) {

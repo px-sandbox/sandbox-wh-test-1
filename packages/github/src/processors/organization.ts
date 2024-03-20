@@ -2,17 +2,13 @@ import { Github } from 'abstraction';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { SQSClientGh } from '@pulse/event-handler';
 
-const dynamodbClient = DynamoDbDocClientGh.getInstance();
-const sqsClient = SQSClientGh.getInstance();
 export class Organization extends DataProcessor<
   Github.ExternalType.Api.Organization,
   Github.Type.Organization
 > {
   constructor(data: Github.ExternalType.Api.Organization) {
-    super(data, sqsClient, dynamodbClient);
+    super(data);
   }
   public async processor(): Promise<Github.Type.Organization> {
     let parentId: string = await this.getParentId(

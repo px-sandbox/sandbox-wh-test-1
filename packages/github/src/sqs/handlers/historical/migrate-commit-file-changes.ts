@@ -1,9 +1,9 @@
-import { SQSEvent, SQSRecord } from 'aws-lambda';
-import { logger } from 'core';
-import { Queue } from 'sst/node/queue';
 import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
+import { logger } from 'core';
 import esb from 'elastic-builder';
+import { Queue } from 'sst/node/queue';
 import { OctokitResponse } from '@octokit/types';
 import { processFileChanges } from '../../../util/process-commit-changes';
 import { logProcessToRetry } from '../../../util/retry-process';
@@ -24,8 +24,8 @@ const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 const esclient = ElasticSearchClientGh.getInstance();
 
 async function getRepoNameById(repoId: string): Promise<string> {
-  const query = esb.matchQuery('body.id', repoId).toJSON();
-  const repoData = esclient.search(Github.Enums.IndexName.GitRepo, query);
+  const query = esb.requestBodySearch().query(esb.matchQuery('body.id', repoId)).toJSON();
+  const repoData = await esclient.search(Github.Enums.IndexName.GitRepo, query);
   const [repoName] = await searchedDataFormator(repoData);
   if (!repoName) {
     throw new Error(`repoName not found for data: ${repoId}`);

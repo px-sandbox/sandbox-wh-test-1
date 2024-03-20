@@ -43,7 +43,7 @@ export const handler = async function pRFormattedDataReceiver(event: SQSEvent): 
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
     Object.values(messageGroups).map(async (group) => {
-      async.eachSeries(group, processAndStoreSQSRecord, (error) => {
+     return  async.eachSeries(group, processAndStoreSQSRecord, (error) => {
         if (error) {
           logger.error(`pRFormattedDataReceiver.error, ${error}`);
         }

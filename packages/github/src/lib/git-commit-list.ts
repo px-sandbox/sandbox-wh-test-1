@@ -11,8 +11,8 @@ export async function getCommits(commits: Github.ExternalType.Webhook.Commit): P
   try {
     if (commits.commits.length > 0) {
       await Promise.all([
-        commits.commits.map(async (commit: Github.ExternalType.Webhook.Commits): Promise<void> => {
-          await sqsClient.sendMessage(
+        ...commits.commits.map(async (commit: Github.ExternalType.Webhook.Commits): Promise<void> => {
+          return sqsClient.sendFifoMessage(
             {
               commitId: commit.id,
               isMergedCommit: false, //by default setting a commit to merge false
@@ -30,7 +30,7 @@ export async function getCommits(commits: Github.ExternalType.Webhook.Commit): P
             uuid()
           );
         }),
-        await preparePush(
+        preparePush(
           commits.commits,
           commits.ref,
           commits.sender.id,

@@ -10,7 +10,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 const esObj = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
 const getRepoData = async (repoId: string): Promise<any> => {
-  const query = esb.matchQuery('body.id', repoId).toJSON();
+  const query = esb.requestBodySearch().query(esb.matchQuery('body.id', repoId)).toJSON();
   const repoData = await esObj.search(Github.Enums.IndexName.GitRepo, query);
   const [repo] = await searchedDataFormator(repoData);
   logger.info({ level: 'info', message: 'repo name -->', repoName: repo.name });
@@ -41,7 +41,7 @@ const updateMergeCommit = async (event: APIGatewayProxyEvent): Promise<APIGatewa
       if (commitData.length > 0) {
         await Promise.all(
           commitData.map(async (commit: Github.Type.Commits) => {
-            await sqsClient.sendMessage(
+            return sqsClient.sendMessage(
               { ...commit, repoName: repo.name, repoOwner },
               Queue.qUpdateMergeCommit.queueUrl
             );

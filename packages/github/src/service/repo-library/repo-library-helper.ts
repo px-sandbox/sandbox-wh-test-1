@@ -1,9 +1,8 @@
-import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { mappingPrefixes } from '../../constant/config';
 
@@ -11,7 +10,7 @@ const esClientObj = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
 
 async function deletePrevDependencies(repoId: string): Promise<void> {
-  const matchQry = esb.matchQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`).toJSON();
+  const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`)).toJSON();
   const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
 
   await esClientObj.updateByQuery(Github.Enums.IndexName.GitRepoLibrary, matchQry, script.toJSON());
@@ -44,7 +43,7 @@ export async function repoLibHelper(data: Github.ExternalType.RepoLibrary): Prom
           isCore: false,
         };
 
-        await sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
+        return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
       }),
       ...coreDependencies.map(async (dep) => {
         const message = {
@@ -55,7 +54,7 @@ export async function repoLibHelper(data: Github.ExternalType.RepoLibrary): Prom
           isCore: true,
         };
 
-        await sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
+        return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
       }),
     ]);
   }

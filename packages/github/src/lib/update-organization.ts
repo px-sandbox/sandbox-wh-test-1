@@ -34,10 +34,10 @@ export async function fetchAndSaveOrganizationDetails(
             new ParamsMapping().preparePutParams(formattedData.id, formattedData.body.id)
           );
         }
-        esClientObj.putDocument(Github.Enums.IndexName.GitOrganization, formattedData);
+        await esClientObj.putDocument(Github.Enums.IndexName.GitOrganization, formattedData);
       }
     }
-    logger.info('getOrganizationDetails.successfull', {
+    logger.info('getOrganizationDetails.successful', {
       response: responseData?.data,
     });
     return responseData?.data?.login;

@@ -32,7 +32,7 @@ async function fetchPRComments(repoId: string, owner: string, repoName: string):
       prFormattedData = await searchedDataFormator(getPrData);
       await Promise.all(
         prFormattedData.map(async (prData: any) => {
-          await sqsClient.sendMessage(
+          sqsClient.sendMessage(
             { prData, owner, repoName },
             Queue.qGhPrReviewCommentMigration.queueUrl
           );

@@ -5,17 +5,13 @@ import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { SQSClientGh } from '@pulse/event-handler';
 
-const dynamodbClient = DynamoDbDocClientGh.getInstance();
-const sqsClient = SQSClientGh.getInstance();
 export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
   Github.Type.PullRequest
 > {
   constructor(data: Github.ExternalType.Webhook.PullRequest) {
-    super(data, sqsClient, dynamodbClient);
+    super(data);
   }
 
   private setAction(): Github.Type.actions {
@@ -144,6 +140,11 @@ export class PRProcessor extends DataProcessor<
     try {
       await this.processPRAction();
       let parentId = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
+       if (!parentId && this.ghApiData.action !== Github.Enums.PullRequest.Opened) {
+         throw new Error(
+           `pr_not_found_for_event: id:${this.ghApiData.id}, repoId:${this.ghApiData.head.repo.id}, action:${this.ghApiData.action}`
+         );
+       }
       if (!parentId) {
         parentId = uuid();
         await this.putDataToDynamoDB(parentId, `${mappingPrefixes.pull}_${this.ghApiData.id}`);

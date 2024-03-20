@@ -29,9 +29,6 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
     return ElasticSearchClientGh.instance;
   }
 
-  public getClient(): Client {
-    return this.client;
-  }
 
   public async search(
     indexName: string,

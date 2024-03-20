@@ -9,7 +9,7 @@ const esClientObj = ElasticSearchClientGh.getInstance();
 export async function savePRDetails(data: Github.Type.PullRequest): Promise<void> {
   try {
     const updatedData = { ...data };
-    const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
+    const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.id', data.body.id)).toJSON();
     const userData = await esClientObj.search(Github.Enums.IndexName.GitPull, matchQry);
     const [formattedData] = await searchedDataFormator(userData);
     if (formattedData) {

@@ -29,10 +29,10 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     });
     await Promise.all(
       commits.map(async (commit: Github.Type.Commits) => {
-        sqsClient.sendMessage(
+        return sqsClient.sendMessage(
           { ...commit, repoOwner: orgName },
           Queue.qGhCommitFileChanges.queueUrl
-        );
+        )
       })
     );
   } catch (error) {

@@ -3,6 +3,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { OctokitResponse } from '@octokit/types';
+import { v4 as uuid } from 'uuid';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
@@ -29,7 +30,7 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
     let queueProcessed = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     queueProcessed = octokitRespData.map((commitData: any) =>
-      sqsClient.sendMessage(
+      sqsClient.sendFifoMessage(
         {
           commitId: commitData.sha,
           isMergedCommit: false,
@@ -43,7 +44,8 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
           timestamp: new Date(),
         },
         Queue.qGhCommitFormat.queueUrl,
-        commitData.sha
+        commitData.sha,
+        uuid()
       )
     );
     await Promise.all(queueProcessed);

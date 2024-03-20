@@ -46,7 +46,6 @@ export function initializeRepoQueue(
   repoFormatDataQueue.bind([
     githubMappingTable,
     retryProcessTable,
-    indexerQueue,
     GIT_ORGANIZATION_ID,
     indexerQueue,
   ]);
