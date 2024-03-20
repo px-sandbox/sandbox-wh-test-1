@@ -10,7 +10,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 const esClientObj = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
 const getRepo = async (repo: string): Promise<any> => {
-  const query = esb.matchQuery('body.name', repo).toJSON();
+  const query = esb.requestBodySearch().query(esb.matchQuery('body.name', repo)).toJSON();
   const data = await esClientObj.search(Github.Enums.IndexName.GitRepo, query);
   const [repoData] = await searchedDataFormator(data);
   return repoData;

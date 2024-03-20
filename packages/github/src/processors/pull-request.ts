@@ -140,6 +140,11 @@ export class PRProcessor extends DataProcessor<
     try {
       await this.processPRAction();
       let parentId = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
+       if (!parentId && this.ghApiData.action !== Github.Enums.PullRequest.Opened) {
+         throw new Error(
+           `pr_not_found_for_event: id:${this.ghApiData.id}, repoId:${this.ghApiData.head.repo.id}, action:${this.ghApiData.action}`
+         );
+       }
       if (!parentId) {
         parentId = uuid();
         await this.putDataToDynamoDB(parentId, `${mappingPrefixes.pull}_${this.ghApiData.id}`);

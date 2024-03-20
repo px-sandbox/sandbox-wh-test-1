@@ -8,7 +8,7 @@ const esClientObj = ElasticSearchClientGh.getInstance();
 export async function saveUserDetails(data: Github.Type.User): Promise<void> {
   try {
     const updatedData = { ...data };
-    const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
+    const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.id', data.body.id)).toJSON();
     const userData = await esClientObj.search(Github.Enums.IndexName.GitUsers, matchQry);
     const [formattedData] = await searchedDataFormator(userData);
     if (formattedData) {

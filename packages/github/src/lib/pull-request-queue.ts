@@ -47,21 +47,6 @@ export async function pROnQueue(
         }
       }
     }
-    if (action !== Github.Enums.PullRequest.Opened) {
-      await sqsClient.sendFifoMessage(
-        {
-          ...pull,
-          reviewed_at: reviewedAt,
-          approved_at: approvedAt,
-          review_seconds: reviewSeconds,
-          action,
-        },
-        Queue.qGhPrFormat.queueUrl,
-        String(pull.id),
-        uuid(),
-        5000
-      );
-    } else {
       await sqsClient.sendFifoMessage(
         {
           ...pull,
@@ -74,7 +59,7 @@ export async function pROnQueue(
         String(pull.id),
         uuid()
       );
-    }
+    
   } catch (error: unknown) {
     logger.error({
       error,

@@ -14,13 +14,13 @@ const sqsClient = SQSClientGh.getInstance();
 
 const fetBranchesData = async (repoId: string, currDate: string): Promise<any> => {
     try {
-        const query = esb
+        const query = esb.requestBodySearch().query(esb
             .boolQuery()
             .must([
                 esb.termQuery('body.repoId', repoId),
                 esb.termQuery('body.protected', true),
                 esb.termQuery('body.isDeleted', false),
-            ])
+            ]))
             .toJSON();
 
         const branches = await esClient.search(Github.Enums.IndexName.GitBranch, query);

@@ -9,7 +9,7 @@ const getOrganizationData = async (
   key: string,
   value: string
 ): Promise<Github.Type.Organization> => {
-  const matchQry = esb.matchQuery(`body.${key}`, value).toJSON();
+  const matchQry = esb.requestBodySearch().query(esb.matchQuery(`body.${key}`, value)).toJSON();
   const orgData = await esClientObj.search(Github.Enums.IndexName.GitOrganization, matchQry);
   const [formattedUserData] = await searchedDataFormator(orgData);
   return formattedUserData;

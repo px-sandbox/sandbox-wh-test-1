@@ -9,7 +9,7 @@ const esClientObj = ElasticSearchClientGh.getInstance();
 export async function savePRReviewComment(data: Github.Type.PRReviewComment): Promise<void> {
   try {
     const updatedData = { ...data };
-    const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
+    const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.id', data.body.id)).toJSON();
     const userData = await esClientObj.search(
       Github.Enums.IndexName.GitPRReviewComment,
       matchQry
