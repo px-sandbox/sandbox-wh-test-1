@@ -94,8 +94,9 @@ export async function activeBranchesAvg(
       Github.Enums.IndexName.GitActiveBranches,
       activeBranchesAvgQuery
     );
-    const totalRepo = Number(data.buckets.repo_count.value);
-    const totalBranchCount = Number(data.bucket.branch_count.value);
+    console.log(data);  
+    const totalRepo = Number(data.repo_count.value);
+    const totalBranchCount = Number(data.branch_count.value);
     return { value: parseFloat((totalBranchCount === 0 ? 0 : totalBranchCount / totalRepo).toFixed(2)) };
   } catch (e) {
     logger.error('activeBranchesAvg.error', e);
