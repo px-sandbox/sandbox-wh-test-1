@@ -68,7 +68,7 @@ export function initializeQueue(
   const repoSastErrors = initializeRepoSastErrorQueue(stack, buckets.sastErrorsBucket, githubDDb);
   const [scansSaveQueue] = initializeSecurityScanQueue(stack, githubDDb);
 
-  //Bindings for indexerQueue
+  // Bindings for indexerQueue
   indexerQueue.bind([afterRepoSaveQueue]);
 
   return {

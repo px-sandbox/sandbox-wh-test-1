@@ -1,4 +1,4 @@
-import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { LibParamsMapping } from '../../../model/lib-master-mapping';

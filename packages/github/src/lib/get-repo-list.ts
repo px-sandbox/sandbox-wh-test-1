@@ -1,5 +1,5 @@
 import { OctokitResponse, RequestInterface } from '@octokit/types';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getInstallationAccessToken } from '../util/installation-access-token';

@@ -26,7 +26,7 @@ export class SQSClientGh implements ISQSClient {
   ): Promise<void> {
     const queueName = queueUrl.split('/').slice(-1).toString();
     try {
-      let queueObj: AWS_SQS.SendMessageCommandInput = {
+      const queueObj: AWS_SQS.SendMessageCommandInput = {
         MessageBody: JSON.stringify(message),
         QueueUrl: queueUrl,
         MessageGroupId: messageGroupId,
@@ -56,7 +56,7 @@ export class SQSClientGh implements ISQSClient {
         queueObj = {
           ...queueObj,
           MessageGroupId: messageGroupId,
-          MessageDeduplicationId: MessageDeduplicationId,
+          MessageDeduplicationId,
         };
       }
       await this.sqs.sendMessage(queueObj);

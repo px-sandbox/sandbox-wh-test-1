@@ -1,9 +1,9 @@
-import moment from 'moment';
-import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 import { logger } from 'core';
-import { ParamsMapping } from '../model/params-mapping';
+import moment from 'moment';
 import { Queue } from 'sst/node/queue';
+import { ParamsMapping } from '../model/params-mapping';
 
 
 export abstract class DataProcessor<T, S> {

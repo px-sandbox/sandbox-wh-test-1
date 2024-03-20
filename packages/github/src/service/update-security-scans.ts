@@ -1,37 +1,40 @@
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { SQSClientGh } from '@pulse/event-handler';
+import { Github, Other } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { Github, Other } from 'abstraction';
-import moment from 'moment';
-import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
 
-const fetBranchesData = async (repoId: string, currDate: string): Promise<any> => {
-    try {
-        const query = esb.requestBodySearch().query(esb
-            .boolQuery()
-            .must([
-                esb.termQuery('body.repoId', repoId),
-                esb.termQuery('body.protected', true),
-                esb.termQuery('body.isDeleted', false),
-            ]))
-            .toJSON();
+const fetBranchesData = async (repoId: string): Promise<any> => {
+  try {
+    const query = esb
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termQuery('body.repoId', repoId),
+            esb.termQuery('body.protected', true),
+            esb.termQuery('body.isDeleted', false),
+          ])
+      )
+      .toJSON();
 
-        const branches = await esClient.search(Github.Enums.IndexName.GitBranch, query);
+    const branches = await esClient.search(Github.Enums.IndexName.GitBranch, query);
 
-        // formatting data into easily readable form
-        const formattedData = await searchedDataFormator(branches);
-        return formattedData
-    } catch (e) {
-        logger.error('GET_GITHUB_BRANCH_DETAILS', { error: e });
-    }
-}
+    // formatting data into easily readable form
+    const formattedData = await searchedDataFormator(branches);
+    return formattedData;
+  } catch (e) {
+    logger.error('GET_GITHUB_BRANCH_DETAILS', { error: e });
+  }
+};
 /**
  * Fetches branches data for the given repository IDs.
  * @param repoIds - An array of repository IDs.
@@ -39,7 +42,7 @@ const fetBranchesData = async (repoId: string, currDate: string): Promise<any> =
  */
 async function fetchBranchesData(repoId: string, currDate: string): Promise<void> {
   // query to extract protected branches with matching repoId
- const formattedData = await fetBranchesData(repoId, currDate);
+  const formattedData = await fetBranchesData(repoId);
   if (!formattedData?.length) {
     logger.info(`GET_GITHUB_BRANCH_DETAILS: No branches found for repoId: ${repoId}`);
     return;
@@ -56,9 +59,9 @@ async function fetchBranchesData(repoId: string, currDate: string): Promise<void
   );
 
   await Promise.all(
-      branchesArr.map(async (branch) => {
-          return sqsClient.sendMessage({ repoId, branch, currDate }, Queue.qGhScansSave.queueUrl)
-      })
+    branchesArr.map(async (branch) =>
+      sqsClient.sendMessage({ repoId, branch, currDate }, Queue.qGhScansSave.queueUrl)
+    )
   );
 }
 

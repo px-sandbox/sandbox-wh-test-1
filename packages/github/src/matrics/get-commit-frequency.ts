@@ -4,8 +4,8 @@ import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
+import { processGraphInterval } from '../util/process-graph-intervals';
 import { getWeekDaysCount } from '../util/weekend-calculations';
-import { processGraphInterval } from 'src/util/process-graph-intervals';
 
 const esClientObj = ElasticSearchClientGh.getInstance();
 
@@ -14,7 +14,7 @@ const getGraphDataQuery = (
   endDate: string,
   intervals: string,
   repoIds: string[]
-) => {
+):object => {
   const frquencyOfCodeCommitGraphQuery = esb.requestBodySearch().size(0);
   frquencyOfCodeCommitGraphQuery.query(
     esb
@@ -33,7 +33,7 @@ const getGraphDataQuery = (
   logger.info('FREQUENCY_CODE_COMMIT_GRAPH_ESB_QUERY', frquencyOfCodeCommitGraphQuery);
   return frquencyOfCodeCommitGraphQuery;
 }; 
-const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[]) => {
+const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[]):object => {
   const { query } = esb
     .requestBodySearch()
     .size(0)

@@ -4,8 +4,8 @@ import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from 'src/util/response-formatter';
 import { Queue } from 'sst/node/queue';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
@@ -14,7 +14,7 @@ async function fetchPRComments(repoId: string, owner: string, repoName: string):
   try {
     let prFormattedData: any = [];
     let from = 0;
-    let size = 100;
+    const size = 100;
 
     
     // fetch All PR data for given repo from Elasticsearch

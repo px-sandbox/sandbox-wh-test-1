@@ -1,15 +1,15 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import async from 'async';
+import { Github } from 'abstraction';
+import _ from 'lodash';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { processFileChanges } from '../../../util/process-commit-changes';
 import { logProcessToRetry } from '../../../util/retry-process';
-import async from 'async';
-import { Github } from 'abstraction';
-import _ from 'lodash';
 
 // eslint-disable-next-line max-lines-per-function
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
@@ -71,12 +71,10 @@ export const handler = async function commitFormattedDataReceiver(event: SQSEven
   logger.info(`Records Length: ${event.Records.length}`);
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
-    Object.values(messageGroups).map(async (group) => {
-      return async.eachSeries(group, processAndStoreSQSRecord, (error) => {
+    Object.values(messageGroups).map(async (group) => async.eachSeries(group, processAndStoreSQSRecord, (error) => {
         if (error) {
           logger.error(`commitFormattedDataReceiver.error, ${error}`);
         }
-      });
-    })
+      }))
   );  
 };

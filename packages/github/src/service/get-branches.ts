@@ -1,8 +1,7 @@
-import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github, Other } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
 

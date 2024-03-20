@@ -3,13 +3,13 @@ import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
+import esb from 'elastic-builder';
 import {
   IformatUserDataResponse,
   formatUserDataResponse,
   searchedDataFormator,
 } from '../util/response-formatter';
 import { getGitUserSchema } from './validations';
-import esb from 'elastic-builder';
 
 const esClient = ElasticSearchClientGh.getInstance();
 

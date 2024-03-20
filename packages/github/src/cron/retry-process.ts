@@ -1,9 +1,9 @@
-import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
-import { logger } from 'core';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
-import { RetryTableMapping } from '../model/retry-table-mapping';
+import { logger } from 'core';
 import { ghRequest } from '../lib/request-default';
+import { RetryTableMapping } from '../model/retry-table-mapping';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
 const dynamodbClient = DynamoDbDocClientGh.getInstance();

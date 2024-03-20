@@ -13,8 +13,8 @@ const getBranches = async (
     .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', true)])
     .toJSON();
 
-  const getBranches = await esClientObj.search(Github.Enums.IndexName.GitBranch, getBranchesQuery);
-  const branchesName = await searchedDataFormator(getBranches);
+  const getBrancheData = await esClientObj.search(Github.Enums.IndexName.GitBranch, getBranchesQuery);
+  const branchesName = await searchedDataFormator(getBrancheData);
   return branchesName;
 };
 export async function getTscRagsDetails(repoIds: string[]): Promise<{ product_security: number }> {

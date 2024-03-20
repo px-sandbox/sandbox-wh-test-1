@@ -1,8 +1,8 @@
 import { RequestInterface } from '@octokit/types';
-import { Queue } from 'sst/node/queue';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
-import { logger } from 'core';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
+import { logger } from 'core';
+import { Queue } from 'sst/node/queue';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 

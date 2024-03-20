@@ -1,12 +1,13 @@
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { v4 as uuid } from 'uuid';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { logProcessToRetry } from '../../../util/retry-process';
-import { v4 as uuid } from 'uuid';
+
 const installationAccessToken = await getInstallationAccessToken();
 const sqsClient = SQSClientGh.getInstance();
 const octokit = ghRequest.request.defaults({

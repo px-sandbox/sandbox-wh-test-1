@@ -1,5 +1,5 @@
 import { RequestInterface } from '@octokit/types';
-import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
 import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';

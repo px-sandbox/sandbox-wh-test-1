@@ -8,8 +8,8 @@ import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import moment from 'moment';
-import { searchedDataFormator } from 'src/util/response-formatter';
 import { Queue } from 'sst/node/queue';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
@@ -33,7 +33,7 @@ const getRepos = async (
     )
     .toJSON();
   const data = await esClient.search(Github.Enums.IndexName.GitRepo, query);
-  return await searchedDataFormator(data);
+  return searchedDataFormator(data);
 };
 // get all repos from ES which are not deleted and send to SQS
 async function getReposAndSendToSQS(

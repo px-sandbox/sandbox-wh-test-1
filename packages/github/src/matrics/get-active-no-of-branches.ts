@@ -3,7 +3,7 @@ import { Github } from 'abstraction';
 import { IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { processGraphInterval } from 'src/util/process-graph-intervals';
+import { processGraphInterval } from '../util/process-graph-intervals';
 
 const esClientObj = ElasticSearchClientGh.getInstance();
 

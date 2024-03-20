@@ -1,16 +1,16 @@
-import moment from 'moment';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
+import moment from 'moment';
 import { Queue } from 'sst/node/queue';
+import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../../../constant/config';
 import { getTimezoneOfUser } from '../../../lib/get-user-timezone';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
+import { getOctokitResp } from '../../../util/octokit-response';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getWorkingTime } from '../../../util/timezone-calculation';
-import { getOctokitResp } from '../../../util/octokit-response';
-import { v4 as uuid } from 'uuid';
 
 const sqsClient = SQSClientGh.getInstance();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

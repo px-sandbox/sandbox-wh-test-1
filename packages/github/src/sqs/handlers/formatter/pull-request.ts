@@ -1,14 +1,14 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { ghRequest } from 'src/lib/request-default';
-import { getInstallationAccessToken } from 'src/util/installation-access-token';
-import { processPRComments } from 'src/util/process-pr-comments';
 import { Queue } from 'sst/node/queue';
-import { PRProcessor } from '../../../processors/pull-request';
-import { logProcessToRetry } from '../../../util/retry-process';
 import async from 'async';
 import { Github } from 'abstraction';
 import _ from 'lodash';
+import { processPRComments } from '../../../util/process-pr-comments';
+import { getInstallationAccessToken } from '../../../util/installation-access-token';
+import { ghRequest } from '../../../lib/request-default';
+import { logProcessToRetry } from '../../../util/retry-process';
+import { PRProcessor } from '../../../processors/pull-request';
 
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
@@ -40,12 +40,10 @@ export const handler = async function pRFormattedDataReceiver(event: SQSEvent): 
   logger.info(`Records Length: ${event.Records.length}`); 
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
-    Object.values(messageGroups).map(async (group) => {
-     return  async.eachSeries(group, processAndStoreSQSRecord, (error) => {
+    Object.values(messageGroups).map(async (group) => async.eachSeries(group, processAndStoreSQSRecord, (error) => {
         if (error) {
           logger.error(`pRFormattedDataReceiver.error, ${error}`);
         }
-      });
-    })
+      }))
   );
 };

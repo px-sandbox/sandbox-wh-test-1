@@ -4,9 +4,9 @@ import { Jira, Other } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from 'src/util/response-formatter';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = new ElasticSearchClient({
   host: Config.OPENSEARCH_NODE,

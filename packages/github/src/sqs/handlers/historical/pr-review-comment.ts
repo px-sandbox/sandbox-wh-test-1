@@ -4,11 +4,11 @@ import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { initializeOctokit } from 'src/cron/github-copilot';
-import { getOctokitResp } from 'src/util/octokit-response';
-import { searchedDataFormator } from 'src/util/response-formatter';
-import { logProcessToRetry } from 'src/util/retry-process';
 import { Queue } from 'sst/node/queue';
+import { initializeOctokit } from '../../../cron/github-copilot';
+import { getOctokitResp } from '../../../util/octokit-response';
+import { searchedDataFormator } from '../../../util/response-formatter';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 const esClient = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
@@ -44,7 +44,7 @@ const updateDeletedComments = async (deletedCommentIds:number[],repoId:string):P
     script.toJSON()
   );
 }
-export const handler = async function pr_review_comment(event: SQSEvent): Promise<void> {
+export const handler = async function prReviewComment(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
@@ -52,7 +52,7 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
         const messageBody = JSON.parse(record.body);
         const { owner, repoName, prData } = messageBody;
         const octokit = await initializeOctokit();
-        let prReviewCommentIdfromApi: number[] = [];
+        const prReviewCommentIdfromApi: number[] = [];
         // await prFormattedData.map(async (prData: any) => {
         const commentsDataOnPr = await octokit(
           `GET /repos/${owner}/${repoName}/pulls/${prData.pullNumber}/comments`
@@ -64,9 +64,9 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
         logger.info(`pr_review_comment_id_from_ghapi: ${prReviewCommentIdfromApi}`);
 
         const esPrReviewCommentFormattedData = await fetchPRComments(prData.id);
-        let prReviewCommentId: number[] = [];
-        esPrReviewCommentFormattedData.forEach((prReviewComment: any) => {
-          prReviewCommentId.push(prReviewComment.githubPRReviewCommentId);
+        const prReviewCommentId: number[] = [];
+        esPrReviewCommentFormattedData.forEach((prReviewComments: any) => {
+          prReviewCommentId.push(prReviewComments.githubPRReviewCommentId);
         });
         logger.info(`pr_review_comment_id_from_es: ${prReviewCommentId}`);
 
@@ -77,7 +77,7 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
         logger.info(`to_be_marked_deleted_commentIds:${deletedCommentIds}`);
        
         await updateDeletedComments(deletedCommentIds, prData.repoId);
-        //Update PR Data
+        // Update PR Data
         await sqsClient.sendMessage(
           {
             id: prData._id,

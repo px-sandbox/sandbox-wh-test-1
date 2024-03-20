@@ -2,13 +2,13 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Github } from 'abstraction';
+import async from 'async';
 import {
   fetchDataFromS3,
   repoSastErrorsFormatter,
   storeSastErrorReportToES,
 } from '../../../processors/repo-sast-errors';
 import { logProcessToRetry } from '../../../util/retry-process';
-import async from 'async';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   try {

@@ -1,15 +1,14 @@
 /* eslint-disable no-await-in-loop */
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { Github, Other } from 'abstraction';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
-import { Github, Other } from 'abstraction';
 import moment from 'moment';
-import { v4 as uuid } from 'uuid';
 import { Queue } from 'sst/node/queue';
-import { logProcessToRetry } from '../../util/retry-process';
+import { v4 as uuid } from 'uuid';
 import { searchedDataFormator } from '../../util/response-formatter';
+import { logProcessToRetry } from '../../util/retry-process';
 
 const esClient = ElasticSearchClientGh.getInstance();
 
