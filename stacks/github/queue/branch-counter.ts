@@ -8,8 +8,13 @@ export function initializeBranchCounterQueue(
   githubDDB: GithubTables,
   indexer: Queue
 ): Queue {
-  const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, NODE_VERSION } =
-    use(commonConfig);
+  const {
+    OPENSEARCH_NODE,
+    REQUEST_TIMEOUT,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    NODE_VERSION,
+  } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDB;
 
   const branchCounterFormatterQueue = new Queue(stack, 'qGhActiveBranchCounterFormat');
@@ -19,6 +24,7 @@ export function initializeBranchCounterQueue(
       handler: 'packages/github/src/sqs/handlers/formatter/active-branch.handler',
       bind: [
         OPENSEARCH_NODE,
+        REQUEST_TIMEOUT,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
         branchCounterFormatterQueue,

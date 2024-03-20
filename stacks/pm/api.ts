@@ -4,9 +4,7 @@ import { Api, Function, use } from 'sst/constructs';
 import { initializeRoutes } from './route';
 import { commonConfig } from '../common/config';
 
-export function initializeApi(
-  stack: Stack,
-): Api<{
+export function initializeApi(stack: Stack): Api<{
   universal: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
 }> {
   const {
@@ -17,6 +15,7 @@ export function initializeApi(
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
+    REQUEST_TIMEOUT,
     AVAILABLE_PROJECT_KEYS,
     PROJECT_DELETION_AGE,
     NODE_VERSION,
@@ -41,11 +40,12 @@ export function initializeApi(
           OPENSEARCH_NODE,
           OPENSEARCH_PASSWORD,
           OPENSEARCH_USERNAME,
+          REQUEST_TIMEOUT,
           JIRA_CLIENT_ID,
           JIRA_CLIENT_SECRET,
           JIRA_REDIRECT_URI,
           AVAILABLE_PROJECT_KEYS,
-          PROJECT_DELETION_AGE
+          PROJECT_DELETION_AGE,
         ],
         runtime: NODE_VERSION,
       },

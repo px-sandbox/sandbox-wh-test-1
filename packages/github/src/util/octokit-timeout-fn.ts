@@ -1,4 +1,5 @@
 import { RequestInterface } from '@octokit/types';
+import { Config } from 'sst/node/config';
 
 export async function getOctokitTimeoutReqFn(
   octokit: RequestInterface<
@@ -12,7 +13,10 @@ export async function getOctokitTimeoutReqFn(
 ): Promise<any> {
   return async (endpoint: string, params?: Record<string, string | number>) => {
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Octokit request timed out')), 2000);
+      setTimeout(
+        () => reject(new Error('Octokit request timed out')),
+        parseInt(Config.REQUEST_TIMEOUT, 10)
+      );
     });
     const requestPromise = octokit(endpoint, params);
     return Promise.race([requestPromise, timeoutPromise]);

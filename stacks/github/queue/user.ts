@@ -8,8 +8,7 @@ export function initializeUserQueue(
   githubDDb: GithubTables,
   indexerQueue: Queue
 ): Queue {
-  const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } =
-    use(commonConfig);
+  const { GIT_ORGANIZATION_ID } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDb;
 
   const userFormatDataQueue = new Queue(stack, 'qGhUsersFormat', {

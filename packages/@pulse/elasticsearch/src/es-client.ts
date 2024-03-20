@@ -14,7 +14,7 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
         username: options.username,
         password: options.password,
       },
-      requestTimeout: 2000,
+      requestTimeout: Config.REQUEST_TIMEOUT,
     });
   }
 
@@ -35,12 +35,12 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
 
   public async search(
     indexName: string,
-    query: object,
+    query: object
   ): Promise<RequestParams.Search<MultiSearchBody>> {
     try {
       const result = await this.client.search({
         index: indexName,
-        body: query
+        body: query,
       });
       return result.body;
     } catch (err) {

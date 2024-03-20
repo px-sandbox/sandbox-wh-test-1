@@ -98,6 +98,7 @@ export function initializeFunctions(
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     NODE_VERSION,
+    REQUEST_TIMEOUT,
   } = use(commonConfig);
 
   const { ghCopilotFormatDataQueue, branchCounterFormatterQueue, masterLibraryQueue } =
@@ -110,13 +111,20 @@ export function initializeFunctions(
       GITHUB_APP_PRIVATE_KEY_PEM,
       GITHUB_APP_ID,
       GITHUB_SG_INSTALLATION_ID,
+      REQUEST_TIMEOUT,
     ],
     runtime: NODE_VERSION,
   });
 
   const ghBranchCounterFunction = new Function(stack, 'fnBranchCounter', {
     handler: 'packages/github/src/cron/branch-counter.handler',
-    bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchCounterFormatterQueue],
+    bind: [
+      OPENSEARCH_NODE,
+      OPENSEARCH_PASSWORD,
+      OPENSEARCH_USERNAME,
+      REQUEST_TIMEOUT,
+      branchCounterFormatterQueue,
+    ],
     runtime: NODE_VERSION,
   });
 
