@@ -15,11 +15,11 @@ const sqsClient = SQSClientGh.getInstance();
 
 const fetchPRComments = async (prId:number):Promise<object[]> => {
   // Fetch PR comments from Elasticsearch for each PR
-  const { query } = esb
+  const query = esb
     .requestBodySearch()
     .size(1000)// assumed that there will not be more than 200 comments on a PR
     .query(esb.boolQuery().must(esb.termQuery('body.pullId', prId)))
-    .toJSON() as { query: object };
+    .toJSON();
   const prReviewCommentData = await esClient.search(
     Github.Enums.IndexName.GitPRReviewComment,
     query

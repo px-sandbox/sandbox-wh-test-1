@@ -34,7 +34,7 @@ const getGraphDataQuery = (
   return frquencyOfCodeCommitGraphQuery;
 }; 
 const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[]):object => {
-  const { query } = esb
+  const query  = esb
     .requestBodySearch()
     .size(0)
     .query(
@@ -46,7 +46,7 @@ const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[])
           esb.termsQuery('body.isMergedCommit', 'false'),
         ])
     )
-    .toJSON() as { query: object };
+    .toJSON();
   logger.info('FREQUENCY_CODE_COMMIT_AVG_ESB_QUERY', query);
   return query;
 };
