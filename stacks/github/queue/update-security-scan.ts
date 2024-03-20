@@ -7,6 +7,7 @@ import { GithubTables } from '../../type/tables';
 export function initializeSecurityScanQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
   const {
     OPENSEARCH_NODE,
+    REQUEST_TIMEOUT,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     GITHUB_APP_ID,
@@ -36,6 +37,7 @@ export function initializeSecurityScanQueue(stack: Stack, githubDDb: GithubTable
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
     OPENSEARCH_NODE,
+    REQUEST_TIMEOUT,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     retryProcessTable,

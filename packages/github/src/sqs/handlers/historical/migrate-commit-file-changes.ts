@@ -4,13 +4,15 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
+import { OctokitResponse } from '@octokit/types';
+import { processFileChanges } from '../../../util/process-commit-changes';
+import { logProcessToRetry } from '../../../util/retry-process';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
-import { processFileChanges } from '../../../util/process-commit-changes';
 import { searchedDataFormator } from '../../../util/response-formatter';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
@@ -18,11 +20,12 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 const esclient = ElasticSearchClientGh.getInstance();
 
 async function getRepoNameById(repoId: string): Promise<string> {
   const query = esb.requestBodySearch().query(esb.matchQuery('body.id', repoId)).toJSON();
-  const repoData = await esclient.search(Github.Enums.IndexName.GitRepo,query);
+  const repoData = await esclient.search(Github.Enums.IndexName.GitRepo, query);
   const [repoName] = await searchedDataFormator(repoData);
   if (!repoName) {
     throw new Error(`repoName not found for data: ${repoId}`);
@@ -54,12 +57,16 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
         }
         const repoName = await getRepoNameById(repoId);
         logger.info(`REPO_NAME: ${repoName}`);
-        const responseData = await octokit(
+        const responseData = (await octokitRequestWithTimeout(
           `GET /repos/${repoOwner}/${repoName}/commits/${githubCommitId}`
-        );
+        )) as OctokitResponse<any>;
         const filesLink = responseData.headers.link;
         if (filesLink) {
-          const files = await processFileChanges(responseData.data.files, filesLink, octokit);
+          const files = await processFileChanges(
+            responseData.data.files,
+            filesLink,
+            octokitRequestWithTimeout
+          );
           responseData.data.files = files;
         }
 

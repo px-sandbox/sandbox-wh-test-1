@@ -12,6 +12,7 @@ export function initializePrReviewAndCommentsQueue(
   const {
     GIT_ORGANIZATION_ID,
     OPENSEARCH_NODE,
+    REQUEST_TIMEOUT,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     NODE_VERSION,
@@ -79,6 +80,7 @@ export function initializePrReviewAndCommentsQueue(
   prReviewCommentMigrationQueue.bind([
     retryProcessTable,
     OPENSEARCH_NODE,
+    REQUEST_TIMEOUT,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     GITHUB_APP_PRIVATE_KEY_PEM,
