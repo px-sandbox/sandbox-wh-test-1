@@ -1,7 +1,9 @@
 import { DynamoDbDocClientGh } from '@pulse/dynamodb';
 import { SQSClientGh } from '@pulse/event-handler';
-import { Github } from 'abstraction';
 import { logger } from 'core';
+import { Github } from 'abstraction';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
+import { RetryTableMapping } from '../model/retry-table-mapping';
 import { ghRequest } from '../lib/request-default';
 import { RetryTableMapping } from '../model/retry-table-mapping';
 import { getInstallationAccessToken } from '../util/installation-access-token';
@@ -37,7 +39,10 @@ export async function handler(): Promise<void> {
       Authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
-  const githubRetryLimit = await octokit('GET /rate_limit');
+
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+
+  const githubRetryLimit = await octokitRequestWithTimeout('GET /rate_limit');
   if (githubRetryLimit.data && githubRetryLimit.data.rate.remaining > 3) {
     const itemsToPick = githubRetryLimit.data.rate.remaining / 3;
     const limit = 200;

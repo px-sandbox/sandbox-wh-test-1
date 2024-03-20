@@ -22,6 +22,7 @@ inputs=(
   'OPENSEARCH_NODE | "http://localhost:9200"'
   'OPENSEARCH_PASSWORD | "TBC"'
   'OPENSEARCH_USERNAME | "TBC"'
+  'REQUEST_TIMEOUT | "2000"'
 )
 
 for ((i=0; i<${#inputs[@]}; i++))

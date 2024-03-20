@@ -2,6 +2,8 @@ import { SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { OctokitResponse } from '@octokit/types';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
@@ -13,6 +15,7 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 const sqsClient = SQSClientGh.getInstance();
 
 async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
@@ -26,9 +29,9 @@ async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
   const { owner, name } = messageBody;
   logger.info(`page: ${page}`);
   try {
-    const responseData = await octokit(
+    const responseData = (await octokitRequestWithTimeout(
       `GET /repos/${owner}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
-    );
+    )) as OctokitResponse<any>;
     logger.info(`total prs from GH: ${responseData.data.length}`);
     logger.info(
       `GH url: /repos/${owner}/${name}/pulls?state=all&per_page=50&page=${page}&sort=created&direction=desc`

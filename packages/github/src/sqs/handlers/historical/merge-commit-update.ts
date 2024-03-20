@@ -2,11 +2,13 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Github } from 'abstraction';
+import { OctokitResponse } from '@octokit/types';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { logProcessToRetry } from '../../../util/retry-process';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
@@ -14,6 +16,7 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 export const handler = async function updateMergeCommitDataReceiver(
   event: SQSEvent
 ): Promise<void> {
@@ -35,9 +38,9 @@ export const handler = async function updateMergeCommitDataReceiver(
         } = messageBody;
         let { isMergedCommit } = messageBody;
 
-        const responseData = await octokit(
+        const responseData = (await octokitRequestWithTimeout(
           `GET /repos/${repoOwner}/${repoName}/commits/${githubCommitId}`
-        );
+        )) as OctokitResponse<any>;
 
         const parentCommit = responseData.data.parents.length >= 2;
         if (parentCommit) {

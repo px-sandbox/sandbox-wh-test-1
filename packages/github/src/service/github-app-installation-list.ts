@@ -2,6 +2,7 @@ import { APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import { ghRequest } from '../lib/request-default';
 import { getOauthCode } from '../util/jwt-token';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 
 export const getGitAppInstallations =
   async function getGitAppInstallationList(): Promise<APIGatewayProxyResult> {
@@ -15,8 +16,8 @@ export const getGitAppInstallations =
           authorization: `Bearer ${token}`,
         },
       });
-
-      const installation = await octokit('GET /app/installations');
+      const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+      const installation = await octokitRequestWithTimeout('GET /app/installations');
 
       logger.info('Get list of all installations of github app');
 

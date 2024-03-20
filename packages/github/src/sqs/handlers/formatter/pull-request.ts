@@ -4,11 +4,12 @@ import { Queue } from 'sst/node/queue';
 import async from 'async';
 import { Github } from 'abstraction';
 import _ from 'lodash';
-import { processPRComments } from '../../../util/process-pr-comments';
-import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { ghRequest } from '../../../lib/request-default';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { getInstallationAccessToken } from '../../../util/installation-access-token';
+import { processPRComments } from '../../../util/process-pr-comments';
 import { PRProcessor } from '../../../processors/pull-request';
+import { logProcessToRetry } from '../../../util/retry-process';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
@@ -16,6 +17,7 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   try {
@@ -27,7 +29,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       messageBody.head.repo.owner.login,
       messageBody.head.repo.name,
       messageBody.number,
-      octokit
+      octokitRequestWithTimeout
     );
     data.body.reviewComments = reviewCommentCount;
     await pullProcessor.save({ data, eventType: Github.Enums.Event.PullRequest });
@@ -37,7 +39,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   }
 }
 export const handler = async function pRFormattedDataReceiver(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`); 
+  logger.info(`Records Length: ${event.Records.length}`);
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
     Object.values(messageGroups).map(async (group) => async.eachSeries(group, processAndStoreSQSRecord, (error) => {

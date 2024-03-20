@@ -2,10 +2,12 @@ import { SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { OctokitResponse } from '@octokit/types';
 import { v4 as uuid } from 'uuid';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 const sqsClient = SQSClientGh.getInstance();
@@ -15,6 +17,7 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function saveCommit(commitData: any, messageBody: any): Promise<void> {
   const modifiedCommitData = { ...commitData };
@@ -57,9 +60,9 @@ async function getPRCommits(record: SQSRecord): Promise<boolean | undefined> {
       logger.info('HISTORY_MESSAGE_BODY', messageBody);
       return;
     }
-    const commentsDataOnPr = await octokit(
+    const commentsDataOnPr = (await octokitRequestWithTimeout(
       `GET /repos/${owner.login}/${name}/pulls/${number}/commits?per_page=100&page=${page}`
-    );
+    )) as OctokitResponse<any>;
     const octokitRespData = getOctokitResp(commentsDataOnPr);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await Promise.all(octokitRespData.map((commit: any) => saveCommit(commit, messageBody)));
