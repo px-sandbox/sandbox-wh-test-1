@@ -1,15 +1,17 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import _ from 'lodash';
+import { Github } from 'abstraction';
+import async from 'async';
+import { OctokitResponse } from '@octokit/types';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { processFileChanges } from '../../../util/process-commit-changes';
 import { logProcessToRetry } from '../../../util/retry-process';
-import async from 'async';
-import { Github } from 'abstraction';
-import _ from 'lodash';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 // eslint-disable-next-line max-lines-per-function
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
@@ -36,10 +38,17 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
         Authorization: `Bearer ${installationAccessToken.body.token}`,
       },
     });
-    const responseData = await octokit(`GET /repos/${repoOwner}/${repoName}/commits/${commitId}`);
+    const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+    const responseData = (await octokitRequestWithTimeout(
+      `GET /repos/${repoOwner}/${repoName}/commits/${commitId}`
+    )) as OctokitResponse<any>;
     const filesLink = responseData.headers.link;
     if (filesLink) {
-      const files = await processFileChanges(responseData.data.files, filesLink, octokit);
+      const files = await processFileChanges(
+        responseData.data.files,
+        filesLink,
+        octokitRequestWithTimeout
+      );
       responseData.data.files = files;
     }
     const parentCommit = responseData.data.parents.length >= 2;
@@ -78,5 +87,5 @@ export const handler = async function commitFormattedDataReceiver(event: SQSEven
         }
       });
     })
-  );  
+  );
 };

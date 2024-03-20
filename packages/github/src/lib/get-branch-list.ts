@@ -1,8 +1,9 @@
 import { RequestInterface } from '@octokit/types';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Github } from 'abstraction';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 import { ghRequest } from './request-default';
 
@@ -70,7 +71,8 @@ export async function getBranches(
         Authorization: `Bearer ${installationAccessToken.body.token}`,
       },
     });
-    branchCount = await getBranchList(octokit, repoId, repoName, repoOwner);
+    const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+    branchCount = await getBranchList(octokitRequestWithTimeout, repoId, repoName, repoOwner);
     return branchCount;
   } catch (error: unknown) {
     logger.error({

@@ -1,9 +1,11 @@
 import moment from 'moment';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { OctokitResponse } from '@octokit/types';
+import { v4 as uuid } from 'uuid';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { mappingPrefixes } from '../constant/config';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 import { getWorkingTime } from '../util/timezone-calculation';
@@ -11,7 +13,6 @@ import { getOctokitResp } from '../util/octokit-response';
 import { ghRequest } from './request-default';
 import { getPullRequestById } from './get-pull-request';
 import { getTimezoneOfUser } from './get-user-timezone';
-import { v4 as uuid } from 'uuid';
 // Get token to pass into header of Github Api call
 async function getGithubApiToken(): Promise<string> {
   const installationAccessToken = await getInstallationAccessToken();
@@ -31,8 +32,10 @@ async function getPullRequestDetails<T>(
       Authorization: await getGithubApiToken(),
     },
   });
-
-  const responseData = await octokit(`GET /repos/${owner}/${repo}/pulls/${pullNumber}`);
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+  const responseData = (await octokitRequestWithTimeout(
+    `GET /repos/${owner}/${repo}/pulls/${pullNumber}`
+  )) as OctokitResponse<any>;
   const octokitRespData = getOctokitResp(responseData);
   return octokitRespData;
 }

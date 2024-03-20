@@ -1,7 +1,8 @@
 import { OctokitResponse, RequestInterface } from '@octokit/types';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 import { ghRequest } from './request-default';
 
@@ -56,7 +57,8 @@ async function getReposList(
           authorization: `Bearer ${token}`,
         },
       });
-      return getReposList(octokitObj, organizationName, page, counter);
+      const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokitObj);
+      return getReposList(octokitRequestWithTimeout, organizationName, page, counter);
     }
     throw error;
   }

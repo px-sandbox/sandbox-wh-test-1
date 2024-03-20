@@ -1,11 +1,13 @@
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { OctokitResponse } from '@octokit/types';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { logProcessToRetry } from '../../../util/retry-process';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 const installationAccessToken = await getInstallationAccessToken();
 const sqsClient = SQSClientGh.getInstance();
@@ -14,14 +16,15 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId, branchName } = messageBody;
   logger.info(`page: ${page}`);
   try {
-    const commitDataOnPr = await octokit(
+    const commitDataOnPr = (await octokitRequestWithTimeout(
       `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=100&page=${page}`
-    );
+    )) as OctokitResponse<any>;
     const octokitRespData = getOctokitResp(commitDataOnPr);
     let queueProcessed = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,4 +1,4 @@
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -6,6 +6,7 @@ import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { logProcessToRetry } from '../../../util/retry-process';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 const installationAccessToken = await getInstallationAccessToken();
 const sqsClient = SQSClientGh.getInstance();
@@ -15,6 +16,7 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getRepoBranches(record: SQSRecord | { body: string }): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId } = messageBody;
@@ -23,7 +25,7 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
     if (messageBody.reqBranch) {
       branches.push(messageBody.reqBranch);
     } else {
-      const githubBranches = await octokit(
+      const githubBranches = await octokitRequestWithTimeout(
         `GET /repos/${owner}/${name}/branches?per_page=100&page=${page}`
       );
       const octokitRespData = getOctokitResp(githubBranches);

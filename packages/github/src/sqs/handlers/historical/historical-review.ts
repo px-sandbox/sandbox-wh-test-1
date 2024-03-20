@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -9,6 +9,7 @@ import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitResp } from '../../../util/octokit-response';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 const sqsClient = SQSClientGh.getInstance();
 const installationAccessToken = await getInstallationAccessToken();
@@ -17,7 +18,7 @@ const octokit = ghRequest.request.defaults({
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
-
+const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function processReviewQueueForPageOne(
   prReviews: OctokitResponse<Github.Type.CommentState[]>,
   messageBody: Github.Type.MessageBody
@@ -74,9 +75,9 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
     },
   } = messageBody;
   try {
-    const prReviews = await octokit(
+    const prReviews = (await octokitRequestWithTimeout(
       `GET /repos/${owner.login}/${name}/pulls/${number}/reviews?per_page=100&page=${page}`
-    );
+    )) as OctokitResponse<Github.Type.CommentState[]>;
     const octokitRespData = getOctokitResp(prReviews);
     let queueProcessed = [];
     queueProcessed = octokitRespData.map((reviews: unknown) =>
