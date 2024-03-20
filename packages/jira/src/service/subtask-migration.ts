@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, logger, responseParser } from 'core';
-import { subtaskMigrate } from 'src/migrations/subtask';
-import { getOrganization } from 'src/repository/organization/get-organization';
+import { HttpStatusCode, responseParser } from 'core';
+import { subtaskMigrate } from '../migrations/subtask';
+import { getOrganization } from '../repository/organization/get-organization';
 
 export const handler = async function migrate(
   event: APIGatewayProxyEvent

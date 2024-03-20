@@ -1,19 +1,19 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { saveCommitDetails } from '../../lib/save-commit';
-import { logProcessToRetry } from '../../util/retry-process';
 import { Github } from 'abstraction';
-import { saveRepoDetails } from 'src/lib/save-repo';
-import { saveBranchDetails } from 'src/lib/save-branch';
-import { savePRReview } from 'src/lib/save-pr-review';
-import { savePRReviewComment } from 'src/lib/save-pr-review-comment';
-import { savePRDetails } from 'src/lib/save-pull-request';
-import { savePushDetails } from 'src/lib/save-push';
 import async from 'async';
-import { saveUserDetails } from 'src/lib/save-user';
-import { saveActiveBranch } from 'src/lib/save-active-branches';
-import { saveGHCopilotReport } from 'src/lib/save-copilot-report';
+import { saveRepoDetails } from '../../lib/save-repo';
+import { saveBranchDetails } from '../../lib/save-branch';
+import { savePRReview } from '../../lib/save-pr-review';
+import { savePRReviewComment } from '../../lib/save-pr-review-comment';
+import { savePRDetails } from '../../lib/save-pull-request';
+import { savePushDetails } from '../../lib/save-push';
+import { saveUserDetails } from '../../lib/save-user';
+import { saveActiveBranch } from '../../lib/save-active-branches';
+import { saveGHCopilotReport } from '../../lib/save-copilot-report';
+import { logProcessToRetry } from '../../util/retry-process';
+import { saveCommitDetails } from '../../lib/save-commit';
 
 export const handler = async function indexDataReceiver(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

@@ -1,5 +1,5 @@
 import esb from "elastic-builder";
-import { esbDateHistogramInterval } from "src/constant/config";
+import { esbDateHistogramInterval } from "../constant/config";
 
 export  function processGraphInterval(
   intervals: string,

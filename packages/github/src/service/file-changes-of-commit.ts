@@ -1,11 +1,10 @@
-import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { Config } from 'sst/node/config';
-import { Queue } from 'sst/node/queue';
 import esb, { Script } from 'elastic-builder';
+import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClientGh.getInstance();
@@ -28,12 +27,10 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       commitLength: commits.length,
     });
     await Promise.all(
-      commits.map(async (commit: Github.Type.Commits) => {
-        return sqsClient.sendMessage(
+      commits.map(async (commit: Github.Type.Commits) => sqsClient.sendMessage(
           { ...commit, repoOwner: orgName },
           Queue.qGhCommitFileChanges.queueUrl
-        )
-      })
+        ))
     );
   } catch (error) {
     logger.error(JSON.stringify({ message: 'HISTORY_DATA_ERROR', error }));

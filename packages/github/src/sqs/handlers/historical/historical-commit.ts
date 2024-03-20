@@ -10,6 +10,7 @@ import { getOctokitResp } from '../../../util/octokit-response';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
+
 const installationAccessToken = await getInstallationAccessToken();
 const sqsClient = SQSClientGh.getInstance();
 const octokit = ghRequest.request.defaults({

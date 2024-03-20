@@ -15,7 +15,7 @@ const getOrganizationData = async (
   return formattedUserData;
 };
 
-//Not being used
+// Not being used
 // export async function getOrganizationName(
 //   orgName: string
 // ): Promise<Github.Type.Organization> {
@@ -23,5 +23,5 @@ const getOrganizationData = async (
 // }
 
 export async function getOrganizationById(orgId: string): Promise<Github.Type.Organization> {
-  return await getOrganizationData('id', orgId);
+  return getOrganizationData('id', orgId);
 }

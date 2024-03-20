@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import { transpileSchema } from '@middy/validator/transpile';
-import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
@@ -11,7 +11,6 @@ import { getGitRepoSchema } from './validations';
 const esClient = ElasticSearchClientGh.getInstance();
 async function fetchReposData(
   repoIds: string[],
-  esClient: ElasticSearchClientGh,
   gitRepoName: string,
   page: number,
   size: number
@@ -58,7 +57,7 @@ const gitRepos = async function getRepoData(
   const size = Number(event?.queryStringParameters?.size ?? 10);
   let response: IRepo[] = [];
   try {
-    response = await fetchReposData(repoIds, esClient, gitRepoName, page, size);
+    response = await fetchReposData(repoIds,gitRepoName, page, size);
 
     logger.info({ level: 'info', message: 'github repo data', data: response });
   } catch (error) {

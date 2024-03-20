@@ -10,7 +10,10 @@ const esClientObj = ElasticSearchClientGh.getInstance();
 const sqsClient = SQSClientGh.getInstance();
 
 async function deletePrevDependencies(repoId: string): Promise<void> {
-  const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`)).toJSON();
+  const matchQry = esb
+    .requestBodySearch()
+    .query(esb.matchQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`))
+    .toJSON();
   const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
 
   await esClientObj.updateByQuery(Github.Enums.IndexName.GitRepoLibrary, matchQry, script.toJSON());

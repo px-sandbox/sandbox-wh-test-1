@@ -1,10 +1,10 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { logProcessToRetry } from '../../../util/retry-process';
-import { RepositoryProcessor } from '../../../processors/repo';
 import async from 'async';
 import { Github } from 'abstraction';
+import { logProcessToRetry } from '../../../util/retry-process';
+import { RepositoryProcessor } from '../../../processors/repo';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   try {

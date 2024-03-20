@@ -5,9 +5,9 @@ import { Queue } from 'sst/node/queue';
 import { OctokitResponse } from '@octokit/types';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
-import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
+import { logProcessToRetry } from '../../../util/retry-process';
 
 const sqsClient = SQSClientGh.getInstance();
 const installationAccessToken = await getInstallationAccessToken();

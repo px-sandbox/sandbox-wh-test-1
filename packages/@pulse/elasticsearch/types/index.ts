@@ -1,4 +1,4 @@
-import { Client, estypes } from '@elastic/elasticsearch';
+import { estypes } from '@elastic/elasticsearch';
 
 export type SearchResponse<T> = estypes.SearchResponse<T>;
 export type EqlHits = estypes.EqlHits;

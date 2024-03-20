@@ -1,5 +1,5 @@
 import { ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
@@ -40,12 +40,10 @@ const updateMergeCommit = async (event: APIGatewayProxyEvent): Promise<APIGatewa
       const commitData = await getCommits(repo.id);
       if (commitData.length > 0) {
         await Promise.all(
-          commitData.map(async (commit: Github.Type.Commits) => {
-            return sqsClient.sendMessage(
+          commitData.map(async (commit: Github.Type.Commits) => sqsClient.sendMessage(
               { ...commit, repoName: repo.name, repoOwner },
               Queue.qUpdateMergeCommit.queueUrl
-            );
-          })
+            ))
         );
 
         return responseParser

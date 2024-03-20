@@ -71,7 +71,7 @@ async function fetchDDRecords(
   return resObj;
 }
 
-const repoLibQuery = async (repoIds:string[],searchString:string,counter:number): Promise<any> => {
+const repoLibsQuery = async (repoIds:string[],searchString:string,counter:number): Promise<any> => {
   const repoLibQuery = esb
     .requestBodySearch()
     .source(['body.libName'])
@@ -131,7 +131,7 @@ async function getESVersionUpgradeData(
   let repoLibs; 
 
   do {
-    repoLibs = await repoLibQuery(repoIds, searchString, counter);
+    repoLibs = await repoLibsQuery(repoIds, searchString, counter);
     if (repoLibs?.length) {
       repoLibData.push(...repoLibs);
       counter += 1;

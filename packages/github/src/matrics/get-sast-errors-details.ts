@@ -133,7 +133,44 @@ async function getRepoSastErrorsQuery(
   logger.info('getRepoSastErrorsFinalMatrics.query', query);
   return query;
 }
+/* eslint-disable no-await-in-loop */
+export async function getRepoNames(repoIds: string[]): Promise<Github.Type.RepoNameType[]> {
+  const repoNamesArr: Github.Type.RepoNameType[] = []; // array to store repoNames data
+  let counter2 = 1; // counter for the loop to fetch data from elastic search
+  let repoNames; // variable to store fetched-formatted-data from elastic search inside loop
 
+  // we will fetch data from elastic search continuously, until we get empty array, to get all records
+  try {
+    do {
+      const repoNamesQuery = esb
+        .requestBodySearch()
+        .size(100)
+        .from(100 * (counter2 - 1))
+        .query(
+          esb
+            .boolQuery()
+            .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
+            .minimumShouldMatch(1)
+        )
+        .toJSON();
+      const repoNamesData = await esClientObj.search(
+        Github.Enums.IndexName.GitRepo,
+        repoNamesQuery
+      );
+
+      repoNames = await searchedDataFormator(repoNamesData.body);
+
+      if (repoNames?.length) {
+        repoNamesArr.push(...repoNames);
+        counter2 += 1;
+      }
+    } while (repoNames?.length);
+  } catch (err) {
+    logger.error('getSastErrorDetails.getRepoNames.error', err);
+    throw err;
+  }
+  return repoNamesArr;
+}
 /* eslint-disable max-lines-per-function */
 // Main Function
 export async function getRepoSastErrors(
@@ -194,41 +231,4 @@ export async function getRepoSastErrors(
   }
 }
 
-/* eslint-disable no-await-in-loop */
-export async function getRepoNames(repoIds: string[]): Promise<Github.Type.RepoNameType[]> {
-  const repoNamesArr: Github.Type.RepoNameType[] = []; // array to store repoNames data
-  let counter2 = 1; // counter for the loop to fetch data from elastic search
-  let repoNames; // variable to store fetched-formatted-data from elastic search inside loop
 
-  // we will fetch data from elastic search continuously, until we get empty array, to get all records
-  try {
-    do {
-      const repoNamesQuery = esb
-        .requestBodySearch()
-        .size(100)
-        .from(100 * (counter2 - 1))
-        .query(
-          esb
-            .boolQuery()
-            .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
-            .minimumShouldMatch(1)
-        )
-        .toJSON();
-      const repoNamesData = await esClientObj.search(
-        Github.Enums.IndexName.GitRepo,
-        repoNamesQuery
-      );
-
-      repoNames = await searchedDataFormator(repoNamesData.body);
-
-      if (repoNames?.length) {
-        repoNamesArr.push(...repoNames);
-        counter2 += 1;
-      }
-    } while (repoNames?.length);
-  } catch (err) {
-    logger.error('getSastErrorDetails.getRepoNames.error', err);
-    throw err;
-  }
-  return repoNamesArr;
-}

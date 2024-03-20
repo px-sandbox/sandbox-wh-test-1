@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { OctokitResponse } from '@octokit/types';
 import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
@@ -8,11 +9,12 @@ import { v4 as uuid } from 'uuid';
 import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { mappingPrefixes } from '../constant/config';
 import { getInstallationAccessToken } from '../util/installation-access-token';
-import { getWorkingTime } from '../util/timezone-calculation';
 import { getOctokitResp } from '../util/octokit-response';
-import { ghRequest } from './request-default';
+import { getWorkingTime } from '../util/timezone-calculation';
 import { getPullRequestById } from './get-pull-request';
 import { getTimezoneOfUser } from './get-user-timezone';
+import { ghRequest } from './request-default';
+
 // Get token to pass into header of Github Api call
 async function getGithubApiToken(): Promise<string> {
   const installationAccessToken = await getInstallationAccessToken();

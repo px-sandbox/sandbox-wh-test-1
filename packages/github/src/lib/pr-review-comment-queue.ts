@@ -1,9 +1,9 @@
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { getPullRequestById } from './get-pull-request';
 import { v4 as uuid } from 'uuid';
+import { getPullRequestById } from './get-pull-request';
 
 const sqsClient = SQSClientGh.getInstance();
 export async function pRReviewCommentOnQueue(

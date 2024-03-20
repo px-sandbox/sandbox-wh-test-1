@@ -4,7 +4,7 @@ import { IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import esb, { Query, Script } from 'elastic-builder';
-import { processGraphInterval } from 'src/util/process-graph-intervals';
+import { processGraphInterval } from '../util/process-graph-intervals';
 import { getWeekDaysCount } from '../util/weekend-calculations';
 
 const esClientObj = ElasticSearchClientGh.getInstance();
@@ -58,7 +58,7 @@ const getGraphDataQuery = async (
   logger.info('LINE_OF_CODES_GRAPH_ESB_QUERY', linesOfCodeGraphQuery);
   return linesOfCodeGraphQuery;
 };
-const getHeadlineQuery = async (startDate: string,endDate:string, repoIds:string[]) => {
+const getHeadlineQuery = async (startDate: string,endDate:string, repoIds:string[]):Promise<object> => {
   const query = esb
     .requestBodySearch()
     .query(

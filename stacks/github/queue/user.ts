@@ -1,7 +1,7 @@
 import { Stack } from 'aws-cdk-lib';
 import { Queue, use } from 'sst/constructs';
-import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
+import { GithubTables } from '../../type/tables';
 
 export function initializeUserQueue(
   stack: Stack,

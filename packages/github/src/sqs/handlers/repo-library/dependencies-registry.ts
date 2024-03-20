@@ -1,4 +1,4 @@
-import { SQSClient, SQSClientGh } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import axios from 'axios';

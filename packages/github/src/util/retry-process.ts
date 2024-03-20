@@ -1,7 +1,7 @@
-import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { DynamoDbDocClientGh } from '@pulse/dynamodb';
 import { SQSRecord } from 'aws-lambda';
-import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
+import { v4 as uuid } from 'uuid';
 import { RetryTableMapping } from '../model/retry-table-mapping';
 
 const dynamodbClient = DynamoDbDocClientGh.getInstance();
