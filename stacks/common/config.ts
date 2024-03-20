@@ -1,6 +1,8 @@
 import { StackContext, Config, Runtime } from 'sst/constructs';
 
-export const commonConfig = ({ stack }: StackContext): {
+export const commonConfig = ({
+  stack,
+}: StackContext): {
   OPENSEARCH_NODE: Config.Secret;
   OPENSEARCH_USERNAME: Config.Secret;
   OPENSEARCH_PASSWORD: Config.Secret;
@@ -18,6 +20,7 @@ export const commonConfig = ({ stack }: StackContext): {
   AVAILABLE_PROJECT_KEYS: Config.Secret;
   PROJECT_DELETION_AGE: Config.Secret;
   NODE_VERSION: Runtime;
+  REQUEST_TIMEOUT: Config.Secret;
 } => ({
   OPENSEARCH_NODE: new Config.Secret(stack, 'OPENSEARCH_NODE'),
   OPENSEARCH_USERNAME: new Config.Secret(stack, 'OPENSEARCH_USERNAME'),
@@ -39,5 +42,7 @@ export const commonConfig = ({ stack }: StackContext): {
   GIT_ORGANIZATION_ID: new Config.Secret(stack, 'GIT_ORGANIZATION_ID'),
 
   // Runtime Node version
-  NODE_VERSION: "nodejs18.x",
+  NODE_VERSION: 'nodejs18.x',
+
+  REQUEST_TIMEOUT: new Config.Secret(stack, 'REQUEST_TIMEOUT'),
 });

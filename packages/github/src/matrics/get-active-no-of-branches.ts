@@ -1,50 +1,65 @@
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
-import { esbDateHistogramInterval } from '../constant/config';
+import esb from 'elastic-builder';
+import { processGraphInterval } from '../util/process-graph-intervals';
 
-function processGraphInterval(
-  intervals: string,
+const esClientObj = ElasticSearchClientGh.getInstance();
+
+const getGraphDataQuery = async (
   startDate: string,
-  endDate: string
-): esb.DateHistogramAggregation {
-  // By default graph interval is day
-  let graphIntervals: esb.DateHistogramAggregation;
-  switch (intervals) {
-    case esbDateHistogramInterval.day:
-    case esbDateHistogramInterval.month:
-    case esbDateHistogramInterval.year:
-      graphIntervals = esb
-        .dateHistogramAggregation('commentsPerDay')
-        .field('body.createdAt')
-        .format('yyyy-MM-dd')
-        .calendarInterval(intervals)
-        .extendedBounds(startDate, endDate)
-        .minDocCount(0);
-      break;
-    case esbDateHistogramInterval['2d']:
-    case esbDateHistogramInterval['3d']:
-      graphIntervals = esb
-        .dateHistogramAggregation('commentsPerDay')
-        .field('body.createdAt')
-        .format('yyyy-MM-dd')
-        .fixedInterval(intervals)
-        .extendedBounds(startDate, endDate)
-        .minDocCount(0);
-      break;
-    default:
-      graphIntervals = esb
-        .dateHistogramAggregation('commentsPerDay')
-        .field('body.createdAt')
-        .format('yyyy-MM-dd')
-        .calendarInterval(esbDateHistogramInterval.month)
-        .extendedBounds(startDate, endDate)
-        .minDocCount(0);
-  }
-  return graphIntervals;
+  endDate: string,
+  intervals: string,
+  repoIds: string[]
+):Promise<object> => {
+  const activeBranchGraphQuery = esb.requestBodySearch().size(0);
+  activeBranchGraphQuery.query(
+    esb
+      .boolQuery()
+      .must([
+        esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
+        esb.termsQuery('body.repoId', repoIds),
+      ])
+  );
+
+  const graphIntervals = processGraphInterval(intervals, startDate, endDate);
+
+  activeBranchGraphQuery
+    .agg(
+      graphIntervals
+        .agg(esb.valueCountAggregation('repo_count', 'body.repoId'))
+        .agg(esb.sumAggregation('branch_count', 'body.branchesCount'))
+        .agg(
+          esb
+            .bucketScriptAggregation('combined_avg')
+            .bucketsPath({ branchCount: 'branch_count', repoCount: 'repo_count' })
+            .gapPolicy('insert_zeros')
+            .script('params.branchCount == 0 ? 0 :(params.branchCount / params.repoCount )')
+        )
+    )
+    .toJSON();
+
+  logger.info('ACTIVE_BRANCHES_GRAPH_ESB_QUERY', activeBranchGraphQuery);
+  return activeBranchGraphQuery;
+};
+const getHeadlineQuery = async (startDate: string, endDate: string, repoIds: string[]): Promise<object> => { 
+  const activeBranchesAvgQuery = await esb.requestBodySearch().size(0);
+  activeBranchesAvgQuery
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
+          esb.termsQuery('body.repoId', repoIds),
+        ])
+    )
+    .agg(esb.valueCountAggregation('repo_count', 'body.repoId'))
+    .agg(esb.sumAggregation('branch_count', 'body.branchesCount'))
+    .size(0)
+    .toJSON();
+  logger.info('ACTIVE_BRANCHES_AVG_ESB_QUERY', activeBranchesAvgQuery);
+  return activeBranchesAvgQuery;
 }
 export async function activeBranchGraphData(
   startDate: string,
@@ -53,39 +68,7 @@ export async function activeBranchGraphData(
   repoIds: string[]
 ): Promise<{ date: string; value: number }[]> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const activeBranchGraphQuery = esb.requestBodySearch().size(0);
-    activeBranchGraphQuery.query(
-      esb
-        .boolQuery()
-        .must([
-          esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-          esb.termsQuery('body.repoId', repoIds),
-        ])
-    );
-
-    const graphIntervals = processGraphInterval(intervals, startDate, endDate);
-
-    activeBranchGraphQuery
-      .agg(
-        graphIntervals
-          .agg(esb.valueCountAggregation('repo_count', 'body.repoId'))
-          .agg(esb.sumAggregation('branch_count', 'body.branchesCount'))
-          .agg(
-            esb
-              .bucketScriptAggregation('combined_avg')
-              .bucketsPath({ branchCount: 'branch_count', repoCount: 'repo_count' })
-              .gapPolicy('insert_zeros')
-              .script('params.branchCount == 0 ? 0 :(params.branchCount / params.repoCount )')
-          )
-      )
-      .toJSON();
-
-    logger.info('ACTIVE_BRANCHES_GRAPH_ESB_QUERY', activeBranchGraphQuery);
+    const activeBranchGraphQuery = await getGraphDataQuery(startDate, endDate, intervals, repoIds);
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitActiveBranches,
@@ -106,33 +89,13 @@ export async function activeBranchesAvg(
   repoIds: string[]
 ): Promise<{ value: number } | null> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const activeBranchesAvgQuery = await esb.requestBodySearch().size(0);
-    activeBranchesAvgQuery
-      .query(
-        esb
-          .boolQuery()
-          .must([
-            esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-            esb.termsQuery('body.repoId', repoIds),
-          ])
-      )
-      .agg(esb.valueCountAggregation('repo_count', 'body.repoId'))
-      .agg(esb.sumAggregation('branch_count', 'body.branchesCount'))
-      .size(0)
-      .toJSON();
-    logger.info('ACTIVE_BRANCHES_AVG_ESB_QUERY', activeBranchesAvgQuery);
-    const data = await esClientObj.getClient().search({
-      index: Github.Enums.IndexName.GitActiveBranches,
-      body: activeBranchesAvgQuery,
-    });
-
-    const totalRepo = Number(data.body.aggregations.repo_count.value);
-    const totalBranchCount = Number(data.body.aggregations.branch_count.value);
+    const activeBranchesAvgQuery = await getHeadlineQuery(startDate, endDate, repoIds);
+    const data:any = await esClientObj.queryAggs(
+      Github.Enums.IndexName.GitActiveBranches,
+      activeBranchesAvgQuery
+    );
+    const totalRepo = Number(data.buckets.repo_count.value);
+    const totalBranchCount = Number(data.bucket.branch_count.value);
     return { value: parseFloat((totalBranchCount === 0 ? 0 : totalBranchCount / totalRepo).toFixed(2)) };
   } catch (e) {
     logger.error('activeBranchesAvg.error', e);

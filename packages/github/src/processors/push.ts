@@ -1,5 +1,5 @@
-import moment from 'moment';
 import { Github } from 'abstraction';
+import moment from 'moment';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
@@ -13,9 +13,11 @@ export class PushProcessor extends DataProcessor<
     super(data);
   }
   public async processor(): Promise<Github.Type.Push> {
-    const parentId: string = await this.getParentId(
-      `${mappingPrefixes.commit}_${this.ghApiData.id}`
-    );
+    let parentId = await this.getParentId(`${mappingPrefixes.push}_${this.ghApiData.id}`);
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(parentId, `${mappingPrefixes.push}_${this.ghApiData.id}`);
+    }
     const commitsArr: Array<string> = this.ghApiData.commits.map(
       (data: { id: string }) => `${mappingPrefixes.commit}_${data.id}`
     );
@@ -28,7 +30,7 @@ export class PushProcessor extends DataProcessor<
     ];
     const createdAt = new Date().toISOString();
     const orgObj = {
-      id: parentId || uuid(),
+      id: parentId,
       body: {
         id: `${mappingPrefixes.push}_${this.ghApiData.id}`,
         githubPushId: `${this.ghApiData.id}`,

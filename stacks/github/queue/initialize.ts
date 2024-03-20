@@ -14,6 +14,7 @@ import { initializeBranchCounterQueue } from './branch-counter';
 import { initializeRepoLibraryQueue } from './repo-library';
 import { initializeRepoSastErrorQueue } from './repo-sast-errors';
 import { initializeSecurityScanQueue } from './update-security-scan';
+import { initializeIndexerQueue } from './indexer';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeQueue(
@@ -21,18 +22,17 @@ export function initializeQueue(
   githubDDb: GithubTables,
   buckets: { sastErrorsBucket: Bucket; versionUpgradeBucket: Bucket }
 ): { [key: string]: Queue } {
-  const [commitFormatDataQueue, commitIndexDataQueue, commitFileChanges, updateMergeCommit] =
-    initializeCommitQueue(stack, githubDDb);
-  const [prFormatDataQueue, prIndexDataQueue] = initializePrQueue(stack, githubDDb);
-  const [
-    prReviewCommentFormatDataQueue,
-    prReviewCommentIndexDataQueue,
-    prReviewFormatDataQueue,
-    prReviewIndexDataQueue,
-    prReviewCommentMigrationQueue,
-  ] = initializePrReviewAndCommentsQueue(stack, githubDDb, prIndexDataQueue);
-  const [branchFormatDataQueue, branchIndexDataQueue] = initializeBranchQueue(stack, githubDDb);
-  const [ghCopilotFormatDataQueue, ghCopilotIndexDataQueue] = initializeCopilotQueue(stack);
+  const indexerQueue = initializeIndexerQueue(stack, githubDDb);
+  const [commitFormatDataQueue, commitFileChanges, updateMergeCommit] = initializeCommitQueue(
+    stack,
+    githubDDb,
+    indexerQueue
+  );
+  const prFormatDataQueue = initializePrQueue(stack, githubDDb, indexerQueue);
+  const [prReviewCommentFormatDataQueue, prReviewFormatDataQueue, prReviewCommentMigrationQueue] =
+    initializePrReviewAndCommentsQueue(stack, githubDDb, indexerQueue);
+  const branchFormatDataQueue = initializeBranchQueue(stack, githubDDb, indexerQueue);
+  const ghCopilotFormatDataQueue = initializeCopilotQueue(stack, indexerQueue);
   const [
     collectCommitsData,
     collectPRCommitsData,
@@ -40,25 +40,23 @@ export function initializeQueue(
     collectPRReviewCommentsData,
     collectReviewsData,
     historicalBranch,
-    collecthistoricalPrByumber,
+    collecthistoricalPrBynumber,
   ] = initializeMigrationQueue(stack, githubDDb, [
     prFormatDataQueue,
     prReviewFormatDataQueue,
     prReviewCommentFormatDataQueue,
     commitFormatDataQueue,
   ]);
-  const [pushFormatDataQueue, pushIndexDataQueue] = initializePushQueue(stack, githubDDb);
-  const [repoFormatDataQueue, repoIndexDataQueue, afterRepoSaveQueue] = initializeRepoQueue(
+  const pushFormatDataQueue = initializePushQueue(stack, githubDDb, indexerQueue);
+  const [repoFormatDataQueue, afterRepoSaveQueue] = initializeRepoQueue(
     stack,
     githubDDb,
     branchFormatDataQueue,
-    branchIndexDataQueue
+    indexerQueue
   );
-  const [userFormatDataQueue, userIndexDataQueue] = initializeUserQueue(stack, githubDDb);
-  const [branchCounterFormatterQueue, branchCounterIndexQueue] = initializeBranchCounterQueue(
-    stack,
-    githubDDb
-  );
+
+  const userFormatDataQueue = initializeUserQueue(stack, githubDDb, indexerQueue);
+  const branchCounterFormatterQueue = initializeBranchCounterQueue(stack, githubDDb, indexerQueue);
   const [
     depRegistryQueue,
     currentDepRegistryQueue,
@@ -69,34 +67,28 @@ export function initializeQueue(
 
   const repoSastErrors = initializeRepoSastErrorQueue(stack, buckets.sastErrorsBucket, githubDDb);
   const [scansSaveQueue] = initializeSecurityScanQueue(stack, githubDDb);
+
+  // Bindings for indexerQueue
+  indexerQueue.bind([afterRepoSaveQueue]);
+
   return {
     branchFormatDataQueue,
-    branchIndexDataQueue,
     ghCopilotFormatDataQueue,
-    ghCopilotIndexDataQueue,
     collectCommitsData,
     collectPRCommitsData,
     collectPRData,
     collectPRReviewCommentsData,
     collectReviewsData,
     historicalBranch,
-    collecthistoricalPrByumber,
+    collecthistoricalPrBynumber,
     pushFormatDataQueue,
-    pushIndexDataQueue,
     repoFormatDataQueue,
-    repoIndexDataQueue,
     afterRepoSaveQueue,
     userFormatDataQueue,
-    userIndexDataQueue,
-    prIndexDataQueue,
-    prReviewCommentIndexDataQueue,
-    prReviewIndexDataQueue,
-    commitIndexDataQueue,
     commitFileChanges,
     commitFormatDataQueue,
     prFormatDataQueue,
     branchCounterFormatterQueue,
-    branchCounterIndexQueue,
     prReviewCommentFormatDataQueue,
     prReviewFormatDataQueue,
     depRegistryQueue,
@@ -108,5 +100,6 @@ export function initializeQueue(
     repoLibS3Queue,
     updateMergeCommit,
     prReviewCommentMigrationQueue,
+    indexerQueue,
   };
 }

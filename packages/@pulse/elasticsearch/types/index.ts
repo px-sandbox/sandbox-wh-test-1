@@ -1,4 +1,4 @@
-import { Client, estypes } from '@elastic/elasticsearch';
+import { estypes } from '@elastic/elasticsearch';
 
 export type SearchResponse<T> = estypes.SearchResponse<T>;
 export type EqlHits = estypes.EqlHits;
@@ -10,7 +10,6 @@ export type ElasticSearchDocument = {
 };
 
 export interface IElasticSearchClient {
-  getClient(): Client;
   putDocument(index: string, document: ElasticSearchDocument): Promise<void>;
 }
 

@@ -1,34 +1,27 @@
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
+import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
 
-export async function getOrganization(
-    orgName: string
-): Promise<{ _id: string } & Github.Type.Organization> {
-    const esClientObj = new ElasticSearchClient({
-        host: Config.OPENSEARCH_NODE,
-        username: Config.OPENSEARCH_USERNAME ?? '',
-        password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const matchQry = esb.matchQuery('body.name', orgName).toJSON();
-    const orgData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitOrganization, matchQry);
-    const [formattedUserData] = await searchedDataFormator(orgData);
+const esClientObj = ElasticSearchClientGh.getInstance();
 
-    return formattedUserData;
-}
+const getOrganizationData = async (
+  key: string,
+  value: string
+): Promise<Github.Type.Organization> => {
+  const matchQry = esb.requestBodySearch().query(esb.matchQuery(`body.${key}`, value)).toJSON();
+  const orgData = await esClientObj.search(Github.Enums.IndexName.GitOrganization, matchQry);
+  const [formattedUserData] = await searchedDataFormator(orgData);
+  return formattedUserData;
+};
 
-export async function getOrganizationById(
-    orgId: string
-): Promise<{ name: string }> {
-    const esClientObj = new ElasticSearchClient({
-        host: Config.OPENSEARCH_NODE,
-        username: Config.OPENSEARCH_USERNAME ?? '',
-        password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const matchQry = esb.matchQuery('body.id', orgId).toJSON();
-    const orgData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitOrganization, matchQry);
-    const [formattedUserData] = await searchedDataFormator(orgData);
-    return formattedUserData;
+// Not being used
+// export async function getOrganizationName(
+//   orgName: string
+// ): Promise<Github.Type.Organization> {
+//   return  await getOrganizationData('name', orgName);
+// }
+
+export async function getOrganizationById(orgId: string): Promise<Github.Type.Organization> {
+  return getOrganizationData('id', orgId);
 }

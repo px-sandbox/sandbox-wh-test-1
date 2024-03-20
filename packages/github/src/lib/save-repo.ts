@@ -1,25 +1,18 @@
-import esb from 'elastic-builder';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { SQSClient } from '@pulse/event-handler';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
+import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
-import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../util/response-formatter';
-import { ParamsMapping } from '../model/params-mapping';
 
+const esClientObj = ElasticSearchClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
 export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<void> {
   try {
     const updatedData = { ...data };
-    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
-    const userData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitRepo, matchQry);
+    const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.id', data.body.id)).toJSON();
+    const userData = await esClientObj.search(Github.Enums.IndexName.GitRepo, matchQry);
     const [formattedData] = await searchedDataFormator(userData);
     if (formattedData) {
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
@@ -30,13 +23,11 @@ export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<
     await esClientObj.putDocument(Github.Enums.IndexName.GitRepo, updatedData);
     const lastAction = updatedData.body.action.slice(-1).pop();
     if (lastAction && lastAction.action !== 'deleted') {
-      await new SQSClient().sendMessage(updatedData, Queue.qGhAfterRepoSave.queueUrl);
+      await sqsClient.sendMessage(updatedData, Queue.qGhAfterRepoSave.queueUrl);
     }
     logger.info('saveRepoDetails.successful');
   } catch (error: unknown) {
-    logger.error('saveRepoDetails.error', {
-      error,
-    });
+    logger.error(`saveRepoDetails.error, ${error}`);
     throw error;
   }
 }

@@ -252,12 +252,18 @@ importers:
       '@pulse/event-handler':
         specifier: ^1.0.0
         version: link:../@pulse/event-handler
+      '@types/async':
+        specifier: ^3.2.0
+        version: 3.2.23
       '@types/lodash':
         specifier: ^4.14.201
         version: 4.14.201
       abstraction:
         specifier: workspace:^1.0.0
         version: link:../abstraction
+      async:
+        specifier: ^3.2.5
+        version: 3.2.5
       aws-lambda:
         specifier: ^1.0.7
         version: 1.0.7

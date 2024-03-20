@@ -1,21 +1,16 @@
 /* eslint-disable no-await-in-loop */
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { Github, Other } from 'abstraction';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
-import { Github, Other } from 'abstraction';
 import moment from 'moment';
-import { v4 as uuid } from 'uuid';
 import { Queue } from 'sst/node/queue';
-import { logProcessToRetry } from '../../util/retry-process';
+import { v4 as uuid } from 'uuid';
 import { searchedDataFormator } from '../../util/response-formatter';
+import { logProcessToRetry } from '../../util/retry-process';
 
-const esClient = new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClient = ElasticSearchClientGh.getInstance();
 
 /**
  * Creates a query object for scanning security updates.
@@ -24,20 +19,22 @@ const esClient = new ElasticSearchClient({
  * @param date - The date of the scan.
  * @returns The query object.
  */
-function createScanQuery(repoId: string, branch: string, date: string): any {
-    return esb
-        .requestBodySearch()
-        .query(
-            esb
-                .boolQuery()
-                .must([
-                    esb.termQuery('body.repoId', repoId),
-                    esb.termQuery('body.branch', branch),
-                    esb.termQuery('body.isDeleted', false),
-                    esb.termQuery('body.date', date),
-                ])
-        )
-        .toJSON();
+function createScanQuery(repoId: string, branch: string, date: string,from:number,size:number): any {
+  return esb
+    .requestBodySearch()
+    .size(size)
+    .from (from)
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termQuery('body.repoId', repoId),
+          esb.termQuery('body.branch', branch),
+          esb.termQuery('body.isDeleted', false),
+          esb.termQuery('body.date', date),
+        ])
+    )
+    .toJSON();
 }
 
 /**
@@ -46,70 +43,67 @@ function createScanQuery(repoId: string, branch: string, date: string): any {
  * @returns An array of formatted scan data objects.
  */
 function formatScansForBulkInsert(data: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]): {
-    _id: string;
-    body: Other.Type.HitBody;
+  _id: string;
+  body: Other.Type.HitBody;
 }[] {
-    // modifying data to be easily sent for ElasticSearch-bulk-insert
-    return data.map((dataItem) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { _id, date, createdAt, ...rest } = dataItem;
-        return {
-            _id: uuid(),
-            body: {
-                ...rest,
-                date: moment().format('YYYY-MM-DD'),
-                createdAt: moment().toISOString(),
-            },
-        };
-    });
+  // modifying data to be easily sent for ElasticSearch-bulk-insert
+  return data.map((dataItem) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _id, date, createdAt, ...rest } = dataItem;
+    return {
+      _id: uuid(),
+      body: {
+        ...rest,
+        date: moment().format('YYYY-MM-DD'),
+        createdAt: moment().toISOString(),
+      },
+    };
+  });
 }
 
 async function getScans(
-    repoId: string,
-    branch: string,
-    date: string,
-    allScans = false
+  repoId: string,
+  branch: string,
+  date: string,
+  allScans = false
 ): Promise<(Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]> {
+  try {
+    logger.info(`Fetching scans for repoId: ${repoId}, branch: ${branch} and date: ${date}`);
 
-    try {
-        logger.info(`Fetching scans for repoId: ${repoId}, branch: ${branch} and date: ${date}`);
+    const limit = 100;
+    const records = [];
+    let from = 0;
+    let result = [];
 
-        const limit = 100;
-        const records = [];
-        let from = 0;
-        let result = [];
+    
 
-        const { query } = createScanQuery(repoId, branch, date);
+    do {
+      result = [];
+      const  query  = createScanQuery(repoId, branch, date, from, limit);
+      const scans = await esClient.search(
+        Github.Enums.IndexName.GitRepoSastErrors,
+        query
+      );
 
-        do {
-            result = [];
-            const scans = await esClient.searchWithEsb(
-                Github.Enums.IndexName.GitRepoSastErrors,
-                query,
-                from,
-                limit
-            );
+      result = await searchedDataFormator(scans);
+      from += limit;
+      records.push(...result);
+    } while (allScans && result.length === limit);
 
-            result = await searchedDataFormator(scans);
-            from += limit;
-            records.push(...result);
-        } while (allScans && result.length === limit);
+    logger.info(
+      `Scans found for repoId: ${repoId}, branch: ${branch} and date: ${date} | Records Length: ${records.length}`
+    );
 
-        logger.info(
-            `Scans found for repoId: ${repoId}, branch: ${branch} and date: ${date} | Records Length: ${records.length}`
-        );
-
-        logger.info(`Scans found for repoId: ${repoId}, branch: ${branch} and date: ${date} | 
+    logger.info(`Scans found for repoId: ${repoId}, branch: ${branch} and date: ${date} | 
                     Records Length: ${records.length}`);
 
-
-        return records;
-    } catch (error) {
-        logger.error(
-            `Error while fetching scans for repoId: ${repoId}, branch: ${branch} and date: ${date}`
-        );
-        throw error;
-    }
+    return records;
+  } catch (error) {
+    logger.error(
+      `Error while fetching scans for repoId: ${repoId}, branch: ${branch} and date: ${date}`
+    );
+    throw error;
+  }
 }
 
 /**
@@ -118,50 +112,50 @@ async function getScans(
  * @returns A Promise that resolves to void.
  */
 export const handler = async function updateSecurityScans(event: SQSEvent): Promise<void> {
-    logger.info(`Records Length: ${event?.Records?.length}`);
+  logger.info(`Records Length: ${event?.Records?.length}`);
 
-    for (const record of event.Records) {
-        try {
-            const { repoId, branch, currDate }: { repoId: string; branch: string; currDate: string } =
-                JSON.parse(record.body);
+  for (const record of event.Records) {
+    try {
+      const { repoId, branch, currDate }: { repoId: string; branch: string; currDate: string } =
+        JSON.parse(record.body);
 
-            const todaysScans = await getScans(repoId, branch, currDate, false);
+      const todaysScans = await getScans(repoId, branch, currDate, false);
 
-            // will only update scans for today if no scans found for today
-            if (todaysScans.length > 0) {
-                logger.info(
-                    `Scans found for today (${currDate}) for repoId: ${repoId} and branch: ${branch}`
-                );
-                return;
-            }
+      // will only update scans for today if no scans found for today
+      if (todaysScans.length > 0) {
+        logger.info(
+          `Scans found for today (${currDate}) for repoId: ${repoId} and branch: ${branch}`
+        );
+        return;
+      }
 
-            // extracting yesterday's scans to be copied into today
-            const yesterDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
+      // extracting yesterday's scans to be copied into today
+      const yesterDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
 
-            const yesterdayScans = await getScans(repoId, branch, yesterDate, true);
+      const yesterdayScans = await getScans(repoId, branch, yesterDate, true);
 
-            // updating scans for today if yesterday's scans found
-            if (yesterdayScans.length === 0) {
-                logger.info(
-                    `No scans found for Yesterday (${yesterDate}) for repoId: ${repoId} and branch: ${branch}`
-                );
-                return;
-            }
+      // updating scans for today if yesterday's scans found
+      if (yesterdayScans.length === 0) {
+        logger.info(
+          `No scans found for Yesterday (${yesterDate}) for repoId: ${repoId} and branch: ${branch}`
+        );
+        return;
+      }
 
-            // formatting yesterday's scans
-            const updatedBody = formatScansForBulkInsert(yesterdayScans);
+      // formatting yesterday's scans
+      const updatedBody = formatScansForBulkInsert(yesterdayScans);
 
-            // bulk inserting scans for today
-            logger.info(`Updating scans for repoId: ${repoId}, branch: ${branch}`);
-            await esClient.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, updatedBody);
+      // bulk inserting scans for today
+      logger.info(`Updating scans for repoId: ${repoId}, branch: ${branch}`);
+      await esClient.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, updatedBody);
 
-            logger.info(
-                `Successfully copied scans for repoId: ${repoId}, branch: ${branch} from ${yesterDate} to ${currDate}`
-            );
-        } catch (error) {
-            // retrying the update security scans process if any error occurs
-            await logProcessToRetry(record, Queue.qGhScansSave.queueUrl, error as Error);
-            logger.error('updateProductSecurityScans.error', error);
-        }
+      logger.info(
+        `Successfully copied scans for repoId: ${repoId}, branch: ${branch} from ${yesterDate} to ${currDate}`
+      );
+    } catch (error) {
+      // retrying the update security scans process if any error occurs
+      await logProcessToRetry(record, Queue.qGhScansSave.queueUrl, error as Error);
+      logger.error('updateProductSecurityScans.error', error);
     }
+  }
 };

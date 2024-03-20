@@ -25,7 +25,8 @@ function getEsClientObj(): ElasticSearchClient {
 
 function getJiraLink(orgName: string, projectKey: string, sprintId: number): string {
   return encodeURI(
-    `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=project = "${projectKey}" and sprint = ${sprintId} and labels in (FTP, FTF) ORDER BY created DESC`
+    `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=project =
+     "${projectKey}" and sprint = ${sprintId} and labels in (FTP, FTF) ORDER BY created DESC`
   );
 }
 

@@ -22,7 +22,7 @@ function initProcessRetryFunction(
     collectPRReviewCommentsData,
     collectReviewsData,
     historicalBranch,
-    collecthistoricalPrByumber,
+    collecthistoricalPrBynumber,
     pushFormatDataQueue,
     repoFormatDataQueue,
     afterRepoSaveQueue,
@@ -56,7 +56,7 @@ function initProcessRetryFunction(
       collectPRReviewCommentsData,
       collectReviewsData,
       historicalBranch,
-      collecthistoricalPrByumber,
+      collecthistoricalPrBynumber,
       pushFormatDataQueue,
       repoFormatDataQueue,
       afterRepoSaveQueue,
@@ -98,30 +98,33 @@ export function initializeFunctions(
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     NODE_VERSION,
+    REQUEST_TIMEOUT,
   } = use(commonConfig);
 
-  const {
-    ghCopilotFormatDataQueue,
-    ghCopilotIndexDataQueue,
-    branchCounterFormatterQueue,
-    masterLibraryQueue,
-  } = queuesForFunctions;
+  const { ghCopilotFormatDataQueue, branchCounterFormatterQueue, masterLibraryQueue } =
+    queuesForFunctions;
 
   const ghCopilotFunction = new Function(stack, 'fnGithubCopilot', {
     handler: 'packages/github/src/cron/github-copilot.handler',
     bind: [
       ghCopilotFormatDataQueue,
-      ghCopilotIndexDataQueue,
       GITHUB_APP_PRIVATE_KEY_PEM,
       GITHUB_APP_ID,
       GITHUB_SG_INSTALLATION_ID,
+      REQUEST_TIMEOUT,
     ],
     runtime: NODE_VERSION,
   });
 
   const ghBranchCounterFunction = new Function(stack, 'fnBranchCounter', {
     handler: 'packages/github/src/cron/branch-counter.handler',
-    bind: [OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, branchCounterFormatterQueue],
+    bind: [
+      OPENSEARCH_NODE,
+      OPENSEARCH_PASSWORD,
+      OPENSEARCH_USERNAME,
+      REQUEST_TIMEOUT,
+      branchCounterFormatterQueue,
+    ],
     runtime: NODE_VERSION,
   });
 

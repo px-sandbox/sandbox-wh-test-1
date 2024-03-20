@@ -1,13 +1,40 @@
-import { ElasticSearchClient, SearchResponse, Hit } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
+import {
+  Hit,
+  ElasticSearchClientGh
+} from '@pulse/elasticsearch';
+import { SQSClientGh } from '@pulse/event-handler';
+import { Github } from 'abstraction';
+import { APIGatewayProxyEvent } from 'aws-lambda';
+import { logger } from 'core';
 import esb from 'elastic-builder';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
-import { logger } from 'core';
-import { Github } from 'abstraction';
-import { SQSClient } from '@pulse/event-handler';
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { searchedDataFormator } from '../util/response-formatter';
 
+const esClient = ElasticSearchClientGh.getInstance();
+const sqsClient = SQSClientGh.getInstance();
+
+const getRepos = async (
+  pageNo: number,
+  perPage: number
+): Promise<Hit<{ body: Github.Type.Repository }>[]> => {
+  const query = esb
+    .requestBodySearch()
+    .size(perPage)
+    .from((pageNo - 1) * perPage)
+    .query(
+      esb
+        .boolQuery()
+        .should([
+          esb.termQuery('body.isDeleted', false),
+          esb.boolQuery().mustNot(esb.existsQuery('body.isDeleted')),
+        ])
+        .minimumShouldMatch(1)
+    )
+    .toJSON();
+  const data = await esClient.search(Github.Enums.IndexName.GitRepo, query);
+  return searchedDataFormator(data);
+};
 // get all repos from ES which are not deleted and send to SQS
 async function getReposAndSendToSQS(
   currentDate: string,
@@ -15,42 +42,11 @@ async function getReposAndSendToSQS(
   perPage = 100
 ): Promise<number> {
   try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-
-    const body = esb
-      .requestBodySearch()
-      .size(perPage)
-      .from((pageNo - 1) * perPage)
-      .query(
-        esb
-          .boolQuery()
-          .should([
-            esb.termQuery('body.isDeleted', false),
-            esb.boolQuery().mustNot(esb.existsQuery('body.isDeleted')),
-          ])
-          .minimumShouldMatch(1)
-      )
-      .toJSON();
-
-    const {
-      body: {
-        hits: { hits: repos },
-      },
-    } = (await esClient.getClient().search({
-      index: Github.Enums.IndexName.GitRepo,
-      body,
-    })) as { body: SearchResponse<{ body: Github.Type.Repository }> };
-
-    logger.info(`BODY: ${JSON.stringify(body)}`);
-
+    const repos = await getRepos(pageNo, perPage);
     await Promise.all(
       repos.map((repo: Hit<{ body: Github.Type.Repository }>) => {
         if (repo._source && repo._source.body) {
-          return new SQSClient().sendMessage(
+          return sqsClient.sendMessage(
             {
               repo: repo._source.body as Github.Type.Repository,
               date: currentDate,
@@ -90,7 +86,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     } while (processingCount === perPage);
 
     logger.info(
-      `getReposAndSendToSQS.handler.successfull for ${pageNo} pages at: ${new Date().toISOString()}`
+      `getReposAndSendToSQS.handler.successful for ${pageNo} pages at: ${new Date().toISOString()}`
     );
   } catch (error: unknown) {
     logger.error(`

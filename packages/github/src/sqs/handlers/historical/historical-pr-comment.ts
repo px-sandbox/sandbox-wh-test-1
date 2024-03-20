@@ -1,18 +1,22 @@
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { OctokitResponse } from '@octokit/types';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
-import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitResp } from '../../../util/octokit-response';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
+import { logProcessToRetry } from '../../../util/retry-process';
 
+const sqsClient = SQSClientGh.getInstance();
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
   headers: {
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
@@ -28,14 +32,14 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
   } = messageBody;
 
   try {
-    const commentsDataOnPr = await octokit(
+    const commentsDataOnPr = (await octokitRequestWithTimeout(
       `GET /repos/${owner.login}/${name}/pulls/${number}/comments?per_page=100&page=${page}`
-    );
+    )) as OctokitResponse<any>;
     const octokitRespData = getOctokitResp(commentsDataOnPr);
     let queueProcessed = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     queueProcessed = octokitRespData.map((comments: any) =>
-      new SQSClient().sendMessage(
+      sqsClient.sendMessage(
         {
           comment: comments,
           pullId: messageBody.id,

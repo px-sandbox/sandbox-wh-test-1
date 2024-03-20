@@ -1,9 +1,9 @@
 import { transpileSchema } from '@middy/validator/transpile';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import {
   IformatUserDataResponse,
   formatUserDataResponse,
@@ -11,25 +11,21 @@ import {
 } from '../util/response-formatter';
 import { getGitUserSchema } from './validations';
 
+const esClient = ElasticSearchClientGh.getInstance();
+
+const getGitUser = async (githubUserId: string): Promise<IformatUserDataResponse[]> => {
+  const query = esb.matchQuery('body.id', githubUserId).toJSON();
+  const data = await esClient.search(Github.Enums.IndexName.GitUsers, query);
+  const response = await searchedDataFormator(data);
+  return  response;
+};
 const githubUser = async function getUserData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const githubUserId: string = event?.pathParameters?.githubUserId || '';
-  let response: IformatUserDataResponse[] = [];
+   let response: IformatUserDataResponse[] = [];
   try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-
-    const data = await esClient.search(
-      Github.Enums.IndexName.GitUsers,
-      Github.Enums.SearchKey.GitUserId,
-      githubUserId
-    );
-
-    response = await searchedDataFormator(data);
+    response = await getGitUser(githubUserId);
     logger.info({ level: 'info', message: 'github user data', data: response });
   } catch (error) {
     logger.error('GET_GITHUB_USER_DETAILS', { error });

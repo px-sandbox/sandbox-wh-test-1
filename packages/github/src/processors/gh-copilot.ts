@@ -1,5 +1,5 @@
-import moment from 'moment';
 import { Github } from 'abstraction';
+import moment from 'moment';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';

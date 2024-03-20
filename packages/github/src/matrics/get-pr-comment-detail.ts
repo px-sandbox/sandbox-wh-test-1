@@ -1,15 +1,10 @@
-import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github, Other } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClientGh.getInstance();
 
 /**
  * Retrieves the repository names and organization name based on the provided parameters.
@@ -23,26 +18,22 @@ async function getRepoNamesAndOrg(
   orgId: string
 ): Promise<{ repoNames: Github.Type.RepoNamesResponse[]; orgname: string }> {
   // esb query to fetch repo name from ES
-  const repoNameQuery = esb.boolQuery().must(esb.termsQuery('body.id', repoIds));
-  const orgNameQuery = esb.boolQuery().must(esb.termQuery('body.id', orgId));
+  const repoNameQuery = esb
+    .requestBodySearch()
+    .source(['body.id', 'body.name'])
+    .size(repoIds.length)
+    .query(esb.boolQuery().must(esb.termsQuery('body.id', repoIds)));
+  const orgNameQuery = esb
+    .requestBodySearch()
+    .source(['body.name'])
+    .query(esb.boolQuery().must(esb.termQuery('body.id', orgId)));
 
   // Fetching reponame and orgname from ES
   const [unformattedRepoNames, unformattedOrgName] = await Promise.all([
-    esClientObj.searchWithEsb(
-      Github.Enums.IndexName.GitRepo,
-      repoNameQuery,
-      0,
-      100,
-      [],
-      ['body.id', 'body.name']
-    ),
-    esClientObj.searchWithEsb(
+    esClientObj.search(Github.Enums.IndexName.GitRepo, repoNameQuery),
+    esClientObj.search(
       Github.Enums.IndexName.GitOrganization,
-      orgNameQuery,
-      0,
-      10,
-      [],
-      ['body.name']
+      orgNameQuery
     ),
   ]);
 
@@ -86,26 +77,22 @@ export async function prCommentsDetailMetrics(
   try {
     // esb query to fetch pull request data
     const query = esb
-      .boolQuery()
+      .requestBodySearch()
+      .source(['body.title', 'body.pullNumber', 'body.reviewComments', 'body.repoId'])
+      .from((page - 1) * limit)
+      .size(limit)
+      .query(
+      esb.boolQuery()
       .must([
         esb.termsQuery('body.repoId', repoIds),
         esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-      ]);
-
-    // We are going to result based on the sort key and sort order
-    const sort = [`body.${sortKey}:${sortOrder}`];
-
-    // We are only going to fetch limited number of fields
-    const source = ['body.title', 'body.pullNumber', 'body.reviewComments', 'body.repoId'];
+      ])).
+      sort(esb.sort(sortKey, sortOrder));
 
     // Fetching data from ES and formatting it
-    const unformattedData: Other.Type.HitBody = await esClientObj.searchWithEsb(
+    const unformattedData: Other.Type.HitBody = await esClientObj.search(
       Github.Enums.IndexName.GitPull,
       query,
-      (page - 1) * limit,
-      limit,
-      sort,
-      source
     );
     const response = await searchedDataFormator(unformattedData);
 

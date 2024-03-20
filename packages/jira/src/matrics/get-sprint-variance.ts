@@ -4,7 +4,6 @@ import { IssuesTypes, SprintState } from 'abstraction/jira/enums';
 import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import _ from 'lodash';
 import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../util/response-formatter';
 
@@ -130,7 +129,7 @@ export async function sprintVarianceGraph(
             ).toFixed(2)
           ),
         };
-      } else {
+      } 
         return {
           sprint: sprintDetails,
           time: {
@@ -139,7 +138,7 @@ export async function sprintVarianceGraph(
           },
           variance: 0,
         };
-      }
+      
     });
 
     const totalPages = Math.ceil(body.hits.total.value / limit);
