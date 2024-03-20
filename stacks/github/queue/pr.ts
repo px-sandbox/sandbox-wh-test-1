@@ -11,6 +11,7 @@ export function initializePrQueue(
   const {
     GIT_ORGANIZATION_ID,
     OPENSEARCH_NODE,
+    REQUEST_TIMEOUT,
     OPENSEARCH_USERNAME,
     OPENSEARCH_PASSWORD,
     NODE_VERSION,
@@ -46,6 +47,7 @@ export function initializePrQueue(
     retryProcessTable,
     GIT_ORGANIZATION_ID,
     OPENSEARCH_NODE,
+    REQUEST_TIMEOUT,
     OPENSEARCH_USERNAME,
     OPENSEARCH_PASSWORD,
     GITHUB_APP_PRIVATE_KEY_PEM,

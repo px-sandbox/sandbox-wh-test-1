@@ -3,6 +3,7 @@ import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { ghRequest } from '../lib/request-default';
 import { getOauthCode } from './jwt-token';
+import { getOctokitTimeoutReqFn } from './octokit-timeout-fn';
 
 export async function getInstallationAccessToken(): Promise<Other.Type.LambdaResponse> {
   const {
@@ -14,8 +15,11 @@ export async function getInstallationAccessToken(): Promise<Other.Type.LambdaRes
       authorization: `Bearer ${token}`,
     },
   });
+
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+
   try {
-    const installationAccessToken = await octokit(
+    const installationAccessToken = await octokitRequestWithTimeout(
       'POST /app/installations/{installation_id}/access_tokens',
       {
         installation_id: Number(Config.GITHUB_SG_INSTALLATION_ID),

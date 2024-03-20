@@ -4,8 +4,13 @@ import { commonConfig } from '../../common/config';
 import { GithubTables } from '../../type/tables';
 
 export function initializeIndexerQueue(stack: Stack, githubDDb: GithubTables): Queue {
-  const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, NODE_VERSION } =
-    use(commonConfig);
+  const {
+    OPENSEARCH_NODE,
+    REQUEST_TIMEOUT,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    NODE_VERSION,
+  } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDb;
   const indexDataQueue = new Queue(stack, 'qGhIndex');
   indexDataQueue.addConsumer(stack, {
@@ -16,6 +21,7 @@ export function initializeIndexerQueue(stack: Stack, githubDDb: GithubTables): Q
         retryProcessTable,
         githubMappingTable,
         OPENSEARCH_NODE,
+        REQUEST_TIMEOUT,
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
       ],

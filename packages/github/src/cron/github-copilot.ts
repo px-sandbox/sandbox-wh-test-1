@@ -1,8 +1,9 @@
 import { RequestInterface } from '@octokit/types';
-import { SQSClientGh } from '@pulse/event-handler';
-import { Github } from 'abstraction';
-import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { SQSClientGh } from '@pulse/event-handler';
+import { logger } from 'core';
+import { Github } from 'abstraction';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
@@ -22,7 +23,8 @@ export async function initializeOctokit(): Promise<
       Authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
-  return octokit;
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+  return octokitRequestWithTimeout;
 }
 async function getGHCopilotReports(
   octokit: RequestInterface<
