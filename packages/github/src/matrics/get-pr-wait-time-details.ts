@@ -33,7 +33,7 @@ const getGraphData = (
           esb.termsQuery('body.repoId', repoIds),
         ])
     )
-    .sort(esb.sort(`${PrDetailsSorting[sort.key] ?? PrDetailsSorting.prWaitTime}:${sort.order}`))
+    .sort(esb.sort(`${PrDetailsSorting[sort.key] ?? PrDetailsSorting.prWaitTime}`,sort.order))
     .toJSON();
 
   logger.info('PR_WAIT_TIME_DETAILS_GRAPH_ESB_QUERY', query);
@@ -49,7 +49,7 @@ export async function prWaitTimeDetailsData(
   orgId: string
 ): Promise<PrDetails> {
   try {
-    const query = await getGraphData(startDate, endDate, repoIds,page, limit,sort);
+    const query = getGraphData(startDate, endDate, repoIds,page, limit,sort);
     const [orgName, prData, repoNames] = await Promise.all([
       getOrganizationById(orgId),
       esClientObj.search(Github.Enums.IndexName.GitPull, query) as Other.Type.HitBody,

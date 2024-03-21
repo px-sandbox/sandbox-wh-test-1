@@ -21,8 +21,8 @@ async function fetchReposData(
     const repoNameQuery = esb
       .requestBodySearch()
       .query(esb.boolQuery().must(esb.termsQuery('body.id', repoIds)))
-      .toJSON() as { query: object };
-    esbQuery = repoNameQuery.query;
+      .toJSON();
+    esbQuery = repoNameQuery;
   } else {
     const query = esb.boolQuery();
 
@@ -35,15 +35,9 @@ async function fetchReposData(
       .from((page - 1) * size)
       .query(query)
       .toJSON() as { query: object };
-
-    esbQuery = finalQ.query;
-    
-
+    esbQuery = finalQ;
   }
-  const data = await esClient.search(
-    Github.Enums.IndexName.GitRepo,
-    esbQuery
-  );
+  const data = await esClient.search(Github.Enums.IndexName.GitRepo, esbQuery);
 
   return searchedDataFormator(data);
 }
@@ -57,11 +51,11 @@ const gitRepos = async function getRepoData(
   const size = Number(event?.queryStringParameters?.size ?? 10);
   let response: IRepo[] = [];
   try {
-    response = await fetchReposData(repoIds,gitRepoName, page, size);
+    response = await fetchReposData(repoIds, gitRepoName, page, size);
 
     logger.info({ level: 'info', message: 'github repo data', data: response });
   } catch (error) {
-    logger.error('GET_GITHUB_REPO_DETAILS', { error });
+    logger.error(`GET_GITHUB_REPO_DETAILS, ${error}`);
   }
   let body = null;
   const { '200': ok, '404': notFound } = HttpStatusCode;

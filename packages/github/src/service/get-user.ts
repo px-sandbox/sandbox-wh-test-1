@@ -14,7 +14,7 @@ import { getGitUserSchema } from './validations';
 const esClient = ElasticSearchClientGh.getInstance();
 
 const getGitUser = async (githubUserId: string): Promise<IformatUserDataResponse[]> => {
-  const query = esb.matchQuery('body.id', githubUserId).toJSON();
+  const query = esb.requestBodySearch().query(esb.matchQuery('body.id', githubUserId)).toJSON();
   const data = await esClient.search(Github.Enums.IndexName.GitUsers, query);
   const response = await searchedDataFormator(data);
   return  response;

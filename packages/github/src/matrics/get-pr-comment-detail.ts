@@ -87,7 +87,7 @@ export async function prCommentsDetailMetrics(
         esb.termsQuery('body.repoId', repoIds),
         esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
       ])).
-      sort(esb.sort(sortKey, sortOrder));
+      sort(esb.sort(`body.${sortKey}`, sortOrder));
 
     // Fetching data from ES and formatting it
     const unformattedData: Other.Type.HitBody = await esClientObj.search(

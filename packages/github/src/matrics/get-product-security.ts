@@ -39,14 +39,16 @@ const getAggrigatedProductSecurityData = async (
 };
 
 const getHeadline = async (repoIds: string[], branch: string): Promise<HitBody> => {
-    const query = esb.boolQuery()
+  const query = esb.
+    requestBodySearch()
+  .query(
+    esb.boolQuery()
         .must([
             esb.termQuery('body.isDeleted', false),
             esb.termsQuery('body.repoId', repoIds),
             esb.termQuery('body.branch', branch),
             esb.termQuery('body.date', moment().format('YYYY-MM-DD'))
-        ]);
-
+        ]));
 
     const data: HitBody = await esClientObj.search(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
     return data;
@@ -56,7 +58,9 @@ const getWeeklyHeadline = async (
   branch: { repoId: string; branch: string }[]
 ): Promise<HitBody> => {
   const query = esb
-    .boolQuery()
+    .requestBodySearch()
+    .query(
+    esb.boolQuery()
     .should(
       branch.map((branchData) =>
         esb
@@ -66,12 +70,11 @@ const getWeeklyHeadline = async (
             esb.termQuery('body.repoId', branchData.repoId),
           ])
       )
-    )
-    .minimumShouldMatch(1)
+    ).minimumShouldMatch(1)
     .must([
       esb.termQuery('body.isDeleted', false),
       esb.termQuery('body.date', moment().format('YYYY-MM-DD')),
-    ])
+    ]))
     .toJSON();
   const data = await esClientObj.search(Github.Enums.IndexName.GitRepoSastErrors, query);
   const formattedData = await searchedDataFormator(data);
