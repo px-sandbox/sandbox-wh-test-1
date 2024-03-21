@@ -36,11 +36,13 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
 
         if (reopenRateData.length > 0) {
           const query = esb
+            .requestBodySearch()
+            .query(esb
             .boolQuery()
             .must([
               esb.termQuery('body.issueId', `${mappingPrefixes.issue}_${messageBody.issue.id}`),
               esb.termQuery('body.organizationId', `${orgData.id}`),
-            ])
+            ]))
             .toJSON();
 
           const script = esb

@@ -14,8 +14,10 @@ const esClient = ElasticSearchClientGh.getInstance();
  */
 async function fetchBranchesData(repoIds: string[]): Promise<string[]> {
   const query = esb
-    .boolQuery()
-    .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', true)])
+    .requestBodySearch()
+    .query(
+      esb.boolQuery()
+    .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', true)]))
     .toJSON();
 
   logger.info('GET_GITHUB_BRANCH_DETAILS: will now fetch data from ES');
