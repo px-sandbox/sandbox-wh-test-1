@@ -69,7 +69,7 @@ export async function prWaitTimeDetailsData(
         prPickedAt: item.reviewedAt,
         prWaitTime: item.reviewSeconds,
         prLink: encodeURI(
-          `https://github.com/${orgName.body.name}/${repoName?.name}/pull/${item.pullNumber}`
+          `https://github.com/${orgName?.name}/${repoName?.name}/pull/${item.pullNumber}`
         ),
       };
     });
