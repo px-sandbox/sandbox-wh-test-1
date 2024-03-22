@@ -20,7 +20,6 @@ export const handler = async function ghCopilotFormattedDataReceiver(
 ): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(
-    event.Records.map(async (record: SQSRecord) => {
-      processAndStoreSQSRecord(record);
-    })) 
+    event.Records.map((record: SQSRecord) => processAndStoreSQSRecord(record))
+  );
 };

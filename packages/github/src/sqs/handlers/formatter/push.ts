@@ -21,9 +21,5 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
 }
 export const handler = async function pushFormattedDataReceiver(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
-  await Promise.all(
-    event.Records.map(async (record: SQSRecord) => {
-      processAndStoreSQSRecord(record);
-    })
-  );
+  await Promise.all(event.Records.map((record: SQSRecord) => processAndStoreSQSRecord(record)));
 };
