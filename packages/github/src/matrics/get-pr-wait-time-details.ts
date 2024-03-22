@@ -23,8 +23,8 @@ const getGraphData = (
 ): object => {
   const query = esb
     .requestBodySearch()
-    .size((page - 1) * limit)
-    .from(limit)
+    .size(limit)
+    .from((page - 1) * limit)
     .query(
       esb
         .boolQuery()
@@ -33,7 +33,7 @@ const getGraphData = (
           esb.termsQuery('body.repoId', repoIds),
         ])
     )
-    .sort(esb.sort(`${PrDetailsSorting[sort.key] ?? PrDetailsSorting.prWaitTime}`,sort.order))
+    .sort(esb.sort(`${PrDetailsSorting[sort.key] ?? PrDetailsSorting.prWaitTime}`, sort.order))
     .toJSON();
 
   logger.info('PR_WAIT_TIME_DETAILS_GRAPH_ESB_QUERY', query);
