@@ -4,7 +4,6 @@ import { SQSClientGh } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { OctokitResponse } from '@octokit/types';
 import { v4 as uuid } from 'uuid';
 import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { mappingPrefixes } from '../constant/config';

@@ -19,9 +19,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
 
 export const handler = async function userFormattedDataReceiver(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
-  await async.eachSeries(event.Records, processAndStoreSQSRecord, (error) => {
-    if (error) {
-      logger.error(`repoFormattedDataReceiver.error, ${error}`);
-    }
-  });
+  await Promise.all(
+    event.Records.map((record: SQSRecord) => processAndStoreSQSRecord(record))
+  );
 };

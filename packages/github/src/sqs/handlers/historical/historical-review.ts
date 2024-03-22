@@ -4,7 +4,6 @@ import { OctokitResponse } from '@octokit/types';
 import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';

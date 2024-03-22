@@ -127,11 +127,13 @@ export async function handler(): Promise<void> {
   const dateToCompare = moment().subtract(value, unit as any);
 
   const query = esb
-    .boolQuery()
+    .requestBodySearch()
+    .query(
+      esb.boolQuery()
     .must([
       esb.termQuery('body.isDeleted', true),
       esb.rangeQuery('body.deletedAt').lte(dateToCompare.toISOString()),
-    ])
+    ]))
     .toJSON();
 
   logger.info('searching for projects that have been soft-deleted >=PROJECT_DELETION_AGE');

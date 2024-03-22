@@ -2,7 +2,6 @@ import moment from 'moment';
 import { SQSClientGh } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
-import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
@@ -13,7 +12,6 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getWorkingTime } from '../../../util/timezone-calculation';
-import { getOctokitResp } from '../../../util/octokit-response';
 
 const sqsClient = SQSClientGh.getInstance();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
