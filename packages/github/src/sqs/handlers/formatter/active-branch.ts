@@ -65,7 +65,8 @@ async function countBranchesAndSendToSQS(
 }
 
 export async function handler(event: SQSEvent): Promise<void> {
-  await async.eachSeries(event.Records, async (record: SQSRecord) => {
+  await Promise.all(
+    event.Records.map(async (record: SQSRecord) => { 
     try {
       const { repo, date }: { date: string; repo: Github.Type.Repository } = JSON.parse(
         record.body
@@ -74,5 +75,5 @@ export async function handler(event: SQSEvent): Promise<void> {
     } catch (error) {
       await logProcessToRetry(record, Queue.qGhActiveBranchCounterFormat.queueUrl, error as Error);
     }
-  });
+  }));
 }

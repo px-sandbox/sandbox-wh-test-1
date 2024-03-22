@@ -42,10 +42,21 @@ export const handler = async function pRFormattedDataReceiver(event: SQSEvent): 
   logger.info(`Records Length: ${event.Records.length}`);
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
-    Object.values(messageGroups).map(async (group) => async.eachSeries(group, processAndStoreSQSRecord, (error) => {
-        if (error) {
-          logger.error(`pRFormattedDataReceiver.error, ${error}`);
-        }
-      }))
+    Object.values(messageGroups).map(async (group) => {
+      return new Promise((resolve) => {
+        async.eachSeries(
+          group,
+          async function (item) {
+            await processAndStoreSQSRecord(item);
+          },
+          (error) => {
+            if (error) {
+              logger.error(`pRFormattedDataReceiver.error, ${error}`);
+            }
+            resolve('Done');
+          }
+        );
+      });
+    })
   );
 };
