@@ -32,6 +32,6 @@ export const handler = async (
       Queue.qRepoLibS3.queueUrl
     );
   } catch (error) {
-    logger.error('repoLibrary.handler.error', { error });
+    logger.error(`repoLibrary.handler.error', ${ error }`);
   }
 };

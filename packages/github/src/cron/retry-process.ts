@@ -5,7 +5,6 @@ import { Github } from 'abstraction';
 import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { RetryTableMapping } from '../model/retry-table-mapping';
 import { ghRequest } from '../lib/request-default';
-import { RetryTableMapping } from '../model/retry-table-mapping';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
 const dynamodbClient = DynamoDbDocClientGh.getInstance();

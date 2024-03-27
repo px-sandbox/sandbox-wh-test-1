@@ -93,9 +93,9 @@ const repoLibsQuery = async (repoIds:string[],searchString:string,counter:number
     const data = await esClientObj.search(
       Github.Enums.IndexName.GitRepoLibrary,
       finalRepoLibQuery,
-  );
+    );
 
-  const repoLibs = await searchedDataFormator(data?.body);
+  const repoLibs = await searchedDataFormator(data);
   return repoLibs;
 }
 
