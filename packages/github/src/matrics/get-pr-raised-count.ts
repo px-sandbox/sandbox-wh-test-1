@@ -21,7 +21,6 @@ const getGraphQuery = (
       .must([
         esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
         esb.termsQuery('body.repoId', repoIds),
-        esb.termQuery('body.isDeleted', false),
       ])
   );
   const graphIntervals = processGraphInterval(intervals, startDate, endDate);
@@ -39,7 +38,6 @@ const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[])
        .must([
          esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
          esb.termsQuery('body.repoId', repoIds),
-         esb.termQuery('body.isDeleted', false),
        ])
    )
    .size(0)

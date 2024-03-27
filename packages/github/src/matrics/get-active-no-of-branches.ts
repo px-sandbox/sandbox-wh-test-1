@@ -20,7 +20,6 @@ const getGraphDataQuery = async (
       .must([
         esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
         esb.termsQuery('body.repoId', repoIds),
-        esb.termQuery('body.isDeleted', false),
       ])
   );
 
@@ -52,8 +51,7 @@ const getHeadlineQuery = async (startDate: string, endDate: string, repoIds: str
         .boolQuery()
         .must([
           esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-          esb.termsQuery('body.repoId', repoIds),
-          esb.termQuery('body.isDeleted', false),
+          esb.termsQuery('body.repoId', repoIds)
         ])
     )
     .agg(esb.valueCountAggregation('repo_count', 'body.repoId'))
