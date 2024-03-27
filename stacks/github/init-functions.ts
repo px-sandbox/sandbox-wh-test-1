@@ -10,8 +10,13 @@ function initProcessRetryFunction(
   githubDDb: GithubTables
 ): Function {
   // eslint-disable-line @typescript-eslint/ban-types
-  const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID, GITHUB_SG_INSTALLATION_ID, NODE_VERSION } =
-    use(commonConfig);
+  const {
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
+    NODE_VERSION,
+    REQUEST_TIMEOUT,
+  } = use(commonConfig);
   const { retryProcessTable } = githubDDb;
   const {
     branchFormatDataQueue,
@@ -77,6 +82,7 @@ function initProcessRetryFunction(
       GITHUB_APP_ID,
       GITHUB_SG_INSTALLATION_ID,
       repoLibS3Queue,
+      REQUEST_TIMEOUT
     ],
     runtime: NODE_VERSION,
   });

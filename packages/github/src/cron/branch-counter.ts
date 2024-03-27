@@ -45,10 +45,10 @@ async function getReposAndSendToSQS(
     const repos = await getRepos(pageNo, perPage);
     await Promise.all(
       repos.map((repo: Hit<{ body: Github.Type.Repository }>) => {
-        if (repo._source && repo._source.body) {
+        if (repo) {
           return sqsClient.sendMessage(
             {
-              repo: repo._source.body as Github.Type.Repository,
+              repo: repo,
               date: currentDate,
             },
             Queue.qGhActiveBranchCounterFormat.queueUrl
@@ -62,7 +62,7 @@ async function getReposAndSendToSQS(
   } catch (error: unknown) {
     logger.error(`
     getReposAndSendToSQS.error at page: ${pageNo}
-    Error: ${JSON.stringify(error)}
+    Error: ${error}
     `);
     throw error;
   }
