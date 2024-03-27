@@ -74,7 +74,6 @@ async function fetchDDRecords(
 const repoLibsQuery = async (repoIds:string[],searchString:string,counter:number): Promise<any> => {
   const repoLibQuery = esb
     .requestBodySearch()
-    .source(['body.libName'])
     .size(100)
     .from(100 * (counter - 1))
     .query(
@@ -113,8 +112,7 @@ const getRepoName = async (repoIds: string[], counter2:number): Promise<Github.T
       Github.Enums.IndexName.GitRepo,
       repoNamesQuery,  
     );
-
-  const repoNames = await searchedDataFormator(repoNamesData.body);
+  const repoNames = await searchedDataFormator(repoNamesData);
   return repoNames;
 }
 /**

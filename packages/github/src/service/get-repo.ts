@@ -20,14 +20,18 @@ async function fetchReposData(
   if (repoIds.length > 0) {
     const repoNameQuery = esb
       .requestBodySearch()
-      .query(esb.boolQuery().must(esb.termsQuery('body.id', repoIds)))
+      .query(
+        esb
+          .boolQuery()
+          .must([esb.termsQuery('body.id', repoIds), esb.termQuery('body.isDeleted', false)])
+      )
       .toJSON();
     esbQuery = repoNameQuery;
   } else {
     const query = esb.boolQuery();
 
     if (gitRepoName) {
-      query.must(esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`));
+      query.must([esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`), esb.termQuery('body.isDeleted', false)]);
     }
     const finalQ = esb
       .requestBodySearch()
@@ -37,6 +41,7 @@ async function fetchReposData(
       .toJSON() as { query: object };
     esbQuery = finalQ;
   }
+  console.log('esbQuery', JSON.stringify(esbQuery));
   const data = await esClient.search(Github.Enums.IndexName.GitRepo, esbQuery);
 
   return searchedDataFormator(data);
