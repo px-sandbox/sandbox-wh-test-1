@@ -30,7 +30,7 @@ const getGraphQuery = (
   return numberOfPrRaisedGraphQuery;
 };
 const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[]):object => {
- const query  =  esb
+ const query = esb
    .requestBodySearch()
    .query(
      esb

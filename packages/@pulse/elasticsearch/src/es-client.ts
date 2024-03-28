@@ -100,7 +100,7 @@ export class ElasticSearchClientGh implements IElasticSearchClient {
       await this.client.updateByQuery({
         index: indexName,
         body: {
-          query,
+          ...query,
           script,
         },
       });
