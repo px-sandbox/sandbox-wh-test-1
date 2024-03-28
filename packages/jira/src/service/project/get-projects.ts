@@ -4,10 +4,7 @@ import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import { Config } from 'sst/node/config';
-import {
-  formatProjectsResponse,
-  searchedDataFormator,
-} from '../../util/response-formatter';
+import { formatProjectsResponse, searchedDataFormator } from '../../util/response-formatter';
 import { getProjectsSchema } from '../validations';
 
 /**
@@ -32,7 +29,6 @@ const projects = async function getProjectsData(
     // match query if search term is present else get all projects
     let query;
     if (searchTerm) {
-      // TODO: Update elastic search query using esb builder
       query = {
         bool: {
           must: [

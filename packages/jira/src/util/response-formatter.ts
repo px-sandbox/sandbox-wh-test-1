@@ -20,14 +20,6 @@ export interface IRepo {
 export const searchedDataFormator = async (
   data: any // eslint-disable-line @typescript-eslint/no-explicit-any
 ): Promise<(Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[] | []> => {
-  // TODO: For some cases max_score was null but values was gt 0
-  // if (data?.hits?.max_score != null) {
-  //   return data.hits.hits.map((hit: Other.Type.Hit) => ({
-  //     _id: hit._id,
-  //     ...hit._source.body,
-  //   }));
-  // }
-
   if (data?.hits?.total?.value > 0) {
     return data.hits.hits
       .filter(

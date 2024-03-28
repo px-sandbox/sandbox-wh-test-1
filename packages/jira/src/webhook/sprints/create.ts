@@ -1,8 +1,9 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 
+const sqsClient = SQSClientGh.getInstance();
 /**
  * Creates a new sprint in Jira and sends a message to SQS.
  * @param sprint - The sprint object to be created.
@@ -15,7 +16,8 @@ export async function create(
 ): Promise<void> {
   try {
     logger.info('sprint_event: Send message to SQS');
-    await new SQSClient().sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
+    // await new SQSClient().sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
+    sqsClient.sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
   } catch (e) {
     logger.error('sprintCreateEvent: Error in creating sprint', e);
     throw e;

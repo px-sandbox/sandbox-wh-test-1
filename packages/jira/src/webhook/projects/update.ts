@@ -1,13 +1,13 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
 import moment from 'moment';
 import { getProjectById } from '../../repository/project/get-project';
 import { projectKeysMapper } from './mapper';
 
-
+const sqsClient = SQSClientGh.getInstance();
 /**
  * Updates a Jira project using the provided webhook data.
  * @param project - The project data received from the webhook.
@@ -23,7 +23,10 @@ export async function update(
 ): Promise<void | false> {
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
 
-  logger.info('projectUpdatedEvent', { projectKey: project.key, availableProjectKeys: projectKeys });
+  logger.info('projectUpdatedEvent', {
+    projectKey: project.key,
+    availableProjectKeys: projectKeys,
+  });
 
   if (!projectKeys.includes(project.key)) {
     logger.info('processProjectUpdatedEvent: Project not available in our system');
@@ -45,5 +48,10 @@ export async function update(
   );
 
   logger.info('processProjectUpdatedEvent: Send message to SQS');
-  await new SQSClient().sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
+  // await new SQSClient().sendMessage(
+  //   updatedProjectBody,
+  //   Queue.qProjectFormat.queueUrl,
+  //   updatedProjectBody.id
+  // );
+  sqsClient.sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
 }

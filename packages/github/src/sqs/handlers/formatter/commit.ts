@@ -80,16 +80,22 @@ export const handler = async function commitFormattedDataReceiver(event: SQSEven
   logger.info(`Records Length: ${event.Records.length}`);
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
-    Object.values(messageGroups).map(async (group) =>
-    {
-      return new Promise((resolve, reject) =>
-        async.eachSeries(group, async function (item) { 
-          await processAndStoreSQSRecord(item);
-        }, (error) => {
-        if (error) {
-          logger.error(`commitFormattedDataReceiver.error, ${error}`);
-        }
-          resolve('DONE');
-      }))
-    }));
-}
+    Object.values(messageGroups).map(
+      async (group) =>
+        new Promise((resolve) => {
+          async.eachSeries(
+            group,
+            async (item: SQSRecord) => {
+              await processAndStoreSQSRecord(item);
+            },
+            (error: any) => {
+              if (error) {
+                logger.error(`commitFormattedDataReceiver.error, ${error}`);
+              }
+              resolve('DONE');
+            }
+          );
+        })
+    )
+  );
+};

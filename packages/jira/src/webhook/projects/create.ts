@@ -1,13 +1,13 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import moment from 'moment';
 import { ProjectTypeKey } from 'abstraction/jira/enums/project';
 import { JiraClient } from '../../lib/jira-client';
 import { projectKeysMapper } from './mapper';
 
-
+const sqsClient = SQSClientGh.getInstance();
 /**
  * Creates a new Jira project and sends a message to SQS queue.
  * @param project - The Jira project to be created.
@@ -18,9 +18,8 @@ import { projectKeysMapper } from './mapper';
 export async function create(
   project: Jira.ExternalType.Webhook.Project,
   eventTime: moment.Moment,
-  organization: string)
-  : Promise<void> {
-
+  organization: string
+): Promise<void> {
   // getting jira client and fetching project data using api
   const jiraClient = await JiraClient.getClient(organization);
   const projectData = await jiraClient.getProject(project.id.toString());
@@ -32,7 +31,7 @@ export async function create(
     const createdAt = moment(eventTime).toISOString();
     const updatedProjectBody = projectKeysMapper(projectData, createdAt, organization);
     logger.info('processProjectCreatedEvent: Send message to SQS');
-    await new SQSClient().sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
+    // await new SQSClient().sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
+    sqsClient.sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
   }
-
 }

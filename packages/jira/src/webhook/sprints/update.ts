@@ -1,10 +1,11 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
 import { JiraClient } from '../../lib/jira-client';
 
+const sqsClient = SQSClientGh.getInstance();
 /**
  * Updates the given sprint and sends a message to the SQS queue.
  * @param sprint - The sprint to update.
@@ -31,7 +32,8 @@ export async function update(
     }
 
     logger.info('sprint_event: Send message to SQS');
-    await new SQSClient().sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
+    // await new SQSClient().sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
+    sqsClient.sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
   } catch (e) {
     logger.error('sprintUpdateEvent: Error in updating sprint', e);
     throw e;

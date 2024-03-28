@@ -1,13 +1,13 @@
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Config } from 'sst/node/config';
 import { JiraClient } from '../../lib/jira-client';
 import { getBoardById } from '../../repository/board/get-board';
 import { mappingToApiDataConfig } from './mapper';
 
-
+const sqsClient = SQSClientGh.getInstance();
 /**
  * Updates the configuration of a Jira board.
  * @param config - The new configuration for the board.
@@ -23,7 +23,10 @@ export async function updateConfig(
     const jiraClient = await JiraClient.getClient(organization);
     const data = await jiraClient.getBoard(config.id);
 
-    logger.info('boardConfigUpdatedEvent', { projectKey: data.location.projectKey, availableProjectKeys: projectKeys });
+    logger.info('boardConfigUpdatedEvent', {
+      projectKey: data.location.projectKey,
+      availableProjectKeys: projectKeys,
+    });
 
     if (!projectKeys.includes(data.location.projectKey)) {
       logger.info('boardConfigUpdatedEvent: Project not available in our system');
@@ -37,7 +40,8 @@ export async function updateConfig(
 
     const userData = mappingToApiDataConfig(config, boardIndexData, organization);
     logger.info('boardUpdatedEvent: Send message to SQS');
-    await new SQSClient().sendMessage(userData, Queue.qBoardFormat.queueUrl);
+    // await new SQSClient().sendMessage(userData, Queue.qBoardFormat.queueUrl);
+    sqsClient.sendMessage(userData, Queue.qBoardFormat.queueUrl);
   } catch (error) {
     logger.error('boardUpdatedEvent.error', { error });
   }

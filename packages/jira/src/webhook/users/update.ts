@@ -1,10 +1,11 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClient } from '@pulse/event-handler';
+import { SQSClientGh } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { getUserById } from '../../repository/user/get-user';
 import { mappingToApiData } from './mapper';
 
+const sqsClient = SQSClientGh.getInstance();
 /**
  * Updates a Jira user in the system.
  * @param user - The user object to update.
@@ -23,5 +24,6 @@ export async function update(
 
   const userData = mappingToApiData(user, userIndexData.createdAt, organization);
   logger.info('userUpdatedEvent: Send message to SQS');
-  await new SQSClient().sendMessage(userData, Queue.qUserFormat.queueUrl);
+  // await new SQSClient().sendMessage(userData, Queue.qUserFormat.queueUrl);
+  sqsClient.sendMessage(userData, Queue.qUserFormat.queueUrl);
 }

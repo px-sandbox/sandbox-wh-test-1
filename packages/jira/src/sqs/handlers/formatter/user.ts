@@ -6,6 +6,7 @@ import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function userFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
+
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
       try {
