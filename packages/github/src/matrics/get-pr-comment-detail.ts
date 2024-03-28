@@ -87,7 +87,6 @@ export async function prCommentsDetailMetrics(
           .must([
             esb.termsQuery('body.repoId', repoIds),
             esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-            esb.termQuery('body.isDeleted', false),
           ])
       )
       .sort(esb.sort(`body.${sortKey}`, sortOrder));

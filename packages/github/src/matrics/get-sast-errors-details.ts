@@ -158,7 +158,7 @@ export async function getRepoNames(repoIds: string[]): Promise<Github.Type.RepoN
         repoNamesQuery
       );
 
-      repoNames = await searchedDataFormator(repoNamesData.body);
+      repoNames = await searchedDataFormator(repoNamesData);
 
       if (repoNames?.length) {
         repoNamesArr.push(...repoNames);
