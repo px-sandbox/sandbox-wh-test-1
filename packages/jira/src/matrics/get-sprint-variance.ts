@@ -7,6 +7,8 @@ import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../util/response-formatter';
 
+const esClientObj = ElasticSearchClient.getInstance();
+
 export async function sprintVarianceGraph(
   projectId: string,
   startDate: string,
@@ -17,11 +19,6 @@ export async function sprintVarianceGraph(
   sortOrder: 'asc' | 'desc'
 ): Promise<SprintVarianceData> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
 
     let dateRangeQueries = [
       esb.rangeQuery('body.startDate').gte(startDate),
@@ -53,7 +50,7 @@ export async function sprintVarianceGraph(
       .toJSON() as { query: object };
 
     logger.info('sprintQuery', sprintQuery);
-    const body = (await esClientObj.searchWithEsb(
+    const body = (await esClientObj.search(
       Jira.Enums.IndexName.Sprint,
       sprintQuery.query,
       (page - 1) * limit,
@@ -160,12 +157,6 @@ export async function sprintVarianceGraphAvg(
 ): Promise<number> {
   const sprintIdsArr = [];
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-
     let dateRangeQueries = [
       esb.rangeQuery('body.startDate').gte(startDate),
       esb.rangeQuery('body.endDate').gte(startDate),
@@ -199,7 +190,7 @@ export async function sprintVarianceGraphAvg(
     let lastHit;
     do {
       const query = sprintQuery.searchAfter(lastHit);
-      const body: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
+      const body: Other.Type.HitBody = await esClientObj.search(
         Jira.Enums.IndexName.Sprint,
         query
       );

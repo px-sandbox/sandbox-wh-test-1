@@ -27,12 +27,8 @@ export class JiraClient {
    */
   public static async getClient(orgName: string): Promise<JiraClient> {
     // clients creation
-    const _esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const _ddbClient = new DynamoDbDocClient();
+    const _esClient = ElasticSearchClient.getInstance();
+    const _ddbClient = DynamoDbDocClient.getInstance();
 
     // get organisation from elasticsearch
     const organization = await _esClient.search(Jira.Enums.IndexName.Organization, 'name', orgName);

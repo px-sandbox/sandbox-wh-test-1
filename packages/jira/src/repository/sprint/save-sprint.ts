@@ -14,18 +14,18 @@ import { mappingPrefixes } from '../../constant/config';
  * @returns A Promise that resolves when the sprint details have been saved.
  * @throws Throws an error if there was an issue saving the sprint details.
  */
+
+const esClientObj = ElasticSearchClient.getInstance();
+const ddbClient = DynamoDbDocClient.getInstance();
+
 export async function saveSprintDetails(data: Jira.Type.Sprint): Promise<void> {
   try {
     const updatedData = { ...data };
     const orgId = data.body.organizationId.split('org_')[1];
-    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(
+    await ddbClient.put(new ParamsMapping().preparePutParams(
       data.id,
       `${data.body.id}_${mappingPrefixes.org}_${orgId}`));
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+    
     const matchQry =
       esb
         .boolQuery()
@@ -33,7 +33,7 @@ export async function saveSprintDetails(data: Jira.Type.Sprint): Promise<void> {
           esb.termsQuery('body.id', data.body.id),
           esb.termQuery('body.organizationId.keyword', data.body.organizationId),
         ]).toJSON();
-    const sprintData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Sprint, matchQry);
+    const sprintData = await esClientObj.search(Jira.Enums.IndexName.Sprint, matchQry);
     const [formattedData] = await searchedDataFormator(sprintData);
     if (formattedData) {
       updatedData.id = formattedData._id;

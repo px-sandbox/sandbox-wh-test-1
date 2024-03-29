@@ -14,8 +14,11 @@ import { reopenChangelogCals } from '../../../util/reopen-body-formatter';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getIssueStatusForReopenRate } from "../../../util/issue-status";
 
+const ddbClient = DynamoDbDocClient.getInstance();  
+const sqsClient = SQSClient.getInstance();
+
 async function getParentId(id: string): Promise<string | undefined> {
-    const ddbRes = await new DynamoDbDocClient().find(new ParamsMapping().prepareGetParams(id));
+    const ddbRes = await ddbClient.find(new ParamsMapping().prepareGetParams(id));
 
     return ddbRes?.parentId as string | undefined;
 }
@@ -67,7 +70,7 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
                 await Promise.all(reopenEntries.map(async (entry) => {
                     const id = parentId || uuid();
                     const body = entry;
-                    await new SQSClient().sendMessage({ id, body }, Queue.qReOpenRateIndex.queueUrl);
+                    await sqsClient.sendMessage({ id, body }, Queue.qReOpenRateIndex.queueUrl);
                 }));
                 logger.info('reopenRateInfoQueue.success');
             } catch (error) {

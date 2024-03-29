@@ -14,21 +14,19 @@ import { mappingPrefixes } from '../../constant/config';
  * @returns A Promise that resolves when the data has been saved successfully.
  * @throws An error if there was a problem saving the data.
  */
+const esClientObj = ElasticSearchClient.getInstance();
+const ddbClient = DynamoDbDocClient.getInstance();
 export async function saveReOpenRate(data: Jira.Type.Issue): Promise<void> {
   try {
     const updatedData = { ...data };
     const orgId = data.body.organizationId.split('org_')[1];
-    await new DynamoDbDocClient().put(
+    await ddbClient.put(
       new ParamsMapping().preparePutParams(
         data.id,
         `${data.body.id}_${mappingPrefixes.org}_${orgId}`
       )
     );
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+
     const matchQry = esb
       .boolQuery()
       .must([
@@ -36,7 +34,7 @@ export async function saveReOpenRate(data: Jira.Type.Issue): Promise<void> {
         esb.termQuery('body.organizationId', data.body.organizationId),
       ])
       .toJSON();
-    const reOpenRateData = await esClientObj.searchWithEsb(
+    const reOpenRateData = await esClientObj.search(
       Jira.Enums.IndexName.ReopenRate,
       matchQry
     );

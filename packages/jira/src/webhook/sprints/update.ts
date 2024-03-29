@@ -1,11 +1,11 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
 import { JiraClient } from '../../lib/jira-client';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 /**
  * Updates the given sprint and sends a message to the SQS queue.
  * @param sprint - The sprint to update.

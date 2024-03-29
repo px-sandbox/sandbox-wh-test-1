@@ -1,12 +1,11 @@
-import esb from 'elastic-builder';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
-import { searchedDataFormator, searchedDataFormatorWithDeleted } from '../../util/response-formatter';
-import { ParamsMapping } from '../../model/params-mapping';
+import esb from 'elastic-builder';
 import { mappingPrefixes } from '../../constant/config';
+import { ParamsMapping } from '../../model/params-mapping';
+import { searchedDataFormator, searchedDataFormatorWithDeleted } from '../../util/response-formatter';
 
 
 /**
@@ -18,8 +17,10 @@ import { mappingPrefixes } from '../../constant/config';
  * @param isDeleted - Optional flag to mark the data as deleted.
  * @returns Promise<void>
  */
+const esClientObj = ElasticSearchClient.getInstance();
+const ddbClient = DynamoDbDocClient.getInstance();
+
 async function updateData(
-  esClientObj: ElasticSearchClient,
   indexName: string,
   matchField: string,
   matchValue: string,
@@ -36,7 +37,7 @@ async function updateData(
 
     ])).toJSON();
 
-  const data = await esClientObj.searchWithEsb(indexName, matchQry2);
+  const data = await esClientObj.search(indexName, matchQry2);
 
   const formattedData = await searchedDataFormatorWithDeleted(data);
 
@@ -59,14 +60,10 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
   try {
     const updatedData = { ...data };
     const orgId = data.body.organizationId.split('org_')[1];
-    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(
+    await ddbClient.put(new ParamsMapping().preparePutParams(
       data.id,
       `${data.body.id}_${mappingPrefixes.org}_${orgId}`));
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+
     const matchQry =
       esb
         .boolQuery()
@@ -75,7 +72,7 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
           esb.termQuery('body.organizationId', data.body.organizationId),
         ]).toJSON();
     logger.info('saveProjectDetails.matchQry------->', { matchQry });
-    const projectData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Project, matchQry);
+    const projectData = await esClientObj.search(Jira.Enums.IndexName.Project, matchQry);
     const [formattedData] = await searchedDataFormator(projectData);
     if (formattedData) {
       updatedData.id = formattedData._id;
@@ -84,11 +81,11 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
 
     if (data.body.isDeleted) {
       await Promise.all([
-        updateData(esClientObj, Jira.Enums.IndexName.Sprint,
+        updateData( Jira.Enums.IndexName.Sprint,
           'body.projectId', data.body.id, data.body.organizationId, true),
-        updateData(esClientObj, Jira.Enums.IndexName.Issue,
+        updateData(Jira.Enums.IndexName.Issue,
           'body.projectId', data.body.id, data.body.organizationId, true),
-        updateData(esClientObj, Jira.Enums.IndexName.Board,
+        updateData(Jira.Enums.IndexName.Board,
           'body.projectId', data.body.id, data.body.organizationId, true)]);
     }
     logger.info('saveProjectDetails.successful');

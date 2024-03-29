@@ -1,11 +1,11 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import moment from 'moment';
 import { mappingToApiData } from './mapper';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 /**
  * Creates a new user in Jira and sends a message to SQS.
  * @param user - The user object to be created.

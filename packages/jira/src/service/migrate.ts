@@ -3,8 +3,10 @@ import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import { Queue } from 'sst/node/queue';
-import { ProjectTypeKey } from "abstraction/jira/enums/project";
+import { ProjectTypeKey } from 'abstraction/jira/enums/project';
 import { JiraClient } from '../lib/jira-client';
+
+const sqsClient = SQSClient.getInstance();
 
 export const handler = async function migrate(
   event: APIGatewayProxyEvent
@@ -12,8 +14,6 @@ export const handler = async function migrate(
   const organization = event?.queryStringParameters?.orgName ?? '';
   const projects = event?.queryStringParameters?.projects?.split(',') || [];
   const importUsers = event?.queryStringParameters?.importUsers ?? 'false';
-
-  const sqsClient = new SQSClient();
 
   if (!organization) {
     return responseParser
@@ -43,8 +43,11 @@ export const handler = async function migrate(
   const projectsFromJira = await client.getProjects();
 
   // Filter from projects based on name and project type ('software')
-  const projectsToSend = projectsFromJira.filter((project) =>
-    projects.includes(project.name.trim()) && project.projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE);
+  const projectsToSend = projectsFromJira.filter(
+    (project) =>
+      projects.includes(project.name.trim()) &&
+      project.projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE
+  );
 
   if (projectsToSend.length === 0) {
     return responseParser.setMessage('No projects to migrate').send();
@@ -53,12 +56,11 @@ export const handler = async function migrate(
 
   SENDING Projects ############
 
-  ${JSON.stringify(projectsToSend.map(({ name }) => name).join(" | "))}
+  ${JSON.stringify(projectsToSend.map(({ name }) => name).join(' | '))}
 
   Users: ${usersFromJira.length}
 
   `);
-
 
   await Promise.all([
     ...projectsToSend.map(({ id }) =>
@@ -87,8 +89,6 @@ export const issueStatusHandler = async function issueStatusMigration(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const organization = event?.queryStringParameters?.orgName ?? '';
-  const sqsClient = new SQSClient();
-
   if (!organization) {
     return responseParser
       .setBody({})
@@ -112,4 +112,4 @@ export const issueStatusHandler = async function issueStatusMigration(
     .setStatusCode(HttpStatusCode[200])
     .setResponseBodyCode('SUCCESS')
     .send();
-}
+};

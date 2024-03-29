@@ -1,13 +1,13 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
 import { JiraClient } from '../../lib/jira-client';
 import { getBoardById } from '../../repository/board/get-board';
 import { mappingToApiData } from './mapper';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 /**
  * Updates a Jira board webhook.
  * @param board - The board object to update.

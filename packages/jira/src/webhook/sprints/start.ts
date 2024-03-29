@@ -1,11 +1,11 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
 import { JiraClient } from '../../lib/jira-client';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 /**
  * Sends a message to SQS when a sprint is started.
  * @param sprint - The sprint object received from the Jira webhook.

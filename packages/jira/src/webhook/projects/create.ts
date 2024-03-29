@@ -1,13 +1,13 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import moment from 'moment';
 import { ProjectTypeKey } from 'abstraction/jira/enums/project';
 import { JiraClient } from '../../lib/jira-client';
 import { projectKeysMapper } from './mapper';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 /**
  * Creates a new Jira project and sends a message to SQS queue.
  * @param project - The Jira project to be created.

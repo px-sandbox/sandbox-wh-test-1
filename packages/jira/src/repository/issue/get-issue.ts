@@ -13,16 +13,12 @@ import { getOrganization } from '../organization/get-organization';
  * @returns A promise that resolves with the user data.
  * @throws An error if the user cannot be retrieved.
  */
+const esClientObj = ElasticSearchClient.getInstance();
 export async function getIssueById(
   issueId: string,
   organization: string
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const orgData = await getOrganization(organization);
     if (!orgData) {
       logger.error(`Organization ${organization} not found`);
@@ -35,7 +31,7 @@ export async function getIssueById(
         esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
       ])
       .toJSON();
-    const issueData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Issue, matchQry);
+    const issueData = await esClientObj.search(Jira.Enums.IndexName.Issue, matchQry);
     const [formattedIssueData] = await searchedDataFormatorWithDeleted(issueData);
     return formattedIssueData;
   } catch (error: unknown) {
@@ -50,11 +46,6 @@ export async function getReopenRateDataById(
   organization: string
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const orgData = await getOrganization(organization);
     if (!orgData) {
       logger.error(`Organization ${organization} not found`);
@@ -72,7 +63,7 @@ export async function getReopenRateDataById(
       ])
       .toJSON();
 
-    const reopenRateData = await esClientObj.searchWithEsb(
+    const reopenRateData = await esClientObj.search(
       Jira.Enums.IndexName.ReopenRate,
       matchQry
     );
@@ -89,11 +80,6 @@ export async function getReopenRateDataByIssueId(
   organization: string
 ): Promise<Pick<Other.Type.Hit, '_id'>[] & Other.Type.HitBody> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const orgData = await getOrganization(organization);
     if (!orgData) {
       logger.error(`Organization ${organization} not found`);
@@ -107,7 +93,7 @@ export async function getReopenRateDataByIssueId(
       ])
       .toJSON();
 
-    const reopenRateData = await esClientObj.searchWithEsb(
+    const reopenRateData = await esClientObj.search(
       Jira.Enums.IndexName.ReopenRate,
       matchQry
     );

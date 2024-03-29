@@ -1,12 +1,12 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { v4 as uuid } from 'uuid';
 import { Queue } from 'sst/node/queue';
 import { ProjectTypeKey } from 'abstraction/jira/enums/project';
 import { JiraClient } from '../../lib/jira-client';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 /**
  * Creates a Jira issue and sends a message to SQS.
  * @param issue - The Jira issue to create.

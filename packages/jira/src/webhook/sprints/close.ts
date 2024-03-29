@@ -2,10 +2,10 @@ import { logger } from 'core';
 import { Jira } from 'abstraction';
 import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { JiraClient } from '../../lib/jira-client';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 /**
  * Closes a Jira sprint and sends a message to an SQS queue.
  * @param sprint - The sprint to be closed.

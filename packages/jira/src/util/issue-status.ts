@@ -5,11 +5,7 @@ import esb from "elastic-builder";
 import { Config } from "sst/node/config";
 import { searchedDataFormator } from "./response-formatter";
 
-const esClientObj = new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClient.getInstance();
 
 
 export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.HitBody> {
@@ -24,10 +20,10 @@ export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.
                 ])
         );
         logger.info('ESB_QUERY_ISSUE_STATUS_QUERY', { issueStatusquery });
-        const { body: data } = await esClientObj.getClient().search({
-            index: Jira.Enums.IndexName.IssueStatus,
-            body: issueStatusquery,
-        });
+        const { body: data } = await esClientObj.search(
+            Jira.Enums.IndexName.IssueStatus,
+            issueStatusquery,
+        );
         const [issueStatusData] = await searchedDataFormator(data);
         return issueStatusData;
     } catch (error) {
@@ -48,10 +44,10 @@ export async function getIssueStatusForReopenRate(orgId: string): Promise<Other.
                 ])
         )
         logger.info('ESB_QUERY_REOPEN_RATE_QUERY', { issueStatusquery });
-        const { body: data } = await esClientObj.getClient().search({
-            index: Jira.Enums.IndexName.IssueStatus,
-            body: issueStatusquery,
-        });
+        const { body: data } = await esClientObj.search(
+            Jira.Enums.IndexName.IssueStatus,
+            issueStatusquery,
+        );
         const issueStatusDataArr = await searchedDataFormator(data);
         const issueStatusData = issueStatusDataArr.reduce((acc: Record<string, any>, issueStatus) => {
             acc[issueStatus.pxStatus] = issueStatus.issueStatusId;

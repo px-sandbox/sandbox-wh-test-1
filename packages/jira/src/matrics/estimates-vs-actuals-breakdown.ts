@@ -7,11 +7,7 @@ import { Config } from 'sst/node/config';
 import _ from 'lodash';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClient.getInstance();
 
 /**
  * Fetches issue data from Jira based on the provided parameters.
@@ -46,7 +42,7 @@ const fetchIssueData = async (
     .size(100)
     .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.subtasks', 'body.summary']);
 
-  let unformattedIssues: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
+  let unformattedIssues: Other.Type.HitBody = await esClientObj.search(
     Jira.Enums.IndexName.Issue,
     issueQuery.toJSON()
   );
@@ -58,7 +54,7 @@ const fetchIssueData = async (
   while (formattedIssues?.length > 0) {
     const lastHit = unformattedIssues?.hits?.hits[unformattedIssues.hits.hits.length - 1];
     const query = issueQuery.searchAfter([lastHit.sort[0]]).toJSON();
-    unformattedIssues = await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Issue, query);
+    unformattedIssues = await esClientObj.search(Jira.Enums.IndexName.Issue, query);
     formattedIssues = await searchedDataFormator(unformattedIssues);
     issues.push(...formattedIssues);
   }

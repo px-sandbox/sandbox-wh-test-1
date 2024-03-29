@@ -1,13 +1,13 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import moment from 'moment';
 import { ProjectTypeKey } from 'abstraction/jira/enums/project';
 import { JiraClient } from '../../lib/jira-client';
 import { mappingToApiData } from './mapper';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 /**
  * Sends a message to an SQS queue when a Jira board is created.

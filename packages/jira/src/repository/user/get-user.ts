@@ -13,16 +13,13 @@ import { getOrganization } from '../organization/get-organization';
  * @returns A promise that resolves with the user data.
  * @throws An error if the user cannot be retrieved.
  */
+const esClientObj = ElasticSearchClient.getInstance();
+
 export async function getUserById(
   userId: string,
   organization: string
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const orgData = await getOrganization(organization);
     if (!orgData) {
       logger.error(`Organization ${organization} not found`);
@@ -35,7 +32,7 @@ export async function getUserById(
           esb.termsQuery('body.id', `${mappingPrefixes.user}_${userId}`),
           esb.termQuery('body.organizationId', `${orgData.id}`),
         ]).toJSON();
-    const userData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Users, matchQry);
+    const userData = await esClientObj.search(Jira.Enums.IndexName.Users, matchQry);
     const [formattedUserData] = await searchedDataFormatorWithDeleted(userData);
     return formattedUserData;
   } catch (error: unknown) {

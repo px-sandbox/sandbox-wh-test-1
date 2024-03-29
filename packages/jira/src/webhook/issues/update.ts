@@ -1,4 +1,4 @@
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { v4 as uuid } from 'uuid';
 import { Jira } from 'abstraction';
 import { ChangelogStatus, IssuesTypes } from 'abstraction/jira/enums';
@@ -7,7 +7,7 @@ import { Queue } from 'sst/node/queue';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { getIssueStatusForReopenRate } from '../../util/issue-status';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 /**
  * Updates a Jira issue using webhook data.
  * @param issue The Jira issue to update.

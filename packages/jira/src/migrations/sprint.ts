@@ -13,7 +13,7 @@ async function checkAndSave(
   const jira = await JiraClient.getClient(organization);
   const sprints = await jira.getSprints(originBoardId);
 
-  const sqsClient = new SQSClient();
+  const sqsClient = SQSClient.getInstance();
 
   await Promise.all([
     ...sprints.map(async (sprint) =>
