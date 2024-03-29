@@ -3,6 +3,7 @@ import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
+import { ApiResponse, TransportRequestPromise } from '@elastic/elasticsearch/lib/Transport';
 
 export class ElasticSearchClient implements IElasticSearchClient {
   private client: Client;
@@ -152,6 +153,41 @@ export class ElasticSearchClient implements IElasticSearchClient {
       await this.client.bulk({ refresh: true, body });
     } catch (err) {
       logger.error('bulkUpdate.error: ', { err });
+    }
+  }
+
+  public async isIndexExists(
+    indexName: string
+  ): Promise<TransportRequestPromise<ApiResponse<boolean, unknown>>> {
+    try {
+      return this.client.indices.exists({ index: indexName });
+    } catch (err) {
+      logger.error(`isIndexExists.error: , ${err}`);
+      throw err;
+    }
+  }
+
+  public async updateIndex(
+    indexName: string,
+    body: object
+  ): Promise<TransportRequestPromise<ApiResponse<unknown, unknown>>> {
+    try {
+      return this.client.indices.putSettings({ index: indexName, body });
+    } catch (err) {
+      logger.error(`updateIndex.error: , ${err}`);
+      throw err;
+    }
+  }
+
+  public async createIndex(
+    indexName: string,
+    body: object
+  ): Promise<TransportRequestPromise<ApiResponse<unknown, unknown>>> {
+    try {
+      return this.client.indices.create({ index: indexName, body });
+    } catch (err) {
+      logger.error(`createIndex.error: , ${err}`);
+      throw err;
     }
   }
 }

@@ -1,4 +1,4 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
@@ -481,25 +481,21 @@ const indices = [
 
 async function createMapping(name: string, mappings: Github.Type.IndexMapping): Promise<void> {
   try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    }).getClient();
+    const esClient = ElasticSearchClientGh.getInstance();
 
-    const { statusCode } = await esClient.indices.exists({ index: name });
+    const { statusCode } = await esClient.isIndexExists(name);
     if (statusCode === 200) {
       logger.info(`Index '${name}' already exists.`);
       // update
-      await esClient.indices.putMapping({ index: name, body: mappings });
+      await esClient.updateIndex(name,mappings);
       return;
     }
 
     logger.info(`Creating mapping for index '${name}'...`);
 
-    await esClient.indices.create({ index: name, body: { mappings } });
+    await esClient.createIndex( name,mappings);
 
-    logger.info(`Created mapping for '${name}' suuceeful`);
+    logger.info(`Created mapping for '${name}' successful`);
   } catch (error) {
     logger.error(`Error creating mapping for '${name}':`, error);
     throw error;

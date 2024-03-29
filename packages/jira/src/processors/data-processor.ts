@@ -63,4 +63,8 @@ export abstract class DataProcessor<T, S> {
     }
     await this.SQSClient.sendMessage(data, url);
   }
+
+  public async putDataToDynamoDB(parentId: string, jiraId: string): Promise<void> {
+    await this.DynamoDbDocClient.put(new ParamsMapping().preparePutParams(parentId, jiraId));
+  }
 }
