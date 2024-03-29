@@ -22,7 +22,7 @@ export async function removeReopenRate(
   try {
     // await new SQSClient().sendMessage({ ...issue, eventTime }, Queue.qReOpenRateDelete.queueUrl);
     // TODO: Check specifically for this event
-    sqsClient.sendFifoMessage(
+    await sqsClient.sendFifoMessage(
       { ...issue, eventTime },
       Queue.qReOpenRateDelete.queueUrl,
       issue.issue.id,

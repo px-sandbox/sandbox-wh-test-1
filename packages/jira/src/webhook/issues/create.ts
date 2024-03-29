@@ -25,7 +25,11 @@ export async function create(issue: Jira.ExternalType.Webhook.Issue): Promise<vo
   // checking is project type is software. We dont wanna save maintainence projects
   logger.info('issue_event: Checking project type');
   if (projectData.projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE) {
-    // await new SQSClient().sendMessage({ ...issue }, Queue.qIssueFormat.queueUrl);
-    sqsClient.sendFifoMessage({ ...issue }, Queue.qIssueFormat.queueUrl, issue.issue.id, uuid());
+    await sqsClient.sendFifoMessage(
+      { ...issue },
+      Queue.qIssueFormat.queueUrl,
+      issue.issue.id,
+      uuid()
+    );
   }
 }

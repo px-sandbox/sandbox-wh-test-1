@@ -15,8 +15,13 @@ const sqsClient = SQSClientGh.getInstance();
  */
 export async function update(issue: Jira.ExternalType.Webhook.Issue): Promise<void> {
   logger.info('issue_update_event: Send message to SQS');
-  // await new SQSClient().sendMessage({ ...issue }, Queue.qIssueFormat.queueUrl);
-  sqsClient.sendFifoMessage({ ...issue }, Queue.qIssueFormat.queueUrl, issue.issue.id, uuid());
+
+  await sqsClient.sendFifoMessage(
+    { ...issue },
+    Queue.qIssueFormat.queueUrl,
+    issue.issue.id,
+    uuid()
+  );
   if (issue.issue.fields.issuetype.name !== IssuesTypes.BUG) {
     return;
   }
@@ -35,7 +40,7 @@ export async function update(issue: Jira.ExternalType.Webhook.Issue): Promise<vo
           ? ChangelogStatus.READY_FOR_QA
           : ChangelogStatus.QA_FAILED;
       // await new SQSClient().sendMessage({ ...issue, typeOfChangelog }, Queue.qReOpenRate.queueUrl);
-      sqsClient.sendFifoMessage(
+      await sqsClient.sendFifoMessage(
         { ...issue, typeOfChangelog },
         Queue.qReOpenRate.queueUrl,
         issue.issue.id,
