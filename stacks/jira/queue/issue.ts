@@ -30,7 +30,13 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     },
   });
 
-  const issueFormatDataQueue = new Queue(stack, 'qIssueFormat');
+  const issueFormatDataQueue = new Queue(stack, 'qIssueFormat', {
+    cdk: {
+      queue: {
+        fifo: true,
+      },
+    },
+  });
   issueFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnIssueFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/issue.handler',
