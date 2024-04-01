@@ -53,9 +53,14 @@ export class IssueProcessor extends DataProcessor<
       logger.error(`Organization ${this.apiData.organization} not found`);
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    const parentId: string | undefined = await this.getParentId(
-      `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`
-    );
+    const jiraId = `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`;
+    let parentId: string | undefined = await this.getParentId(jiraId);
+
+    // if parent id is not present in dynamoDB then create a new parent id
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(parentId, jiraId);
+    }
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
     const changelogArr = await getIssueChangelogs(this.apiData.issue.id, jiraClient);

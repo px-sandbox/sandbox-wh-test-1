@@ -13,13 +13,11 @@ export class CommitProcessor extends DataProcessor<
     super(data);
   }
   public async processor(): Promise<Github.Type.Commits> {
-    let parentId = await this.getParentId(`${mappingPrefixes.commit}_${this.ghApiData.commits.id}`);
+    const githubId = `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`;
+    let parentId = await this.getParentId(githubId);
     if (!parentId) {
       parentId = uuid();
-      await this.putDataToDynamoDB(
-        parentId,
-        `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`
-      );
+      await this.putDataToDynamoDB(parentId, githubId);
     }
 
     const filesArr: Array<Github.Type.CommitedFiles> = this.ghApiData.files.map(
