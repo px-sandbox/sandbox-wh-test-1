@@ -20,9 +20,18 @@ export class SprintProcessor extends DataProcessor<
       logger.error(`Organization ${this.apiData.organization} not found`);
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    const parentId: string | undefined = await this.getParentId(
+    let parentId: string | undefined = await this.getParentId(
       `${mappingPrefixes.sprint}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`
     );
+
+    // if parent id is not present in dynamoDB then create a new parent id
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(
+        parentId,
+        `${mappingPrefixes.sprint}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`
+      );
+    }
 
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const board = await jiraClient.getBoard(this.apiData.originBoardId);

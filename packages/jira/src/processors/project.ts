@@ -27,8 +27,18 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
       logger.error(`Organization ${this.apiData.organization} not found`);
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    const parentId = await this.getParentId(`${mappingPrefixes.project}_${this.apiData.id}
+    let parentId = await this.getParentId(`${mappingPrefixes.project}_${this.apiData.id}
     _${mappingPrefixes.org}_${orgData.orgId}`);
+
+    // if parent id is not present in dynamoDB then create a new parent id
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(
+        parentId,
+        `${mappingPrefixes.project}_${this.apiData.id}
+    _${mappingPrefixes.org}_${orgData.orgId}`
+      );
+    }
 
     const projectObj = {
       id: parentId ?? uuid(),
@@ -39,11 +49,11 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
         name: this.apiData?.name,
         avatarUrls: this.apiData?.avatarUrls
           ? {
-            avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
-            avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
-            avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
-            avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
-          }
+              avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
+              avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
+              avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
+              avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
+            }
           : null,
         lead: {
           accountId: `${mappingPrefixes.user}_${this.apiData?.lead?.accountId}`,
@@ -53,11 +63,11 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
           accountType: this.apiData?.lead?.accountType,
           avatarUrls: this.apiData?.avatarUrls
             ? {
-              avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
-              avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
-              avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
-              avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
-            }
+                avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
+                avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
+                avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
+                avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
+              }
             : null,
         },
         organizationId: orgData.id ?? null,

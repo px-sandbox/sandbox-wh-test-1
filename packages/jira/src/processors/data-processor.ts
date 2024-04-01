@@ -1,8 +1,7 @@
-import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { SQSClient } from '@pulse/event-handler';
+import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { SQSClientGh } from '@pulse/event-handler';
 import { logger } from 'core';
 import { ParamsMapping } from '../model/params-mapping';
-
 
 /**
  * Abstract class for processing Jira API data.
@@ -10,6 +9,8 @@ import { ParamsMapping } from '../model/params-mapping';
  * @template S - Type of processed data.
  */
 export abstract class DataProcessor<T, S> {
+  private SQSClient: SQSClientGh;
+  protected DynamoDbDocClient: DynamoDbDocClientGh;
   protected apiData: T;
 
   /**
@@ -18,6 +19,8 @@ export abstract class DataProcessor<T, S> {
    */
   constructor(data: T) {
     this.apiData = data;
+    this.SQSClient = SQSClientGh.getInstance();
+    this.DynamoDbDocClient = DynamoDbDocClientGh.getInstance();
   }
 
   /**
@@ -56,7 +59,10 @@ export abstract class DataProcessor<T, S> {
    * @param url - URL of the SQS queue.
    */
   public async sendDataToQueue<U>(data: U, url: string): Promise<void> {
-    await new SQSClient().sendMessage(data, url);
+    await this.SQSClient.sendMessage(data, url);
   }
 
+  public async putDataToDynamoDB(parentId: string, jiraId: string): Promise<void> {
+    await this.DynamoDbDocClient.put(new ParamsMapping().preparePutParams(parentId, jiraId));
+  }
 }

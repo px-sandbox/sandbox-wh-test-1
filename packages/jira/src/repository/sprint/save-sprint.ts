@@ -1,12 +1,12 @@
 import esb from 'elastic-builder';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
+// import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../../util/response-formatter';
-import { ParamsMapping } from '../../model/params-mapping';
-import { mappingPrefixes } from '../../constant/config';
+// import { ParamsMapping } from '../../model/params-mapping';
+// import { mappingPrefixes } from '../../constant/config';
 
 /**
  * Saves the details of a Jira sprint to DynamoDB and Elasticsearch.
@@ -17,22 +17,22 @@ import { mappingPrefixes } from '../../constant/config';
 export async function saveSprintDetails(data: Jira.Type.Sprint): Promise<void> {
   try {
     const updatedData = { ...data };
-    const orgId = data.body.organizationId.split('org_')[1];
-    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(
-      data.id,
-      `${data.body.id}_${mappingPrefixes.org}_${orgId}`));
+    // const orgId = data.body.organizationId.split('org_')[1];
+    // await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(
+    //   data.id,
+    //   `${data.body.id}_${mappingPrefixes.org}_${orgId}`));
     const esClientObj = new ElasticSearchClient({
       host: Config.OPENSEARCH_NODE,
       username: Config.OPENSEARCH_USERNAME ?? '',
       password: Config.OPENSEARCH_PASSWORD ?? '',
     });
-    const matchQry =
-      esb
-        .boolQuery()
-        .must([
-          esb.termsQuery('body.id', data.body.id),
-          esb.termQuery('body.organizationId.keyword', data.body.organizationId),
-        ]).toJSON();
+    const matchQry = esb
+      .boolQuery()
+      .must([
+        esb.termsQuery('body.id', data.body.id),
+        esb.termQuery('body.organizationId.keyword', data.body.organizationId),
+      ])
+      .toJSON();
     const sprintData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Sprint, matchQry);
     const [formattedData] = await searchedDataFormator(sprintData);
     if (formattedData) {
