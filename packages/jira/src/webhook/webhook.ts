@@ -26,7 +26,8 @@ async function processWebhookEvent(
   organization: string
 ): Promise<void> {
   try {
-    switch (eventName?.toLowerCase()) {
+    const event = eventName?.toLowerCase();
+    switch (event) {
       case Jira.Enums.Event.ProjectCreated:
         await project.create(body.project, eventTime, organization);
         break;

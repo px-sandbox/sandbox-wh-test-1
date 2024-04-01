@@ -1,6 +1,7 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { Jira } from 'abstraction';
 import { SprintProcessor } from '../../../processors/sprint';
 import { logProcessToRetry } from '../../../util/retry-process';
 
@@ -19,7 +20,10 @@ export const handler = async function sprintFormattedDataReciever(event: SQSEven
           return;
         }
         const data = await sprintProcessor.processor();
-        await sprintProcessor.sendDataToQueue(data, Queue.qSprintIndex.queueUrl);
+        await sprintProcessor.sendDataToQueue(
+          { data, index: Jira.Enums.IndexName.Sprint },
+          Queue.qJiraIndex.queueUrl
+        );
       } catch (error) {
         await logProcessToRetry(record, Queue.qSprintFormat.queueUrl, error as Error);
         logger.error('sprintFormattedDataReciever.error', error);

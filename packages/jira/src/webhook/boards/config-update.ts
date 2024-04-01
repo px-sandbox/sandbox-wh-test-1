@@ -40,8 +40,8 @@ export async function updateConfig(
 
     const userData = mappingToApiDataConfig(config, boardIndexData, organization);
     logger.info('boardUpdatedEvent: Send message to SQS');
-    // await new SQSClient().sendMessage(userData, Queue.qBoardFormat.queueUrl);
-    sqsClient.sendMessage(userData, Queue.qBoardFormat.queueUrl);
+
+    await sqsClient.sendMessage(userData, Queue.qBoardFormat.queueUrl);
   } catch (error) {
     logger.error('boardUpdatedEvent.error', { error });
   }

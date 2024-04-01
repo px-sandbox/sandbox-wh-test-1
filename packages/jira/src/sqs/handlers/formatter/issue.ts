@@ -3,6 +3,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import _ from 'lodash';
 import async from 'async';
+import { Jira } from 'abstraction';
 import { IssueProcessor } from '../../../processors/issue';
 import { logProcessToRetry } from '../../../util/retry-process';
 
@@ -22,7 +23,10 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
       return;
     }
     const data = await issueProcessor.processor();
-    await issueProcessor.sendDataToQueue(data, Queue.qIssueIndex.queueUrl);
+    await issueProcessor.sendDataToQueue(
+      { data, index: Jira.Enums.IndexName.Issue },
+      Queue.qJiraIndex.queueUrl
+    );
   } catch (error) {
     await logProcessToRetry(record, Queue.qIssueFormat.queueUrl, error as Error);
     logger.error('issueFormattedDataReciever.error', error);

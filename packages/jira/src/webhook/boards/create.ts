@@ -34,8 +34,8 @@ export async function create(
 
       const boardData = mappingToApiData(board, createdAt, organization);
       logger.info('boardCreatedEvent: Send message to SQS');
-      // await new SQSClient().sendMessage(boardData, Queue.qBoardFormat.queueUrl);
-      sqsClient.sendMessage(boardData, Queue.qBoardFormat.queueUrl);
+
+      await sqsClient.sendMessage(boardData, Queue.qBoardFormat.queueUrl);
     }
   } catch (error) {
     logger.error('boardCreatedEvent.error', { error });
