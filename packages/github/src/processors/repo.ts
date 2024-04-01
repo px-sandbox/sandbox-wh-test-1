@@ -14,10 +14,11 @@ export class RepositoryProcessor extends DataProcessor<
     super(data);
   }
   public async processor(): Promise<Github.Type.RepoFormatter> {
-    let parentId: string = await this.getParentId(`${mappingPrefixes.repo}_${this.ghApiData.id}`);
+    const githubId = `${mappingPrefixes.repo}_${this.ghApiData.id}`;
+    let parentId: string = await this.getParentId(githubId);
     if (!parentId) {
       parentId = uuid();
-      await this.putDataToDynamoDB(parentId, `${mappingPrefixes.repo}_${this.ghApiData.id}`);
+      await this.putDataToDynamoDB(parentId, githubId);
     }
     const action = [
       {

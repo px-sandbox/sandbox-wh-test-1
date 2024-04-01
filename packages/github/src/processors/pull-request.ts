@@ -139,7 +139,8 @@ export class PRProcessor extends DataProcessor<
   public async processor(): Promise<Github.Type.PullRequest> {
     try {
       await this.processPRAction();
-      let parentId = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
+      const githubId = `${mappingPrefixes.pull}_${this.ghApiData.id}`;
+      let parentId = await this.getParentId(githubId);
       if (!parentId && this.ghApiData.action !== Github.Enums.PullRequest.Opened) {
         throw new Error(
           `pr_not_found_for_event: id:${this.ghApiData.id}, 
@@ -149,7 +150,7 @@ export class PRProcessor extends DataProcessor<
       }
       if (!parentId) {
         parentId = uuid();
-        await this.putDataToDynamoDB(parentId, `${mappingPrefixes.pull}_${this.ghApiData.id}`);
+        await this.putDataToDynamoDB(parentId, githubId);
       }
       const reqReviewersData: Array<Github.Type.RequestedReviewers> =
         this.ghApiData.requested_reviewers.map((reqReviewer) => ({

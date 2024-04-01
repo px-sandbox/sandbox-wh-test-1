@@ -32,19 +32,14 @@ export class ReopenRateProcessor extends DataProcessor<
       logger.error(`Organization ${this.apiData.organization} not found`);
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    let parentId: string | undefined = await this.getParentId(
-      // eslint-disable-next-line max-len
-      `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}_${mappingPrefixes.org}_${orgData.orgId}`
-    );
+    // eslint-disable-next-line max-len
+    const jiraId = `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}_${mappingPrefixes.org}_${orgData.orgId}`;
+    let parentId: string | undefined = await this.getParentId(jiraId);
 
     // if parent id is not present in dynamoDB then create a new parent id
     if (!parentId) {
       parentId = uuid();
-      await this.putDataToDynamoDB(
-        parentId,
-        // eslint-disable-next-line max-len
-        `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}_${mappingPrefixes.org}_${orgData.orgId}`
-      );
+      await this.putDataToDynamoDB(parentId, jiraId);
     }
     const repoRateObj = {
       id: parentId || uuid(),

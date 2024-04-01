@@ -27,17 +27,13 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
       logger.error(`Organization ${this.apiData.organization} not found`);
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    let parentId = await this.getParentId(`${mappingPrefixes.project}_${this.apiData.id}
-    _${mappingPrefixes.org}_${orgData.orgId}`);
+    const jiraId = `${mappingPrefixes.project}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`;
+    let parentId = await this.getParentId(jiraId);
 
     // if parent id is not present in dynamoDB then create a new parent id
     if (!parentId) {
       parentId = uuid();
-      await this.putDataToDynamoDB(
-        parentId,
-        `${mappingPrefixes.project}_${this.apiData.id}
-    _${mappingPrefixes.org}_${orgData.orgId}`
-      );
+      await this.putDataToDynamoDB(parentId, jiraId);
     }
 
     const projectObj = {
