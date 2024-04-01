@@ -20,7 +20,6 @@ export async function removeReopenRate(
   eventTime: moment.Moment
 ): Promise<void | false> {
   try {
-    // await new SQSClient().sendMessage({ ...issue, eventTime }, Queue.qReOpenRateDelete.queueUrl);
     // TODO: Check specifically for this event
     await sqsClient.sendFifoMessage(
       { ...issue, eventTime },

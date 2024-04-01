@@ -1,6 +1,7 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { Jira } from 'abstraction';
 import { UserProcessor } from '../../../processors/user';
 import { logProcessToRetry } from '../../../util/retry-process';
 
@@ -20,7 +21,10 @@ export const handler = async function userFormattedDataReciever(event: SQSEvent)
           return;
         }
         const data = await userProcessor.processor();
-        await userProcessor.sendDataToQueue(data, Queue.qUserIndex.queueUrl);
+        await userProcessor.sendDataToQueue(
+          { data, index: Jira.Enums.IndexName.Users },
+          Queue.qJiraIndex.queueUrl
+        );
       } catch (error) {
         await logProcessToRetry(record, Queue.qUserFormat.queueUrl, error as Error);
         logger.error('userFormattedDataReciever.error', error);

@@ -4,7 +4,11 @@ import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
 
 /* eslint-disable max-lines-per-function */
-export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[] {
+export function initializeIssueQueue(
+  stack: Stack,
+  jiraDDB: JiraTables,
+  jiraIndexDataQueue: Queue
+): Queue[] {
   const {
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -15,20 +19,6 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     AVAILABLE_PROJECT_KEYS,
     NODE_VERSION,
   } = use(commonConfig);
-
-  const issueIndexDataQueue = new Queue(stack, 'qIssueIndex', {
-    consumer: {
-      function: {
-        handler: 'packages/jira/src/sqs/handlers/indexer/issue.handler',
-        runtime: NODE_VERSION,
-      },
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
 
   const issueFormatDataQueue = new Queue(stack, 'qIssueFormat', {
     cdk: {
@@ -64,25 +54,11 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     },
   });
 
-  const reOpenRateIndexQueue = new Queue(stack, 'qReOpenRateIndex');
-  reOpenRateIndexQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnReOpenRateIndex', {
-      handler: 'packages/jira/src/sqs/handlers/indexer/reopen-rate.handler',
-      bind: [reOpenRateIndexQueue],
-      runtime: NODE_VERSION,
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
-
   const reOpenRateMigratorQueue = new Queue(stack, 'qReOpenRateMigrator');
   reOpenRateMigratorQueue.addConsumer(stack, {
     function: new Function(stack, 'fnReOpenRateMigrator', {
       handler: 'packages/jira/src/sqs/handlers/formatter/reopen-rate-migrator.handler',
-      bind: [reOpenRateMigratorQueue, reOpenRateIndexQueue],
+      bind: [reOpenRateMigratorQueue, jiraIndexDataQueue],
       runtime: NODE_VERSION,
     }),
     cdk: {
@@ -124,7 +100,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
     jiraDDB.processJiraRetryTable,
-    issueIndexDataQueue,
+    jiraIndexDataQueue,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -132,14 +108,6 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
-  ]);
-  issueIndexDataQueue.bind([
-    jiraDDB.jiraCredsTable,
-    jiraDDB.jiraMappingTable,
-    jiraDDB.processJiraRetryTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
   ]);
 
   reOpenRateDataQueue.bind([
@@ -149,17 +117,8 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
-    reOpenRateIndexQueue,
+    jiraIndexDataQueue,
     AVAILABLE_PROJECT_KEYS,
-  ]);
-
-  reOpenRateIndexQueue.bind([
-    jiraDDB.jiraCredsTable,
-    jiraDDB.jiraMappingTable,
-    jiraDDB.processJiraRetryTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
   ]);
 
   reOpenRateMigratorQueue.bind([
@@ -174,7 +133,7 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
   reOpenRateDeleteQueue.bind([
     jiraDDB.processJiraRetryTable,
     jiraDDB.jiraMappingTable,
-    reOpenRateIndexQueue,
+    jiraIndexDataQueue,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -190,14 +149,12 @@ export function initializeIssueQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    issueIndexDataQueue,
+    jiraIndexDataQueue,
   ]);
 
   return [
     issueFormatDataQueue,
-    issueIndexDataQueue,
     reOpenRateDataQueue,
-    reOpenRateIndexQueue,
     reOpenRateMigratorQueue,
     reOpenRateDeleteQueue,
     issueTimeTrackingMigrationQueue,

@@ -1,10 +1,8 @@
-
 import { logger } from 'core';
 import moment from 'moment';
 import { Jira } from 'abstraction';
 import { getBoardById } from '../../repository/board/get-board';
 import { saveBoardDetails } from '../../repository/board/save-board';
-
 
 /**
  * Deletes a board by its ID and sets the `isDeleted` flag to `true`.
@@ -15,24 +13,23 @@ import { saveBoardDetails } from '../../repository/board/save-board';
  *  or `false` if the board was not found.
  */
 export async function deleteBoard(
-    boardId: number,
-    eventTime: moment.Moment,
-    organization: string
+  boardId: number,
+  eventTime: moment.Moment,
+  organization: string
 ): Promise<void | false> {
+  logger.info('boardDeletedEvent started for board id: ', boardId);
 
-    logger.info('boardDeletedEvent started for board id: ', boardId);
+  const boardData = await getBoardById(boardId, organization);
+  if (!boardData) {
+    logger.info('boardDeletedEvent: Board not found');
+    return false;
+  }
 
-    const boardData = await getBoardById(boardId, organization);
-    if (!boardData) {
-        logger.info('boardDeletedEvent: Board not found');
-        return false;
-    }
+  const { _id, ...processBoardData } = boardData;
 
-    const { _id, ...processBoardData } = boardData;
+  processBoardData.isDeleted = true;
+  processBoardData.deletedAt = eventTime.toISOString();
 
-    processBoardData.isDeleted = true;
-    processBoardData.deletedAt = eventTime.toISOString();
-
-    logger.info(`boardDeletedEvent: Delete Board id ${_id}`);
-    await saveBoardDetails({ id: _id, body: processBoardData } as Jira.Type.Board);
+  logger.info(`boardDeletedEvent: Delete Board id ${_id}`);
+  await saveBoardDetails({ id: _id, body: processBoardData } as Jira.Type.Board);
 }
