@@ -54,7 +54,7 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
   }
 
   public async find(getParams: QueryCommandInput): Promise<Record<string, unknown> | undefined> {
-    const ddbRes = await this.ddbDocClient.send(new QueryCommand(getParams) );
+    const ddbRes = await this.ddbDocClient.send(new QueryCommand(getParams));
     return ddbRes.Items ? ddbRes.Items[0] : undefined;
   }
 
@@ -91,5 +91,11 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
     const data = (await this.ddbDocClient.send(new ScanCommand(params))) as ScanCommandOutput;
 
     return data;
+  }
+
+  public async scan(scanParams: ScanCommandInput): Promise<Array<unknown>> {
+    const ddbRes = await this.getDdbDocClient().send(new ScanCommand(scanParams));
+
+    return ddbRes?.Items?.length ? ddbRes.Items : [];
   }
 }

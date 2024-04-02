@@ -10,10 +10,11 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
     super(data);
   }
   public async processor(): Promise<Github.Type.User> {
-    let parentId = await this.getParentId(`${mappingPrefixes.user}_${this.ghApiData.id}`);
+    const githubId = `${mappingPrefixes.user}_${this.ghApiData.id}`;
+    let parentId = await this.getParentId(githubId);
     if (!parentId) {
       parentId = uuid();
-      await this.putDataToDynamoDB(parentId, `${mappingPrefixes.user}_${this.ghApiData.id}`);
+      await this.putDataToDynamoDB(parentId, githubId);
     }
     const createdAt = this.ghApiData.created_at ?? new Date().toISOString();
     const action = [

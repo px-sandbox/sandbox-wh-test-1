@@ -3,7 +3,11 @@ import { Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
 
-export function initializeUserQueue(stack: Stack, jiraDDB: JiraTables): Queue[] {
+export function initializeUserQueue(
+  stack: Stack,
+  jiraDDB: JiraTables,
+  jiraIndexDataQueue: Queue
+): Queue {
   const {
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -11,19 +15,8 @@ export function initializeUserQueue(stack: Stack, jiraDDB: JiraTables): Queue[] 
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    NODE_VERSION
+    NODE_VERSION,
   } = use(commonConfig);
-
-  const userIndexDataQueue = new Queue(stack, 'qUserIndex', {
-    consumer: {
-      function: 'packages/jira/src/sqs/handlers/indexer/user.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
 
   const userFormatDataQueue = new Queue(stack, 'qUserFormat');
   userFormatDataQueue.addConsumer(stack, {
@@ -43,7 +36,7 @@ export function initializeUserQueue(stack: Stack, jiraDDB: JiraTables): Queue[] 
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
     jiraDDB.processJiraRetryTable,
-    userIndexDataQueue,
+    jiraIndexDataQueue,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -51,14 +44,6 @@ export function initializeUserQueue(stack: Stack, jiraDDB: JiraTables): Queue[] 
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
   ]);
-  userIndexDataQueue.bind([
-    jiraDDB.jiraCredsTable,
-    jiraDDB.jiraMappingTable,
-    jiraDDB.processJiraRetryTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
 
-  return [userFormatDataQueue, userIndexDataQueue];
+  return userFormatDataQueue;
 }

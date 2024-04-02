@@ -24,15 +24,11 @@ export class PRReviewCommentProcessor extends DataProcessor<
     this.action = action;
   }
   public async processor(): Promise<Github.Type.PRReviewComment> {
-    let parentId: string = await this.getParentId(
-      `${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`
-    );
+    const githubId = `${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`;
+    let parentId: string = await this.getParentId(githubId);
     if (!parentId) {
       parentId = uuid();
-      await this.putDataToDynamoDB(
-        parentId,
-        `${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`
-      );
+      await this.putDataToDynamoDB(parentId, githubId);
     }
     const action = [
       {
@@ -72,7 +68,7 @@ export class PRReviewCommentProcessor extends DataProcessor<
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
         githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
-        isDeleted: this.action == 'deleted',
+        isDeleted: this.action === 'deleted',
       },
     };
     return pRReviewCommentObj;

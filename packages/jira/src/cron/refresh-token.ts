@@ -1,6 +1,6 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { HttpStatusCode, logger, responseParser } from 'core';
 import { APIGatewayProxyResult } from 'aws-lambda';
+import { HttpStatusCode, logger, responseParser } from 'core';
 import { Table } from 'sst/node/table';
 import { getTokens } from '../lib/get-token';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
@@ -10,7 +10,7 @@ import { JiraCredsMapping } from '../model/prepare-creds-params';
 // update the refresh token in dynamoDB
 export async function updateRefreshToken(): Promise<APIGatewayProxyResult> {
   logger.info(`Get refresh token invoked at: ${new Date().toISOString()}`);
-  const _ddbClient = new DynamoDbDocClient();
+  const _ddbClient = DynamoDbDocClient.getInstance();
 
   const data = (await _ddbClient.scan({
     TableName: Table.jiraCreds.tableName,

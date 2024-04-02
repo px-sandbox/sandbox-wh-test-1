@@ -10,7 +10,11 @@ import { JiraTables } from '../../type/tables';
  * @returns An array of project queues.
  * @throws Error if any of the queues fail to bind.
  */
-export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue[] {
+export function initializeProjectQueue(
+  stack: Stack,
+  jiraDDB: JiraTables,
+  jiraIndexDataQueue: Queue
+): Queue {
   const {
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -19,19 +23,8 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
-    NODE_VERSION
+    NODE_VERSION,
   } = use(commonConfig);
-
-  const projectIndexDataQueue = new Queue(stack, 'qProjectIndex', {
-    consumer: {
-      function: 'packages/jira/src/sqs/handlers/indexer/project.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
 
   const projectFormatDataQueue = new Queue(stack, 'qProjectFormat');
   projectFormatDataQueue.addConsumer(stack, {
@@ -54,21 +47,12 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
-    projectIndexDataQueue,
+    jiraIndexDataQueue,
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS
+    AVAILABLE_PROJECT_KEYS,
   ]);
 
-  projectIndexDataQueue.bind([
-    jiraDDB.jiraCredsTable,
-    jiraDDB.jiraMappingTable,
-    jiraDDB.processJiraRetryTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
-
-  return [projectFormatDataQueue, projectIndexDataQueue];
+  return projectFormatDataQueue;
 }

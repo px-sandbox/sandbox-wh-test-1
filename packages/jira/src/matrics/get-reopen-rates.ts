@@ -10,13 +10,11 @@ import { getSprints } from '../lib/get-sprints';
 import { getBoardByOrgId } from '../repository/board/get-board';
 import { IssueReponse } from '../util/response-formatter';
 
+const esClientObj = ElasticSearchClient.getInstance();
+
 export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+   
     const reopenRateGraphQuery = esb.requestBodySearch().size(0);
     reopenRateGraphQuery.query(
       esb
@@ -81,11 +79,7 @@ export async function reopenRateGraphAvg(
   sprintIds: string[]
 ): Promise<{ totalBugs: string; totalReopen: string; percentValue: number }> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+
     const reopenRateGraphQuery = esb.requestBodySearch().size(0);
     reopenRateGraphQuery.query(
       esb
@@ -98,10 +92,10 @@ export async function reopenRateGraphAvg(
 
     logger.info('AvgReopenRateGraphQuery', reopenRateGraphQuery);
 
-    const reopenRateGraphResponse = await esClientObj.getClient().search({
-      index: Jira.Enums.IndexName.ReopenRate,
-      body: reopenRateGraphQuery,
-    });
+    const reopenRateGraphResponse:any = await esClientObj.queryAggs(
+      Jira.Enums.IndexName.ReopenRate,
+      reopenRateGraphQuery,
+    );
     return {
       totalBugs: reopenRateGraphResponse.body.hits.total.value ?? 0,
       totalReopen: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count ?? 0,

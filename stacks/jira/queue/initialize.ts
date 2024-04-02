@@ -7,6 +7,7 @@ import { initializeBoardQueue } from './board';
 import { initializeIssueQueue } from './issue';
 import { initializeIssueStatusQueue } from './issue-status';
 import { initializeMigrateQueue } from './migrate';
+import { initializeIndexQueue } from './indexer';
 
 // eslint-disable-next-line max-lines-per-function
 export function initializeQueues(
@@ -15,45 +16,25 @@ export function initializeQueues(
   jiraCredsTable: Table,
   processJiraRetryTable: Table
 ): Record<string, Queue> {
-  const [sprintFormatter, sprintIndexer] = initializeSprintQueue(stack, {
+  const jiraDDB = {
     jiraMappingTable,
     jiraCredsTable,
     processJiraRetryTable,
-  });
-  const [projectFormatter, projectIndexer] = initializeProjectQueue(stack, {
-    jiraMappingTable,
-    jiraCredsTable,
-    processJiraRetryTable,
-  });
-  const [userFormatter, userIndexer] = initializeUserQueue(stack, {
-    jiraMappingTable,
-    jiraCredsTable,
-    processJiraRetryTable,
-  });
-  const [boardFormatter, boardIndexer] = initializeBoardQueue(stack, {
-    jiraMappingTable,
-    jiraCredsTable,
-    processJiraRetryTable,
-  });
+  };
+  const jiraIndexer = initializeIndexQueue(stack, jiraDDB);
+  const sprintFormatter = initializeSprintQueue(stack, jiraDDB, jiraIndexer);
+  const projectFormatter = initializeProjectQueue(stack, jiraDDB, jiraIndexer);
+  const userFormatter = initializeUserQueue(stack, jiraDDB, jiraIndexer);
+  const boardFormatter = initializeBoardQueue(stack, jiraDDB, jiraIndexer);
   const [
     issueFormatter,
-    issueIndexer,
     reOpenRateDataQueue,
-    reOpenRateIndexQueue,
     reOpenRateMigratorQueue,
     reOpenRateDeleteQueue,
     issueTimeTrackingMigrationQueue,
-  ] = initializeIssueQueue(stack, {
-    jiraMappingTable,
-    jiraCredsTable,
-    processJiraRetryTable,
-  });
+  ] = initializeIssueQueue(stack, jiraDDB, jiraIndexer);
 
-  const [issueStatusFormatter, issueStatusIndexer] = initializeIssueStatusQueue(stack, {
-    jiraMappingTable,
-    jiraCredsTable,
-    processJiraRetryTable,
-  });
+  const issueStatusFormatter = initializeIssueStatusQueue(stack, jiraDDB, jiraIndexer);
 
   const [
     projectMigrateQueue,
@@ -61,22 +42,14 @@ export function initializeQueues(
     sprintMigrateQueue,
     issueStatusMigrateQueue,
     issueMigrateQueue,
-  ] = initializeMigrateQueue(
-    stack,
-    {
-      jiraMappingTable,
-      jiraCredsTable,
-      processJiraRetryTable,
-    },
-    [
-      projectFormatter,
-      sprintFormatter,
-      userFormatter,
-      boardFormatter,
-      issueFormatter,
-      issueStatusFormatter,
-    ]
-  );
+  ] = initializeMigrateQueue(stack, jiraDDB, [
+    projectFormatter,
+    sprintFormatter,
+    userFormatter,
+    boardFormatter,
+    issueFormatter,
+    issueStatusFormatter,
+  ]);
 
   return {
     projectMigrateQueue,
@@ -85,21 +58,15 @@ export function initializeQueues(
     issueStatusMigrateQueue,
     issueMigrateQueue,
     sprintFormatter,
-    sprintIndexer,
     projectFormatter,
-    projectIndexer,
     userFormatter,
-    userIndexer,
     boardFormatter,
-    boardIndexer,
     issueFormatter,
-    issueIndexer,
     issueStatusFormatter,
-    issueStatusIndexer,
     reOpenRateDataQueue,
-    reOpenRateIndexQueue,
     reOpenRateMigratorQueue,
     reOpenRateDeleteQueue,
     issueTimeTrackingMigrationQueue,
+    jiraIndexer,
   };
 }

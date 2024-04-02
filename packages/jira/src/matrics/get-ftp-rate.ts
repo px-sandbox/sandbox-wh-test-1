@@ -10,18 +10,7 @@ import { getBoardByOrgId } from '../repository/board/get-board';
 import { getSprints } from '../lib/get-sprints';
 import { IssueReponse, searchedDataFormator } from '../util/response-formatter';
 
-let esClient: ElasticSearchClient;
-
-function getEsClientObj(): ElasticSearchClient {
-  if (!esClient) {
-    esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-  }
-  return esClient;
-}
+const esClientObj = ElasticSearchClient.getInstance();
 
 function getJiraLink(orgName: string, projectKey: string, sprintId: number): string {
   return encodeURI(
@@ -40,11 +29,12 @@ export async function ftpRateGraph(
     let orgName = '';
     let projectKey = '';
 
-    const esClientObj = getEsClientObj();
-
+    const query = esb.requestBodySearch().query(
+      esb.termQuery('body.id', projectId)
+    ).toJSON();
     const [orgData, projects] = await Promise.all([
       getOrganizationById(organizationId),
-      esClientObj.search(Jira.Enums.IndexName.Project, 'id', projectId),
+      esClientObj.search(Jira.Enums.IndexName.Project, query),
     ]);
 
     const projectData = await searchedDataFormator(projects);
@@ -132,11 +122,6 @@ export async function ftpRateGraphAvg(
   sprintIds: string[]
 ): Promise<{ total: string; totalFtp: string; percentValue: number }> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const ftpRateGraphQuery = esb.requestBodySearch().size(0);
     ftpRateGraphQuery.query(
       esb
@@ -159,10 +144,11 @@ export async function ftpRateGraphAvg(
 
     logger.info('AvgftpRateGraphQuery', ftpRateGraphQuery);
 
-    const ftpRateGraphResponse = await esClientObj.getClient().search({
-      index: Jira.Enums.IndexName.Issue,
-      body: ftpRateGraphQuery,
-    });
+    // TODO: remove any after testing
+    const ftpRateGraphResponse:any = await esClientObj.queryAggs(
+      Jira.Enums.IndexName.Issue,
+      ftpRateGraphQuery,
+    );
 
     return {
       total: ftpRateGraphResponse.body.hits.total.value ?? 0,

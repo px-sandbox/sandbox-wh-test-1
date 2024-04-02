@@ -48,10 +48,6 @@ export async function update(
   );
 
   logger.info('processProjectUpdatedEvent: Send message to SQS');
-  // await new SQSClient().sendMessage(
-  //   updatedProjectBody,
-  //   Queue.qProjectFormat.queueUrl,
-  //   updatedProjectBody.id
-  // );
-  sqsClient.sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
+
+  await sqsClient.sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
 }

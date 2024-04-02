@@ -16,9 +16,15 @@ export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.Use
       logger.error(`Organization ${this.apiData.organization} not found`);
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    const parentId = await this.getParentId(
-      `${mappingPrefixes.user}_${this.apiData.accountId}_${mappingPrefixes.org}_${orgData.orgId}`
-    );
+    const jiraId = `${mappingPrefixes.user}_${this.apiData.accountId}_${mappingPrefixes.org}_${orgData.orgId}`;
+    let parentId = await this.getParentId(jiraId);
+
+    // if parent id is not present in dynamoDB then create a new parent id
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(parentId, jiraId);
+    }
+
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const apiUserData = await jiraClient.getUser(this.apiData.accountId);
     const userObj = {
@@ -31,11 +37,11 @@ export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.Use
         displayName: this.apiData?.displayName,
         avatarUrls: this.apiData?.avatarUrls
           ? {
-            avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
-            avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
-            avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
-            avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
-          }
+              avatarUrl48x48: this.apiData?.avatarUrls['48x48'],
+              avatarUrl32x32: this.apiData?.avatarUrls['32x32'],
+              avatarUrl24x24: this.apiData?.avatarUrls['24x24'],
+              avatarUrl16x16: this.apiData?.avatarUrls['16x16'],
+            }
           : null,
         isActive: this.apiData.active,
         groups: apiUserData?.groups ?? null,

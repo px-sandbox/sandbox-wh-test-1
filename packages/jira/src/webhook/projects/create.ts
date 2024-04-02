@@ -31,7 +31,7 @@ export async function create(
     const createdAt = moment(eventTime).toISOString();
     const updatedProjectBody = projectKeysMapper(projectData, createdAt, organization);
     logger.info('processProjectCreatedEvent: Send message to SQS');
-    // await new SQSClient().sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
-    sqsClient.sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
+
+    await sqsClient.sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
   }
 }

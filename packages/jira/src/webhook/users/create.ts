@@ -22,8 +22,8 @@ export async function create(
     const createdAt = moment(eventTime).toISOString();
     const userData = mappingToApiData(user, createdAt, organization);
     logger.info('userCreatedEvent: Send message to SQS');
-    // await new SQSClient().sendMessage(userData, Queue.qUserFormat.queueUrl);
-    sqsClient.sendMessage(userData, Queue.qUserFormat.queueUrl);
+
+    await sqsClient.sendMessage(userData, Queue.qUserFormat.queueUrl);
   } catch (error) {
     logger.error('userCreatedEvent.error', { error });
   }

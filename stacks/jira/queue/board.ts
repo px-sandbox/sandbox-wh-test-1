@@ -3,7 +3,11 @@ import { Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
 
-export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[] {
+export function initializeBoardQueue(
+  stack: Stack,
+  jiraDDB: JiraTables,
+  jiraIndexDataQueue: Queue
+): Queue {
   const {
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -12,19 +16,8 @@ export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
-    NODE_VERSION
+    NODE_VERSION,
   } = use(commonConfig);
-
-  const boardIndexDataQueue = new Queue(stack, 'qBoardIndex', {
-    consumer: {
-      function: 'packages/jira/src/sqs/handlers/indexer/board.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
-      },
-    },
-  });
 
   const boardFormatDataQueue = new Queue(stack, 'qBoardFormat');
 
@@ -45,23 +38,15 @@ export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
     jiraDDB.processJiraRetryTable,
-    boardIndexDataQueue,
+    jiraIndexDataQueue,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS
-  ]);
-  boardIndexDataQueue.bind([
-    jiraDDB.jiraCredsTable,
-    jiraDDB.jiraMappingTable,
-    jiraDDB.processJiraRetryTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
+    AVAILABLE_PROJECT_KEYS,
   ]);
 
-  return [boardFormatDataQueue, boardIndexDataQueue];
+  return boardFormatDataQueue;
 }

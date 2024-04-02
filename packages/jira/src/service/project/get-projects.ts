@@ -3,7 +3,6 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { Config } from 'sst/node/config';
 import { formatProjectsResponse, searchedDataFormator } from '../../util/response-formatter';
 import { getProjectsSchema } from '../validations';
 
@@ -12,6 +11,7 @@ import { getProjectsSchema } from '../validations';
  * @param event - The APIGatewayProxyEvent object.
  * @returns A Promise that resolves to an APIGatewayProxyResult object.
  */
+const esClient = ElasticSearchClient.getInstance();
 const projects = async function getProjectsData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
@@ -20,11 +20,7 @@ const projects = async function getProjectsData(
   const size = Number(event?.queryStringParameters?.size ?? 10);
   let response;
   try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
+   
 
     // match query if search term is present else get all projects
     let query;
@@ -46,7 +42,7 @@ const projects = async function getProjectsData(
     }
 
     // fetching data from elastic search based on query
-    const { body: data } = await esClient.getClient().search({
+    const { body: data } = await esClient.search({
       index: Jira.Enums.IndexName.Project,
       from: (page - 1) * size,
       size,
@@ -76,4 +72,5 @@ const handler = APIHandler(projects, {
   eventSchema: transpileSchema(getProjectsSchema),
 });
 
-export { projects, handler };
+export { handler, projects };
+

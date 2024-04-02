@@ -1,12 +1,8 @@
 import esb from 'elastic-builder';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
-import { ParamsMapping } from '../../model/params-mapping';
-import { mappingPrefixes } from '../../constant/config';
 
 /**
  * Saves the user details to DynamoDB and Elasticsearch.
@@ -15,15 +11,9 @@ import { mappingPrefixes } from '../../constant/config';
  * @throws An error if there was an issue saving the user details.
  */
 const esClientObj = ElasticSearchClient.getInstance();
-const ddbClient = DynamoDbDocClient.getInstance();
 export async function saveUserDetails(data: Jira.Type.User): Promise<void> {
   try {
     const updatedData = { ...data };
-    const orgId = data.body.organizationId.split('org_')[1];
-    logger.info('saveUserDetails.invoked');
-    await ddbClient.put(new ParamsMapping().preparePutParams(
-      data.id,
-      `${data.body.id}_${mappingPrefixes.org}_${orgId}`));
   
     const matchQry =
       esb

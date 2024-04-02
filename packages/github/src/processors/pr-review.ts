@@ -24,12 +24,11 @@ export class PRReviewProcessor extends DataProcessor<
     this.action = action;
   }
   public async processor(): Promise<Github.Type.PRReview> {
-    let parentId: string = await this.getParentId(
-      `${mappingPrefixes.pRReview}_${this.ghApiData.id}`
-    );
+    const githubId = `${mappingPrefixes.pRReview}_${this.ghApiData.id}`;
+    let parentId: string = await this.getParentId(githubId);
     if (!parentId) {
       parentId = uuid();
-      await this.putDataToDynamoDB(parentId, `${mappingPrefixes.pRReview}_${this.ghApiData.id}`);
+      await this.putDataToDynamoDB(parentId, githubId);
     }
     const action = [
       {

@@ -32,8 +32,8 @@ export async function start(
     }
 
     logger.info('sprint_event: Send message to SQS');
-    // await new SQSClient().sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
-    sqsClient.sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
+
+    await sqsClient.sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
   } catch (e) {
     logger.error('sprintStartEvent: Error in starting sprint', e);
     throw e;

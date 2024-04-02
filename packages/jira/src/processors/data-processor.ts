@@ -3,7 +3,6 @@ import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { ParamsMapping } from '../model/params-mapping';
 
-
 /**
  * Abstract class for processing Jira API data.
  * @template T - Type of Jira API data.

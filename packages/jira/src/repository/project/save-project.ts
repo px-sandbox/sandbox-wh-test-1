@@ -3,8 +3,6 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { mappingPrefixes } from '../../constant/config';
-import { ParamsMapping } from '../../model/params-mapping';
 import { searchedDataFormator, searchedDataFormatorWithDeleted } from '../../util/response-formatter';
 
 
@@ -18,14 +16,13 @@ import { searchedDataFormator, searchedDataFormatorWithDeleted } from '../../uti
  * @returns Promise<void>
  */
 const esClientObj = ElasticSearchClient.getInstance();
-const ddbClient = DynamoDbDocClient.getInstance();
-
 async function updateData(
   indexName: string,
   matchField: string,
   matchValue: string,
   orgId: string,
-  isDeleted = false): Promise<void> {
+  isDeleted = false
+): Promise<void> {
   // Starting to soft delete project, sprint, boards and issues data from elastic search
   logger.info(`starting to soft delete ${indexName} data from elastic search`);
   const matchQry2 = esb.requestBodySearch().query(esb.boolQuery()
@@ -37,7 +34,7 @@ async function updateData(
 
     ])).toJSON();
 
-  const data = await esClientObj.search(indexName, matchQry2);
+  const data = await esClientObj.paginateSearch(indexName, matchQry2);
 
   const formattedData = await searchedDataFormatorWithDeleted(data);
 
@@ -59,18 +56,13 @@ async function updateData(
 export async function saveProjectDetails(data: Jira.Type.Project): Promise<void> {
   try {
     const updatedData = { ...data };
-    const orgId = data.body.organizationId.split('org_')[1];
-    await ddbClient.put(new ParamsMapping().preparePutParams(
-      data.id,
-      `${data.body.id}_${mappingPrefixes.org}_${orgId}`));
-
-    const matchQry =
-      esb
-        .boolQuery()
-        .must([
-          esb.termsQuery('body.id', data.body.id),
-          esb.termQuery('body.organizationId', data.body.organizationId),
-        ]).toJSON();
+    const matchQry = esb
+      .boolQuery()
+      .must([
+        esb.termsQuery('body.id', data.body.id),
+        esb.termQuery('body.organizationId', data.body.organizationId),
+      ])
+      .toJSON();
     logger.info('saveProjectDetails.matchQry------->', { matchQry });
     const projectData = await esClientObj.search(Jira.Enums.IndexName.Project, matchQry);
     const [formattedData] = await searchedDataFormator(projectData);
@@ -81,12 +73,28 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
 
     if (data.body.isDeleted) {
       await Promise.all([
-        updateData( Jira.Enums.IndexName.Sprint,
-          'body.projectId', data.body.id, data.body.organizationId, true),
-        updateData(Jira.Enums.IndexName.Issue,
-          'body.projectId', data.body.id, data.body.organizationId, true),
-        updateData(Jira.Enums.IndexName.Board,
-          'body.projectId', data.body.id, data.body.organizationId, true)]);
+        updateData(
+          Jira.Enums.IndexName.Sprint,
+          'body.projectId',
+          data.body.id,
+          data.body.organizationId,
+          true
+        ),
+        updateData(
+          Jira.Enums.IndexName.Issue,
+          'body.projectId',
+          data.body.id,
+          data.body.organizationId,
+          true
+        ),
+        updateData(
+          Jira.Enums.IndexName.Board,
+          'body.projectId',
+          data.body.id,
+          data.body.organizationId,
+          true
+        ),
+      ]);
     }
     logger.info('saveProjectDetails.successful');
   } catch (error: unknown) {
@@ -96,5 +104,3 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
     throw error;
   }
 }
-
-

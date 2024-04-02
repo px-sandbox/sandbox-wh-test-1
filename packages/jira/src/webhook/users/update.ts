@@ -24,6 +24,6 @@ export async function update(
 
   const userData = mappingToApiData(user, userIndexData.createdAt, organization);
   logger.info('userUpdatedEvent: Send message to SQS');
-  // await new SQSClient().sendMessage(userData, Queue.qUserFormat.queueUrl);
-  sqsClient.sendMessage(userData, Queue.qUserFormat.queueUrl);
+
+  await sqsClient.sendMessage(userData, Queue.qUserFormat.queueUrl);
 }
