@@ -1,8 +1,6 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import _ from 'lodash';
-import async from 'async';
 import { Jira } from 'abstraction';
 import { ReopenRateProcessor } from '../../../processors/reopen-rate';
 import { prepareReopenRate } from '../../../util/prepare-reopen-rate';
@@ -50,24 +48,9 @@ async function repoInfoQueueFunc(record: SQSRecord): Promise<void> {
  */
 export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
-  const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
-    Object.values(messageGroups).map(
-      async (group) =>
-        new Promise((resolve) => {
-          async.eachSeries(
-            group,
-            async (record) => {
-              await repoInfoQueueFunc(record);
-            },
-            (error) => {
-              if (error) {
-                logger.error('reopenRateInfoQueueDATA.error', error);
-              }
-              resolve('DONE');
-            }
-          );
-        })
-    )
+    event.Records.map(async (record: SQSRecord) => {
+      await repoInfoQueueFunc(record);
+    })
   );
 };

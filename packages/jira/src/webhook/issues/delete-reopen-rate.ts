@@ -1,5 +1,4 @@
 import { SQSClientGh } from '@pulse/event-handler';
-import { v4 as uuid } from 'uuid';
 import { Jira } from 'abstraction';
 import { Hit, HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
@@ -20,13 +19,7 @@ export async function removeReopenRate(
   eventTime: moment.Moment
 ): Promise<void | false> {
   try {
-    // TODO: Check specifically for this event
-    await sqsClient.sendFifoMessage(
-      { ...issue, eventTime },
-      Queue.qReOpenRateDelete.queueUrl,
-      issue.issue.id,
-      uuid()
-    );
+    await sqsClient.sendMessage({ ...issue, eventTime }, Queue.qReOpenRateDelete.queueUrl);
   } catch (error) {
     logger.error(`removeReopenRate.error, ${error}`);
   }
