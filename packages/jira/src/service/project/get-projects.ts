@@ -5,6 +5,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import { formatProjectsResponse, searchedDataFormator } from '../../util/response-formatter';
 import { getProjectsSchema } from '../validations';
+import esb from 'elastic-builder';
 
 /**
  * Retrieves Jira projects data from OpenSearch.
@@ -20,36 +21,22 @@ const projects = async function getProjectsData(
   const size = Number(event?.queryStringParameters?.size ?? 10);
   let response;
   try {
-   
-
-    // match query if search term is present else get all projects
-    let query;
+    let query = esb
+      .requestBodySearch()
+      .size(size)
+      .from((page - 1) * size);
     if (searchTerm) {
-      query = {
-        bool: {
-          must: [
-            { match: { 'body.name': { query: searchTerm, fuzziness: 'AUTO' } } },
-            { match: { 'body.isDeleted': false } },
-          ],
-        },
-      };
+      query = query.query(
+        esb
+          .boolQuery()
+          .must([esb.termQuery('body.isDeleted', false), esb.termQuery('body.name', searchTerm)])
+      );
     } else {
-      query = {
-        match: {
-          'body.isDeleted': false,
-        },
-      };
+      query = query.query(esb.termQuery('body.isDeleted', false));
     }
 
     // fetching data from elastic search based on query
-    const { body: data } = await esClient.search({
-      index: Jira.Enums.IndexName.Project,
-      from: (page - 1) * size,
-      size,
-      body: {
-        query,
-      },
-    });
+    const data = await esClient.search(Jira.Enums.IndexName.Project, query.toJSON());
 
     // formatting above query response data
     response = await searchedDataFormator(data);
@@ -73,4 +60,3 @@ const handler = APIHandler(projects, {
 });
 
 export { handler, projects };
-
