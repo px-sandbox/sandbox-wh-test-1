@@ -10,7 +10,7 @@ export type IssuesResponse<T> = {
   maxResults: number;
   startAt: number;
   total: number;
-  // isLast: boolean;
+
   issues: Array<T>;
 };
 
@@ -20,10 +20,3 @@ export type IssueStatusResponse<T> = {
   maxResults: number;
   values: Array<T>;
 };
-
-
-// export type UsersResponse<T> = {
-//   maxResults: number;
-//   startAt: number;
-//   users: Array<T>;
-// };

@@ -387,30 +387,7 @@ const indices = [
       },
     },
   },
-  // {
-  //   name: Github.Enums.IndexName.GitCopilot,
-  //   _id: { type: 'uuid' },
-  //   mappings: {
-  //     properties: {
-  //       body: {
-  //         type: 'object',
-  //         properties: {
-  //           dataTimestamp: {
-  //             type: 'date',
-  //             format: 'strict_date_optional_time',
-  //           },
-  //           isUsedInLastHour: { type: 'boolean' },
-  //           lastUsedAt: { type: 'date', format: 'strict_date_optional_time' },
-  //           editor: { type: 'text' },
-  //           editorVersion: { type: 'text' },
-  //           featureUsed: { type: 'text' },
-  //           featureVersion: { type: 'text' },
-  //           userId: { type: 'keyword' },
-  //         },
-  //       },
-  //     },
-  //   },
-  // },
+
   {
     name: Github.Enums.IndexName.GitActiveBranches,
     _id: { type: 'uuid' },
@@ -445,11 +422,10 @@ const indices = [
             releaseDate: { type: 'date', format: 'strict_date_optional_time' },
             isDeleted: { type: 'boolean' },
             isCore: { type: 'boolean' },
-
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   },
   {
     name: Github.Enums.IndexName.GitRepoSastErrors,
@@ -475,7 +451,7 @@ const indices = [
         },
       },
     },
-  }
+  },
 ];
 
 async function createMapping(name: string, mappings: Github.Type.IndexMapping): Promise<void> {
@@ -486,13 +462,13 @@ async function createMapping(name: string, mappings: Github.Type.IndexMapping): 
     if (statusCode === 200) {
       logger.info(`Index '${name}' already exists.`);
       // update
-      await esClient.updateIndex(name,mappings);
+      await esClient.updateIndex(name, mappings);
       return;
     }
 
     logger.info(`Creating mapping for index '${name}'...`);
 
-    await esClient.createIndex( name,mappings);
+    await esClient.createIndex(name, mappings);
 
     logger.info(`Created mapping for '${name}' successful`);
   } catch (error) {
