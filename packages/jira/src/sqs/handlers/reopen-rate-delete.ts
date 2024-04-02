@@ -4,7 +4,6 @@ import { logger } from 'core';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { mappingPrefixes } from '../../constant/config';
@@ -34,12 +33,14 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
         if (reopenRateData.length > 0) {
           const query = esb
             .requestBodySearch()
-            .query(esb
-            .boolQuery()
-            .must([
-              esb.termQuery('body.issueId', `${mappingPrefixes.issue}_${messageBody.issue.id}`),
-              esb.termQuery('body.organizationId', `${orgData.id}`),
-            ]))
+            .query(
+              esb
+                .boolQuery()
+                .must([
+                  esb.termQuery('body.issueId', `${mappingPrefixes.issue}_${messageBody.issue.id}`),
+                  esb.termQuery('body.organizationId', `${orgData.id}`),
+                ])
+            )
             .toJSON();
 
           const script = esb

@@ -16,7 +16,9 @@ export async function getOrganization(
   return orgData;
 }
 
-export async function getOrganizationById(orgId: string) {
+export async function getOrganizationById(
+  orgId: string
+): Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]> {
   const query = esb.requestBodySearch().query(esb.termQuery('body.id', orgId)).toJSON();
   const organization = await _esClient.search(Jira.Enums.IndexName.Organization, query);
   const orgData = await searchedDataFormator(organization);

@@ -2,7 +2,7 @@ import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
+
 import { searchedDataFormator } from '../../util/response-formatter';
 
 /**
@@ -22,10 +22,7 @@ export async function saveReOpenRate(data: Jira.Type.Issue): Promise<void> {
         esb.termQuery('body.organizationId', data.body.organizationId),
       ])
       .toJSON();
-    const reOpenRateData = await esClientObj.search(
-      Jira.Enums.IndexName.ReopenRate,
-      matchQry
-    );
+    const reOpenRateData = await esClientObj.search(Jira.Enums.IndexName.ReopenRate, matchQry);
 
     const [formattedData] = await searchedDataFormator(reOpenRateData);
     if (formattedData) {

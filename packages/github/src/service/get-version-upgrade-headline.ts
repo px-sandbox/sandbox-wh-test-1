@@ -29,7 +29,6 @@ function compare(
     default:
       return false;
   }
-  // logger.info(`comparator ${operator} ${value} ${latestReleaseDate} ${currReleaseDate} ${flag} ${diffInDays}`)
 
   return flag;
 }
@@ -114,10 +113,7 @@ const getLibFromES = async (
 
       logger.info('ES-Query', { query });
 
-      const esLibData = await esClientObj.search(
-        Github.Enums.IndexName.GitRepoLibrary,
-        query,
-      );
+      const esLibData = await esClientObj.search(Github.Enums.IndexName.GitRepoLibrary, query);
 
       logger.info(`getLibFromES - ES Query result `, { esLibData });
 
@@ -136,8 +132,6 @@ const getLibFromES = async (
         releaseDate: lib.releaseDate,
       })
     );
-
-    // logger.info('LIB_NAME_AND_VERSION', libNameAndVersion);
 
     return getLibFromDB(libNameAndVersion, range);
   } catch (error) {

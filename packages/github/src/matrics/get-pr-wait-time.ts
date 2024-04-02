@@ -13,7 +13,7 @@ const getGraphData = (
   endDate: string,
   intervals: string,
   repoIds: string[]
-):object => {
+): object => {
   const prWaitTimeGraphQuery = esb.requestBodySearch().size(0);
   prWaitTimeGraphQuery.query(
     esb
@@ -61,7 +61,7 @@ const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[])
     .toJSON();
   logger.info('NUMBER_OF_PR_WAIT_TIME_AVG_ESB_QUERY', prWaitTimeAvgQuery);
   return prWaitTimeAvgQuery;
-}
+};
 
 export async function prWaitTimeGraphData(
   startDate: string,
@@ -93,14 +93,14 @@ export async function prWaitTimeAvg(
 ): Promise<{ value: number } | null> {
   try {
     const prWaitTimeAvgQuery = getHeadlineQuery(startDate, endDate, repoIds);
-    const data:HitBody = await esClientObj.queryAggs(
+    const data: HitBody = await esClientObj.queryAggs(
       Github.Enums.IndexName.GitPull,
-      prWaitTimeAvgQuery,
+      prWaitTimeAvgQuery
     );
 
     const totalTime = Number((data.total_time.value / 3600).toFixed(2));
     const totalPr = Number(data.pr_count.value);
-    // const weekDaysCount = getWeekDaysCount(startDate, endDate);
+
     return { value: totalTime === 0 ? 0 : totalTime / totalPr };
   } catch (e) {
     logger.error('prWaitTimeAvg.error', e);
