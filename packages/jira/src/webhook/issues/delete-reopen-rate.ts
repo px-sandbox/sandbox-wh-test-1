@@ -20,13 +20,7 @@ export async function removeReopenRate(
   eventTime: moment.Moment
 ): Promise<void | false> {
   try {
-    // TODO: Check specifically for this event
-    await sqsClient.sendFifoMessage(
-      { ...issue, eventTime },
-      Queue.qReOpenRateDelete.queueUrl,
-      issue.issue.id,
-      uuid()
-    );
+    await sqsClient.sendMessage({ ...issue, eventTime }, Queue.qReOpenRateDelete.queueUrl);
   } catch (error) {
     logger.error(`removeReopenRate.error, ${error}`);
   }

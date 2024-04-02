@@ -40,12 +40,7 @@ export async function update(issue: Jira.ExternalType.Webhook.Issue): Promise<vo
           ? ChangelogStatus.READY_FOR_QA
           : ChangelogStatus.QA_FAILED;
 
-      await sqsClient.sendFifoMessage(
-        { ...issue, typeOfChangelog },
-        Queue.qReOpenRate.queueUrl,
-        issue.issue.id,
-        uuid()
-      );
+      await sqsClient.sendMessage({ ...issue, typeOfChangelog }, Queue.qReOpenRate.queueUrl);
     }
   }
 }
