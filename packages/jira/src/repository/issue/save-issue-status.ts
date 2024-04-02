@@ -1,12 +1,8 @@
 import esb from 'elastic-builder';
-// import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../../util/response-formatter';
-// import { ParamsMapping } from '../../model/params-mapping';
-// import { mappingPrefixes } from '../../constant/config';
 
 /**
  * Saves the issue status details to DynamoDB and Elasticsearch.
@@ -14,19 +10,10 @@ import { searchedDataFormator } from '../../util/response-formatter';
  * @returns A Promise that resolves when the data is saved successfully.
  * @throws An error if there is an issue with saving the data.
  */
+const esClientObj = ElasticSearchClient.getInstance();
 export async function saveIssueStatusDetails(data: Jira.Type.IssueStatus): Promise<void> {
   try {
     const updatedData = { ...data };
-    // const orgId = data.body.organizationId.split('org_')[1];
-    // await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(
-    //     data.id,
-    //     `${data.body.id}_${mappingPrefixes.org}_${orgId}`
-    // ));
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const matchQry = esb
       .boolQuery()
       .must([
@@ -34,7 +21,7 @@ export async function saveIssueStatusDetails(data: Jira.Type.IssueStatus): Promi
         esb.termQuery('body.organizationId', data.body.organizationId),
       ])
       .toJSON();
-    const issueStatusData = await esClientObj.searchWithEsb(
+    const issueStatusData = await esClientObj.search(
       Jira.Enums.IndexName.IssueStatus,
       matchQry
     );

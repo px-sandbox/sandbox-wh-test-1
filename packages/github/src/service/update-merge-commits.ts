@@ -1,5 +1,5 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClientGh } from '@pulse/event-handler';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
@@ -7,8 +7,8 @@ import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esObj = ElasticSearchClientGh.getInstance();
-const sqsClient = SQSClientGh.getInstance();
+const esObj = ElasticSearchClient.getInstance();
+const sqsClient = SQSClient.getInstance();
 const getRepoData = async (repoId: string): Promise<any> => {
   const query = esb.requestBodySearch().query(esb.matchQuery('body.id', repoId)).toJSON();
   const repoData = await esObj.search(Github.Enums.IndexName.GitRepo, query);

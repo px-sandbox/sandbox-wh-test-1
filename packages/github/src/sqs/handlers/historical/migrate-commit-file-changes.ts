@@ -1,4 +1,4 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
@@ -21,7 +21,7 @@ const octokit = ghRequest.request.defaults({
   },
 });
 const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
-const esclient = ElasticSearchClientGh.getInstance();
+const esclient = ElasticSearchClient.getInstance();
 
 async function getRepoNameById(repoId: string): Promise<string> {
   const query = esb.requestBodySearch().query(esb.matchQuery('body.id', repoId)).toJSON();

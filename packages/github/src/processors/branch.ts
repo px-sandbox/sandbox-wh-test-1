@@ -13,11 +13,10 @@ export class BranchProcessor extends DataProcessor<
     super(data);
   }
   public async processor(): Promise<Github.Type.Branch> {
-    const githubId = `${mappingPrefixes.branch}_${this.ghApiData.id}`;
-    let parentId: string = await this.getParentId(githubId);
+    let parentId: string = await this.getParentId(`${mappingPrefixes.branch}_${this.ghApiData.id}`);
     if (!parentId) {
       parentId = uuid();
-      await this.putDataToDynamoDB(parentId, githubId);
+      await this.putDataToDynamoDB(parentId, `${mappingPrefixes.branch}_${this.ghApiData.id}`);
     }
     const createdAt = this.ghApiData.created_at ?? new Date();
     const action = [

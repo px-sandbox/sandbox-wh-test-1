@@ -1,10 +1,10 @@
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { v4 as uuid } from 'uuid';
 import { RetryTableMapping } from '../model/retry-table-mapping';
 
-const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const dynamodbClient = DynamoDbDocClient.getInstance();
 export async function logProcessToRetry(
   record: SQSRecord,
   queue: string,

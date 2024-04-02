@@ -11,12 +11,8 @@ import moment from 'moment';
 import { searchedDataFormatorWithDeleted } from '../util/response-formatter';
 
 // initializing elastic search client
-const esClientObj = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
-
+const esClientObj = ElasticSearchClient.getInstance();
+const DynamoDbDocClientObj = DynamoDbDocClient.getInstance();
 /**
  * Deletes project data from Elasticsearch if project was soft-deleted more than 90 days ago.
  * @param result The search result containing the project IDs to delete.
@@ -96,7 +92,7 @@ async function deleteProjectfromDD(
       };
 
       try {
-        await new DynamoDbDocClient().delete(params);
+        await DynamoDbDocClientObj.delete(params);
 
         logger.info(`Entry with parentId ${parentId} deleted from dynamo db`);
       } catch (error) {
@@ -138,7 +134,7 @@ export async function handler(): Promise<void> {
 
   logger.info('searching for projects that have been soft-deleted >=PROJECT_DELETION_AGE');
 
-  const result = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Project, query);
+  const result = await esClientObj.search(Jira.Enums.IndexName.Project, query);
   const res = await searchedDataFormatorWithDeleted(result);
 
   if (res.length > 0) {

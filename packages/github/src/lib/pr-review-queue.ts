@@ -1,6 +1,6 @@
 import moment from 'moment';
 import { OctokitResponse } from '@octokit/types';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -20,7 +20,7 @@ async function getGithubApiToken(): Promise<string> {
   return `Bearer ${installationAccessToken.body.token}`;
 }
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 // Get pull request details through Github Api and update the same into index.
 async function getPullRequestDetails<T>(

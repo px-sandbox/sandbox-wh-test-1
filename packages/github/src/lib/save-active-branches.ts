@@ -1,11 +1,11 @@
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { ParamsMapping } from '../model/params-mapping';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
-const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
+const dynamodbClient = DynamoDbDocClient.getInstance();
 export async function saveActiveBranch(data: Github.Type.ActiveBranches): Promise<void> {
   try {
     await dynamodbClient.put(new ParamsMapping().preparePutParams(data.id, data.body.id));

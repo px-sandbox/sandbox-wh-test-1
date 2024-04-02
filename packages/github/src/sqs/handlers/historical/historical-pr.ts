@@ -1,4 +1,4 @@
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -16,7 +16,7 @@ const octokit = ghRequest.request.defaults({
   },
 });
 const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);

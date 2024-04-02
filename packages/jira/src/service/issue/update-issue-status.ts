@@ -12,6 +12,7 @@ import { updateIssueStatusSchema } from '../validations';
  * @returns A Promise that resolves to an APIGatewayProxyResult.
  * @throws An error if the issue status cannot be updated.
  */
+const esClient = ElasticSearchClient.getInstance();
 const issueStatus = async function updateIssueStatus(
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
@@ -24,12 +25,6 @@ const issueStatus = async function updateIssueStatus(
     // To update issue status for an organization we first get that issue and then update its status
 
     try {
-        const esClient = new ElasticSearchClient({
-            host: Config.OPENSEARCH_NODE,
-            username: Config.OPENSEARCH_USERNAME ?? '',
-            password: Config.OPENSEARCH_PASSWORD ?? '',
-        });
-
         const data = await esClient.updateDocument(
             Jira.Enums.IndexName.IssueStatus,
             issueStatusDocId,

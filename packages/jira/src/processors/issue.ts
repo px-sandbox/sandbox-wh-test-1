@@ -12,7 +12,7 @@ import { getOrganization } from '../repository/organization/get-organization';
 import { getFailedStatusDetails } from '../util/issue-status';
 import { DataProcessor } from './data-processor';
 
-const sqsClient = new SQSClient();
+const sqsClient = SQSClient.getInstance();
 export class IssueProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Issue,
   Jira.Type.Issue

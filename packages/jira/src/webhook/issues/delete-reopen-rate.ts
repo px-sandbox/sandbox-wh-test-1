@@ -1,11 +1,12 @@
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
+import { v4 as uuid } from 'uuid';
 import { Jira } from 'abstraction';
 import { Hit, HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 /**
  * Removes the reopen issue with the given ID and marks it as deleted.
  * @param issueId - The ID of the issue to be removed.

@@ -2,15 +2,10 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { SprintState } from 'abstraction/jira/enums';
 import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
 import { Sprint, searchedDataFormator } from '../util/response-formatter';
 
 export async function getSprints(sprintId: string): Promise<Sprint> {
-  const esClientObj = new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-  });
+  const esClientObj = ElasticSearchClient.getInstance();
   const query = esb
     .requestBodySearch()
     .query(
@@ -25,10 +20,10 @@ export async function getSprints(sprintId: string): Promise<Sprint> {
     )
     .sort(esb.sort('body.startDate', 'desc'))
     .toJSON();
-  const { body } = await esClientObj.getClient().search({
-    index: Jira.Enums.IndexName.Sprint,
-    body: query,
-  });
+  const { body } = await esClientObj.search(
+   Jira.Enums.IndexName.Sprint,
+     query,
+  );
   const [sprint] = (await searchedDataFormator(body)) as Sprint[];
   return sprint;
 }

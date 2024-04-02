@@ -1,5 +1,5 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClientGh } from '@pulse/event-handler';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
@@ -10,8 +10,8 @@ import { getOctokitResp } from '../../../util/octokit-response';
 import { searchedDataFormator } from '../../../util/response-formatter';
 import { logProcessToRetry } from '../../../util/retry-process';
 
-const esClient = ElasticSearchClientGh.getInstance();
-const sqsClient = SQSClientGh.getInstance();
+const esClient = ElasticSearchClient.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 const fetchPRComments = async (prId:number):Promise<object[]> => {
   // Fetch PR comments from Elasticsearch for each PR

@@ -11,11 +11,15 @@ export class Organization extends DataProcessor<
     super(data);
   }
   public async processor(): Promise<Github.Type.Organization> {
-    const githubId = `${mappingPrefixes.organization}_${this.ghApiData.id}`;
-    let parentId: string = await this.getParentId(githubId);
+    let parentId: string = await this.getParentId(
+      `${mappingPrefixes.organization}_${this.ghApiData.id}`
+    );
     if (!parentId) {
       parentId = uuid();
-      await this.putDataToDynamoDB(parentId, githubId);
+      await this.putDataToDynamoDB(
+        parentId,
+        `${mappingPrefixes.organization}_${this.ghApiData.id}`
+      );
     }
     const orgObj = {
       id: parentId,

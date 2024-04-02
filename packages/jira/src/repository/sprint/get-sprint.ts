@@ -18,11 +18,8 @@ export async function getSprintById(
     organization: string
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
     try {
-        const esClientObj = new ElasticSearchClient({
-            host: Config.OPENSEARCH_NODE,
-            username: Config.OPENSEARCH_USERNAME ?? '',
-            password: Config.OPENSEARCH_PASSWORD ?? '',
-        });
+        const esClientObj = ElasticSearchClient.getInstance();
+
         const orgData = await getOrganization(organization);
         if (!orgData) {
             logger.error(`Organization ${organization} not found`);
@@ -35,7 +32,7 @@ export async function getSprintById(
                     esb.termsQuery('body.id', `${mappingPrefixes.sprint}_${sprintId}`),
                     esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
                 ]).toJSON();
-        const sprintData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Sprint, matchQry);
+        const sprintData = await esClientObj.search(Jira.Enums.IndexName.Sprint, matchQry);
         const [formattedSprintData] = await searchedDataFormatorWithDeleted(sprintData);
         return formattedSprintData;
     } catch (error: unknown) {

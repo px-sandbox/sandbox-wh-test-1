@@ -1,8 +1,8 @@
 import {
   Hit,
-  ElasticSearchClientGh
+  ElasticSearchClient
 } from '@pulse/elasticsearch';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
@@ -11,8 +11,8 @@ import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClient = ElasticSearchClientGh.getInstance();
-const sqsClient = SQSClientGh.getInstance();
+const esClient = ElasticSearchClient.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 const getRepos = async (
   pageNo: number,

@@ -1,12 +1,8 @@
 import esb from 'elastic-builder';
-// import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
-// import { ParamsMapping } from '../../model/params-mapping';
-// import { mappingPrefixes } from '../../constant/config';
 
 /**
  * Saves the user details to DynamoDB and Elasticsearch.
@@ -14,28 +10,20 @@ import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
  * @returns A Promise that resolves when the user details have been saved successfully.
  * @throws An error if there was an issue saving the user details.
  */
+const esClientObj = ElasticSearchClient.getInstance();
 export async function saveUserDetails(data: Jira.Type.User): Promise<void> {
   try {
     const updatedData = { ...data };
-    // const orgId = data.body.organizationId.split('org_')[1];
-    logger.info('saveUserDetails.invoked');
-    // await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(
-    //   data.id,
-    //   `${data.body.id}_${mappingPrefixes.org}_${orgId}`));
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const matchQry = esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.id', data.body.id),
-        esb.termQuery('body.organizationId', data.body.organizationId),
-      ])
-      .toJSON();
+  
+    const matchQry =
+      esb
+        .boolQuery()
+        .must([
+          esb.termsQuery('body.id', data.body.id),
+          esb.termQuery('body.organizationId', data.body.organizationId),
+        ]).toJSON();
     logger.info('saveUserDetails.matchQry------->', { matchQry });
-    const userData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Users, matchQry);
+    const userData = await esClientObj.search(Jira.Enums.IndexName.Users, matchQry);
     const [formattedData] = await searchedDataFormatorWithDeleted(userData);
     if (formattedData) {
       updatedData.id = formattedData._id;

@@ -1,14 +1,14 @@
 import { RequestInterface } from '@octokit/types';
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { mappingPrefixes } from '../constant/config';
 import { ParamsMapping } from '../model/params-mapping';
 import { Organization } from '../processors/organization';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
-const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
+const dynamodbClient = DynamoDbDocClient.getInstance();
 export async function fetchAndSaveOrganizationDetails(
   octokit: RequestInterface<
     object & {

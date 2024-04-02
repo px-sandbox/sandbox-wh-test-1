@@ -1,4 +1,4 @@
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import axios from 'axios';
@@ -12,7 +12,7 @@ import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function dependencyRegistry(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
-  const sqsClient = SQSClientGh.getInstance();
+  const sqsClient = SQSClient.getInstance();
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
       try {

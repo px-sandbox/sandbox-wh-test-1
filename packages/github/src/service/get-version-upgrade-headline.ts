@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
@@ -9,7 +9,7 @@ import moment from 'moment';
 import { LibParamsMapping } from '../model/lib-master-mapping';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 
 function compare(
   operator: string,
@@ -43,7 +43,7 @@ const getLibFromDB = async (
   let countOutOfDateLib = 0;
   let countUpToDateLib = 0;
   try {
-    const ddbClient = DynamoDbDocClientGh.getInstance();
+    const ddbClient = DynamoDbDocClient.getInstance();
 
     const [operator, value] = range.split(' ');
 

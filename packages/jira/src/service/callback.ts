@@ -12,6 +12,9 @@ import { JiraCredsMapping } from '../model/prepare-creds-params';
 import { mappingPrefixes } from '../constant/config';
 import { esResponseDataFormator } from '../util/es-response-formatter';
 
+const _esClient = ElasticSearchClient.getInstance();
+const _ddbClient = DynamoDbDocClient.getInstance();
+
 export async function getTokensByCode(code: string): Promise<Jira.ExternalType.Api.Credentials> {
   try {
     const response: AxiosResponse<Jira.ExternalType.Api.Credentials> = await axios.post(
@@ -56,14 +59,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const code: string = event?.queryStringParameters?.code ?? '';
   const jiraToken = await getTokensByCode(code);
 
-  const _esClient = new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-  });
-
-  const _ddbClient = new DynamoDbDocClient();
-
   let credId = uuid();
 
   const accessibleOrgs = await getAccessibleOrgs(jiraToken.access_token);
@@ -72,7 +67,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   logger.info('orgIds', { orgIds });
 
-  const getOrgsFromES = await _esClient.searchWithEsb(
+  const getOrgsFromES = await _esClient.search(
     Jira.Enums.IndexName.Organization,
     esb.termsQuery('body.orgId.keyword', orgIds).toJSON()
   );

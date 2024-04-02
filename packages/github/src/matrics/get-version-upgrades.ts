@@ -1,7 +1,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable no-await-in-loop */
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
@@ -11,7 +11,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 import { paginate, sortData } from '../util/version-upgrades';
 
 // initializing elastic search client
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 
 /**
  * Fetches library records from DynamoDB based on the provided library names.
@@ -24,7 +24,7 @@ async function fetchDDRecords(
 ): Promise<{ [key: string]: { libname: string; version: string; releaseDate: string } }> {
   const libKeys = libNames.map((libName) => ({ libName }));
 
-  const ddClient = DynamoDbDocClientGh.getInstance();
+  const ddClient = DynamoDbDocClient.getInstance();
   const tableIndex = Table.libMaster.tableName;
   let results: Github.Type.LibraryRecord[] = [];
 

@@ -1,11 +1,11 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { getUserById } from '../../repository/user/get-user';
 import { mappingToApiData } from './mapper';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 /**
  * Updates a Jira user in the system.
  * @param user - The user object to update.

@@ -8,11 +8,8 @@ import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClient.getInstance();  
+const sqsClient = SQSClient.getInstance();
 
 async function fetchJiraIssues(projectId: string, orgId: string): Promise<Other.Type.HitBody[]> {
   const issueQuery = esb
@@ -30,7 +27,7 @@ async function fetchJiraIssues(projectId: string, orgId: string): Promise<Other.
     .sort(esb.sort('_id'))
     .size(100);
 
-  let unformattedIssues: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
+  let unformattedIssues: Other.Type.HitBody = await esClientObj.search(
     Jira.Enums.IndexName.Issue,
     issueQuery.toJSON()
   );
@@ -42,7 +39,7 @@ async function fetchJiraIssues(projectId: string, orgId: string): Promise<Other.
   while (formattedIssues?.length > 0) {
     const lastHit = unformattedIssues?.hits?.hits[unformattedIssues.hits.hits.length - 1];
     const query = issueQuery.searchAfter([lastHit.sort[0]]).toJSON();
-    unformattedIssues = await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Issue, query);
+    unformattedIssues = await esClientObj.search(Jira.Enums.IndexName.Issue, query);
     formattedIssues = await searchedDataFormator(unformattedIssues);
     issues.push(...formattedIssues);
   }
@@ -54,7 +51,6 @@ async function updateIssuesWithSubtasks(
   organization: string,
   issueIdsArr: Other.Type.HitBody[]
 ): Promise<void> {
-  const sqsClient = new SQSClient();
   await Promise.all(
     issueIdsArr.map(async (issueData: Other.Type.HitBody) => {
       try {

@@ -1,5 +1,5 @@
-import { DynamoDbDocClient, DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { SQSClientGh } from '@pulse/event-handler';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { ParamsMapping } from '../model/params-mapping';
 
@@ -9,18 +9,15 @@ import { ParamsMapping } from '../model/params-mapping';
  * @template S - Type of processed data.
  */
 export abstract class DataProcessor<T, S> {
-  private SQSClient: SQSClientGh;
-  protected DynamoDbDocClient: DynamoDbDocClientGh;
-  protected apiData: T;
-
+  protected DynamoDbDocClient: DynamoDbDocClient;
+  protected SQSClient: SQSClient;
   /**
    * Constructor for DataProcessor class.
    * @param data - Jira API data to be processed.
    */
-  constructor(data: T) {
-    this.apiData = data;
-    this.SQSClient = SQSClientGh.getInstance();
-    this.DynamoDbDocClient = DynamoDbDocClientGh.getInstance();
+  constructor(protected apiData: T) {
+    this.DynamoDbDocClient = DynamoDbDocClient.getInstance();
+    this.SQSClient = SQSClient.getInstance();
   }
 
   /**
@@ -48,7 +45,7 @@ export abstract class DataProcessor<T, S> {
    * @returns Returns the parent ID of the Jira API data.
    */
   public async getParentId(id: string): Promise<string | undefined> {
-    const ddbRes = await new DynamoDbDocClient().find(new ParamsMapping().prepareGetParams(id));
+    const ddbRes = await this.DynamoDbDocClient.find(new ParamsMapping().prepareGetParams(id));
 
     return ddbRes?.parentId as string | undefined;
   }
@@ -59,6 +56,10 @@ export abstract class DataProcessor<T, S> {
    * @param url - URL of the SQS queue.
    */
   public async sendDataToQueue<U>(data: U, url: string): Promise<void> {
+    const validated = this.validate();
+    if (!validated) {
+      throw new Error('data_validation_failed');
+    }
     await this.SQSClient.sendMessage(data, url);
   }
 

@@ -4,15 +4,46 @@ import { ISQSClient } from '../types';
 
 export class SQSClient implements ISQSClient {
   private sqs: SQS;
+  private static instance: SQSClient;
 
-  constructor() {
+  private constructor() {
     this.sqs = new SQS();
+  }
+
+  public static getInstance(): SQSClient {
+    if (!SQSClient.instance) {
+      SQSClient.instance = new SQSClient();
+    }
+    return SQSClient.instance;
+  }
+
+  public async sendFifoMessage<T>(
+    message: T,
+    queueUrl: string,
+    messageGroupId: string,
+    messageDeduplicationId: string,
+    delay?: number
+  ): Promise<void> {
+    const queueName = queueUrl.split('/').slice(-1).toString();
+    try {
+      const queueObj: AWS_SQS.SendMessageCommandInput = {
+        MessageBody: JSON.stringify(message),
+        QueueUrl: queueUrl,
+        MessageGroupId: messageGroupId,
+        MessageDeduplicationId: messageDeduplicationId,
+        DelaySeconds: delay,
+      };
+      await this.sqs.sendMessage(queueObj);
+    } catch (error) {
+      logger.error({ message: 'ERROR_SQS_SEND_MESSAGE', error, queueName });
+    }
   }
 
   public async sendMessage<T>(
     message: T,
     queueUrl: string,
-    messageGroupId?: string
+    messageGroupId?: string,
+    MessageDeduplicationId?: string
   ): Promise<void> {
     const queueName = queueUrl.split('/').slice(-1).toString();
     try {
@@ -25,7 +56,7 @@ export class SQSClient implements ISQSClient {
         queueObj = {
           ...queueObj,
           MessageGroupId: messageGroupId,
-          MessageDeduplicationId: messageGroupId,
+          MessageDeduplicationId,
         };
       }
       await this.sqs.sendMessage(queueObj);

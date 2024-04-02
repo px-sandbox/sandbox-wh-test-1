@@ -1,15 +1,10 @@
-import esb from 'elastic-builder';
-// import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
-import {
-  searchedDataFormator,
-  searchedDataFormatorWithDeleted,
-} from '../../util/response-formatter';
-// import { ParamsMapping } from '../../model/params-mapping';
-// import { mappingPrefixes } from '../../constant/config';
+import esb from 'elastic-builder';
+import { searchedDataFormator, searchedDataFormatorWithDeleted } from '../../util/response-formatter';
+
 
 /**
  * Updates data in ElasticSearch index based on the provided matchField and matchValue.
@@ -20,8 +15,8 @@ import {
  * @param isDeleted - Optional flag to mark the data as deleted.
  * @returns Promise<void>
  */
+const esClientObj = ElasticSearchClient.getInstance();
 async function updateData(
-  esClientObj: ElasticSearchClient,
   indexName: string,
   matchField: string,
   matchValue: string,
@@ -30,23 +25,16 @@ async function updateData(
 ): Promise<void> {
   // Starting to soft delete project, sprint, boards and issues data from elastic search
   logger.info(`starting to soft delete ${indexName} data from elastic search`);
-  const matchQry2 = esb
-    .requestBodySearch()
-    .query(
-      esb.boolQuery().must([
-        esb.termsQuery(matchField, matchValue),
-        esb
-          .boolQuery()
-          .should([
-            esb.termQuery('body.organizationId', orgId),
-            esb.termQuery('body.organizationId.keyword', orgId),
-          ])
-          .minimumShouldMatch(1),
-      ])
-    )
-    .toJSON();
+  const matchQry2 = esb.requestBodySearch().query(esb.boolQuery()
+    .must([
+      esb.termsQuery(matchField, matchValue),
+      esb.boolQuery()
+        .should([esb.termQuery('body.organizationId', orgId), esb.termQuery('body.organizationId.keyword', orgId)])
+        .minimumShouldMatch(1),
 
-  const data = await esClientObj.searchWithEsb(indexName, matchQry2);
+    ])).toJSON();
+
+  const data = await esClientObj.paginateSearch(indexName, matchQry2);
 
   const formattedData = await searchedDataFormatorWithDeleted(data);
 
@@ -68,15 +56,6 @@ async function updateData(
 export async function saveProjectDetails(data: Jira.Type.Project): Promise<void> {
   try {
     const updatedData = { ...data };
-    // const orgId = data.body.organizationId.split('org_')[1];
-    // await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(
-    //   data.id,
-    //   `${data.body.id}_${mappingPrefixes.org}_${orgId}`));
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const matchQry = esb
       .boolQuery()
       .must([
@@ -85,7 +64,7 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
       ])
       .toJSON();
     logger.info('saveProjectDetails.matchQry------->', { matchQry });
-    const projectData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Project, matchQry);
+    const projectData = await esClientObj.search(Jira.Enums.IndexName.Project, matchQry);
     const [formattedData] = await searchedDataFormator(projectData);
     if (formattedData) {
       updatedData.id = formattedData._id;
@@ -95,7 +74,6 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
     if (data.body.isDeleted) {
       await Promise.all([
         updateData(
-          esClientObj,
           Jira.Enums.IndexName.Sprint,
           'body.projectId',
           data.body.id,
@@ -103,7 +81,6 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
           true
         ),
         updateData(
-          esClientObj,
           Jira.Enums.IndexName.Issue,
           'body.projectId',
           data.body.id,
@@ -111,7 +88,6 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
           true
         ),
         updateData(
-          esClientObj,
           Jira.Enums.IndexName.Board,
           'body.projectId',
           data.body.id,

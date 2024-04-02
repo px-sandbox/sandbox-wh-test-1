@@ -1,13 +1,13 @@
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Config } from 'sst/node/config';
 import { JiraClient } from '../../lib/jira-client';
 import { getBoardById } from '../../repository/board/get-board';
 import { mappingToApiDataConfig } from './mapper';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 /**
  * Updates the configuration of a Jira board.
  * @param config - The new configuration for the board.

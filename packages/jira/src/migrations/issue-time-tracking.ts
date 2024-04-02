@@ -11,12 +11,8 @@ import async from 'async';
 
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
-const sqsClient = new SQSClient();
+const esClientObj = ElasticSearchClient.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 async function sendIssuesToMigrationQueue(
   projectId: string,
@@ -75,7 +71,7 @@ async function migration(projectId: string, organization: string): Promise<void>
 
     logger.info('issue-time-tracking: requestBodySearchquery: ', requestBodySearchquery);
 
-    let response: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
+    let response: Other.Type.HitBody = await esClientObj.search(
       Jira.Enums.IndexName.Issue,
       requestBodySearchquery.toJSON()
     );
@@ -90,7 +86,7 @@ async function migration(projectId: string, organization: string): Promise<void>
 
       const requestBodyQuery = requestBodySearchquery.searchAfter([lastHit?.sort[0]]).toJSON();
 
-      response = await esClientObj.esbRequestBodySearch(
+      response = await esClientObj.search(
         Jira.Enums.IndexName.Issue,
         requestBodyQuery
       );

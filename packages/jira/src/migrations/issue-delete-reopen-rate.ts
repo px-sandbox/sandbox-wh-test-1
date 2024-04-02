@@ -9,11 +9,7 @@ import moment from 'moment';
 import { searchedDataFormator } from '../util/response-formatter';
 import { getOrganization } from '../repository/organization/get-organization';
 
-const esClientObj = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClient.getInstance();
 
 /**
  * Fetches reopen rate data for the specified project, issue keys, and organization.
@@ -99,7 +95,7 @@ export const handler = async function issueDeleteReopenRateMigration(
       .size(1000)
       .sort(esb.sort('_id'));
 
-    let unformattedIssueData: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
+    let unformattedIssueData: Other.Type.HitBody = await esClientObj.search(
       Jira.Enums.IndexName.Issue,
       issueQuery.toJSON()
     );
@@ -111,7 +107,7 @@ export const handler = async function issueDeleteReopenRateMigration(
       const lastHit = unformattedIssueData.hits.hits[unformattedIssueData.hits.hits.length - 1];
       const requestBodyQuery = issueQuery.searchAfter([lastHit.sort[0]]).toJSON();
       unformattedIssueData = await searchedDataFormator(
-        await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Issue, requestBodyQuery)
+        await esClientObj.search(Jira.Enums.IndexName.Issue, requestBodyQuery)
       );
       formattedIssueData = await searchedDataFormator(unformattedIssueData);
       issueData.push(...formattedIssueData);

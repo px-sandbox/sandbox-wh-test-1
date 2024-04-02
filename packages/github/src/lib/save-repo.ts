@@ -1,13 +1,13 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClientGh } from '@pulse/event-handler';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
-const sqsClient = SQSClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
+const sqsClient = SQSClient.getInstance();
 export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<void> {
   try {
     const updatedData = { ...data };

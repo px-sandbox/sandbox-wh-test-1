@@ -1,4 +1,4 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github, Other } from 'abstraction';
 import {
   PrDetails,
@@ -12,7 +12,7 @@ import { getOrganizationById } from '../lib/get-organization';
 import { searchedDataFormator } from '../util/response-formatter';
 import { getRepoNames } from './get-sast-errors-details';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 const getGraphData = (
   startDate: string,
   endDate: string,
