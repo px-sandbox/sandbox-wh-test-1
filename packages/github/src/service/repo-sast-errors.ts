@@ -1,4 +1,4 @@
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { S3 } from 'aws-sdk';
@@ -6,7 +6,7 @@ import { HttpStatusCode, logger, responseParser } from 'core';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 export const handler = async function repoSastErrors(
   event: APIGatewayProxyEvent

@@ -1,4 +1,4 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { S3 } from 'aws-sdk';
 import { GetObjectRequest } from 'aws-sdk/clients/s3';
@@ -8,7 +8,7 @@ import moment from 'moment';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 export async function repoSastErrorsFormatter(
   data: Github.ExternalType.Api.RepoSastErrors
 ): Promise<Github.Type.RepoSastErrors[]> {

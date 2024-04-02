@@ -1,5 +1,5 @@
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { SQSClientGh } from '@pulse/event-handler';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
@@ -7,13 +7,13 @@ import { ParamsMapping } from '../model/params-mapping';
 
 
 export abstract class DataProcessor<T, S> {
-  private SQSClient: SQSClientGh;
-  protected DynamoDbDocClient: DynamoDbDocClientGh;
+  private SQSClient: SQSClient;
+  protected DynamoDbDocClient: DynamoDbDocClient;
   constructor(
     protected ghApiData: T,
   ) {
-    this.SQSClient = SQSClientGh.getInstance();
-    this.DynamoDbDocClient = DynamoDbDocClientGh.getInstance();
+    this.SQSClient = SQSClient.getInstance();
+    this.DynamoDbDocClient = DynamoDbDocClient.getInstance();
   }
 
   public validate(): DataProcessor<T, S> | false {

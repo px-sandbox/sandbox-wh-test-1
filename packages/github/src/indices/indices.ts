@@ -1,7 +1,6 @@
-import { ElasticSearchClient, ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
 
 const indices = [
   {
@@ -481,7 +480,7 @@ const indices = [
 
 async function createMapping(name: string, mappings: Github.Type.IndexMapping): Promise<void> {
   try {
-    const esClient = ElasticSearchClientGh.getInstance();
+    const esClient = ElasticSearchClient.getInstance();
 
     const { statusCode } = await esClient.isIndexExists(name);
     if (statusCode === 200) {

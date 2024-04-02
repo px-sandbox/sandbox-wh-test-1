@@ -1,4 +1,4 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { HitBody } from 'abstraction/other/type';
 import async from 'async';
@@ -9,7 +9,7 @@ import { Queue } from 'sst/node/queue';
 import { ActiveBranchProcessor } from '../../../processors/active-branch';
 import { logProcessToRetry } from '../../../util/retry-process';
 
-const esClient = ElasticSearchClientGh.getInstance();
+const esClient = ElasticSearchClient.getInstance();
 const getBranches = async (repoId: string, date: string): Promise<HitBody> => {
   const body = esb
     .requestBodySearch()

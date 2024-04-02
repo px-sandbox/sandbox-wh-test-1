@@ -1,10 +1,10 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 export async function saveUserDetails(data: Github.Type.User): Promise<void> {
   try {
     const updatedData = { ...data };

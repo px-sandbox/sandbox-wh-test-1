@@ -1,11 +1,11 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github, Other } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClient = ElasticSearchClientGh.getInstance();
+const esClient = ElasticSearchClient.getInstance();
 
 /**
  * Fetches branches data for the given repository IDs.

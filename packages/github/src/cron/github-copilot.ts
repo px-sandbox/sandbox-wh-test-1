@@ -1,13 +1,13 @@
 import { RequestInterface } from '@octokit/types';
 import { Queue } from 'sst/node/queue';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Github } from 'abstraction';
 import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 export async function initializeOctokit(): Promise<
   RequestInterface<
     object & {

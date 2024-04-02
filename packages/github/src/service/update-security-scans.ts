@@ -1,5 +1,5 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClientGh } from '@pulse/event-handler';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { SQSClient } from '@pulse/event-handler';
 import { Github, Other } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
@@ -8,8 +8,8 @@ import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClient = ElasticSearchClientGh.getInstance();
-const sqsClient = SQSClientGh.getInstance();
+const esClient = ElasticSearchClient.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 const fetBranchesData = async (repoId: string): Promise<any> => {
   try {

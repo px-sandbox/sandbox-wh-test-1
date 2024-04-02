@@ -1,4 +1,4 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
@@ -8,7 +8,7 @@ import { esbDateHistogramInterval } from '../constant/config';
 import { searchedDataFormator } from '../util/response-formatter';
 
 // initializing elastic search client
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 
 const getAggrigatedProductSecurityData = async (
   repoIds: string[],

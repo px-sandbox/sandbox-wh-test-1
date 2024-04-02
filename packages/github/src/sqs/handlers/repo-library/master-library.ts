@@ -1,4 +1,4 @@
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import axios from 'axios';
 import { logger } from 'core';
@@ -6,7 +6,7 @@ import { Queue } from 'sst/node/queue';
 import { getNodeLibInfo } from '../../../util/node-library-info';
 import { logProcessToRetry } from '../../../util/retry-process';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 export const handler = async function masterLibrary(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(

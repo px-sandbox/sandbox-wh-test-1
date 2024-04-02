@@ -1,10 +1,10 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
 import { HitBody } from 'abstraction/other/type';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 
 const getOrganizationData = async (
   key: string,

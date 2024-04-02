@@ -1,4 +1,4 @@
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -9,7 +9,7 @@ import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 const installationAccessToken = await getInstallationAccessToken();
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 const octokit = ghRequest.request.defaults({
   headers: {

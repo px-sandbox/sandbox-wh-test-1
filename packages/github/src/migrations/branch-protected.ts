@@ -1,5 +1,5 @@
 /* eslint-disable no-await-in-loop */
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
@@ -7,7 +7,7 @@ import esb from 'elastic-builder';
 import { getBranches } from '../lib/get-branch-list';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 const getReposFromES = async (): Promise<any> => {
   let reposFormatData;
   try {

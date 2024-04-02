@@ -1,5 +1,5 @@
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { SQSClientGh } from '@pulse/event-handler';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Github } from 'abstraction';
 import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
@@ -7,8 +7,8 @@ import { RetryTableMapping } from '../model/retry-table-mapping';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
-const dynamodbClient = DynamoDbDocClientGh.getInstance();
-const sqsClient = SQSClientGh.getInstance();
+const dynamodbClient = DynamoDbDocClient.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 async function processIt(record: Github.Type.QueueMessage): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId } = record;

@@ -1,5 +1,5 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClientGh } from '@pulse/event-handler';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
@@ -7,8 +7,8 @@ import esb, { Script } from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
-const sqsClient = SQSClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
+const sqsClient = SQSClient.getInstance();
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const orgName = event?.queryStringParameters?.orgName || '';
   try {

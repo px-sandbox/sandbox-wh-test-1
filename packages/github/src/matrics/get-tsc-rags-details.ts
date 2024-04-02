@@ -1,10 +1,10 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
 import { weeklyHeadlineStat } from './get-product-security';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 const getBranches = async (
   repoIds: string[]
 ): Promise<any[]> => {
