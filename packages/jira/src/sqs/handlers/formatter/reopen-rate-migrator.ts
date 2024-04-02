@@ -1,24 +1,22 @@
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { SQSClient } from '@pulse/event-handler';
+import { ChangelogItem } from 'abstraction/jira/external/webhook';
+import { HitBody } from 'abstraction/other/type';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
-import { HitBody } from 'abstraction/other/type';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { ChangelogItem } from 'abstraction/jira/external/webhook';
-import { SQSClientGh } from '@pulse/event-handler';
-import { Jira } from 'abstraction';
-import { ParamsMapping } from '../../../model/params-mapping';
 import { mappingPrefixes as mp } from '../../../constant/config';
 import { getIssueChangelogs } from '../../../lib/get-issue-changelogs';
 import { JiraClient } from '../../../lib/jira-client';
+import { ParamsMapping } from '../../../model/params-mapping';
+import { getIssueStatusForReopenRate } from "../../../util/issue-status";
 import { reopenChangelogCals } from '../../../util/reopen-body-formatter';
 import { logProcessToRetry } from '../../../util/retry-process';
-import { getIssueStatusForReopenRate } from "../../../util/issue-status";
 
 const ddbClient = DynamoDbDocClient.getInstance();  
 const sqsClient = SQSClient.getInstance();
 
-const sqsClient = SQSClientGh.getInstance();
 async function getParentId(id: string): Promise<string | undefined> {
     const ddbRes = await ddbClient.find(new ParamsMapping().prepareGetParams(id));
 
