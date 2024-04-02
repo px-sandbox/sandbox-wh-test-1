@@ -5,7 +5,7 @@ import axios from 'axios';
 import { logger } from 'core';
 import { esResponseDataFormator } from '../util/es-response-formatter';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
-
+import esb from 'elastic-builder';
 export class JiraClient {
   private baseUrl: string;
 
@@ -30,7 +30,8 @@ export class JiraClient {
     const _ddbClient = DynamoDbDocClient.getInstance();
 
     // get organisation from elasticsearch
-    const organization = await _esClient.search(Jira.Enums.IndexName.Organization, 'name', orgName);
+    const query = esb.requestBodySearch().query(esb.termQuery('body.name', orgName)).toJSON();
+    const organization = await _esClient.search(Jira.Enums.IndexName.Organization, query);
 
     const [orgId] = await esResponseDataFormator(organization);
 
