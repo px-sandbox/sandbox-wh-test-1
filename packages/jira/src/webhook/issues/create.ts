@@ -28,7 +28,7 @@ export async function create(issue: Jira.ExternalType.Webhook.Issue): Promise<vo
     await sqsClient.sendFifoMessage(
       { ...issue },
       Queue.qIssueFormat.queueUrl,
-      issue.issue.id,
+      issue.issue.key,
       uuid()
     );
   }

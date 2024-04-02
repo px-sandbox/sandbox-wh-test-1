@@ -1,5 +1,4 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { Config } from 'sst/node/config';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import axios from 'axios';
@@ -240,8 +239,6 @@ export class JiraClient {
       total: data.total,
     };
 
-    // return data;
-
     if (data.isLast) {
       return newResult;
     }
@@ -280,8 +277,6 @@ export class JiraClient {
       total: data.total,
     };
 
-    // return data;
-
     if (newResult.startAt >= newResult.total) {
       return newResult;
     }
@@ -307,8 +302,6 @@ export class JiraClient {
 
     const userData = users.concat(data);
     const startAtCount = startAt + data.length;
-
-    // return data;
 
     if (data.length === 0) {
       return userData;
@@ -347,8 +340,6 @@ export class JiraClient {
       maxResults: data.maxResults,
       total: data.total,
     };
-
-    // return data;
 
     if (newResult.startAt >= newResult.total) {
       return newResult;

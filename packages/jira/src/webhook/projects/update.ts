@@ -4,6 +4,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
 import moment from 'moment';
+import { JiraClient } from '../../lib/jira-client';
 import { getProjectById } from '../../repository/project/get-project';
 import { projectKeysMapper } from './mapper';
 
@@ -38,10 +39,11 @@ export async function update(
     logger.info('projectUpdatedEvent: Project not found');
     return false;
   }
-
+  const jiraClient = await JiraClient.getClient(organization);
+  const projectData = await jiraClient.getProject(project.id.toString());
   const updatedAt = eventTime.toISOString();
   const updatedProjectBody: Jira.Mapped.Project = projectKeysMapper(
-    project,
+    projectData,
     projectIndexData.createdAt,
     organization,
     updatedAt

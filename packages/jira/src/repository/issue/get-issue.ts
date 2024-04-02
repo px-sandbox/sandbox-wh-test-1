@@ -1,6 +1,5 @@
 import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import { mappingPrefixes } from '../../constant/config';
@@ -63,10 +62,7 @@ export async function getReopenRateDataById(
       ])
       .toJSON();
 
-    const reopenRateData = await esClientObj.search(
-      Jira.Enums.IndexName.ReopenRate,
-      matchQry
-    );
+    const reopenRateData = await esClientObj.search(Jira.Enums.IndexName.ReopenRate, matchQry);
     const [formattedIssueData] = await searchedDataFormatorWithDeleted(reopenRateData);
     return formattedIssueData;
   } catch (error: unknown) {
@@ -93,10 +89,7 @@ export async function getReopenRateDataByIssueId(
       ])
       .toJSON();
 
-    const reopenRateData = await esClientObj.search(
-      Jira.Enums.IndexName.ReopenRate,
-      matchQry
-    );
+    const reopenRateData = await esClientObj.search(Jira.Enums.IndexName.ReopenRate, matchQry);
     const formattedIssueData = await searchedDataFormatorWithDeleted(reopenRateData);
     return formattedIssueData;
   } catch (error: unknown) {

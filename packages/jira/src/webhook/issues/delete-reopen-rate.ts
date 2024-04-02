@@ -1,5 +1,4 @@
 import { SQSClient } from '@pulse/event-handler';
-import { v4 as uuid } from 'uuid';
 import { Jira } from 'abstraction';
 import { Hit, HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
