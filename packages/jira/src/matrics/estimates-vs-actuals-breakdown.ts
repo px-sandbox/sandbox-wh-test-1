@@ -77,7 +77,7 @@ const fetchIssueData = async (
     .size(100)
     .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.summary']);
 
-  let unformattedSubtasks: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
+  let unformattedSubtasks: Other.Type.HitBody = await esClientObj.search(
     Jira.Enums.IndexName.Issue,
     subtaskQuery.toJSON()
   );
@@ -89,7 +89,7 @@ const fetchIssueData = async (
   while (formattedSubtasks.length > 0) {
     const lastHit = unformattedSubtasks.hits.hits[unformattedSubtasks.hits.hits.length - 1];
     const query = subtaskQuery.searchAfter([lastHit.sort[0]]).toJSON();
-    unformattedSubtasks = await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Issue, query);
+    unformattedSubtasks = await esClientObj.search(Jira.Enums.IndexName.Issue, query);
     formattedSubtasks = await searchedDataFormator(unformattedSubtasks);
     subtasks.push(...formattedSubtasks);
   }

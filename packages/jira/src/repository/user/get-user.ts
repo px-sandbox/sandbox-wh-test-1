@@ -25,13 +25,14 @@ export async function getUserById(
       logger.error(`Organization ${organization} not found`);
       throw new Error(`Organization ${organization} not found`);
     }
-    const matchQry =
-      esb
-        .boolQuery()
-        .must([
-          esb.termsQuery('body.id', `${mappingPrefixes.user}_${userId}`),
-          esb.termQuery('body.organizationId', `${orgData.id}`),
-        ]).toJSON();
+    const matchQry = esb
+      .requestBodySearch().query(esb
+      .boolQuery()
+      .must([
+        esb.termsQuery('body.id', `${mappingPrefixes.user}_${userId}`),
+        esb.termQuery('body.organizationId', `${orgData.id}`),
+      ]))
+      .toJSON();
     const userData = await esClientObj.search(Jira.Enums.IndexName.Users, matchQry);
     const [formattedUserData] = await searchedDataFormatorWithDeleted(userData);
     return formattedUserData;

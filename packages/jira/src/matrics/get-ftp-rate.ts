@@ -3,11 +3,10 @@ import { Jira } from 'abstraction';
 import { IFtpRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
 import _ from 'lodash';
-import { getOrganizationById } from '../repository/organization/get-organization';
-import { getBoardByOrgId } from '../repository/board/get-board';
 import { getSprints } from '../lib/get-sprints';
+import { getBoardByOrgId } from '../repository/board/get-board';
+import { getOrganizationById } from '../repository/organization/get-organization';
 import { IssueReponse, searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();

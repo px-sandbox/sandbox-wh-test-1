@@ -20,23 +20,24 @@ export async function getSprintById(
     try {
         const esClientObj = ElasticSearchClient.getInstance();
 
-        const orgData = await getOrganization(organization);
-        if (!orgData) {
-            logger.error(`Organization ${organization} not found`);
-            throw new Error(`Organization ${organization} not found`);
-        }
-        const matchQry =
-            esb
-                .boolQuery()
-                .must([
-                    esb.termsQuery('body.id', `${mappingPrefixes.sprint}_${sprintId}`),
-                    esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
-                ]).toJSON();
-        const sprintData = await esClientObj.search(Jira.Enums.IndexName.Sprint, matchQry);
-        const [formattedSprintData] = await searchedDataFormatorWithDeleted(sprintData);
-        return formattedSprintData;
-    } catch (error: unknown) {
-        logger.error('getSprintById.error', { error });
-        throw error;
+    const orgData = await getOrganization(organization);
+    if (!orgData) {
+      logger.error(`Organization ${organization} not found`);
+      throw new Error(`Organization ${organization} not found`);
     }
+    const matchQry = esb
+      .requestBodySearch().query(esb
+      .boolQuery()
+      .must([
+        esb.termsQuery('body.id', `${mappingPrefixes.sprint}_${sprintId}`),
+        esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
+      ]))
+      .toJSON();
+    const sprintData = await esClientObj.search(Jira.Enums.IndexName.Sprint, matchQry);
+    const [formattedSprintData] = await searchedDataFormatorWithDeleted(sprintData);
+    return formattedSprintData;
+  } catch (error: unknown) {
+    logger.error('getSprintById.error', { error });
+    throw error;
+  }
 }

@@ -17,13 +17,13 @@ export async function saveSprintDetails(data: Jira.Type.Sprint): Promise<void> {
   try {
     const updatedData = { ...data };
     
-    const matchQry =
-      esb
+    const matchQry = esb
+      .requestBodySearch().query(esb
         .boolQuery()
         .must([
           esb.termsQuery('body.id', data.body.id),
           esb.termQuery('body.organizationId.keyword', data.body.organizationId),
-        ]).toJSON();
+        ])).toJSON();
     const sprintData = await esClientObj.search(Jira.Enums.IndexName.Sprint, matchQry);
     const [formattedData] = await searchedDataFormator(sprintData);
     if (formattedData) {
