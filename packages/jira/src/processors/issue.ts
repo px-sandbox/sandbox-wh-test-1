@@ -66,9 +66,9 @@ export class IssueProcessor extends DataProcessor<
     const changelogArr = await getIssueChangelogs(this.apiData.issue.id, jiraClient);
     let reOpenCount = 0;
     const QaFailed = await getFailedStatusDetails(orgData.id);
-    if (changelogArr?.length > 0) {
-      reOpenCount = changelogArr?.filter(
-        (items) => items?.to === QaFailed?.issueStatusId && items?.toString === QaFailed?.name
+    if (changelogArr.length > 0) {
+      reOpenCount = changelogArr.filter(
+        (items) => items.to === QaFailed.issueStatusId && items.toString === QaFailed.name
       ).length;
     }
 
