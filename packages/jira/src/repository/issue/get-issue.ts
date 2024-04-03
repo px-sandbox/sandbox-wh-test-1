@@ -82,11 +82,12 @@ export async function getReopenRateDataByIssueId(
       throw new Error(`Organization ${organization} not found`);
     }
     const matchQry = esb
+      .requestBodySearch().query(esb
       .boolQuery()
       .must([
         esb.termsQuery('body.issueId', `${mappingPrefixes.issue}_${issueId}`),
         esb.termQuery('body.organizationId', `${orgData.id}`),
-      ])
+      ]))
       .toJSON();
 
     const reopenRateData = await esClientObj.search(Jira.Enums.IndexName.ReopenRate, matchQry);

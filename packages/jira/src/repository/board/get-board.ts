@@ -21,11 +21,12 @@ export async function getBoardById(boardId: number, organization: string): Promi
       throw new Error(`Organization ${organization} not found`);
     }
     const matchQry = esb
+      .requestBodySearch().query(esb
       .boolQuery()
       .must([
         esb.termsQuery('body.id', `${mappingPrefixes.board}_${boardId}`),
         esb.termQuery('body.organizationId', `${orgData.id}`),
-      ])
+      ]))
       .toJSON();
     const boardData = await esClientObj.search(Jira.Enums.IndexName.Board, matchQry);
     const [formattedBoardData] = await searchedDataFormatorWithDeleted(boardData);

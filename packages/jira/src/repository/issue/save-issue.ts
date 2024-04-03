@@ -13,12 +13,11 @@ const esClientObj = ElasticSearchClient.getInstance();
 export async function saveIssueDetails(data: Jira.Type.Issue): Promise<void> {
   try {
     const updatedData = { ...data };
-    const matchQry = esb
-      .boolQuery()
-      .must([
+    const matchQry = esb.requestBodySearch().query(
+      esb.boolQuery().must([
         esb.termsQuery('body.id', data.body.id),
         esb.termQuery('body.organizationId.keyword', data.body.organizationId),
-      ])
+      ]))
       .toJSON();
     const issueData = await esClientObj.search(Jira.Enums.IndexName.Issue, matchQry);
     const [formattedData] = await searchedDataFormator(issueData);

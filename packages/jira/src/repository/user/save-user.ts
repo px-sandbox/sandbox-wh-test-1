@@ -15,13 +15,13 @@ export async function saveUserDetails(data: Jira.Type.User): Promise<void> {
   try {
     const updatedData = { ...data };
   
-    const matchQry =
-      esb
+    const matchQry = esb
+      .requestBodySearch().query(esb
         .boolQuery()
         .must([
           esb.termsQuery('body.id', data.body.id),
           esb.termQuery('body.organizationId', data.body.organizationId),
-        ]).toJSON();
+        ])).toJSON();
     logger.info('saveUserDetails.matchQry------->', { matchQry });
     const userData = await esClientObj.search(Jira.Enums.IndexName.Users, matchQry);
     const [formattedData] = await searchedDataFormatorWithDeleted(userData);

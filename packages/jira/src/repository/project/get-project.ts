@@ -24,12 +24,13 @@ export async function getProjectById(
       logger.error(`Organization ${organization} not found`);
       throw new Error(`Organization ${organization} not found`);
     }
-    const matchQry = esb
+      const matchQry = esb
+      .requestBodySearch().query(esb
       .boolQuery()
       .must([
         esb.termsQuery('body.id', `${mappingPrefixes.project}_${projectId}`),
         esb.termQuery('body.organizationId', `${orgData.id}`),
-      ])
+      ]))
       .toJSON();
     const projectData = await esClientObj.search(Jira.Enums.IndexName.Project, matchQry);
     const [formattedProjectData] = await searchedDataFormatorWithDeleted(projectData);

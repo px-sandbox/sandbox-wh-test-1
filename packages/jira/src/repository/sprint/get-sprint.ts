@@ -25,11 +25,12 @@ export async function getSprintById(
       throw new Error(`Organization ${organization} not found`);
     }
     const matchQry = esb
+      .requestBodySearch().query(esb
       .boolQuery()
       .must([
         esb.termsQuery('body.id', `${mappingPrefixes.sprint}_${sprintId}`),
         esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
-      ])
+      ]))
       .toJSON();
     const sprintData = await esClientObj.search(Jira.Enums.IndexName.Sprint, matchQry);
     const [formattedSprintData] = await searchedDataFormatorWithDeleted(sprintData);
