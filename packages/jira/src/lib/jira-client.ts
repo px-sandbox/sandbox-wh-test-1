@@ -74,14 +74,7 @@ export class JiraClient {
    */
   public async getProject(projectId: string): Promise<Jira.ExternalType.Api.Project> {
     const { data: project } = await this.axiosInstance.get<Jira.ExternalType.Api.Project>(
-      `${this.baseUrl}/rest/api/3/project/${projectId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-        timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
-        timeoutErrorMessage: this.timeoutErrorMessage,
-      }
+      `${this.baseUrl}/rest/api/3/project/${projectId}`
     );
 
     return project;
@@ -89,14 +82,8 @@ export class JiraClient {
 
   public async getBoard(boardId: number): Promise<Jira.ExternalType.Api.Board> {
     try {
-      const token = this.accessToken;
       const { data: board } = await this.axiosInstance.get<Jira.ExternalType.Api.Board>(
-        `${this.baseUrl}/rest/agile/1.0/board/${boardId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
-          timeoutErrorMessage: this.timeoutErrorMessage,
-        }
+        `${this.baseUrl}/rest/agile/1.0/board/${boardId}`
       );
 
       return board;
@@ -119,12 +106,7 @@ export class JiraClient {
   public async getBoardConfig(boardId: number): Promise<Jira.ExternalType.Api.BoardConfig> {
     try {
       const { data: boardConfig } = await this.axiosInstance.get<Jira.ExternalType.Api.BoardConfig>(
-        `${this.baseUrl}/rest/agile/1.0/board/${boardId}/configuration`,
-        {
-          headers: { Authorization: `Bearer ${this.accessToken}` },
-          timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
-          timeoutErrorMessage: this.timeoutErrorMessage,
-        }
+        `${this.baseUrl}/rest/agile/1.0/board/${boardId}/configuration`
       );
 
       return boardConfig;
@@ -156,14 +138,8 @@ export class JiraClient {
 
   public async getUser(userAccountId: string): Promise<Jira.ExternalType.Api.User> {
     try {
-      const token = this.accessToken;
       const { data: user } = await this.axiosInstance.get<Jira.ExternalType.Api.User>(
-        `${this.baseUrl}/rest/api/3/user?accountId=${userAccountId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
-          timeoutErrorMessage: this.timeoutErrorMessage,
-        }
+        `${this.baseUrl}/rest/api/3/user?accountId=${userAccountId}`
       );
 
       return user;
@@ -197,14 +173,7 @@ export class JiraClient {
   public async getIssue(issueIdOrKey: string): Promise<Jira.ExternalType.Api.Issue> {
     try {
       const issue = await this.axiosInstance.get<Jira.ExternalType.Api.Issue>(
-        `${this.baseUrl}/rest/agile/1.0/issue/${issueIdOrKey}`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.accessToken}`,
-          },
-          timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
-          timeoutErrorMessage: this.timeoutErrorMessage,
-        }
+        `${this.baseUrl}/rest/agile/1.0/issue/${issueIdOrKey}`
       );
       return issue.data;
     } catch (error) {
@@ -246,11 +215,6 @@ export class JiraClient {
     const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.Response<T>>(
       `${this.baseUrl}${path}`,
       {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-        timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
-        timeoutErrorMessage: this.timeoutErrorMessage,
         params: {
           ...query,
           startAt: result.startAt,
@@ -287,11 +251,6 @@ export class JiraClient {
     const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.IssuesResponse<T>>(
       `${this.baseUrl}${path}`,
       {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-        timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
-        timeoutErrorMessage: this.timeoutErrorMessage,
         params: {
           ...query,
           startAt: result.startAt,
@@ -321,11 +280,6 @@ export class JiraClient {
     users: Array<T> = []
   ): Promise<Array<T>> {
     const { data } = await this.axiosInstance.get<Array<T>>(`${this.baseUrl}${path}`, {
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-      },
-      timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
-      timeoutErrorMessage: this.timeoutErrorMessage,
       params: {
         startAt,
         maxResults,
@@ -355,11 +309,6 @@ export class JiraClient {
     const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.IssueStatusResponse<T>>(
       `${this.baseUrl}${path}`,
       {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-        timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
-        timeoutErrorMessage: this.timeoutErrorMessage,
         params: {
           ...query,
           startAt: result.startAt,
