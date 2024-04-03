@@ -33,6 +33,8 @@ export async function sprintVarianceGraph(
     }
     const sprintQuery = esb
       .requestBodySearch()
+      .size(limit)
+      .from((page - 1) * limit)
       .query(
         esb.boolQuery().must([
           esb.termQuery('body.projectId', projectId),
@@ -46,16 +48,14 @@ export async function sprintVarianceGraph(
             ])
             .minimumShouldMatch(1),
         ])
-      )
-      .toJSON() as { query: object };
+    )
+      .sort(esb.sort('body.startDate', 'desc'))
+      .toJSON();
 
     logger.info('sprintQuery', sprintQuery);
     const body = (await esClientObj.search(
       Jira.Enums.IndexName.Sprint,
-      sprintQuery.query,
-      (page - 1) * limit,
-      limit,
-      ['body.startDate:desc']
+      sprintQuery
     )) as Other.Type.HitBody;
     const sprintHits = await searchedDataFormator(body);
 
@@ -222,7 +222,7 @@ export async function sprintVarianceGraphAvg(
           ])
           .minimumShouldMatch(1)
       )
-      .toJSON() as { query: object };
+      .toJSON();
     logger.info('issue_for_sprints_query', query);
     const ftpRateGraph: { estimatedTime: { value: number }; actualTime: { value: number } } =
       await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);

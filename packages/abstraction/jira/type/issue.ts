@@ -10,7 +10,6 @@ export type Issue = {
     projectKey: string;
     isFTP: boolean;
     isFTF: boolean;
-    reOpenCount: number;
     issueType: string;
     isPrimary: boolean;
     priority: string;

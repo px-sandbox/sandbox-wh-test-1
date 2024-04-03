@@ -63,14 +63,14 @@ export class IssueProcessor extends DataProcessor<
     }
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
-    const changelogArr = await getIssueChangelogs(this.apiData.issue.id, jiraClient);
-    let reOpenCount = 0;
+    // const changelogArr = await getIssueChangelogs(this.apiData.issue.id, jiraClient);
+    // let reOpenCount = 0;
     const QaFailed = await getFailedStatusDetails(orgData.id);
-    if (changelogArr.length > 0) {
-      reOpenCount = changelogArr.filter(
-        (items) => items.to === QaFailed.issueStatusId && items.toString === QaFailed.name
-      ).length;
-    }
+    // if (changelogArr.length > 0) {
+    //   reOpenCount = changelogArr.filter(
+    //     (items) => items.to === QaFailed.issueStatusId && items.toString === QaFailed.name
+    //   ).length;
+    // }
 
     // sending parent issue to issue format queue so that it gets updated along with it's subtask
     if (issueDataFromApi?.fields?.parent) {
@@ -98,7 +98,6 @@ export class IssueProcessor extends DataProcessor<
         issueKey: this.apiData.issue.key,
         isFTP: this.apiData.issue.fields.labels?.includes('FTP') ?? false,
         isFTF: this.apiData.issue.fields.labels?.includes('FTF') ?? false,
-        reOpenCount,
         issueType: this.apiData.issue.fields.issuetype.name,
         isPrimary: true,
         priority: this.apiData.issue.fields.priority.name,
@@ -123,7 +122,7 @@ export class IssueProcessor extends DataProcessor<
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.id,
-        changelog: changelogArr,
+        changelog: this.apiData.changelog.items,
         timeTracker: {
           estimate: issueDataFromApi?.fields?.timetracking?.originalEstimateSeconds ?? 0,
           actual: issueDataFromApi?.fields?.timetracking?.timeSpentSeconds ?? 0,
