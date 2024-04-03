@@ -20,7 +20,7 @@ export async function getSprints(sprintId: string): Promise<Sprint> {
     )
     .sort(esb.sort('body.startDate', 'desc'))
     .toJSON();
-  const { body } = await esClientObj.search(
+  const body  = await esClientObj.search(
    Jira.Enums.IndexName.Sprint,
      query,
   );
