@@ -10,7 +10,7 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
   const jira = await JiraClient.getClient(organization);
   const boards = await jira.getBoards(projectId);
 
-  const sqsClient = new SQSClient();
+  const sqsClient = SQSClient.getInstance();  
 
   const createdAt = new Date().toISOString();
   const deletedAt = null;
