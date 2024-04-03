@@ -12,8 +12,11 @@ import { getOrganization } from '../organization/get-organization';
  * @returns A promise that resolves with the board data.
  * @throws An error if the board cannot be retrieved.
  */
-const esClientObj = ElasticSearchClient.getInstance();  
-export async function getBoardById(boardId: number, organization: string): Promise<Other.Type.HitBody> {
+const esClientObj = ElasticSearchClient.getInstance();
+export async function getBoardById(
+  boardId: number,
+  organization: string
+): Promise<Other.Type.HitBody> {
   try {
     const orgData = await getOrganization(organization);
     if (!orgData) {
@@ -21,12 +24,15 @@ export async function getBoardById(boardId: number, organization: string): Promi
       throw new Error(`Organization ${organization} not found`);
     }
     const matchQry = esb
-      .requestBodySearch().query(esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.id', `${mappingPrefixes.board}_${boardId}`),
-        esb.termQuery('body.organizationId', `${orgData.id}`),
-      ]))
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.id', `${mappingPrefixes.board}_${boardId}`),
+            esb.termQuery('body.organizationId', `${orgData.id}`),
+          ])
+      )
       .toJSON();
     const boardData = await esClientObj.search(Jira.Enums.IndexName.Board, matchQry);
     const [formattedBoardData] = await searchedDataFormatorWithDeleted(boardData);
@@ -50,11 +56,15 @@ export async function getBoardByOrgId(
 ): Promise<Other.Type.HitBody> {
   try {
     const matchQry = esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.id', `${boardId}`),
-        esb.termQuery('body.organizationId', `${organizationId}`),
-      ])
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.id', `${boardId}`),
+            esb.termQuery('body.organizationId', `${organizationId}`),
+          ])
+      )
       .toJSON();
     const boardData = await esClientObj.search(Jira.Enums.IndexName.Board, matchQry);
     const [formattedBoardData] = await searchedDataFormatorWithDeleted(boardData);

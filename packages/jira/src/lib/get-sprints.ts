@@ -33,7 +33,7 @@ function createSprintSearchQuery(sprintId: string): object {
 export async function getSprints(sprintId: string): Promise<Sprint> {
   const esClientObj = ElasticSearchClient.getInstance();
   const query = createSprintSearchQuery(sprintId);
-  const { body } = await esClientObj.search(Jira.Enums.IndexName.Sprint, query);
+  const body = await esClientObj.search(Jira.Enums.IndexName.Sprint, query);
   const [sprint] = (await searchedDataFormator(body)) as Sprint[];
   return sprint;
 }
