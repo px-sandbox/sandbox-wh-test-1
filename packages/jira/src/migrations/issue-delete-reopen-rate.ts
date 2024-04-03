@@ -2,7 +2,6 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 import { Jira, Other } from 'abstraction';
 import moment from 'moment';

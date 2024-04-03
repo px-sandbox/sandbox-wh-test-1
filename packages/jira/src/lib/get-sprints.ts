@@ -4,9 +4,13 @@ import { SprintState } from 'abstraction/jira/enums';
 import esb from 'elastic-builder';
 import { Sprint, searchedDataFormator } from '../util/response-formatter';
 
-export async function getSprints(sprintId: string): Promise<Sprint> {
-  const esClientObj = ElasticSearchClient.getInstance();
-  const query = esb
+/**
+ * Creates a search query for retrieving a sprint by its ID.
+ * @param sprintId - The ID of the sprint.
+ * @returns The search query object.
+ */
+function createSprintSearchQuery(sprintId: string): object {
+  return esb
     .requestBodySearch()
     .query(
       esb
@@ -20,10 +24,16 @@ export async function getSprints(sprintId: string): Promise<Sprint> {
     )
     .sort(esb.sort('body.startDate', 'desc'))
     .toJSON();
-  const { body } = await esClientObj.search(
-   Jira.Enums.IndexName.Sprint,
-     query,
-  );
+}
+/**
+ * Retrieves a sprint by its ID.
+ * @param sprintId - The ID of the sprint to retrieve.
+ * @returns A Promise that resolves to the retrieved sprint.
+ */
+export async function getSprints(sprintId: string): Promise<Sprint> {
+  const esClientObj = ElasticSearchClient.getInstance();
+  const query = createSprintSearchQuery(sprintId);
+  const { body } = await esClientObj.search(Jira.Enums.IndexName.Sprint, query);
   const [sprint] = (await searchedDataFormator(body)) as Sprint[];
   return sprint;
 }

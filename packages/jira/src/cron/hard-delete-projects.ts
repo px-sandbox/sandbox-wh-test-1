@@ -13,6 +13,33 @@ import { searchedDataFormatorWithDeleted } from '../util/response-formatter';
 // initializing elastic search client
 const esClientObj = ElasticSearchClient.getInstance();
 const DynamoDbDocClientObj = DynamoDbDocClient.getInstance();
+
+/**
+ * Creates a delete query object based on the provided data.
+ * @param data - The data object containing the projectId and organizationId.
+ * @returns The delete query object.
+ */
+function createDeleteQuery(data: { projectId: string; organizationId: string }): object {
+  return esb
+    .boolQuery()
+    .must([
+      esb
+        .boolQuery()
+        .should([
+          esb.termQuery('body.id', data.projectId),
+          esb.termQuery('body.projectId', data.projectId),
+        ])
+        .minimumShouldMatch(1),
+      esb
+        .boolQuery()
+        .should([
+          esb.termQuery('body.organizationId', data.organizationId),
+          esb.termQuery('body.organizationId.keyword', data.organizationId),
+        ])
+        .minimumShouldMatch(1),
+    ])
+    .toJSON();
+}
 /**
  * Deletes project data from Elasticsearch if project was soft-deleted more than 90 days ago.
  * @param result The search result containing the project IDs to delete.
@@ -37,25 +64,7 @@ async function deleteProjectData(
     let deleteQuery = {};
 
     const deletePromises = projectData.map((data) => {
-      deleteQuery = esb
-        .boolQuery()
-        .must([
-          esb
-            .boolQuery()
-            .should([
-              esb.termQuery('body.id', data.projectId),
-              esb.termQuery('body.projectId', data.projectId),
-            ])
-            .minimumShouldMatch(1),
-          esb
-            .boolQuery()
-            .should([
-              esb.termQuery('body.organizationId', data.organizationId),
-              esb.termQuery('body.organizationId.keyword', data.organizationId),
-            ])
-            .minimumShouldMatch(1),
-        ])
-        .toJSON();
+      deleteQuery = createDeleteQuery(data);
 
       // deleting all data from ES for project and related sprint, boards and issues
       return esClientObj.deleteByQuery(indexArr, deleteQuery);
@@ -107,6 +116,25 @@ async function deleteProjectfromDD(
 }
 
 /**
+ * Creates a request body search query for searching deleted projects.
+ * @param dateToCompare - The date to compare against the 'deletedAt' field.
+ * @returns The request body search query as a JSON object.
+ */
+function createRequestBodySearchQuery(dateToCompare: moment.Moment): object {
+  return esb
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termQuery('body.isDeleted', true),
+          esb.rangeQuery('body.deletedAt').lte(dateToCompare.toISOString()),
+        ])
+    )
+    .toJSON();
+}
+
+/**
  * Deletes projects that have been marked as deleted and have been deleted for more than 90 days.
  * Deletes the corresponding entries from Elasticsearch and DynamoDB.
  * @returns Promise<void>
@@ -122,15 +150,7 @@ export async function handler(): Promise<void> {
   }
   const dateToCompare = moment().subtract(value, unit as any);
 
-  const query = esb
-    .requestBodySearch()
-    .query(
-      esb.boolQuery()
-    .must([
-      esb.termQuery('body.isDeleted', true),
-      esb.rangeQuery('body.deletedAt').lte(dateToCompare.toISOString()),
-    ]))
-    .toJSON();
+  const query = createRequestBodySearchQuery(dateToCompare);
 
   logger.info('searching for projects that have been soft-deleted >=PROJECT_DELETION_AGE');
 
