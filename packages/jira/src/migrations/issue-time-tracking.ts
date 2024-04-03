@@ -2,7 +2,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
@@ -86,10 +85,7 @@ async function migration(projectId: string, organization: string): Promise<void>
 
       const requestBodyQuery = requestBodySearchquery.searchAfter([lastHit?.sort[0]]).toJSON();
 
-      response = await esClientObj.search(
-        Jira.Enums.IndexName.Issue,
-        requestBodyQuery
-      );
+      response = await esClientObj.search(Jira.Enums.IndexName.Issue, requestBodyQuery);
 
       formattedResponse = await searchedDataFormator(response);
       issues.push(...formattedResponse);

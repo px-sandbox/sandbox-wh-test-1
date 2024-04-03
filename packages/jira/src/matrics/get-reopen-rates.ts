@@ -3,40 +3,74 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { IReopenRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
-import esb from 'elastic-builder';
+import esb, { RequestBodySearch } from 'elastic-builder';
 import _ from 'lodash';
-import { Config } from 'sst/node/config';
 import { getSprints } from '../lib/get-sprints';
 import { getBoardByOrgId } from '../repository/board/get-board';
 import { IssueReponse } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
-  try {
-   
-    const reopenRateGraphQuery = esb.requestBodySearch().size(0);
-    reopenRateGraphQuery.query(
+/**
+ * Constructs a request body search query for retrieving reopen rates.
+ * @param sprintIds - An array of sprint IDs.
+ * @returns The constructed RequestBodySearch object.
+ */
+function requestBodySearchQuery(sprintIds: string[]): RequestBodySearch {
+  return esb
+    .requestBodySearch()
+    .size(0)
+    .query(
       esb
         .boolQuery()
         .must([esb.termsQuery('body.sprintId', sprintIds), esb.termQuery('body.isDeleted', false)])
     );
+}
+/**
+ * Retrieves the reopen rate query response for the given sprint IDs.
+ *
+ * @param sprintIds - An array of sprint IDs.
+ * @returns A promise that resolves to the reopen rate response.
+ */
+async function reopenRateQueryRes(sprintIds: string[]): Promise<IReopenRateResponse> {
+  const reopenRateGraphQuery = requestBodySearchQuery(sprintIds)
+    .agg(
+      esb
+        .termsAggregation('sprint_buckets', 'body.sprintId')
+        .size(sprintIds.length)
+        .agg(esb.filterAggregation('reopen_count', esb.rangeQuery('body.reOpenCount').gt(0)))
+    )
+    .toJSON();
+
+  logger.info('reopenRateGraphQuery', reopenRateGraphQuery);
+
+  return esClientObj.queryAggs<IReopenRateResponse>(
+    Jira.Enums.IndexName.ReopenRate,
     reopenRateGraphQuery
-      .agg(
-        esb
-          .termsAggregation('sprint_buckets', 'body.sprintId')
-          .size(sprintIds.length)
-          .agg(esb.filterAggregation('reopen_count', esb.rangeQuery('body.reOpenCount').gt(0)))
-      )
-      .toJSON();
+  );
+}
+/**
+ * Retrieves the reopen rate query response for the given sprint IDs.
+ * @param sprintIds - An array of sprint IDs.
+ * @returns A Promise that resolves to the reopen rate query response.
+ */
+async function reopenRateQueryResponse(sprintIds: string[]): Promise<any> {
+  const reopenRateGraphQuery = requestBodySearchQuery(sprintIds)
+    .agg(esb.filterAggregation('reopenRate', esb.rangeQuery('body.reOpenCount').gt(0)))
+    .toJSON();
 
-    logger.info('reopenRateGraphQuery', reopenRateGraphQuery);
+  logger.info('AvgReopenRateGraphQuery', reopenRateGraphQuery);
 
-    const reopenRateGraphResponse: IReopenRateResponse =
-      await esClientObj.queryAggs<IReopenRateResponse>(
-        Jira.Enums.IndexName.ReopenRate,
-        reopenRateGraphQuery
-      );
+  return esClientObj.queryAggs(Jira.Enums.IndexName.ReopenRate, reopenRateGraphQuery);
+}
+/**
+ * Retrieves the reopen rate graph data for the given sprint IDs.
+ * @param sprintIds An array of sprint IDs.
+ * @returns A promise that resolves to an array of IssueResponse objects.
+ */
+export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
+  try {
+    const reopenRateGraphResponse = await reopenRateQueryRes(sprintIds);
 
     let response: IssueReponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
@@ -75,27 +109,17 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
   }
 }
 
+/**
+ * Calculates the average reopen rate for a given array of sprint IDs.
+ * @param sprintIds - An array of sprint IDs.
+ * @returns A Promise that resolves to an object containing the total number of bugs,
+ * total number of reopen bugs, and the reopen rate percentage.
+ */
 export async function reopenRateGraphAvg(
   sprintIds: string[]
 ): Promise<{ totalBugs: string; totalReopen: string; percentValue: number }> {
   try {
-
-    const reopenRateGraphQuery = esb.requestBodySearch().size(0);
-    reopenRateGraphQuery.query(
-      esb
-        .boolQuery()
-        .must([esb.termsQuery('body.sprintId', sprintIds), esb.termQuery('body.isDeleted', false)])
-    );
-    reopenRateGraphQuery
-      .agg(esb.filterAggregation('reopenRate', esb.rangeQuery('body.reOpenCount').gt(0)))
-      .toJSON();
-
-    logger.info('AvgReopenRateGraphQuery', reopenRateGraphQuery);
-
-    const reopenRateGraphResponse:any = await esClientObj.queryAggs(
-      Jira.Enums.IndexName.ReopenRate,
-      reopenRateGraphQuery,
-    );
+    const reopenRateGraphResponse = await reopenRateQueryResponse(sprintIds);
     return {
       totalBugs: reopenRateGraphResponse.body.hits.total.value ?? 0,
       totalReopen: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count ?? 0,

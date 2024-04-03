@@ -2,12 +2,73 @@
 /* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
-import esb from 'elastic-builder';
+import esb, { RequestBodySearch } from 'elastic-builder';
 import _ from 'lodash';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
+/**
+ * Creates a search query to retrieve issues based on the provided parameters.
+ *
+ * @param projectId - The ID of the project.
+ * @param sprintId - The ID of the sprint.
+ * @param orgId - The ID of the organization.
+ * @returns The search query as a RequestBodySearch object.
+ */
+function createIssueSearchQuery(
+  projectId: string,
+  sprintId: string,
+  orgId: string
+): RequestBodySearch {
+  return esb
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.sprintId', sprintId),
+          esb.termQuery('body.organizationId.keyword', orgId),
+          esb.termsQuery('body.issueType', ['Story', 'Bug', 'Task']),
+        ])
+        .must(esb.existsQuery('body.timeTracker'))
+    )
+    .sort(esb.sort('_id'))
+    .size(100)
+    .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.subtasks', 'body.summary']);
+}
+
+/**
+ * Creates a search query for retrieving subtasks based on the provided parameters.
+ * @param projectId - The ID of the project.
+ * @param sprintId - The ID of the sprint.
+ * @param orgId - The ID of the organization.
+ * @returns The search query as a RequestBodySearch object.
+ */
+function createSubtaskSearchQuery(
+  projectId: string,
+  sprintId: string,
+  orgId: string
+): RequestBodySearch {
+  return esb
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.sprintId', sprintId),
+          esb.termQuery('body.organizationId.keyword', orgId),
+          esb.termQuery('body.issueType', 'Sub-task'),
+          esb.rangeQuery('body.timeTracker.estimate').gt(0),
+        ])
+        .must(esb.existsQuery('body.timeTracker'))
+    )
+    .sort(esb.sort('_id'))
+    .size(100)
+    .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.summary']);
+}
 /**
  * Fetches issue data from Jira based on the provided parameters.
  *
@@ -24,22 +85,7 @@ const fetchIssueData = async (
   issues: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
   subtasks: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
 }> => {
-  const issueQuery = esb
-    .requestBodySearch()
-    .query(
-      esb
-        .boolQuery()
-        .must([
-          esb.termQuery('body.projectId', projectId),
-          esb.termQuery('body.sprintId', sprintId),
-          esb.termQuery('body.organizationId.keyword', orgId),
-          esb.termsQuery('body.issueType', ['Story', 'Bug', 'Task']),
-        ])
-        .must(esb.existsQuery('body.timeTracker'))
-    )
-    .sort(esb.sort('_id'))
-    .size(100)
-    .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.subtasks', 'body.summary']);
+  const issueQuery = createIssueSearchQuery(projectId, sprintId, orgId);
 
   let unformattedIssues: Other.Type.HitBody = await esClientObj.search(
     Jira.Enums.IndexName.Issue,
@@ -57,24 +103,7 @@ const fetchIssueData = async (
     formattedIssues = await searchedDataFormator(unformattedIssues);
     issues.push(...formattedIssues);
   }
-
-  const subtaskQuery = esb
-    .requestBodySearch()
-    .query(
-      esb
-        .boolQuery()
-        .must([
-          esb.termQuery('body.projectId', projectId),
-          esb.termQuery('body.sprintId', sprintId),
-          esb.termQuery('body.organizationId.keyword', orgId),
-          esb.termQuery('body.issueType', 'Sub-task'),
-          esb.rangeQuery('body.timeTracker.estimate').gt(0),
-        ])
-        .must(esb.existsQuery('body.timeTracker'))
-    )
-    .sort(esb.sort('_id'))
-    .size(100)
-    .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.summary']);
+  const subtaskQuery = createSubtaskSearchQuery(projectId, sprintId, orgId);
 
   let unformattedSubtasks: Other.Type.HitBody = await esClientObj.search(
     Jira.Enums.IndexName.Issue,
