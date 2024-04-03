@@ -3,11 +3,14 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import axios from 'axios';
 import { logger } from 'core';
+import esb from 'elastic-builder';
+import { Config } from 'sst/node/config';
 import { esResponseDataFormator } from '../util/es-response-formatter';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
-import esb from 'elastic-builder';
+
 export class JiraClient {
   private baseUrl: string;
+  private timeoutErrorMessage: string;
 
   private constructor(
     // api parameters
@@ -16,6 +19,7 @@ export class JiraClient {
     private refreshToken: string
   ) {
     this.baseUrl = `https://api.atlassian.com/ex/jira/${this.cloudId}`;
+    this.timeoutErrorMessage = 'Request to Jira API timed out';
   }
 
   /**
@@ -66,6 +70,8 @@ export class JiraClient {
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
         },
+        timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
+        timeoutErrorMessage: this.timeoutErrorMessage,
       }
     );
 
@@ -79,6 +85,8 @@ export class JiraClient {
         `${this.baseUrl}/rest/agile/1.0/board/${boardId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
+          timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
+          timeoutErrorMessage: this.timeoutErrorMessage,
         }
       );
 
@@ -105,6 +113,8 @@ export class JiraClient {
         `${this.baseUrl}/rest/agile/1.0/board/${boardId}/configuration`,
         {
           headers: { Authorization: `Bearer ${this.accessToken}` },
+          timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
+          timeoutErrorMessage: this.timeoutErrorMessage,
         }
       );
 
@@ -142,6 +152,8 @@ export class JiraClient {
         `${this.baseUrl}/rest/api/3/user?accountId=${userAccountId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
+          timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
+          timeoutErrorMessage: this.timeoutErrorMessage,
         }
       );
 
@@ -181,6 +193,8 @@ export class JiraClient {
           headers: {
             Authorization: `Bearer ${this.accessToken}`,
           },
+          timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
+          timeoutErrorMessage: this.timeoutErrorMessage,
         }
       );
       return issue.data;
@@ -224,6 +238,8 @@ export class JiraClient {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
       },
+      timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
+      timeoutErrorMessage: this.timeoutErrorMessage,
       params: {
         ...query,
         startAt: result.startAt,
@@ -262,6 +278,8 @@ export class JiraClient {
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
         },
+        timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
+        timeoutErrorMessage: this.timeoutErrorMessage,
         params: {
           ...query,
           startAt: result.startAt,
@@ -294,6 +312,8 @@ export class JiraClient {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
       },
+      timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
+      timeoutErrorMessage: this.timeoutErrorMessage,
       params: {
         startAt,
         maxResults,
@@ -326,6 +346,8 @@ export class JiraClient {
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
         },
+        timeout: parseInt(Config.REQUEST_TIMEOUT, 10),
+        timeoutErrorMessage: this.timeoutErrorMessage,
         params: {
           ...query,
           startAt: result.startAt,
