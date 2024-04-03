@@ -1,10 +1,11 @@
-import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { searchedDataFormator, searchedDataFormatorWithDeleted } from '../../util/response-formatter';
-
+import {
+  searchedDataFormator,
+  searchedDataFormatorWithDeleted,
+} from '../../util/response-formatter';
 
 /**
  * Updates data in ElasticSearch index based on the provided matchField and matchValue.
@@ -25,14 +26,21 @@ async function updateData(
 ): Promise<void> {
   // Starting to soft delete project, sprint, boards and issues data from elastic search
   logger.info(`starting to soft delete ${indexName} data from elastic search`);
-  const matchQry2 = esb.requestBodySearch().query(esb.boolQuery()
-    .must([
-      esb.termsQuery(matchField, matchValue),
-      esb.boolQuery()
-        .should([esb.termQuery('body.organizationId', orgId), esb.termQuery('body.organizationId.keyword', orgId)])
-        .minimumShouldMatch(1),
-
-    ])).toJSON();
+  const matchQry2 = esb
+    .requestBodySearch()
+    .query(
+      esb.boolQuery().must([
+        esb.termsQuery(matchField, matchValue),
+        esb
+          .boolQuery()
+          .should([
+            esb.termQuery('body.organizationId', orgId),
+            esb.termQuery('body.organizationId.keyword', orgId),
+          ])
+          .minimumShouldMatch(1),
+      ])
+    )
+    .toJSON();
 
   const data = await esClientObj.paginateSearch(indexName, matchQry2);
 

@@ -19,7 +19,7 @@ export async function update(issue: Jira.ExternalType.Webhook.Issue): Promise<vo
   await sqsClient.sendFifoMessage(
     { ...issue },
     Queue.qIssueFormat.queueUrl,
-    issue.issue.id,
+    issue.issue.key,
     uuid()
   );
   if (issue.issue.fields.issuetype.name !== IssuesTypes.BUG) {

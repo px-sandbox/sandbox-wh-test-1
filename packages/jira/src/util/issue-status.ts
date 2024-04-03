@@ -1,12 +1,10 @@
-import { ElasticSearchClient } from "@pulse/elasticsearch";
-import { Jira, Other } from "abstraction";
-import { logger } from "core";
-import esb from "elastic-builder";
-import { Config } from "sst/node/config";
-import { searchedDataFormator } from "./response-formatter";
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { Jira, Other } from 'abstraction';
+import { logger } from 'core';
+import esb from 'elastic-builder';
+import { searchedDataFormator } from './response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
-
 
 export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.HitBody> {
   try {

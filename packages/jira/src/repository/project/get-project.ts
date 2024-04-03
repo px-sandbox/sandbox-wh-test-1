@@ -1,6 +1,5 @@
 import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import { mappingPrefixes } from '../../constant/config';
@@ -16,8 +15,8 @@ import { getOrganization } from '../organization/get-organization';
  */
 const esClientObj = ElasticSearchClient.getInstance();
 export async function getProjectById(
-    projectId: number,
-    organization: string
+  projectId: number,
+  organization: string
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
   try {
     const orgData = await getOrganization(organization);
