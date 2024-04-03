@@ -3,11 +3,24 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import axios from 'axios';
 import { logger } from 'core';
+import esb from 'elastic-builder';
+import { Config } from 'sst/node/config';
 import { esResponseDataFormator } from '../util/es-response-formatter';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
-import esb from 'elastic-builder';
+
 export class JiraClient {
   private baseUrl: string;
+  private timeoutErrorMessage = 'Request to Jira API timed out';
+  private timeout = parseInt(Config.REQUEST_TIMEOUT, 10);
+
+  // made a private common axios instance to handle the requests
+  private axiosInstance = axios.create({
+    headers: {
+      Authorization: `Bearer ${this.accessToken}`,
+    },
+    timeout: this.timeout ?? 2000,
+    timeoutErrorMessage: this.timeoutErrorMessage ?? 'Request to Jira API timed out',
+  });
 
   private constructor(
     // api parameters
@@ -60,13 +73,8 @@ export class JiraClient {
    * @returns A Promise that resolves with the retrieved project.
    */
   public async getProject(projectId: string): Promise<Jira.ExternalType.Api.Project> {
-    const { data: project } = await axios.get<Jira.ExternalType.Api.Project>(
-      `${this.baseUrl}/rest/api/3/project/${projectId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      }
+    const { data: project } = await this.axiosInstance.get<Jira.ExternalType.Api.Project>(
+      `${this.baseUrl}/rest/api/3/project/${projectId}`
     );
 
     return project;
@@ -74,12 +82,8 @@ export class JiraClient {
 
   public async getBoard(boardId: number): Promise<Jira.ExternalType.Api.Board> {
     try {
-      const token = this.accessToken;
-      const { data: board } = await axios.get<Jira.ExternalType.Api.Board>(
-        `${this.baseUrl}/rest/agile/1.0/board/${boardId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const { data: board } = await this.axiosInstance.get<Jira.ExternalType.Api.Board>(
+        `${this.baseUrl}/rest/agile/1.0/board/${boardId}`
       );
 
       return board;
@@ -101,11 +105,8 @@ export class JiraClient {
 
   public async getBoardConfig(boardId: number): Promise<Jira.ExternalType.Api.BoardConfig> {
     try {
-      const { data: boardConfig } = await axios.get<Jira.ExternalType.Api.BoardConfig>(
-        `${this.baseUrl}/rest/agile/1.0/board/${boardId}/configuration`,
-        {
-          headers: { Authorization: `Bearer ${this.accessToken}` },
-        }
+      const { data: boardConfig } = await this.axiosInstance.get<Jira.ExternalType.Api.BoardConfig>(
+        `${this.baseUrl}/rest/agile/1.0/board/${boardId}/configuration`
       );
 
       return boardConfig;
@@ -137,12 +138,8 @@ export class JiraClient {
 
   public async getUser(userAccountId: string): Promise<Jira.ExternalType.Api.User> {
     try {
-      const token = this.accessToken;
-      const { data: user } = await axios.get<Jira.ExternalType.Api.User>(
-        `${this.baseUrl}/rest/api/3/user?accountId=${userAccountId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const { data: user } = await this.axiosInstance.get<Jira.ExternalType.Api.User>(
+        `${this.baseUrl}/rest/api/3/user?accountId=${userAccountId}`
       );
 
       return user;
@@ -175,13 +172,8 @@ export class JiraClient {
 
   public async getIssue(issueIdOrKey: string): Promise<Jira.ExternalType.Api.Issue> {
     try {
-      const issue = await axios.get<Jira.ExternalType.Api.Issue>(
-        `${this.baseUrl}/rest/agile/1.0/issue/${issueIdOrKey}`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.accessToken}`,
-          },
-        }
+      const issue = await this.axiosInstance.get<Jira.ExternalType.Api.Issue>(
+        `${this.baseUrl}/rest/agile/1.0/issue/${issueIdOrKey}`
       );
       return issue.data;
     } catch (error) {
@@ -220,16 +212,16 @@ export class JiraClient {
       values: [],
     }
   ): Promise<Jira.ExternalType.Api.Response<T>> {
-    const { data } = await axios.get<Jira.ExternalType.Api.Response<T>>(`${this.baseUrl}${path}`, {
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-      },
-      params: {
-        ...query,
-        startAt: result.startAt,
-        maxResults: result.maxResults,
-      },
-    });
+    const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.Response<T>>(
+      `${this.baseUrl}${path}`,
+      {
+        params: {
+          ...query,
+          startAt: result.startAt,
+          maxResults: result.maxResults,
+        },
+      }
+    );
 
     const newResult = {
       values: result.values.concat(data.values),
@@ -256,12 +248,9 @@ export class JiraClient {
       issues: [],
     }
   ): Promise<Jira.ExternalType.Api.IssuesResponse<T>> {
-    const { data } = await axios.get<Jira.ExternalType.Api.IssuesResponse<T>>(
+    const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.IssuesResponse<T>>(
       `${this.baseUrl}${path}`,
       {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
         params: {
           ...query,
           startAt: result.startAt,
@@ -290,10 +279,7 @@ export class JiraClient {
     maxResults = 50,
     users: Array<T> = []
   ): Promise<Array<T>> {
-    const { data } = await axios.get<Array<T>>(`${this.baseUrl}${path}`, {
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-      },
+    const { data } = await this.axiosInstance.get<Array<T>>(`${this.baseUrl}${path}`, {
       params: {
         startAt,
         maxResults,
@@ -320,12 +306,9 @@ export class JiraClient {
       values: [],
     }
   ): Promise<Jira.ExternalType.Api.IssueStatusResponse<T>> {
-    const { data } = await axios.get<Jira.ExternalType.Api.IssueStatusResponse<T>>(
+    const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.IssueStatusResponse<T>>(
       `${this.baseUrl}${path}`,
       {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
         params: {
           ...query,
           startAt: result.startAt,

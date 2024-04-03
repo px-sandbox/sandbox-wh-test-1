@@ -1,7 +1,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
 
 const indices = [
   {
