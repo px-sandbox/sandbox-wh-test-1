@@ -17,11 +17,12 @@ export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.
             esb.termQuery('body.pxStatus', 'QA_Failed'),
             esb.termQuery('body.organizationId', orgId),
           ])
-      );
+      )
+      .toJSON();
     logger.info('ESB_QUERY_ISSUE_STATUS_QUERY', { issueStatusquery });
     const { body: data } = await esClientObj.search(
       Jira.Enums.IndexName.IssueStatus,
-      issueStatusquery.query
+      issueStatusquery
     );
     const [issueStatusData] = await searchedDataFormator(data);
     return issueStatusData;
@@ -33,12 +34,15 @@ export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.
 
 export async function getIssueStatusForReopenRate(orgId: string): Promise<Other.Type.HitBody> {
   try {
-    const issueStatusquery = esb.requestBodySearch().size(100);
-    issueStatusquery.query(
-      esb
-        .boolQuery()
-        .must([esb.termQuery('body.organizationId', orgId), esb.existsQuery('body.pxStatus')])
-    );
+    const issueStatusquery = esb
+      .requestBodySearch()
+      .size(100)
+      .query(
+        esb
+          .boolQuery()
+          .must([esb.termQuery('body.organizationId', orgId), esb.existsQuery('body.pxStatus')])
+      )
+      .toJSON();
     logger.info('ESB_QUERY_REOPEN_RATE_QUERY', { issueStatusquery });
     const { body: data } = await esClientObj.search(
       Jira.Enums.IndexName.IssueStatus,
