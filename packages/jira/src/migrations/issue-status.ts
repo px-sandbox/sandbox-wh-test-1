@@ -9,12 +9,13 @@ async function checkAndSave(
     organization: string,
     status: Jira.ExternalType.Api.IssueStatus
 ): Promise<void> {
-    await new SQSClient().sendMessage(
-        {
-            ...status,
-            organization,
-        },
-        Queue.qIssueStatusFormat.queueUrl
+    const sqsClient = SQSClient.getInstance();
+    await sqsClient.sendMessage(
+      {
+        ...status,
+        organization,
+      },
+      Queue.qIssueStatusFormat.queueUrl
     );
     logger.info('issueStatusMigrateDataReciever.successful');
 }

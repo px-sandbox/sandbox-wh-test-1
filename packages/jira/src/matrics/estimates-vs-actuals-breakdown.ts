@@ -1,9 +1,8 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import esb from 'elastic-builder';
 import { Jira, Other } from 'abstraction';
-import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import _ from 'lodash';
 import { searchedDataFormator } from '../util/response-formatter';
 

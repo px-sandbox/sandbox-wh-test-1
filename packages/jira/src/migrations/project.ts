@@ -18,7 +18,7 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
     return;
   }
 
-  const sqsClient = new SQSClient();
+  const sqsClient = SQSClient.getInstance();
 
   // get project details and send it to formatter
   const project = await jira.getProject(projectId);

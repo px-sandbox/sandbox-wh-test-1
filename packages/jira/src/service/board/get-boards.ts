@@ -73,7 +73,7 @@ async function manipulatedBoardsData(
             .must([
               esb.termQuery('body.originBoardId', item.id),
               esb.termQuery('body.projectId', projectId),
-              esb.termQuery('body.organizationId', orgId),
+              esb.termQuery('body.organizationId.keyword', orgId),
               esb.termQuery('body.isDeleted', false),
             ])
             .mustNot(esb.termQuery('body.state', Jira.Enums.SprintState.FUTURE))
