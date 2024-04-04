@@ -20,17 +20,13 @@ async function repoInfoQueueFunc(record: SQSRecord): Promise<void> {
     const inputData = await prepareReopenRate(messageBody, messageBody.typeOfChangelog);
     if (inputData) {
       const reOpenRateProcessor = new ReopenRateProcessor(inputData);
-      const validatedData = reOpenRateProcessor.validate();
-      if (!validatedData) {
-        logger.error('reopenRateInfoValidationQueue.error', { error: 'validation failed' });
-        return;
-      }
+
       const data = await reOpenRateProcessor.processor();
       if (!data) {
         logger.error('reopenRateInfoQueueDATA.error', { error: 'processor failed' });
         return;
       }
-      await reOpenRateProcessor.sendDataToQueue(
+      await reOpenRateProcessor.save(
         { data, index: Jira.Enums.IndexName.ReopenRate },
         Queue.qJiraIndex.queueUrl
       );

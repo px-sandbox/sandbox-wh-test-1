@@ -20,15 +20,10 @@ export const handler = async (event: SQSEvent): Promise<void> => {
         logger.info('JIRA_PROJECT_SQS_FORMATER', { messageBody });
 
         const projectProcessor = new ProjectProcessor(messageBody);
-        const validatedData = projectProcessor.validate();
-        if (!validatedData) {
-          logger.error('projectFormattedDataReciever.error', { error: 'validation failed' });
-          return;
-        }
 
         const data = await projectProcessor.processor();
 
-        return projectProcessor.sendDataToQueue(
+        return projectProcessor.save(
           { data, index: Jira.Enums.IndexName.Project },
           Queue.qJiraIndex.queueUrl
         );

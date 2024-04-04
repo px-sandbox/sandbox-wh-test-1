@@ -15,13 +15,9 @@ export const handler = async function userFormattedDataReciever(event: SQSEvent)
         logger.info('JIRA_USER_SQS_FORMATER', { messageBody });
 
         const userProcessor = new UserProcessor(messageBody);
-        const validatedData = userProcessor.validate();
-        if (!validatedData) {
-          logger.error('userFormattedDataReciever.error', { error: 'validation failed' });
-          return;
-        }
+
         const data = await userProcessor.processor();
-        await userProcessor.sendDataToQueue(
+        await userProcessor.save(
           { data, index: Jira.Enums.IndexName.Users },
           Queue.qJiraIndex.queueUrl
         );

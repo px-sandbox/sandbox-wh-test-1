@@ -15,13 +15,9 @@ export const handler = async function issueStatusFormattedDataReciever(
         const messageBody = JSON.parse(record.body);
         logger.info('ISSUE_STATUS_SQS_RECIEVER_HANDLER', { messageBody });
         const issueStatusProcessor = new IssueStatusProcessor(messageBody);
-        const validatedData = issueStatusProcessor.validate();
-        if (!validatedData) {
-          logger.error('issueStatusFormattedDataReciever.error', { error: 'validation failed' });
-          return;
-        }
+
         const data = await issueStatusProcessor.processor();
-        await issueStatusProcessor.sendDataToQueue(
+        await issueStatusProcessor.save(
           { data, index: Jira.Enums.IndexName.IssueStatus },
           Queue.qJiraIndex.queueUrl
         );

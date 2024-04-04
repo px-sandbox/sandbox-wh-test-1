@@ -10,15 +10,15 @@ import { mappingPrefixes as mp } from '../../../constant/config';
 import { getIssueChangelogs } from '../../../lib/get-issue-changelogs';
 import { JiraClient } from '../../../lib/jira-client';
 import { ParamsMapping } from '../../../model/params-mapping';
-import { getIssueStatusForReopenRate } from "../../../util/issue-status";
+import { getIssueStatusForReopenRate } from '../../../util/issue-status';
 import { reopenChangelogCals } from '../../../util/reopen-body-formatter';
 import { logProcessToRetry } from '../../../util/retry-process';
 
-const ddbClient = DynamoDbDocClient.getInstance();  
+const ddbClient = DynamoDbDocClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 
 async function getParentId(id: string): Promise<string | undefined> {
-    const ddbRes = await ddbClient.find(new ParamsMapping().prepareGetParams(id));
+  const ddbRes = await ddbClient.find(new ParamsMapping().prepareGetParams(id));
 
   return ddbRes?.parentId as string | undefined;
 }
@@ -70,16 +70,18 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
           `${mp.reopen_rate}_${messageBody.bugId}_${mp.sprint}_${sprintId}_${mp.org}_${newOrganizationID}`
         );
 
-                await Promise.all(reopenEntries.map(async (entry) => {
-                    const id = parentId || uuid();
-                    const body = entry;
-                    await sqsClient.sendMessage({ id, body }, Queue.qReOpenRateIndex.queueUrl);
-                }));
-                logger.info('reopenRateInfoQueue.success');
-            } catch (error) {
-                logger.error(`reopenRateInfoQueue.error ${error}`);
-                await logProcessToRetry(record, Queue.qReOpenRateMigrator.queueUrl, error as Error);
-            }
-        })
-    );
+        await Promise.all(
+          reopenEntries.map(async (entry) => {
+            const id = parentId || uuid();
+            const body = entry;
+            await sqsClient.sendMessage({ id, body }, Queue.qJiraIndex.queueUrl);
+          })
+        );
+        logger.info('reopenRateInfoQueue.success');
+      } catch (error) {
+        logger.error(`reopenRateInfoQueue.error ${error}`);
+        await logProcessToRetry(record, Queue.qReOpenRateMigrator.queueUrl, error as Error);
+      }
+    })
+  );
 };
