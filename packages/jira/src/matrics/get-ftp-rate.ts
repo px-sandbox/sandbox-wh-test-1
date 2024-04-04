@@ -92,7 +92,6 @@ export async function ftpRateGraph(
     projectKey = projectData[0].key;
 
     const ftpRateGraphResponse: IFtpRateResponse = await ftpGraphRateResponse(sprintIds);
-    logger.info('ftpRateGraphResponse', ftpRateGraphResponse);
     let response: IssueReponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
@@ -165,12 +164,11 @@ export async function ftpRateGraphAvg(
   try {
     // TODO: remove any after testing
     const ftpRateGraphResponse = await ftpGraphQueryResponse(sprintIds);
-    logger.info('ftpRateGraphResponse', ftpRateGraphResponse);
     return {
       total: ftpRateGraphResponse.hits.total.value ?? 0,
       totalFtp: ftpRateGraphResponse.aggregations.isFTP_true_count.doc_count ?? 0,
       percentValue:
-        ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count === 0
+        ftpRateGraphResponse.aggregations.isFTP_true_count.doc_count === 0
           ? 0
           : Number(
               (
