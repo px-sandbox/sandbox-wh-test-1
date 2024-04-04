@@ -71,6 +71,7 @@ async function reopenRateQueryResponse(sprintIds: string[]): Promise<any> {
 export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
   try {
     const reopenRateGraphResponse = await reopenRateQueryRes(sprintIds);
+    logger.info('reopenRateGraphResponse', reopenRateGraphResponse);
 
     let response: IssueReponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
@@ -120,16 +121,17 @@ export async function reopenRateGraphAvg(
 ): Promise<{ totalBugs: string; totalReopen: string; percentValue: number }> {
   try {
     const reopenRateGraphResponse = await reopenRateQueryResponse(sprintIds);
+    logger.info('AvgReopenRateGraphQuery', reopenRateGraphResponse);
     return {
-      totalBugs: reopenRateGraphResponse.body.hits.total.value ?? 0,
-      totalReopen: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count ?? 0,
+      totalBugs: reopenRateGraphResponse.total.value ?? 0,
+      totalReopen: reopenRateGraphResponse.reopenRate.doc_count ?? 0,
       percentValue:
-        reopenRateGraphResponse.body.aggregations.reopenRate.doc_count === 0
+        reopenRateGraphResponse.reopenRate.doc_count === 0
           ? 0
           : Number(
               (
-                (reopenRateGraphResponse.body.aggregations.reopenRate.doc_count /
-                  reopenRateGraphResponse.body.hits.total.value) *
+                (reopenRateGraphResponse.reopenRate.doc_count /
+                  reopenRateGraphResponse.total.value) *
                 100
               ).toFixed(2)
             ),
