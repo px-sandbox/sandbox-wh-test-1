@@ -167,16 +167,16 @@ export async function ftpRateGraphAvg(
     const ftpRateGraphResponse = await ftpGraphQueryResponse(sprintIds);
     logger.info('ftpRateGraphResponse', ftpRateGraphResponse);
     return {
-      total: ftpRateGraphResponse.body.hits.total.value ?? 0,
-      totalFtp: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count ?? 0,
+      total: ftpRateGraphResponse.hits.total.value ?? 0,
+      totalFtp: ftpRateGraphResponse.aggregations.isFTP_true_count.doc_count ?? 0,
       percentValue:
         ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count === 0
           ? 0
           : Number(
               (
-                (ftpRateGraphResponse.body.aggregations.isFTP_true_count
+                (ftpRateGraphResponse.aggregations.isFTP_true_count
                   .doc_count /
-                  ftpRateGraphResponse.body.hits.total.value) *
+                  ftpRateGraphResponse.hits.total.value) *
                 100
               ).toFixed(2)
             ),

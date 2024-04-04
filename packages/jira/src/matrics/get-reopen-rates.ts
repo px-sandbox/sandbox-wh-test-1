@@ -123,15 +123,15 @@ export async function reopenRateGraphAvg(
     const reopenRateGraphResponse = await reopenRateQueryResponse(sprintIds);
     logger.info('AvgReopenRateGraphQuery', reopenRateGraphResponse);
     return {
-      totalBugs: reopenRateGraphResponse.body.hits.total.value ?? 0,
-      totalReopen: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count ?? 0,
+      totalBugs: reopenRateGraphResponse.hits.total.value ?? 0,
+      totalReopen: reopenRateGraphResponse.aggregations.reopenRate.doc_count ?? 0,
       percentValue:
-        reopenRateGraphResponse.body.aggregations.reopenRate.doc_count === 0
+        reopenRateGraphResponse.aggregations.reopenRate.doc_count === 0
           ? 0
           : Number(
               (
-                (reopenRateGraphResponse.body.aggregations.reopenRate.doc_count /
-                  reopenRateGraphResponse.body.hits.total.value) *
+                (reopenRateGraphResponse.aggregations.reopenRate.doc_count /
+                  reopenRateGraphResponse.hits.total.value) *
                 100
               ).toFixed(2)
             ),
