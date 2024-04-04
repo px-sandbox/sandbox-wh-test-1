@@ -61,7 +61,7 @@ async function reopenRateQueryResponse(sprintIds: string[]): Promise<any> {
 
   logger.info('AvgReopenRateGraphQuery', reopenRateGraphQuery);
 
-  return esClientObj.queryAggs(Jira.Enums.IndexName.ReopenRate, reopenRateGraphQuery);
+  return esClientObj.search(Jira.Enums.IndexName.ReopenRate, reopenRateGraphQuery);
 }
 /**
  * Retrieves the reopen rate graph data for the given sprint IDs.
@@ -71,7 +71,6 @@ async function reopenRateQueryResponse(sprintIds: string[]): Promise<any> {
 export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
   try {
     const reopenRateGraphResponse = await reopenRateQueryRes(sprintIds);
-    logger.info('reopenRateGraphResponse', reopenRateGraphResponse);
 
     let response: IssueReponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
@@ -121,17 +120,16 @@ export async function reopenRateGraphAvg(
 ): Promise<{ totalBugs: string; totalReopen: string; percentValue: number }> {
   try {
     const reopenRateGraphResponse = await reopenRateQueryResponse(sprintIds);
-    logger.info('AvgReopenRateGraphQuery', reopenRateGraphResponse);
     return {
-      totalBugs: reopenRateGraphResponse.total.value ?? 0,
-      totalReopen: reopenRateGraphResponse.reopenRate.doc_count ?? 0,
+      totalBugs: reopenRateGraphResponse.hits.total.value ?? 0,
+      totalReopen: reopenRateGraphResponse.aggregations.reopenRate.doc_count ?? 0,
       percentValue:
-        reopenRateGraphResponse.reopenRate.doc_count === 0
+        reopenRateGraphResponse.aggregations.reopenRate.doc_count === 0
           ? 0
           : Number(
               (
-                (reopenRateGraphResponse.reopenRate.doc_count /
-                  reopenRateGraphResponse.total.value) *
+                (reopenRateGraphResponse.aggregations.reopenRate.doc_count /
+                  reopenRateGraphResponse.hits.total.value) *
                 100
               ).toFixed(2)
             ),
