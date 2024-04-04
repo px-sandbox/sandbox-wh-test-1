@@ -14,11 +14,7 @@ export const handler = async function sprintFormattedDataReciever(event: SQSEven
         const messageBody = JSON.parse(record.body);
         logger.info('SPRINT_SQS_RECIEVER_HANDLER', { messageBody });
         const sprintProcessor = new SprintProcessor(messageBody);
-        const validatedData = sprintProcessor.validate();
-        if (!validatedData) {
-          logger.error('sprintFormattedDataReciever.error', { error: 'validation failed' });
-          return;
-        }
+
         const data = await sprintProcessor.processor();
         await sprintProcessor.sendDataToQueue(
           { data, index: Jira.Enums.IndexName.Sprint },

@@ -15,11 +15,7 @@ export const handler = async function boardFormattedDataReciever(event: SQSEvent
         logger.info('JIRA_BOARD_SQS_FORMATER', { messageBody });
 
         const boardProcessor = new BoardProcessor(messageBody);
-        const validatedData = boardProcessor.validate();
-        if (!validatedData) {
-          logger.error('boardFormattedDataReciever.error', { error: 'validation failed' });
-          return;
-        }
+
         const data = await boardProcessor.processor();
         await boardProcessor.sendDataToQueue(
           { data, index: Jira.Enums.IndexName.Board },

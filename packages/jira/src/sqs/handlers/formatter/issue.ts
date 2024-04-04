@@ -17,11 +17,7 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
     const messageBody = JSON.parse(record.body);
     logger.info('ISSUE_SQS_RECIEVER_HANDLER', { messageBody });
     const issueProcessor = new IssueProcessor(messageBody);
-    const validatedData = issueProcessor.validate();
-    if (!validatedData) {
-      logger.error('issueFormattedDataReciever.error', { error: 'validation failed' });
-      return;
-    }
+
     const data = await issueProcessor.processor();
     await issueProcessor.sendDataToQueue(
       { data, index: Jira.Enums.IndexName.Issue },
