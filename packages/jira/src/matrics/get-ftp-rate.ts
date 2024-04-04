@@ -150,7 +150,7 @@ async function ftpGraphQueryResponse(sprintIds: string[]): Promise<any> {
   logger.info('AvgftpRateGraphQuery', ftpRateGraphQuery);
 
   // TODO: remove any after testing
-  return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, ftpRateGraphQuery);
+  return esClientObj.search(Jira.Enums.IndexName.Issue, ftpRateGraphQuery);
 }
 
 /**
@@ -167,15 +167,16 @@ export async function ftpRateGraphAvg(
     const ftpRateGraphResponse = await ftpGraphQueryResponse(sprintIds);
     logger.info('ftpRateGraphResponse', ftpRateGraphResponse);
     return {
-      total: ftpRateGraphResponse.total.value ?? 0,
-      totalFtp: ftpRateGraphResponse.isFTP_true_count.doc_count ?? 0,
+      total: ftpRateGraphResponse.body.hits.total.value ?? 0,
+      totalFtp: ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count ?? 0,
       percentValue:
-        ftpRateGraphResponse.isFTP_true_count.doc_count === 0
+        ftpRateGraphResponse.body.aggregations.isFTP_true_count.doc_count === 0
           ? 0
           : Number(
               (
-                (ftpRateGraphResponse.isFTP_true_count.doc_count /
-                  ftpRateGraphResponse.total.value) *
+                (ftpRateGraphResponse.body.aggregations.isFTP_true_count
+                  .doc_count /
+                  ftpRateGraphResponse.body.hits.total.value) *
                 100
               ).toFixed(2)
             ),

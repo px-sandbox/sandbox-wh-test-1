@@ -61,7 +61,7 @@ async function reopenRateQueryResponse(sprintIds: string[]): Promise<any> {
 
   logger.info('AvgReopenRateGraphQuery', reopenRateGraphQuery);
 
-  return esClientObj.queryAggs(Jira.Enums.IndexName.ReopenRate, reopenRateGraphQuery);
+  return esClientObj.search(Jira.Enums.IndexName.ReopenRate, reopenRateGraphQuery);
 }
 /**
  * Retrieves the reopen rate graph data for the given sprint IDs.
@@ -123,15 +123,15 @@ export async function reopenRateGraphAvg(
     const reopenRateGraphResponse = await reopenRateQueryResponse(sprintIds);
     logger.info('AvgReopenRateGraphQuery', reopenRateGraphResponse);
     return {
-      totalBugs: reopenRateGraphResponse.total.value ?? 0,
-      totalReopen: reopenRateGraphResponse.reopenRate.doc_count ?? 0,
+      totalBugs: reopenRateGraphResponse.body.hits.total.value ?? 0,
+      totalReopen: reopenRateGraphResponse.body.aggregations.reopenRate.doc_count ?? 0,
       percentValue:
-        reopenRateGraphResponse.reopenRate.doc_count === 0
+        reopenRateGraphResponse.body.aggregations.reopenRate.doc_count === 0
           ? 0
           : Number(
               (
-                (reopenRateGraphResponse.reopenRate.doc_count /
-                  reopenRateGraphResponse.total.value) *
+                (reopenRateGraphResponse.body.aggregations.reopenRate.doc_count /
+                  reopenRateGraphResponse.body.hits.total.value) *
                 100
               ).toFixed(2)
             ),
