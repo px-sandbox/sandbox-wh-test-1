@@ -55,7 +55,7 @@ export abstract class DataProcessor<T, S> {
    * @param data - Data to be sent to the queue.
    * @param url - URL of the SQS queue.
    */
-  public async sendDataToQueue<U>(data: U, url: string): Promise<void> {
+  public async save<U>(data: U, url: string): Promise<void> {
     const validated = this.validate();
     if (!validated) {
       throw new Error('data_validation_failed');

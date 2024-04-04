@@ -23,7 +23,7 @@ export const handler = async (event: SQSEvent): Promise<void> => {
 
         const data = await projectProcessor.processor();
 
-        return projectProcessor.sendDataToQueue(
+        return projectProcessor.save(
           { data, index: Jira.Enums.IndexName.Project },
           Queue.qJiraIndex.queueUrl
         );

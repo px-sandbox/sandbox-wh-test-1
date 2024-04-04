@@ -19,7 +19,7 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
     const issueProcessor = new IssueProcessor(messageBody);
 
     const data = await issueProcessor.processor();
-    await issueProcessor.sendDataToQueue(
+    await issueProcessor.save(
       { data, index: Jira.Enums.IndexName.Issue },
       Queue.qJiraIndex.queueUrl
     );

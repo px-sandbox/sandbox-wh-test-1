@@ -17,7 +17,7 @@ export const handler = async function issueStatusFormattedDataReciever(
         const issueStatusProcessor = new IssueStatusProcessor(messageBody);
 
         const data = await issueStatusProcessor.processor();
-        await issueStatusProcessor.sendDataToQueue(
+        await issueStatusProcessor.save(
           { data, index: Jira.Enums.IndexName.IssueStatus },
           Queue.qJiraIndex.queueUrl
         );

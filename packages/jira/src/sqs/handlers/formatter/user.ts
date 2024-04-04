@@ -17,7 +17,7 @@ export const handler = async function userFormattedDataReciever(event: SQSEvent)
         const userProcessor = new UserProcessor(messageBody);
 
         const data = await userProcessor.processor();
-        await userProcessor.sendDataToQueue(
+        await userProcessor.save(
           { data, index: Jira.Enums.IndexName.Users },
           Queue.qJiraIndex.queueUrl
         );

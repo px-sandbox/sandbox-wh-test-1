@@ -16,7 +16,7 @@ export const handler = async function sprintFormattedDataReciever(event: SQSEven
         const sprintProcessor = new SprintProcessor(messageBody);
 
         const data = await sprintProcessor.processor();
-        await sprintProcessor.sendDataToQueue(
+        await sprintProcessor.save(
           { data, index: Jira.Enums.IndexName.Sprint },
           Queue.qJiraIndex.queueUrl
         );
