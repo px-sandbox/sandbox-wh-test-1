@@ -17,6 +17,7 @@ export function initializeBoardQueue(
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
     NODE_VERSION,
+    REQUEST_TIMEOUT,
   } = use(commonConfig);
 
   const boardFormatDataQueue = new Queue(stack, 'qBoardFormat');
@@ -46,6 +47,7 @@ export function initializeBoardQueue(
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
+    REQUEST_TIMEOUT,
   ]);
 
   return boardFormatDataQueue;

@@ -16,6 +16,7 @@ export function initializeUserQueue(
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
     NODE_VERSION,
+    REQUEST_TIMEOUT,
   } = use(commonConfig);
 
   const userFormatDataQueue = new Queue(stack, 'qUserFormat');
@@ -43,6 +44,7 @@ export function initializeUserQueue(
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    REQUEST_TIMEOUT,
   ]);
 
   return userFormatDataQueue;
