@@ -2,6 +2,7 @@
 import { SQSClient } from '@pulse/event-handler';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
+import { filterIssueChangelogs } from 'src/lib/get-issue-changelogs';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
@@ -118,7 +119,7 @@ export class IssueProcessor extends DataProcessor<
           estimate: issueDataFromApi?.fields?.timetracking?.originalEstimateSeconds ?? 0,
           actual: issueDataFromApi?.fields?.timetracking?.timeSpentSeconds ?? 0,
         },
-        changelog: this.apiData.changelog ? await getIssueChangelogs([this.apiData.changelog]) : [],
+        changelog: this.apiData.changelog ? await filterIssueChangelogs([this.apiData.changelog]) : [],
       },
     };
     return issueObj;
