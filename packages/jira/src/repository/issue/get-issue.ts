@@ -24,11 +24,13 @@ export async function getIssueById(
       throw new Error(`Organization ${organization} not found`);
     }
     const matchQry = esb
+      .requestBodySearch()
+      .query(esb
       .boolQuery()
       .must([
         esb.termsQuery('body.id', `${mappingPrefixes.issue}_${issueId}`),
         esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
-      ])
+      ]))
       .toJSON();
     const issueData = await esClientObj.search(Jira.Enums.IndexName.Issue, matchQry);
     const [formattedIssueData] = await searchedDataFormatorWithDeleted(issueData);
@@ -51,6 +53,8 @@ export async function getReopenRateDataById(
       throw new Error(`Organization ${organization} not found`);
     }
     const matchQry = esb
+      .requestBodySearch()
+      .query(esb
       .boolQuery()
       .must([
         // eslint-disable-next-line max-len
@@ -59,7 +63,7 @@ export async function getReopenRateDataById(
           `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`
         ),
         esb.termQuery('body.organizationId', `${orgData.id}`),
-      ])
+      ]))
       .toJSON();
 
     const reopenRateData = await esClientObj.search(Jira.Enums.IndexName.ReopenRate, matchQry);

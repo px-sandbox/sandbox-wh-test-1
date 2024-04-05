@@ -25,13 +25,17 @@ async function fetchReopenRateData(
 ): Promise<void> {
   try {
     const updateReopenRateDataQuery = esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.issueKey.keyword', issueKeys),
-        esb.termQuery('body.projectId', projectId),
-        esb.termQuery('body.organizationId', orgId),
-        esb.termQuery('body.isDeleted', false),
-      ])
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.issueKey.keyword', issueKeys),
+            esb.termQuery('body.projectId', projectId),
+            esb.termQuery('body.organizationId', orgId),
+            esb.termQuery('body.isDeleted', false),
+          ])
+      )
       .toJSON();
 
     const script = esb

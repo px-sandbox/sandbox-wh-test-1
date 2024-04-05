@@ -121,6 +121,7 @@ export function initializeIssueQueue(
     OPENSEARCH_USERNAME,
     jiraIndexDataQueue,
     AVAILABLE_PROJECT_KEYS,
+    REQUEST_TIMEOUT,
   ]);
 
   reOpenRateMigratorQueue.bind([
@@ -130,6 +131,7 @@ export function initializeIssueQueue(
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
+    REQUEST_TIMEOUT,
   ]);
 
   reOpenRateDeleteQueue.bind([
@@ -139,6 +141,7 @@ export function initializeIssueQueue(
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
+    REQUEST_TIMEOUT,
   ]);
 
   issueTimeTrackingMigrationQueue.bind([
@@ -152,6 +155,7 @@ export function initializeIssueQueue(
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
     jiraIndexDataQueue,
+    REQUEST_TIMEOUT,
   ]);
 
   return [
