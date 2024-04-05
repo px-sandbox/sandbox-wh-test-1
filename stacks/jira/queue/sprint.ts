@@ -17,6 +17,7 @@ export function initializeSprintQueue(
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
     NODE_VERSION,
+    REQUEST_TIMEOUT,
   } = use(commonConfig);
 
   const sprintFormatDataQueue = new Queue(stack, 'qSprintFormat');
@@ -44,6 +45,7 @@ export function initializeSprintQueue(
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
+    REQUEST_TIMEOUT,
   ]);
 
   return sprintFormatDataQueue;
