@@ -24,6 +24,7 @@ export function initializeProjectQueue(
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
     NODE_VERSION,
+    REQUEST_TIMEOUT,
   } = use(commonConfig);
 
   const projectFormatDataQueue = new Queue(stack, 'qProjectFormat');
@@ -52,6 +53,7 @@ export function initializeProjectQueue(
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
+    REQUEST_TIMEOUT,
   ]);
 
   return projectFormatDataQueue;

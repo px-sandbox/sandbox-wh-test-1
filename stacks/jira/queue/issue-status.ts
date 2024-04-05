@@ -16,6 +16,7 @@ export function initializeIssueStatusQueue(
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
     NODE_VERSION,
+    REQUEST_TIMEOUT,
   } = use(commonConfig);
 
   const issueStatusFormatDataQueue = new Queue(stack, 'qIssueStatusFormat');
@@ -43,6 +44,7 @@ export function initializeIssueStatusQueue(
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
+    REQUEST_TIMEOUT,
   ]);
 
   return issueStatusFormatDataQueue;
