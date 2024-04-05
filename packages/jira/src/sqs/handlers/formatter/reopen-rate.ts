@@ -26,10 +26,7 @@ async function repoInfoQueueFunc(record: SQSRecord): Promise<void> {
         logger.error('reopenRateInfoQueueDATA.error', { error: 'processor failed' });
         return;
       }
-      await reOpenRateProcessor.save(
-        { data, index: Jira.Enums.IndexName.ReopenRate },
-        Queue.qJiraIndex.queueUrl
-      );
+      await reOpenRateProcessor.save({ data, index: Jira.Enums.IndexName.ReopenRate });
     }
     logger.info('reopenRateInfoQueue.success');
   } catch (error) {
