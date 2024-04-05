@@ -20,7 +20,7 @@ export class IssueProcessor extends DataProcessor<
     super(data);
   }
 
-  public validate():  this {
+  public validate():  false | this {
     const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
     if (this.apiData !== undefined && projectKeys.includes(this.apiData.issue.fields.project.key)) {
       return this;
@@ -29,7 +29,7 @@ export class IssueProcessor extends DataProcessor<
       message: 'EMPTY_DATA or projectKey not in available keys for this issue',
       data: this.apiData,
     });
-    return this;
+    return false;
   }
 
   public getSprintAndBoardId(issue: Jira.ExternalType.Api.Issue): {
