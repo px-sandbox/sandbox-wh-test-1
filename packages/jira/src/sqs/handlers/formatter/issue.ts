@@ -34,7 +34,6 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
 export const handler = async function issueFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
-  logger.info(`MessageGroups: ${messageGroups}`);
   await Promise.all(
     Object.values(messageGroups).map(
       async (group) =>
