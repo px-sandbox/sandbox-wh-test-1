@@ -82,4 +82,5 @@ export type Issue = {
   isDeleted?: boolean;
   deletedAt?: string;
   organization: string;
+  eventName: string;
 };
