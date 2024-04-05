@@ -17,10 +17,7 @@ export const handler = async function userFormattedDataReciever(event: SQSEvent)
         const userProcessor = new UserProcessor(messageBody);
 
         const data = await userProcessor.processor();
-        await userProcessor.save(
-          { data, index: Jira.Enums.IndexName.Users },
-          Queue.qJiraIndex.queueUrl
-        );
+        await userProcessor.save({ data, index: Jira.Enums.IndexName.Users });
       } catch (error) {
         await logProcessToRetry(record, Queue.qUserFormat.queueUrl, error as Error);
         logger.error('userFormattedDataReciever.error', error);

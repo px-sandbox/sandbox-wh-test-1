@@ -5,11 +5,11 @@ import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
+import { getIssueChangelogs } from '../lib/get-issue-changelogs';
 import { mappingPrefixes } from '../constant/config';
 import { JiraClient } from '../lib/jira-client';
 import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
-import { getIssueChangelogs } from 'src/lib/get-issue-changelogs';
 
 const sqsClient = SQSClient.getInstance();
 export class IssueProcessor extends DataProcessor<
@@ -20,7 +20,7 @@ export class IssueProcessor extends DataProcessor<
     super(data);
   }
 
-  public validate():  false | this {
+  public validate(): false | this {
     const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
     if (this.apiData !== undefined && projectKeys.includes(this.apiData.issue.fields.project.key)) {
       return this;
@@ -54,11 +54,9 @@ export class IssueProcessor extends DataProcessor<
     }
     const jiraId = `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`;
     let parentId: string | undefined = await this.getParentId(jiraId);
-    
+
     if (!parentId && this.apiData.eventName === Jira.Enums.Event.IssueUpdated) {
-       throw new Error(
-         `issue_not_found_for_update_event: id:${jiraId}`
-       );
+      throw new Error(`issue_not_found_for_update_event: id:${jiraId}`);
     }
     // if parent id is not present in dynamoDB then create a new parent id
     if (!parentId) {
@@ -67,8 +65,8 @@ export class IssueProcessor extends DataProcessor<
     }
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
-    
-   // sending parent issue to issue format queue so that it gets updated along with it's subtask
+
+    // sending parent issue to issue format queue so that it gets updated along with it's subtask
     if (issueDataFromApi?.fields?.parent) {
       const parentIssueData = await jiraClient.getIssue(issueDataFromApi.fields.parent.key);
       await sqsClient.sendFifoMessage(
