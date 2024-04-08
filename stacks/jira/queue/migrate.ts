@@ -17,7 +17,7 @@ export function initializeMigrateQueue(
     userFormatter,
     boardFormatter,
     issueFormatter,
-    issueStatusFormatter
+    issueStatusFormatter,
   ] = formatterQueues;
 
   const sprintMigrateQueue = new Queue(stack, 'qSprintMigrate', {
@@ -25,7 +25,7 @@ export function initializeMigrateQueue(
       queue: {
         visibilityTimeout: Duration.seconds(310),
       },
-    }
+    },
   });
   sprintMigrateQueue.addConsumer(stack, {
     function: new Function(stack, 'fnSprintMigrate', {
@@ -36,7 +36,7 @@ export function initializeMigrateQueue(
         sprintMigrateQueue,
         sprintFormatter,
         ...Object.values(jiraDDB),
-        ...Object.values(restEnvs)
+        ...Object.values(restEnvs),
       ],
     }),
     cdk: {
@@ -51,7 +51,7 @@ export function initializeMigrateQueue(
       queue: {
         visibilityTimeout: Duration.seconds(310),
       },
-    }
+    },
   });
 
   boardMigrateQueue.addConsumer(stack, {
@@ -63,7 +63,7 @@ export function initializeMigrateQueue(
         boardMigrateQueue,
         boardFormatter,
         ...Object.values(jiraDDB),
-        ...Object.values(restEnvs)
+        ...Object.values(restEnvs),
       ],
     }),
     cdk: {
@@ -78,7 +78,7 @@ export function initializeMigrateQueue(
       queue: {
         visibilityTimeout: Duration.seconds(310),
       },
-    }
+    },
   });
 
   projectMigrateQueue.addConsumer(stack, {
@@ -90,7 +90,7 @@ export function initializeMigrateQueue(
         projectMigrateQueue,
         projectFormatter,
         ...Object.values(jiraDDB),
-        ...Object.values(restEnvs)
+        ...Object.values(restEnvs),
       ],
     }),
     cdk: {
@@ -104,7 +104,7 @@ export function initializeMigrateQueue(
       queue: {
         visibilityTimeout: Duration.seconds(310),
       },
-    }
+    },
   });
   issueStatusMigrateQueue.addConsumer(stack, {
     function: new Function(stack, 'fnIssueStatusMigrate', {
@@ -115,7 +115,7 @@ export function initializeMigrateQueue(
         issueStatusMigrateQueue,
         issueStatusFormatter,
         ...Object.values(jiraDDB),
-        ...Object.values(restEnvs)
+        ...Object.values(restEnvs),
       ],
     }),
     cdk: {
@@ -129,7 +129,7 @@ export function initializeMigrateQueue(
       queue: {
         visibilityTimeout: Duration.seconds(310),
       },
-    }
+    },
   });
 
   issueMigrateQueue.addConsumer(stack, {
@@ -141,7 +141,7 @@ export function initializeMigrateQueue(
         issueMigrateQueue,
         issueFormatter,
         ...Object.values(jiraDDB),
-        ...Object.values(restEnvs)
+        ...Object.values(restEnvs),
       ],
     }),
     cdk: {
@@ -156,7 +156,7 @@ export function initializeMigrateQueue(
       queue: {
         visibilityTimeout: Duration.seconds(310),
       },
-    }
+    },
   });
 
   userMigrateQueue.addConsumer(stack, {
@@ -168,7 +168,7 @@ export function initializeMigrateQueue(
         userMigrateQueue,
         userFormatter,
         ...Object.values(jiraDDB),
-        ...Object.values(restEnvs)
+        ...Object.values(restEnvs),
       ],
     }),
     cdk: {

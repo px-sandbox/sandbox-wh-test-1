@@ -12,8 +12,8 @@ import { JiraCredsMapping } from '../model/prepare-creds-params';
 import { mappingPrefixes } from '../constant/config';
 import { esResponseDataFormator } from '../util/es-response-formatter';
 
-const _esClient = ElasticSearchClient.getInstance();
-const _ddbClient = DynamoDbDocClient.getInstance();
+const esClient = ElasticSearchClient.getInstance();
+const ddbClient = DynamoDbDocClient.getInstance();
 
 export async function getTokensByCode(code: string): Promise<Jira.ExternalType.Api.Credentials> {
   try {
@@ -67,7 +67,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   logger.info('orgIds', { orgIds });
 
-  const getOrgsFromES = await _esClient.search(
+  const getOrgsFromES = await esClient.search(
     Jira.Enums.IndexName.Organization,
     esb.termsQuery('body.orgId.keyword', orgIds).toJSON()
   );
@@ -79,7 +79,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   }
 
   await Promise.all([
-    _ddbClient.put(new JiraCredsMapping().preparePutParams(credId, jiraToken)),
+    ddbClient.put(new JiraCredsMapping().preparePutParams(credId, jiraToken)),
     ...accessibleOrgs
       .filter(
         (accOrg) =>
@@ -87,22 +87,22 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       )
       .map(async ({ id, ...org }) => {
         const uuidOrg = uuid();
-        await _ddbClient.put(
+        await ddbClient.put(
           new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
         );
 
-        const ddbRes = await _ddbClient.find(
+        const ddbRes = await ddbClient.find(
           new ParamsMapping().prepareGetParams(`${mappingPrefixes.organization}_${id}`)
         );
         let parentId = ddbRes?.parentId as string | undefined;
 
         if (!parentId) {
           parentId = uuidOrg;
-          await _ddbClient.put(
+          await ddbClient.put(
             new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
           );
         }
-        await _esClient.putDocument(Jira.Enums.IndexName.Organization, {
+        await esClient.putDocument(Jira.Enums.IndexName.Organization, {
           id: parentId,
           body: {
             id: `${mappingPrefixes.organization}_${id}`,

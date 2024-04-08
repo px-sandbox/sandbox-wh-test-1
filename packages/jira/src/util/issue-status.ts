@@ -20,11 +20,8 @@ export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.
       )
       .toJSON();
     logger.info('ESB_QUERY_ISSUE_STATUS_QUERY', { issueStatusquery });
-    const data = await esClientObj.search(
-      Jira.Enums.IndexName.IssueStatus,
-      issueStatusquery
-    );
-      const [issueStatusData] = await searchedDataFormator(data);
+    const data = await esClientObj.search(Jira.Enums.IndexName.IssueStatus, issueStatusquery);
+    const [issueStatusData] = await searchedDataFormator(data);
     return issueStatusData;
   } catch (error) {
     logger.error('getIssueStatusData.error', { error });
@@ -44,10 +41,7 @@ export async function getIssueStatusForReopenRate(orgId: string): Promise<Other.
       )
       .toJSON();
     logger.info('ESB_QUERY_REOPEN_RATE_QUERY', { issueStatusquery });
-      const data = await esClientObj.search(
-      Jira.Enums.IndexName.IssueStatus,
-      issueStatusquery
-    );
+    const data = await esClientObj.search(Jira.Enums.IndexName.IssueStatus, issueStatusquery);
     const issueStatusDataArr = await searchedDataFormator(data);
     const issueStatusData = issueStatusDataArr.reduce((acc: Record<string, any>, issueStatus) => {
       acc[issueStatus.pxStatus] = issueStatus.issueStatusId;

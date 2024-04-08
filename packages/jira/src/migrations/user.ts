@@ -24,12 +24,11 @@ export const handler = async function userMigration(event: SQSEvent): Promise<vo
           },
           Queue.qUserFormat.queueUrl
         );
-
       } catch (error) {
         logger.error(JSON.stringify({ error, event }));
         await logProcessToRetry(record, Queue.qUserMigrate.queueUrl, error as Error);
         logger.error('userMigrateDataReciever.error', error);
       }
     })
-  )
+  );
 };

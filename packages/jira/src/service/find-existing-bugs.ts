@@ -42,14 +42,11 @@ export const handler = async function getIssuesList(
               esb.termQuery('body.projectId', projectId),
               esb.termQuery('body.isDeleted', false),
             ])
-      )
+        )
         .sort(esb.sort('body.issueId', 'desc'))
         .toJSON();
 
-      const esLibData = await esClientObj.search(
-        Jira.Enums.IndexName.Issue,
-        getBugsQuery,
-      );
+      const esLibData = await esClientObj.search(Jira.Enums.IndexName.Issue, getBugsQuery);
 
       libFormatData = await searchedDataFormator(esLibData);
       logger.info('issue.migrate', {

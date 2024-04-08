@@ -172,8 +172,7 @@ export async function ftpRateGraphAvg(
           ? 0
           : Number(
               (
-                (ftpRateGraphResponse.aggregations.isFTP_true_count
-                  .doc_count /
+                (ftpRateGraphResponse.aggregations.isFTP_true_count.doc_count /
                   ftpRateGraphResponse.hits.total.value) *
                 100
               ).toFixed(2)

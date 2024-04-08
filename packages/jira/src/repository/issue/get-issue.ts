@@ -25,12 +25,14 @@ export async function getIssueById(
     }
     const matchQry = esb
       .requestBodySearch()
-      .query(esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.id', `${mappingPrefixes.issue}_${issueId}`),
-        esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
-      ]))
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.id', `${mappingPrefixes.issue}_${issueId}`),
+            esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
+          ])
+      )
       .toJSON();
     const issueData = await esClientObj.search(Jira.Enums.IndexName.Issue, matchQry);
     const [formattedIssueData] = await searchedDataFormatorWithDeleted(issueData);
@@ -54,16 +56,16 @@ export async function getReopenRateDataById(
     }
     const matchQry = esb
       .requestBodySearch()
-      .query(esb
-      .boolQuery()
-      .must([
-        // eslint-disable-next-line max-len
-        esb.termsQuery(
-          'body.id',
-          `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`
-        ),
-        esb.termQuery('body.organizationId', `${orgData.id}`),
-      ]))
+      .query(
+        esb.boolQuery().must([
+          // eslint-disable-next-line max-len
+          esb.termsQuery(
+            'body.id',
+            `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`
+          ),
+          esb.termQuery('body.organizationId', `${orgData.id}`),
+        ])
+      )
       .toJSON();
 
     const reopenRateData = await esClientObj.search(Jira.Enums.IndexName.ReopenRate, matchQry);
@@ -86,12 +88,15 @@ export async function getReopenRateDataByIssueId(
       throw new Error(`Organization ${organization} not found`);
     }
     const matchQry = esb
-      .requestBodySearch().query(esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.issueId', `${mappingPrefixes.issue}_${issueId}`),
-        esb.termQuery('body.organizationId', `${orgData.id}`),
-      ]))
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.issueId', `${mappingPrefixes.issue}_${issueId}`),
+            esb.termQuery('body.organizationId', `${orgData.id}`),
+          ])
+      )
       .toJSON();
 
     const reopenRateData = await esClientObj.search(Jira.Enums.IndexName.ReopenRate, matchQry);

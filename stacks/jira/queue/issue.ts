@@ -18,7 +18,7 @@ export function initializeIssueQueue(
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
     NODE_VERSION,
-    REQUEST_TIMEOUT
+    REQUEST_TIMEOUT,
   } = use(commonConfig);
 
   const issueFormatDataQueue = new Queue(stack, 'qIssueFormat', {

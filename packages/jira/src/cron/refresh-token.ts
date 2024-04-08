@@ -10,9 +10,9 @@ import { JiraCredsMapping } from '../model/prepare-creds-params';
 // update the refresh token in dynamoDB
 export async function updateRefreshToken(): Promise<APIGatewayProxyResult> {
   logger.info(`Get refresh token invoked at: ${new Date().toISOString()}`);
-  const _ddbClient = DynamoDbDocClient.getInstance();
+  const ddbClient = DynamoDbDocClient.getInstance();
 
-  const data: { id: string; refresh_token: string }[] = await _ddbClient.scan<{
+  const data: { id: string; refresh_token: string }[] = await ddbClient.scan<{
     id: string;
     refresh_token: string;
   }>({
@@ -31,7 +31,7 @@ export async function updateRefreshToken(): Promise<APIGatewayProxyResult> {
       logger.info(`Updating Refresh token for credId...: ${item.credId}`);
       const newRefreshToken = await getTokens(item.refreshToken);
       logger.info(`New refresh token: ${newRefreshToken}`);
-      await _ddbClient.put(new JiraCredsMapping().preparePutParams(item.credId, newRefreshToken));
+      await ddbClient.put(new JiraCredsMapping().preparePutParams(item.credId, newRefreshToken));
       logger.info(`Refresh token updated for credId: ${item.credId}`);
     })
   );

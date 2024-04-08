@@ -4,7 +4,6 @@ import { Jira } from 'abstraction';
 import { getIssueById } from '../../repository/issue/get-issue';
 import { saveIssueDetails } from '../../repository/issue/save-issue';
 
-
 /**
  * Removes the issue with the given ID and marks it as deleted.
  * @param issueId - The ID of the issue to be removed.

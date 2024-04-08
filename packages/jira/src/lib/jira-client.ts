@@ -39,12 +39,12 @@ export class JiraClient {
    */
   public static async getClient(orgName: string): Promise<JiraClient> {
     // clients creation
-    const _esClient = ElasticSearchClient.getInstance();
-    const _ddbClient = DynamoDbDocClient.getInstance();
+    const esClient = ElasticSearchClient.getInstance();
+    const ddbClient = DynamoDbDocClient.getInstance();
 
     // get organisation from elasticsearch
     const query = esb.requestBodySearch().query(esb.termQuery('body.name', orgName)).toJSON();
-    const organization = await _esClient.search(Jira.Enums.IndexName.Organization, query);
+    const organization = await esClient.search(Jira.Enums.IndexName.Organization, query);
 
     const [orgId] = await esResponseDataFormator(organization);
 
@@ -53,7 +53,7 @@ export class JiraClient {
     }
 
     // get creds for this organisation
-    const creds = await _ddbClient.find(new JiraCredsMapping().prepareGetParams(orgId.credId));
+    const creds = await ddbClient.find(new JiraCredsMapping().prepareGetParams(orgId.credId));
 
     if (!creds) {
       throw new Error(`Credential for given Organisation ${orgName} is not found`);

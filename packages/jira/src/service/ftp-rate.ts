@@ -2,7 +2,9 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import { ftpRateGraph, ftpRateGraphAvg } from '../matrics/get-ftp-rate';
 
-const ftpRate = async function ftpRateGraphs(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+const ftpRate = async function ftpRateGraphs(
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> {
   const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [''];
   const { organizationId, projectId } = event.queryStringParameters as { [key: string]: string };
 
