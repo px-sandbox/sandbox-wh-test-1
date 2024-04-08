@@ -2,8 +2,8 @@ import { Client, RequestParams } from '@elastic/elasticsearch';
 import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
-import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
 import { ApiResponse, TransportRequestPromise } from '@elastic/elasticsearch/lib/Transport';
+import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
 
 export class ElasticSearchClient implements IElasticSearchClient {
   private client: Client;
@@ -22,9 +22,10 @@ export class ElasticSearchClient implements IElasticSearchClient {
   public static getInstance(): ElasticSearchClient {
     if (!ElasticSearchClient.instance) {
       ElasticSearchClient.instance = new ElasticSearchClient({
-        host: Config.OPENSEARCH_NODE,
-        username: Config.OPENSEARCH_USERNAME ?? '',
-        password: Config.OPENSEARCH_PASSWORD ?? '',
+        // Config.OPENSEARCH_NODE,
+        host: 'https://search-pulse-sandbox-7ey7rm7lf2zyvhggccna4umqde.eu-west-1.es.amazonaws.com',
+        username: 'dxadmin', // Config.OPENSEARCH_USERNAME ?? '',
+        password: 'ZvsBC1))yW}K?v:RG?n&', // Config.OPENSEARCH_PASSWORD ?? '',
       });
     }
     return ElasticSearchClient.instance;
