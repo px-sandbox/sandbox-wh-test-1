@@ -19,7 +19,10 @@ const getGitUser = async (githubUserId: string): Promise<IformatUserDataResponse
     .query(
       esb
         .boolQuery()
-        .must([esb.termQuery('body.id', githubUserId), esb.termQuery('body.isDeleted', false)])
+        .must([
+          esb.termQuery('body.githubUserId', githubUserId),
+          esb.termQuery('body.isDeleted', false),
+        ])
     )
     .toJSON();
   const data = await esClient.search(Github.Enums.IndexName.GitUsers, query);
