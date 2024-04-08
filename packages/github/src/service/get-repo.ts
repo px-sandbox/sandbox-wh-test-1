@@ -31,7 +31,10 @@ async function fetchReposData(
     const query = esb.boolQuery();
 
     if (gitRepoName) {
-      query.must([esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`), esb.termQuery('body.isDeleted', false)]);
+      query.must([
+        esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`),
+        esb.termQuery('body.isDeleted', false),
+      ]);
     }
     const finalQ = esb
       .requestBodySearch()
@@ -41,7 +44,7 @@ async function fetchReposData(
       .toJSON() as { query: object };
     esbQuery = finalQ;
   }
-  console.log('esbQuery', JSON.stringify(esbQuery));
+  logger.info('esbQuery', JSON.stringify(esbQuery));
   const data = await esClient.search(Github.Enums.IndexName.GitRepo, esbQuery);
 
   return searchedDataFormator(data);
