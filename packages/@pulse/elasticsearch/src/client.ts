@@ -138,6 +138,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
       await this.client.bulk({ refresh: true, body });
     } catch (err) {
       logger.error('bulkInsert.error: ', { err });
+      throw err;
     }
   }
 
@@ -153,6 +154,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
       await this.client.bulk({ refresh: true, body });
     } catch (err) {
       logger.error('bulkUpdate.error: ', { err });
+      throw err;
     }
   }
 
