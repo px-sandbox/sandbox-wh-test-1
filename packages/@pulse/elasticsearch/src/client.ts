@@ -3,6 +3,7 @@ import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { ApiResponse, TransportRequestPromise } from '@elastic/elasticsearch/lib/Transport';
+import { Other } from 'abstraction';
 import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
 
 export class ElasticSearchClient implements IElasticSearchClient {
@@ -128,7 +129,10 @@ export class ElasticSearchClient implements IElasticSearchClient {
     }
   }
 
-  public async bulkInsert(indexName: string, data: any[]): Promise<void> {
+  public async bulkInsert(
+    indexName: string,
+    data: { _id: string; body: Other.Type.HitBody }[]
+  ): Promise<void> {
     try {
       const body = data.flatMap((doc) => [
         { index: { _index: indexName, _id: doc._id } },
@@ -142,7 +146,10 @@ export class ElasticSearchClient implements IElasticSearchClient {
     }
   }
 
-  public async bulkUpdate(indexName: string, data: any[]): Promise<void> {
+  public async bulkUpdate(
+    indexName: string,
+    data: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]
+  ): Promise<void> {
     try {
       const body = data.flatMap((doc) => [
         { update: { _index: indexName, _id: doc._id } },

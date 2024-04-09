@@ -12,30 +12,39 @@ export function intializeJiraCron(
 
   // eslint-disable-next-line @typescript-eslint/ban-types
   hardDeleteProjectsData: Function
-): void {
+): {
+  retryProcessCron: Cron;
+  refreshTokenCron: Cron;
+  deleteProjectCron: Cron;
+} {
   /**
    * Initialized cron job for every 1/2 hour to fetch failed processes from `jiraRetryProcessTable` Table
    * and process them out
    * Cron Expression : cron(Minutes Hours Day-of-month Month Day-of-week Year)*
    */
 
-  // eslint-disable-next-line no-new
-  new Cron(stack, 'cronRetryProcess', {
+  const retryProcessCron = new Cron(stack, 'cronRetryProcess', {
     schedule: 'cron(0/30 * ? * * *)',
     job: processJiraRetryFunction,
   });
 
   // initialize a cron for jira refresh token that runs every second month at 00:00 UTC
-  // eslint-disable-next-line no-new
-  new Cron(stack, 'cronRefreshToken', {
+
+  const refreshTokenCron = new Cron(stack, 'cronRefreshToken', {
     schedule: 'cron(0/45 * ? * * *)',
     job: refreshToken,
   });
 
   // cron to hard delete projects after 90 days
-  // eslint-disable-next-line no-new
-  new Cron(stack, 'hard-delete-project-cron', {
+
+  const deleteProjectCron = new Cron(stack, 'hard-delete-project-cron', {
     schedule: 'cron(00 00 * * ? *)',
     job: hardDeleteProjectsData,
   });
+
+  return {
+    retryProcessCron,
+    refreshTokenCron,
+    deleteProjectCron,
+  };
 }
