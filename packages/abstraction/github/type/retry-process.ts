@@ -3,4 +3,5 @@ export type QueueMessage = {
   messageBody: string;
   queue: string;
   MessageDeduplicationId: string;
+  MessageGroupId: string;
 };

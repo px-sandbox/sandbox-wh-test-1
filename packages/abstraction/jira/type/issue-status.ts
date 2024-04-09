@@ -8,4 +8,5 @@ export type IssueStatus = {
         organizationId: string;
         pxStatus: string | null;
     };
+    processId?: string; 
 };

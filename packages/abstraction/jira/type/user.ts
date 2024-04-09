@@ -28,4 +28,5 @@ export interface User {
     createdAt: string;
     organizationId: string;
   };
+  processId?: string;
 }

@@ -32,4 +32,5 @@ export type Board = {
     isDeleted: boolean;
     deletedAt: string | null;
   };
+  processId?: string;
 };

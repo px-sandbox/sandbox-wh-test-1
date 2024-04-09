@@ -70,6 +70,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       repoId,
     });
     const data = await commitProcessor.processor();
+    data.processId = messageBody.processId;
     await commitProcessor.save({ data, eventType: Github.Enums.Event.Commit });
   } catch (error) {
     logger.error(`commitFormattedDataReceiver.error, ${error}`);

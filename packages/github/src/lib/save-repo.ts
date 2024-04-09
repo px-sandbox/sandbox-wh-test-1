@@ -5,12 +5,13 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
+import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<void> {
   try {
-    const updatedData = { ...data };
+    const { processId, ...updatedData } = data;
     const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.id', data.body.id)).toJSON();
     const userData = await esClientObj.search(Github.Enums.IndexName.GitRepo, matchQry);
     const [formattedData] = await searchedDataFormator(userData);
@@ -26,6 +27,10 @@ export async function saveRepoDetails(data: Github.Type.RepoFormatter): Promise<
       await sqsClient.sendMessage(updatedData, Queue.qGhAfterRepoSave.queueUrl);
     }
     logger.info('saveRepoDetails.successful');
+    if (processId) {
+      logger.info('deleting_process_from_DDB', { processId });
+      await deleteProcessfromDdb(processId);
+    }
   } catch (error: unknown) {
     logger.error(`saveRepoDetails.error, ${error}`);
     throw error;

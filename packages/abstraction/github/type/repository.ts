@@ -37,4 +37,5 @@ export interface RepoFormatter {
     computationalDate: string;
     githubDate: string | Date;
   };
+  processId?: string; 
 }

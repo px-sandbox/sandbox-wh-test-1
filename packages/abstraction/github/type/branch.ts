@@ -19,4 +19,5 @@ export interface Branch {
     protected: boolean;
     isDeleted: boolean;
   };
+  processId?: string;
 }

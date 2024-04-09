@@ -3,12 +3,13 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
+import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
 export async function saveCommitDetails(data: Github.Type.Commits): Promise<void> {
   try {
-    const updatedData = { ...data };
+    const { processId, ...updatedData } = data;
     const matchQry = esb
       .requestBodySearch()
       .query(esb.matchQuery('body.id', data.body.id))
@@ -37,6 +38,10 @@ export async function saveCommitDetails(data: Github.Type.Commits): Promise<void
     await esClientObj.putDocument(Github.Enums.IndexName.GitCommits, commitIndexData);
 
     logger.info('saveCommitDetails.successful');
+    if (processId) {
+      logger.info('deleting_process_from_DDB', { processId });
+      await deleteProcessfromDdb(processId);
+    }
   } catch (error: unknown) {
     logger.error(`saveCommitDetails.error, ${error}`);
     throw error;

@@ -14,4 +14,5 @@ export type RepoSastErrors =
             createdAt: string;
             isDeleted: boolean;
         }
+        processId?: string; 
     }

@@ -18,4 +18,5 @@ export interface PRReview {
     computationalDate: string;
     githubDate: string | Date;
   };
+  processId?: string; 
 }

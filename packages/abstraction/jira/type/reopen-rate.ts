@@ -13,6 +13,7 @@ export type ReopenRate = {
         deletedAt?: string | null;
         organizationId: string;
     };
+    processId?: string;
 };
 
 export type ReopenRateDetails = {

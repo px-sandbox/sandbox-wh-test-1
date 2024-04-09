@@ -39,6 +39,7 @@ export type Issue = {
       actual: number;
     };
   };
+  processId?: string;
 };
 
 // estimates vs actuals breakdown view api

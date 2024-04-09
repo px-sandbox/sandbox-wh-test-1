@@ -14,6 +14,7 @@ export type Push = {
     computationalDate: string;
     githubDate: string | Date;
   };
+  processId?: string; 
 };
 
 export type CommitIds = {

@@ -13,4 +13,5 @@ export type RepoSastErrors = {
     orgId: string;
     errors: SastError[];
     createdAt: string;
+    processId: string;
 };

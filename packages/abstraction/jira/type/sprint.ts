@@ -16,6 +16,7 @@ export type Sprint = {
     isDeleted: boolean;
     deletedAt: string;
   };
+  processId?: string;
 };
 
 export type OldSprint = {

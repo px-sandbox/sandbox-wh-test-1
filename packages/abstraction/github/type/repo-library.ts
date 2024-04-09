@@ -10,4 +10,5 @@ export type RepoLibrary = {
         isDeleted: boolean;
         isCore: boolean;
     };
+    processId?: string; 
 };

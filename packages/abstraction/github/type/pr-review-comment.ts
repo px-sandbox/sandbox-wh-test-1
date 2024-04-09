@@ -32,4 +32,5 @@ export interface PRReviewComment {
     computationalDate: string;
     githubDate: string | Date;
   };
+  processId?: string;
 }

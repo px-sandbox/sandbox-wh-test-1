@@ -20,6 +20,7 @@ export const handler = async function indexDataReceiver(event: SQSEvent): Promis
   await async.eachSeries(event.Records, async (record: SQSRecord) => {
     const messageBody = JSON.parse(record.body);
     logger.info('INDEXER_HANDLER', { eventType: messageBody.eventType });
+    logger.info('INDEXER_HANDLER_MESSAGE', { messageBody });
     try {
       switch (messageBody.eventType) {
         case Github.Enums.Event.Repo:

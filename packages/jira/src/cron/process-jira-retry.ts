@@ -13,12 +13,12 @@ const DynamoDbDocClientObj = DynamoDbDocClient.getInstance();
  */
 
 async function processIt(record: Jira.Type.QueueMessage): Promise<void> {
-  const { processId, messageBody, queue, MessageDeduplicationId } = record;
+  const { processId, messageBody, queue, MessageDeduplicationId, MessageGroupId } = record;
   // send to queue
-  await sqsClient.sendMessage(JSON.parse(messageBody), queue, MessageDeduplicationId);
+  await sqsClient.sendMessage({ ...JSON.parse(messageBody), processId }, queue, MessageGroupId, MessageDeduplicationId);
 
   // delete from dynamodb
-  await DynamoDbDocClientObj.delete(new RetryTableMapping().prepareDeleteParams(processId));
+  
 }
 
 export async function handler(): Promise<void> {

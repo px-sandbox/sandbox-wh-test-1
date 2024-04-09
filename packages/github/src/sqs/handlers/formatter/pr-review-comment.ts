@@ -13,6 +13,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     const { comment, pullId, repoId, action } = messageBody;
     const prReviewCommentProcessor = new PRReviewCommentProcessor(comment, pullId, repoId, action);
     const data = await prReviewCommentProcessor.processor();
+    data.processId = messageBody.processId;
     await prReviewCommentProcessor.save({
       data,
       eventType: Github.Enums.Event.PRReviewComment,

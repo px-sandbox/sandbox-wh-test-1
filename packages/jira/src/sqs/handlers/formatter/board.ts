@@ -17,6 +17,7 @@ export const handler = async function boardFormattedDataReciever(event: SQSEvent
         const boardProcessor = new BoardProcessor(messageBody);
 
         const data = await boardProcessor.processor();
+        data.processId = messageBody.processId;
         await boardProcessor.save({ data, index: Jira.Enums.IndexName.Board });
       } catch (error) {
         await logProcessToRetry(record, Queue.qBoardFormat.queueUrl, error as Error);

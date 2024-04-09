@@ -2,6 +2,7 @@ export type QueueMessage = {
     processId: string;
     messageBody: string;
     queue: string;
-    MessageDeduplicationId: string;
+  MessageDeduplicationId: string;
+    MessageGroupId: string;
   };
   

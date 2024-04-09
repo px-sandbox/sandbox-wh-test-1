@@ -31,4 +31,5 @@ export type Project = {
     updatedAt: string | null;
     createdAt: string | null;
   };
+  processId?: string; 
 };

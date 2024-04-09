@@ -51,4 +51,5 @@ export type PullRequestBody = {
 export interface PullRequest {
   id: string;
   body: PullRequestBody;
+  processId?: string;  
 }

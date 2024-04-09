@@ -3,12 +3,13 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
+import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
 export async function savePRReviewComment(data: Github.Type.PRReviewComment): Promise<void> {
   try {
-    const updatedData = { ...data };
+    const { processId, ...updatedData } =  data ;
     const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.id', data.body.id)).toJSON();
     const userData = await esClientObj.search(
       Github.Enums.IndexName.GitPRReviewComment,
@@ -23,6 +24,10 @@ export async function savePRReviewComment(data: Github.Type.PRReviewComment): Pr
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPRReviewComment, updatedData);
     logger.info('savePRReviewComment.successful');
+    if (processId) {
+      logger.info('deleting_process_from_DDB', { processId });
+      await deleteProcessfromDdb(processId);
+    }
   } catch (error: unknown) {
     logger.error('savePRReviewComment.error', {
       error,

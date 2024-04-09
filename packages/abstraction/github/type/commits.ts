@@ -25,4 +25,5 @@ export interface Commits {
     computationalDate: string;
     githubDate: string | Date;
   };
+  processId?: string;
 }
