@@ -94,7 +94,7 @@ export class JiraClient {
   }
   public async getBoards(projectId: string): Promise<Jira.ExternalType.Api.Board[]> {
     const { values: boards } = await this.paginateResults<Jira.ExternalType.Api.Board>(
-      `/rest/agile/1.0/board`,
+      '/rest/agile/1.0/board',
       {
         projectKeyOrId: projectId,
       }
@@ -130,7 +130,7 @@ export class JiraClient {
    */
   public async getProjects(): Promise<Jira.ExternalType.Api.Project[]> {
     const { values: projects } = await this.paginateResults<Jira.ExternalType.Api.Project>(
-      `/rest/api/3/project/search`
+      '/rest/api/3/project/search'
     );
 
     return projects;
@@ -151,7 +151,7 @@ export class JiraClient {
 
   public async getUsers(): Promise<Jira.ExternalType.Api.User[]> {
     const users = await this.paginateResultsForUsers<Jira.ExternalType.Api.User>(
-      `/rest/api/3/users/search`
+      '/rest/api/3/users/search'
     );
 
     return users;
@@ -161,7 +161,7 @@ export class JiraClient {
     try {
       const { values: statuses } =
         await this.paginateResultsForIssueStatuses<Jira.ExternalType.Api.IssueStatus>(
-          `/rest/api/3/statuses/search`
+          '/rest/api/3/statuses/search'
         );
       return statuses;
     } catch (error) {
@@ -212,7 +212,7 @@ export class JiraClient {
       values: [],
     }
   ): Promise<Jira.ExternalType.Api.Response<T>> {
-    const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.Response<T>>(`${path}`, {
+    const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.Response<T>>(path, {
       params: {
         ...query,
         startAt: result.startAt,
@@ -245,16 +245,13 @@ export class JiraClient {
       issues: [],
     }
   ): Promise<Jira.ExternalType.Api.IssuesResponse<T>> {
-    const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.IssuesResponse<T>>(
-      `${path}`,
-      {
-        params: {
-          ...query,
-          startAt: result.startAt,
-          maxResults: result.maxResults,
-        },
-      }
-    );
+    const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.IssuesResponse<T>>(path, {
+      params: {
+        ...query,
+        startAt: result.startAt,
+        maxResults: result.maxResults,
+      },
+    });
 
     const newResult = {
       issues: [...result.issues, ...data.issues],
@@ -276,7 +273,7 @@ export class JiraClient {
     maxResults = 50,
     users: Array<T> = []
   ): Promise<Array<T>> {
-    const { data } = await this.axiosInstance.get<Array<T>>(`${path}`, {
+    const { data } = await this.axiosInstance.get<Array<T>>(path, {
       params: {
         startAt,
         maxResults,
@@ -304,7 +301,7 @@ export class JiraClient {
     }
   ): Promise<Jira.ExternalType.Api.IssueStatusResponse<T>> {
     const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.IssueStatusResponse<T>>(
-      `${path}`,
+      path,
       {
         params: {
           ...query,
