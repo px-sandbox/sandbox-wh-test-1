@@ -2,6 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Bucket, Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeRepoLibraryQueue(
@@ -18,7 +19,13 @@ export function initializeRepoLibraryQueue(
     NODE_VERSION,
   } = use(commonConfig);
   const { retryProcessTable, libMasterTable } = githubDDb;
-  const depRegistryQueue = new Queue(stack, 'qDepRegistry');
+  const depRegistryQueue = new Queue(stack, 'qDepRegistry', {
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qDepRegistry'),
+      },
+    },
+  });
   depRegistryQueue.addConsumer(stack, {
     function: new Function(stack, 'fnDepRegistry', {
       handler: 'packages/github/src/sqs/handlers/repo-library/dependencies-registry.handler',
@@ -32,7 +39,13 @@ export function initializeRepoLibraryQueue(
     },
   });
 
-  const currentDepRegistryQueue = new Queue(stack, 'qCurrentDepRegistry');
+  const currentDepRegistryQueue = new Queue(stack, 'qCurrentDepRegistry', {
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qCurrentDepRegistry'),
+      },
+    },
+  });
   currentDepRegistryQueue.addConsumer(stack, {
     function: new Function(stack, 'fnCurrentDepRegistry', {
       handler: 'packages/github/src/sqs/handlers/repo-library/current-dependencies.handler',
@@ -46,7 +59,13 @@ export function initializeRepoLibraryQueue(
     },
   });
 
-  const latestDepRegistry = new Queue(stack, 'qLatestDepRegistry');
+  const latestDepRegistry = new Queue(stack, 'qLatestDepRegistry', {
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qLatestDepRegistry'),
+      },
+    },
+  });
   latestDepRegistry.addConsumer(stack, {
     function: new Function(stack, 'fnLatestDepRegistry', {
       handler: 'packages/github/src/sqs/handlers/repo-library/latest-dependencies.handler',
@@ -59,7 +78,13 @@ export function initializeRepoLibraryQueue(
       },
     },
   });
-  const masterLibraryQueue = new Queue(stack, 'qMasterLibInfo');
+  const masterLibraryQueue = new Queue(stack, 'qMasterLibInfo', {
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qMasterLibInfo'),
+      },
+    },
+  });
   masterLibraryQueue.addConsumer(stack, {
     function: new Function(stack, 'fnMasterLibrary', {
       handler: 'packages/github/src/sqs/handlers/repo-library/master-library.handler',
@@ -73,7 +98,13 @@ export function initializeRepoLibraryQueue(
     },
   });
 
-  const repoLibS3Queue = new Queue(stack, 'qRepoLibS3');
+  const repoLibS3Queue = new Queue(stack, 'qRepoLibS3', {
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qRepoLibS3'),
+      },
+    },
+  });
   repoLibS3Queue.addConsumer(stack, {
     function: new Function(stack, 'fnRepoLibS3', {
       handler: 'packages/github/src/sqs/handlers/repo-library/from-s3-repo-library.handler',

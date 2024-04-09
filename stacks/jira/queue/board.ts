@@ -2,6 +2,7 @@ import { Queue, use, Function } from 'sst/constructs';
 import { Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 export function initializeBoardQueue(
   stack: Stack,
@@ -20,7 +21,13 @@ export function initializeBoardQueue(
     REQUEST_TIMEOUT,
   } = use(commonConfig);
 
-  const boardFormatDataQueue = new Queue(stack, 'qBoardFormat');
+  const boardFormatDataQueue = new Queue(stack, 'qBoardFormat', {
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qBoardFormat'),
+      },
+    },
+  });
 
   boardFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnBoardFormat', {
