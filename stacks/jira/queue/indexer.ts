@@ -2,6 +2,7 @@ import { Queue, use } from 'sst/constructs';
 import { Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
+import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
 
 export function initializeIndexQueue(stack: Stack, jiraDDB: JiraTables): Queue {
   const { OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME, REQUEST_TIMEOUT } =
@@ -13,6 +14,11 @@ export function initializeIndexQueue(stack: Stack, jiraDDB: JiraTables): Queue {
         eventSource: {
           batchSize: 5,
         },
+      },
+    },
+    cdk: {
+      queue: {
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qJiraIndex', false),
       },
     },
   });

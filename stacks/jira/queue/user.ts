@@ -2,6 +2,7 @@ import { Function, Queue, use } from 'sst/constructs';
 import { Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
+import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
 
 export function initializeUserQueue(
   stack: Stack,
@@ -19,7 +20,13 @@ export function initializeUserQueue(
     REQUEST_TIMEOUT,
   } = use(commonConfig);
 
-  const userFormatDataQueue = new Queue(stack, 'qUserFormat');
+  const userFormatDataQueue = new Queue(stack, 'qUserFormat', {
+    cdk: {
+      queue: {
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qUserFormat', false),
+      },
+    },
+  });
   userFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnUserFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/user.handler',

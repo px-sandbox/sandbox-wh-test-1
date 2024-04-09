@@ -2,6 +2,7 @@ import { Duration, Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
+import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeMigrationQueue(
@@ -31,6 +32,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalPr', false),
       },
     },
   });
@@ -53,6 +55,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalReviews', false),
       },
     },
   });
@@ -75,6 +78,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalPrByNumber', false),
       },
     },
   });
@@ -96,6 +100,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalCommits', false),
       },
     },
   });
@@ -118,6 +123,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalBranch', false),
       },
     },
   });
@@ -141,6 +147,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalPrCommits', false),
       },
     },
   });
@@ -162,6 +169,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalPrComments', false),
       },
     },
   });

@@ -2,6 +2,7 @@ import { Queue, Function, use } from 'sst/constructs';
 import { Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
+import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
 
 /**
  * Initializes project queues for Jira integration.
@@ -27,7 +28,13 @@ export function initializeProjectQueue(
     REQUEST_TIMEOUT,
   } = use(commonConfig);
 
-  const projectFormatDataQueue = new Queue(stack, 'qProjectFormat');
+  const projectFormatDataQueue = new Queue(stack, 'qProjectFormat', {
+    cdk: {
+      queue: {
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qProjectFormat', false),
+      },
+    },
+  });
   projectFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnProjectFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/project.handler',

@@ -1,0 +1,22 @@
+import { Duration, Stack } from 'aws-cdk-lib';
+import { DeadLetterQueue } from 'aws-cdk-lib/aws-sqs';
+import { Queue } from 'sst/constructs';
+
+export function initializeDeadLetterQueue(
+  stack: Stack,
+  name: string,
+  fifo: boolean
+): DeadLetterQueue {
+  const dlq = new Queue(stack, `${name}DLQ`, {
+    cdk: {
+      queue: {
+        retentionPeriod: Duration.days(14),
+        fifo,
+      },
+    },
+  });
+  return {
+    maxReceiveCount: 3,
+    queue: dlq.cdk.queue,
+  };
+}

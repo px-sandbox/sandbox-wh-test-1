@@ -2,6 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
+import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
 
 /* eslint-disable max-lines-per-function */
 export function initializeIssueQueue(
@@ -25,6 +26,7 @@ export function initializeIssueQueue(
     cdk: {
       queue: {
         fifo: true,
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qIssueFormat', true),
       },
     },
   });
@@ -41,7 +43,13 @@ export function initializeIssueQueue(
     },
   });
 
-  const reOpenRateDataQueue = new Queue(stack, 'qReOpenRate');
+  const reOpenRateDataQueue = new Queue(stack, 'qReOpenRate', {
+    cdk: {
+      queue: {
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qReOpenRate', false),
+      },
+    },
+  });
   reOpenRateDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnReOpenRate', {
       handler: 'packages/jira/src/sqs/handlers/formatter/reopen-rate.handler',
@@ -55,7 +63,13 @@ export function initializeIssueQueue(
     },
   });
 
-  const reOpenRateMigratorQueue = new Queue(stack, 'qReOpenRateMigrator');
+  const reOpenRateMigratorQueue = new Queue(stack, 'qReOpenRateMigrator', {
+    cdk: {
+      queue: {
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qReOpenRateMigrator', false),
+      },
+    },
+  });
   reOpenRateMigratorQueue.addConsumer(stack, {
     function: new Function(stack, 'fnReOpenRateMigrator', {
       handler: 'packages/jira/src/sqs/handlers/formatter/reopen-rate-migrator.handler',
@@ -69,7 +83,13 @@ export function initializeIssueQueue(
     },
   });
 
-  const reOpenRateDeleteQueue = new Queue(stack, 'qReOpenRateDelete');
+  const reOpenRateDeleteQueue = new Queue(stack, 'qReOpenRateDelete', {
+    cdk: {
+      queue: {
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qReOpenRateDelete', false),
+      },
+    },
+  });
   reOpenRateDeleteQueue.addConsumer(stack, {
     function: new Function(stack, 'fnReOpenRateDelete', {
       handler: 'packages/jira/src/sqs/handlers/reopen-rate-delete.handler',
@@ -83,7 +103,13 @@ export function initializeIssueQueue(
     },
   });
 
-  const issueTimeTrackingMigrationQueue = new Queue(stack, 'qIssueTimeTrackingMigration');
+  const issueTimeTrackingMigrationQueue = new Queue(stack, 'qIssueTimeTrackingMigration', {
+    cdk: {
+      queue: {
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qIssueTimeTrackingMigration', false),
+      },
+    },
+  });
   issueTimeTrackingMigrationQueue.addConsumer(stack, {
     function: new Function(stack, 'fnIssueTimeTrackingMigration', {
       handler: 'packages/jira/src/sqs/handlers/migration/issue-time-tracking.handler',

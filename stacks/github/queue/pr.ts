@@ -2,6 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
+import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
 
 export function initializePrQueue(
   stack: Stack,
@@ -25,6 +26,7 @@ export function initializePrQueue(
     cdk: {
       queue: {
         fifo: true,
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhPrFormat', true),
       },
     },
   });

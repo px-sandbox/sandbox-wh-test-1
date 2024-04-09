@@ -2,6 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
+import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
 
 export function initializeBranchQueue(
   stack: Stack,
@@ -20,6 +21,11 @@ export function initializeBranchQueue(
         eventSource: {
           batchSize: 5,
         },
+      },
+    },
+    cdk: {
+      queue: {
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhBranchFormat', false),
       },
     },
   });

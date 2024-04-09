@@ -2,6 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
+import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializePrReviewAndCommentsQueue(
@@ -22,7 +23,13 @@ export function initializePrReviewAndCommentsQueue(
   } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDb;
 
-  const prReviewCommentFormatDataQueue = new Queue(stack, 'qGhPrReviewCommentFormat');
+  const prReviewCommentFormatDataQueue = new Queue(stack, 'qGhPrReviewCommentFormat', {
+    cdk: {
+      queue: {
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhPrReviewCommentFormat', false),
+      },
+    },
+  });
   prReviewCommentFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhPrReviewCommentFormat', {
       handler: 'packages/github/src/sqs/handlers/formatter/pr-review-comment.handler',
@@ -36,7 +43,13 @@ export function initializePrReviewAndCommentsQueue(
     },
   });
 
-  const prReviewFormatDataQueue = new Queue(stack, 'qGhPrReviewFormat');
+  const prReviewFormatDataQueue = new Queue(stack, 'qGhPrReviewFormat', {
+    cdk: {
+      queue: {
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhPrReviewFormat', false),
+      },
+    },
+  });
   prReviewFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhPrReviewFormat', {
       handler: 'packages/github/src/sqs/handlers/formatter/pr-review.handler',
@@ -50,7 +63,13 @@ export function initializePrReviewAndCommentsQueue(
     },
   });
 
-  const prReviewCommentMigrationQueue = new Queue(stack, 'qGhPrReviewCommentMigration');
+  const prReviewCommentMigrationQueue = new Queue(stack, 'qGhPrReviewCommentMigration', {
+    cdk: {
+      queue: {
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhPrReviewCommentMigration', false),
+      },
+    },
+  });
   prReviewCommentMigrationQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhPrReviewCommentMigration', {
       handler: 'packages/github/src/sqs/handlers/historical/pr-review-comment.handler',

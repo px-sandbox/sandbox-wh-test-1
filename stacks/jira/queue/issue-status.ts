@@ -2,6 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
+import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
 
 export function initializeIssueStatusQueue(
   stack: Stack,
@@ -19,7 +20,13 @@ export function initializeIssueStatusQueue(
     REQUEST_TIMEOUT,
   } = use(commonConfig);
 
-  const issueStatusFormatDataQueue = new Queue(stack, 'qIssueStatusFormat');
+  const issueStatusFormatDataQueue = new Queue(stack, 'qIssueStatusFormat', {
+    cdk: {
+      queue: {
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qIssueStatusFormat', false),
+      },
+    },
+  });
   issueStatusFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnIssueStatusFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/issue-status.handler',

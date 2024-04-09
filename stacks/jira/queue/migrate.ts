@@ -2,6 +2,7 @@ import { Function, Queue, use } from 'sst/constructs';
 import { Duration, Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
+import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function
 export function initializeMigrateQueue(
@@ -24,6 +25,7 @@ export function initializeMigrateQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qSprintMigrate', false),
       },
     },
   });
@@ -50,6 +52,7 @@ export function initializeMigrateQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qBoardMigrate', false),
       },
     },
   });
@@ -77,6 +80,7 @@ export function initializeMigrateQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qProjectMigrate', false),
       },
     },
   });
@@ -103,6 +107,7 @@ export function initializeMigrateQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qIssueStatusMigrate', false),
       },
     },
   });
@@ -128,6 +133,7 @@ export function initializeMigrateQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qIssueMigrate', false),
       },
     },
   });
@@ -155,6 +161,7 @@ export function initializeMigrateQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
+        deadLetterQueue: initializeDeadLetterQueue(stack, 'qUserMigrate', false),
       },
     },
   });
