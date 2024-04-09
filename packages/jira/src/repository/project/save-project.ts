@@ -65,12 +65,15 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
   try {
     const updatedData = { ...data };
     const matchQry = esb
-      .requestBodySearch().query(esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.id', data.body.id),
-        esb.termQuery('body.organizationId', data.body.organizationId),
-      ]))
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.id', data.body.id),
+            esb.termQuery('body.organizationId', data.body.organizationId),
+          ])
+      )
       .toJSON();
     logger.info('saveProjectDetails.matchQry------->', { matchQry });
     const projectData = await esClientObj.search(Jira.Enums.IndexName.Project, matchQry);

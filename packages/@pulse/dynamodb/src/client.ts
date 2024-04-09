@@ -12,7 +12,8 @@ import {
   DeleteCommand,
   BatchGetCommandInput,
   BatchGetCommand,
-  GetCommand,
+  BatchGetCommandOutput,
+  QueryCommandOutput,
 } from '@aws-sdk/lib-dynamodb';
 import { IDynmoDbDocClient } from '../types';
 
@@ -54,7 +55,10 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
   }
 
   public async find(getParams: QueryCommandInput): Promise<Record<string, unknown> | undefined> {
-    const ddbRes = await this.ddbDocClient.send(new QueryCommand(getParams));
+    const ddbRes = (await this.ddbDocClient.send(
+      new QueryCommand(getParams)
+    )) as QueryCommandOutput;
+
     return ddbRes.Items ? ddbRes.Items[0] : undefined;
   }
 
@@ -63,12 +67,10 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
    * @param params - The input parameters for the batchGet operation.
    * @returns A promise that resolves with the result of the batchGet operation.
    */
-  public async batchGet(
-    params: BatchGetCommandInput
-  ): Promise<Record<string, Record<string, unknown>[]> | undefined> {
+  public async batchGet<T>(params: BatchGetCommandInput): Promise<T | undefined> {
     const command = new BatchGetCommand(params);
-    const ddbRes = await this.ddbDocClient.send(command);
-    return ddbRes?.Responses;
+    const ddbRes = (await this.ddbDocClient.send(command)) as BatchGetCommandOutput;
+    return ddbRes?.Responses as T | undefined;
   }
 
   public async put(putParams: PutCommandInput): Promise<void> {
@@ -93,9 +95,11 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
     return data;
   }
 
-  public async scan(scanParams: ScanCommandInput): Promise<Array<unknown>> {
-    const ddbRes = await this.getDdbDocClient().send(new ScanCommand(scanParams));
+  public async scan<T>(scanParams: ScanCommandInput): Promise<T[]> {
+    const ddbRes = (await this.getDdbDocClient().send(
+      new ScanCommand(scanParams)
+    )) as ScanCommandOutput;
 
-    return ddbRes?.Items?.length ? ddbRes.Items : [];
+    return ddbRes?.Items?.length ? (ddbRes.Items as T[]) : [];
   }
 }

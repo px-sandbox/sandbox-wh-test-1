@@ -1,7 +1,7 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
@@ -9,18 +9,11 @@ import { esResponseDataFormator } from '../util/es-response-formatter';
 import { JiraCredsMapping } from '../model/prepare-creds-params';
 
 export class JiraClient {
-  private baseUrl: string;
   private timeoutErrorMessage = 'Request to Jira API timed out';
   private timeout = parseInt(Config.REQUEST_TIMEOUT, 10);
 
   // made a private common axios instance to handle the requests
-  private axiosInstance = axios.create({
-    headers: {
-      Authorization: `Bearer ${this.accessToken}`,
-    },
-    timeout: this.timeout ?? 2000,
-    timeoutErrorMessage: this.timeoutErrorMessage ?? 'Request to Jira API timed out',
-  });
+  private axiosInstance: AxiosInstance;
 
   private constructor(
     // api parameters
@@ -28,7 +21,14 @@ export class JiraClient {
     private accessToken: string,
     private refreshToken: string
   ) {
-    this.baseUrl = `https://api.atlassian.com/ex/jira/${this.cloudId}`;
+    this.axiosInstance = axios.create({
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+      baseURL: `https://api.atlassian.com/ex/jira/${this.cloudId}`,
+      timeout: this.timeout ?? 2000,
+      timeoutErrorMessage: this.timeoutErrorMessage ?? 'Request to Jira API timed out',
+    });
   }
 
   /**
@@ -39,12 +39,12 @@ export class JiraClient {
    */
   public static async getClient(orgName: string): Promise<JiraClient> {
     // clients creation
-    const _esClient = ElasticSearchClient.getInstance();
-    const _ddbClient = DynamoDbDocClient.getInstance();
+    const esClient = ElasticSearchClient.getInstance();
+    const ddbClient = DynamoDbDocClient.getInstance();
 
     // get organisation from elasticsearch
     const query = esb.requestBodySearch().query(esb.termQuery('body.name', orgName)).toJSON();
-    const organization = await _esClient.search(Jira.Enums.IndexName.Organization, query);
+    const organization = await esClient.search(Jira.Enums.IndexName.Organization, query);
 
     const [orgId] = await esResponseDataFormator(organization);
 
@@ -53,7 +53,7 @@ export class JiraClient {
     }
 
     // get creds for this organisation
-    const creds = await _ddbClient.find(new JiraCredsMapping().prepareGetParams(orgId.credId));
+    const creds = await ddbClient.find(new JiraCredsMapping().prepareGetParams(orgId.credId));
 
     if (!creds) {
       throw new Error(`Credential for given Organisation ${orgName} is not found`);
@@ -74,7 +74,7 @@ export class JiraClient {
    */
   public async getProject(projectId: string): Promise<Jira.ExternalType.Api.Project> {
     const { data: project } = await this.axiosInstance.get<Jira.ExternalType.Api.Project>(
-      `${this.baseUrl}/rest/api/3/project/${projectId}`
+      `/rest/api/3/project/${projectId}`
     );
 
     return project;
@@ -83,7 +83,7 @@ export class JiraClient {
   public async getBoard(boardId: number): Promise<Jira.ExternalType.Api.Board> {
     try {
       const { data: board } = await this.axiosInstance.get<Jira.ExternalType.Api.Board>(
-        `${this.baseUrl}/rest/agile/1.0/board/${boardId}`
+        `/rest/agile/1.0/board/${boardId}`
       );
 
       return board;
@@ -94,7 +94,7 @@ export class JiraClient {
   }
   public async getBoards(projectId: string): Promise<Jira.ExternalType.Api.Board[]> {
     const { values: boards } = await this.paginateResults<Jira.ExternalType.Api.Board>(
-      `/rest/agile/1.0/board`,
+      '/rest/agile/1.0/board',
       {
         projectKeyOrId: projectId,
       }
@@ -106,7 +106,7 @@ export class JiraClient {
   public async getBoardConfig(boardId: number): Promise<Jira.ExternalType.Api.BoardConfig> {
     try {
       const { data: boardConfig } = await this.axiosInstance.get<Jira.ExternalType.Api.BoardConfig>(
-        `${this.baseUrl}/rest/agile/1.0/board/${boardId}/configuration`
+        `/rest/agile/1.0/board/${boardId}/configuration`
       );
 
       return boardConfig;
@@ -130,7 +130,7 @@ export class JiraClient {
    */
   public async getProjects(): Promise<Jira.ExternalType.Api.Project[]> {
     const { values: projects } = await this.paginateResults<Jira.ExternalType.Api.Project>(
-      `/rest/api/3/project/search`
+      '/rest/api/3/project/search'
     );
 
     return projects;
@@ -139,7 +139,7 @@ export class JiraClient {
   public async getUser(userAccountId: string): Promise<Jira.ExternalType.Api.User> {
     try {
       const { data: user } = await this.axiosInstance.get<Jira.ExternalType.Api.User>(
-        `${this.baseUrl}/rest/api/3/user?accountId=${userAccountId}`
+        `/rest/api/3/user?accountId=${userAccountId}`
       );
 
       return user;
@@ -151,7 +151,7 @@ export class JiraClient {
 
   public async getUsers(): Promise<Jira.ExternalType.Api.User[]> {
     const users = await this.paginateResultsForUsers<Jira.ExternalType.Api.User>(
-      `/rest/api/3/users/search`
+      '/rest/api/3/users/search'
     );
 
     return users;
@@ -161,7 +161,7 @@ export class JiraClient {
     try {
       const { values: statuses } =
         await this.paginateResultsForIssueStatuses<Jira.ExternalType.Api.IssueStatus>(
-          `/rest/api/3/statuses/search`
+          '/rest/api/3/statuses/search'
         );
       return statuses;
     } catch (error) {
@@ -173,7 +173,7 @@ export class JiraClient {
   public async getIssue(issueIdOrKey: string): Promise<Jira.ExternalType.Api.Issue> {
     try {
       const issue = await this.axiosInstance.get<Jira.ExternalType.Api.Issue>(
-        `${this.baseUrl}/rest/agile/1.0/issue/${issueIdOrKey}`
+        `/rest/agile/1.0/issue/${issueIdOrKey}`
       );
       return issue.data;
     } catch (error) {
@@ -212,16 +212,13 @@ export class JiraClient {
       values: [],
     }
   ): Promise<Jira.ExternalType.Api.Response<T>> {
-    const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.Response<T>>(
-      `${this.baseUrl}${path}`,
-      {
-        params: {
-          ...query,
-          startAt: result.startAt,
-          maxResults: result.maxResults,
-        },
-      }
-    );
+    const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.Response<T>>(path, {
+      params: {
+        ...query,
+        startAt: result.startAt,
+        maxResults: result.maxResults,
+      },
+    });
 
     const newResult = {
       values: result.values.concat(data.values),
@@ -248,16 +245,13 @@ export class JiraClient {
       issues: [],
     }
   ): Promise<Jira.ExternalType.Api.IssuesResponse<T>> {
-    const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.IssuesResponse<T>>(
-      `${this.baseUrl}${path}`,
-      {
-        params: {
-          ...query,
-          startAt: result.startAt,
-          maxResults: result.maxResults,
-        },
-      }
-    );
+    const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.IssuesResponse<T>>(path, {
+      params: {
+        ...query,
+        startAt: result.startAt,
+        maxResults: result.maxResults,
+      },
+    });
 
     const newResult = {
       issues: [...result.issues, ...data.issues],
@@ -279,7 +273,7 @@ export class JiraClient {
     maxResults = 50,
     users: Array<T> = []
   ): Promise<Array<T>> {
-    const { data } = await this.axiosInstance.get<Array<T>>(`${this.baseUrl}${path}`, {
+    const { data } = await this.axiosInstance.get<Array<T>>(path, {
       params: {
         startAt,
         maxResults,
@@ -307,7 +301,7 @@ export class JiraClient {
     }
   ): Promise<Jira.ExternalType.Api.IssueStatusResponse<T>> {
     const { data } = await this.axiosInstance.get<Jira.ExternalType.Api.IssueStatusResponse<T>>(
-      `${this.baseUrl}${path}`,
+      path,
       {
         params: {
           ...query,

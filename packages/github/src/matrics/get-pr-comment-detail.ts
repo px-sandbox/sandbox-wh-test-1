@@ -31,10 +31,7 @@ async function getRepoNamesAndOrg(
   // Fetching reponame and orgname from ES
   const [unformattedRepoNames, unformattedOrgName] = await Promise.all([
     esClientObj.search(Github.Enums.IndexName.GitRepo, repoNameQuery),
-    esClientObj.search(
-      Github.Enums.IndexName.GitOrganization,
-      orgNameQuery
-    ),
+    esClientObj.search(Github.Enums.IndexName.GitOrganization, orgNameQuery),
   ]);
 
   // formatting the reponames and orgname data coming from elastic search
@@ -94,7 +91,7 @@ export async function prCommentsDetailMetrics(
     // Fetching data from ES and formatting it
     const unformattedData: Other.Type.HitBody = await esClientObj.search(
       Github.Enums.IndexName.GitPull,
-      query,
+      query
     );
     const response = await searchedDataFormator(unformattedData);
 
@@ -108,7 +105,7 @@ export async function prCommentsDetailMetrics(
     // repo object with repoId as key and repoName as value for easy access when formatting final response
     const repoObj: Record<string, string> = {};
     repoNames?.forEach((repo: Github.Type.RepoNamesResponse) => {
-      repoObj[`${repo.id}`] = repo?.name ?? '';
+      repoObj[repo.id] = repo?.name ?? '';
     });
 
     // formatting finalResponse keys and values

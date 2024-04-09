@@ -77,16 +77,26 @@ async function processWebhookEvent(
         await board.delete(body.board.id, eventTime, organization);
         break;
       case Jira.Enums.Event.IssueCreated:
-        await issue.create({ issue: body.issue, changelog: body.changelog, organization,eventName });
+        await issue.create({
+          issue: body.issue,
+          changelog: body.changelog,
+          organization,
+          eventName,
+        });
         break;
       case Jira.Enums.Event.IssueUpdated:
-        await issue.update({ issue: body.issue, changelog: body.changelog, organization,eventName });
+        await issue.update({
+          issue: body.issue,
+          changelog: body.changelog,
+          organization,
+          eventName,
+        });
         break;
       case Jira.Enums.Event.IssueDeleted:
         await issue.remove(body.issue.id, eventTime, organization);
         await removeReopenRate(
           {
-            issue: body.issue,          
+            issue: body.issue,
             changelog: body.changelog,
             organization,
           } as Jira.Mapped.ReopenRateIssue,

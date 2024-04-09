@@ -13,7 +13,7 @@ const sqsClient = SQSClient.getInstance();
  * @param project - The Jira project to be created.
  * @param eventTime - The time when the project was created.
  * @param organization - The organization to which the project belongs.
- * @returns A Promise that resolves when the message is sent to the SQS queue.
+ * @returns A Promise that resolves when the message is sent to the SQS queue.update
  */
 export async function create(
   project: Jira.ExternalType.Webhook.Project,

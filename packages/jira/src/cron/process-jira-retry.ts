@@ -24,16 +24,15 @@ async function processIt(record: Jira.Type.QueueMessage): Promise<void> {
 export async function handler(): Promise<void> {
   logger.info(`RetryProcessHandler invoked at: ${new Date().toISOString()}`);
 
-  const processes = await DynamoDbDocClientObj.scan(
-    new RetryTableMapping().prepareScanParams(1000)
-  );
+  const processes: Jira.Type.QueueMessage[] =
+    await DynamoDbDocClientObj.scan<Jira.Type.QueueMessage>(
+      new RetryTableMapping().prepareScanParams(1000)
+    );
 
   if (processes.length === 0) {
     logger.info(`RetryProcessHandler no processes found at: ${new Date().toISOString()}`);
     return;
   }
 
-  await Promise.all(
-    processes.map((record: unknown) => processIt(record as Jira.Type.QueueMessage))
-  );
+  await Promise.all(processes.map((record: Jira.Type.QueueMessage) => processIt(record)));
 }
