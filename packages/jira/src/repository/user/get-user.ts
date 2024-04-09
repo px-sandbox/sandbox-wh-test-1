@@ -31,7 +31,7 @@ export async function getUserById(
           .boolQuery()
           .must([
             esb.termsQuery('body.id', `${mappingPrefixes.user}_${userId}`),
-            esb.termQuery('body.organizationId', `${orgData.id}`),
+            esb.termQuery('body.organizationId', orgData.id),
           ])
       )
       .toJSON();

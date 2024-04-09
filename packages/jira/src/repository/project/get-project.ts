@@ -31,7 +31,7 @@ export async function getProjectById(
           .boolQuery()
           .must([
             esb.termsQuery('body.id', `${mappingPrefixes.project}_${projectId}`),
-            esb.termQuery('body.organizationId', `${orgData.id}`),
+            esb.termQuery('body.organizationId', orgData.id),
           ])
       )
       .toJSON();

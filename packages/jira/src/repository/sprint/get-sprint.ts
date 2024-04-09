@@ -31,7 +31,7 @@ export async function getSprintById(
           .boolQuery()
           .must([
             esb.termsQuery('body.id', `${mappingPrefixes.sprint}_${sprintId}`),
-            esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
+            esb.termQuery('body.organizationId.keyword', orgData.id),
           ])
       )
       .toJSON();

@@ -30,7 +30,7 @@ export async function getIssueById(
           .boolQuery()
           .must([
             esb.termsQuery('body.id', `${mappingPrefixes.issue}_${issueId}`),
-            esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
+            esb.termQuery('body.organizationId.keyword', orgData.id),
           ])
       )
       .toJSON();
@@ -63,7 +63,7 @@ export async function getReopenRateDataById(
             'body.id',
             `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`
           ),
-          esb.termQuery('body.organizationId', `${orgData.id}`),
+          esb.termQuery('body.organizationId', orgData.id),
         ])
       )
       .toJSON();
@@ -94,7 +94,7 @@ export async function getReopenRateDataByIssueId(
           .boolQuery()
           .must([
             esb.termsQuery('body.issueId', `${mappingPrefixes.issue}_${issueId}`),
-            esb.termQuery('body.organizationId', `${orgData.id}`),
+            esb.termQuery('body.organizationId', orgData.id),
           ])
       )
       .toJSON();

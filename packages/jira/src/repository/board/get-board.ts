@@ -30,7 +30,7 @@ export async function getBoardById(
           .boolQuery()
           .must([
             esb.termsQuery('body.id', `${mappingPrefixes.board}_${boardId}`),
-            esb.termQuery('body.organizationId', `${orgData.id}`),
+            esb.termQuery('body.organizationId', orgData.id),
           ])
       )
       .toJSON();
@@ -61,8 +61,8 @@ export async function getBoardByOrgId(
         esb
           .boolQuery()
           .must([
-            esb.termsQuery('body.id', `${boardId}`),
-            esb.termQuery('body.organizationId', `${organizationId}`),
+            esb.termsQuery('body.id', boardId),
+            esb.termQuery('body.organizationId', organizationId),
           ])
       )
       .toJSON();

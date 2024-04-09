@@ -89,8 +89,8 @@ export const handler = async function issueDeleteReopenRateMigration(
         esb
           .boolQuery()
           .must([
-            esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
-            esb.termQuery('body.projectId', `${projectId}`),
+            esb.termQuery('body.organizationId.keyword', orgData.id),
+            esb.termQuery('body.projectId', projectId),
             esb.termQuery('body.isDeleted', true),
           ])
       )
@@ -118,7 +118,7 @@ export const handler = async function issueDeleteReopenRateMigration(
 
     const issueKeys = [...new Set(issueData.map((issue) => issue.issueKey))];
     logger.info(`issue-delete-reopen-rate: issueKeys: ${issueKeys}`);
-    await fetchReopenRateData(projectId, issueKeys, `${orgData.id}`);
+    await fetchReopenRateData(projectId, issueKeys, orgData.id);
   } catch (error) {
     logger.error(`issue-delete-reopen-rate.error:  ${error}`);
     throw error;
