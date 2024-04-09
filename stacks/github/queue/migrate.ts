@@ -2,7 +2,7 @@ import { Duration, Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeMigrationQueue(
@@ -32,7 +32,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalPr', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhHistoricalPr'),
       },
     },
   });
@@ -55,7 +55,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalReviews', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhHistoricalReviews'),
       },
     },
   });
@@ -78,7 +78,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalPrByNumber', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhHistoricalPrByNumber'),
       },
     },
   });
@@ -100,7 +100,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalCommits', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhHistoricalCommits'),
       },
     },
   });
@@ -123,7 +123,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalBranch', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhHistoricalBranch'),
       },
     },
   });
@@ -147,7 +147,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalPrCommits', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhHistoricalPrCommits'),
       },
     },
   });
@@ -169,7 +169,7 @@ export function initializeMigrationQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhHistoricalPrComments', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhHistoricalPrComments'),
       },
     },
   });

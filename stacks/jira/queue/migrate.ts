@@ -2,7 +2,7 @@ import { Function, Queue, use } from 'sst/constructs';
 import { Duration, Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function
 export function initializeMigrateQueue(
@@ -25,7 +25,7 @@ export function initializeMigrateQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qSprintMigrate', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qSprintMigrate'),
       },
     },
   });
@@ -52,7 +52,7 @@ export function initializeMigrateQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qBoardMigrate', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qBoardMigrate'),
       },
     },
   });
@@ -80,7 +80,7 @@ export function initializeMigrateQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qProjectMigrate', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qProjectMigrate'),
       },
     },
   });
@@ -107,7 +107,7 @@ export function initializeMigrateQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qIssueStatusMigrate', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qIssueStatusMigrate'),
       },
     },
   });
@@ -133,7 +133,7 @@ export function initializeMigrateQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qIssueMigrate', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qIssueMigrate'),
       },
     },
   });
@@ -161,7 +161,7 @@ export function initializeMigrateQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(310),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qUserMigrate', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qUserMigrate'),
       },
     },
   });

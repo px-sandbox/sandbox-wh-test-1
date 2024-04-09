@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 export function initializePushQueue(
   stack: Stack,
@@ -15,7 +15,7 @@ export function initializePushQueue(
   const pushFormatDataQueue = new Queue(stack, 'qGhPushFormat', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhPushFormat', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhPushFormat'),
       },
     },
   });

@@ -1,7 +1,7 @@
 import { Queue, use } from 'sst/constructs';
 import { Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 export function initializeCopilotQueue(stack: Stack, indexerQueue: Queue): Queue {
   const { GIT_ORGANIZATION_ID } = use(commonConfig);
@@ -20,7 +20,7 @@ export function initializeCopilotQueue(stack: Stack, indexerQueue: Queue): Queue
     },
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhCopilotFormat', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhCopilotFormat'),
       },
     },
   });

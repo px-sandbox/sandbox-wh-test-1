@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 export function initializeBranchCounterQueue(
   stack: Stack,
@@ -21,7 +21,7 @@ export function initializeBranchCounterQueue(
   const branchCounterFormatterQueue = new Queue(stack, 'qGhActiveBranchCounterFormat', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhActiveBranchCounterFormat', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhActiveBranchCounterFormat'),
       },
     },
   });

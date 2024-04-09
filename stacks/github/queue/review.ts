@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializePrReviewAndCommentsQueue(
@@ -26,7 +26,7 @@ export function initializePrReviewAndCommentsQueue(
   const prReviewCommentFormatDataQueue = new Queue(stack, 'qGhPrReviewCommentFormat', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhPrReviewCommentFormat', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhPrReviewCommentFormat'),
       },
     },
   });
@@ -46,7 +46,7 @@ export function initializePrReviewAndCommentsQueue(
   const prReviewFormatDataQueue = new Queue(stack, 'qGhPrReviewFormat', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhPrReviewFormat', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhPrReviewFormat'),
       },
     },
   });
@@ -66,7 +66,7 @@ export function initializePrReviewAndCommentsQueue(
   const prReviewCommentMigrationQueue = new Queue(stack, 'qGhPrReviewCommentMigration', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhPrReviewCommentMigration', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhPrReviewCommentMigration'),
       },
     },
   });

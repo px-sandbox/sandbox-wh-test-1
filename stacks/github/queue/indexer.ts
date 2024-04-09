@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
 import { GithubTables } from '../../type/tables';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 export function initializeIndexerQueue(stack: Stack, githubDDb: GithubTables): Queue {
   const {
@@ -16,7 +16,7 @@ export function initializeIndexerQueue(stack: Stack, githubDDb: GithubTables): Q
   const indexDataQueue = new Queue(stack, 'qGhIndex', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhIndex', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhIndex'),
       },
     },
   });

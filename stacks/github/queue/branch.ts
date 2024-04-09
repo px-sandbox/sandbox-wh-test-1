@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 export function initializeBranchQueue(
   stack: Stack,
@@ -25,7 +25,7 @@ export function initializeBranchQueue(
     },
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhBranchFormat', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhBranchFormat'),
       },
     },
   });

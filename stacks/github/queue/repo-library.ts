@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Bucket, Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeRepoLibraryQueue(
@@ -22,7 +22,7 @@ export function initializeRepoLibraryQueue(
   const depRegistryQueue = new Queue(stack, 'qDepRegistry', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qDepRegistry', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qDepRegistry'),
       },
     },
   });
@@ -42,7 +42,7 @@ export function initializeRepoLibraryQueue(
   const currentDepRegistryQueue = new Queue(stack, 'qCurrentDepRegistry', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qCurrentDepRegistry', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qCurrentDepRegistry'),
       },
     },
   });
@@ -62,7 +62,7 @@ export function initializeRepoLibraryQueue(
   const latestDepRegistry = new Queue(stack, 'qLatestDepRegistry', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qLatestDepRegistry', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qLatestDepRegistry'),
       },
     },
   });
@@ -81,7 +81,7 @@ export function initializeRepoLibraryQueue(
   const masterLibraryQueue = new Queue(stack, 'qMasterLibInfo', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qMasterLibInfo', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qMasterLibInfo'),
       },
     },
   });
@@ -101,7 +101,7 @@ export function initializeRepoLibraryQueue(
   const repoLibS3Queue = new Queue(stack, 'qRepoLibS3', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qRepoLibS3', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qRepoLibS3'),
       },
     },
   });

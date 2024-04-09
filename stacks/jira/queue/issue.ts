@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 /* eslint-disable max-lines-per-function */
 export function initializeIssueQueue(
@@ -26,7 +26,7 @@ export function initializeIssueQueue(
     cdk: {
       queue: {
         fifo: true,
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qIssueFormat', true),
+        deadLetterQueue: getDeadLetterQ(stack, 'qIssueFormat', true),
       },
     },
   });
@@ -46,7 +46,7 @@ export function initializeIssueQueue(
   const reOpenRateDataQueue = new Queue(stack, 'qReOpenRate', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qReOpenRate', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qReOpenRate'),
       },
     },
   });
@@ -66,7 +66,7 @@ export function initializeIssueQueue(
   const reOpenRateMigratorQueue = new Queue(stack, 'qReOpenRateMigrator', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qReOpenRateMigrator', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qReOpenRateMigrator'),
       },
     },
   });
@@ -86,7 +86,7 @@ export function initializeIssueQueue(
   const reOpenRateDeleteQueue = new Queue(stack, 'qReOpenRateDelete', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qReOpenRateDelete', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qReOpenRateDelete'),
       },
     },
   });
@@ -106,7 +106,7 @@ export function initializeIssueQueue(
   const issueTimeTrackingMigrationQueue = new Queue(stack, 'qIssueTimeTrackingMigration', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qIssueTimeTrackingMigration', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qIssueTimeTrackingMigration'),
       },
     },
   });

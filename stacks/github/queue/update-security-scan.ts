@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Queue, use, Function } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
 import { GithubTables } from '../../type/tables';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeSecurityScanQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
@@ -21,7 +21,7 @@ export function initializeSecurityScanQueue(stack: Stack, githubDDb: GithubTable
   const scansSaveQueue = new Queue(stack, 'qGhScansSave', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhScansSave', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhScansSave'),
       },
     },
   });

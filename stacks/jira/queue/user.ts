@@ -2,7 +2,7 @@ import { Function, Queue, use } from 'sst/constructs';
 import { Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 export function initializeUserQueue(
   stack: Stack,
@@ -23,7 +23,7 @@ export function initializeUserQueue(
   const userFormatDataQueue = new Queue(stack, 'qUserFormat', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qUserFormat', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qUserFormat'),
       },
     },
   });

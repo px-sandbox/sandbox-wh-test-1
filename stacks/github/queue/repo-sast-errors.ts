@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Bucket, Function, Queue, use } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
 import { GithubTables } from '../../type/tables';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 export function initializeRepoSastErrorQueue(
   stack: Stack,
@@ -19,7 +19,7 @@ export function initializeRepoSastErrorQueue(
   const repoSastErrorsQueue = new Queue(stack, 'qGhRepoSastError', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhRepoSastError', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhRepoSastError'),
       },
     },
   });

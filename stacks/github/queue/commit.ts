@@ -2,7 +2,7 @@ import { Duration, Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
 import { GithubTables } from '../../type/tables';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function
 export function initializeCommitQueue(
@@ -27,7 +27,7 @@ export function initializeCommitQueue(
     cdk: {
       queue: {
         fifo: true,
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhCommitFormat', true),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhCommitFormat', true),
       },
     },
   });
@@ -48,7 +48,7 @@ export function initializeCommitQueue(
     cdk: {
       queue: {
         visibilityTimeout: Duration.seconds(600),
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhCommitFileChanges', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhCommitFileChanges'),
       },
     },
   });
@@ -81,7 +81,7 @@ export function initializeCommitQueue(
   const updateMergeCommit = new Queue(stack, 'qUpdateMergeCommit', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qUpdateMergeCommit', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qUpdateMergeCommit'),
       },
     },
   });

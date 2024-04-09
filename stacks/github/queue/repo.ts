@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
-import { initializeDeadLetterQueue } from '../../common/dead-letter-queue';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeRepoQueue(
@@ -23,7 +23,7 @@ export function initializeRepoQueue(
   const repoFormatDataQueue = new Queue(stack, 'qGhRepoFormat', {
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhRepoFormat', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhRepoFormat'),
       },
     },
   });
@@ -50,7 +50,7 @@ export function initializeRepoQueue(
     },
     cdk: {
       queue: {
-        deadLetterQueue: initializeDeadLetterQueue(stack, 'qGhAfterRepoSave', false),
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhAfterRepoSave'),
       },
     },
   });
