@@ -32,8 +32,6 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
  * @returns A Promise that resolves to void.
  */
 export const handler = async function issueFormattedDataReciever(event: SQSEvent): Promise<void> {
-  // TODO: REMOVE THIS CODE AFTER TESTING
-  throw new Error('issueFormattedDataReciever: Testing DLQ');
   logger.info(`Records Length: ${event.Records.length}`);
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(

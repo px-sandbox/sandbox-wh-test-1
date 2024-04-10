@@ -12,7 +12,7 @@ export function getDeadLetterQ(stack: Stack, name: string, fifo = false): DeadLe
     },
   });
   return {
-    maxReceiveCount: 1, // TODO: CHANGE TO 3 AFTER TESTING
+    maxReceiveCount: 3,
     queue: dlq.cdk.queue,
   };
 }

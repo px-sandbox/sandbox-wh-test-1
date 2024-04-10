@@ -20,8 +20,6 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
 }
 
 export const handler = async function repoFormattedDataReceiver(event: SQSEvent): Promise<void> {
-  // TODO: REMOVE THIS CODE AFTER TESTING
-  throw new Error('repoFormattedDataReceiver: Testing DLQ');
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(event.Records.map((record: SQSRecord) => processAndStoreSQSRecord(record)));
 };
