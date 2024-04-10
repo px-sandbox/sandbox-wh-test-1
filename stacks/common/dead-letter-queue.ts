@@ -3,11 +3,12 @@ import { DeadLetterQueue } from 'aws-cdk-lib/aws-sqs';
 import { Queue } from 'sst/constructs';
 
 export function getDeadLetterQ(stack: Stack, name: string, fifo = false): DeadLetterQueue {
-  const dlq = new Queue(stack, `${name}.dlq`, {
+  const dlq = new Queue(stack, `${name}-dlq`, {
     cdk: {
       queue: {
+        queueName: `${name}-dlq${fifo ? '.fifo' : ''}`,
         retentionPeriod: Duration.days(14),
-        fifo,
+        ...(fifo ? { fifo: true } : {}),
       },
     },
   });
