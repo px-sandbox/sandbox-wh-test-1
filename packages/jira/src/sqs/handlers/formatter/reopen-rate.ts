@@ -40,6 +40,8 @@ async function repoInfoQueueFunc(record: SQSRecord): Promise<void> {
  * @returns A promise that resolves to void.
  */
 export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<void> {
+  // TODO: REMOVE THIS CODE AFTER TESTING
+  throw new Error('reopenInfoQueue: Testing DLQ');
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {

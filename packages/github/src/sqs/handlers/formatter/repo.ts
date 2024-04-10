@@ -1,7 +1,6 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import async from 'async';
 import { Github } from 'abstraction';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { RepositoryProcessor } from '../../../processors/repo';
@@ -21,6 +20,8 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
 }
 
 export const handler = async function repoFormattedDataReceiver(event: SQSEvent): Promise<void> {
+  // TODO: REMOVE THIS CODE AFTER TESTING
+  throw new Error('repoFormattedDataReceiver: Testing DLQ');
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(event.Records.map((record: SQSRecord) => processAndStoreSQSRecord(record)));
 };

@@ -77,6 +77,8 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   }
 }
 export const handler = async function commitFormattedDataReceiver(event: SQSEvent): Promise<void> {
+  // TODO: REMOVE THIS CODE AFTER TESTING
+  throw new Error('commitFormattedDataReceiver: Testing DLQ');
   logger.info(`Records Length: ${event.Records.length}`);
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
