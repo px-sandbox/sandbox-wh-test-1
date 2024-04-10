@@ -6,6 +6,8 @@ import { BoardProcessor } from '../../../processors/board';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function boardFormattedDataReciever(event: SQSEvent): Promise<void> {
+  // TODO: REMOVE THIS CODE AFTER TESTING
+  throw new Error('boardFormattedDataReciever: Testing DLQ');
   logger.info(`Records Length: ${event.Records.length}`);
 
   await Promise.all(
