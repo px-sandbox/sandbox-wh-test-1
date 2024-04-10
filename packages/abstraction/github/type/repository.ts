@@ -1,6 +1,6 @@
 import { actions } from './actions';
 
-export interface Repository {
+export type Repository = {
   id: string;
   githubId: number;
   name: string;
@@ -17,7 +17,12 @@ export interface Repository {
   pushedAt: Date;
   deletedAt: Date;
 }
-export interface RepoFormatter {
+
+type retryProcess = {
+  processId?: string;
+}
+
+export type RepoFormatter = retryProcess & {
   id: string;
   body: {
     id: string;
@@ -37,5 +42,4 @@ export interface RepoFormatter {
     computationalDate: string;
     githubDate: string | Date;
   };
-  processId?: string; 
 }

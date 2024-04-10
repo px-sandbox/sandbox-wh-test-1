@@ -1,4 +1,8 @@
-export type RepoLibrary = {
+type retryProcess = {
+    processId?: string;
+}
+
+export type RepoLibrary = retryProcess & {
     id: string;
     body: {
         repoId: string;
@@ -10,5 +14,5 @@ export type RepoLibrary = {
         isDeleted: boolean;
         isCore: boolean;
     };
-    processId?: string; 
-};
+
+}

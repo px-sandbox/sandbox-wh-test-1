@@ -1,6 +1,9 @@
 import { actions } from './actions';
 
-export interface Branch {
+type retryProcess = {
+  processId?: string;
+}
+export type Branch = retryProcess & {
   id: string;
   body: {
     id: string;
@@ -19,5 +22,4 @@ export interface Branch {
     protected: boolean;
     isDeleted: boolean;
   };
-  processId?: string;
 }

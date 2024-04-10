@@ -1,6 +1,9 @@
 import { actions } from './actions';
 
-export type Push = {
+type retryProcess = {
+  processId?: string;
+}
+export type Push = retryProcess & {
   id: string;
   body: {
     id: string;
@@ -14,7 +17,6 @@ export type Push = {
     computationalDate: string;
     githubDate: string | Date;
   };
-  processId?: string; 
 };
 
 export type CommitIds = {

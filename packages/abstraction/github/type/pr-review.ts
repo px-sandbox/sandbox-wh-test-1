@@ -1,6 +1,9 @@
 import { actions } from './actions';
 
-export interface PRReview {
+type retryProcess = {
+  processId?: string;
+}
+export type PRReview = retryProcess & {
   id: string;
   body: {
     id: string;
@@ -18,5 +21,4 @@ export interface PRReview {
     computationalDate: string;
     githubDate: string | Date;
   };
-  processId?: string; 
 }

@@ -1,4 +1,8 @@
-export type Sprint = {
+type retryProcess = {
+  processId?: string;
+}
+
+export type Sprint = retryProcess & {
   id: string;
   body: {
     id: string;
@@ -16,7 +20,6 @@ export type Sprint = {
     isDeleted: boolean;
     deletedAt: string;
   };
-  processId?: string;
 };
 
 export type OldSprint = {

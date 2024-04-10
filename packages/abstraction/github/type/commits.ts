@@ -5,7 +5,11 @@ export type CommitedFiles = {
   changes: string;
   status: string;
 };
-export interface Commits {
+
+type retryProcess = {
+  processId?: string;
+}
+export type Commits = retryProcess & {
   id: string;
   body: {
     id: string;
@@ -25,5 +29,4 @@ export interface Commits {
     computationalDate: string;
     githubDate: string | Date;
   };
-  processId?: string;
 }

@@ -1,8 +1,10 @@
-export type QueueMessage = {
-    processId: string;
-    messageBody: string;
-    queue: string;
+type retryProcess = {
+  processId?: string;
+}
+
+export type QueueMessage = retryProcess &{
+  messageBody: string;
+  queue: string;
   MessageDeduplicationId: string;
-    MessageGroupId: string;
-  };
-  
+  MessageGroupId: string;
+};

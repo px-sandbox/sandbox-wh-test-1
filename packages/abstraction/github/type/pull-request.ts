@@ -47,9 +47,10 @@ export type PullRequestBody = {
   action: actions;
   githubDate: string;
 };
-
-export interface PullRequest {
+type retryProcess = {
+  processId?: string;
+}
+export type PullRequest = retryProcess & {
   id: string;
   body: PullRequestBody;
-  processId?: string;  
 }

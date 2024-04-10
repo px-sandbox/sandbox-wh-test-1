@@ -1,4 +1,8 @@
-export type Project = {
+type retryProcess = {
+  processId?: string;
+}
+
+export type Project = retryProcess & {
   id: string;
   body: {
     id: string;
@@ -31,5 +35,4 @@ export type Project = {
     updatedAt: string | null;
     createdAt: string | null;
   };
-  processId?: string; 
 };

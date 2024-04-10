@@ -1,6 +1,10 @@
 import { BoardType } from '../enums/board-type';
 
-export type Board = {
+type retryProcess = {
+  processId?: string;
+};
+
+export type Board = retryProcess & {
   id: string;
   body: {
     id: string;
@@ -32,5 +36,4 @@ export type Board = {
     isDeleted: boolean;
     deletedAt: string | null;
   };
-  processId?: string;
 };

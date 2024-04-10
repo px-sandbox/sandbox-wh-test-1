@@ -1,4 +1,8 @@
-export type ReopenRate = {
+type retryProcess = {
+    processId?: string;
+}
+
+export type ReopenRate = retryProcess & {
     id: string;
     body: {
         id: string;
@@ -13,7 +17,6 @@ export type ReopenRate = {
         deletedAt?: string | null;
         organizationId: string;
     };
-    processId?: string;
 };
 
 export type ReopenRateDetails = {

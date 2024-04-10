@@ -1,4 +1,7 @@
-export interface ActiveBranches {
+type retryProcess = {
+  processId?: string;
+}
+export type ActiveBranches = retryProcess & {
   id: string;
   body: {
     id: string;
@@ -7,7 +10,6 @@ export interface ActiveBranches {
     branchesCount: number;
     createdAt: string;
   };
-  processId?: string; 
 }
 
 export interface RawActiveBRanches {

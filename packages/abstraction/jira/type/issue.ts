@@ -1,6 +1,10 @@
 import { ChangelogItem } from '../external/webhook';
 
-export type Issue = {
+type retryProcess = {
+  processId?: string;
+}
+
+export type Issue = retryProcess & {
   id: string;
   body: {
     id: string;
@@ -39,7 +43,6 @@ export type Issue = {
       actual: number;
     };
   };
-  processId?: string;
 };
 
 // estimates vs actuals breakdown view api

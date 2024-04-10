@@ -5,13 +5,14 @@ type SastError = {
     lineNo: number;
     snippet: string;
 };
-
-export type RepoSastErrors = {
+type retryProcess = {
+    processId: string;
+};
+export type RepoSastErrors = retryProcess & {
     date: string;
     branch: string;
     repoId: string;
     orgId: string;
     errors: SastError[];
     createdAt: string;
-    processId: string;
-};
+} 
