@@ -23,11 +23,12 @@ export async function saveBoardDetails(data: Jira.Type.Board, processId?:string)
       .requestBodySearch()
       .query(
         esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.id', data.body.id),
-        esb.termQuery('body.organizationId', data.body.organizationId),
-      ]))
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.id', data.body.id),
+            esb.termQuery('body.organizationId', data.body.organizationId),
+          ])
+      )
       .toJSON();
     logger.info('saveBoardDetails.matchQry------->', { matchQry });
     const boardData = await esClientObj.search(Jira.Enums.IndexName.Board, matchQry);

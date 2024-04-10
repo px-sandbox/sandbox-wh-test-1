@@ -1,5 +1,4 @@
-import { Jira } from "abstraction";
-
+import { Jira } from 'abstraction';
 
 /**
  * Maps the Jira project keys to the corresponding fields in the Pulse data integration system.
@@ -11,19 +10,18 @@ import { Jira } from "abstraction";
  * @returns The mapped project object.
  */
 export function projectKeysMapper(
-    body: Jira.ExternalType.Api.Project,
-    createdAt: string,
-    organization: string,
-    updatedAt: string = createdAt,
-    deletedAt: string | null = null
+  body: Jira.ExternalType.Api.Project,
+  createdAt: string,
+  organization: string,
+  updatedAt: string = createdAt,
+  deletedAt: string | null = null
 ): Jira.Mapped.Project {
-
-    return {
-        organization,
-        isDeleted: !!deletedAt,
-        deletedAt,
-        createdAt,
-        updatedAt,
-        ...body
-    };
+  return {
+    organization,
+    isDeleted: !!deletedAt,
+    deletedAt,
+    createdAt,
+    updatedAt,
+    ...body,
+  };
 }

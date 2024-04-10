@@ -14,19 +14,19 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
 const esClientObj = ElasticSearchClient.getInstance();
 export async function saveIssueStatusDetails(data: Jira.Type.IssueStatus,processId?:string): Promise<void> {
   try {
-    const { ...updatedData } = data;
-      const matchQry = esb
-      .requestBodySearch().query(esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.id', data.body.id),
-        esb.termQuery('body.organizationId', data.body.organizationId),
-      ]))
+    const updatedData = { ...data };
+    const matchQry = esb
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.id', data.body.id),
+            esb.termQuery('body.organizationId', data.body.organizationId),
+          ])
+      )
       .toJSON();
-    const issueStatusData = await esClientObj.search(
-      Jira.Enums.IndexName.IssueStatus,
-      matchQry
-    );
+    const issueStatusData = await esClientObj.search(Jira.Enums.IndexName.IssueStatus, matchQry);
     const [formattedData] = await searchedDataFormator(issueStatusData);
     if (formattedData) {
       updatedData.id = formattedData._id;

@@ -12,7 +12,7 @@ const getGraphDataQuery = async (
   endDate: string,
   intervals: string,
   repoIds: string[]
-):Promise<object> => {
+): Promise<object> => {
   const activeBranchGraphQuery = esb.requestBodySearch().size(0);
   activeBranchGraphQuery.query(
     esb
@@ -43,7 +43,11 @@ const getGraphDataQuery = async (
   logger.info('ACTIVE_BRANCHES_GRAPH_ESB_QUERY', activeBranchGraphQuery);
   return activeBranchGraphQuery;
 };
-const getHeadlineQuery = async (startDate: string, endDate: string, repoIds: string[]): Promise<object> => { 
+const getHeadlineQuery = async (
+  startDate: string,
+  endDate: string,
+  repoIds: string[]
+): Promise<object> => {
   const activeBranchesAvgQuery = await esb.requestBodySearch().size(0);
   activeBranchesAvgQuery
     .query(
@@ -51,7 +55,7 @@ const getHeadlineQuery = async (startDate: string, endDate: string, repoIds: str
         .boolQuery()
         .must([
           esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-          esb.termsQuery('body.repoId', repoIds)
+          esb.termsQuery('body.repoId', repoIds),
         ])
     )
     .agg(esb.valueCountAggregation('repo_count', 'body.repoId'))
@@ -60,7 +64,7 @@ const getHeadlineQuery = async (startDate: string, endDate: string, repoIds: str
     .toJSON();
   logger.info('ACTIVE_BRANCHES_AVG_ESB_QUERY', activeBranchesAvgQuery);
   return activeBranchesAvgQuery;
-}
+};
 export async function activeBranchGraphData(
   startDate: string,
   endDate: string,
@@ -90,14 +94,16 @@ export async function activeBranchesAvg(
 ): Promise<{ value: number } | null> {
   try {
     const activeBranchesAvgQuery = await getHeadlineQuery(startDate, endDate, repoIds);
-    const data:any = await esClientObj.queryAggs(
+    const data: any = await esClientObj.queryAggs(
       Github.Enums.IndexName.GitActiveBranches,
       activeBranchesAvgQuery
     );
-    console.log(data);  
+    logger.info('activeBranchesAvg.data', data);
     const totalRepo = Number(data.repo_count.value);
     const totalBranchCount = Number(data.branch_count.value);
-    return { value: parseFloat((totalBranchCount === 0 ? 0 : totalBranchCount / totalRepo).toFixed(2)) };
+    return {
+      value: parseFloat((totalBranchCount === 0 ? 0 : totalBranchCount / totalRepo).toFixed(2)),
+    };
   } catch (e) {
     logger.error('activeBranchesAvg.error', e);
     throw e;

@@ -21,8 +21,7 @@ export class SQSClient implements ISQSClient {
     message: T,
     queueUrl: string,
     messageGroupId: string,
-    messageDeduplicationId: string,
-    delay?: number
+    messageDeduplicationId: string
   ): Promise<void> {
     const queueName = queueUrl.split('/').slice(-1).toString();
     try {
@@ -31,7 +30,6 @@ export class SQSClient implements ISQSClient {
         QueueUrl: queueUrl,
         MessageGroupId: messageGroupId,
         MessageDeduplicationId: messageDeduplicationId,
-        DelaySeconds: delay,
       };
       await this.sqs.sendMessage(queueObj);
     } catch (error) {

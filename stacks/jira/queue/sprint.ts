@@ -2,6 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Queue, Function, use } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 export function initializeSprintQueue(
   stack: Stack,
@@ -20,7 +21,13 @@ export function initializeSprintQueue(
     REQUEST_TIMEOUT,
   } = use(commonConfig);
 
-  const sprintFormatDataQueue = new Queue(stack, 'qSprintFormat');
+  const sprintFormatDataQueue = new Queue(stack, 'qSprintFormat', {
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qSprintFormat'),
+      },
+    },
+  });
   sprintFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnSprintFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/sprint.handler',

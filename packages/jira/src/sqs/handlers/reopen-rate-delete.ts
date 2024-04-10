@@ -38,7 +38,7 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
                 .boolQuery()
                 .must([
                   esb.termQuery('body.issueId', `${mappingPrefixes.issue}_${messageBody.issue.id}`),
-                  esb.termQuery('body.organizationId', `${orgData.id}`),
+                  esb.termQuery('body.organizationId', orgData.id),
                 ])
             )
             .toJSON();
