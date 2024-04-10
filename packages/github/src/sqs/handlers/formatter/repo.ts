@@ -13,8 +13,11 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
 
     const repoProcessor = new RepositoryProcessor(messageBody);
     const data = await repoProcessor.processor();
-    data.processId = messageBody.processId;
-    await repoProcessor.save({ data, eventType: Github.Enums.Event.Repo });
+    await repoProcessor.save({
+      data,
+      eventType: Github.Enums.Event.Repo,
+      processId: messageBody?.processId,
+    });
   } catch (error) {
     logger.error(`repoFormattedDataReceiver.error, ${error}`);
     await logProcessToRetry(record, Queue.qGhRepoFormat.queueUrl, error as Error);

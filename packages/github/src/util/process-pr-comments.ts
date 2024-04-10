@@ -22,7 +22,7 @@ export async function processPRComments(
     }
     return processPRComments(owner, repo, pullNumber, octokit, commentLengths, nextLinkMatch[1]);
   } catch (error) {
-    logger.error('ERROR_IN_PROCESS_FILE_CHANGES_COMMIT', error);
+    logger.error('ERROR_IN_PROCESS_PR_COMMENTS', error);
     throw error;
   }
 }

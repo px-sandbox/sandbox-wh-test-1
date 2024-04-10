@@ -7,6 +7,7 @@ export interface ActiveBranches {
     branchesCount: number;
     createdAt: string;
   };
+  processId?: string; 
 }
 
 export interface RawActiveBRanches {

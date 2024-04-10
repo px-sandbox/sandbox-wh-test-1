@@ -13,9 +13,9 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
  * @throws An error if there was a problem saving the data.
  */
 const esClientObj = ElasticSearchClient.getInstance();
-export async function saveReOpenRate(data: Jira.Type.Issue): Promise<void> {
+export async function saveReOpenRate(data: Jira.Type.Issue,processId?:string): Promise<void> {
   try {
-    const { processId, ...updatedData } = data;
+    const { ...updatedData } = data;
     const matchQry = esb
       .requestBodySearch().query(esb
       .boolQuery()

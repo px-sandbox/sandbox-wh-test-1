@@ -62,9 +62,9 @@ async function updateData(
  * @returns A Promise that resolves when the project details have been saved successfully.
  * @throws An error if there was an issue saving the project details.
  */
-export async function saveProjectDetails(data: Jira.Type.Project): Promise<void> {
+export async function saveProjectDetails(data: Jira.Type.Project,processId?:string): Promise<void> {
   try {
-    const { processId, ...updatedData } = data;
+    const { ...updatedData } = data;
     const matchQry = esb
       .requestBodySearch().query(esb
       .boolQuery()

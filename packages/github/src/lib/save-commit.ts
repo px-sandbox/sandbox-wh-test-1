@@ -7,9 +7,9 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveCommitDetails(data: Github.Type.Commits): Promise<void> {
+export async function saveCommitDetails(data: Github.Type.Commits,processId?:string): Promise<void> {
   try {
-    const { processId, ...updatedData } = data;
+   const updatedData = { ...data };
     const matchQry = esb
       .requestBodySearch()
       .query(esb.matchQuery('body.id', data.body.id))

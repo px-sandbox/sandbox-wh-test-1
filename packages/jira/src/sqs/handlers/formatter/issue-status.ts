@@ -17,8 +17,11 @@ export const handler = async function issueStatusFormattedDataReciever(
         const issueStatusProcessor = new IssueStatusProcessor(messageBody);
 
         const data = await issueStatusProcessor.processor();
-        data.processId = messageBody.processId;
-        await issueStatusProcessor.save({ data, index: Jira.Enums.IndexName.IssueStatus });
+        await issueStatusProcessor.save({
+          data,
+          index: Jira.Enums.IndexName.IssueStatus,
+          processId: messageBody?.processId,
+        });
       } catch (error) {
         await logProcessToRetry(record, Queue.qIssueStatusFormat.queueUrl, error as Error);
         logger.error('issueStatusFormattedDataReciever.error', error);

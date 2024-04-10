@@ -6,9 +6,9 @@ import { searchedDataFormator } from '../util/response-formatter';
 import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
-export async function savePushDetails(data: Github.Type.Push): Promise<void> {
+export async function savePushDetails(data: Github.Type.Push,processId?:string): Promise<void> {
   try {
-    const { processId, ...updatedData } = data;
+    const updatedData = { ...data };
     const matchQry = esb
       .requestBodySearch()
       .query(esb.matchQuery('body.id', data.body.id))

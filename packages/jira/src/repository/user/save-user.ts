@@ -12,7 +12,7 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
  * @throws An error if there was an issue saving the user details.
  */
 const esClientObj = ElasticSearchClient.getInstance();
-export async function saveUserDetails(data: Jira.Type.User): Promise<void> {
+export async function saveUserDetails(data: Jira.Type.User,processId?:string): Promise<void> {
   try {
     const { processId, ...updatedData } = data;
   

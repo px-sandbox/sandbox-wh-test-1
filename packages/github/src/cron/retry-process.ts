@@ -12,7 +12,6 @@ const sqsClient = SQSClient.getInstance();
 
 async function processIt(record: Github.Type.QueueMessage): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId, MessageGroupId } = record;
-  logger.info('RetryProcessHandlerProcessData', { processId, messageBody, queue });
   try {
     await sqsClient
       .sendMessage(
@@ -48,9 +47,8 @@ export async function handler(): Promise<void> {
     const itemsToPick = githubRetryLimit.data.rate.remaining / 3;
     const limit = 200;
     const params = new RetryTableMapping().prepareScanParams(limit);
-    console.log("MYY",itemsToPick, params)
     // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < Math.floor(itemsToPick/limit); i++) {
       logger.info(`RetryProcessHandler process count ${i} at: ${new Date().toISOString()}`);
       // eslint-disable-next-line no-await-in-loop
       const processes = await dynamodbClient.scanAllItems(params);

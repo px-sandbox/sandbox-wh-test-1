@@ -7,9 +7,9 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function savePRReview(data: Github.Type.PRReview): Promise<void> {
+export async function savePRReview(data: Github.Type.PRReview,processId?:string): Promise<void> {
   try {
-    const {processId, ...updatedData} = data;
+    const updatedData = {...data };
     const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.id', data.body.id)).toJSON();
     const userData = await esClientObj.search(Github.Enums.IndexName.GitPRReview, matchQry);
     const [formattedData] = await searchedDataFormator(userData);

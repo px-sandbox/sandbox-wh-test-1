@@ -7,10 +7,9 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function savePRDetails(data: Github.Type.PullRequest): Promise<void> {
+export async function savePRDetails(data: Github.Type.PullRequest,processId?:string): Promise<void> {
   try {
-    const { processId, ...updatedData } = data;
-    console.log('data', { processId, ...updatedData });
+    const { ...updatedData } = data;
     const matchQry = esb
       .requestBodySearch()
       .query(esb.matchQuery('body.id', data.body.id))
@@ -30,9 +29,7 @@ export async function savePRDetails(data: Github.Type.PullRequest): Promise<void
       await deleteProcessfromDdb(processId);
     }
   } catch (error: unknown) {
-    logger.error('savePRDetails.error', {
-      error,
-    });
+    logger.error(`savePRDetails.error, ${error}`);
     throw error;
   }
 }

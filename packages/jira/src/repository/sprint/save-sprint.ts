@@ -14,9 +14,9 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveSprintDetails(data: Jira.Type.Sprint): Promise<void> {
+export async function saveSprintDetails(data: Jira.Type.Sprint,processId?:string): Promise<void> {
   try {
-    const { processId, ...updatedData } = data;
+    const { ...updatedData } = data;
     
     const matchQry = esb
       .requestBodySearch().query(esb
