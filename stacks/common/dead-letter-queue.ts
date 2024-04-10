@@ -6,7 +6,7 @@ export function getDeadLetterQ(stack: Stack, name: string, fifo = false): DeadLe
   const dlq = new Queue(stack, `${name}-dlq`, {
     cdk: {
       queue: {
-        queueName: `${name}-dlq${fifo ? '.fifo' : ''}`,
+        // queueName: `${name}-dlq${fifo ? '.fifo' : ''}`,
         retentionPeriod: Duration.days(14),
         ...(fifo ? { fifo: true } : {}),
       },
