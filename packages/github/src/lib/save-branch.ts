@@ -7,7 +7,7 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveBranchDetails(data: Github.Type.Branch,processId?:string): Promise<void> {
+export async function saveBranchDetails(data: Github.Type.Branch, processId?: string): Promise<void> {
   try {
     const updatedData = { ...data };
     const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.id', data.body.id)).toJSON();
@@ -20,10 +20,7 @@ export async function saveBranchDetails(data: Github.Type.Branch,processId?:stri
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitBranch, updatedData);
     logger.info('saveBranchDetails.successful');
-    if (processId) {
-      logger.info('deleting_process_from_DDB', { processId });
-      await deleteProcessfromDdb(processId);
-    }
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error(`saveBranchDetails.error, ${error}`);
     throw error;

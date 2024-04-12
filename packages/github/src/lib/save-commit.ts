@@ -7,9 +7,9 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveCommitDetails(data: Github.Type.Commits,processId?:string): Promise<void> {
+export async function saveCommitDetails(data: Github.Type.Commits, processId?: string): Promise<void> {
   try {
-   const updatedData = { ...data };
+    const updatedData = { ...data };
     const matchQry = esb
       .requestBodySearch()
       .query(esb.matchQuery('body.id', data.body.id))
@@ -38,10 +38,7 @@ export async function saveCommitDetails(data: Github.Type.Commits,processId?:str
     await esClientObj.putDocument(Github.Enums.IndexName.GitCommits, commitIndexData);
 
     logger.info('saveCommitDetails.successful');
-    if (processId) {
-      logger.info('deleting_process_from_DDB', { processId });
-      await deleteProcessfromDdb(processId);
-    }
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error(`saveCommitDetails.error, ${error}`);
     throw error;

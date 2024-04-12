@@ -13,9 +13,9 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
  */
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveBoardDetails(data: Jira.Type.Board, processId?:string): Promise<void> {
+export async function saveBoardDetails(data: Jira.Type.Board, processId?: string): Promise<void> {
   try {
-    const {...updatedData } = data;
+    const { ...updatedData } = data;
 
     logger.info('saveBoardDetails.invoked');
 
@@ -38,10 +38,7 @@ export async function saveBoardDetails(data: Jira.Type.Board, processId?:string)
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.Board, updatedData);
     logger.info('saveBoardDetails.successful');
-     if (processId) {
-       logger.info('deleting_process_from_DDB', { processId });
-       await deleteProcessfromDdb(processId);
-     }
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error('saveBoardDetails.error', {
       error,

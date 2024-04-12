@@ -2,7 +2,6 @@ import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-
 import { searchedDataFormator } from '../../util/response-formatter';
 import { deleteProcessfromDdb } from 'src/util/delete-process';
 
@@ -13,7 +12,7 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
  * @throws An error if there was a problem saving the data.
  */
 const esClientObj = ElasticSearchClient.getInstance();
-export async function saveReOpenRate(data: Jira.Type.Issue,processId?:string): Promise<void> {
+export async function saveReOpenRate(data: Jira.Type.Issue, processId?: string): Promise<void> {
   try {
     const { ...updatedData } = data;
     const matchQry = esb
@@ -35,10 +34,7 @@ export async function saveReOpenRate(data: Jira.Type.Issue,processId?:string): P
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.ReopenRate, updatedData);
     logger.info('saveReopenRateDetails.successful');
-    if (processId) {
-      logger.info('deleting_process_from_DDB', { processId });
-      await deleteProcessfromDdb(processId);
-    }
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error(`saveReopenRateDetails.error,${error}`);
     throw error;

@@ -12,7 +12,7 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
  * @throws An error if there is an issue with saving the data.
  */
 const esClientObj = ElasticSearchClient.getInstance();
-export async function saveIssueStatusDetails(data: Jira.Type.IssueStatus,processId?:string): Promise<void> {
+export async function saveIssueStatusDetails(data: Jira.Type.IssueStatus, processId?: string): Promise<void> {
   try {
     const updatedData = { ...data };
     const matchQry = esb
@@ -33,10 +33,7 @@ export async function saveIssueStatusDetails(data: Jira.Type.IssueStatus,process
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.IssueStatus, updatedData);
     logger.info('saveIssueStatusDetails.successful');
-    if(processId){
-      logger.info('deleting_process_from_DDB', { processId });
-      await deleteProcessfromDdb(processId);
-    }
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error('saveIssueStatusDetails.error', {
       error,

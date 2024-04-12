@@ -62,7 +62,7 @@ async function updateData(
  * @returns A Promise that resolves when the project details have been saved successfully.
  * @throws An error if there was an issue saving the project details.
  */
-export async function saveProjectDetails(data: Jira.Type.Project,processId?:string): Promise<void> {
+export async function saveProjectDetails(data: Jira.Type.Project, processId?: string): Promise<void> {
   try {
     const { ...updatedData } = data;
     const matchQry = esb
@@ -110,10 +110,7 @@ export async function saveProjectDetails(data: Jira.Type.Project,processId?:stri
       ]);
     }
     logger.info('saveProjectDetails.successful');
-    if (processId) {
-      logger.info('deleting_process_from_DDB', { processId });
-      await deleteProcessfromDdb(processId);
-    }
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error('saveProjectDetails.error', {
       error,

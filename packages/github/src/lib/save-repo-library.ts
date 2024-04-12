@@ -10,10 +10,7 @@ export async function saveRepoLibraryDetails(data: Github.Type.RepoLibrary): Pro
     const { processId, ...updatedData } = data;
     await esClientObj.putDocument(Github.Enums.IndexName.GitRepoLibrary, updatedData);
     logger.info('saveRepoLibraryDetails.successful');
-    if (processId) {
-      logger.info('deleting_process_from_DDB', { processId });
-      await deleteProcessfromDdb(processId);
-    }
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error('saveRepoLibraryDetails.error', {
       error,

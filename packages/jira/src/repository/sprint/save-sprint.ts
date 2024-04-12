@@ -14,7 +14,7 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveSprintDetails(data: Jira.Type.Sprint,processId?:string): Promise<void> {
+export async function saveSprintDetails(data: Jira.Type.Sprint, processId?: string): Promise<void> {
   try {
     const updatedData = { ...data };
     const matchQry = esb
@@ -35,10 +35,7 @@ export async function saveSprintDetails(data: Jira.Type.Sprint,processId?:string
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.Sprint, updatedData);
     logger.info('saveSprintDetails.successful');
-    if (processId) {
-      logger.info('deleting_process_from_DDB', { processId });
-      await deleteProcessfromDdb(processId);
-    }
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error('saveSprintDetails.error', {
       error,

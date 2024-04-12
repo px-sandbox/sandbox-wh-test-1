@@ -33,10 +33,7 @@ export async function saveIssueDetails(data: Jira.Type.Issue, processId?: string
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.Issue, updatedData);
     logger.info('saveIssueDetails.successful');
-    if (processId) {
-      logger.info('deleting_process_from_DDB', { processId });
-      await deleteProcessfromDdb(processId);
-    }
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error(`saveIssueDetails.error: ${error}`);
     throw error;

@@ -6,7 +6,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
-export async function savePushDetails(data: Github.Type.Push,processId?:string): Promise<void> {
+export async function savePushDetails(data: Github.Type.Push, processId?: string): Promise<void> {
   try {
     const updatedData = { ...data };
     const matchQry = esb
@@ -21,10 +21,7 @@ export async function savePushDetails(data: Github.Type.Push,processId?:string):
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPush, updatedData);
     logger.info('savePushDetails.successful');
-    if (processId) {
-      logger.info('deleting_process_from_DDB', { processId });
-      await deleteProcessfromDdb(processId);
-    }
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error('savePushDetails.error', {
       error,

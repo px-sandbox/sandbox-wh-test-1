@@ -21,25 +21,25 @@ export const handler = async function jiraIndexDataReciever(event: SQSEvent): Pr
 
         switch (index) {
           case Jira.Enums.IndexName.Board:
-            await saveBoardDetails(messageBody,processId);
+            await saveBoardDetails(messageBody, processId);
             break;
           case Jira.Enums.IndexName.Issue:
-            await saveIssueDetails(messageBody,processId);
+            await saveIssueDetails(messageBody, processId);
             break;
           case Jira.Enums.IndexName.IssueStatus:
-            await saveIssueStatusDetails(messageBody,processId);
+            await saveIssueStatusDetails(messageBody, processId);
             break;
           case Jira.Enums.IndexName.Project:
-            await saveProjectDetails(messageBody,processId);
+            await saveProjectDetails(messageBody, processId);
             break;
           case Jira.Enums.IndexName.Sprint:
-            await saveSprintDetails(messageBody,processId);
+            await saveSprintDetails(messageBody, processId);
             break;
           case Jira.Enums.IndexName.Users:
-            await saveUserDetails(messageBody,processId);
+            await saveUserDetails(messageBody, processId);
             break;
           case Jira.Enums.IndexName.ReopenRate:
-            await saveReOpenRate(messageBody,processId);
+            await saveReOpenRate(messageBody, processId);
             break;
           default:
             logger.error('jiraIndexDataReceiver.error', { error: `${index} indexer not found` });
