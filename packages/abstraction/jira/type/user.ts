@@ -1,8 +1,6 @@
 import { UserType } from '../enums/user-type';
+import { retryProcess } from './retry-process';
 
-type retryProcess = {
-  processId?: string;
-}
 export type User = retryProcess & {
   id: string;
   body: {

@@ -1,4 +1,5 @@
 import { actions } from './actions';
+import { retryProcess } from './retry-process';
 
 export type RequestedReviewers = {
   userId: string;
@@ -47,9 +48,7 @@ export type PullRequestBody = {
   action: actions;
   githubDate: string;
 };
-type retryProcess = {
-  processId?: string;
-}
+
 export type PullRequest = retryProcess & {
   id: string;
   body: PullRequestBody;

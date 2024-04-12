@@ -1,4 +1,5 @@
 import { actions } from './actions';
+import { retryProcess } from './retry-process';
 
 export type Repository = {
   id: string;
@@ -18,9 +19,7 @@ export type Repository = {
   deletedAt: Date;
 }
 
-type retryProcess = {
-  processId?: string;
-}
+
 
 export type RepoFormatter = retryProcess & {
   id: string;

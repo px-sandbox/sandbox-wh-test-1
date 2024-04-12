@@ -1,3 +1,4 @@
+import { retryProcess } from '../../type/retry-process';
 type SastError = {
     ruleId: string;
     message: string;
@@ -5,9 +6,7 @@ type SastError = {
     lineNo: number;
     snippet: string;
 };
-type retryProcess = {
-    processId: string;
-};
+
 export type RepoSastErrors = retryProcess & {
     date: string;
     branch: string;

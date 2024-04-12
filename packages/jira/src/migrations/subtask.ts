@@ -8,7 +8,7 @@ import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
 import { formatIssue } from 'src/util/issue-helper';
-
+import { v4 as uuid } from 'uuid';
 
 const esClientObj = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
@@ -80,7 +80,7 @@ async function updateIssuesWithSubtasks(
   sprintId: ${issueData.sprintId},
   `);
 
-        await sqsClient.sendMessage(
+        await sqsClient.sendFifoMessage(
           {
             organization,
             projectId: issueData.projectId,
@@ -88,7 +88,9 @@ async function updateIssuesWithSubtasks(
             sprintId: issueData.sprintId,
             issue,
           },
-          Queue.qIssueFormat.queueUrl
+          Queue.qIssueFormat.queueUrl,
+          issue.key,
+          uuid()
         );
       } catch (error) {
         logger.error(`JIRA_SUBTASK_ISSUE_DETAILS_MIGRATION', ${error}`);

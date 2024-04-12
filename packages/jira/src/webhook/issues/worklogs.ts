@@ -7,6 +7,7 @@ import { getOrganization } from 'src/repository/organization/get-organization';
 import { formatIssue } from 'src/util/issue-helper';
 import { searchedDataFormator } from 'src/util/response-formatter';
 import { Queue } from 'sst/node/queue';
+import { v4 as uuid } from 'uuid';
 
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
@@ -29,9 +30,9 @@ async function fetchJiraIssues(issueId: string, orgId: string): Promise<Other.Ty
       Jira.Enums.IndexName.Issue,
       issueQuery
     );
-    const issuesData = await searchedDataFormator(unformattedIssues);
+    const [issuesData] = await searchedDataFormator(unformattedIssues);
 
-    logger.info(`fetchJiraIssues.successful id:, ${issueId}`);
+    logger.info(`fetchJiraIssues.successful id:, ${JSON.stringify(issuesData)}`);
     return issuesData;
   } catch (error) {
     logger.error(`fetchJiraIssues.error, ${error} , ${issueId}`);
@@ -50,7 +51,7 @@ export async function worklog(issueId: string, organization: string): Promise<vo
       throw new Error(`worklog.no_issue_found: ${organization}, issueId: ${issueId}`);
     }
     const issue = formatIssue(issueData);
-    await sqsClient.sendMessage(
+    await sqsClient.sendFifoMessage(
       {
         organization,
         projectId: issueData.projectId,
@@ -58,7 +59,9 @@ export async function worklog(issueId: string, organization: string): Promise<vo
         sprintId: issueData.sprintId,
         issue,
       },
-      Queue.qIssueFormat.queueUrl
+      Queue.qIssueFormat.queueUrl,
+      issue.key,
+      uuid()
     );
     logger.info('worklog.success', { issueId });
   } catch (error) {

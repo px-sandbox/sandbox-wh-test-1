@@ -1,6 +1,4 @@
-type retryProcess = {
-  processId?: string;
-}
+import { retryProcess } from './retry-process';
 
 export type Project = retryProcess & {
   id: string;

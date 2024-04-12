@@ -1,8 +1,5 @@
 import { ChangelogItem } from '../external/webhook';
-
-type retryProcess = {
-  processId?: string;
-}
+import { retryProcess } from './retry-process';
 
 export type Issue = retryProcess & {
   id: string;
