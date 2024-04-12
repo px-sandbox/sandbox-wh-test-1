@@ -16,30 +16,30 @@ export const handler = async function jiraIndexDataReciever(event: SQSEvent): Pr
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
       try {
-        const { index, data: messageBody } = JSON.parse(record.body);
+        const { index, data: messageBody, processId } = JSON.parse(record.body);
         logger.info(`${index} SQS_RECIEVER_HANDLER_INDEXED`, { messageBody });
 
         switch (index) {
           case Jira.Enums.IndexName.Board:
-            await saveBoardDetails(messageBody);
+            await saveBoardDetails(messageBody, processId);
             break;
           case Jira.Enums.IndexName.Issue:
-            await saveIssueDetails(messageBody);
+            await saveIssueDetails(messageBody, processId);
             break;
           case Jira.Enums.IndexName.IssueStatus:
-            await saveIssueStatusDetails(messageBody);
+            await saveIssueStatusDetails(messageBody, processId);
             break;
           case Jira.Enums.IndexName.Project:
-            await saveProjectDetails(messageBody);
+            await saveProjectDetails(messageBody, processId);
             break;
           case Jira.Enums.IndexName.Sprint:
-            await saveSprintDetails(messageBody);
+            await saveSprintDetails(messageBody, processId);
             break;
           case Jira.Enums.IndexName.Users:
-            await saveUserDetails(messageBody);
+            await saveUserDetails(messageBody, processId);
             break;
           case Jira.Enums.IndexName.ReopenRate:
-            await saveReOpenRate(messageBody);
+            await saveReOpenRate(messageBody, processId);
             break;
           default:
             logger.error('jiraIndexDataReceiver.error', { error: `${index} indexer not found` });

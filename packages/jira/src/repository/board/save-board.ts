@@ -3,6 +3,7 @@ import { Jira } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
+import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 /**
  * Saves the details of a Jira board to DynamoDB and Elasticsearch.
@@ -12,9 +13,9 @@ import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
  */
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveBoardDetails(data: Jira.Type.Board): Promise<void> {
+export async function saveBoardDetails(data: Jira.Type.Board, processId?: string): Promise<void> {
   try {
-    const updatedData = { ...data };
+    const { ...updatedData } = data;
 
     logger.info('saveBoardDetails.invoked');
 
@@ -37,6 +38,7 @@ export async function saveBoardDetails(data: Jira.Type.Board): Promise<void> {
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.Board, updatedData);
     logger.info('saveBoardDetails.successful');
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error('saveBoardDetails.error', {
       error,

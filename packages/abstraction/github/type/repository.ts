@@ -1,6 +1,7 @@
 import { actions } from './actions';
+import { retryProcess } from './retry-process';
 
-export interface Repository {
+export type Repository = {
   id: string;
   githubId: number;
   name: string;
@@ -17,7 +18,10 @@ export interface Repository {
   pushedAt: Date;
   deletedAt: Date;
 }
-export interface RepoFormatter {
+
+
+
+export type RepoFormatter = retryProcess & {
   id: string;
   body: {
     id: string;

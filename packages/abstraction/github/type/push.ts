@@ -1,6 +1,7 @@
 import { actions } from './actions';
+import { retryProcess } from './retry-process';
 
-export type Push = {
+export type Push = retryProcess & {
   id: string;
   body: {
     id: string;

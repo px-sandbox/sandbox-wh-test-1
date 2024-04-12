@@ -6,6 +6,7 @@ import {
   searchedDataFormator,
   searchedDataFormatorWithDeleted,
 } from '../../util/response-formatter';
+import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 /**
  * Updates data in ElasticSearch index based on the provided matchField and matchValue.
@@ -61,9 +62,9 @@ async function updateData(
  * @returns A Promise that resolves when the project details have been saved successfully.
  * @throws An error if there was an issue saving the project details.
  */
-export async function saveProjectDetails(data: Jira.Type.Project): Promise<void> {
+export async function saveProjectDetails(data: Jira.Type.Project, processId?: string): Promise<void> {
   try {
-    const updatedData = { ...data };
+    const { ...updatedData } = data;
     const matchQry = esb
       .requestBodySearch()
       .query(
@@ -109,6 +110,7 @@ export async function saveProjectDetails(data: Jira.Type.Project): Promise<void>
       ]);
     }
     logger.info('saveProjectDetails.successful');
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error('saveProjectDetails.error', {
       error,

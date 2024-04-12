@@ -17,9 +17,8 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
     const messageBody = JSON.parse(record.body);
     logger.info('ISSUE_SQS_RECIEVER_HANDLER', { messageBody });
     const issueProcessor = new IssueProcessor(messageBody);
-
     const data = await issueProcessor.processor();
-    await issueProcessor.save({ data, index: Jira.Enums.IndexName.Issue });
+    await issueProcessor.save({ data, index: Jira.Enums.IndexName.Issue, processId: messageBody?.processId});
   } catch (error) {
     await logProcessToRetry(record, Queue.qIssueFormat.queueUrl, error as Error);
     logger.error('issueFormattedDataReciever.error', error);

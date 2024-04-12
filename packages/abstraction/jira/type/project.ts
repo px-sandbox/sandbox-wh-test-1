@@ -1,4 +1,6 @@
-export type Project = {
+import { retryProcess } from './retry-process';
+
+export type Project = retryProcess & {
   id: string;
   body: {
     id: string;

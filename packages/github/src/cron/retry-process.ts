@@ -11,16 +11,17 @@ const dynamodbClient = DynamoDbDocClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 
 async function processIt(record: Github.Type.QueueMessage): Promise<void> {
-  const { processId, messageBody, queue, MessageDeduplicationId } = record;
-  logger.info('RetryProcessHandlerProcessData', { processId, messageBody, queue });
+  const { processId, messageBody, queue, MessageDeduplicationId, MessageGroupId } = record;
   try {
-    // send to queue
     await sqsClient
-      .sendMessage(JSON.parse(messageBody), queue, MessageDeduplicationId)
+      .sendMessage(
+        { ...JSON.parse(messageBody), processId },
+        queue,
+        MessageGroupId,
+        MessageDeduplicationId
+      )
       .then(async () => {
         logger.info('RetryProcessHandlerProcess.success', { processId, queue });
-        await dynamodbClient.delete(new RetryTableMapping().prepareDeleteParams(processId));
-        logger.info('RetryProcessHandlerProcess.delete', { processId, queue });
       })
       .catch((error) => {
         logger.error('RetryProcessHandlerProcess.error', error);
@@ -46,9 +47,8 @@ export async function handler(): Promise<void> {
     const itemsToPick = githubRetryLimit.data.rate.remaining / 3;
     const limit = 200;
     const params = new RetryTableMapping().prepareScanParams(limit);
-
     // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < Math.floor(itemsToPick / limit); i++) {
+    for (let i = 0; i < Math.floor(itemsToPick/limit); i++) {
       logger.info(`RetryProcessHandler process count ${i} at: ${new Date().toISOString()}`);
       // eslint-disable-next-line no-await-in-loop
       const processes = await dynamodbClient.scanAllItems(params);
@@ -61,9 +61,7 @@ export async function handler(): Promise<void> {
       await Promise.all(
         items.map((record: unknown) => processIt(record as Github.Type.QueueMessage))
       );
-      logger.info('RetryProcessHandler lastEvaluatedKey', {
-        lastEvaluatedKey: processes.LastEvaluatedKey,
-      });
+      logger.info(`RetryProcessHandler lastEvaluatedKey: ${processes.LastEvaluatedKey}`);
       params.ExclusiveStartKey = processes.LastEvaluatedKey;
     }
   } else {

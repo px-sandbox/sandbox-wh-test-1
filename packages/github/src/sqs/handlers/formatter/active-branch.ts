@@ -51,13 +51,16 @@ async function countBranchesAndSendToSQS(
       branchesCount: totalActiveBranches,
     });
     const data = await branchProcessor.processor();
-    await branchProcessor.save({ data, eventType: Github.Enums.Event.ActiveBranches });
+    await branchProcessor.save({
+      data,
+      eventType: Github.Enums.Event.ActiveBranches,
+      processId: data?.processId,
+    });
   } catch (error: unknown) {
     logger.error(`
     countBranchesAndSendToSQS.error for ${repo.id} at ${date}
     Error: ${error}
     `);
-
     throw error;
   }
 }

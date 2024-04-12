@@ -1,6 +1,7 @@
 import { ChangelogItem } from '../external/webhook';
+import { retryProcess } from './retry-process';
 
-export type Issue = {
+export type Issue = retryProcess & {
   id: string;
   body: {
     id: string;

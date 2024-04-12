@@ -3,10 +3,11 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
+import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function savePRReview(data: Github.Type.PRReview): Promise<void> {
+export async function savePRReview(data: Github.Type.PRReview, processId?: string): Promise<void> {
   try {
     const updatedData = { ...data };
     const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.id', data.body.id)).toJSON();
@@ -20,6 +21,7 @@ export async function savePRReview(data: Github.Type.PRReview): Promise<void> {
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPRReview, updatedData);
     logger.info('savePRReview.successful');
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error('savePRReview.error', {
       error,

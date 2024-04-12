@@ -103,6 +103,11 @@ async function processWebhookEvent(
           eventTime
         );
         break;
+      case Jira.Enums.Event.WorklogCreated:
+      case Jira.Enums.Event.WorklogUpdated:
+      case Jira.Enums.Event.WorklogDeleted:
+        await issue.worklog(body.worklog.issueId, organization);
+        break;
       default:
         logger.info(`No case found for ${eventName} in Jira webhook event`);
         break;
