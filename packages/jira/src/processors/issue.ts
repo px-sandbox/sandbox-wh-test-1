@@ -1,18 +1,17 @@
 /* eslint-disable max-lines-per-function */
+import { SQSClient } from '@pulse/event-handler';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
-import { v4 as uuid } from 'uuid';
-import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
+import { v4 as uuid } from 'uuid';
+import { filterIssueChangelogs } from '../lib/get-issue-changelogs';
 import { mappingPrefixes } from '../constant/config';
-import { getIssueChangelogs } from '../lib/get-issue-changelogs';
 import { JiraClient } from '../lib/jira-client';
 import { getOrganization } from '../repository/organization/get-organization';
-import { getFailedStatusDetails } from '../util/issue-status';
 import { DataProcessor } from './data-processor';
 
-const sqsClient = new SQSClient();
+const sqsClient = SQSClient.getInstance();
 export class IssueProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Issue,
   Jira.Type.Issue
@@ -53,37 +52,34 @@ export class IssueProcessor extends DataProcessor<
       logger.error(`Organization ${this.apiData.organization} not found`);
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    const parentId: string | undefined = await this.getParentId(
-      `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`
-    );
+    const jiraId = `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`;
+    let parentId: string | undefined = await this.getParentId(jiraId);
+
+    if (!parentId && this.apiData.eventName === Jira.Enums.Event.IssueUpdated) {
+      throw new Error(`issue_not_found_for_update_event: id:${jiraId}`);
+    }
+    // if parent id is not present in dynamoDB then create a new parent id
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(parentId, jiraId);
+    }
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
-    const changelogArr = await getIssueChangelogs(this.apiData.issue.id, jiraClient);
-    let reOpenCount = 0;
-    const QaFailed = await getFailedStatusDetails(orgData.id);
-    if (changelogArr.length > 0) {
-      reOpenCount = changelogArr.filter(
-        (items) => items.to === QaFailed.issueStatusId && items.toString === QaFailed.name
-      ).length;
-    }
 
     // sending parent issue to issue format queue so that it gets updated along with it's subtask
     if (issueDataFromApi?.fields?.parent) {
       const parentIssueData = await jiraClient.getIssue(issueDataFromApi.fields.parent.key);
-      // const sprint =
-      //   parentIssueData.fields?.customfield_10007 && parentIssueData.fields.customfield_10007[0];
-      await sqsClient.sendMessage(
+      await sqsClient.sendFifoMessage(
         {
           organization: this?.apiData?.organization ?? '',
-          // projectId: this?.apiData?.issue?.fields?.project?.id ?? '',
-          // boardId: sprint?.boardId ?? '',
-          // sprintId: parentIssueData?.fields?.sprint?.id ?? '',
           issue: parentIssueData,
+          eventName: Jira.Enums.Event.IssueUpdated,
         },
-        Queue.qIssueFormat.queueUrl
+        Queue.qIssueFormat.queueUrl,
+        issueDataFromApi.key,
+        uuid()
       );
     }
-
     const issueObj = {
       id: parentId ?? uuid(),
       body: {
@@ -94,7 +90,6 @@ export class IssueProcessor extends DataProcessor<
         issueKey: this.apiData.issue.key,
         isFTP: this.apiData.issue.fields.labels?.includes('FTP') ?? false,
         isFTF: this.apiData.issue.fields.labels?.includes('FTF') ?? false,
-        reOpenCount,
         issueType: this.apiData.issue.fields.issuetype.name,
         isPrimary: true,
         priority: this.apiData.issue.fields.priority.name,
@@ -119,11 +114,13 @@ export class IssueProcessor extends DataProcessor<
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.id,
-        changelog: changelogArr,
         timeTracker: {
           estimate: issueDataFromApi?.fields?.timetracking?.originalEstimateSeconds ?? 0,
           actual: issueDataFromApi?.fields?.timetracking?.timeSpentSeconds ?? 0,
         },
+        changelog: this.apiData.changelog
+          ? await filterIssueChangelogs([this.apiData.changelog])
+          : [],
       },
     };
     return issueObj;

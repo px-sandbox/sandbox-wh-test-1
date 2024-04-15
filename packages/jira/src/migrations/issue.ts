@@ -23,7 +23,7 @@ async function checkAndSave(
   issues: ${issues.length}
   total: ${Array.from(new Set(issues.map((issue) => issue.id))).length}
   `);
-  const sqsClient = new SQSClient();
+  const sqsClient = SQSClient.getInstance();
 
   await Promise.all(
     issues.map(async (issue) =>

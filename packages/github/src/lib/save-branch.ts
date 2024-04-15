@@ -1,12 +1,13 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
+import { deleteProcessfromDdb } from 'src/util/delete-process';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveBranchDetails(data: Github.Type.Branch): Promise<void> {
+export async function saveBranchDetails(data: Github.Type.Branch, processId?: string): Promise<void> {
   try {
     const updatedData = { ...data };
     const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.id', data.body.id)).toJSON();
@@ -19,10 +20,9 @@ export async function saveBranchDetails(data: Github.Type.Branch): Promise<void>
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitBranch, updatedData);
     logger.info('saveBranchDetails.successful');
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
-    logger.error('saveBranchDetails.error', {
-      error,
-    });
+    logger.error(`saveBranchDetails.error, ${error}`);
     throw error;
   }
 }

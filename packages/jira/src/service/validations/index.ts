@@ -29,7 +29,6 @@ export const getBoardsSchema = {
         },
       },
       required: ['orgId', 'projectId'],
-
     },
   },
 };
@@ -48,7 +47,6 @@ export const updateIssueStatusSchema = {
         },
       },
       required: ['issueStatusDocId', 'pxStatus'],
-
     },
   },
 };

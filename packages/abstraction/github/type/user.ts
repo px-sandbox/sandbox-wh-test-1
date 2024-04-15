@@ -17,4 +17,5 @@ export type UserBody = {
 export interface User {
   id: string;
   body: UserBody;
+  processId?: string; 
 }

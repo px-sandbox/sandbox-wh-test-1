@@ -1,4 +1,4 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { S3 } from 'aws-sdk';
 import { GetObjectRequest } from 'aws-sdk/clients/s3';
@@ -8,7 +8,7 @@ import moment from 'moment';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 export async function repoSastErrorsFormatter(
   data: Github.ExternalType.Api.RepoSastErrors
 ): Promise<Github.Type.RepoSastErrors[]> {
@@ -30,22 +30,22 @@ export async function repoSastErrorsFormatter(
   }));
 }
 
-const getQuery = (repoId: string, branch: string, orgId: string, createdAt: string):object => {
-    const matchQry = esb
-      .boolQuery()
-      .must([
-        esb.termQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`),
-        esb.termQuery('body.branch', branch),
-        esb.termQuery('body.organizationId', `${mappingPrefixes.organization}_${orgId}`),
-        esb
-          .rangeQuery('body.createdAt')
-          .gt(moment().utc().startOf('day').toISOString())
-          .lt(createdAt),
-        esb.termQuery('body.isDeleted', false),
-      ])
-      .toJSON();
+const getQuery = (repoId: string, branch: string, orgId: string, createdAt: string): object => {
+  const matchQry = esb
+    .boolQuery()
+    .must([
+      esb.termQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`),
+      esb.termQuery('body.branch', branch),
+      esb.termQuery('body.organizationId', `${mappingPrefixes.organization}_${orgId}`),
+      esb
+        .rangeQuery('body.createdAt')
+        .gt(moment().utc().startOf('day').toISOString())
+        .lt(createdAt),
+      esb.termQuery('body.isDeleted', false),
+    ])
+    .toJSON();
   return matchQry;
-}
+};
 export async function storeSastErrorReportToES(
   data: Github.Type.RepoSastErrors[],
   repoId: string,
@@ -54,8 +54,7 @@ export async function storeSastErrorReportToES(
   createdAt: string
 ): Promise<void> {
   try {
-    
-   const matchQry = getQuery(repoId, branch, orgId, createdAt);
+    const matchQry = getQuery(repoId, branch, orgId, createdAt);
     const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
     await esClientObj.updateByQuery(
       Github.Enums.IndexName.GitRepoSastErrors,

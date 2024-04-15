@@ -1,4 +1,5 @@
-export interface ActiveBranches {
+import { retryProcess } from './retry-process';
+export type ActiveBranches = retryProcess & {
   id: string;
   body: {
     id: string;

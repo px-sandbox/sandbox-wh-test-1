@@ -70,7 +70,11 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       repoId,
     });
     const data = await commitProcessor.processor();
-    await commitProcessor.save({ data, eventType: Github.Enums.Event.Commit });
+    await commitProcessor.save({
+      data,
+      eventType: Github.Enums.Event.Commit,
+      processId: messageBody?.processId,
+    });
   } catch (error) {
     logger.error(`commitFormattedDataReceiver.error, ${error}`);
     await logProcessToRetry(record, Queue.qGhCommitFormat.queueUrl, error as Error);
@@ -80,16 +84,22 @@ export const handler = async function commitFormattedDataReceiver(event: SQSEven
   logger.info(`Records Length: ${event.Records.length}`);
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
-    Object.values(messageGroups).map(async (group) =>
-    {
-      return new Promise((resolve, reject) =>
-        async.eachSeries(group, async function (item) { 
-          await processAndStoreSQSRecord(item);
-        }, (error) => {
-        if (error) {
-          logger.error(`commitFormattedDataReceiver.error, ${error}`);
-        }
-          resolve('DONE');
-      }))
-    }));
-}
+    Object.values(messageGroups).map(
+      async (group) =>
+        new Promise((resolve) => {
+          async.eachSeries(
+            group,
+            async (item: SQSRecord) => {
+              await processAndStoreSQSRecord(item);
+            },
+            (error: any) => {
+              if (error) {
+                logger.error(`commitFormattedDataReceiver.error, ${error}`);
+              }
+              resolve('DONE');
+            }
+          );
+        })
+    )
+  );
+};

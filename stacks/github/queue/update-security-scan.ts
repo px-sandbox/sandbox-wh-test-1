@@ -2,6 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Queue, use, Function } from 'sst/constructs';
 import { commonConfig } from '../../common/config';
 import { GithubTables } from '../../type/tables';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeSecurityScanQueue(stack: Stack, githubDDb: GithubTables): Queue[] {
@@ -17,7 +18,13 @@ export function initializeSecurityScanQueue(stack: Stack, githubDDb: GithubTable
   } = use(commonConfig);
 
   const { retryProcessTable } = githubDDb;
-  const scansSaveQueue = new Queue(stack, 'qGhScansSave');
+  const scansSaveQueue = new Queue(stack, 'qGhScansSave', {
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhScansSave'),
+      },
+    },
+  });
   scansSaveQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhScansSave', {
       handler: 'packages/github/src/sqs/handlers/update-security-scans.handler',

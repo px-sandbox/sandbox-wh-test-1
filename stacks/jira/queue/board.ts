@@ -2,8 +2,13 @@ import { Queue, use, Function } from 'sst/constructs';
 import { Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
-export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[] {
+export function initializeBoardQueue(
+  stack: Stack,
+  jiraDDB: JiraTables,
+  jiraIndexDataQueue: Queue
+): Queue {
   const {
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -12,21 +17,17 @@ export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
-    NODE_VERSION
+    NODE_VERSION,
+    REQUEST_TIMEOUT,
   } = use(commonConfig);
 
-  const boardIndexDataQueue = new Queue(stack, 'qBoardIndex', {
-    consumer: {
-      function: 'packages/jira/src/sqs/handlers/indexer/board.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const boardFormatDataQueue = new Queue(stack, 'qBoardFormat', {
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qBoardFormat'),
       },
     },
   });
-
-  const boardFormatDataQueue = new Queue(stack, 'qBoardFormat');
 
   boardFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnBoardFormat', {
@@ -45,23 +46,16 @@ export function initializeBoardQueue(stack: Stack, jiraDDB: JiraTables): Queue[]
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
     jiraDDB.processJiraRetryTable,
-    boardIndexDataQueue,
+    jiraIndexDataQueue,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS
-  ]);
-  boardIndexDataQueue.bind([
-    jiraDDB.jiraCredsTable,
-    jiraDDB.jiraMappingTable,
-    jiraDDB.processJiraRetryTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
+    AVAILABLE_PROJECT_KEYS,
+    REQUEST_TIMEOUT,
   ]);
 
-  return [boardFormatDataQueue, boardIndexDataQueue];
+  return boardFormatDataQueue;
 }

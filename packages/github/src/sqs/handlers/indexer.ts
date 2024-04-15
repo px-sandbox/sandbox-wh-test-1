@@ -20,34 +20,35 @@ export const handler = async function indexDataReceiver(event: SQSEvent): Promis
   await async.eachSeries(event.Records, async (record: SQSRecord) => {
     const messageBody = JSON.parse(record.body);
     logger.info('INDEXER_HANDLER', { eventType: messageBody.eventType });
+    logger.info('INDEXER_HANDLER_MESSAGE', { messageBody });
     try {
       switch (messageBody.eventType) {
         case Github.Enums.Event.Repo:
-          await saveRepoDetails(messageBody.data);
+          await saveRepoDetails(messageBody.data, messageBody.processId);
           break;
         case Github.Enums.Event.Branch:
-          await saveBranchDetails(messageBody.data);
+          await saveBranchDetails(messageBody.data, messageBody.processId);
           break;
         case Github.Enums.Event.Commit:
-          await saveCommitDetails(messageBody.data);
+          await saveCommitDetails(messageBody.data, messageBody.processId);
           break;
         case Github.Enums.Event.Commit_Push:
-          await savePushDetails(messageBody.data);
+          await savePushDetails(messageBody.data, messageBody.processId);
           break;
         case Github.Enums.Event.PRReview:
-          await savePRReview(messageBody.data);
+          await savePRReview(messageBody.data, messageBody.processId);
           break;
         case Github.Enums.Event.PRReviewComment:
-          await savePRReviewComment(messageBody.data);
+          await savePRReviewComment(messageBody.data, messageBody.processId);
           break;
         case Github.Enums.Event.PullRequest:
-          await savePRDetails(messageBody.data);
+          await savePRDetails(messageBody.data, messageBody.processId);
           break;
         case Github.Enums.Event.Organization:
-          await saveUserDetails(messageBody.data);
+          await saveUserDetails(messageBody.data, messageBody.processId);
           break;
         case Github.Enums.Event.ActiveBranches:
-          await saveActiveBranch(messageBody.data);
+          await saveActiveBranch(messageBody.data, messageBody.processId);
           break;
         case Github.Enums.Event.Copilot:
           await saveGHCopilotReport(messageBody.data);
@@ -58,7 +59,7 @@ export const handler = async function indexDataReceiver(event: SQSEvent): Promis
       }
     } catch (error) {
       await logProcessToRetry(record, Queue.qGhIndex.queueUrl, error as Error);
-      logger.error('indexDataReceiver.error', { errorInfo: JSON.stringify(error) });
+      logger.error(`indexDataReceiver.error, ${error}`);
     }
   });
 };

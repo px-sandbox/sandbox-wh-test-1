@@ -1,17 +1,12 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { responseParser, HttpStatusCode } from 'core';
+import { HttpStatusCode, responseParser } from 'core';
 import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
 import { estimatesVsActualsBreakdown } from '../../matrics/estimates-vs-actuals-breakdown';
 import { searchedDataFormator } from '../../util/response-formatter';
 
-const esClientObj = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClient.getInstance();
 
 /**
  * Handles the API Gateway event for fetching estimates vs actuals breakdown view.
@@ -30,7 +25,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     .query(esb.boolQuery().must(esb.termQuery('body.id', orgId)))
     .source(['body.name']);
   const orgnameRes = await searchedDataFormator(
-    await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Organization, orgnameQuery.toJSON())
+    await esClientObj.search(Jira.Enums.IndexName.Organization, orgnameQuery.toJSON())
   );
 
   if (!projectId || !sprintId || !orgId) {

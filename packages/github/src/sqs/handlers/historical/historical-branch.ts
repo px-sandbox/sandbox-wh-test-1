@@ -1,7 +1,8 @@
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { OctokitResponse } from '@octokit/types';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
@@ -9,7 +10,7 @@ import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 const installationAccessToken = await getInstallationAccessToken();
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 const octokit = ghRequest.request.defaults({
   headers: {
@@ -25,9 +26,9 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
     if (messageBody.reqBranch) {
       branches.push(messageBody.reqBranch);
     } else {
-      const githubBranches = await octokitRequestWithTimeout(
+      const githubBranches = (await octokitRequestWithTimeout(
         `GET /repos/${owner}/${name}/branches?per_page=100&page=${page}`
-      );
+      )) as OctokitResponse<any>;
       const octokitRespData = getOctokitResp(githubBranches);
       logger.info('GET_API_BRANCH_DATA', octokitRespData);
       const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/; // eslint-disable-line no-useless-escape

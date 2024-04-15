@@ -1,13 +1,13 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
-import { SQSClientGh } from '@pulse/event-handler';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
 import { mappingPrefixes } from '../../constant/config';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
-const sqsClient = SQSClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 async function deletePrevDependencies(repoId: string): Promise<void> {
   const matchQry = esb

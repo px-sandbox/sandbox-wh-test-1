@@ -1,10 +1,10 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import esb from 'elastic-builder';
 import { mappingPrefixes } from '../constant/config';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 export async function getPullRequestById(
   pullId: number
 ): Promise<Array<{ _id: string } & Github.Type.PullRequestBody>> {

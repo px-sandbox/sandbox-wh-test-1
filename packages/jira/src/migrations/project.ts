@@ -18,7 +18,7 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
     return;
   }
 
-  const sqsClient = new SQSClient();
+  const sqsClient = SQSClient.getInstance();
 
   // get project details and send it to formatter
   const project = await jira.getProject(projectId);
@@ -31,10 +31,7 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
       },
       Queue.qProjectFormat.queueUrl
     ),
-    sqsClient.sendMessage(
-      { organization, projectId: project.id },
-      Queue.qBoardMigrate.queueUrl
-    ),
+    sqsClient.sendMessage({ organization, projectId: project.id }, Queue.qBoardMigrate.queueUrl),
   ]);
 }
 
@@ -44,12 +41,11 @@ export const handler = async function projectMigration(event: SQSEvent): Promise
       try {
         const { organization, projectId } = JSON.parse(record.body);
         return checkAndSave(organization, projectId);
-
       } catch (error) {
         logger.error(JSON.stringify({ error, event }));
         await logProcessToRetry(record, Queue.qProjectMigrate.queueUrl, error as Error);
         logger.error('projectMigrateDataReciever.error', error);
       }
     })
-  )
-}
+  );
+};

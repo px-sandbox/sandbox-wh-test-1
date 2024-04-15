@@ -1,9 +1,9 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 export async function getUserById(
   userId: string
 ): Promise<Array<{ _id: string } & Github.Type.UserBody>> {

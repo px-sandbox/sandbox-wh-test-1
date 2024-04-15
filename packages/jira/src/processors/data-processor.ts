@@ -1,8 +1,8 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
+import { Queue } from 'sst/node/queue';
 import { ParamsMapping } from '../model/params-mapping';
-
 
 /**
  * Abstract class for processing Jira API data.
@@ -10,14 +10,15 @@ import { ParamsMapping } from '../model/params-mapping';
  * @template S - Type of processed data.
  */
 export abstract class DataProcessor<T, S> {
-  protected apiData: T;
-
+  protected DynamoDbDocClient: DynamoDbDocClient;
+  protected SQSClient: SQSClient;
   /**
    * Constructor for DataProcessor class.
    * @param data - Jira API data to be processed.
    */
-  constructor(data: T) {
-    this.apiData = data;
+  constructor(protected apiData: T) {
+    this.DynamoDbDocClient = DynamoDbDocClient.getInstance();
+    this.SQSClient = SQSClient.getInstance();
   }
 
   /**
@@ -45,7 +46,7 @@ export abstract class DataProcessor<T, S> {
    * @returns Returns the parent ID of the Jira API data.
    */
   public async getParentId(id: string): Promise<string | undefined> {
-    const ddbRes = await new DynamoDbDocClient().find(new ParamsMapping().prepareGetParams(id));
+    const ddbRes = await this.DynamoDbDocClient.find(new ParamsMapping().prepareGetParams(id));
 
     return ddbRes?.parentId as string | undefined;
   }
@@ -55,8 +56,15 @@ export abstract class DataProcessor<T, S> {
    * @param data - Data to be sent to the queue.
    * @param url - URL of the SQS queue.
    */
-  public async sendDataToQueue<U>(data: U, url: string): Promise<void> {
-    await new SQSClient().sendMessage(data, url);
+  public async save<U>(data: U): Promise<void> {
+    const validated = this.validate();
+    if (!validated) {
+      throw new Error('data_validation_failed');
+    }
+    await this.SQSClient.sendMessage(data, Queue.qJiraIndex.queueUrl);
   }
 
+  public async putDataToDynamoDB(parentId: string, jiraId: string): Promise<void> {
+    await this.DynamoDbDocClient.put(new ParamsMapping().preparePutParams(parentId, jiraId));
+  }
 }

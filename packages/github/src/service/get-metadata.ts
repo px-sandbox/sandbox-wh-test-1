@@ -39,9 +39,5 @@ const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
 };
 
 const handler = getMetadata;
-// Todo: Middy validation timeout
-//   APIHandler(getMetadata, {
-//   eventSchema: transpileSchema(getMetadataSchema),
-// });
 
 export { getMetadata, handler };

@@ -2,6 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeRepoQueue(
@@ -19,7 +20,13 @@ export function initializeRepoQueue(
   } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDb;
 
-  const repoFormatDataQueue = new Queue(stack, 'qGhRepoFormat');
+  const repoFormatDataQueue = new Queue(stack, 'qGhRepoFormat', {
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhRepoFormat'),
+      },
+    },
+  });
   repoFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnRepoFormat', {
       handler: 'packages/github/src/sqs/handlers/formatter/repo.handler',
@@ -39,6 +46,11 @@ export function initializeRepoQueue(
         eventSource: {
           batchSize: 1,
         },
+      },
+    },
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhAfterRepoSave'),
       },
     },
   });

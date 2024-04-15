@@ -1,9 +1,9 @@
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { LibParamsMapping } from '../../../model/lib-master-mapping';
 
-const dynamodbClient = DynamoDbDocClientGh.getInstance();
+const dynamodbClient = DynamoDbDocClient.getInstance();
 export const handler = async function latestDepRegistry(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(

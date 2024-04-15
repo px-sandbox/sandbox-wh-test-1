@@ -4,7 +4,6 @@ import moment from 'moment';
 import { saveProjectDetails } from '../../repository/project/save-project';
 import { getProjectById } from '../../repository/project/get-project';
 
-
 /**
  * Deletes a Jira project.
  * @param project - The project to be deleted.

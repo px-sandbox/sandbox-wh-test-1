@@ -1,3 +1,4 @@
+import { retryProcess } from './retry-process';
 export type CommitedFiles = {
   filename: string;
   additions: string;
@@ -5,7 +6,9 @@ export type CommitedFiles = {
   changes: string;
   status: string;
 };
-export interface Commits {
+
+
+export type Commits = retryProcess & {
   id: string;
   body: {
     id: string;

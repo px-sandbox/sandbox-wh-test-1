@@ -5,6 +5,7 @@ import { Queue } from 'sst/node/queue';
 import { getUserById } from '../../repository/user/get-user';
 import { mappingToApiData } from './mapper';
 
+const sqsClient = SQSClient.getInstance();
 /**
  * Updates a Jira user in the system.
  * @param user - The user object to update.
@@ -23,5 +24,6 @@ export async function update(
 
   const userData = mappingToApiData(user, userIndexData.createdAt, organization);
   logger.info('userUpdatedEvent: Send message to SQS');
-  await new SQSClient().sendMessage(userData, Queue.qUserFormat.queueUrl);
+
+  await sqsClient.sendMessage(userData, Queue.qUserFormat.queueUrl);
 }

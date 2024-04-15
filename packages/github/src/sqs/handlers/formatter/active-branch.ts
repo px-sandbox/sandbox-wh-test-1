@@ -1,4 +1,4 @@
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { HitBody } from 'abstraction/other/type';
 import async from 'async';
@@ -9,7 +9,7 @@ import { Queue } from 'sst/node/queue';
 import { ActiveBranchProcessor } from '../../../processors/active-branch';
 import { logProcessToRetry } from '../../../util/retry-process';
 
-const esClient = ElasticSearchClientGh.getInstance();
+const esClient = ElasticSearchClient.getInstance();
 const getBranches = async (repoId: string, date: string): Promise<HitBody> => {
   const body = esb
     .requestBodySearch()
@@ -51,13 +51,16 @@ async function countBranchesAndSendToSQS(
       branchesCount: totalActiveBranches,
     });
     const data = await branchProcessor.processor();
-    await branchProcessor.save({ data, eventType: Github.Enums.Event.ActiveBranches });
+    await branchProcessor.save({
+      data,
+      eventType: Github.Enums.Event.ActiveBranches,
+      processId: data?.processId,
+    });
   } catch (error: unknown) {
     logger.error(`
     countBranchesAndSendToSQS.error for ${repo.id} at ${date}
     Error: ${error}
     `);
-
     throw error;
   }
 }

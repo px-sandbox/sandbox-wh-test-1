@@ -3,7 +3,6 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, logger, responseParser } from 'core';
-import { Config } from 'sst/node/config';
 import { updateIssueStatusSchema } from '../validations';
 
 /**
@@ -12,44 +11,37 @@ import { updateIssueStatusSchema } from '../validations';
  * @returns A Promise that resolves to an APIGatewayProxyResult.
  * @throws An error if the issue status cannot be updated.
  */
+const esClient = ElasticSearchClient.getInstance();
 const issueStatus = async function updateIssueStatus(
-    event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-    const { issueStatusDocId, pxStatus } = event.queryStringParameters as {
-        issueStatusDocId: string,
-        pxStatus: string
-    };
-    logger.info({ level: 'info', message: 'jira orgId', data: { issueStatusDocId, pxStatus } });
+  const { issueStatusDocId, pxStatus } = event.queryStringParameters as {
+    issueStatusDocId: string;
+    pxStatus: string;
+  };
+  logger.info({ level: 'info', message: 'jira orgId', data: { issueStatusDocId, pxStatus } });
 
-    // To update issue status for an organization we first get that issue and then update its status
+  // To update issue status for an organization we first get that issue and then update its status
 
-    try {
-        const esClient = new ElasticSearchClient({
-            host: Config.OPENSEARCH_NODE,
-            username: Config.OPENSEARCH_USERNAME ?? '',
-            password: Config.OPENSEARCH_PASSWORD ?? '',
-        });
+  try {
+    const data = await esClient.updateDocument(Jira.Enums.IndexName.IssueStatus, issueStatusDocId, {
+      body: { pxStatus },
+    });
 
-        const data = await esClient.updateDocument(
-            Jira.Enums.IndexName.IssueStatus,
-            issueStatusDocId,
-            { body: { pxStatus } }
-        );
-
-        return responseParser
-            .setBody(data)
-            .setMessage('Successfully updated issue status')
-            .setStatusCode(200)
-            .setResponseBodyCode('SUCCESS')
-            .send();
-    } catch (error) {
-        logger.error('UPDATE_JIRA_ISSUE_STATUS', { error });
-        throw new Error(`Not able to update issue status: ${error}`);
-    }
+    return responseParser
+      .setBody(data)
+      .setMessage('Successfully updated issue status')
+      .setStatusCode(200)
+      .setResponseBodyCode('SUCCESS')
+      .send();
+  } catch (error) {
+    logger.error('UPDATE_JIRA_ISSUE_STATUS', { error });
+    throw new Error(`Not able to update issue status: ${error}`);
+  }
 };
 
 const handler = APIHandler(issueStatus, {
-    eventSchema: transpileSchema(updateIssueStatusSchema),
+  eventSchema: transpileSchema(updateIssueStatusSchema),
 });
 
 export { issueStatus, handler };

@@ -1,52 +1,41 @@
 import esb from 'elastic-builder';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../../util/response-formatter';
-import { ParamsMapping } from '../../model/params-mapping';
-import { mappingPrefixes } from '../../constant/config';
-
+import { deleteProcessfromDdb } from 'src/util/delete-process';
 /**
  * Saves the details of a Jira issue to DynamoDB and Elasticsearch.
  * @param data The issue data to be saved.
  * @returns A Promise that resolves when the data has been saved successfully.
  * @throws An error if there was a problem saving the data.
  */
-export async function saveIssueDetails(data: Jira.Type.Issue): Promise<void> {
+const esClientObj = ElasticSearchClient.getInstance();
+export async function saveIssueDetails(data: Jira.Type.Issue, processId?: string): Promise<void> {
   try {
     const updatedData = { ...data };
-    const orgId = data.body.organizationId.split('org_')[1];
-    await new DynamoDbDocClient().put(
-      new ParamsMapping().preparePutParams(
-        data.id,
-        `${data.body.id}_${mappingPrefixes.org}_${orgId}`
-      )
-    );
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const matchQry = esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.id', data.body.id),
-        esb.termQuery('body.organizationId.keyword', data.body.organizationId),
-      ])
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.id', data.body.id),
+            esb.termQuery('body.organizationId.keyword', data.body.organizationId),
+          ])
+      )
       .toJSON();
-    const issueData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Issue, matchQry);
+    const issueData = await esClientObj.search(Jira.Enums.IndexName.Issue, matchQry);
     const [formattedData] = await searchedDataFormator(issueData);
     if (formattedData) {
       updatedData.id = formattedData._id;
+      updatedData.body.changelog = [...formattedData.changelog, ...data.body.changelog];
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.Issue, updatedData);
     logger.info('saveIssueDetails.successful');
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
-    logger.error('saveIssueDetails.error', {
-      error,
-    });
+    logger.error(`saveIssueDetails.error: ${error}`);
     throw error;
   }
 }

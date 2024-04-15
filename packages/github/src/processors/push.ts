@@ -13,10 +13,11 @@ export class PushProcessor extends DataProcessor<
     super(data);
   }
   public async processor(): Promise<Github.Type.Push> {
-    let parentId = await this.getParentId(`${mappingPrefixes.push}_${this.ghApiData.id}`);
+    const githubId = `${mappingPrefixes.push}_${this.ghApiData.id}`;
+    let parentId = await this.getParentId(githubId);
     if (!parentId) {
       parentId = uuid();
-      await this.putDataToDynamoDB(parentId, `${mappingPrefixes.push}_${this.ghApiData.id}`);
+      await this.putDataToDynamoDB(parentId, githubId);
     }
     const commitsArr: Array<string> = this.ghApiData.commits.map(
       (data: { id: string }) => `${mappingPrefixes.commit}_${data.id}`

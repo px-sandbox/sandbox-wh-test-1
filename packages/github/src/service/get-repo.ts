@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import { transpileSchema } from '@middy/validator/transpile';
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
@@ -8,7 +8,7 @@ import esb from 'elastic-builder';
 import { IRepo, formatRepoDataResponse, searchedDataFormator } from '../util/response-formatter';
 import { getGitRepoSchema } from './validations';
 
-const esClient = ElasticSearchClientGh.getInstance();
+const esClient = ElasticSearchClient.getInstance();
 async function fetchReposData(
   repoIds: string[],
   gitRepoName: string,
@@ -31,7 +31,10 @@ async function fetchReposData(
     const query = esb.boolQuery();
 
     if (gitRepoName) {
-      query.must([esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`), esb.termQuery('body.isDeleted', false)]);
+      query.must([
+        esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`),
+        esb.termQuery('body.isDeleted', false),
+      ]);
     }
     const finalQ = esb
       .requestBodySearch()
@@ -41,7 +44,7 @@ async function fetchReposData(
       .toJSON() as { query: object };
     esbQuery = finalQ;
   }
-  console.log('esbQuery', JSON.stringify(esbQuery));
+  logger.info('esbQuery', JSON.stringify(esbQuery));
   const data = await esClient.search(Github.Enums.IndexName.GitRepo, esbQuery);
 
   return searchedDataFormator(data);

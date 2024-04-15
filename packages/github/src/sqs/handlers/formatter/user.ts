@@ -11,7 +11,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
 
     const userProcessor = new UsersProcessor(messageBody);
     const data = await userProcessor.processor();
-    await userProcessor.save({ data, eventType: Github.Enums.Event.Organization });
+    await userProcessor.save({ data, eventType: Github.Enums.Event.Organization,processId: messageBody?.processId });
   } catch (error) {
     logger.error('userFormattedDataReceiver.error', error);
   }

@@ -4,6 +4,8 @@ import { Hit, HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
+
+const sqsClient = SQSClient.getInstance();
 /**
  * Removes the reopen issue with the given ID and marks it as deleted.
  * @param issueId - The ID of the issue to be removed.
@@ -13,12 +15,12 @@ import { Queue } from 'sst/node/queue';
  *  or false if the issue was not found.
  */
 export async function removeReopenRate(
-    issue: (Pick<Hit, '_id'> & HitBody) | Jira.Mapped.ReopenRateIssue,
-    eventTime: moment.Moment,
+  issue: (Pick<Hit, '_id'> & HitBody) | Jira.Mapped.ReopenRateIssue,
+  eventTime: moment.Moment
 ): Promise<void | false> {
-    try {
-        await new SQSClient().sendMessage({ ...issue, eventTime }, Queue.qReOpenRateDelete.queueUrl);
-    } catch (error) {
-        logger.error(`removeReopenRate.error, ${error}`);
-    }
+  try {
+    await sqsClient.sendMessage({ ...issue, eventTime }, Queue.qReOpenRateDelete.queueUrl);
+  } catch (error) {
+    logger.error(`removeReopenRate.error, ${error}`);
+  }
 }

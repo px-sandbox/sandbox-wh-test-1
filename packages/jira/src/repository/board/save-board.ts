@@ -1,12 +1,9 @@
-import esb from 'elastic-builder';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
-import { ParamsMapping } from '../../model/params-mapping';
-import { mappingPrefixes } from '../../constant/config';
+import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 /**
  * Saves the details of a Jira board to DynamoDB and Elasticsearch.
@@ -14,34 +11,34 @@ import { mappingPrefixes } from '../../constant/config';
  * @returns A Promise that resolves when the board details have been saved.
  * @throws An error if there was a problem saving the board details.
  */
-export async function saveBoardDetails(data: Jira.Type.Board): Promise<void> {
+const esClientObj = ElasticSearchClient.getInstance();
+
+export async function saveBoardDetails(data: Jira.Type.Board, processId?: string): Promise<void> {
   try {
-    const updatedData = { ...data };
-    const orgId = data.body.organizationId.split('org_')[1];
+    const { ...updatedData } = data;
+
     logger.info('saveBoardDetails.invoked');
-    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(
-      data.id,
-      `${data.body.id}_${mappingPrefixes.org}_${orgId}`));
-    const esClientObj = await new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const matchQry =
-      esb
-        .boolQuery()
-        .must([
-          esb.termsQuery('body.id', data.body.id),
-          esb.termQuery('body.organizationId', data.body.organizationId),
-        ]).toJSON();
+
+    const matchQry = esb
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.id', data.body.id),
+            esb.termQuery('body.organizationId', data.body.organizationId),
+          ])
+      )
+      .toJSON();
     logger.info('saveBoardDetails.matchQry------->', { matchQry });
-    const boardData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Board, matchQry);
+    const boardData = await esClientObj.search(Jira.Enums.IndexName.Board, matchQry);
     const [formattedData] = await searchedDataFormatorWithDeleted(boardData);
     if (formattedData) {
       updatedData.id = formattedData._id;
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.Board, updatedData);
     logger.info('saveBoardDetails.successful');
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error('saveBoardDetails.error', {
       error,

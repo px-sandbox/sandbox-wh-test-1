@@ -1,12 +1,12 @@
 import { ScanCommandInput, ScanCommandOutput } from '@aws-sdk/lib-dynamodb';
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { SQSClientGh } from '@pulse/event-handler';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { LibParamsMapping } from '../model/lib-master-mapping';
 
-const dynamodbClient = DynamoDbDocClientGh.getInstance();
-const sqsClient = SQSClientGh.getInstance();
+const dynamodbClient = DynamoDbDocClient.getInstance();
+const sqsClient = SQSClient.getInstance();
 async function sendAllDepsToQueue(
   items: Array<{ libName: string; version: string }>
 ): Promise<void> {

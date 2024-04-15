@@ -1,7 +1,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable no-await-in-loop */
-import { DynamoDbDocClientGh } from '@pulse/dynamodb';
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
@@ -11,7 +11,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 import { paginate, sortData } from '../util/version-upgrades';
 
 // initializing elastic search client
-const esClientObj = ElasticSearchClientGh.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 
 /**
  * Fetches library records from DynamoDB based on the provided library names.
@@ -24,7 +24,7 @@ async function fetchDDRecords(
 ): Promise<{ [key: string]: { libname: string; version: string; releaseDate: string } }> {
   const libKeys = libNames.map((libName) => ({ libName }));
 
-  const ddClient = DynamoDbDocClientGh.getInstance();
+  const ddClient = DynamoDbDocClient.getInstance();
   const tableIndex = Table.libMaster.tableName;
   let results: Github.Type.LibraryRecord[] = [];
 
@@ -50,7 +50,7 @@ async function fetchDDRecords(
     };
 
     try {
-      const data = await ddClient.batchGet(params);
+      const data = await ddClient.batchGet<Record<string, Github.Type.LibraryRecord[]>>(params);
       logger.info('Items:', data);
       if (data && data[tableIndex]) {
         results = [...results, ...(data[tableIndex] as Github.Type.LibraryRecord[])];
@@ -71,50 +71,56 @@ async function fetchDDRecords(
   return resObj;
 }
 
-const repoLibsQuery = async (repoIds:string[],searchString:string,counter:number): Promise<any> => {
+const repoLibsQuery = async (
+  repoIds: string[],
+  searchString: string,
+  counter: number
+): Promise<any> => {
   const repoLibQuery = esb
     .requestBodySearch()
     .size(100)
     .from(100 * (counter - 1))
     .query(
-    esb.boolQuery()
-    .must(esb.termQuery('body.isDeleted', false))
-    .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
-    .minimumShouldMatch(1));
+      esb
+        .boolQuery()
+        .must(esb.termQuery('body.isDeleted', false))
+        .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
+        .minimumShouldMatch(1)
+    );
 
   if (searchString) {
-    repoLibQuery.query(esb.boolQuery().must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`)));
+    repoLibQuery.query(
+      esb.boolQuery().must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`))
+    );
   }
 
   const finalRepoLibQuery = repoLibQuery.toJSON();
 
-
-    const data = await esClientObj.search(
-      Github.Enums.IndexName.GitRepoLibrary,
-      finalRepoLibQuery,
-    );
+  const data = await esClientObj.search(Github.Enums.IndexName.GitRepoLibrary, finalRepoLibQuery);
 
   const repoLibs = await searchedDataFormator(data);
   return repoLibs;
-}
+};
 
-const getRepoName = async (repoIds: string[], counter2:number): Promise<Github.Type.RepoNameType[]> => {
+const getRepoName = async (
+  repoIds: string[],
+  counter2: number
+): Promise<Github.Type.RepoNameType[]> => {
   const repoNamesQuery = esb
     .requestBodySearch()
     .from(100 * (counter2 - 1))
     .size(100)
     .query(
-    esb.boolQuery()
-    .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
-    .minimumShouldMatch(1))
+      esb
+        .boolQuery()
+        .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
+        .minimumShouldMatch(1)
+    )
     .toJSON();
-    const repoNamesData = await esClientObj.search(
-      Github.Enums.IndexName.GitRepo,
-      repoNamesQuery,  
-    );
+  const repoNamesData = await esClientObj.search(Github.Enums.IndexName.GitRepo, repoNamesQuery);
   const repoNames = await searchedDataFormator(repoNamesData);
   return repoNames;
-}
+};
 /**
  * Retrieves the upgraded version data for the given repository IDs.
  * @param repoIds An array of repository IDs.
@@ -124,9 +130,9 @@ async function getESVersionUpgradeData(
   repoIds: string[],
   searchString: string
 ): Promise<Github.Type.ESVersionUpgradeType> {
-  const repoLibData = []; 
-  let counter = 1; 
-  let repoLibs; 
+  const repoLibData = [];
+  let counter = 1;
+  let repoLibs;
 
   do {
     repoLibs = await repoLibsQuery(repoIds, searchString, counter);
@@ -136,9 +142,9 @@ async function getESVersionUpgradeData(
     }
   } while (repoLibs?.length);
 
-  const repoNamesArr: Github.Type.RepoNameType[] = []; 
-  let counter2 = 1; 
-  let repoNames; 
+  const repoNamesArr: Github.Type.RepoNameType[] = [];
+  let counter2 = 1;
+  let repoNames;
   do {
     repoNames = await getRepoName(repoIds, counter2);
     if (repoNames?.length) {

@@ -1,7 +1,6 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import async from 'async';
 import { Github } from 'abstraction';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { RepositoryProcessor } from '../../../processors/repo';
@@ -13,7 +12,11 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
 
     const repoProcessor = new RepositoryProcessor(messageBody);
     const data = await repoProcessor.processor();
-    await repoProcessor.save({ data, eventType: Github.Enums.Event.Repo });
+    await repoProcessor.save({
+      data,
+      eventType: Github.Enums.Event.Repo,
+      processId: messageBody?.processId,
+    });
   } catch (error) {
     logger.error(`repoFormattedDataReceiver.error, ${error}`);
     await logProcessToRetry(record, Queue.qGhRepoFormat.queueUrl, error as Error);

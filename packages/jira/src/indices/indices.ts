@@ -1,7 +1,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
 
 const indices = [
   {
@@ -345,22 +344,18 @@ const indices = [
  */
 async function createMapping(name: string, mappings: Jira.Type.IndexMapping): Promise<void> {
   try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    }).getClient();
+    const esClient = ElasticSearchClient.getInstance();
 
-    const { statusCode } = await esClient.indices.exists({ index: name });
+    const { statusCode } = await esClient.isIndexExists(name);
     if (statusCode === 200) {
       logger.info(`Index '${name}' already exists.`);
-      await esClient.indices.putMapping({ index: name, body: mappings });
+      await esClient.updateIndex(name, mappings);
       return;
     }
 
     logger.info(`Creating mapping for index '${name}'...`);
 
-    await esClient.indices.create({ index: name, body: { mappings } });
+    await esClient.createIndex(name, mappings);
 
     logger.info(`Created mapping for '${name}' successful`);
   } catch (error) {

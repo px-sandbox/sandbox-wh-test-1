@@ -4,10 +4,11 @@ import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
 import moment from 'moment';
+import { JiraClient } from '../../lib/jira-client';
 import { getProjectById } from '../../repository/project/get-project';
 import { projectKeysMapper } from './mapper';
 
-
+const sqsClient = SQSClient.getInstance();
 /**
  * Updates a Jira project using the provided webhook data.
  * @param project - The project data received from the webhook.
@@ -23,7 +24,10 @@ export async function update(
 ): Promise<void | false> {
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
 
-  logger.info('projectUpdatedEvent', { projectKey: project.key, availableProjectKeys: projectKeys });
+  logger.info('projectUpdatedEvent', {
+    projectKey: project.key,
+    availableProjectKeys: projectKeys,
+  });
 
   if (!projectKeys.includes(project.key)) {
     logger.info('processProjectUpdatedEvent: Project not available in our system');
@@ -35,15 +39,17 @@ export async function update(
     logger.info('projectUpdatedEvent: Project not found');
     return false;
   }
-
+  const jiraClient = await JiraClient.getClient(organization);
+  const projectData = await jiraClient.getProject(project.id.toString());
   const updatedAt = eventTime.toISOString();
   const updatedProjectBody: Jira.Mapped.Project = projectKeysMapper(
-    project,
+    projectData,
     projectIndexData.createdAt,
     organization,
     updatedAt
   );
 
   logger.info('processProjectUpdatedEvent: Send message to SQS');
-  await new SQSClient().sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
+
+  await sqsClient.sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
 }

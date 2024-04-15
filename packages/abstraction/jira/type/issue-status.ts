@@ -1,4 +1,8 @@
-export type IssueStatus = {
+type retryProcess = {
+    processId?: string;
+}
+
+export type IssueStatus = retryProcess & {
     id: string;
     body: {
         id: string;

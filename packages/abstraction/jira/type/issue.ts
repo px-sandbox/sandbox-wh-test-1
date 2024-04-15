@@ -1,6 +1,7 @@
 import { ChangelogItem } from '../external/webhook';
+import { retryProcess } from './retry-process';
 
-export type Issue = {
+export type Issue = retryProcess & {
   id: string;
   body: {
     id: string;
@@ -10,7 +11,6 @@ export type Issue = {
     projectKey: string;
     isFTP: boolean;
     isFTF: boolean;
-    reOpenCount: number;
     issueType: string;
     isPrimary: boolean;
     priority: string;

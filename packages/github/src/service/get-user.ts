@@ -1,5 +1,5 @@
 import { transpileSchema } from '@middy/validator/transpile';
-import { ElasticSearchClientGh } from '@pulse/elasticsearch';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
@@ -11,7 +11,7 @@ import {
 } from '../util/response-formatter';
 import { getGitUserSchema } from './validations';
 
-const esClient = ElasticSearchClientGh.getInstance();
+const esClient = ElasticSearchClient.getInstance();
 
 const getGitUser = async (githubUserId: string): Promise<IformatUserDataResponse[]> => {
   const query = esb
@@ -19,7 +19,10 @@ const getGitUser = async (githubUserId: string): Promise<IformatUserDataResponse
     .query(
       esb
         .boolQuery()
-        .must([esb.termQuery('body.id', githubUserId), esb.termQuery('body.isDeleted', false)])
+        .must([
+          esb.termQuery('body.githubUserId', githubUserId),
+          esb.termQuery('body.isDeleted', false),
+        ])
     )
     .toJSON();
   const data = await esClient.search(Github.Enums.IndexName.GitUsers, query);

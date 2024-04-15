@@ -1,11 +1,11 @@
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
 import { preparePush } from './push';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 export async function getCommits(commits: Github.ExternalType.Webhook.Commit): Promise<void> {
   try {

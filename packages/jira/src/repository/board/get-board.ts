@@ -1,8 +1,7 @@
-import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
+import esb from 'elastic-builder';
 import { mappingPrefixes } from '../../constant/config';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
 import { getOrganization } from '../organization/get-organization';
@@ -13,26 +12,29 @@ import { getOrganization } from '../organization/get-organization';
  * @returns A promise that resolves with the board data.
  * @throws An error if the board cannot be retrieved.
  */
-export async function getBoardById(boardId: number, organization: string): Promise<Other.Type.HitBody> {
+const esClientObj = ElasticSearchClient.getInstance();
+export async function getBoardById(
+  boardId: number,
+  organization: string
+): Promise<Other.Type.HitBody> {
   try {
-    const esClientObj = await new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const orgData = await getOrganization(organization);
     if (!orgData) {
       logger.error(`Organization ${organization} not found`);
       throw new Error(`Organization ${organization} not found`);
     }
     const matchQry = esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.id', `${mappingPrefixes.board}_${boardId}`),
-        esb.termQuery('body.organizationId', `${orgData.id}`),
-      ])
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.id', `${mappingPrefixes.board}_${boardId}`),
+            esb.termQuery('body.organizationId', orgData.id),
+          ])
+      )
       .toJSON();
-    const boardData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Board, matchQry);
+    const boardData = await esClientObj.search(Jira.Enums.IndexName.Board, matchQry);
     const [formattedBoardData] = await searchedDataFormatorWithDeleted(boardData);
     return formattedBoardData;
   } catch (error: unknown) {
@@ -53,20 +55,18 @@ export async function getBoardByOrgId(
   organizationId: string
 ): Promise<Other.Type.HitBody> {
   try {
-    const esClientObj = await new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-
     const matchQry = esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.id', `${boardId}`),
-        esb.termQuery('body.organizationId', `${organizationId}`),
-      ])
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.id', boardId),
+            esb.termQuery('body.organizationId', organizationId),
+          ])
+      )
       .toJSON();
-    const boardData = await esClientObj.searchWithEsb(Jira.Enums.IndexName.Board, matchQry);
+    const boardData = await esClientObj.search(Jira.Enums.IndexName.Board, matchQry);
     const [formattedBoardData] = await searchedDataFormatorWithDeleted(boardData);
     return formattedBoardData;
   } catch (error: unknown) {

@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { SQSClientGh } from '@pulse/event-handler';
+import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -13,7 +13,7 @@ import { getOctokitResp } from '../../../util/octokit-response';
 import { logProcessToRetry } from '../../../util/retry-process';
 import { getWorkingTime } from '../../../util/timezone-calculation';
 
-const sqsClient = SQSClientGh.getInstance();
+const sqsClient = SQSClient.getInstance();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function processQueueOnMergedPR(octokitRespData: any, messageBody: any): Promise<void> {
   await sqsClient.sendFifoMessage(
