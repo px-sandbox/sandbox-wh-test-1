@@ -32,7 +32,7 @@ export class BranchProcessor extends DataProcessor<
         id: `${mappingPrefixes.branch}_${this.ghApiData.id}`,
         githubBranchId: this.ghApiData.id,
         name: this.ghApiData.name ?? this.ghApiData.ref,
-        organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        organizationId: `${mappingPrefixes.organization}_${this.ghApiData.orgId}`,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repo_id}`,
         createdAt,
         pushedAt: this.ghApiData?.pushed_at,

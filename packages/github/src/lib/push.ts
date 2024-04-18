@@ -10,11 +10,12 @@ export async function preparePush(
   ref: string,
   pusherId: string,
   lastCommitId: string,
-  repoId: string
+  repoId: string,
+  orgId: string
 ): Promise<void> {
   try {
     await sqsClient.sendMessage(
-      { commits, ref, pusherId, id: lastCommitId, repoId },
+      { commits, ref, pusherId, id: lastCommitId, repoId, orgId },
       Queue.qGhPushFormat.queueUrl
     );
   } catch (error: unknown) {

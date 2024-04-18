@@ -22,10 +22,10 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       commitId,
       mergedBranch,
       pushedBranch,
-      repository: { id: repoId, name: repoName, owner: repoOwner },
+      repository: { id: repoId, name: repoName, owner: repoOwner, ownerId: orgId  },
       timestamp,
     } = messageBody;
-
+    console.log('commitId', repoOwner,orgId);
     let { isMergedCommit } = messageBody;
     /**
      * ------------------------------------
@@ -66,6 +66,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
         mergedBranch,
         pushedBranch,
         timestamp,
+        orgId,
       },
       repoId,
     });

@@ -50,7 +50,7 @@ export class PRReviewProcessor extends DataProcessor<
         state: this.ghApiData.state,
         pullId: `${mappingPrefixes.pull}_${this.pullId}`,
         repoId: `${mappingPrefixes.repo}_${this.repoId}`,
-        organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        organizationId: `${mappingPrefixes.organization}_${this.ghApiData.orgId}`,
         action,
         createdAtDay: moment(this.ghApiData.submitted_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.submitted_at),

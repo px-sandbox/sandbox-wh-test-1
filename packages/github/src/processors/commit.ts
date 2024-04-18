@@ -31,7 +31,7 @@ export class CommitProcessor extends DataProcessor<
         status: data.status,
       })
     );
-
+    console.log("TESSSTT",this.ghApiData);
     const orgObj = {
       id: parentId,
       body: {
@@ -48,7 +48,7 @@ export class CommitProcessor extends DataProcessor<
         changes: filesArr,
         totalChanges: this.ghApiData.stats.total,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
-        organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        organizationId: `${mappingPrefixes.organization}_${this.ghApiData.commits.orgId}`,
         createdAt: this.ghApiData.commit.committer.date,
         createdAtDay: moment(this.ghApiData.commit.committer.date).format('dddd'),
         computationalDate: await this.calculateComputationalDate(

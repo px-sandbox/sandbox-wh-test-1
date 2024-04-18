@@ -23,6 +23,7 @@ export async function getCommits(commits: Github.ExternalType.Webhook.Commit): P
                   id: commits.repository.id,
                   name: commits.repository.name,
                   owner: commits.repository.owner.name,
+                  ownerId: commits.repository.owner.id,
                 },
                 timestamp: commit.timestamp,
               },
@@ -36,7 +37,8 @@ export async function getCommits(commits: Github.ExternalType.Webhook.Commit): P
           commits.ref,
           commits.sender.id,
           commits.after,
-          commits.repository.id
+          commits.repository.id,
+          commits.repository.owner.id,
         ),
       ]);
     }

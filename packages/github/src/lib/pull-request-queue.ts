@@ -47,19 +47,19 @@ export async function pROnQueue(
         }
       }
     }
-      await sqsClient.sendFifoMessage(
-        {
-          ...pull,
-          reviewed_at: reviewedAt,
-          approved_at: approvedAt,
-          review_seconds: reviewSeconds,
-          action,
-        },
-        Queue.qGhPrFormat.queueUrl,
-        String(pull.id),
-        uuid()
-      );
-    
+    await sqsClient.sendFifoMessage(
+      {
+        ...pull,
+        reviewed_at: reviewedAt,
+        approved_at: approvedAt,
+        review_seconds: reviewSeconds,
+        action,
+      },
+      Queue.qGhPrFormat.queueUrl,
+      String(pull.id),
+      uuid()
+    );
+
   } catch (error: unknown) {
     logger.error({
       error,

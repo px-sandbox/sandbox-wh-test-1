@@ -71,7 +71,7 @@ export class PRProcessor extends DataProcessor<
         deletions: this.ghApiData.deletions,
         changedFiles: this.ghApiData.changed_files,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.head.repo.id}`,
-        organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        organizationId: `${mappingPrefixes.organization}_${this.ghApiData.head.repo.owner.id}`, 
         action,
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),

@@ -20,7 +20,7 @@ export type Commit = {
     name: string;
     owner: {
       name: string;
-      id?: string;
+      id: string;
     };
   };
   created_at: string;
