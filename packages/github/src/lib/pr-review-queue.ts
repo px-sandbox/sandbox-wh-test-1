@@ -69,8 +69,8 @@ export async function pRReviewOnQueue(
   pullId: number,
   repoId: number,
   repo: string,
-  orgId: string,
   owner: string,
+  orgId: string,
   pullNumber: number,
   action: string
 ): Promise<void> {

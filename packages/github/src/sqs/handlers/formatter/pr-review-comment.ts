@@ -10,8 +10,8 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   try {
     const messageBody = JSON.parse(record.body);
     logger.info('PULL_REQUEST_REVIEW_COMMENT_SQS_RECEIVER_HANDLER', { messageBody });
-    const { comment, pullId, repoId, action } = messageBody;
-    const prReviewCommentProcessor = new PRReviewCommentProcessor(comment, pullId, repoId, action);
+    const { comment, pullId, repoId, action, orgId } = messageBody;
+    const prReviewCommentProcessor = new PRReviewCommentProcessor(comment, pullId, repoId, action, orgId);
     const data = await prReviewCommentProcessor.processor();
     await prReviewCommentProcessor.save({
       data,

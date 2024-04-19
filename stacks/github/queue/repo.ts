@@ -17,6 +17,7 @@ export function initializeRepoQueue(
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_SG_INSTALLATION_ID,
     NODE_VERSION,
+    REQUEST_TIMEOUT,
   } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDb;
 
@@ -68,6 +69,7 @@ export function initializeRepoQueue(
     GITHUB_SG_INSTALLATION_ID,
     branchFormatDataQueue,
     indexerQueue,
+    REQUEST_TIMEOUT,
   ]);
   return [repoFormatDataQueue, afterRepoSaveQueue];
 }

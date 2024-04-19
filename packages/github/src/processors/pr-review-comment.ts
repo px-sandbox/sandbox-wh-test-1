@@ -15,7 +15,8 @@ export class PRReviewCommentProcessor extends DataProcessor<
     data: Github.ExternalType.Webhook.PRReviewComment,
     pullId: number,
     repoId: number,
-    action: string
+    action: string,
+    private orgId: number
   ) {
     super(data);
     this.pullId = pullId;
@@ -62,7 +63,7 @@ export class PRReviewCommentProcessor extends DataProcessor<
         },
         pullId: `${mappingPrefixes.pull}_${this.pullId}`,
         repoId: `${mappingPrefixes.repo}_${this.repoId}`,
-        organizationId: `${mappingPrefixes.organization}_${this.ghApiData.orgId}`,
+        organizationId: `${mappingPrefixes.organization}_${this.orgId}`,
         action,
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
