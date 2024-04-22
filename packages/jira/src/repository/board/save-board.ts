@@ -3,7 +3,7 @@ import { Jira } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
-import { deleteProcessfromDdb } from 'src/util/delete-process';
+import { deleteProcessfromDdb } from 'rp';
 
 /**
  * Saves the details of a Jira board to DynamoDB and Elasticsearch.

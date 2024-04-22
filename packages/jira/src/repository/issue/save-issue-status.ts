@@ -3,7 +3,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { searchedDataFormator } from '../../util/response-formatter';
-import { deleteProcessfromDdb } from 'src/util/delete-process';
+import { deleteProcessfromDdb } from 'rp';
 
 /**
  * Saves the issue status details to DynamoDB and Elasticsearch.

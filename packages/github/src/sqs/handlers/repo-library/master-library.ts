@@ -4,7 +4,7 @@ import axios from 'axios';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { getNodeLibInfo } from '../../../util/node-library-info';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 const sqsClient = SQSClient.getInstance();
 export const handler = async function masterLibrary(event: SQSEvent): Promise<void> {

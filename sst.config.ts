@@ -4,10 +4,10 @@ import { gh } from './stacks/github/github';
 import { devops } from './stacks/devops';
 import { jira } from './stacks/jira/jira';
 import { commonConfig } from './stacks/common/config';
-
 import { AppConfig, Stage } from './stacks/type/stack-config';
 import { dpscStack } from './stacks/dpsc/dpsc';
 import { pmStack } from './stacks/pm/pm';
+import { rp } from './stacks/rp/rp';
 
 export default {
   config(): { name: string; region: string } {
@@ -23,6 +23,7 @@ export default {
     Tags.of(app).add("Environment", app.stage);
 
     app.stack(commonConfig);
+    app.stack(rp);
     app.stack(gh);
     app.stack(jira);
     app.stack(devops);

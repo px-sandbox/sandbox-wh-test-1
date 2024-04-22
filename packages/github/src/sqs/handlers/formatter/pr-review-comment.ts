@@ -4,7 +4,8 @@ import { Queue } from 'sst/node/queue';
 import async from 'async';
 import { Github } from 'abstraction';
 import { PRReviewCommentProcessor } from '../../../processors/pr-review-comment';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
+
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   try {

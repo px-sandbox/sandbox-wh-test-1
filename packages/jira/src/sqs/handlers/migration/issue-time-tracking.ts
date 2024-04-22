@@ -3,7 +3,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
 import axios from 'axios';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 import { JiraClient } from '../../../lib/jira-client';
 
 const sqsClient = new SQSClient();

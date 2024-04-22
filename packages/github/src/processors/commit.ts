@@ -31,7 +31,6 @@ export class CommitProcessor extends DataProcessor<
         status: data.status,
       })
     );
-    console.log("TESSSTT",this.ghApiData);
     const orgObj = {
       id: parentId,
       body: {

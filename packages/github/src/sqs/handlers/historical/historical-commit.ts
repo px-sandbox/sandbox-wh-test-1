@@ -7,8 +7,8 @@ import { v4 as uuid } from 'uuid';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
-import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
+import { logProcessToRetry } from 'rp';
 
 
 const installationAccessToken = await getInstallationAccessToken();

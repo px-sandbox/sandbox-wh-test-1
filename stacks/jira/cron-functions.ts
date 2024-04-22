@@ -16,26 +16,14 @@ export function initializeFunctions(stack: Stack, queues: Queue[], tables: JiraT
     REQUEST_TIMEOUT,
     NODE_VERSION,
   } = use(commonConfig);
-  const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } = tables;
+  const { jiraMappingTable, jiraCredsTable } = tables;
 
   const refreshToken = new Function(stack, 'fnRefreshToken', {
     handler: 'packages/jira/src/cron/refresh-token.updateRefreshToken',
     bind: [jiraCredsTable, JIRA_CLIENT_ID, JIRA_CLIENT_SECRET, JIRA_REDIRECT_URI],
     runtime: NODE_VERSION,
   });
-  const processJiraRetryFunction = new Function(stack, 'fnRetryProcess', {
-    handler: 'packages/jira/src/cron/process-jira-retry.handler',
-    bind: [
-      jiraMappingTable,
-      jiraCredsTable,
-      processJiraRetryTable,
-      JIRA_CLIENT_ID,
-      JIRA_CLIENT_SECRET,
-      JIRA_REDIRECT_URI,
-      ...queues,
-    ],
-    runtime: NODE_VERSION,
-  });
+
 
   const hardDeleteProjectsData = new Function(stack, 'hard-delete-projects-data', {
     handler: 'packages/jira/src/cron/hard-delete-projects.handler',
@@ -52,5 +40,5 @@ export function initializeFunctions(stack: Stack, queues: Queue[], tables: JiraT
     ],
     runtime: NODE_VERSION,
   });
-  return [refreshToken, processJiraRetryFunction, hardDeleteProjectsData];
+  return [refreshToken, hardDeleteProjectsData];
 }

@@ -12,14 +12,11 @@ export async function updateRefreshToken(): Promise<APIGatewayProxyResult> {
   logger.info(`Get refresh token invoked at: ${new Date().toISOString()}`);
   const ddbClient = DynamoDbDocClient.getInstance();
 
-  const data: { id: string; refresh_token: string }[] = await ddbClient.scan<{
-    id: string;
-    refresh_token: string;
-  }>({
+  const data = await ddbClient.scan({
     TableName: Table.jiraCreds.tableName,
   });
-
-  const ddbResp = data.map((item): { credId: string; refreshToken: string } => ({
+  const items = data.Items ? data.Items : [] as { id: string; refresh_token: string }[]
+  const ddbResp = items.map((item): { credId: string; refreshToken: string } => ({
     credId: item.id,
     refreshToken: item.refresh_token,
   }));

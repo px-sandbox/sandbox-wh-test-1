@@ -7,15 +7,12 @@ export function dpscStack({ stack }: StackContext): {
         universal: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
     }>;
 } {
-
-
-
+    
     const dpscAPI = initializeApi(stack);
-
     stack.addOutputs({
         ApiEndpoint: dpscAPI.url,
     });
-
+    
     return {
         dpscAPI,
     };

@@ -28,7 +28,7 @@ export function initializeApi(
     NODE_VERSION,
     REQUEST_TIMEOUT,
   } = use(commonConfig);
-  const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } = tables;
+  const { jiraMappingTable, jiraCredsTable, retryProcessTable } = tables;
   const [
     projectMigrateQueue,
     userMigrateQueue,
@@ -84,7 +84,7 @@ export function initializeApi(
           JIRA_REDIRECT_URI,
           jiraMappingTable,
           jiraCredsTable,
-          processJiraRetryTable,
+          retryProcessTable,
           AVAILABLE_PROJECT_KEYS,
           PROJECT_DELETION_AGE,
           REQUEST_TIMEOUT,

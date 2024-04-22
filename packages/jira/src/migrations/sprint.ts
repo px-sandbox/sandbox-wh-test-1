@@ -2,7 +2,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
-import { logProcessToRetry } from '../util/retry-process';
+import { logProcessToRetry } from 'rp';
 import { JiraClient } from '../lib/jira-client';
 
 async function checkAndSave(

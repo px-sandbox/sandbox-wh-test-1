@@ -6,7 +6,7 @@ import {
   searchedDataFormator,
   searchedDataFormatorWithDeleted,
 } from '../../util/response-formatter';
-import { deleteProcessfromDdb } from 'src/util/delete-process';
+import { deleteProcessfromDdb } from 'rp';
 
 /**
  * Updates data in ElasticSearch index based on the provided matchField and matchValue.

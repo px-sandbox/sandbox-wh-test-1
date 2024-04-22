@@ -8,7 +8,7 @@ import { saveIssueStatusDetails } from '../../repository/issue/save-issue-status
 import { saveProjectDetails } from '../../repository/project/save-project';
 import { saveSprintDetails } from '../../repository/sprint/save-sprint';
 import { saveUserDetails } from '../../repository/user/save-user';
-import { logProcessToRetry } from '../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 import { saveReOpenRate } from '../../repository/issue/save-reopen-rate';
 
 export const handler = async function jiraIndexDataReciever(event: SQSEvent): Promise<void> {

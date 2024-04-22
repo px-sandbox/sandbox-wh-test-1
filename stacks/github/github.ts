@@ -1,10 +1,11 @@
-import { Api, Bucket, Function, StackContext } from 'sst/constructs';
+import { Api, Bucket, Function, StackContext, use } from 'sst/constructs';
 import { HttpMethods } from 'aws-cdk-lib/aws-s3';
 import { initializeApi } from './api';
 import { initializeCron } from './init-crons';
 import { initializeFunctions } from './init-functions';
 import { initializeDynamoDBTables } from './init-tables';
 import { initializeQueue } from './queue/initialize';
+import { rp } from '../rp/rp';
 // eslint-disable-next-line max-lines-per-function,
 export function gh({ stack }: StackContext): {
   ghAPI: Api<{
@@ -14,10 +15,12 @@ export function gh({ stack }: StackContext): {
     admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
   }>;
 } {
+
+  const { retryProcessTable } = use(rp)
   /** Initialize DynamoDB Tables
    *
    */
-  const { githubMappingTable, retryProcessTable, libMasterTable } = initializeDynamoDBTables(stack);
+  const { githubMappingTable, libMasterTable } = initializeDynamoDBTables(stack);
   /**
    * Initialize Bucket
    */
