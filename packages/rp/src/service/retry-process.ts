@@ -62,5 +62,5 @@ export async function handler(): Promise<void> {
     );
     logger.info(`RetryProcessHandler lastEvaluatedKey: ${processes.LastEvaluatedKey}`);
     params.ExclusiveStartKey = processes.LastEvaluatedKey;
-  } while (itemsCount < 0);
+  } while (itemsCount > 0);
 }
