@@ -36,10 +36,10 @@ async function processIt(record: Github.Type.QueueMessage): Promise<void> {
 
 export async function handler(): Promise<void> {
   logger.info(`RetryProcessHandler invoked at: ${new Date().toISOString()}`);
-  const limit = 500;
+  const limit = 1;
   let itemsCount = 1000;
+  const params = new RetryTableMapping().prepareScanParams(limit);
   do {
-    const params = new RetryTableMapping().prepareScanParams(limit);
     // eslint-disable-next-line no-plusplus
     // eslint-disable-next-line no-await-in-loop
     const processes = await dynamodbClient.scan(params);
@@ -61,6 +61,9 @@ export async function handler(): Promise<void> {
       items.map((record: unknown) => processIt(record as Github.Type.QueueMessage))
     );
     logger.info(`RetryProcessHandler lastEvaluatedKey: ${processes.LastEvaluatedKey}`);
-    params.ExclusiveStartKey = processes.LastEvaluatedKey;
+    if (processes.LastEvaluatedKey === undefined) {
+      return;
+    }
+    params.ExclusiveStartKey = processes.LastEvaluatedKey; 
   } while (itemsCount > 0);
 }

@@ -28,7 +28,7 @@ export async function logProcessToRetry(
     await dynamodbClient.put(new RetryTableMapping().preparePutParams(processId || uuid(), retryBody));
   } catch (err) {
     logger.error(
-      JSON.stringify(`logProcessToRetry.failed: ${err}`)
+      JSON.stringify(`logProcessToRetry.failed: ${err}, error: ${error}`)
     );
   }
 }
