@@ -10,6 +10,7 @@ export type Commits = {
   isMergedCommit: boolean;
   mergedBranch: string;
   pushedBranch: string | null;
+  orgId: string;
 };
 
 export type Commit = {
