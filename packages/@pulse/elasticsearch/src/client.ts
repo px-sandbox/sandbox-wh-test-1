@@ -8,6 +8,7 @@ import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '
 
 export class ElasticSearchClient implements IElasticSearchClient {
   private client: Client;
+  // eslint-disable-next-line no-use-before-define
   private static instance: ElasticSearchClient;
   private constructor(options: ConnectionOptions) {
     this.client = new Client({
@@ -23,9 +24,10 @@ export class ElasticSearchClient implements IElasticSearchClient {
   public static getInstance(): ElasticSearchClient {
     if (!ElasticSearchClient.instance) {
       ElasticSearchClient.instance = new ElasticSearchClient({
-        host: Config.OPENSEARCH_NODE,
-        username: Config.OPENSEARCH_USERNAME ?? '',
-        password: Config.OPENSEARCH_PASSWORD ?? '',
+        // Config.OPENSEARCH_NODE,
+        host: 'https://search-pulse-sandbox-7ey7rm7lf2zyvhggccna4umqde.eu-west-1.es.amazonaws.com',
+        username: 'dxadmin', // Config.OPENSEARCH_USERNAME ?? '',
+        password: 'ZvsBC1))yW}K?v:RG?n&', // Config.OPENSEARCH_PASSWORD ?? '',
       });
     }
     return ElasticSearchClient.instance;
@@ -42,7 +44,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
       });
       return result.body;
     } catch (err) {
-      logger.error('searchWithEsb.error: ', { err });
+      logger.error({ message: 'searchWithEsb.error: ', error: err });
       throw err;
     }
   }
@@ -54,9 +56,9 @@ export class ElasticSearchClient implements IElasticSearchClient {
         body: query,
       });
       return body.aggregations;
-    } catch (err) {
-      logger.error('queryAggs.error : ', { err });
-      throw err;
+    } catch (error) {
+      logger.error({ message: 'queryAggs.error : ', error });
+      throw error;
     }
   }
 
@@ -82,9 +84,9 @@ export class ElasticSearchClient implements IElasticSearchClient {
         index: indexName,
         body: { query },
       });
-    } catch (err) {
-      logger.error('deleteByQuery.error : ', { err });
-      throw err;
+    } catch (error) {
+      logger.error({ message: 'deleteByQuery.error : ', error });
+      throw error;
     }
   }
 
@@ -96,7 +98,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
    * @throws {Error} If an error occurs while updating the documents.
    */
   public async updateByQuery(indexName: string, query: object, script: object): Promise<void> {
-    logger.info(`updateByQuery.updateData for index : ${indexName}`);
+    logger.info({ message: `updateByQuery.updateData for index : ${indexName}` });
     try {
       await this.client.updateByQuery({
         index: indexName,
@@ -105,9 +107,9 @@ export class ElasticSearchClient implements IElasticSearchClient {
           script,
         },
       });
-    } catch (err) {
-      logger.error('updateByQuery.error : ', { err });
-      throw err;
+    } catch (error) {
+      logger.error({ message: 'updateByQuery.error : ', error });
+      throw error;
     }
   }
   /**
@@ -123,9 +125,9 @@ export class ElasticSearchClient implements IElasticSearchClient {
         body: query,
       });
       return body;
-    } catch (err) {
-      logger.error('searchWithEsb.error: ', { err });
-      throw err;
+    } catch (error) {
+      logger.error({ message: 'searchWithEsb.error: ', error });
+      throw error;
     }
   }
 
@@ -140,9 +142,9 @@ export class ElasticSearchClient implements IElasticSearchClient {
       ]);
 
       await this.client.bulk({ refresh: true, body });
-    } catch (err) {
-      logger.error('bulkInsert.error: ', { err });
-      throw err;
+    } catch (error) {
+      logger.error({ message: 'bulkInsert.error: ', error });
+      throw error;
     }
   }
 
@@ -159,9 +161,9 @@ export class ElasticSearchClient implements IElasticSearchClient {
       ]);
 
       await this.client.bulk({ refresh: true, body });
-    } catch (err) {
-      logger.error('bulkUpdate.error: ', { err });
-      throw err;
+    } catch (error) {
+      logger.error({ message: 'bulkUpdate.error: ', error });
+      throw error;
     }
   }
 
@@ -171,7 +173,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
     try {
       return this.client.indices.exists({ index: indexName });
     } catch (err) {
-      logger.error(`isIndexExists.error: , ${err}`);
+      logger.error({ message: 'isIndexExists.error: ', error: err });
       throw err;
     }
   }
@@ -183,7 +185,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
     try {
       return this.client.indices.putSettings({ index: indexName, body });
     } catch (err) {
-      logger.error(`updateIndex.error: , ${err}`);
+      logger.error({ message: `updateIndex.error: , ${err}` });
       throw err;
     }
   }
@@ -195,7 +197,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
     try {
       return this.client.indices.create({ index: indexName, body });
     } catch (err) {
-      logger.error(`createIndex.error: , ${err}`);
+      logger.error({ message: `createIndex.error: , ${err}` });
       throw err;
     }
   }

@@ -6,8 +6,13 @@ import { logger } from 'core';
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<{ isAuthorized: boolean; context: APIGatewayAuthorizerResultContext }> => {
+  const { requestId } = event.requestContext;
   try {
-    logger.info('Auth.invoked', { event });
+    logger.info({
+      requestId,
+      message: 'auth.handler.invoked',
+      data: { event },
+    });
     if (process.env.IS_LOCAL) {
       return {
         isAuthorized: true,
@@ -32,7 +37,11 @@ export const handler = async (
       context: {},
     };
   } catch (error) {
-    logger.error('Auth.error', { error });
+    logger.error({
+      requestId,
+      message: 'auth.handler.error',
+      data: { error },
+    });
     return {
       isAuthorized: false,
       context: {},
