@@ -12,14 +12,24 @@ const sqsClient = SQSClient.getInstance();
  */
 export async function create(
   sprint: Jira.ExternalType.Webhook.Sprint,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void> {
+  const resourceId = sprint.id;
   try {
-    logger.info('sprint_event: Send message to SQS');
+    logger.info({ requestId, resourceId, message: 'sprint_event: Send message to SQS' });
 
-    await sqsClient.sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
-  } catch (e) {
-    logger.error('sprintCreateEvent: Error in creating sprint', e);
-    throw e;
+    await sqsClient.sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl, {
+      requestId,
+      resourceId,
+    });
+  } catch (error) {
+    logger.error({
+      requestId,
+      resourceId,
+      message: 'sprintCreateEvent: Error in creating sprint',
+      error,
+    });
+    throw error;
   }
 }

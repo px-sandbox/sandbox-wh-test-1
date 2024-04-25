@@ -15,14 +15,16 @@ import { saveSprintDetails } from '../../repository/sprint/save-sprint';
 export async function deleteSprint(
   sprint: Jira.ExternalType.Webhook.Sprint,
   eventTime: moment.Moment,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void | false> {
+  const resourceId = sprint.id;
   try {
-    logger.info('sprint delete event started for sprint id: ', sprint.id);
+    logger.info({ requestId, resourceId, message: 'sprint delete event started for sprint id: ' });
 
-    const sprintData = await getSprintById(sprint.id, organization);
+    const sprintData = await getSprintById(sprint.id, organization, { requestId, resourceId });
     if (!sprintData) {
-      logger.info('sprintDeletedEvent: Sprint not found');
+      logger.info({ requestId, resourceId, message: 'sprintDeletedEvent: Sprint not found' });
       return false;
     }
 
@@ -30,9 +32,17 @@ export async function deleteSprint(
     processSprintData.isDeleted = true;
     processSprintData.deletedAt = eventTime.toISOString();
 
-    logger.info(`sprintDeletedEvent: Delete Sprint id ${_id}`);
-    await saveSprintDetails({ id: _id, body: processSprintData } as Jira.Type.Sprint);
-  } catch (e) {
-    logger.error('sprintDeletedEvent: Error in deleting sprint', e);
+    logger.info({ requestId, resourceId, message: `sprintDeletedEvent: Delete Sprint id ${_id}` });
+    await saveSprintDetails({ id: _id, body: processSprintData } as Jira.Type.Sprint, {
+      requestId,
+      resourceId,
+    });
+  } catch (error) {
+    logger.error({
+      requestId,
+      resourceId,
+      message: 'sprintDeletedEvent: Error in deleting sprint',
+      error,
+    });
   }
 }

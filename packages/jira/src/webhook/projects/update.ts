@@ -20,23 +20,37 @@ const sqsClient = SQSClient.getInstance();
 export async function update(
   project: Jira.ExternalType.Webhook.Project,
   eventTime: moment.Moment,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void | false> {
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const resourceId = project.id.toString();
 
-  logger.info('projectUpdatedEvent', {
-    projectKey: project.key,
-    availableProjectKeys: projectKeys,
+  logger.info({
+    requestId,
+    message: 'projectUpdatedEvent',
+    data: {
+      projectKey: project.key,
+      availableProjectKeys: projectKeys,
+    },
+    resourceId,
   });
 
   if (!projectKeys.includes(project.key)) {
-    logger.info('processProjectUpdatedEvent: Project not available in our system');
+    logger.info({
+      requestId,
+      message: 'processProjectUpdatedEvent: Project not available in our system',
+      resourceId,
+    });
     return;
   }
 
-  const projectIndexData = await getProjectById(project.id, organization);
+  const projectIndexData = await getProjectById(project.id, organization, {
+    requestId,
+    resourceId,
+  });
   if (!projectIndexData) {
-    logger.info('projectUpdatedEvent: Project not found');
+    logger.info({ requestId, message: 'projectUpdatedEvent: Project not found', resourceId });
     return false;
   }
   const jiraClient = await JiraClient.getClient(organization);
@@ -49,7 +63,14 @@ export async function update(
     updatedAt
   );
 
-  logger.info('processProjectUpdatedEvent: Send message to SQS');
+  logger.info({
+    requestId,
+    message: 'processProjectUpdatedEvent: Send message to SQS',
+    resourceId,
+  });
 
-  await sqsClient.sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
+  await sqsClient.sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl, {
+    requestId,
+    resourceId,
+  });
 }

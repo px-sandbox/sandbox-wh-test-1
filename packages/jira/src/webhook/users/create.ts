@@ -16,15 +16,17 @@ const sqsClient = SQSClient.getInstance();
 export async function create(
   user: Jira.ExternalType.Webhook.User,
   eventTime: moment.Moment,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void> {
+  const resourceId = user.accountId;
   try {
     const createdAt = moment(eventTime).toISOString();
     const userData = mappingToApiData(user, createdAt, organization);
-    logger.info('userCreatedEvent: Send message to SQS');
+    logger.info({ requestId, resourceId, message: 'userCreatedEvent: Send message to SQS' });
 
-    await sqsClient.sendMessage(userData, Queue.qUserFormat.queueUrl);
+    await sqsClient.sendMessage(userData, Queue.qUserFormat.queueUrl, { requestId, resourceId });
   } catch (error) {
-    logger.error('userCreatedEvent.error', { error });
+    logger.error({ requestId, resourceId, message: 'userCreatedEvent.error', error });
   }
 }

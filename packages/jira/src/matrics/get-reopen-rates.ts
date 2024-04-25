@@ -1,6 +1,6 @@
 /* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { IReopenRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb, { RequestBodySearch } from 'elastic-builder';
@@ -32,7 +32,10 @@ function requestBodySearchQuery(sprintIds: string[]): RequestBodySearch {
  * @param sprintIds - An array of sprint IDs.
  * @returns A promise that resolves to the reopen rate response.
  */
-async function reopenRateQueryRes(sprintIds: string[]): Promise<IReopenRateResponse> {
+async function reopenRateQueryRes(
+  sprintIds: string[],
+  reqCtx: Other.Type.RequestCtx
+): Promise<IReopenRateResponse> {
   const reopenRateGraphQuery = requestBodySearchQuery(sprintIds)
     .agg(
       esb
@@ -42,7 +45,7 @@ async function reopenRateQueryRes(sprintIds: string[]): Promise<IReopenRateRespo
     )
     .toJSON();
 
-  logger.info('reopenRateGraphQuery', reopenRateGraphQuery);
+  logger.info({ ...reqCtx, message: 'reopenRateGraphQuery', data: { reopenRateGraphQuery } });
 
   return esClientObj.queryAggs<IReopenRateResponse>(
     Jira.Enums.IndexName.ReopenRate,
@@ -54,12 +57,15 @@ async function reopenRateQueryRes(sprintIds: string[]): Promise<IReopenRateRespo
  * @param sprintIds - An array of sprint IDs.
  * @returns A Promise that resolves to the reopen rate query response.
  */
-async function reopenRateQueryResponse(sprintIds: string[]): Promise<any> {
+async function reopenRateQueryResponse(
+  sprintIds: string[],
+  reqCtx: Other.Type.RequestCtx
+): Promise<any> {
   const reopenRateGraphQuery = requestBodySearchQuery(sprintIds)
     .agg(esb.filterAggregation('reopenRate', esb.rangeQuery('body.reOpenCount').gt(0)))
     .toJSON();
 
-  logger.info('AvgReopenRateGraphQuery', reopenRateGraphQuery);
+  logger.info({ ...reqCtx, message: 'AvgReopenRateGraphQuery', data: { reopenRateGraphQuery } });
 
   return esClientObj.search(Jira.Enums.IndexName.ReopenRate, reopenRateGraphQuery);
 }
@@ -68,16 +74,20 @@ async function reopenRateQueryResponse(sprintIds: string[]): Promise<any> {
  * @param sprintIds An array of sprint IDs.
  * @returns A promise that resolves to an array of IssueResponse objects.
  */
-export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse[]> {
+export async function reopenRateGraph(
+  sprintIds: string[],
+  reqCtx: Other.Type.RequestCtx
+): Promise<IssueReponse[]> {
   try {
-    const reopenRateGraphResponse = await reopenRateQueryRes(sprintIds);
+    const reopenRateGraphResponse = await reopenRateQueryRes(sprintIds, reqCtx);
 
     let response: IssueReponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
         const boardName = await getBoardByOrgId(
           sprintData?.originBoardId,
-          sprintData?.organizationId
+          sprintData?.organizationId,
+          reqCtx
         );
         const bugsData = reopenRateGraphResponse.sprint_buckets.buckets.find(
           (obj) => obj.key === sprintId
@@ -104,7 +114,7 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
     ]).reverse();
     return response.filter((obj) => obj.sprintName !== undefined);
   } catch (e) {
-    logger.error('reopenRateGraphQuery.error', e);
+    logger.error({ ...reqCtx, message: 'reopenRateGraphQuery.error', error: e });
     throw e;
   }
 }
@@ -116,10 +126,11 @@ export async function reopenRateGraph(sprintIds: string[]): Promise<IssueReponse
  * total number of reopen bugs, and the reopen rate percentage.
  */
 export async function reopenRateGraphAvg(
-  sprintIds: string[]
+  sprintIds: string[],
+  reqCtx: Other.Type.RequestCtx
 ): Promise<{ totalBugs: string; totalReopen: string; percentValue: number }> {
   try {
-    const reopenRateGraphResponse = await reopenRateQueryResponse(sprintIds);
+    const reopenRateGraphResponse = await reopenRateQueryResponse(sprintIds, reqCtx);
     return {
       totalBugs: reopenRateGraphResponse.hits.total.value ?? 0,
       totalReopen: reopenRateGraphResponse.aggregations.reopenRate.doc_count ?? 0,
@@ -135,7 +146,7 @@ export async function reopenRateGraphAvg(
             ),
     };
   } catch (e) {
-    logger.error('AvgReopenRateGraphQuery.error', e);
+    logger.error({ ...reqCtx, message: 'AvgReopenRateGraphQuery.error', error: e });
     throw e;
   }
 }

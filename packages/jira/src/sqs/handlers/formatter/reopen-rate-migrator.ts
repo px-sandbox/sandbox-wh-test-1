@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { ChangelogItem } from 'abstraction/jira/external/webhook';
@@ -24,13 +25,20 @@ async function getParentId(id: string): Promise<string | undefined> {
 }
 
 export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: `Records Length: ${event.Records.length}` });
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
+      const {
+        reqCtx: { requestId, resourceId },
+        message: messageBody,
+      } = JSON.parse(record.body);
       try {
-        const messageBody = JSON.parse(record.body);
-
-        logger.info('REOPEN_RATE_MIGRATOR_SQS_RECEIVER', { messageBody });
+        logger.info({
+          requestId,
+          resourceId,
+          message: 'REOPEN_RATE_MIGRATOR_SQS_RECEIVER',
+          data: { messageBody },
+        });
 
         const organizationId = messageBody?.organization[0]?.id;
         const organizationName = messageBody?.organization[0]?.name;
@@ -45,25 +53,40 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
           jiraClient
         );
 
-        const issueStatus: HitBody = await getIssueStatusForReopenRate(organizationId);
-
-        logger.info(
-          `reopen.issueStatus.entries, ${JSON.stringify(issueStatus)}, issueKey ${issueKey}`
-        );
-
-        const reopenEntries = await reopenChangelogCals({
-          input: changelogArr,
-          issueId: messageBody.bugId,
-          sprintId,
-          organizationId,
-          boardId,
-          issueKey,
-          projectId,
-          projectKey,
-          issueStatus,
+        const issueStatus: HitBody = await getIssueStatusForReopenRate(organizationId, {
+          requestId,
+          resourceId,
         });
 
-        logger.info(`reopen.generated.entries, ${reopenEntries.length}, issueKey ${issueKey}`);
+        logger.info({
+          message: `reopen.issueStatus.entries, ${JSON.stringify(
+            issueStatus
+          )}, issueKey ${issueKey}`,
+        });
+
+        const reopenEntries = await reopenChangelogCals(
+          {
+            input: changelogArr,
+            issueId: messageBody.bugId,
+            sprintId,
+            organizationId,
+            boardId,
+            issueKey,
+            projectId,
+            projectKey,
+            issueStatus,
+          },
+          {
+            requestId,
+            resourceId,
+          }
+        );
+
+        logger.info({
+          requestId,
+          resourceId,
+          message: `reopen.generated.entries, ${reopenEntries.length}, issueKey ${issueKey}`,
+        });
 
         const newOrganizationID = organizationId?.split('_')[2];
         const parentId = await getParentId(
@@ -71,15 +94,18 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
         );
 
         await Promise.all(
-          reopenEntries.map(async (entry) => {
+          reopenEntries.map(async (entry): Promise<void> => {
             const id = parentId || uuid();
             const body = entry;
-            await sqsClient.sendMessage({ id, body }, Queue.qJiraIndex.queueUrl);
+            await sqsClient.sendMessage({ id, body }, Queue.qJiraIndex.queueUrl, {
+              requestId,
+              resourceId,
+            });
           })
         );
-        logger.info('reopenRateInfoQueue.success');
+        logger.info({ requestId, resourceId, message: 'reopenRateInfoQueue.success' });
       } catch (error) {
-        logger.error(`reopenRateInfoQueue.error ${error}`);
+        logger.error({ requestId, resourceId, message: 'reopenRateInfoQueue.error', error });
         await logProcessToRetry(record, Queue.qReOpenRateMigrator.queueUrl, error as Error);
       }
     })

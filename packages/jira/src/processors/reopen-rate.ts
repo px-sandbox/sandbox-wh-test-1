@@ -10,8 +10,8 @@ export class ReopenRateProcessor extends DataProcessor<
   Jira.Mapped.ReopenRateIssue,
   Jira.Type.ReopenRate
 > {
-  constructor(data: Jira.Mapped.ReopenRateIssue) {
-    super(data);
+  constructor(data: Jira.Mapped.ReopenRateIssue, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
   public validate(): false | this {
     const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
@@ -29,7 +29,11 @@ export class ReopenRateProcessor extends DataProcessor<
     const orgData = await getOrganization(this.apiData.organization);
 
     if (!orgData) {
-      logger.error(`Organization ${this.apiData.organization} not found`);
+      logger.error({
+        requestId: this.requestId,
+        resourceId: this.resourceId,
+        message: `Organization ${this.apiData.organization} not found`,
+      });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
     // eslint-disable-next-line max-len

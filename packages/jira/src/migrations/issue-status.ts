@@ -1,13 +1,14 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { SQSClient } from '@pulse/event-handler';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { Queue } from 'sst/node/queue';
 import { logProcessToRetry } from '../util/retry-process';
 
 async function checkAndSave(
   organization: string,
-  status: Jira.ExternalType.Api.IssueStatus
+  status: Jira.ExternalType.Api.IssueStatus,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   const sqsClient = SQSClient.getInstance();
   await sqsClient.sendMessage(
@@ -15,26 +16,25 @@ async function checkAndSave(
       ...status,
       organization,
     },
-    Queue.qIssueStatusFormat.queueUrl
+    Queue.qIssueStatusFormat.queueUrl,
+    reqCtx
   );
-  logger.info('issueStatusMigrateDataReciever.successful');
+  logger.info({ ...reqCtx, message: 'issueStatusMigrateDataReciever.successful' });
 }
 
 export const handler = async function issueStatusMigrate(event: SQSEvent): Promise<void> {
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
+      const {
+        reqCtx,
+        message: { organization, status },
+      } = JSON.parse(record.body);
       try {
-        const {
-          organization,
-          status,
-        }: { organization: string; status: Jira.ExternalType.Api.IssueStatus } = JSON.parse(
-          record.body
-        );
-        return checkAndSave(organization, status);
+        return checkAndSave(organization, status, reqCtx);
       } catch (error) {
-        logger.error(JSON.stringify({ error, record }));
+        logger.error({ ...reqCtx, message: JSON.stringify({ error, record }) });
         await logProcessToRetry(record, Queue.qIssueStatusMigrate.queueUrl, error as Error);
-        logger.error('issueStatusMigrateDataReciever.error', error);
+        logger.error({ ...reqCtx, message: 'issueStatusMigrateDataReciever.error', error });
       }
     })
   );

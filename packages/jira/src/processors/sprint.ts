@@ -10,14 +10,18 @@ export class SprintProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Sprint,
   Jira.Type.Sprint
 > {
-  constructor(data: Jira.ExternalType.Webhook.Sprint) {
-    super(data);
+  constructor(data: Jira.ExternalType.Webhook.Sprint, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
 
   public async processor(): Promise<Jira.Type.Sprint> {
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
-      logger.error(`Organization ${this.apiData.organization} not found`);
+      logger.error({
+        requestId: this.requestId,
+        resourceId: this.resourceId,
+        message: `Organization ${this.apiData.organization} not found`,
+      });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
     const jiraId = `${mappingPrefixes.sprint}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`;

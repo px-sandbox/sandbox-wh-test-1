@@ -15,13 +15,20 @@ import { getProjectById } from '../../repository/project/get-project';
 export async function deleteProject(
   projectId: number,
   eventTime: moment.Moment,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void | false> {
-  logger.info('projectDeletedEvent started for project id: ', projectId);
+  const resourceId = projectId.toString();
+  logger.info({
+    requestId,
+    resourceId,
+    message: 'projectDeletedEvent started for project id: ',
+    data: { projectId },
+  });
 
-  const projectData = await getProjectById(projectId, organization);
+  const projectData = await getProjectById(projectId, organization, { requestId, resourceId });
   if (!projectData) {
-    logger.info('projectDeletedEvent: Project not found');
+    logger.info({ requestId, message: 'projectDeletedEvent: Project not found', resourceId });
     return false;
   }
 
@@ -30,6 +37,9 @@ export async function deleteProject(
   processProjectData.isDeleted = true;
   processProjectData.deletedAt = eventTime.toISOString();
 
-  logger.info(`projectDeletedEvent: Delete Project id ${_id}`);
-  await saveProjectDetails({ id: _id, body: processProjectData } as Jira.Type.Project);
+  logger.info({ requestId, message: `projectDeletedEvent: Delete Project id ${_id}`, resourceId });
+  await saveProjectDetails({ id: _id, body: processProjectData } as Jira.Type.Project, {
+    requestId,
+    resourceId,
+  });
 }

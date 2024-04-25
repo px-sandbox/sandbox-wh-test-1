@@ -6,6 +6,7 @@ import { sprintVarianceGraph, sprintVarianceGraphAvg } from '../matrics/get-spri
 const sprintVariance = async function sprintVariance(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const requestId = event?.requestContext?.requestId;
   const projectId: string = event.queryStringParameters?.projectId || '';
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
@@ -19,8 +20,14 @@ const sprintVariance = async function sprintVariance(
 
   try {
     const [graphData, headline] = await Promise.all([
-      await sprintVarianceGraph(projectId, startDate, endDate, page, limit, sortKey, sortOrder),
-      await sprintVarianceGraphAvg(projectId, startDate, endDate),
+      await sprintVarianceGraph(projectId, startDate, endDate, page, limit, sortKey, sortOrder, {
+        requestId,
+        resourceId: projectId,
+      }),
+      await sprintVarianceGraphAvg(projectId, startDate, endDate, {
+        requestId,
+        resourceId: projectId,
+      }),
     ]);
 
     return responseParser
@@ -35,7 +42,12 @@ const sprintVariance = async function sprintVariance(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error(e);
+    logger.error({
+      requestId,
+      resourceId: projectId,
+      message: 'sprint variance fetch error',
+      error: `${e}`,
+    });
     throw new Error(`Something went wrong: ${e}`);
   }
 };

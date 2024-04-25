@@ -6,6 +6,7 @@ import { getOrganization } from '../repository/organization/get-organization';
 export const handler = async function migrate(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const requestId = event?.requestContext?.requestId;
   const orgName = event?.queryStringParameters?.orgName ?? '';
   const projectId = event?.queryStringParameters?.projectId;
   const orgData = await getOrganization(orgName);
@@ -17,7 +18,7 @@ export const handler = async function migrate(
       .setResponseBodyCode('ERROR')
       .send();
   }
-  await subtaskMigrate(projectId, orgName, orgData.id);
+  await subtaskMigrate(projectId, orgName, orgData.id, { requestId, resourceId: projectId });
   return responseParser
     .setBody({})
     .setMessage('subtask migration successfull')

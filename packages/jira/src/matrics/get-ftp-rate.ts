@@ -1,5 +1,6 @@
+/* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { IFtpRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb, { BoolQuery } from 'elastic-builder';
@@ -40,7 +41,10 @@ function boolQuery(sprintIds: string[]): BoolQuery {
  * @param sprintIds An array of sprint IDs.
  * @returns A promise that resolves to the FTP rate response.
  */
-async function ftpGraphRateResponse(sprintIds: string[]): Promise<IFtpRateResponse> {
+async function ftpGraphRateResponse(
+  sprintIds: string[],
+  reqCtx: Other.Type.RequestCtx
+): Promise<IFtpRateResponse> {
   const ftpRateGraphQuery = esb
     .requestBodySearch()
     .size(1)
@@ -53,7 +57,7 @@ async function ftpGraphRateResponse(sprintIds: string[]): Promise<IFtpRateRespon
     )
     .toJSON();
 
-  logger.info('ftpRateGraphQuery', ftpRateGraphQuery);
+  logger.info({ ...reqCtx, message: 'ftpRateGraphQuery', data: { ftpRateGraphQuery } });
 
   return esClientObj.queryAggs<IFtpRateResponse>(Jira.Enums.IndexName.Issue, ftpRateGraphQuery);
 }
@@ -69,7 +73,8 @@ async function ftpGraphRateResponse(sprintIds: string[]): Promise<IFtpRateRespon
 export async function ftpRateGraph(
   organizationId: string,
   projectId: string,
-  sprintIds: string[]
+  sprintIds: string[],
+  reqCtx: Other.Type.RequestCtx
 ): Promise<IssueReponse[]> {
   try {
     let orgName = '';
@@ -84,21 +89,25 @@ export async function ftpRateGraph(
     const projectData = await searchedDataFormator(projects);
 
     if (orgData.length === 0 || projectData.length === 0) {
-      logger.error(`Organization ${organizationId} or Project ${projectId} not found`);
+      logger.error({
+        ...reqCtx,
+        message: `Organization ${organizationId} or Project ${projectId} not found`,
+      });
       throw new Error(`Organization ${organizationId} or Project ${projectId} not found`);
     }
 
     orgName = orgData[0].name;
     projectKey = projectData[0].key;
 
-    const ftpRateGraphResponse: IFtpRateResponse = await ftpGraphRateResponse(sprintIds);
+    const ftpRateGraphResponse: IFtpRateResponse = await ftpGraphRateResponse(sprintIds, reqCtx);
     let response: IssueReponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
-        logger.info('sprintData', sprintData);
+        logger.info({ ...reqCtx, message: 'sprintData', data: { sprintData } });
         const boardName = await getBoardByOrgId(
           sprintData?.originBoardId,
-          sprintData?.organizationId
+          sprintData?.organizationId,
+          reqCtx
         );
 
         const ftpData = ftpRateGraphResponse.sprint_buckets.buckets.find(
@@ -127,7 +136,7 @@ export async function ftpRateGraph(
     ]).reverse();
     return response.filter((obj) => obj.sprintName !== undefined);
   } catch (e) {
-    logger.error('ftpRateGraphQuery.error', e);
+    logger.error({ ...reqCtx, message: 'ftpRateGraphQuery.error', error: e });
     throw e;
   }
 }
@@ -138,7 +147,10 @@ export async function ftpRateGraph(
  * @param sprintIds - An array of sprint IDs.
  * @returns A Promise that resolves to the FTP graph query response.
  */
-async function ftpGraphQueryResponse(sprintIds: string[]): Promise<any> {
+async function ftpGraphQueryResponse(
+  sprintIds: string[],
+  reqCtx: Other.Type.RequestCtx
+): Promise<any> {
   const ftpRateGraphQuery = esb
     .requestBodySearch()
     .size(0)
@@ -146,9 +158,8 @@ async function ftpGraphQueryResponse(sprintIds: string[]): Promise<any> {
     .agg(esb.filterAggregation('isFTP_true_count', esb.termQuery('body.isFTP', true)))
     .toJSON();
 
-  logger.info('AvgftpRateGraphQuery', ftpRateGraphQuery);
+  logger.info({ ...reqCtx, message: 'AvgftpRateGraphQuery', data: { ftpRateGraphQuery } });
 
-  // TODO: remove any after testing
   return esClientObj.search(Jira.Enums.IndexName.Issue, ftpRateGraphQuery);
 }
 
@@ -159,11 +170,11 @@ async function ftpGraphQueryResponse(sprintIds: string[]): Promise<any> {
  * total number of FTP items, and the percentage value.
  */
 export async function ftpRateGraphAvg(
-  sprintIds: string[]
+  sprintIds: string[],
+  reqCtx: Other.Type.RequestCtx
 ): Promise<{ total: string; totalFtp: string; percentValue: number }> {
   try {
-    // TODO: remove any after testing
-    const ftpRateGraphResponse = await ftpGraphQueryResponse(sprintIds);
+    const ftpRateGraphResponse = await ftpGraphQueryResponse(sprintIds, reqCtx);
     return {
       total: ftpRateGraphResponse.hits.total.value ?? 0,
       totalFtp: ftpRateGraphResponse.aggregations.isFTP_true_count.doc_count ?? 0,
@@ -179,7 +190,7 @@ export async function ftpRateGraphAvg(
             ),
     };
   } catch (e) {
-    logger.error('ftpRateGraphQuery.error', e);
+    logger.error({ ...reqCtx, message: 'ftpRateGraphQuery.error', error: e });
     throw e;
   }
 }

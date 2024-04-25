@@ -14,14 +14,36 @@ const DynamoDbDocClientObj = DynamoDbDocClient.getInstance();
 
 async function processIt(record: Jira.Type.QueueMessage): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId, MessageGroupId } = record;
+
   // send to queue
-  logger.info('RetryProcessHandlerProcessData', { processId, queue });
-  await sqsClient.sendMessage({ ...JSON.parse(messageBody), processId }, queue, MessageGroupId, MessageDeduplicationId);
+  logger.info({
+    requestId: processId,
+    message: 'RetryProcessHandlerProcessData',
+    data: { queue },
+  });
+  const mssg = JSON.parse(messageBody);
+  await sqsClient.sendMessage(
+    { ...mssg, processId },
+    queue,
+    {
+      requestId: processId ?? '',
+      resourceId:
+        mssg.issue?.id ||
+        mssg.project?.id ||
+        mssg.user?.id ||
+        mssg.sprint?.id ||
+        mssg.board?.id ||
+        mssg?.configuration?.id ||
+        '',
+    },
+    MessageGroupId,
+    MessageDeduplicationId
+  );
   // delete from dynamodb
 }
 
 export async function handler(): Promise<void> {
-  logger.info(`RetryProcessHandler invoked at: ${new Date().toISOString()}`);
+  logger.info({ message: `RetryProcessHandler invoked at: ${new Date().toISOString()}` });
 
   const processes: Jira.Type.QueueMessage[] =
     await DynamoDbDocClientObj.scan<Jira.Type.QueueMessage>(
@@ -29,7 +51,9 @@ export async function handler(): Promise<void> {
     );
 
   if (processes.length === 0) {
-    logger.info(`RetryProcessHandler no processes found at: ${new Date().toISOString()}`);
+    logger.info({
+      message: `RetryProcessHandler no processes found at: ${new Date().toISOString()}`,
+    });
     return;
   }
 
