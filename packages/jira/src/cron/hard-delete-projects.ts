@@ -186,9 +186,9 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
 
   if (res.length > 0) {
     // deleting projects data from projects/sprints/boards/issues document
-    await deleteProjectData(res, { requestId });
+    await deleteProjectData(res, { requestId, resourceId: '' });
 
     // deleting project record from dynamo DB
-    await deleteProjectfromDD(res, { requestId });
+    await deleteProjectfromDD(res, { requestId, resourceId: '' });
   }
 }
