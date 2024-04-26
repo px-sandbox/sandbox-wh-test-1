@@ -18,7 +18,10 @@ async function deletePrevDependencies(repoId: string): Promise<void> {
 
   await esClientObj.updateByQuery(Github.Enums.IndexName.GitRepoLibrary, matchQry, script.toJSON());
 }
-export async function repoLibHelper(data: Github.ExternalType.RepoLibrary, reqCtx:Other.Type.RequestCtx): Promise<void> {
+export async function repoLibHelper(
+  data: Github.ExternalType.RepoLibrary,
+  reqCtx: Other.Type.RequestCtx
+): Promise<void> {
   logger.info({ message: 'repoLibrary.handler', data, ...reqCtx });
 
   if (data) {

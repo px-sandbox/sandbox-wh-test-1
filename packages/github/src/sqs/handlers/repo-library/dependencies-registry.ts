@@ -15,9 +15,11 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
   const sqsClient = SQSClient.getInstance();
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
-      const { reqCtx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
+      const {
+        reqCtx: { requestId, resourceId },
+        message: messageBody,
+      } = JSON.parse(record.body);
       try {
-
         logger.info({ message: 'DEPENDENCIES_INDEXED', data: messageBody, requestId, resourceId });
 
         const { dependencyName, currentVersion, repoId, isDeleted, isCore } = messageBody;
@@ -39,8 +41,14 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
         };
         logger.info({ message: 'DEPENDENCIES_DATA', data: repoLibObj, requestId, resourceId });
         await Promise.all([
-          sqsClient.sendMessage(repoLibObj, Queue.qCurrentDepRegistry.queueUrl, { requestId, resourceId }),
-          sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl, { requestId, resourceId }),
+          sqsClient.sendMessage(repoLibObj, Queue.qCurrentDepRegistry.queueUrl, {
+            requestId,
+            resourceId,
+          }),
+          sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl, {
+            requestId,
+            resourceId,
+          }),
         ]);
       } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -50,7 +58,12 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
           }
         }
         await logProcessToRetry(record, Queue.qDepRegistry.queueUrl, error as Error);
-        logger.error({ message: 'dependencyRegistry.error', error, requestId, resourceId });
+        logger.error({
+          message: 'dependencyRegistry.error',
+          error: `${error}`,
+          requestId,
+          resourceId,
+        });
       }
     })
   );
