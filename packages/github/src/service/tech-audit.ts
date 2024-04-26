@@ -312,7 +312,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<
 > {
   const requestId = event?.requestContext?.requestId;
   const repoIds = event?.queryStringParameters?.repoIds ?? '';
-  const ref = event?.queryStringParameters?.ref ?? 'dev';
+  const ref = event?.queryStringParameters?.ref ?? '';
   const filename = event?.queryStringParameters?.workflowFilename ?? 'ci';
   const org = event?.queryStringParameters?.org ?? Github.Enums.OrgConst.SG;
 
