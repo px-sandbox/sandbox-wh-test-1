@@ -151,24 +151,25 @@ async function callGithubApis(
   >,
   repo: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody,
   org: string,
-  ref: string,
+  ref: string | undefined,
   filename: string,
   requestId: string
 ): Promise<(OctokitResponse<any> | null)[]> {
   const folderPath = '.github/workflows';
+  const workflowURL = `GET /repos/${org}/${repo.name}/contents/${folderPath}/${filename}.yml${
+    ref ? `?ref=${ref}` : ''
+  }`;
+  const readmeURL = `GET /repos/${org}/${repo.name}/readme${ref ? `?ref=${ref}` : ''}`;
+
   return Promise.all([
     // reading workflow file
-    octokit(
-      `GET /repos/${org}/${repo.name}/contents/${folderPath}/${filename}.yml?ref=${ref}`
-    ).catch((error: unknown) => {
+    octokit(workflowURL).catch((error: unknown) => {
       logger.error({ requestId, message: `Error while fetching workflow file: ${error}` });
       return null; // or some default value
     }),
 
     // readme
-    octokit(
-      `GET /repos/${org}/${repo.name}/readme?ref=${ref}` // make readme name dynamic
-    ).catch((error: unknown) => {
+    octokit(readmeURL).catch((error: unknown) => {
       logger.error({ requestId, message: `Error while fetching readme info: ${error}` });
       return null; // or some default value
     }),
@@ -220,7 +221,7 @@ async function techAudit(
     }
   >,
   repoIds: string[],
-  ref: string,
+  ref: string | undefined,
   filename: string,
   org: string,
   requestId: string
@@ -312,7 +313,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<
 > {
   const requestId = event?.requestContext?.requestId;
   const repoIds = event?.queryStringParameters?.repoIds ?? '';
-  const ref = event?.queryStringParameters?.ref ?? '';
+  const ref = event?.queryStringParameters?.ref;
   const filename = event?.queryStringParameters?.workflowFilename ?? 'ci';
   const org = event?.queryStringParameters?.org ?? Github.Enums.OrgConst.SG;
 
