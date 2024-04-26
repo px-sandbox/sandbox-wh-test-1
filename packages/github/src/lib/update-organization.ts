@@ -21,7 +21,7 @@ export async function fetchAndSaveOrganizationDetails(
   requestId: string
 ): Promise<{ name: string }> {
   try {
-    logger.info({ message: 'getOrganizationDetails.invoked', requestId, data: { organizationName });
+    logger.info({ message: 'getOrganizationDetails.invoked', requestId, data: organizationName });
     const responseData = await octokit(`GET /orgs/${organizationName}`);
     const orgId = `${mappingPrefixes.organization}_${responseData.data.id}`;
     const records = await dynamodbClient.find(new ParamsMapping().prepareGetParams(orgId));
