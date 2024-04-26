@@ -257,13 +257,13 @@ importers:
         specifier: 9.0.0
         version: 9.0.0
       '@pulse/dynamodb':
-        specifier: ^1.0.0
+        specifier: workspace:^1.0.0
         version: link:../@pulse/dynamodb
       '@pulse/elasticsearch':
-        specifier: ^1.0.0
+        specifier: workspace:^1.0.0
         version: link:../@pulse/elasticsearch
       '@pulse/event-handler':
-        specifier: ^1.0.0
+        specifier: workspace:^1.0.0
         version: link:../@pulse/event-handler
       '@types/lodash':
         specifier: ^4.14.201
@@ -366,13 +366,13 @@ importers:
         specifier: ^4.2.8
         version: 4.2.8
       '@pulse/dynamodb':
-        specifier: ^1.0.0
+        specifier: workspace:^1.0.0
         version: link:../@pulse/dynamodb
       '@pulse/elasticsearch':
-        specifier: ^1.0.0
+        specifier: workspace:^1.0.0
         version: link:../@pulse/elasticsearch
       '@pulse/event-handler':
-        specifier: ^1.0.0
+        specifier: workspace:^1.0.0
         version: link:../@pulse/event-handler
       '@types/lodash':
         specifier: ^4.14.201
