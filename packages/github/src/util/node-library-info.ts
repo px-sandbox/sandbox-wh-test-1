@@ -7,7 +7,7 @@ export async function getNodeLibInfo(libName: string, currentVersion: string): P
     const npmPackageUrl = `https://registry.npmjs.org/${libName}`;
     let latestVersion: string;
     try {
-        logger.info('get-library-info.invoked', { libName });
+        logger.info({ message: 'get-library-info.invoked', data: libName });
         const { data } = await axios.get(npmPackageUrl);
 
         if (data['dist-tags'] && data['dist-tags'].latest) {
@@ -29,7 +29,7 @@ export async function getNodeLibInfo(libName: string, currentVersion: string): P
             },
         };
     } catch (error) {
-        logger.error('get-library-info.error', { errorInfo: error });
+        logger.error({ message: 'get-library-info.error', error });
         throw error;
     }
 }

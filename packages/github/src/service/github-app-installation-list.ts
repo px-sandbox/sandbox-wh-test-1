@@ -19,7 +19,7 @@ export const getGitAppInstallations =
       const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
       const installation = await octokitRequestWithTimeout('GET /app/installations');
 
-      logger.info('Get list of all installations of github app');
+      logger.info({ message: 'Get list of all installations of github app' });
 
       return responseParser
         .setBody(installation.data)
@@ -28,9 +28,7 @@ export const getGitAppInstallations =
         .setResponseBodyCode('SUCCESS')
         .send();
     } catch (error: unknown) {
-      logger.error({
-        error,
-      });
+      logger.error({ message: 'getGitAppInstallations.error', error });
       throw error;
     }
   };

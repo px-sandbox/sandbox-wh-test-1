@@ -16,9 +16,11 @@ export class PRReviewCommentProcessor extends DataProcessor<
     data: Github.ExternalType.Webhook.PRReviewComment,
     pullId: number,
     repoId: number,
-    action: string
+    action: string,
+    requestId: string,
+    resourceId: string
   ) {
-    super(data);
+    super(data, requestId, resourceId);
     this.pullId = pullId;
     this.repoId = repoId;
     this.action = action;

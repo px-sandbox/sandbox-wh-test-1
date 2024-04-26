@@ -147,7 +147,8 @@ export async function getProductSecurity(
     startDate: string,
     endDate: string,
     interval: string,
-    branch: string
+  branch: string,
+  requestId: string
 ): Promise<Github.Type.ProductSecurity> {
     try {
 
@@ -163,7 +164,7 @@ export async function getProductSecurity(
         }
 
     } catch (e) {
-        logger.error('productSecurity.error: Error while fetching product security metrics', e);
+      logger.error({ message: 'productSecurity.error: Error while fetching product security metrics', error: e, requestId });
         throw e;
     }
 }

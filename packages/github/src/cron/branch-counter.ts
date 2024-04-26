@@ -1,7 +1,4 @@
-import {
-  Hit,
-  ElasticSearchClient
-} from '@pulse/elasticsearch';
+import { Hit, ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent } from 'aws-lambda';
@@ -39,7 +36,8 @@ const getRepos = async (
 async function getReposAndSendToSQS(
   currentDate: string,
   pageNo = 1,
-  perPage = 100
+  perPage = 100,
+  requestId: string
 ): Promise<number> {
   try {
     const repos = await getRepos(pageNo, perPage);
@@ -51,7 +49,8 @@ async function getReposAndSendToSQS(
               repo: repo,
               date: currentDate,
             },
-            Queue.qGhActiveBranchCounterFormat.queueUrl
+            Queue.qGhActiveBranchCounterFormat.queueUrl,
+            {requestId, resourceId: repo._id}
           );
         }
         return Promise.resolve();
@@ -60,15 +59,13 @@ async function getReposAndSendToSQS(
 
     return repos.length;
   } catch (error: unknown) {
-    logger.error(`
-    getReposAndSendToSQS.error at page: ${pageNo}
-    Error: ${error}
-    `);
+    logger.error({message: 'getReposAndSendToSQS.error', error, requestId });
     throw error;
   }
 }
 
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
+  const requestId = event.requestContext.requestId;
   try {
     const today =
       event && event.queryStringParameters?.date
@@ -80,20 +77,24 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     const perPage = 100;
     do {
       // eslint-disable-next-line no-await-in-loop
-      processingCount = await getReposAndSendToSQS(today, pageNo, perPage);
-      logger.info(`processingCount: ${processingCount}`);
+      processingCount = await getReposAndSendToSQS(today, pageNo, perPage, requestId);
+      logger.info({ message: 'processingCount', data: processingCount, requestId });
       pageNo += 1;
     } while (processingCount === perPage);
 
-    logger.info(
-      `getReposAndSendToSQS.handler.successful for ${pageNo} pages at: ${new Date().toISOString()}`
-    );
+    logger.info({
+      message: 'getReposAndSendToSQS.handler.successful',
+      data: { pageNo, date: new Date().toISOString() },
+      requestId,
+    });
   } catch (error: unknown) {
-    logger.error(`
-    getReposAndSendToSQS.handler.error at: ${new Date().toISOString()}
-    Error: ${JSON.stringify(error)}
-    `);
-
+    logger.error({
+      message: 'getReposAndSendToSQS.handler.error',
+      data: { date: new Date().toISOString() },
+      error,
+      requestId,
+    });
+ 
     throw error;
   }
 }

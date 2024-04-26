@@ -11,7 +11,8 @@ const getAggrigatedDataSastErrors = async (
   startDate: string,
   endDate: string,
   branch: string[],
-  afterKey?: object | undefined
+  requestId: string,
+  afterKey?: object | undefined,
 ): Promise<Github.Type.ISastErrorAggregationResult> => {
   let compositeAgg = esb
     .compositeAggregation('errorsBucket')
@@ -38,7 +39,7 @@ const getAggrigatedDataSastErrors = async (
     .agg(compositeAgg)
     .toJSON();
 
-  logger.info('searchSastErrorsMatrics.query', matchQry);
+  logger.info({ message: 'searchSastErrorsMatrics.query', data: JSON.stringify(matchQry), requestId });
   const searchedData: Github.Type.ISastErrorAggregationResult = await esClientObj.queryAggs(
     Github.Enums.IndexName.GitRepoSastErrors,
     matchQry
@@ -51,6 +52,7 @@ async function searchSastErrors(
   startDate: string,
   endDate: string,
   branch: string[],
+  requestId: string,
   afterKey?: object | undefined
 ): Promise<Github.Type.SastErrorReport[]> {
   let formattedData: Github.Type.SastErrorReport[] = [];
@@ -60,6 +62,7 @@ async function searchSastErrors(
       startDate,
       endDate,
       branch,
+      requestId,
       afterKey
     );
     formattedData = searchedData?.errorsBucket?.buckets?.map((bucket) => ({
@@ -71,7 +74,7 @@ async function searchSastErrors(
 
     return formattedData;
   } catch (err) {
-    logger.error('searchSastErrorsMatrics.error', err);
+    logger.error({ message: 'searchSastErrorsMatrics.error', data: JSON.stringify(err), requestId });
     throw err;
   }
 }
@@ -82,10 +85,11 @@ async function getRepoSastErrorsQuery(
   startDate: string,
   endDate: string,
   branch: string[],
-  afterKey: object | undefined
+  afterKey: object | undefined,
+  requestId: string
 ): Promise<object | undefined> {
-  const data = await searchSastErrors(repoIds, startDate, endDate, branch, afterKey);
-  logger.info('getRepoSastErrorsSearch.data', { length: data.length });
+  const data = await searchSastErrors(repoIds, startDate, endDate, branch,requestId, afterKey);
+  logger.info({ message: 'getRepoSastErrorsSearch.data', data: { length: data.length } });
   if (data.length === 0) {
     return undefined;
   }
@@ -130,11 +134,11 @@ async function getRepoSastErrorsQuery(
     .agg(compositeAgg)
     .toJSON();
 
-  logger.info('getRepoSastErrorsFinalMatrics.query', query);
+  logger.info({ message: 'getRepoSastErrorsFinalMatrics.query', data: JSON.stringify(query), requestId });
   return query;
 }
 /* eslint-disable no-await-in-loop */
-export async function getRepoNames(repoIds: string[]): Promise<Github.Type.RepoNameType[]> {
+export async function getRepoNames(repoIds: string[], requestId:string): Promise<Github.Type.RepoNameType[]> {
   const repoNamesArr: Github.Type.RepoNameType[] = []; // array to store repoNames data
   let counter2 = 1; // counter for the loop to fetch data from elastic search
   let repoNames; // variable to store fetched-formatted-data from elastic search inside loop
@@ -166,7 +170,7 @@ export async function getRepoNames(repoIds: string[]): Promise<Github.Type.RepoN
       }
     } while (repoNames?.length);
   } catch (err) {
-    logger.error('getSastErrorDetails.getRepoNames.error', err);
+    logger.error({ message: 'getSastErrorDetails.getRepoNames.error', error: err, requestId });
     throw err;
   }
   return repoNamesArr;
@@ -178,9 +182,10 @@ export async function getRepoSastErrors(
   startDate: string,
   endDate: string,
   branch: string[],
-  afterKeyObj?: object | undefined
+  requestId: string,
+  afterKeyObj?: object | undefined,
 ): Promise<Github.Type.SastErrorsAggregationData> {
-  logger.info('getRepoSastErrors.details', { repoIds, startDate, endDate, branch, afterKeyObj });
+  logger.info({ message: 'getRepoSastErrors.details', data: { repoIds, startDate, endDate, branch, afterKeyObj }, requestId });
   let afterKey;
   const finalData: Github.Type.SastErrorsAggregation[] = [];
   try {
@@ -189,18 +194,21 @@ export async function getRepoSastErrors(
       startDate,
       endDate,
       branch,
-      afterKeyObj
+      afterKeyObj,
+      requestId
     );
     if (requestBody) {
       const report = await esClientObj.queryAggs<Github.Type.ISastErrorAggregationResult>(
         Github.Enums.IndexName.GitRepoSastErrors,
         requestBody
       );
-      logger.info('getRepoSastErrorsMatrics.report', {
-        report_length: report ?? '',
+      logger.info({
+        message: 'getRepoSastErrorsMatrics.report', data: {
+          report_length: report ?? '',
+        }
       });
       afterKey = report?.errorsBucket?.after_key;
-      const repoNames = await getRepoNames(repoIds);
+      const repoNames = await getRepoNames(repoIds,requestId);
       if (report) {
         finalData.push(
           ...report.errorsBucket.buckets.map((bucket) => ({
@@ -217,16 +225,16 @@ export async function getRepoSastErrors(
           }))
         );
       }
-      logger.info('getRepoSastErrorsMatrics.finalData', { finalData_length: finalData?.length });
+      logger.info({ message: 'getRepoSastErrorsMatrics.finalData', data: { finalData_length: finalData?.length }, requestId });
 
-      logger.info('getRepoSastErrorsMatrics.finalData', { finalData_length: finalData?.length });
+      logger.info({ message: 'getRepoSastErrorsMatrics.finalData', data: { finalData_length: finalData?.length }, requestId });
     }
     return {
       data: finalData.length > 0 ? finalData : [],
       afterKey: afterKey ? Buffer.from(JSON.stringify(afterKey), 'utf-8').toString('base64') : '',
     };
   } catch (err) {
-    logger.error('getRepoSastErrorsMatrics.error', err);
+    logger.error({ message: 'getRepoSastErrorsMatrics.error', error: err, requestId });
     throw err;
   }
 }

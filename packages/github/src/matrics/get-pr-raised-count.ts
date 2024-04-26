@@ -12,7 +12,8 @@ const getGraphQuery = (
   startDate: string,
   endDate: string,
   intervals: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): object => {
   const numberOfPrRaisedGraphQuery = esb.requestBodySearch().size(0);
   numberOfPrRaisedGraphQuery.query(
@@ -26,10 +27,10 @@ const getGraphQuery = (
   const graphIntervals = processGraphInterval(intervals, startDate, endDate);
   numberOfPrRaisedGraphQuery.agg(graphIntervals).toJSON();
 
-  logger.info('NUMBER_OF_PR_RAISED_GRAPH_ESB_QUERY', numberOfPrRaisedGraphQuery);
+  logger.info({ message: 'NUMBER_OF_PR_RAISED_GRAPH_ESB_QUERY', data: JSON.stringify(numberOfPrRaisedGraphQuery), requestId});
   return numberOfPrRaisedGraphQuery;
 };
-const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[]):object => {
+const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[], requestId:string):object => {
  const query = esb
    .requestBodySearch()
    .query(
@@ -42,17 +43,18 @@ const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[])
    )
    .size(0)
    .toJSON() as { query: object };
-  logger.info('NUMBER_OF_PR_RAISED_AVG_ESB_QUERY', query);
+  logger.info({ message: 'NUMBER_OF_PR_RAISED_AVG_ESB_QUERY', data: JSON.stringify(query), requestId});
   return query;
 };
 export async function numberOfPrRaisedGraph(
   startDate: string,
   endDate: string,
   intervals: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<GraphResponse[]> {
   try {
-    const numberOfPrRaisedGraphQuery = getGraphQuery(startDate, endDate, intervals, repoIds); 
+    const numberOfPrRaisedGraphQuery = getGraphQuery(startDate, endDate, intervals, repoIds, requestId); 
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitPull,
@@ -63,7 +65,7 @@ export async function numberOfPrRaisedGraph(
       value: item.doc_count,
     }));
   } catch (e) {
-    logger.error('numberOfPrRaisedGraph.error', e);
+    logger.error({ message: 'numberOfPrRaisedGraph.error', error: e, requestId });
     throw e;
   }
 }
@@ -71,10 +73,11 @@ export async function numberOfPrRaisedGraph(
 export async function numberOfPrRaisedAvg(
   startDate: string,
   endDate: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<{ value: number } | null> {
   try {
-    const query = getHeadlineQuery(startDate, endDate, repoIds);
+    const query = getHeadlineQuery(startDate, endDate, repoIds,requestId);
     const data:HitBody = await esClientObj.search(
       Github.Enums.IndexName.GitPull,
       query
@@ -83,7 +86,7 @@ export async function numberOfPrRaisedAvg(
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
     return { value: totalDoc / weekDaysCount };
   } catch (e) {
-    logger.error('numberOfPrRaisedAvg.error', e);
+    logger.error({ message: 'numberOfPrRaisedAvg.error', error: e });
     throw e;
   }
 }

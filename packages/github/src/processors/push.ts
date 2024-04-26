@@ -9,8 +9,8 @@ export class PushProcessor extends DataProcessor<
   Github.ExternalType.Webhook.Push,
   Github.Type.Push
 > {
-  constructor(data: Github.ExternalType.Webhook.Push) {
-    super(data);
+  constructor(data: Github.ExternalType.Webhook.Push, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
   public async processor(): Promise<Github.Type.Push> {
     const githubId = `${mappingPrefixes.push}_${this.ghApiData.id}`;

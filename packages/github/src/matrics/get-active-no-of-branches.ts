@@ -11,7 +11,8 @@ const getGraphDataQuery = async (
   startDate: string,
   endDate: string,
   intervals: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<object> => {
   const activeBranchGraphQuery = esb.requestBodySearch().size(0);
   activeBranchGraphQuery.query(
@@ -40,13 +41,14 @@ const getGraphDataQuery = async (
     )
     .toJSON();
 
-  logger.info('ACTIVE_BRANCHES_GRAPH_ESB_QUERY', activeBranchGraphQuery);
+  logger.info({ message: 'ACTIVE_BRANCHES_GRAPH_ESB_QUERY', data: JSON.stringify(activeBranchGraphQuery), requestId });
   return activeBranchGraphQuery;
 };
 const getHeadlineQuery = async (
   startDate: string,
   endDate: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<object> => {
   const activeBranchesAvgQuery = await esb.requestBodySearch().size(0);
   activeBranchesAvgQuery
@@ -62,17 +64,18 @@ const getHeadlineQuery = async (
     .agg(esb.sumAggregation('branch_count', 'body.branchesCount'))
     .size(0)
     .toJSON();
-  logger.info('ACTIVE_BRANCHES_AVG_ESB_QUERY', activeBranchesAvgQuery);
+  logger.info({ message: 'ACTIVE_BRANCHES_AVG_ESB_QUERY', data: JSON.stringify(activeBranchesAvgQuery), requestId });
   return activeBranchesAvgQuery;
 };
 export async function activeBranchGraphData(
   startDate: string,
   endDate: string,
   intervals: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<{ date: string; value: number }[]> {
   try {
-    const activeBranchGraphQuery = await getGraphDataQuery(startDate, endDate, intervals, repoIds);
+    const activeBranchGraphQuery = await getGraphDataQuery(startDate, endDate, intervals, repoIds, requestId);
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitActiveBranches,
@@ -83,29 +86,30 @@ export async function activeBranchGraphData(
       value: parseFloat(item.combined_avg.value.toFixed(2)),
     }));
   } catch (e) {
-    logger.error('activeBranchGraph.error', e);
+    logger.error({ message: 'activeBranchGraph.error', error: e, requestId});
     throw e;
   }
 }
 export async function activeBranchesAvg(
   startDate: string,
   endDate: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<{ value: number } | null> {
   try {
-    const activeBranchesAvgQuery = await getHeadlineQuery(startDate, endDate, repoIds);
+    const activeBranchesAvgQuery = await getHeadlineQuery(startDate, endDate, repoIds, requestId);
     const data: any = await esClientObj.queryAggs(
       Github.Enums.IndexName.GitActiveBranches,
       activeBranchesAvgQuery
     );
-    logger.info('activeBranchesAvg.data', data);
+    logger.info({ message: 'activeBranchesAvg.data', data });
     const totalRepo = Number(data.repo_count.value);
     const totalBranchCount = Number(data.branch_count.value);
     return {
       value: parseFloat((totalBranchCount === 0 ? 0 : totalBranchCount / totalRepo).toFixed(2)),
     };
   } catch (e) {
-    logger.error('activeBranchesAvg.error', e);
+    logger.error({ message: 'activeBranchesAvg.error', error: e });
     throw e;
   }
 }

@@ -1,17 +1,16 @@
+import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import async from 'async';
-import { Github } from 'abstraction';
 import { PushProcessor } from '../../../processors/push';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
+  const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
   try {
-    const messageBody = JSON.parse(record.body);
-    logger.info('PUSH_SQS_RECEIVER_HANDLER_FORMATER', { messageBody });
+    logger.info({ message: 'PUSH_SQS_RECEIVER_HANDLER_FORMATER', data:  messageBody, requestId, resourceId});
 
-    const pushProcessor = new PushProcessor(messageBody);
+    const pushProcessor = new PushProcessor(messageBody, requestId, resourceId);
     const data = await pushProcessor.processor();
     await pushProcessor.save({
       data,
@@ -20,10 +19,10 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     });
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPushFormat.queueUrl, error as Error);
-    logger.error('pushFormattedDataReceiver.error', error);
+    logger.error({ message: 'pushFormattedDataReceiver.error', error, requestId, resourceId});
   }
 }
 export const handler = async function pushFormattedDataReceiver(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: "Records Length:", data: event.Records.length});
   await Promise.all(event.Records.map((record: SQSRecord) => processAndStoreSQSRecord(record)));
 };

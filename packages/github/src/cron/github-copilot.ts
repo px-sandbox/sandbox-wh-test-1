@@ -6,6 +6,7 @@ import { Github } from 'abstraction';
 import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 
 const sqsClient = SQSClient.getInstance();
 export async function initializeOctokit(): Promise<
@@ -34,11 +35,12 @@ async function getGHCopilotReports(
       };
     }
   >,
+  requestId: string,
   pageNo = 1,
-  counter = 0
+  counter = 0,
 ): Promise<number> {
   try {
-    logger.info(`Github Copilot invoked at: ${new Date().toISOString()}`);
+    logger.info({message: "Github Copilot invoked at", data: new Date().toISOString()});
     const perPage = 100; // max allowed by github
     const org = Github.Enums.OrgConst.SG;
     const ghCopilotResp = await octokit(
@@ -54,44 +56,43 @@ async function getGHCopilotReports(
 
     await Promise.all(
       reportsPerPage.seats.map((seat) =>
-        sqsClient.sendMessage(seat, Queue.qGhCopilotFormat.queueUrl)
+        sqsClient.sendMessage(seat, Queue.qGhCopilotFormat.queueUrl, requestId)
       )
     );
 
     if (reportsPerPage.seats.length < perPage) {
-      logger.info(`getGHCopilotReports.successful for ${newCounter} records`);
+      logger.info({ message: 'getGHCopilotReports.successful', data: newCounter });
       return newCounter;
     }
 
-    return getGHCopilotReports(octokit, pageNo + 1, newCounter);
+    return getGHCopilotReports(octokit, requestId, pageNo + 1, newCounter,);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.error('getGHCopilotReports.error', { pageNo, error });
+    logger.error({message: "getGHCopilotReports.error", data:pageNo,  error });
 
     if (error.status === 401) {
       // Generate new installation access token to make request
       const octokitInstance = await initializeOctokit();
-      return getGHCopilotReports(octokitInstance, pageNo, counter);
+      return getGHCopilotReports(octokitInstance, requestId,pageNo, counter);
     }
     if (error.status === 403) {
       const resetTime = new Date(parseInt(error.headers['X-Ratelimit-Reset'], 10) * 1000);
       const secondsUntilReset = Math.max(resetTime.getTime() - Date.now(), 0) / 1000;
-      logger.warn(
-        `GitHub API rate limit exceeded. Waiting ${secondsUntilReset} seconds until reset.`
-      );
+      logger.info({message: "Github API rate limit exceeded. Waiting until reset", data: secondsUntilReset, requestId});
+    
     }
     throw error;
   }
 }
 
-export async function handler(): Promise<void> {
+export async function handler(event: APIGatewayProxyEvent): Promise<void> {
+
+  const requestId = event.requestContext.requestId;
   try {
     const octokit = await initializeOctokit();
-    await getGHCopilotReports(octokit);
+    await getGHCopilotReports(octokit, requestId);
   } catch (error: unknown) {
-    logger.error({
-      error,
-    });
+    logger.error({ message: 'github_copilot.handler.error', error, requestId });
     throw error;
   }
 }

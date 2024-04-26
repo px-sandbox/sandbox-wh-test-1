@@ -71,7 +71,8 @@ export async function pRReviewOnQueue(
   repo: string,
   owner: string,
   pullNumber: number,
-  action: string
+  action: string,
+  requestId: string
 ): Promise<void> {
   try {
     /**
@@ -80,12 +81,12 @@ export async function pRReviewOnQueue(
      */
     const [pullData] = await getPullRequestById(pullId);
     if (!pullData) {
-      logger.error('pRReviewOnQueue.failed: PR NOT FOUND', {
+      logger.error({message:'pRReviewOnQueue.failed: PR NOT FOUND', data: {
         review: prReview,
         pullId,
         repoId,
         action,
-      });
+      }, requestId, resourceId: String(pullId)});
       return;
     }
 
@@ -99,7 +100,8 @@ export async function pRReviewOnQueue(
     await Promise.all([
       sqsClient.sendMessage(
         { review: prReview, pullId, repoId, action },
-        Queue.qGhPrReviewFormat.queueUrl
+        Queue.qGhPrReviewFormat.queueUrl,
+        { requestId, resourceId: String(pullId) }
       ),
       sqsClient.sendFifoMessage(
         {
@@ -110,14 +112,15 @@ export async function pRReviewOnQueue(
           action: Github.Enums.Comments.REVIEW_COMMENTED,
         },
         Queue.qGhPrFormat.queueUrl,
+        {
+          requestId, resourceId: String(pullId)
+        },
         String(pullId),
-        uuid()
+        uuid(),
       ),
     ]);
   } catch (error: unknown) {
-    logger.error({
-      error,
-    });
+    logger.error({ message: 'Error in pRReviewOnQueue', requestId, resourceId: String(pullId), error});
     throw error;
   }
 }

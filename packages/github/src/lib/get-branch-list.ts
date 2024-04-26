@@ -2,7 +2,7 @@ import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 import { ghRequest } from './request-default';
@@ -19,11 +19,12 @@ async function getBranchList(
   repoId: string,
   repoName: string,
   repoOwner: string,
+  reqCntx: Other.Type.RequestCtx,
   page = 1,
   counter = 0
 ): Promise<number> {
   try {
-    logger.info('getBranchList.invoked', { repoName, repoOwner, page });
+    logger.info({ message: 'getBranchList.invoked', data: { repoName, repoOwner, page }, ...reqCntx });
     const perPage = 100;
 
     const responseData = await octokit(
@@ -38,21 +39,21 @@ async function getBranchList(
         const branchInfo = { ...branch };
         branchInfo.id = Buffer.from(`${repoId}_${branchInfo.name}`, 'binary').toString('base64');
         branchInfo.repo_id = repoId;
-        return sqsClient.sendMessage(branchInfo, Queue.qGhBranchFormat.queueUrl);
+        return sqsClient.sendMessage(branchInfo, Queue.qGhBranchFormat.queueUrl, { ...reqCntx });
       }),
     ]);
 
     if (branchesPerPage.length < perPage) {
-      logger.info('getBranchList.successful');
+      logger.info({ message: 'getBranchList.successful', ...reqCntx });
       return newCounter;
     }
-    return getBranchList(octokit, repoId, repoName, repoOwner, page + 1, newCounter);
+    return getBranchList(octokit, repoId, repoName, repoOwner, reqCntx, page + 1, newCounter);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.error('getBranchList.error', { repoName, repoOwner, page, error });
+    logger.error({ message: 'getBranchList.error', data: { repoName, repoOwner, page }, error, ...reqCntx });
 
     if (error.status === 401) {
-      return getBranchList(octokit, repoId, repoName, repoOwner, page, counter);
+      return getBranchList(octokit, repoId, repoName, repoOwner, reqCntx, page, counter);
     }
     throw error;
   }
@@ -61,7 +62,8 @@ async function getBranchList(
 export async function getBranches(
   repoId: string,
   repoName: string,
-  repoOwner: string
+  repoOwner: string,
+  reqCntx: Other.Type.RequestCtx
 ): Promise<number> {
   let branchCount: number;
   try {
@@ -72,12 +74,16 @@ export async function getBranches(
       },
     });
     const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
-    branchCount = await getBranchList(octokitRequestWithTimeout, repoId, repoName, repoOwner);
+    branchCount = await getBranchList(
+      octokitRequestWithTimeout,
+      repoId,
+      repoName,
+      repoOwner,
+      reqCntx
+    );
     return branchCount;
   } catch (error: unknown) {
-    logger.error({
-      error,
-    });
+    logger.error({ message: 'getBranches.error', data: { repoName, repoOwner }, error });
     throw error;
   }
 }

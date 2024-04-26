@@ -37,7 +37,8 @@ function compare(
  */
 const getLibFromDB = async (
   libNameAndVersion: { libName: string; version: string; releaseDate: string }[],
-  range: string
+  range: string,
+  requestId: string
 ): Promise<{ countOutOfDateLib: number; countUpToDateLib: number }> => {
   let countOutOfDateLib = 0;
   let countUpToDateLib = 0;
@@ -72,18 +73,19 @@ const getLibFromDB = async (
       }
     });
 
-    logger.info('getLibFromDB.response', { responses, countOutOfDateLib, countUpToDateLib });
+    logger.info({ message: 'getLibFromDB.response', data: { responses, countOutOfDateLib, countUpToDateLib }, requestId });
 
     return { countOutOfDateLib, countUpToDateLib };
   } catch (err) {
-    logger.error('getLibFromDB.error', err);
+    logger.error({ message: 'getLibFromDB.error', error: err, requestId });
     throw err;
   }
 };
 
 const getLibFromES = async (
   repoIds: string[],
-  range: string
+  range: string,
+  requestId: string
 ): Promise<{
   countOutOfDateLib: number;
   countUpToDateLib: number;
@@ -111,15 +113,15 @@ const getLibFromES = async (
         .size(size)
         .toJSON();
 
-      logger.info('ES-Query', { query });
+      logger.info({ message: 'ES-Query', data: JSON.stringify(query), requestId });
 
       const esLibData = await esClientObj.search(Github.Enums.IndexName.GitRepoLibrary, query);
 
-      logger.info(`getLibFromES - ES Query result `, { esLibData });
+      logger.info({ message: "getLibFromES - ES Query result", data: JSON.stringify(esLibData), requestId });
 
       libFormatData = await searchedDataFormator(esLibData);
 
-      logger.info(`getLibFromES.response ${counter}`, { libFormatData });
+      logger.info({ message: "getLibFromES.response", data: { counter: counter, libFormatData }, requestId });
 
       libData.push(...libFormatData);
       from += size;
@@ -133,17 +135,18 @@ const getLibFromES = async (
       })
     );
 
-    return getLibFromDB(libNameAndVersion, range);
+    return getLibFromDB(libNameAndVersion, range, requestId);
   } catch (error) {
-    logger.error('getLibFromES.error', error);
+    logger.error({ message: 'getLibFromES.error', error, requestId });
     throw error;
   }
 };
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const requestId = event.requestContext.requestId;
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [''];
   const range = event.queryStringParameters?.range ?? '<= 1';
-  const lib = await getLibFromES(repoIds, range);
+  const lib = await getLibFromES(repoIds, range, requestId);
   return responseParser
     .setBody({ headline: lib })
     .setMessage('Headline for version upgrade')

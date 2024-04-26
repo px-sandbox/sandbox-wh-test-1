@@ -1,5 +1,5 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
@@ -7,7 +7,8 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveCommitDetails(data: Github.Type.Commits, processId?: string): Promise<void> {
+export async function saveCommitDetails(data: Github.Type.Commits, reqCntx: Other.Type.RequestCtx, processId?: string): Promise<void> {
+  const { requestId, resourceId } = reqCntx;
   try {
     const updatedData = { ...data };
     const matchQry = esb
@@ -37,10 +38,10 @@ export async function saveCommitDetails(data: Github.Type.Commits, processId?: s
 
     await esClientObj.putDocument(Github.Enums.IndexName.GitCommits, commitIndexData);
 
-    logger.info('saveCommitDetails.successful');
-    await deleteProcessfromDdb(processId);
+    logger.info({ message: 'saveCommitDetails.successful', requestId, resourceId});
+    await deleteProcessfromDdb(processId, { requestId, resourceId });
   } catch (error: unknown) {
-    logger.error(`saveCommitDetails.error, ${error}`);
+    logger.error({message: 'saveCommitDetails.error', error, requestId, resourceId});
     throw error;
   }
 }

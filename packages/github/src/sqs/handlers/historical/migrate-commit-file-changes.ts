@@ -30,18 +30,26 @@ async function getRepoNameById(repoId: string): Promise<string> {
   if (!repoName) {
     throw new Error(`repoName not found for data: ${repoId}`);
   }
-  logger.info({ message: 'repoData', repoName: repoName.name });
+  logger.info({ message: 'repoData', data: { repoName: repoName.name } });
   return repoName.name;
 }
 export const handler = async function commitFormattedDataReciever(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: 'Records Length', data: event.Records.length });
 
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
-      const messageBody = JSON.parse(record.body);
+      const {
+        reqCntx: { requestId, resourceId },
+        messageBody,
+      } = JSON.parse(record.body);
       try {
-        logger.info('COMMIT_FILE_CHANGES_HANDLER_FORMATER', {
-          commitId: messageBody.githubCommitId,
+        logger.info({
+          message: 'COMMIT_FILE_CHANGES_HANDLER_FORMATTER',
+          data: {
+            commitId: messageBody.githubCommitId,
+          },
+          requestId,
+          resourceId,
         });
         const {
           githubCommitId,
@@ -56,7 +64,6 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           throw new Error('repoId is missing');
         }
         const repoName = await getRepoNameById(repoId);
-        logger.info(`REPO_NAME: ${repoName}`);
         const responseData = (await octokitRequestWithTimeout(
           `GET /repos/${repoOwner}/${repoName}/commits/${githubCommitId}`
         )) as OctokitResponse<any>;
@@ -65,27 +72,37 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           const files = await processFileChanges(
             responseData.data.files,
             filesLink,
-            octokitRequestWithTimeout
+            octokitRequestWithTimeout,
+            { requestId, resourceId }
           );
           responseData.data.files = files;
         }
 
-        logger.info(`FILE_COUNT: ${responseData.data.files.length}`);
-        const commitProcessor = new CommitProcessor({
-          ...getOctokitResp(responseData),
-          commits: {
-            id: githubCommitId,
-            isMergedCommit,
-            mergedBranch,
-            pushedBranch,
-            createdAt,
+        logger.info({ message: 'FILE_COUNT', data: responseData.data.files.length, requestId, resourceId});
+        const commitProcessor = new CommitProcessor(
+          {
+            ...getOctokitResp(responseData),
+            commits: {
+              id: githubCommitId,
+              isMergedCommit,
+              mergedBranch,
+              pushedBranch,
+              createdAt,
+            },
+            repoId: repoId.replace(/gh_repo_/g, ''),
           },
-          repoId: repoId.replace(/gh_repo_/g, ''),
-        });
+          requestId,
+          resourceId
+        );
         const data = await commitProcessor.processor();
         await commitProcessor.save({ data, eventType: Github.Enums.Event.Commit });
       } catch (error) {
-        logger.error('migrate-commitFormattedDataReciever', error);
+        logger.error({
+          message: 'migrate-commitFormattedDataReceiver',
+          error,
+          requestId,
+          resourceId,
+        });
         await logProcessToRetry(record, Queue.qGhCommitFileChanges.queueUrl, error as Error);
       }
     })

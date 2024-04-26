@@ -10,7 +10,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 
-async function fetchPRComments(repoId: string, owner: string, repoName: string): Promise<void> {
+async function fetchPRComments(repoId: string, owner: string, repoName: string, requestId:string): Promise<void> {
   try {
     let prFormattedData: any = [];
     let from = 0;
@@ -34,14 +34,15 @@ async function fetchPRComments(repoId: string, owner: string, repoName: string):
         prFormattedData.map(async (prData: any) => {
           sqsClient.sendMessage(
             { prData, owner, repoName },
-            Queue.qGhPrReviewCommentMigration.queueUrl
+            Queue.qGhPrReviewCommentMigration.queueUrl,
+            {requestId, resourceId: prData.githubPRId}
           );
         })
       );
       from += size;
     } while (prFormattedData.length == size);
   } catch (error) {
-    logger.error(`error_fetching_PR_comments:, ${error}`);
+    logger.error({ message: "error_fetching_PR_comments", error, requestId });
   }
 }
 
@@ -49,7 +50,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const repoIds = event.queryStringParameters?.repoIds;
   const owner = event.queryStringParameters?.owner;
   const repoName = event.queryStringParameters?.repoName;
-
+  const requestId = event.requestContext.requestId;
   if (!repoIds || !owner || !repoName) {
     return responseParser
       .setBody('repoIds, owner, repoName are required')
@@ -58,7 +59,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       .setResponseBodyCode('BAD_REQUEST')
       .send();
   }
-  const repos = await fetchPRComments(repoIds, owner, repoName);
+  const repos = await fetchPRComments(repoIds, owner, repoName, requestId);
   return responseParser
     .setBody({ headline: repos })
     .setMessage('Headline for update protected keyword in branch data')

@@ -1,7 +1,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { HitBody } from 'abstraction/other/type';
-import async from 'async';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
@@ -57,10 +56,9 @@ async function countBranchesAndSendToSQS(
       processId: data?.processId,
     });
   } catch (error: unknown) {
-    logger.error(`
-    countBranchesAndSendToSQS.error for ${repo.id} at ${date}
-    Error: ${error}
-    `);
+    logger.error({ message: 
+    'countBranchesAndSendToSQS.error', data: {repoId: repo.id, date}
+    ,error});
     throw error;
   }
 }

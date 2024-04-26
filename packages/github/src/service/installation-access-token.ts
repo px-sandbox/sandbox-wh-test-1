@@ -6,7 +6,7 @@ export async function getGithubAccessToken(): Promise<APIGatewayProxyResult> {
   try {
     const installationAccessToken = await getInstallationAccessToken();
 
-    logger.info('Get installation access token');
+    logger.info({ message: 'Get installation access token' });
     return responseParser
       .setBody(installationAccessToken)
       .setMessage('get metadata')
@@ -14,9 +14,7 @@ export async function getGithubAccessToken(): Promise<APIGatewayProxyResult> {
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (error: unknown) {
-    logger.error({
-      error,
-    });
+    logger.error({ message: 'getGithubAccessToken.error', error });
     throw error;
   }
 }

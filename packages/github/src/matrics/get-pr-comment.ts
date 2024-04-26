@@ -11,8 +11,9 @@ const getGraphDataQuery = (
   startDate: string,
   endDate: string,
   intervals: string,
-  repoIds: string[]
-):object => {
+  repoIds: string[],
+  requestId: string
+): object => {
   const prCommentGraphQuery = esb.requestBodySearch().size(0);
   prCommentGraphQuery.query(
     esb
@@ -41,7 +42,7 @@ const getGraphDataQuery = (
     )
     .toJSON();
 
-  logger.info('PR_COMMENT_GRAPH_ESB_QUERY', prCommentGraphQuery);
+  logger.info({ message: 'PR_COMMENT_GRAPH_ESB_QUERY', data: JSON.stringify(prCommentGraphQuery), requestId });
   return prCommentGraphQuery;
 };
 
@@ -102,10 +103,11 @@ export async function prCommentsGraphData(
   startDate: string,
   endDate: string,
   intervals: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<{ date: string; value: number }[]> {
   try {
-    const prCommentGraphQuery = getGraphDataQuery(startDate, endDate, intervals, repoIds);
+    const prCommentGraphQuery = getGraphDataQuery(startDate, endDate, intervals, repoIds, requestId);
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitPRReviewComment,
@@ -116,7 +118,7 @@ export async function prCommentsGraphData(
       value: parseFloat(item.combined_avg.value.toFixed(2)),
     }));
   } catch (e) {
-    logger.error('prCommentsGraph.error', e);
+    logger.error({ message: 'prCommentsGraph.error', error: e , requestId});
     throw e;
   }
 }
@@ -124,17 +126,18 @@ export async function prCommentsGraphData(
 export async function prCommentsAvg(
   startDate: string,
   endDate: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<string | null> {
   try {
     const prCommentAvgQuery = getHealineQuery(startDate, endDate, repoIds);
-    logger.info('PR_COMMENT_AVG_ESB_QUERY', prCommentAvgQuery);
+    logger.info({ message: 'PR_COMMENT_AVG_ESB_QUERY', data: JSON.stringify(prCommentAvgQuery), requestId});
     const data: { pr_comment_avg: string } = await esClientObj.queryAggs<{
       pr_comment_avg: string;
     }>(Github.Enums.IndexName.GitPRReviewComment, prCommentAvgQuery);
     return data.pr_comment_avg;
   } catch (e) {
-    logger.error('prCommentsAvg.error', e);
+    logger.error({ message: 'prCommentsAvg.error', error: e, requestId });
   }
   return null;
 }

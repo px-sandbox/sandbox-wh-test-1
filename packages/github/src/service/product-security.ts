@@ -18,11 +18,11 @@ const productSecurity = async function handler(
     const interval: string = event.queryStringParameters?.interval ?? '';
     const branch = event.queryStringParameters?.branch ?? '';
     const repoIds = event.queryStringParameters?.repoIds?.split(',') ?? [];
-
+    const requestId = event.requestContext.requestId;
 
     try {
 
-        const prodSecurityRes = await getProductSecurity(repoIds, startDate, endDate, interval, branch);
+        const prodSecurityRes = await getProductSecurity(repoIds, startDate, endDate, interval, branch,requestId);
 
         return responseParser
             .setBody(prodSecurityRes)
@@ -31,7 +31,7 @@ const productSecurity = async function handler(
             .setResponseBodyCode('SUCCESS')
             .send();
     } catch (e) {
-        logger.error(e);
+        logger.error({ message: "productSecurity.error", error: e, requestId });
         throw new Error(`Something went wrong: ${e}`);
     }
 };

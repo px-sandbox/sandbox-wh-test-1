@@ -1,14 +1,14 @@
 /* eslint-disable no-await-in-loop */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
-import { APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
 import { getBranches } from '../lib/get-branch-list';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
-const getReposFromES = async (): Promise<any> => {
+const getReposFromES = async (requestId:string): Promise<any> => {
   let reposFormatData;
   try {
     const reposData = [];
@@ -31,20 +31,21 @@ const getReposFromES = async (): Promise<any> => {
       from += size;
 
       const getBranchesPromises = reposData.map((repoData) =>
-        getBranches(repoData.githubRepoId, repoData.name, repoData.owner)
+        getBranches(repoData.githubRepoId, repoData.name, repoData.owner, { requestId , resourceId: repoData.name   })
       );
       await Promise.all(getBranchesPromises);
     } while (reposFormatData.length === size);
 
     return reposData;
   } catch (error) {
-    logger.error('getReposFromES.error', error);
+    logger.error({ message: 'getReposFromES.error', error });
     throw error;
   }
 };
 
-export async function handler(): Promise<APIGatewayProxyResult> {
-  const repos = await getReposFromES();
+export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const requestId = event.requestContext.requestId;
+  const repos = await getReposFromES(requestId);
   return responseParser
     .setBody({ headline: repos })
     .setMessage('Headline for update protected keyword in branch data')

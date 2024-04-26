@@ -20,10 +20,10 @@ const octokit = ghRequest.request.defaults({
 const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
+  const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
   try {
-    const messageBody = JSON.parse(record.body);
-    logger.info('PULL_SQS_RECEIVER_HANDLER', messageBody);
-    const pullProcessor = new PRProcessor(messageBody);
+    logger.info({ message: 'PULL_SQS_RECEIVER_HANDLER',data: messageBody, requestId, resourceId });
+    const pullProcessor = new PRProcessor(messageBody, requestId, resourceId);
     const data = await pullProcessor.processor();
     const reviewCommentCount = await processPRComments(
       messageBody.head.repo.owner.login,
@@ -39,11 +39,11 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     });
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPrFormat.queueUrl, error as Error);
-    logger.error(`pRFormattedDataReceiver.error, ${error}`);
+    logger.error({ message: "pRFormattedDataReceiver.error", error, requestId, resourceId});
   }
 }
 export const handler = async function pRFormattedDataReceiver(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: "Records Length:", data: event.Records.length});
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
     Object.values(messageGroups).map(async (group) => {
@@ -55,7 +55,7 @@ export const handler = async function pRFormattedDataReceiver(event: SQSEvent): 
           },
           (error) => {
             if (error) {
-              logger.error(`pRFormattedDataReceiver.error, ${error}`);
+              logger.error({ message: "pRFormattedDataReceiver.error", error});
             }
             resolve('Done');
           }

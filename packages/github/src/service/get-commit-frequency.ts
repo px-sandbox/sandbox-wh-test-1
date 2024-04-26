@@ -10,6 +10,7 @@ import { prCommentsGraphSchema } from './validations';
 const frequencyOfCodeCommits = async function getFrequencyOfCodeCommits(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const requestId = event.requestContext.requestId;
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
@@ -17,8 +18,8 @@ const frequencyOfCodeCommits = async function getFrequencyOfCodeCommits(
 
   try {
     const [frequencyOfCodeCommitsGraphData, frequencyOfCodeCommitsAvg] = await Promise.all([
-      frequencyOfCodeCommitGraph(startDate, endDate, interval, repoIds),
-      frequencyOfCodeCommitAvg(startDate, endDate, repoIds),
+      frequencyOfCodeCommitGraph(startDate, endDate, interval, repoIds, requestId),
+      frequencyOfCodeCommitAvg(startDate, endDate, repoIds, requestId),
     ]);
     return responseParser
       .setBody({ graphData: frequencyOfCodeCommitsGraphData, headline: frequencyOfCodeCommitsAvg })
@@ -27,7 +28,7 @@ const frequencyOfCodeCommits = async function getFrequencyOfCodeCommits(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error(e);
+    logger.error({ message: "frequencyOfCodeCommits.error", error: e , requestId });
     throw new Error(`Something went wrong: ${e}`);
   }
 };

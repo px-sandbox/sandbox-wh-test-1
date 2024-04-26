@@ -5,6 +5,7 @@ import { getRepoSastErrors } from '../matrics/get-sast-errors-details';
 const repoSastErrors = async function repoSastErrors(
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+    const requestId = event.requestContext.requestId;
     const afterKey: string = event.queryStringParameters?.afterKey ?? '';
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
     // TODO: this is not array. We receive only single branch name
@@ -25,7 +26,8 @@ const repoSastErrors = async function repoSastErrors(
             startDate,
             endDate,
             branch,
-            afterKeyObj,
+            requestId,
+            afterKeyObj
         );
 
         return responseParser
@@ -35,7 +37,7 @@ const repoSastErrors = async function repoSastErrors(
             .setResponseBodyCode('SUCCESS')
             .send();
     } catch (e) {
-        logger.error(e);
+        logger.error({ message: "repoSastErrors.error", error: e, requestId });
         throw new Error(`Something went wrong: ${e}`);
     }
 };

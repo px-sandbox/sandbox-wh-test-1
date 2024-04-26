@@ -10,8 +10,8 @@ export class RepositoryProcessor extends DataProcessor<
   Github.ExternalType.Api.Repository,
   Github.Type.RepoFormatter
 > {
-  constructor(data: Github.ExternalType.Api.Repository) {
-    super(data);
+  constructor(data: Github.ExternalType.Api.Repository, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
   public async processor(): Promise<Github.Type.RepoFormatter> {
     const githubId = `${mappingPrefixes.repo}_${this.ghApiData.id}`;
@@ -28,9 +28,11 @@ export class RepositoryProcessor extends DataProcessor<
       },
     ];
     if (!parentId && this.ghApiData?.action !== Github.Enums.Repo.Created) {
-      logger.error('REPOSITORY_PROCESSOR_ERROR', {
+      logger.error({ message: 'REPOSITORY_PROCESSOR_ERROR', 
         error: 'Repository not found',
         data: this.ghApiData,
+        requestId: this.requestId,
+        resourceId: this.resourceId,
       });
       throw new Error('Repository not found');
     }

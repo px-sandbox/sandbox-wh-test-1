@@ -7,6 +7,7 @@ import { prCommentsGraphSchema } from './validations';
 const activeBranches = async function getActiveBranches(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const requestId = event.requestContext.requestId;
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
@@ -14,8 +15,8 @@ const activeBranches = async function getActiveBranches(
 
   try {
     const [activeBranchesGraph, activeBranchAvg] = await Promise.all([
-      activeBranchGraphData(startDate, endDate, interval, repoIds),
-      activeBranchesAvg(startDate, endDate, repoIds),
+      activeBranchGraphData(startDate, endDate, interval, repoIds, requestId),
+      activeBranchesAvg(startDate, endDate, repoIds, requestId),
     ]);
     return responseParser
       .setBody({ graphData: activeBranchesGraph, headline: activeBranchAvg })
@@ -24,7 +25,7 @@ const activeBranches = async function getActiveBranches(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error(e);
+    logger.error({ message: "active_branches.error", error: e, requestId });
     throw new Error(`Something went wrong: ${e}`);
   }
 };

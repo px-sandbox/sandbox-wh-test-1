@@ -1,5 +1,5 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { S3 } from 'aws-sdk';
 import { GetObjectRequest } from 'aws-sdk/clients/s3';
 import { logger } from 'core';
@@ -51,7 +51,8 @@ export async function storeSastErrorReportToES(
   repoId: string,
   branch: string,
   orgId: string,
-  createdAt: string
+  createdAt: string,
+  reqCntx: Other.Type.RequestCtx
 ): Promise<void> {
   try {
     const matchQry = getQuery(repoId, branch, orgId, createdAt);
@@ -63,31 +64,31 @@ export async function storeSastErrorReportToES(
     );
 
     if (data.length > 0) {
-      logger.info('storeSastErrorReportToES.data', { data_length: data.length });
+      logger.info({ message: 'storeSastErrorReportToES.data', data: data.length, ...reqCntx });
       await esClientObj.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, data);
-      logger.info('storeSastErrorReportToES.success');
+      logger.info({ message: 'storeSastErrorReportToES.success', ...reqCntx});
     } else {
-      logger.info('storeSastErrorReportToES.no_data');
+      logger.info({ message: 'storeSastErrorReportToES.no_data', ...reqCntx });
     }
   } catch (error) {
-    logger.error('storeSastErrorReportToES.error', { error });
+    logger.error({ message: 'storeSastErrorReportToES.error',  error, ...reqCntx });
     throw error;
   }
 }
-export async function fetchDataFromS3<T>(key: string, bucketName: string): Promise<T> {
+export async function fetchDataFromS3<T>(key: string, bucketName: string, reqCntx: Other.Type.RequestCtx): Promise<T> {
   const params: GetObjectRequest = {
     Bucket: `${bucketName}`,
     Key: key,
     ResponseContentType: 'application/json',
   };
-  logger.info('fetchDataFromS3.params', { params });
+  logger.info({ message: 'fetchDataFromS3.params', data: { params }, ...reqCntx });
   const s3 = new S3();
   try {
     const data = await s3.getObject(params).promise();
     const jsonData = JSON.parse(data.Body?.toString() || '{}');
     return jsonData;
   } catch (error) {
-    logger.error('fetchDataFromS3.error', { error });
+    logger.error({ message: 'fetchDataFromS3.error',  error, ...reqCntx });
     throw error;
   }
 }

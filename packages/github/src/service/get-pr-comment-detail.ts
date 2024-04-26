@@ -5,6 +5,7 @@ import { prCommentsDetailMetrics } from '../matrics/get-pr-comment-detail';
 const prCommentsDetail = async function getPRCommentsDetail(
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+    const requestId = event.requestContext.requestId;
     const startDate: string = event.queryStringParameters?.startDate ?? '';
     const endDate: string = event.queryStringParameters?.endDate ?? '';
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
@@ -24,6 +25,7 @@ const prCommentsDetail = async function getPRCommentsDetail(
             sortKey,
             sortOrder,
             orgId,
+            requestId
         );
         return responseParser
             .setBody(responseBody)
@@ -32,7 +34,7 @@ const prCommentsDetail = async function getPRCommentsDetail(
             .setResponseBodyCode('SUCCESS')
             .send();
     } catch (e) {
-        logger.error(e);
+        logger.error({ message: "prCommentsDetail.error", error: e , requestId});
         throw new Error(`Something went wrong: ${e}`);
     }
 };

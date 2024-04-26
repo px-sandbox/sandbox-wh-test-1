@@ -10,6 +10,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 const esClientObj = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  const requestId = event.requestContext.requestId;
   const orgName = event?.queryStringParameters?.orgName || '';
   try {
     const fileChangeQuery = esb
@@ -22,18 +23,19 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
 
     const commits = await searchedDataFormator(commitData);
     logger.info({
-      level: 'info',
-      message: 'commits_data_length',
-      commitLength: commits.length,
+        message: 'commits_data_length',
+      data: { commitLength: commits.length },
+      requestId
     });
     await Promise.all(
       commits.map(async (commit: Github.Type.Commits) => sqsClient.sendMessage(
           { ...commit, repoOwner: orgName },
-          Queue.qGhCommitFileChanges.queueUrl
+        Queue.qGhCommitFileChanges.queueUrl,
+          {requestId, resourceId: commit.body.githubCommitId}
         ))
     );
   } catch (error) {
-    logger.error(JSON.stringify({ message: 'HISTORY_DATA_ERROR', error }));
+    logger.error({ message: "file-changes-for-commit.error",  error , requestId});
   }
   return responseParser
     .setBody('DONE')

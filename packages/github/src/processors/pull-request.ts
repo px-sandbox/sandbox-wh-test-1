@@ -10,8 +10,8 @@ export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
   Github.Type.PullRequest
 > {
-  constructor(data: Github.ExternalType.Webhook.PullRequest) {
-    super(data);
+  constructor(data: Github.ExternalType.Webhook.PullRequest, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
 
   private setAction(): Github.Type.actions {
@@ -82,7 +82,7 @@ export class PRProcessor extends DataProcessor<
   }
   private async isPRExist(): Promise<boolean> {
     const pull = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
-    logger.info('PULL REQUEST ID : ', this.ghApiData.id);
+    logger.info({ message: 'PULL REQUEST ID : ', data: this.ghApiData.id });
     if (pull) {
       return true;
     }
@@ -115,13 +115,13 @@ export class PRProcessor extends DataProcessor<
         {
           const pr = await this.isPRExist();
           if (!pr) {
-            logger.info('PR_NOT_FOUND', this.ghApiData.id);
+            logger.info({ message: 'PR_NOT_FOUND', data: this.ghApiData.id });
             throw new Error('PR_NOT_FOUND');
           }
         }
         break;
       default:
-        logger.info('PROCESS_NEW_PR', this.ghApiData.id);
+        logger.info({ message: 'PROCESS_NEW_PR', data: this.ghApiData.id });
         break;
     }
   }
@@ -164,7 +164,7 @@ export class PRProcessor extends DataProcessor<
       const pullObj = await this.setPullObj(parentId, reqReviewersData, labelsData, action);
       return pullObj;
     } catch (error) {
-      logger.error(`PRProcessor.processor.error, ${error}`);
+      logger.error({ message: "PRProcessor.processor.error", error });
       throw error;
     }
   }

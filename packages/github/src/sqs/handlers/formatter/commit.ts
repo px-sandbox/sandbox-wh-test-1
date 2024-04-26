@@ -15,9 +15,9 @@ import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 // eslint-disable-next-line max-lines-per-function
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
+  const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
   try {
-    const messageBody = JSON.parse(record.body);
-    logger.info('COMMIT_SQS_RECEIVER_HANDLER_FORMATTER', { messageBody });
+    logger.info({ message: 'COMMIT_SQS_RECEIVER_HANDLER_FORMATTER', data:  messageBody , requestId, resourceId});
     const {
       commitId,
       mergedBranch,
@@ -47,17 +47,18 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       const files = await processFileChanges(
         responseData.data.files,
         filesLink,
-        octokitRequestWithTimeout
+        octokitRequestWithTimeout, 
+        { requestId, resourceId}
       );
       responseData.data.files = files;
     }
     const parentCommit = responseData.data.parents.length >= 2;
     if (parentCommit) {
-      logger.info(`parent_commit_found_for_commit_id:  ${commitId}`);
+      logger.info({ message: "parent_commit_found_for_commit_id", data: { commitId: commitId }, requestId, resourceId});
       isMergedCommit = true;
     }
 
-    logger.info(`FILE_COUNT: ${responseData.data.files.length}`);
+    logger.info({ message: "FILE_COUNT:", data:  responseData.data.files.length, requestId, resourceId});
     const commitProcessor = new CommitProcessor({
       ...getOctokitResp(responseData),
       commits: {
@@ -68,7 +69,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
         timestamp,
       },
       repoId,
-    });
+      }, requestId, resourceId);
     const data = await commitProcessor.processor();
     await commitProcessor.save({
       data,
@@ -76,12 +77,12 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       processId: messageBody?.processId,
     });
   } catch (error) {
-    logger.error(`commitFormattedDataReceiver.error, ${error}`);
+    logger.error({ message: `commitFormattedDataReceiver.error, ${error}`, requestId, resourceId});
     await logProcessToRetry(record, Queue.qGhCommitFormat.queueUrl, error as Error);
   }
 }
 export const handler = async function commitFormattedDataReceiver(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: `Records Length: ${event.Records.length}` });
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
     Object.values(messageGroups).map(
@@ -94,7 +95,7 @@ export const handler = async function commitFormattedDataReceiver(event: SQSEven
             },
             (error: any) => {
               if (error) {
-                logger.error(`commitFormattedDataReceiver.error, ${error}`);
+                logger.error({ message: 'commitFormattedDataReceiver.error', error,});
               }
               resolve('DONE');
             }

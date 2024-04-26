@@ -15,6 +15,7 @@ const versionUpgrades = async function versionUpgrades(
     const sortOrder: Github.Enums.SortOrder = event.queryStringParameters?.sortOrder as Github.Enums.SortOrder ??
         Github.Enums.SortOrder.DESC;
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
+    const requestId = event.requestContext.requestId;
 
     try {
         const sort = {
@@ -27,8 +28,7 @@ const versionUpgrades = async function versionUpgrades(
             search = '';
         }
 
-        const verUpgrades = await getVersionUpgrades(search, parseInt(page, 10), parseInt(limit, 10), repoIds,
-            sort);
+        const verUpgrades = await getVersionUpgrades(search, parseInt(page, 10), parseInt(limit, 10), repoIds, requestId, sort);
 
         return responseParser
             .setBody(verUpgrades)
@@ -37,7 +37,7 @@ const versionUpgrades = async function versionUpgrades(
             .setResponseBodyCode('SUCCESS')
             .send();
     } catch (e) {
-        logger.error(e);
+        logger.error({ message: "versionUpgrades.error", error: e, requestId});
         throw new Error(`Something went wrong: ${e}`);
     }
 };

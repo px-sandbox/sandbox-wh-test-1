@@ -6,11 +6,11 @@ import { logProcessToRetry } from '../../../util/retry-process';
 import { RepositoryProcessor } from '../../../processors/repo';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
+  const { reqCtx: { requestId, resourceId }, message: messageBody } = JSON.parse(record.body);
   try {
-    const messageBody = JSON.parse(record.body);
-    logger.info('REPO_SQS_RECEIVER_HANDLER', { messageBody });
+    logger.info({ message: 'REPO_SQS_RECEIVER_HANDLER', data: messageBody, requestId, resourceId });
 
-    const repoProcessor = new RepositoryProcessor(messageBody);
+    const repoProcessor = new RepositoryProcessor(messageBody, requestId, resourceId);
     const data = await repoProcessor.processor();
     await repoProcessor.save({
       data,
@@ -18,12 +18,11 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       processId: messageBody?.processId,
     });
   } catch (error) {
-    logger.error(`repoFormattedDataReceiver.error, ${error}`);
+    logger.error({ message: "repoFormattedDataReceiver.error", requestId, resourceId, error});
     await logProcessToRetry(record, Queue.qGhRepoFormat.queueUrl, error as Error);
   }
 }
-
 export const handler = async function repoFormattedDataReceiver(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: "Records Length", data: event.Records.length});
   await Promise.all(event.Records.map((record: SQSRecord) => processAndStoreSQSRecord(record)));
 };

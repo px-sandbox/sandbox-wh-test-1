@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { SQSClient } from '@pulse/event-handler';
 import { OctokitResponse } from '@octokit/types';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
@@ -21,7 +21,8 @@ const octokit = ghRequest.request.defaults({
 const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function processReviewQueueForPageOne(
   prReviews: OctokitResponse<Github.Type.CommentState[]>,
-  messageBody: Github.Type.MessageBody
+  messageBody: Github.Type.MessageBody,
+  reqCntx: Other.Type.RequestCtx
 ): Promise<void> {
   let submittedAt = null;
   let approvedAt = null;
@@ -57,14 +58,15 @@ async function processReviewQueueForPageOne(
       prNumber: messageBody.number,
       repoId: messageBody.head.repo.id,
     },
-    Queue.qGhHistoricalPrByNumber.queueUrl
+    Queue.qGhHistoricalPrByNumber.queueUrl,
+    {...reqCntx}
   );
 }
 
 async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
-  const messageBody = JSON.parse(record.body);
+  const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
-    logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
+    logger.info({ message: 'HISTORY_MESSGE_BODY_EMPTY', data: messageBody, requestId, resourceId});
     return false;
   }
   const {
@@ -87,25 +89,26 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
           pullId: messageBody.id,
           repoId: messageBody.head.repo.id,
         },
-        Queue.qGhPrReviewFormat.queueUrl
-      )
+        Queue.qGhPrReviewFormat.queueUrl,
+        {requestId, resourceId}
+      ),
     );
 
     await Promise.all(queueProcessed);
-    logger.info(`total pr reviews processed: ${queueProcessed.length}`);
+    logger.info({ message: "total pr reviews processed", data: queueProcessed.length, requestId, resourceId});
     if (page === 1) {
-      await processReviewQueueForPageOne(prReviews, messageBody);
+      await processReviewQueueForPageOne(prReviews, messageBody, { requestId, resourceId });
     }
 
     if (octokitRespData.length < 100) {
-      logger.info('LAST_100_RECORD_PR_REVIEW');
+      logger.info({ message: 'LAST_100_RECORD_PR_REVIEW', requestId, resourceId});
       return true;
     }
     messageBody.page = page + 1;
-    logger.info(`message_body_pr_reviews: ${JSON.stringify(messageBody)}`);
+    logger.info({ message: `message_body_pr_reviews: ${JSON.stringify(messageBody)}` , requestId, resourceId});
     await getPrReviews({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
-    logger.error(`historical.reviews.error: ${JSON.stringify(error)}`);
+    logger.error({ message: "historical.reviews.error", error: JSON.stringify(error), requestId, resourceId});
     await logProcessToRetry(record, Queue.qGhHistoricalReviews.queueUrl, error as Error);
   }
 }
@@ -118,9 +121,10 @@ export const handler = async function collectPrReviewsData(event: SQSEvent): Pro
         return true;
       }
 
-      logger.info(`
-      PR with no repo: ${JSON.stringify(body)}
-      `);
+      logger.info({
+        message: 
+      "PR with no repo", data: JSON.stringify(body)}
+      );
 
       return false;
     }).map(async (record: SQSRecord) => getPrReviews(record))

@@ -7,6 +7,7 @@ import { prCommentsGraphSchema } from './validations';
 const prWaitTimeGraph = async function getPrWaitTimeGraph(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const requestId = event.requestContext.requestId;
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
@@ -14,8 +15,8 @@ const prWaitTimeGraph = async function getPrWaitTimeGraph(
 
   try {
     const [prCommentGraphData, prCommentAvg] = await Promise.all([
-      prWaitTimeGraphData(startDate, endDate, interval, repoIds),
-      prWaitTimeAvg(startDate, endDate, repoIds),
+      prWaitTimeGraphData(startDate, endDate, interval, repoIds,requestId),
+      prWaitTimeAvg(startDate, endDate, repoIds,requestId),
     ]);
     return responseParser
       .setBody({ graphData: prCommentGraphData, headline: prCommentAvg })
@@ -24,7 +25,7 @@ const prWaitTimeGraph = async function getPrWaitTimeGraph(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error(e);
+    logger.error({ message: "prWaitTimeGraph", error: e , requestId});
     throw new Error(`Something went wrong: ${e}`);
   }
 };

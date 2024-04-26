@@ -4,29 +4,33 @@ import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { LibParamsMapping } from '../model/lib-master-mapping';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 
 const dynamodbClient = DynamoDbDocClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 async function sendAllDepsToQueue(
-  items: Array<{ libName: string; version: string }>
+  items: Array<{ libName: string; version: string }>,
+  requestId: string
 ): Promise<void> {
   try {
     await Promise.all(
       items.map(async (item) => {
         const { libName, version } = item;
         const depName = libName.split('npm_')[1];
-        logger.info(`sendAllDepsToQueue: libname: ${depName}, version: ${version}`);
-        return sqsClient.sendMessage({ depName, version }, Queue.qMasterLibInfo.queueUrl);
+        logger.info({ message: "sendAllDepsToQueue: libname", data: { depName, version: version }, requestId });
+        return sqsClient.sendMessage({ depName, version }, Queue.qMasterLibInfo.queueUrl,requestId);
       })
     );
   } catch (err) {
-    logger.error('sendAllDepsToQueue.Error', JSON.stringify(err, null, 2));
+    logger.error({ message: "sendAllDepsToQueue.Error", error: JSON.stringify(err, null, 2), requestId });
     throw err;
   }
 }
 
-export async function handler(): Promise<void> {
-  logger.info(`UpdateLatestDepHandler invoked at: ${new Date().toISOString()}`);
+export async function handler(event: APIGatewayProxyEvent): Promise<void> {
+
+  const requestId = event.requestContext.requestId;
+  logger.info({message: "UpdateLatestDepHandler invoked", data: new Date().toISOString(), requestId});
 
   try {
     let items: { libName: string; version: string }[] = [];
@@ -38,13 +42,13 @@ export async function handler(): Promise<void> {
       items = data.Items ? (data.Items as { libName: string; version: string }[]) : [];
       params.ExclusiveStartKey = data.LastEvaluatedKey;
       if (items.length > 0) {
-        logger.info(`UpdateLatestDepHandler: ${items.length} items found`);
+        logger.info({ message: "UpdateLatestDepHandler", data: { length: items.length }, requestId});
         // eslint-disable-next-line no-await-in-loop
-        await sendAllDepsToQueue(items);
+        await sendAllDepsToQueue(items,requestId);
       }
     } while (data.LastEvaluatedKey);
   } catch (err) {
-    logger.error('cronUpdateLatestDep.handler.Error:', JSON.stringify(err, null, 2));
+    logger.error({message: "cronUpdateLatestDep.handler.Error:", error: JSON.stringify(err, null, 2),  requestId});
     throw err;
   }
 }

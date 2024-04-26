@@ -11,7 +11,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 
-const fetBranchesData = async (repoId: string): Promise<any> => {
+const fetBranchesData = async (repoId: string,requestId:string): Promise<any> => {
   try {
     const query = esb
       .requestBodySearch()
@@ -32,7 +32,7 @@ const fetBranchesData = async (repoId: string): Promise<any> => {
     const formattedData = await searchedDataFormator(branches);
     return formattedData;
   } catch (e) {
-    logger.error('GET_GITHUB_BRANCH_DETAILS', { error: e });
+    logger.error({message: 'GET_GITHUB_BRANCH_DETAILS',  error: e, requestId});
   }
 };
 /**
@@ -40,11 +40,11 @@ const fetBranchesData = async (repoId: string): Promise<any> => {
  * @param repoIds - An array of repository IDs.
  * @returns A promise that resolves to an array of branch names.
  */
-async function fetchBranchesData(repoId: string, currDate: string): Promise<void> {
+async function fetchBranchesData(repoId: string, currDate: string,requestId:string): Promise<void> {
   // query to extract protected branches with matching repoId
-  const formattedData = await fetBranchesData(repoId);
+  const formattedData = await fetBranchesData(repoId,requestId);
   if (!formattedData?.length) {
-    logger.info(`GET_GITHUB_BRANCH_DETAILS: No branches found for repoId: ${repoId}`);
+    logger.info({ message: `GET_GITHUB_BRANCH_DETAILS: No branches found for repoId: ${repoId}`, requestId });
     return;
   }
 
@@ -54,13 +54,14 @@ async function fetchBranchesData(repoId: string, currDate: string): Promise<void
   );
 
   // sending data to SQS for each branch of each repoId.
-  logger.info(
-    `GET_GITHUB_BRANCH_DETAILS: sending data to SQS for repoId: ${repoId}, branches: ${branchesArr}`
-  );
+  logger.info({
+    message:
+      `GET_GITHUB_BRANCH_DETAILS: sending data to SQS for repoId: ${repoId}, branches: ${branchesArr}`, requestId
+  });
 
   await Promise.all(
     branchesArr.map(async (branch) =>
-      sqsClient.sendMessage({ repoId, branch, currDate }, Queue.qGhScansSave.queueUrl)
+      sqsClient.sendMessage({ repoId, branch, currDate }, Queue.qGhScansSave.queueUrl,requestId)
     )
   );
 }
@@ -73,10 +74,9 @@ async function fetchBranchesData(repoId: string, currDate: string): Promise<void
  * @throws Error if repoIds are not provided or if an error occurs during the update process.
  */
 const updateSecurityScans = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  logger.info('updateSecurityScans: event: ', event);
   const repoIds = event.queryStringParameters?.repoIds?.split(',') ?? [];
   const currDate = moment().format('YYYY-MM-DD');
-
+  const requestId = event.requestContext.requestId;
   if (!repoIds?.length) {
     throw new Error('RepoIds are not provided!');
   }
@@ -84,14 +84,14 @@ const updateSecurityScans = async (event: APIGatewayProxyEvent): Promise<APIGate
   try {
     // we call fetchBranchesData for each repoId in parallel
 
-    await Promise.all(repoIds.map(async (repoId) => fetchBranchesData(repoId, currDate)));
+    await Promise.all(repoIds.map(async (repoId) => fetchBranchesData(repoId, currDate,requestId)));
     return responseParser
       .setMessage('successfully updating scans for today')
       .setResponseBodyCode('SUCCESS')
       .setStatusCode(HttpStatusCode['200'])
       .send();
   } catch (e) {
-    logger.error(e);
+    logger.error({ message: 'updateSecurityScans.error', error: e,requestId });
     throw new Error(`Something went wrong: ${e}`);
   }
 };

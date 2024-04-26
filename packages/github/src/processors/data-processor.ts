@@ -5,13 +5,10 @@ import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { ParamsMapping } from '../model/params-mapping';
 
-
 export abstract class DataProcessor<T, S> {
   private SQSClient: SQSClient;
   protected DynamoDbDocClient: DynamoDbDocClient;
-  constructor(
-    protected ghApiData: T,
-  ) {
+  constructor(protected ghApiData: T, public requestId: string, public resourceId: string) {
     this.SQSClient = SQSClient.getInstance();
     this.DynamoDbDocClient = DynamoDbDocClient.getInstance();
   }

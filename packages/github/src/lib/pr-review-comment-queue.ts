@@ -11,7 +11,8 @@ export async function pRReviewCommentOnQueue(
   pullId: number,
   repoId: number,
   action: string,
-  pullRequestData: Github.ExternalType.Webhook.PullRequest
+  pullRequestData: Github.ExternalType.Webhook.PullRequest,
+  requestId: string
 ): Promise<void> {
   try {
     /**
@@ -21,18 +22,21 @@ export async function pRReviewCommentOnQueue(
      */
     const [pullData] = await getPullRequestById(pullId);
     if (!pullData) {
-      logger.error('pRReviewCommentOnQueue.failed: PR NOT FOUND', {
-        review: prReviewComment,
-        pullId,
-        repoId,
-        action,
+      logger.error({
+        message: 'pRReviewCommentOnQueue.failed: PR NOT FOUND', data: {
+          review: prReviewComment,
+          pullId,
+          repoId,
+          action,
+        }, requestId, resourceId: String(pullId),
       });
       return;
     }
     await Promise.all([
       sqsClient.sendMessage(
         { comment: prReviewComment, pullId, repoId, action },
-        Queue.qGhPrReviewCommentFormat.queueUrl
+        Queue.qGhPrReviewCommentFormat.queueUrl,
+        {requestId, resourceId: String(pullId)}
       ),
       sqsClient.sendFifoMessage(
         {
@@ -42,14 +46,13 @@ export async function pRReviewCommentOnQueue(
           review_seconds: pullData.reviewSeconds,
         },
         Queue.qGhPrFormat.queueUrl,
+        { requestId, resourceId: String(pullId)},
         String(pullId),
-        uuid()
+        uuid(),
       ),
     ]);
   } catch (error: unknown) {
-    logger.error({
-      error,
-    });
+    logger.error({message:"Error in pRReviewCommentOnQueue", requestId,resourceId: String(pullId), error});
     throw error;
   }
 }

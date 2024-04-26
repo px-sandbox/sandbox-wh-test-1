@@ -26,10 +26,10 @@ export async function logProcessToRetry(
         : {}),
     };
 
-    await dynamodbClient.put(new RetryTableMapping().preparePutParams(processId || uuid(), retryBody));
-  } catch (err) {
-    logger.error(
-      JSON.stringify({ message: 'logProcessToRetry.failed', body: { record, queue, err, error } })
+    await dynamodbClient.put(
+      new RetryTableMapping().preparePutParams(processId || uuid(), retryBody)
     );
+  } catch (err) {
+    logger.error({ message: 'logProcessToRetry.failed', data: { record, queue, err, error } });
   }
 }

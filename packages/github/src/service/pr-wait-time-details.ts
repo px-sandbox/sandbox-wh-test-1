@@ -8,6 +8,7 @@ import { prWaitTimeBreakdownSchema } from './validations';
 const prWaitTimeBreakdown = async function getprWaitTimeBreakdown(
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+    const requestId = event.requestContext.requestId;
     const startDate: string = event.queryStringParameters?.startDate || '';
     const endDate: string = event.queryStringParameters?.endDate || '';
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
@@ -34,7 +35,8 @@ const prWaitTimeBreakdown = async function getprWaitTimeBreakdown(
             parseInt(limit, 10),
             repoIds,
             sort,
-            orgId
+            orgId,
+            requestId
         );
 
         return responseParser
@@ -44,7 +46,7 @@ const prWaitTimeBreakdown = async function getprWaitTimeBreakdown(
             .setResponseBodyCode('SUCCESS')
             .send();
     } catch (e) {
-        logger.error(e);
+        logger.error({ message: "prWaitTimeBreakdown", error: e, requestId });
         throw new Error(`Something went wrong: ${e}`);
     }
 };

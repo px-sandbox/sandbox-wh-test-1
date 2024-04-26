@@ -19,57 +19,53 @@ const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 const sqsClient = SQSClient.getInstance();
 
 async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
-  const messageBody = JSON.parse(record.body);
-  logger.info(JSON.stringify(messageBody));
+  const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
+  logger.info({ message: "historical.prlist", data: JSON.stringify(messageBody), requestId, resourceId });
   if (!messageBody && !messageBody.head) {
-    logger.info('HISTORY_MESSAGE_BODY_EMPTY', messageBody);
+    logger.info({ message: 'HISTORY_MESSAGE_BODY_EMPTY', data: messageBody, requestId, resourceId });
     return false;
   }
   const { page = 1 } = messageBody;
   const { owner, name } = messageBody;
-  logger.info(`page: ${page}`);
   try {
     const responseData = (await octokitRequestWithTimeout(
       `GET /repos/${owner}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
     )) as OctokitResponse<any>;
-    logger.info(`total prs from GH: ${responseData.data.length}`);
-    logger.info(
-      `GH url: /repos/${owner}/${name}/pulls?state=all&per_page=50&page=${page}&sort=created&direction=desc`
-    );
+    logger.info({ message: `total prs from GH: ${responseData.data.length}`, requestId, resourceId });
 
     const octokitRespData = getOctokitResp(responseData);
     if (octokitRespData.length === 0) {
-      logger.info('HISTORY_EMPTY_PULLS', responseData);
+      logger.info({ message: 'HISTORY_EMPTY_PULLS', data: responseData, requestId, resourceId });
       return;
     }
 
     let processes = [];
     processes = [
       ...octokitRespData.map((prData: unknown) =>
-        sqsClient.sendMessage(prData, Queue.qGhHistoricalReviews.queueUrl)
+        sqsClient.sendMessage(prData, Queue.qGhHistoricalReviews.queueUrl, {requestId, resourceId})
       ),
       ...octokitRespData.map((prData: unknown) =>
-        sqsClient.sendMessage(prData, Queue.qGhHistoricalPrComments.queueUrl)
+        sqsClient.sendMessage(prData, Queue.qGhHistoricalPrComments.queueUrl, {requestId, resourceId})
       ),
     ];
     await Promise.all(processes);
-    logger.info(`total comments processed: ${processes.length}`);
-    logger.info(`total prs: ${octokitRespData.length}`);
+    logger.info({ message: `total comments processed: ${processes.length}`, requestId, resourceId });
+    logger.info({ message: `total prs: ${octokitRespData.length}`, requestId, resourceId });
     if (octokitRespData.length < 100) {
-      logger.info('LAST_100_RECORD_PR');
+      logger.info({ message: 'LAST_100_RECORD_PR', requestId, resourceId });
       return true;
     }
     messageBody.page = page + 1;
-    logger.info(`messageBody: ${JSON.stringify(messageBody)}`);
+    logger.info({ message: "prlist.messageBody", data: JSON.stringify(messageBody), requestId, resourceId });
     await getPrList({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
-    logger.error(`historical.PR.error: ${JSON.stringify(error)}`);
+    logger.error({ message: "historical.PR.error", data: JSON.stringify(error), requestId, resourceId });
     await logProcessToRetry(record, Queue.qGhHistoricalPr.queueUrl, error as Error);
   }
 }
 
 export const handler = async function collectPRData(event: SQSEvent): Promise<undefined> {
-  logger.info(`total event records: ${event.Records.length}`);
+  logger.info({ message: `total event records: ${event.Records.length}` });
   await Promise.all(
     event.Records.filter((record) => {
       const body = JSON.parse(record.body);

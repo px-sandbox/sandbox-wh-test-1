@@ -20,7 +20,8 @@ const esClientObj = ElasticSearchClient.getInstance();
  * @throws If there is an error fetching the items from DynamoDB.
  */
 async function fetchDDRecords(
-  libNames: string[]
+  libNames: string[],
+  requestId: string
 ): Promise<{ [key: string]: { libname: string; version: string; releaseDate: string } }> {
   const libKeys = libNames.map((libName) => ({ libName }));
 
@@ -51,12 +52,11 @@ async function fetchDDRecords(
 
     try {
       const data = await ddClient.batchGet<Record<string, Github.Type.LibraryRecord[]>>(params);
-      logger.info('Items:', data);
       if (data && data[tableIndex]) {
         results = [...results, ...(data[tableIndex] as Github.Type.LibraryRecord[])];
       }
     } catch (err) {
-      logger.error('Error fetching DD record items:', err);
+      logger.error({ message: 'Error fetching DD record items:', error: err, requestId});
     }
   }
   // storing result in key format to optimise search
@@ -74,7 +74,7 @@ async function fetchDDRecords(
 const repoLibsQuery = async (
   repoIds: string[],
   searchString: string,
-  counter: number
+  counter: number,
 ): Promise<any> => {
   const repoLibQuery = esb
     .requestBodySearch()
@@ -189,6 +189,7 @@ export async function getVersionUpgrades(
   page: number,
   limit: number,
   repoIds: string[],
+  requestId: string,
   sort?: Github.Type.VersionUpgradeSortType
 ): Promise<Github.Type.VerUpgFinalRes> {
   try {
@@ -200,7 +201,7 @@ export async function getVersionUpgrades(
     }
 
     // fetching records from dynamo db for latest version and release date
-    const ddRecords = await fetchDDRecords([...new Set(libNames)]);
+    const ddRecords = await fetchDDRecords([...new Set(libNames)], requestId);
 
     // adding latest version and release date to repo-library data
     const finalData = updatedRepoLibs?.map((lib: Github.Type.RepoLibType) => {
@@ -228,7 +229,7 @@ export async function getVersionUpgrades(
     const paginatedData = await paginate(sortedData, page, limit);
     return { versionData: paginatedData, totalPages, page };
   } catch (e) {
-    logger.error('versionUpgrade.error: Error while fetching version upgrades', e);
+    logger.error({ message: 'versionUpgrade.error: Error while fetching version upgrades', error: e, requestId });
     throw e;
   }
 }
