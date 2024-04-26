@@ -155,11 +155,11 @@ async function callGithubApis(
   filename: string,
   requestId: string
 ): Promise<(OctokitResponse<any> | null)[]> {
-  const folderPath = '.github/workflows';
-  const workflowURL = `GET /repos/${org}/${repo.name}/contents/${folderPath}/${filename}.yml${
+  const commonPath = `/repos/${org}/${repo.name}`;
+  const workflowURL = `GET ${commonPath}/contents/.github/workflows/${filename}.yml${
     ref ? `?ref=${ref}` : ''
   }`;
-  const readmeURL = `GET /repos/${org}/${repo.name}/readme${ref ? `?ref=${ref}` : ''}`;
+  const readmeURL = `GET ${commonPath}/readme${ref ? `?ref=${ref}` : ''}`;
 
   return Promise.all([
     // reading workflow file
