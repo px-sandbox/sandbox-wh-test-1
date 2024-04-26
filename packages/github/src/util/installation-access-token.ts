@@ -22,7 +22,7 @@ export async function getInstallationAccessToken(): Promise<Other.Type.LambdaRes
     const installationAccessToken = await octokitRequestWithTimeout(
       'POST /app/installations/{installation_id}/access_tokens',
       {
-        installation_id: Number(Config.GITHUB_SG_INSTALLATION_ID), // 34779793
+        installation_id: Number(Config.GITHUB_SG_INSTALLATION_ID),
       }
     );
 

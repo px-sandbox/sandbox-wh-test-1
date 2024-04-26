@@ -17,9 +17,6 @@ importers:
       aws-sdk:
         specifier: ^2.1444.0
         version: 2.1444.0
-      install:
-        specifier: ^0.13.0
-        version: 0.13.0
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
@@ -8349,11 +8346,6 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
-    dev: false
-
-  /install@0.13.0:
-    resolution: {integrity: sha512-zDml/jzr2PKU9I8J/xyZBQn8rPCAY//UOYNmR01XwNwyfhEWObo2SWfSl1+0tm1u6PhxLwDnfsT/6jB7OUxqFA==}
-    engines: {node: '>= 0.10'}
     dev: false
 
   /internal-slot@1.0.6:
