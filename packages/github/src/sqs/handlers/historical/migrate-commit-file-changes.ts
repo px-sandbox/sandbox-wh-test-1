@@ -39,8 +39,8 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
       const {
-        reqCntx: { requestId, resourceId },
-        messageBody,
+        reqCtx: { requestId, resourceId },
+        message: messageBody,
       } = JSON.parse(record.body);
       try {
         logger.info({
@@ -78,7 +78,12 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           responseData.data.files = files;
         }
 
-        logger.info({ message: 'FILE_COUNT', data: responseData.data.files.length, requestId, resourceId});
+        logger.info({
+          message: 'FILE_COUNT',
+          data: responseData.data.files.length,
+          requestId,
+          resourceId,
+        });
         const commitProcessor = new CommitProcessor(
           {
             ...getOctokitResp(responseData),

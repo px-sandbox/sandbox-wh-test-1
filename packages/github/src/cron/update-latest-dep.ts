@@ -17,20 +17,35 @@ async function sendAllDepsToQueue(
       items.map(async (item) => {
         const { libName, version } = item;
         const depName = libName.split('npm_')[1];
-        logger.info({ message: "sendAllDepsToQueue: libname", data: { depName, version: version }, requestId });
-        return sqsClient.sendMessage({ depName, version }, Queue.qMasterLibInfo.queueUrl,requestId);
+        logger.info({
+          message: 'sendAllDepsToQueue: libname',
+          data: { depName, version: version },
+          requestId,
+        });
+        return sqsClient.sendMessage(
+          { depName, version },
+          Queue.qMasterLibInfo.queueUrl,
+          requestId
+        );
       })
     );
   } catch (err) {
-    logger.error({ message: "sendAllDepsToQueue.Error", error: JSON.stringify(err, null, 2), requestId });
+    logger.error({
+      message: 'sendAllDepsToQueue.Error',
+      error: JSON.stringify(err, null, 2),
+      requestId,
+    });
     throw err;
   }
 }
 
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
-
   const requestId = event.requestContext.requestId;
-  logger.info({message: "UpdateLatestDepHandler invoked", data: new Date().toISOString(), requestId});
+  logger.info({
+    message: 'UpdateLatestDepHandler invoked',
+    data: new Date().toISOString(),
+    requestId,
+  });
 
   try {
     let items: { libName: string; version: string }[] = [];
@@ -42,13 +57,21 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
       items = data.Items ? (data.Items as { libName: string; version: string }[]) : [];
       params.ExclusiveStartKey = data.LastEvaluatedKey;
       if (items.length > 0) {
-        logger.info({ message: "UpdateLatestDepHandler", data: { length: items.length }, requestId});
+        logger.info({
+          message: 'UpdateLatestDepHandler',
+          data: { length: items.length },
+          requestId,
+        });
         // eslint-disable-next-line no-await-in-loop
-        await sendAllDepsToQueue(items,requestId);
+        await sendAllDepsToQueue(items, requestId);
       }
     } while (data.LastEvaluatedKey);
   } catch (err) {
-    logger.error({message: "cronUpdateLatestDep.handler.Error:", error: JSON.stringify(err, null, 2),  requestId});
+    logger.error({
+      message: 'cronUpdateLatestDep.handler.Error:',
+      error: JSON.stringify(err, null, 2),
+      requestId,
+    });
     throw err;
   }
 }

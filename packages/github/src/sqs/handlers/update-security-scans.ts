@@ -19,11 +19,17 @@ const esClient = ElasticSearchClient.getInstance();
  * @param date - The date of the scan.
  * @returns The query object.
  */
-function createScanQuery(repoId: string, branch: string, date: string,from:number,size:number): any {
+function createScanQuery(
+  repoId: string,
+  branch: string,
+  date: string,
+  from: number,
+  size: number
+): any {
   return esb
     .requestBodySearch()
     .size(size)
-    .from (from)
+    .from(from)
     .query(
       esb
         .boolQuery()
@@ -68,46 +74,41 @@ async function getScans(
   allScans = false
 ): Promise<(Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]> {
   try {
-    logger.info({ message: `Fetching scans for repoId: ${repoId}, branch: ${branch} and date: ${date}` });
+    logger.info({
+      message: `Fetching scans for repoId: ${repoId}, branch: ${branch} and date: ${date}`,
+    });
 
     const limit = 100;
     const records = [];
     let from = 0;
     let result = [];
 
-    
-
     do {
       result = [];
-      const  query  = createScanQuery(repoId, branch, date, from, limit);
-      const scans = await esClient.search(
-        Github.Enums.IndexName.GitRepoSastErrors,
-        query
-      );
+      const query = createScanQuery(repoId, branch, date, from, limit);
+      const scans = await esClient.search(Github.Enums.IndexName.GitRepoSastErrors, query);
 
       result = await searchedDataFormator(scans);
       from += limit;
       records.push(...result);
     } while (allScans && result.length === limit);
 
-    logger.info(
-      {
-        message: `Scans found for repoId: ${repoId}, branch: ${branch} and date: ${date}`, data: { records_Length: records.length }
-      }
-      );
+    logger.info({
+      message: `Scans found for repoId: ${repoId}, branch: ${branch} and date: ${date}`,
+      data: { records_Length: records.length },
+    });
 
     logger.info({
       message: `Scans found for repoId: ${repoId}, branch: ${branch} and date: ${date} | 
-                    Records Length: ${records.length}`
+                    Records Length: ${records.length}`,
     });
 
     return records;
   } catch (error) {
     logger.error({
-      message:
-        `Error while fetching scans for repoId: ${repoId}, branch: ${branch} and date: ${date}`, error
-    }
-    );
+      message: `Error while fetching scans for repoId: ${repoId}, branch: ${branch} and date: ${date}`,
+      error,
+    });
     throw error;
   }
 }
@@ -129,10 +130,9 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
 
       // will only update scans for today if no scans found for today
       if (todaysScans.length > 0) {
-        logger.info(
-          {
-            message: `Scans found for today (${currDate}) for repoId: ${repoId} and branch: ${branch}`
-          });
+        logger.info({
+          message: `Scans found for today (${currDate}) for repoId: ${repoId} and branch: ${branch}`,
+        });
         return;
       }
 
@@ -143,9 +143,9 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
 
       // updating scans for today if yesterday's scans found
       if (yesterdayScans.length === 0) {
-        logger.info(
-          { message: `No scans found for Yesterday (${yesterDate}) for repoId: ${repoId} and branch: ${branch}` }
-        );
+        logger.info({
+          message: `No scans found for Yesterday (${yesterDate}) for repoId: ${repoId} and branch: ${branch}`,
+        });
         return;
       }
 
@@ -156,10 +156,9 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
       logger.info({ message: `Updating scans for repoId: ${repoId}, branch: ${branch}` });
       await esClient.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, updatedBody);
 
-      logger.info(
-        {
-          message: `Successfully copied scans for repoId: ${repoId}, branch: ${branch} from ${yesterDate} to ${currDate}`
-        });
+      logger.info({
+        message: `Successfully copied scans for repoId: ${repoId}, branch: ${branch} from ${yesterDate} to ${currDate}`,
+      });
     } catch (error) {
       // retrying the update security scans process if any error occurs
       await logProcessToRetry(record, Queue.qGhScansSave.queueUrl, error as Error);

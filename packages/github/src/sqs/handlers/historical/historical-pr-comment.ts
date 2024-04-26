@@ -18,7 +18,10 @@ const octokit = ghRequest.request.defaults({
 });
 const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
-  const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
+  const {
+    reqCtx: { requestId, resourceId },
+    message: messageBody,
+  } = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
     logger.info({ message: 'HISTORY_MESSGE_BODY_EMPTY', data: messageBody, requestId, resourceId });
     return false;
@@ -50,16 +53,26 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
       )
     );
     await Promise.all(queueProcessed);
-    logger.info({ message: "total pr comments proccessed:",data: queueProcessed.length, requestId, resourceId });
+    logger.info({
+      message: 'total pr comments proccessed:',
+      data: queueProcessed.length,
+      requestId,
+      resourceId,
+    });
     if (octokitRespData.length < 100) {
       logger.info({ message: 'LAST_100_RECORD_PR_COMMENT', requestId, resourceId });
       return true;
     }
     messageBody.page = page + 1;
-    logger.info({ message: "message_body_pr_comments", data:JSON.stringify(messageBody), requestId, resourceId});
+    logger.info({
+      message: 'message_body_pr_comments',
+      data: JSON.stringify(messageBody),
+      requestId,
+      resourceId,
+    });
     await getPrComments({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
-    logger.error({ message: "historical.comments.error", error, requestId, resourceId});
+    logger.error({ message: 'historical.comments.error', error, requestId, resourceId });
     await logProcessToRetry(record, Queue.qGhHistoricalPrComments.queueUrl, error as Error);
   }
 }
@@ -70,15 +83,16 @@ export const handler = async function collectPRCommentsData(event: SQSEvent): Pr
       const body = JSON.parse(record.body);
       if (body.head?.repo) {
         logger.info({
-          message:
-            `PR with repo: ${body}
-      `});
+          message: `PR with repo: ${body}
+      `,
+        });
         return true;
       }
 
       logger.info({
-        message: 
-      "PR with no repo:", data:JSON.stringify(body)});
+        message: 'PR with no repo:',
+        data: JSON.stringify(body),
+      });
 
       return false;
     }).map(async (record) => getPrComments(record))

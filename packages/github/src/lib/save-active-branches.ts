@@ -7,8 +7,8 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
 const dynamodbClient = DynamoDbDocClient.getInstance();
-export async function saveActiveBranch(data: Github.Type.ActiveBranches, reqCntx: Other.Type.RequestCtx, processId?: string): Promise<void> {
-  const { requestId, resourceId } = reqCntx;
+export async function saveActiveBranch(data: Github.Type.ActiveBranches, reqCtx: Other.Type.RequestCtx, processId?: string): Promise<void> {
+  const { requestId, resourceId } = reqCtx;
   try {
     await dynamodbClient.put(new ParamsMapping().preparePutParams(data.id, data.body.id));
     await esClientObj.putDocument(Github.Enums.IndexName.GitActiveBranches, data);

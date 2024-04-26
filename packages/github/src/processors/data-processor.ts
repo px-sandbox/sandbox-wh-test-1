@@ -34,7 +34,10 @@ export abstract class DataProcessor<T, S> {
     if (!validated) {
       throw new Error('data_validation_failed');
     }
-    await this.SQSClient.sendMessage(data, Queue.qGhIndex.queueUrl);
+    await this.SQSClient.sendMessage(data, Queue.qGhIndex.queueUrl, {
+      requestId: this.requestId,
+      resourceId: this.resourceId,
+    });
   }
 
   public async calculateComputationalDate(date: string): Promise<string> {

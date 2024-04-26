@@ -7,15 +7,21 @@ import { repoLibHelper } from '../../../service/repo-library/repo-library-helper
 import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function repoLibS3(event: SQSEvent): Promise<void> {
-    logger.info({ message: "Records Length", data: JSON.stringify(event.Records.length) });
+    logger.info({ message: 'Records Length', data: JSON.stringify(event.Records.length) });
     await Promise.all(
         event.Records.map(async (record: SQSRecord) => {
-            const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
+            const {
+                reqCtx: { requestId, resourceId },
+                message: messageBody,
+            } = JSON.parse(record.body);
             try {
                 const { s3ObjKey } = messageBody;
                 const bucketName = `${process.env.SST_STAGE}-version-upgrades`;
 
-                const data: Github.ExternalType.RepoLibrary = await fetchDataFromS3(s3ObjKey, bucketName, { requestId, resourceId });
+                const data: Github.ExternalType.RepoLibrary = await fetchDataFromS3(s3ObjKey, bucketName, {
+                    requestId,
+                    resourceId,
+                });
 
                 if (data) {
                     await repoLibHelper(data, { requestId, resourceId });
@@ -23,7 +29,8 @@ export const handler = async function repoLibS3(event: SQSEvent): Promise<void> 
                     logger.error({
                         message: 'repoLibS3DataReceiver.nodata',
                         error: 'No data received from s3 for repo library',
-                        requestId, resourceId
+                        requestId,
+                        resourceId,
                     });
                 }
             } catch (error) {

@@ -20,8 +20,8 @@ const octokit = ghRequest.request.defaults({
 const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getRepoBranches(record: SQSRecord | { body: string }): Promise<boolean | undefined> {
   const {
-    reqCntx: { requestId, resourceId },
-    messageBody,
+    reqCtx: { requestId, resourceId },
+    message: messageBody,
   } = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId } = messageBody;
   try {

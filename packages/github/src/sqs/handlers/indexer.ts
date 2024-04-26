@@ -16,30 +16,50 @@ import { logProcessToRetry } from '../../util/retry-process';
 import { saveCommitDetails } from '../../lib/save-commit';
 
 export const handler = async function indexDataReceiver(event: SQSEvent): Promise<void> {
-  logger.info({ message: "Records Length", data: JSON.stringify(event.Records.length)});
+  logger.info({ message: 'Records Length', data: JSON.stringify(event.Records.length) });
   await async.eachSeries(event.Records, async (record: SQSRecord) => {
-    const { reqCtx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
-    logger.info({ message: 'INDEXER_HANDLER', data: { eventType: messageBody.eventType }, requestId, resourceId});
-    logger.info({ message: 'INDEXER_HANDLER_MESSAGE',data: messageBody , requestId, resourceId});
+    const {
+      reqCtx: { requestId, resourceId },
+      message: messageBody,
+    } = JSON.parse(record.body);
+    logger.info({
+      message: 'INDEXER_HANDLER',
+      data: { eventType: messageBody.eventType },
+      requestId,
+      resourceId,
+    });
+    logger.info({ message: 'INDEXER_HANDLER_MESSAGE', data: messageBody, requestId, resourceId });
     try {
       switch (messageBody.eventType) {
         case Github.Enums.Event.Repo:
-          await saveRepoDetails(messageBody.data, {requestId, resourceId},messageBody.processId);
+          await saveRepoDetails(messageBody.data, { requestId, resourceId }, messageBody.processId);
           break;
         case Github.Enums.Event.Branch:
-          await saveBranchDetails(messageBody.data, { requestId, resourceId }, messageBody.processId);
+          await saveBranchDetails(
+            messageBody.data,
+            { requestId, resourceId },
+            messageBody.processId
+          );
           break;
         case Github.Enums.Event.Commit:
-          await saveCommitDetails(messageBody.data, { requestId, resourceId }, messageBody.processId);
+          await saveCommitDetails(
+            messageBody.data,
+            { requestId, resourceId },
+            messageBody.processId
+          );
           break;
         case Github.Enums.Event.Commit_Push:
-          await savePushDetails(messageBody.data, { requestId, resourceId },messageBody.processId);
+          await savePushDetails(messageBody.data, { requestId, resourceId }, messageBody.processId);
           break;
         case Github.Enums.Event.PRReview:
           await savePRReview(messageBody.data, { requestId, resourceId }, messageBody.processId);
           break;
         case Github.Enums.Event.PRReviewComment:
-          await savePRReviewComment(messageBody.data, { requestId, resourceId }, messageBody.processId);
+          await savePRReviewComment(
+            messageBody.data,
+            { requestId, resourceId },
+            messageBody.processId
+          );
           break;
         case Github.Enums.Event.PullRequest:
           await savePRDetails(messageBody.data, { requestId, resourceId }, messageBody.processId);
@@ -48,18 +68,27 @@ export const handler = async function indexDataReceiver(event: SQSEvent): Promis
           await saveUserDetails(messageBody.data, { requestId, resourceId }, messageBody.processId);
           break;
         case Github.Enums.Event.ActiveBranches:
-          await saveActiveBranch(messageBody.data, { requestId, resourceId }, messageBody.processId);
+          await saveActiveBranch(
+            messageBody.data,
+            { requestId, resourceId },
+            messageBody.processId
+          );
           break;
         case Github.Enums.Event.Copilot:
           await saveGHCopilotReport(messageBody.data, { requestId, resourceId });
           break;
         default:
-          logger.error({ message: 'indexDataReceiver.error',  error: 'action not found', requestId, resourceId});
+          logger.error({
+            message: 'indexDataReceiver.error',
+            error: 'action not found',
+            requestId,
+            resourceId,
+          });
           break;
       }
     } catch (error) {
       await logProcessToRetry(record, Queue.qGhIndex.queueUrl, error as Error);
-      logger.error({ message: "indexDataReceiver.error", error, requestId, resourceId });
+      logger.error({ message: 'indexDataReceiver.error', error, requestId, resourceId });
     }
   });
 };

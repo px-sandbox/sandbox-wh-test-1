@@ -16,7 +16,11 @@ import { Other } from 'abstraction';
 
 const sqsClient = SQSClient.getInstance();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function processQueueOnMergedPR(octokitRespData: any, messageBody: any, reqCntx: Other.Type.RequestCtx): Promise<void> {
+async function processQueueOnMergedPR(
+  octokitRespData: any,
+  messageBody: any,
+  reqCtx: Other.Type.RequestCtx
+): Promise<void> {
   await sqsClient.sendFifoMessage(
     {
       commitId: octokitRespData.merge_commit_sha,
@@ -31,7 +35,7 @@ async function processQueueOnMergedPR(octokitRespData: any, messageBody: any, re
       timestamp: new Date(),
     },
     Queue.qGhCommitFormat.queueUrl,
-    { ...reqCntx},
+    { ...reqCtx },
     octokitRespData.merge_commit_sha,
     uuid()
   );
@@ -46,9 +50,17 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
   const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   await Promise.all(
     event.Records.map(async (record) => {
-      const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
+      const {
+        reqCtx: { requestId, resourceId },
+        message: messageBody,
+      } = JSON.parse(record.body);
 
-      logger.info({ message: 'HISTORY_PULL_REQUEST_DATA', data: messageBody, requestId, resourceId});
+      logger.info({
+        message: 'HISTORY_PULL_REQUEST_DATA',
+        data: messageBody,
+        requestId,
+        resourceId,
+      });
       try {
         const dataOnPr = await octokitRequestWithTimeout(
           `GET /repos/${messageBody.owner}/${messageBody.repoName}/pulls/${messageBody.prNumber}`
@@ -90,7 +102,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         }
       } catch (error) {
         await logProcessToRetry(record, Queue.qGhHistoricalPrByNumber.queueUrl, error as Error);
-        logger.error({ message: "historical.pr.number.error", error, requestId, resourceId});
+        logger.error({ message: 'historical.pr.number.error', error, requestId, resourceId });
       }
     })
   );

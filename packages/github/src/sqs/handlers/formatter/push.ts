@@ -6,9 +6,18 @@ import { PushProcessor } from '../../../processors/push';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
-  const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
+  const {
+    reqCtx: { requestId, resourceId },
+    message: messageBody,
+  } = JSON.parse(record.body);
+  console.log('messageBody', record.body);
   try {
-    logger.info({ message: 'PUSH_SQS_RECEIVER_HANDLER_FORMATER', data:  messageBody, requestId, resourceId});
+    logger.info({
+      message: 'PUSH_SQS_RECEIVER_HANDLER_FORMATER',
+      data: messageBody,
+      requestId,
+      resourceId,
+    });
 
     const pushProcessor = new PushProcessor(messageBody, requestId, resourceId);
     const data = await pushProcessor.processor();
@@ -19,10 +28,10 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     });
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPushFormat.queueUrl, error as Error);
-    logger.error({ message: 'pushFormattedDataReceiver.error', error, requestId, resourceId});
+    logger.error({ message: 'pushFormattedDataReceiver.error', error, requestId, resourceId });
   }
 }
 export const handler = async function pushFormattedDataReceiver(event: SQSEvent): Promise<void> {
-  logger.info({ message: "Records Length:", data: event.Records.length});
+  logger.info({ message: 'Records Length:', data: event.Records.length });
   await Promise.all(event.Records.map((record: SQSRecord) => processAndStoreSQSRecord(record)));
 };

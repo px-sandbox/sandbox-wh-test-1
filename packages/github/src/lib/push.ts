@@ -11,16 +11,16 @@ export async function preparePush(
   pusherId: string,
   lastCommitId: string,
   repoId: string,
-  reqCntx: Other.Type.RequestCtx
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   try {
     await sqsClient.sendMessage(
       { commits, ref, pusherId, id: lastCommitId, repoId },
       Queue.qGhPushFormat.queueUrl,
-      { ...reqCntx }
+      { ...reqCtx }
     );
   } catch (error: unknown) {
-    logger.error({ message: 'preparePush.error', error, ...reqCntx });
+    logger.error({ message: 'preparePush.error', error, ...reqCtx });
     throw error;
   }
 }

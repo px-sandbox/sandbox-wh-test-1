@@ -20,8 +20,8 @@ const octokit = ghRequest.request.defaults({
 const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
   const {
-    reqCntx: { requestId, resourceId },
-    messageBody,
+    reqCtx: { requestId, resourceId },
+    message: messageBody,
   } = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId, branchName } = messageBody;
   try {
@@ -53,17 +53,27 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
     );
     await Promise.all(queueProcessed);
 
-    logger.info({ message: 'ALL_AWAITED_COMMIT_QUEUE_PROCESSED', data: queueProcessed.length, requestId, resourceId});
+    logger.info({
+      message: 'ALL_AWAITED_COMMIT_QUEUE_PROCESSED',
+      data: queueProcessed.length,
+      requestId,
+      resourceId,
+    });
 
     if (octokitRespData.length < 100) {
       logger.info({ message: 'LAST_100_RECORD_PR', requestId, resourceId });
       return true;
     }
     messageBody.page = page + 1;
-    logger.info({ message: 'message_body_pr_commits', data: JSON.stringify(messageBody), requestId, resourceId});
+    logger.info({
+      message: 'message_body_pr_commits',
+      data: JSON.stringify(messageBody),
+      requestId,
+      resourceId,
+    });
     await getRepoCommits({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
-    logger.error({ message: 'historical.commits.error', error , requestId, resourceId});
+    logger.error({ message: 'historical.commits.error', error, requestId, resourceId });
     await logProcessToRetry(record, Queue.qGhHistoricalCommits.queueUrl, error as Error);
   }
 }

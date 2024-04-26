@@ -50,7 +50,7 @@ async function getReposAndSendToSQS(
               date: currentDate,
             },
             Queue.qGhActiveBranchCounterFormat.queueUrl,
-            {requestId, resourceId: repo._id}
+            { requestId, resourceId: repo._id }
           );
         }
         return Promise.resolve();
@@ -59,7 +59,7 @@ async function getReposAndSendToSQS(
 
     return repos.length;
   } catch (error: unknown) {
-    logger.error({message: 'getReposAndSendToSQS.error', error, requestId });
+    logger.error({ message: 'getReposAndSendToSQS.error', error, requestId });
     throw error;
   }
 }
@@ -94,7 +94,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
       error,
       requestId,
     });
- 
+
     throw error;
   }
 }

@@ -19,12 +19,16 @@ async function getBranchList(
   repoId: string,
   repoName: string,
   repoOwner: string,
-  reqCntx: Other.Type.RequestCtx,
+  reqCtx: Other.Type.RequestCtx,
   page = 1,
   counter = 0
 ): Promise<number> {
   try {
-    logger.info({ message: 'getBranchList.invoked', data: { repoName, repoOwner, page }, ...reqCntx });
+    logger.info({
+      message: 'getBranchList.invoked',
+      data: { repoName, repoOwner, page },
+      ...reqCtx,
+    });
     const perPage = 100;
 
     const responseData = await octokit(
@@ -39,21 +43,26 @@ async function getBranchList(
         const branchInfo = { ...branch };
         branchInfo.id = Buffer.from(`${repoId}_${branchInfo.name}`, 'binary').toString('base64');
         branchInfo.repo_id = repoId;
-        return sqsClient.sendMessage(branchInfo, Queue.qGhBranchFormat.queueUrl, { ...reqCntx });
+        return sqsClient.sendMessage(branchInfo, Queue.qGhBranchFormat.queueUrl, { ...reqCtx });
       }),
     ]);
 
     if (branchesPerPage.length < perPage) {
-      logger.info({ message: 'getBranchList.successful', ...reqCntx });
+      logger.info({ message: 'getBranchList.successful', ...reqCtx });
       return newCounter;
     }
-    return getBranchList(octokit, repoId, repoName, repoOwner, reqCntx, page + 1, newCounter);
+    return getBranchList(octokit, repoId, repoName, repoOwner, reqCtx, page + 1, newCounter);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.error({ message: 'getBranchList.error', data: { repoName, repoOwner, page }, error, ...reqCntx });
+    logger.error({
+      message: 'getBranchList.error',
+      data: { repoName, repoOwner, page },
+      error,
+      ...reqCtx,
+    });
 
     if (error.status === 401) {
-      return getBranchList(octokit, repoId, repoName, repoOwner, reqCntx, page, counter);
+      return getBranchList(octokit, repoId, repoName, repoOwner, reqCtx, page, counter);
     }
     throw error;
   }
@@ -63,7 +72,7 @@ export async function getBranches(
   repoId: string,
   repoName: string,
   repoOwner: string,
-  reqCntx: Other.Type.RequestCtx
+  reqCtx: Other.Type.RequestCtx
 ): Promise<number> {
   let branchCount: number;
   try {
@@ -79,7 +88,7 @@ export async function getBranches(
       repoId,
       repoName,
       repoOwner,
-      reqCntx
+      reqCtx
     );
     return branchCount;
   } catch (error: unknown) {

@@ -6,11 +6,26 @@ import { PRReviewProcessor } from '../../../processors/pr-review';
 import { logProcessToRetry } from '../../../util/retry-process';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
-  const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
+  const {
+    reqCtx: { requestId, resourceId },
+    message: messageBody,
+  } = JSON.parse(record.body);
   try {
-    logger.info({ message: 'PULL_REQUEST_REVIEW_SQS_RECEIVER_HANDLER', data:  messageBody, requestId, resourceId});
+    logger.info({
+      message: 'PULL_REQUEST_REVIEW_SQS_RECEIVER_HANDLER',
+      data: messageBody,
+      requestId,
+      resourceId,
+    });
     const { review, pullId, repoId, action } = messageBody;
-    const prReviewProcessor = new PRReviewProcessor(review, pullId, repoId, action, requestId, resourceId);
+    const prReviewProcessor = new PRReviewProcessor(
+      review,
+      pullId,
+      repoId,
+      action,
+      requestId,
+      resourceId
+    );
     const data = await prReviewProcessor.processor();
     await prReviewProcessor.save({
       data,
@@ -25,8 +40,6 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
 export const handler = async function pRReviewFormattedDataReceiver(
   event: SQSEvent
 ): Promise<void> {
-  logger.info({ message: "Records Length:", data: event.Records.length });
-  await Promise.all(
-    event.Records.map((record: SQSRecord) => processAndStoreSQSRecord(record))
-  );
+  logger.info({ message: 'Records Length:', data: event.Records.length });
+  await Promise.all(event.Records.map((record: SQSRecord) => processAndStoreSQSRecord(record)));
 };

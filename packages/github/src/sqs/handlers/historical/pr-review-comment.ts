@@ -13,11 +13,11 @@ import { logProcessToRetry } from '../../../util/retry-process';
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 
-const fetchPRComments = async (prId:number):Promise<object[]> => {
+const fetchPRComments = async (prId: number): Promise<object[]> => {
   // Fetch PR comments from Elasticsearch for each PR
   const query = esb
     .requestBodySearch()
-    .size(1000)// assumed that there will not be more than 200 comments on a PR
+    .size(1000) // assumed that there will not be more than 200 comments on a PR
     .query(esb.boolQuery().must(esb.termQuery('body.pullId', prId)))
     .toJSON();
   const prReviewCommentData = await esClient.search(
@@ -26,8 +26,12 @@ const fetchPRComments = async (prId:number):Promise<object[]> => {
   );
   const esPrReviewCommentFormattedData = await searchedDataFormator(prReviewCommentData);
   return esPrReviewCommentFormattedData;
-}
-const updateDeletedComments = async (deletedCommentIds:number[],repoId:string, reqCntx:Other.Type.RequestCtx):Promise<void> => {
+};
+const updateDeletedComments = async (
+  deletedCommentIds: number[],
+  repoId: string,
+  reqCtx: Other.Type.RequestCtx
+): Promise<void> => {
   // Update isDeleted flag in Elasticsearch for deleted comments
   const matchQry = esb
     .boolQuery()
@@ -37,18 +41,25 @@ const updateDeletedComments = async (deletedCommentIds:number[],repoId:string, r
     ])
     .toJSON();
   const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
-  logger.info({ message: 'matchQry_delete_mark_comments:', data: JSON.stringify(matchQry), ...reqCntx});
+  logger.info({
+    message: 'matchQry_delete_mark_comments:',
+    data: JSON.stringify(matchQry),
+    ...reqCtx,
+  });
   await esClient.updateByQuery(
     Github.Enums.IndexName.GitPRReviewComment,
     matchQry,
     script.toJSON()
   );
-}
+};
 export const handler = async function prReviewComment(event: SQSEvent): Promise<void> {
-  logger.info({ message: "Records Length", data: event.Records.length});
+  logger.info({ message: 'Records Length', data: event.Records.length });
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
-      const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
+      const {
+        reqCtx: { requestId, resourceId },
+        message: messageBody,
+      } = JSON.parse(record.body);
       try {
         const { owner, repoName, prData } = messageBody;
         const octokit = await initializeOctokit();
@@ -61,21 +72,36 @@ export const handler = async function prReviewComment(event: SQSEvent): Promise<
         octokitRespData.forEach((comment: any) => {
           prReviewCommentIdfromApi.push(comment.id);
         });
-        logger.info({ message: "pr_review_comment_id_from_ghapi", data:prReviewCommentIdfromApi, requestId, resourceId });
+        logger.info({
+          message: 'pr_review_comment_id_from_ghapi',
+          data: prReviewCommentIdfromApi,
+          requestId,
+          resourceId,
+        });
 
         const esPrReviewCommentFormattedData = await fetchPRComments(prData.id);
         const prReviewCommentId: number[] = [];
         esPrReviewCommentFormattedData.forEach((prReviewComments: any) => {
           prReviewCommentId.push(prReviewComments.githubPRReviewCommentId);
         });
-        logger.info({ message: "pr_review_comment_id_from_es",  data: prReviewCommentId, requestId, resourceId});
+        logger.info({
+          message: 'pr_review_comment_id_from_es',
+          data: prReviewCommentId,
+          requestId,
+          resourceId,
+        });
 
         // Find deleted comments id between Elasticsearch and Github API
         const deletedCommentIds = prReviewCommentId.filter(
           (id) => !prReviewCommentIdfromApi.includes(id)
         );
-        logger.info({ message: "to_be_marked_deleted_commentIds", data: deletedCommentIds, requestId, resourceId});
-       
+        logger.info({
+          message: 'to_be_marked_deleted_commentIds',
+          data: deletedCommentIds,
+          requestId,
+          resourceId,
+        });
+
         await updateDeletedComments(deletedCommentIds, prData.repoId, { requestId, resourceId });
         // Update PR Data
         await sqsClient.sendMessage(
@@ -90,7 +116,7 @@ export const handler = async function prReviewComment(event: SQSEvent): Promise<
           { requestId, resourceId }
         );
       } catch (error) {
-        logger.error({ message: "migration.reviews_comment.error", error, requestId, resourceId});
+        logger.error({ message: 'migration.reviews_comment.error', error, requestId, resourceId });
         await logProcessToRetry(record, Queue.qGhPrReviewCommentMigration.queueUrl, error as Error);
       }
     })

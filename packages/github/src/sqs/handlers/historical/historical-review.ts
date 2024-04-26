@@ -22,7 +22,7 @@ const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function processReviewQueueForPageOne(
   prReviews: OctokitResponse<Github.Type.CommentState[]>,
   messageBody: Github.Type.MessageBody,
-  reqCntx: Other.Type.RequestCtx
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   let submittedAt = null;
   let approvedAt = null;
@@ -59,14 +59,17 @@ async function processReviewQueueForPageOne(
       repoId: messageBody.head.repo.id,
     },
     Queue.qGhHistoricalPrByNumber.queueUrl,
-    {...reqCntx}
+    { ...reqCtx }
   );
 }
 
 async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
-  const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
+  const {
+    reqCtx: { requestId, resourceId },
+    message: messageBody,
+  } = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
-    logger.info({ message: 'HISTORY_MESSGE_BODY_EMPTY', data: messageBody, requestId, resourceId});
+    logger.info({ message: 'HISTORY_MESSGE_BODY_EMPTY', data: messageBody, requestId, resourceId });
     return false;
   }
   const {
@@ -90,25 +93,39 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
           repoId: messageBody.head.repo.id,
         },
         Queue.qGhPrReviewFormat.queueUrl,
-        {requestId, resourceId}
-      ),
+        { requestId, resourceId }
+      )
     );
 
     await Promise.all(queueProcessed);
-    logger.info({ message: "total pr reviews processed", data: queueProcessed.length, requestId, resourceId});
+    logger.info({
+      message: 'total pr reviews processed',
+      data: queueProcessed.length,
+      requestId,
+      resourceId,
+    });
     if (page === 1) {
       await processReviewQueueForPageOne(prReviews, messageBody, { requestId, resourceId });
     }
 
     if (octokitRespData.length < 100) {
-      logger.info({ message: 'LAST_100_RECORD_PR_REVIEW', requestId, resourceId});
+      logger.info({ message: 'LAST_100_RECORD_PR_REVIEW', requestId, resourceId });
       return true;
     }
     messageBody.page = page + 1;
-    logger.info({ message: `message_body_pr_reviews: ${JSON.stringify(messageBody)}` , requestId, resourceId});
+    logger.info({
+      message: `message_body_pr_reviews: ${JSON.stringify(messageBody)}`,
+      requestId,
+      resourceId,
+    });
     await getPrReviews({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
-    logger.error({ message: "historical.reviews.error", error: JSON.stringify(error), requestId, resourceId});
+    logger.error({
+      message: 'historical.reviews.error',
+      error: JSON.stringify(error),
+      requestId,
+      resourceId,
+    });
     await logProcessToRetry(record, Queue.qGhHistoricalReviews.queueUrl, error as Error);
   }
 }
@@ -122,9 +139,9 @@ export const handler = async function collectPrReviewsData(event: SQSEvent): Pro
       }
 
       logger.info({
-        message: 
-      "PR with no repo", data: JSON.stringify(body)}
-      );
+        message: 'PR with no repo',
+        data: JSON.stringify(body),
+      });
 
       return false;
     }).map(async (record: SQSRecord) => getPrReviews(record))

@@ -4,9 +4,17 @@ import { logger } from 'core';
 import { BranchProcessor } from '../../../processors/branch';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
-  const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
+  const {
+    reqCtx: { requestId, resourceId },
+    message: messageBody,
+  } = JSON.parse(record.body);
   try {
-    logger.info({ message: 'BRANCH_SQS_RECEIVER_HANDLER', data: messageBody, requestId, resourceId});
+    logger.info({
+      message: 'BRANCH_SQS_RECEIVER_HANDLER',
+      data: messageBody,
+      requestId,
+      resourceId,
+    });
     const branchProcessor = new BranchProcessor(messageBody, requestId, resourceId);
     const data = await branchProcessor.processor();
     await branchProcessor.save({
@@ -15,10 +23,10 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       processId: messageBody?.processId,
     });
   } catch (error) {
-    logger.error({ message: "branchFormattedDataReceiver.error", error, requestId, resourceId });
+    logger.error({ message: 'branchFormattedDataReceiver.error', error, requestId, resourceId });
   }
 }
 export const handler = async function branchFormattedDataReceiver(event: SQSEvent): Promise<void> {
-  logger.info({ message: "Records Length", data: event.Records.length });
+  logger.info({ message: 'Records Length', data: event.Records.length });
   await Promise.all(event.Records.map((record: SQSRecord) => processAndStoreSQSRecord(record)));
 };

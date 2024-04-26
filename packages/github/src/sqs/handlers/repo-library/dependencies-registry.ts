@@ -15,10 +15,10 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
   const sqsClient = SQSClient.getInstance();
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
-      const { reqCntx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
+      const { reqCtx: { requestId, resourceId }, messageBody } = JSON.parse(record.body);
       try {
 
-        logger.info({ message: 'DEPENDENCIES_INDEXED', data: messageBody, requestId, resourceId } );
+        logger.info({ message: 'DEPENDENCIES_INDEXED', data: messageBody, requestId, resourceId });
 
         const { dependencyName, currentVersion, repoId, isDeleted, isCore } = messageBody;
 
@@ -37,7 +37,7 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
             isCore,
           },
         };
-        logger.info({ message: 'DEPENDENCIES_DATA', data: repoLibObj,requestId, resourceId });
+        logger.info({ message: 'DEPENDENCIES_DATA', data: repoLibObj, requestId, resourceId });
         await Promise.all([
           sqsClient.sendMessage(repoLibObj, Queue.qCurrentDepRegistry.queueUrl, { requestId, resourceId }),
           sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl, { requestId, resourceId }),
@@ -45,7 +45,7 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
       } catch (error) {
         if (axios.isAxiosError(error)) {
           if (error.response && error.response.status === 404) {
-            logger.info({ message: 'DEPENDENCIES_NOT_FOUND', data: record ,requestId, resourceId });
+            logger.info({ message: 'DEPENDENCIES_NOT_FOUND', data: record, requestId, resourceId });
             return;
           }
         }

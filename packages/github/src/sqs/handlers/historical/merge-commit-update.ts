@@ -20,13 +20,21 @@ const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 export const handler = async function updateMergeCommitDataReceiver(
   event: SQSEvent
 ): Promise<void> {
-  logger.info({ message: "Records Length",  data: event.Records.length});
+  logger.info({ message: 'Records Length', data: event.Records.length });
 
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
-      const { reqCntx: {requestId, resourceId}, messageBody } = JSON.parse(record.body);
+      const {
+        reqCtx: { requestId, resourceId },
+        message: messageBody,
+      } = JSON.parse(record.body);
       try {
-        logger.info({ message: 'UPDATE_MERGE_COMMIT_SQS_RECEIVER', data:  messageBody, requestId, resourceId });
+        logger.info({
+          message: 'UPDATE_MERGE_COMMIT_SQS_RECEIVER',
+          data: messageBody,
+          requestId,
+          resourceId,
+        });
         const {
           githubCommitId,
           mergedBranch,
@@ -44,24 +52,38 @@ export const handler = async function updateMergeCommitDataReceiver(
 
         const parentCommit = responseData.data.parents.length >= 2;
         if (parentCommit) {
-          logger.info({ message: "parent_commit_found_for_commit_id", data: githubCommitId, requestId, resourceId });
+          logger.info({
+            message: 'parent_commit_found_for_commit_id',
+            data: githubCommitId,
+            requestId,
+            resourceId,
+          });
           isMergedCommit = true;
-          const commitProcessor = new CommitProcessor({
-            ...getOctokitResp(responseData),
-            commits: {
-              id: githubCommitId,
-              isMergedCommit,
-              mergedBranch,
-              pushedBranch,
-              timestamp: createdAt,
+          const commitProcessor = new CommitProcessor(
+            {
+              ...getOctokitResp(responseData),
+              commits: {
+                id: githubCommitId,
+                isMergedCommit,
+                mergedBranch,
+                pushedBranch,
+                timestamp: createdAt,
+              },
+              repoId: repoId.replace(/gh_repo_/g, ''),
             },
-            repoId: repoId.replace(/gh_repo_/g, ''),
-          }, requestId, resourceId);
+            requestId,
+            resourceId
+          );
           const data = await commitProcessor.processor();
           await commitProcessor.save({ data, eventType: Github.Enums.Event.Commit });
         }
       } catch (error) {
-        logger.error({ message: 'updateMergeCommitFormattedDataReceiver', error, requestId, resourceId});
+        logger.error({
+          message: 'updateMergeCommitFormattedDataReceiver',
+          error,
+          requestId,
+          resourceId,
+        });
         await logProcessToRetry(record, Queue.qUpdateMergeCommit.queueUrl, error as Error);
       }
     })

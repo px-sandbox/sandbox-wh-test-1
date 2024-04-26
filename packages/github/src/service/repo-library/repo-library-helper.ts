@@ -18,8 +18,8 @@ async function deletePrevDependencies(repoId: string): Promise<void> {
 
   await esClientObj.updateByQuery(Github.Enums.IndexName.GitRepoLibrary, matchQry, script.toJSON());
 }
-export async function repoLibHelper(data: Github.ExternalType.RepoLibrary, reqCntx:Other.Type.RequestCtx): Promise<void> {
-  logger.info({ message: 'repoLibrary.handler', data, ...reqCntx });
+export async function repoLibHelper(data: Github.ExternalType.RepoLibrary, reqCtx:Other.Type.RequestCtx): Promise<void> {
+  logger.info({ message: 'repoLibrary.handler', data, ...reqCtx });
 
   if (data) {
     const {
@@ -46,7 +46,7 @@ export async function repoLibHelper(data: Github.ExternalType.RepoLibrary, reqCn
           isCore: false,
         };
 
-        return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl, { ...reqCntx });
+        return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl, { ...reqCtx });
       }),
       ...coreDependencies.map(async (dep) => {
         const message = {
@@ -57,7 +57,7 @@ export async function repoLibHelper(data: Github.ExternalType.RepoLibrary, reqCn
           isCore: true,
         };
 
-        return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl, { ...reqCntx });
+        return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl, { ...reqCtx });
       }),
     ]);
   }

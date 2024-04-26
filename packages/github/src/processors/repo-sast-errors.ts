@@ -52,7 +52,7 @@ export async function storeSastErrorReportToES(
   branch: string,
   orgId: string,
   createdAt: string,
-  reqCntx: Other.Type.RequestCtx
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   try {
     const matchQry = getQuery(repoId, branch, orgId, createdAt);
@@ -64,31 +64,31 @@ export async function storeSastErrorReportToES(
     );
 
     if (data.length > 0) {
-      logger.info({ message: 'storeSastErrorReportToES.data', data: data.length, ...reqCntx });
+      logger.info({ message: 'storeSastErrorReportToES.data', data: data.length, ...reqCtx });
       await esClientObj.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, data);
-      logger.info({ message: 'storeSastErrorReportToES.success', ...reqCntx});
+      logger.info({ message: 'storeSastErrorReportToES.success', ...reqCtx});
     } else {
-      logger.info({ message: 'storeSastErrorReportToES.no_data', ...reqCntx });
+      logger.info({ message: 'storeSastErrorReportToES.no_data', ...reqCtx });
     }
   } catch (error) {
-    logger.error({ message: 'storeSastErrorReportToES.error',  error, ...reqCntx });
+    logger.error({ message: 'storeSastErrorReportToES.error',  error, ...reqCtx });
     throw error;
   }
 }
-export async function fetchDataFromS3<T>(key: string, bucketName: string, reqCntx: Other.Type.RequestCtx): Promise<T> {
+export async function fetchDataFromS3<T>(key: string, bucketName: string, reqCtx: Other.Type.RequestCtx): Promise<T> {
   const params: GetObjectRequest = {
     Bucket: `${bucketName}`,
     Key: key,
     ResponseContentType: 'application/json',
   };
-  logger.info({ message: 'fetchDataFromS3.params', data: { params }, ...reqCntx });
+  logger.info({ message: 'fetchDataFromS3.params', data: { params }, ...reqCtx });
   const s3 = new S3();
   try {
     const data = await s3.getObject(params).promise();
     const jsonData = JSON.parse(data.Body?.toString() || '{}');
     return jsonData;
   } catch (error) {
-    logger.error({ message: 'fetchDataFromS3.error',  error, ...reqCntx });
+    logger.error({ message: 'fetchDataFromS3.error',  error, ...reqCtx });
     throw error;
   }
 }

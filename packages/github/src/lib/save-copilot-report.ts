@@ -4,8 +4,8 @@ import { logger } from 'core';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveGHCopilotReport(data: Github.Type.GHCopilotReport, reqCntx: Other.Type.RequestCtx): Promise<void> {
-  const { requestId, resourceId } = reqCntx;
+export async function saveGHCopilotReport(data: Github.Type.GHCopilotReport, reqCtx: Other.Type.RequestCtx): Promise<void> {
+  const { requestId, resourceId } = reqCtx;
   try {
     const updatedData = { ...data };
     await esClientObj.putDocument(Github.Enums.IndexName.GitCopilot, updatedData);

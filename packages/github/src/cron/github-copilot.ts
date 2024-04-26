@@ -37,10 +37,10 @@ async function getGHCopilotReports(
   >,
   requestId: string,
   pageNo = 1,
-  counter = 0,
+  counter = 0
 ): Promise<number> {
   try {
-    logger.info({message: "Github Copilot invoked at", data: new Date().toISOString()});
+    logger.info({ message: 'Github Copilot invoked at', data: new Date().toISOString() });
     const perPage = 100; // max allowed by github
     const org = Github.Enums.OrgConst.SG;
     const ghCopilotResp = await octokit(
@@ -65,28 +65,30 @@ async function getGHCopilotReports(
       return newCounter;
     }
 
-    return getGHCopilotReports(octokit, requestId, pageNo + 1, newCounter,);
+    return getGHCopilotReports(octokit, requestId, pageNo + 1, newCounter);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.error({message: "getGHCopilotReports.error", data:pageNo,  error });
+    logger.error({ message: 'getGHCopilotReports.error', data: pageNo, error });
 
     if (error.status === 401) {
       // Generate new installation access token to make request
       const octokitInstance = await initializeOctokit();
-      return getGHCopilotReports(octokitInstance, requestId,pageNo, counter);
+      return getGHCopilotReports(octokitInstance, requestId, pageNo, counter);
     }
     if (error.status === 403) {
       const resetTime = new Date(parseInt(error.headers['X-Ratelimit-Reset'], 10) * 1000);
       const secondsUntilReset = Math.max(resetTime.getTime() - Date.now(), 0) / 1000;
-      logger.info({message: "Github API rate limit exceeded. Waiting until reset", data: secondsUntilReset, requestId});
-    
+      logger.info({
+        message: 'Github API rate limit exceeded. Waiting until reset',
+        data: secondsUntilReset,
+        requestId,
+      });
     }
     throw error;
   }
 }
 
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
-
   const requestId = event.requestContext.requestId;
   try {
     const octokit = await initializeOctokit();
