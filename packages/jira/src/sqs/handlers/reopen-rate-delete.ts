@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { Jira } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
@@ -13,20 +14,33 @@ import { logProcessToRetry } from '../../util/retry-process';
 const esClientObj = ElasticSearchClient.getInstance();
 
 export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: `Records Length: ${event.Records.length}` });
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
+      const {
+        message: messageBody,
+        reqCtx: { requestId, resourceId },
+      } = JSON.parse(record.body);
       try {
-        const messageBody = JSON.parse(record.body);
-        logger.info('reopenRateDeleteQueue', { messageBody });
+        logger.info({
+          requestId,
+          resourceId,
+          message: 'reopenRateDeleteQueue',
+          data: { messageBody },
+        });
         const reopenRateData = await getReopenRateDataByIssueId(
           messageBody.issue.id,
-          messageBody.organization
+          messageBody.organization,
+          { requestId, resourceId }
         );
         const orgData = await getOrganization(messageBody.organization);
 
         if (!orgData) {
-          logger.error(`Organization ${messageBody.organization} not found`);
+          logger.error({
+            requestId,
+            resourceId,
+            message: `Organization ${messageBody.organization} not found`,
+          });
           throw new Error(`Organization ${messageBody.organization} not found`);
         }
 
@@ -56,11 +70,15 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
 
           await esClientObj.updateByQuery(Jira.Enums.IndexName.ReopenRate, query, script);
         } else {
-          logger.info(`Delete reopen rate data not found for issueId : ${messageBody.issue.id}`);
+          logger.info({
+            requestId,
+            resourceId,
+            message: `Delete reopen rate data not found for issueId : ${messageBody.issue.id}`,
+          });
         }
-        logger.info('reopenRateDeleteQueue.success');
+        logger.info({ requestId, resourceId, message: 'reopenRateDeleteQueue.success' });
       } catch (error) {
-        logger.error(`reopenRateDeleteQueue.error ${error}`);
+        logger.error({ requestId, resourceId, message: `reopenRateDeleteQueue.error ${error}` });
         await logProcessToRetry(record, Queue.qReOpenRateDelete.queueUrl, error as Error);
       }
     })

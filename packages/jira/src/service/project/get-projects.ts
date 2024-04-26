@@ -18,6 +18,7 @@ const esClient = ElasticSearchClient.getInstance();
 const projects = async function getProjectsData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const requestId = event?.requestContext?.requestId;
   const searchTerm: string = event?.queryStringParameters?.search?.toLowerCase() ?? '';
   const page = Number(event?.queryStringParameters?.page ?? 1);
   const size = Number(event?.queryStringParameters?.size ?? 10);
@@ -45,9 +46,9 @@ const projects = async function getProjectsData(
     const sortedResp = _.sortBy(response, 'name');
     paginatedResp = await paginate(sortedResp, page, size);
 
-    logger.info({ level: 'info', message: 'jira projects data', data: paginatedResp });
+    logger.info({ requestId, message: 'jira projects data', data: paginatedResp });
   } catch (error) {
-    logger.error('GET_JIRA_PROJECT_DETAILS', { error });
+    logger.error({ requestId, message: 'GET_JIRA_PROJECT_DETAILS', error });
   }
   const { '200': ok, '404': notFound } = HttpStatusCode;
   const statusCode = paginatedResp ? ok : notFound;

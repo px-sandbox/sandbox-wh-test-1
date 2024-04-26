@@ -16,12 +16,13 @@ import { getOrganization } from '../organization/get-organization';
 const esClientObj = ElasticSearchClient.getInstance();
 export async function getProjectById(
   projectId: number,
-  organization: string
+  organization: string,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
   try {
     const orgData = await getOrganization(organization);
     if (!orgData) {
-      logger.error(`Organization ${organization} not found`);
+      logger.error({ ...reqCtx, message: `Organization ${organization} not found` });
       throw new Error(`Organization ${organization} not found`);
     }
     const matchQry = esb
@@ -39,7 +40,7 @@ export async function getProjectById(
     const [formattedProjectData] = await searchedDataFormatorWithDeleted(projectData);
     return formattedProjectData;
   } catch (error: unknown) {
-    logger.error('getProjectById.error', { error });
+    logger.error({ ...reqCtx, message: 'getProjectById.error', error });
     throw error;
   }
 }

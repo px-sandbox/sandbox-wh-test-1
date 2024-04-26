@@ -58,7 +58,8 @@ async function manipulatedBoardsData(
   projectId: string,
   orgId: string,
   size: number,
-  from: number
+  from: number,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<(Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]> {
   return Promise.all([
     ...boardResponse.map(async (item: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody) => {
@@ -84,7 +85,7 @@ async function manipulatedBoardsData(
       const sprintsData = await esClient.search(Jira.Enums.IndexName.Sprint, boardItemQuery);
       const sprintsResponse = await searchedDataFormator(sprintsData);
       logger.info({
-        level: 'info',
+        ...reqCtx,
         message: 'jira sprints formatted data',
         data: sprintsResponse,
       });
@@ -103,8 +104,9 @@ async function manipulatedBoardsData(
 const boards = async function getBoardsData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const { requestId } = event.requestContext;
   const { orgId, projectId } = event.queryStringParameters as { orgId: string; projectId: string };
-  logger.info({ level: 'info', message: 'jira orgId', data: { orgId, projectId } });
+  logger.info({ requestId, resourceId: projectId, message: 'jira orgId', data: { orgId } });
 
   // To get all boards and sprints for a project we set 1000 items for now as per our assumption
   // there will be less than 1000 boards or 1000 sprints for a project
@@ -112,11 +114,15 @@ const boards = async function getBoardsData(
   const from = 0;
 
   try {
-    logger.info({ level: 'info', message: 'jira projectId', data: projectId });
+    logger.info({ requestId, resourceId: projectId, message: 'jira projectId' });
     const boardResponse = await boardResData(projectId, orgId, size, from);
-    const boardsData = await manipulatedBoardsData(boardResponse, projectId, orgId, size, from);
+    const boardsData = await manipulatedBoardsData(boardResponse, projectId, orgId, size, from, {
+      requestId,
+      resourceId: projectId,
+    });
     logger.info({
-      level: 'info',
+      requestId,
+      resourceId: projectId,
       message: 'jira new response for boards data',
       data: boardsData,
     });
@@ -135,7 +141,7 @@ const boards = async function getBoardsData(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (error) {
-    logger.error('GET_JIRA_BOARD_DETAILS', { error });
+    logger.error({ requestId, resourceId: projectId, message: 'GET_JIRA_BOARD_DETAILS', error });
     throw new Error(`Not able to get board details: ${error}`);
   }
 };

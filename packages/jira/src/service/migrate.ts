@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { SQSClient } from '@pulse/event-handler';
 import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
@@ -11,6 +12,7 @@ const sqsClient = SQSClient.getInstance();
 export const handler = async function migrate(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const requestId = event?.requestContext?.requestId;
   const organization = event?.queryStringParameters?.orgName ?? '';
   const projects = event?.queryStringParameters?.projects?.split(',') || [];
   const importUsers = event?.queryStringParameters?.importUsers ?? 'false';
@@ -52,7 +54,9 @@ export const handler = async function migrate(
   if (projectsToSend.length === 0) {
     return responseParser.setMessage('No projects to migrate').send();
   }
-  logger.info(`
+  logger.info({
+    requestId,
+    message: `
 
   SENDING Projects ############
 
@@ -60,7 +64,8 @@ export const handler = async function migrate(
 
   Users: ${usersFromJira.length}
 
-  `);
+  `,
+  });
 
   await Promise.all([
     ...projectsToSend.map(({ id }) =>
@@ -69,11 +74,15 @@ export const handler = async function migrate(
           organization,
           projectId: id,
         },
-        Queue.qProjectMigrate.queueUrl
+        Queue.qProjectMigrate.queueUrl,
+        { requestId, resourceId: '' }
       )
     ),
     ...usersFromJira.map((user) =>
-      sqsClient.sendMessage({ organization, user }, Queue.qUserMigrate.queueUrl)
+      sqsClient.sendMessage({ organization, user }, Queue.qUserMigrate.queueUrl, {
+        requestId,
+        resourceId: '',
+      })
     ),
   ]);
 
@@ -88,6 +97,7 @@ export const handler = async function migrate(
 export const issueStatusHandler = async function issueStatusMigration(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const requestId = event?.requestContext?.requestId;
   const organization = event?.queryStringParameters?.orgName ?? '';
   if (!organization) {
     return responseParser
@@ -103,7 +113,9 @@ export const issueStatusHandler = async function issueStatusMigration(
 
   await Promise.all([
     ...issueStatuses.map((status) =>
-      sqsClient.sendMessage({ organization, status }, Queue.qIssueStatusMigrate.queueUrl)
+      sqsClient.sendMessage({ organization, status }, Queue.qIssueStatusMigrate.queueUrl, {
+        requestId,
+      })
     ),
   ]);
   return responseParser

@@ -7,13 +7,17 @@ import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
 
 export class BoardProcessor extends DataProcessor<Jira.Mapper.Board, Jira.Type.Board> {
-  constructor(data: Jira.Mapper.Board) {
-    super(data);
+  constructor(data: Jira.Mapper.Board, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
   public async processor(): Promise<Jira.Type.Board> {
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
-      logger.error(`Organization ${this.apiData.organization} not found`);
+      logger.error({
+        requestId: this.requestId,
+        resourceId: this.resourceId,
+        message: `Organization ${this.apiData.organization} not found`,
+      });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
     const jiraId = `${mappingPrefixes.board}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`;

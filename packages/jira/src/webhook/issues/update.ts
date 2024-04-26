@@ -13,12 +13,17 @@ const sqsClient = SQSClient.getInstance();
  * @param issue The Jira issue to update.
  * @returns A Promise that resolves when the update is complete.
  */
-export async function update(issue: Jira.ExternalType.Webhook.Issue): Promise<void> {
-  logger.info('issue_update_event: Send message to SQS');
+export async function update(
+  issue: Jira.ExternalType.Webhook.Issue,
+  requestId: string
+): Promise<void> {
+  const resourceId = issue.issue.id;
+  logger.info({ requestId, resourceId, message: 'issue_update_event: Send message to SQS' });
 
   await sqsClient.sendFifoMessage(
     { ...issue },
     Queue.qIssueFormat.queueUrl,
+    { requestId, resourceId },
     issue.issue.key,
     uuid()
   );
@@ -28,19 +33,26 @@ export async function update(issue: Jira.ExternalType.Webhook.Issue): Promise<vo
   const orgData = await getOrganization(issue.organization);
   const issueState = issue.changelog.items[0];
   if (orgData) {
-    const issueStatus = await getIssueStatusForReopenRate(orgData.id);
+    const issueStatus = await getIssueStatusForReopenRate(orgData.id, { requestId, resourceId });
     if (
       [issueStatus[ChangelogStatus.READY_FOR_QA], issueStatus[ChangelogStatus.QA_FAILED]].includes(
         issueState.to
       )
     ) {
-      logger.info('issue_info_ready_for_QA_update_event: Send message to SQS');
+      logger.info({
+        requestId,
+        resourceId,
+        message: 'issue_info_ready_for_QA_update_event: Send message to SQS',
+      });
       const typeOfChangelog =
         issueStatus[ChangelogStatus.READY_FOR_QA] === issueState.to
           ? ChangelogStatus.READY_FOR_QA
           : ChangelogStatus.QA_FAILED;
 
-      await sqsClient.sendMessage({ ...issue, typeOfChangelog }, Queue.qReOpenRate.queueUrl);
+      await sqsClient.sendMessage({ ...issue, typeOfChangelog }, Queue.qReOpenRate.queueUrl, {
+        requestId,
+        resourceId,
+      });
     }
   }
 }

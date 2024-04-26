@@ -70,6 +70,21 @@ export class ElasticSearchClient implements IElasticSearchClient {
     });
   }
 
+  public async updateDocument(indexName: string, id: string, updatedDoc: object): Promise<void> {
+    try {
+      await this.client.update({
+        index: indexName,
+        id,
+        body: {
+          doc: updatedDoc,
+        },
+      });
+    } catch (err) {
+      logger.error('updateDocument.error : ', { err });
+      throw err;
+    }
+  }
+
   /**
    * Deletes documents from the specified index based on a query.
    * @param indexName - The name of the index to delete documents from.

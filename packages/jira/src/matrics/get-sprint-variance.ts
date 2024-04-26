@@ -21,7 +21,8 @@ async function sprintHitsResponse(
   limit: number,
   page: number,
   projectId: string,
-  dateRangeQueries: esb.RangeQuery[]
+  dateRangeQueries: esb.RangeQuery[],
+  reqCtx: Other.Type.RequestCtx
 ): Promise<{
   sprintHits: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
   totalPages: number;
@@ -47,7 +48,7 @@ async function sprintHitsResponse(
     .sort(esb.sort('body.startDate', 'desc'))
     .toJSON();
 
-  logger.info('sprintQuery', sprintQuery);
+  logger.info({ ...reqCtx, message: 'sprintQuery', data: { sprintQuery } });
   const body = (await esClientObj.search(
     Jira.Enums.IndexName.Sprint,
     sprintQuery
@@ -68,7 +69,8 @@ async function sprintHitsResponse(
 async function estimateActualGraphResponse(
   sortKey: Jira.Enums.IssueTimeTracker,
   sortOrder: 'desc' | 'asc',
-  sprintIds: string[]
+  sprintIds: string[],
+  reqCtx: Other.Type.RequestCtx
 ): Promise<{
   sprint_aggregation: { buckets: BucketItem[] };
 }> {
@@ -99,7 +101,7 @@ async function estimateActualGraphResponse(
         .minimumShouldMatch(1)
     )
     .toJSON() as { query: object };
-  logger.info('issue_sprint_query', query);
+  logger.info({ ...reqCtx, message: 'issue_sprint_query', data: { query } });
 
   return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
 }
@@ -188,7 +190,8 @@ export async function sprintVarianceGraph(
   page: number,
   limit: number,
   sortKey: Jira.Enums.IssueTimeTracker,
-  sortOrder: 'asc' | 'desc'
+  sortOrder: 'asc' | 'desc',
+  reqCtx: Other.Type.RequestCtx
 ): Promise<SprintVarianceData> {
   try {
     const dateRangeQueries = getDateRangeQueries(startDate, endDate);
@@ -197,7 +200,8 @@ export async function sprintVarianceGraph(
       limit,
       page,
       projectId,
-      dateRangeQueries
+      dateRangeQueries,
+      reqCtx
     );
 
     const sprintData: any = [];
@@ -215,7 +219,12 @@ export async function sprintVarianceGraph(
       })
     );
 
-    const estimateActualGraph = await estimateActualGraphResponse(sortKey, sortOrder, sprintIds);
+    const estimateActualGraph = await estimateActualGraphResponse(
+      sortKey,
+      sortOrder,
+      sprintIds,
+      reqCtx
+    );
     const sprintEstimate = sprintEstimateResponse(sprintData, estimateActualGraph);
 
     return {
@@ -264,7 +273,10 @@ function createSprintQuery(
  * @param sprintIdsArr - An array of sprint IDs.
  * @returns A promise that resolves to an object containing the estimated and actual time.
  */
-async function ftpRateGraphResponse(sprintIdsArr: string[]): Promise<{
+async function ftpRateGraphResponse(
+  sprintIdsArr: string[],
+  reqCtx: Other.Type.RequestCtx
+): Promise<{
   estimatedTime: { value: number };
   actualTime: { value: number };
 }> {
@@ -292,7 +304,7 @@ async function ftpRateGraphResponse(sprintIdsArr: string[]): Promise<{
         .minimumShouldMatch(1)
     )
     .toJSON();
-  logger.info('issue_for_sprints_query', query);
+  logger.info({ ...reqCtx, message: 'issue_for_sprints_query', data: { query } });
 
   return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
 }
@@ -308,7 +320,8 @@ async function ftpRateGraphResponse(sprintIdsArr: string[]): Promise<{
 export async function sprintVarianceGraphAvg(
   projectId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<number> {
   const sprintIdsArr = [];
   try {
@@ -324,9 +337,9 @@ export async function sprintVarianceGraphAvg(
       sprintIds = await searchedDataFormator(body);
       sprintIdsArr.push(...sprintIds.map((id) => id.id));
     } while (sprintIds?.length);
-    logger.info('sprintIds', { sprintIdsArr });
+    logger.info({ ...reqCtx, message: 'sprintIds', data: { sprintIdsArr } });
 
-    const ftpRateGraph = await ftpRateGraphResponse(sprintIdsArr);
+    const ftpRateGraph = await ftpRateGraphResponse(sprintIdsArr, reqCtx);
     return parseFloat(
       (ftpRateGraph.estimatedTime.value === 0
         ? 0
