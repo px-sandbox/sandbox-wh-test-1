@@ -16,11 +16,8 @@ const sprintVariance = async function sprintVariance(
     (event.queryStringParameters?.sortOrder as 'asc' | 'desc') ?? 'desc';
   const page: number = parseInt(event.queryStringParameters?.page || '1', 10);
   const limit: number = parseInt(event.queryStringParameters?.limit || '10', 10);
-  const sprintState: Jira.Enums.SprintState.ACTIVE | Jira.Enums.SprintState.CLOSED | undefined =
-    event.queryStringParameters?.sprintState as
-      | Jira.Enums.SprintState.ACTIVE
-      | Jira.Enums.SprintState.CLOSED
-      | undefined;
+  const sprintState: Jira.Enums.SprintState | undefined = event.queryStringParameters
+    ?.sprintState as Jira.Enums.SprintState;
 
   try {
     const [graphData, headline] = await Promise.all([
