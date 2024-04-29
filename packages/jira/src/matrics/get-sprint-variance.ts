@@ -27,10 +27,6 @@ async function sprintHitsResponse(
   sprintHits: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
   totalPages: number;
 }> {
-  const optionalQuery = [];
-  if (sprintState) {
-    optionalQuery.push(esb.termQuery('body.state', sprintState));
-  }
   const sprintQuery = esb
     .requestBodySearch()
     .size(limit)
@@ -42,7 +38,12 @@ async function sprintHitsResponse(
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
           esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
-          ...optionalQuery,
+          sprintState
+            ? esb.termQuery('body.state', sprintState)
+            : esb.termsQuery('body.state', [
+                Jira.Enums.SprintState.CLOSED,
+                Jira.Enums.SprintState.ACTIVE,
+              ]),
         ])
     )
     .sort(esb.sort('body.startDate', 'desc'))
