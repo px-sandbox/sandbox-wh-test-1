@@ -21,7 +21,8 @@ async function sprintHitsResponse(
   limit: number,
   page: number,
   projectId: string,
-  dateRangeQueries: esb.RangeQuery[]
+  dateRangeQueries: esb.RangeQuery[],
+  sprintState?: string
 ): Promise<{
   sprintHits: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
   totalPages: number;
@@ -31,18 +32,19 @@ async function sprintHitsResponse(
     .size(limit)
     .from((page - 1) * limit)
     .query(
-      esb.boolQuery().must([
-        esb.termQuery('body.projectId', projectId),
-        esb.termQuery('body.isDeleted', false),
-        esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
-        esb
-          .boolQuery()
-          .should([
-            esb.termQuery('body.state', SprintState.ACTIVE),
-            esb.termQuery('body.state', SprintState.CLOSED),
-          ])
-          .minimumShouldMatch(1),
-      ])
+      esb
+        .boolQuery()
+        .must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.isDeleted', false),
+          esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
+          sprintState
+            ? esb.termQuery('body.state', sprintState)
+            : esb.termsQuery('body.state', [
+                Jira.Enums.SprintState.CLOSED,
+                Jira.Enums.SprintState.ACTIVE,
+              ]),
+        ])
     )
     .sort(esb.sort('body.startDate', 'desc'))
     .toJSON();
@@ -188,7 +190,8 @@ export async function sprintVarianceGraph(
   page: number,
   limit: number,
   sortKey: Jira.Enums.IssueTimeTracker,
-  sortOrder: 'asc' | 'desc'
+  sortOrder: 'asc' | 'desc',
+  sprintState?: string
 ): Promise<SprintVarianceData> {
   try {
     const dateRangeQueries = getDateRangeQueries(startDate, endDate);
@@ -197,7 +200,8 @@ export async function sprintVarianceGraph(
       limit,
       page,
       projectId,
-      dateRangeQueries
+      dateRangeQueries,
+      sprintState
     );
 
     const sprintData: any = [];
@@ -242,18 +246,14 @@ function createSprintQuery(
   return esb
     .requestBodySearch()
     .query(
-      esb.boolQuery().must([
-        esb.termQuery('body.projectId', projectId),
-        esb.termQuery('body.isDeleted', false),
-        esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
-        esb
-          .boolQuery()
-          .should([
-            esb.termQuery('body.state', SprintState.ACTIVE),
-            esb.termQuery('body.state', SprintState.CLOSED),
-          ])
-          .minimumShouldMatch(1),
-      ])
+      esb
+        .boolQuery()
+        .must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.isDeleted', false),
+          esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
+          esb.boolQuery().must([esb.termQuery('body.state', SprintState.CLOSED)]),
+        ])
     )
     .sort(esb.sort('body.sprintId'));
 }
