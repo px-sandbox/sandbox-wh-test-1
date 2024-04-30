@@ -14,7 +14,7 @@ export function formatIssue(issueData: Other.Type.HitBody): any {
         id: issueData.projectId.replace(/jira_project_/g, ''),
         key: issueData.projectKey,
       },
-      labels: issueData.labels,
+      labels: issueData.label,
       summary: issueData.summary,
       issuetype: {
         name: issueData.issueType,
