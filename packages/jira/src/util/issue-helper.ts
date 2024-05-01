@@ -33,7 +33,7 @@ export function formatIssue(issueData: Other.Type.HitBody): any {
             accountId: issueData.reporterId.replace(/jira_user_/g, ''),
           }
         : null,
-      creatorId: issueData.creatorId
+      creator: issueData.creatorId
         ? {
             accountId: issueData.creatorId.replace(/jira_user_/g, ''),
           }
