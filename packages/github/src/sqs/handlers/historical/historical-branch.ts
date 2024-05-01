@@ -2,17 +2,22 @@ import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { OctokitResponse } from '@octokit/types';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { logProcessToRetry } from '../../../util/retry-process';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 const installationAccessToken = await getInstallationAccessToken();
+const sqsClient = SQSClient.getInstance();
+
 const octokit = ghRequest.request.defaults({
   headers: {
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getRepoBranches(record: SQSRecord | { body: string }): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId } = messageBody;
@@ -21,9 +26,9 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
     if (messageBody.reqBranch) {
       branches.push(messageBody.reqBranch);
     } else {
-      const githubBranches = await octokit(
+      const githubBranches = (await octokitRequestWithTimeout(
         `GET /repos/${owner}/${name}/branches?per_page=100&page=${page}`
-      );
+      )) as OctokitResponse<any>;
       const octokitRespData = getOctokitResp(githubBranches);
       logger.info('GET_API_BRANCH_DATA', octokitRespData);
       const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/; // eslint-disable-line no-useless-escape
@@ -31,9 +36,9 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
         .filter((branchName: { name: string }) => branchNameRegx.test(branchName.name))
         .map((branch: { name: string }) => branch.name);
     }
-    logger.info(`Proccessing data for repo: ${branches}`);
+    logger.info(`Processing data for repo: ${branches}`);
     const queueProcessed = branches.map((branch: { name: string }) =>
-      new SQSClient().sendMessage(
+      sqsClient.sendMessage(
         {
           branchName: branch,
           owner,

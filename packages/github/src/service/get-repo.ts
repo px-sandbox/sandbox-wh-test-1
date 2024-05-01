@@ -4,37 +4,48 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 import { IRepo, formatRepoDataResponse, searchedDataFormator } from '../util/response-formatter';
 import { getGitRepoSchema } from './validations';
 
-async function fetchReposData(repoIds: string[], esClient: ElasticSearchClient,
-  gitRepoName: string, page: number, size: number): Promise<IRepo[]> {
-
+const esClient = ElasticSearchClient.getInstance();
+async function fetchReposData(
+  repoIds: string[],
+  gitRepoName: string,
+  page: number,
+  size: number
+): Promise<IRepo[]> {
   let esbQuery;
 
   if (repoIds.length > 0) {
-    const repoNameQuery = esb.requestBodySearch().query(
-      esb
-        .boolQuery()
-        .must(esb.termsQuery('body.id', repoIds))
-    ).toJSON() as { query: object };
-    esbQuery = repoNameQuery.query;
-
-
-  }
-  else {
-    const query = esb.boolQuery()
+    const repoNameQuery = esb
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([esb.termsQuery('body.id', repoIds), esb.termQuery('body.isDeleted', false)])
+      )
+      .toJSON();
+    esbQuery = repoNameQuery;
+  } else {
+    const query = esb.boolQuery();
 
     if (gitRepoName) {
-      query.must(esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`));
+      query.must([
+        esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`),
+        esb.termQuery('body.isDeleted', false),
+      ]);
     }
-    const finalQ = esb.requestBodySearch().query(query).toJSON() as { query: object };
-    esbQuery = finalQ.query;
-
+    const finalQ = esb
+      .requestBodySearch()
+      .size(size)
+      .from((page - 1) * size)
+      .query(query)
+      .toJSON() as { query: object };
+    esbQuery = finalQ;
   }
-  const data = await esClient.searchWithEsb(Github.Enums.IndexName.GitRepo, esbQuery, (page - 1) * size, size);
+  logger.info('esbQuery', JSON.stringify(esbQuery));
+  const data = await esClient.search(Github.Enums.IndexName.GitRepo, esbQuery);
 
   return searchedDataFormator(data);
 }
@@ -48,16 +59,11 @@ const gitRepos = async function getRepoData(
   const size = Number(event?.queryStringParameters?.size ?? 10);
   let response: IRepo[] = [];
   try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    response = await fetchReposData(repoIds, esClient, gitRepoName, page, size);
+    response = await fetchReposData(repoIds, gitRepoName, page, size);
 
     logger.info({ level: 'info', message: 'github repo data', data: response });
   } catch (error) {
-    logger.error('GET_GITHUB_REPO_DETAILS', { error });
+    logger.error(`GET_GITHUB_REPO_DETAILS, ${error}`);
   }
   let body = null;
   const { '200': ok, '404': notFound } = HttpStatusCode;

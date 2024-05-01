@@ -4,20 +4,47 @@ import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { initializeOctokit } from 'src/cron/github-copilot';
-import { getOctokitResp } from 'src/util/octokit-response';
-import { searchedDataFormator } from 'src/util/response-formatter';
-import { logProcessToRetry } from 'src/util/retry-process';
-import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import { initializeOctokit } from '../../../cron/github-copilot';
+import { getOctokitResp } from '../../../util/octokit-response';
+import { searchedDataFormator } from '../../../util/response-formatter';
+import { logProcessToRetry } from '../../../util/retry-process';
 
-const esClient = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClient = ElasticSearchClient.getInstance();
+const sqsClient = SQSClient.getInstance();
 
-export const handler = async function pr_review_comment(event: SQSEvent): Promise<void> {
+const fetchPRComments = async (prId:number):Promise<object[]> => {
+  // Fetch PR comments from Elasticsearch for each PR
+  const query = esb
+    .requestBodySearch()
+    .size(1000)// assumed that there will not be more than 200 comments on a PR
+    .query(esb.boolQuery().must(esb.termQuery('body.pullId', prId)))
+    .toJSON();
+  const prReviewCommentData = await esClient.search(
+    Github.Enums.IndexName.GitPRReviewComment,
+    query
+  );
+  const esPrReviewCommentFormattedData = await searchedDataFormator(prReviewCommentData);
+  return esPrReviewCommentFormattedData;
+}
+const updateDeletedComments = async (deletedCommentIds:number[],repoId:string):Promise<void> => {
+  // Update isDeleted flag in Elasticsearch for deleted comments
+  const matchQry = esb
+    .boolQuery()
+    .must([
+      esb.termQuery('body.repoId', repoId),
+      esb.termsQuery('body.githubPRReviewCommentId', deletedCommentIds),
+    ])
+    .toJSON();
+  const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
+  logger.info('matchQry_delete_mark_comments:', matchQry);
+  await esClient.updateByQuery(
+    Github.Enums.IndexName.GitPRReviewComment,
+    matchQry,
+    script.toJSON()
+  );
+}
+export const handler = async function prReviewComment(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
@@ -25,7 +52,7 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
         const messageBody = JSON.parse(record.body);
         const { owner, repoName, prData } = messageBody;
         const octokit = await initializeOctokit();
-        let prReviewCommentIdfromApi: number[] = [];
+        const prReviewCommentIdfromApi: number[] = [];
         // await prFormattedData.map(async (prData: any) => {
         const commentsDataOnPr = await octokit(
           `GET /repos/${owner}/${repoName}/pulls/${prData.pullNumber}/comments`
@@ -36,21 +63,10 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
         });
         logger.info(`pr_review_comment_id_from_ghapi: ${prReviewCommentIdfromApi}`);
 
-        // Fetch PR comments from Elasticsearch for each PR
-        const { query } = esb
-          .requestBodySearch() // assumed that there will not be more than 200 comments on a PR
-          .query(esb.boolQuery().must(esb.termQuery('body.pullId', prData.id)))
-          .toJSON() as { query: object };
-        const prReviewCommentData = await esClient.searchWithEsb(
-          Github.Enums.IndexName.GitPRReviewComment,
-          query,
-          0,
-          1000
-        );
-        const esPrReviewCommentFormattedData = await searchedDataFormator(prReviewCommentData);
-        let prReviewCommentId: number[] = [];
-        esPrReviewCommentFormattedData.forEach((prReviewComment: any) => {
-          prReviewCommentId.push(prReviewComment.githubPRReviewCommentId);
+        const esPrReviewCommentFormattedData = await fetchPRComments(prData.id);
+        const prReviewCommentId: number[] = [];
+        esPrReviewCommentFormattedData.forEach((prReviewComments: any) => {
+          prReviewCommentId.push(prReviewComments.githubPRReviewCommentId);
         });
         logger.info(`pr_review_comment_id_from_es: ${prReviewCommentId}`);
 
@@ -59,24 +75,10 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
           (id) => !prReviewCommentIdfromApi.includes(id)
         );
         logger.info(`to_be_marked_deleted_commentIds:${deletedCommentIds}`);
-        // Update isDeleted flag in Elasticsearch for deleted comments
-        const matchQry = esb
-          .boolQuery()
-          .must([
-            esb.termQuery('body.repoId', prData.repoId),
-            esb.termsQuery('body.githubPRReviewCommentId', deletedCommentIds),
-          ])
-          .toJSON();
-        const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
-        logger.info('matchQry_delete_mark_comments:', matchQry);
-        await esClient.updateByQuery(
-          Github.Enums.IndexName.GitPRReviewComment,
-          matchQry,
-          script.toJSON()
-        );
-
-        //Update PR Data
-        await new SQSClient().sendMessage(
+       
+        await updateDeletedComments(deletedCommentIds, prData.repoId);
+        // Update PR Data
+        await sqsClient.sendMessage(
           {
             id: prData._id,
             body: {
@@ -84,7 +86,7 @@ export const handler = async function pr_review_comment(event: SQSEvent): Promis
               reviewComments: prReviewCommentIdfromApi.length,
             },
           },
-          Queue.qGhPrIndex.queueUrl
+          Queue.qGhIndex.queueUrl
         );
       } catch (error) {
         logger.error(`migration.reviews_comment.error: ${error}`);

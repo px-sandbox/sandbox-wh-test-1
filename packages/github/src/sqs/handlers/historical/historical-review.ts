@@ -1,22 +1,24 @@
 import moment from 'moment';
 import { SQSClient } from '@pulse/event-handler';
+import { OctokitResponse } from '@octokit/types';
+import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { OctokitResponse } from '@octokit/types';
-import { Github } from 'abstraction';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
-import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitResp } from '../../../util/octokit-response';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
+import { logProcessToRetry } from '../../../util/retry-process';
 
+const sqsClient = SQSClient.getInstance();
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
   headers: {
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
-
+const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function processReviewQueueForPageOne(
   prReviews: OctokitResponse<Github.Type.CommentState[]>,
   messageBody: Github.Type.MessageBody
@@ -46,7 +48,7 @@ async function processReviewQueueForPageOne(
       approvedAt = approvedTime.submitted_at;
     }
   }
-  await new SQSClient().sendMessage(
+  await sqsClient.sendMessage(
     {
       submittedAt,
       approvedAt,
@@ -73,13 +75,13 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
     },
   } = messageBody;
   try {
-    const prReviews = await octokit(
+    const prReviews = (await octokitRequestWithTimeout(
       `GET /repos/${owner.login}/${name}/pulls/${number}/reviews?per_page=100&page=${page}`
-    );
+    )) as OctokitResponse<Github.Type.CommentState[]>;
     const octokitRespData = getOctokitResp(prReviews);
     let queueProcessed = [];
     queueProcessed = octokitRespData.map((reviews: unknown) =>
-      new SQSClient().sendMessage(
+      sqsClient.sendMessage(
         {
           review: reviews,
           pullId: messageBody.id,
@@ -90,7 +92,7 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
     );
 
     await Promise.all(queueProcessed);
-    logger.info(`total pr reviews proccessed: ${queueProcessed.length}`);
+    logger.info(`total pr reviews processed: ${queueProcessed.length}`);
     if (page === 1) {
       await processReviewQueueForPageOne(prReviews, messageBody);
     }

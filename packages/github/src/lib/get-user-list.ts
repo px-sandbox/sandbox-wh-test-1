@@ -3,8 +3,11 @@ import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 import { ghRequest } from './request-default';
+
+const sqsClient = SQSClient.getInstance();
 
 async function getUserList(
   octokit: RequestInterface<
@@ -31,7 +34,7 @@ async function getUserList(
 
     await Promise.all(
       membersPerPage.map(async (member) =>
-        new SQSClient().sendMessage(member, Queue.qGhUsersFormat.queueUrl)
+        sqsClient.sendMessage(member, Queue.qGhUsersFormat.queueUrl)
       )
     );
 
@@ -59,8 +62,8 @@ async function getUserList(
           authorization: `Bearer ${token}`,
         },
       });
-
-      return getUserList(octokitObj, organizationName, page, counter);
+      const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokitObj);
+      return getUserList(octokitRequestWithTimeout, organizationName, page, counter);
     }
     throw error;
   }

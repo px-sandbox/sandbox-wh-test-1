@@ -6,8 +6,6 @@ import { JiraClient } from '../../lib/jira-client';
 import { saveProjectDetails } from '../../repository/project/save-project';
 import { getProjectById } from '../../repository/project/get-project';
 
-
-
 /**
  * Restores a deleted project in Jira.
  * @param project The project to restore.
@@ -25,7 +23,10 @@ export async function restoreDeleted(
   const jiraClient = await JiraClient.getClient(organization);
   const data = await jiraClient.getProject(projectId.toString());
 
-  logger.info('projectRestoreDeletedEvent', { projectKey: data.key, availableProjectKeys: projectKeys });
+  logger.info('projectRestoreDeletedEvent', {
+    projectKey: data.key,
+    availableProjectKeys: projectKeys,
+  });
 
   if (!projectKeys.includes(data.key)) {
     logger.info('projectRestoreDeletedEvent: Project not available in our system');

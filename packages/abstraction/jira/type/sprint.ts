@@ -1,4 +1,6 @@
-export type Sprint = {
+import { retryProcess } from './retry-process';
+
+export type Sprint = retryProcess & {
   id: string;
   body: {
     id: string;

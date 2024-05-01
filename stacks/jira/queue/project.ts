@@ -2,6 +2,7 @@ import { Queue, Function, use } from 'sst/constructs';
 import { Stack } from 'aws-cdk-lib';
 import { commonConfig } from '../../common/config';
 import { JiraTables } from '../../type/tables';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 /**
  * Initializes project queues for Jira integration.
@@ -10,7 +11,11 @@ import { JiraTables } from '../../type/tables';
  * @returns An array of project queues.
  * @throws Error if any of the queues fail to bind.
  */
-export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue[] {
+export function initializeProjectQueue(
+  stack: Stack,
+  jiraDDB: JiraTables,
+  jiraIndexDataQueue: Queue
+): Queue {
   const {
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -19,21 +24,17 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
-    NODE_VERSION
+    NODE_VERSION,
+    REQUEST_TIMEOUT,
   } = use(commonConfig);
 
-  const projectIndexDataQueue = new Queue(stack, 'qProjectIndex', {
-    consumer: {
-      function: 'packages/jira/src/sqs/handlers/indexer/project.handler',
-      cdk: {
-        eventSource: {
-          batchSize: 5,
-        },
+  const projectFormatDataQueue = new Queue(stack, 'qProjectFormat', {
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qProjectFormat'),
       },
     },
   });
-
-  const projectFormatDataQueue = new Queue(stack, 'qProjectFormat');
   projectFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnProjectFormat', {
       handler: 'packages/jira/src/sqs/handlers/formatter/project.handler',
@@ -54,21 +55,13 @@ export function initializeProjectQueue(stack: Stack, jiraDDB: JiraTables): Queue
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
-    projectIndexDataQueue,
+    jiraIndexDataQueue,
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS
+    AVAILABLE_PROJECT_KEYS,
+    REQUEST_TIMEOUT,
   ]);
 
-  projectIndexDataQueue.bind([
-    jiraDDB.jiraCredsTable,
-    jiraDDB.jiraMappingTable,
-    jiraDDB.processJiraRetryTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
-
-  return [projectFormatDataQueue, projectIndexDataQueue];
+  return projectFormatDataQueue;
 }

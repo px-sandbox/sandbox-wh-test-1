@@ -1,35 +1,27 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import esb from 'elastic-builder';
 import { Jira, Other } from 'abstraction';
-import { Config } from 'sst/node/config';
+import esb, { RequestBodySearch } from 'elastic-builder';
 import _ from 'lodash';
 import { searchedDataFormator } from '../util/response-formatter';
 
-const esClientObj = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClient.getInstance();
 
 /**
- * Fetches issue data from Jira based on the provided parameters.
+ * Creates a search query to retrieve issues based on the provided parameters.
  *
  * @param projectId - The ID of the project.
  * @param sprintId - The ID of the sprint.
  * @param orgId - The ID of the organization.
- * @returns A promise that resolves to an object containing the fetched issues and subtasks.
+ * @returns The search query as a RequestBodySearch object.
  */
-const fetchIssueData = async (
+function createIssueSearchQuery(
   projectId: string,
   sprintId: string,
   orgId: string
-): Promise<{
-  issues: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
-  subtasks: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
-}> => {
-  const issueQuery = esb
+): RequestBodySearch {
+  return esb
     .requestBodySearch()
     .query(
       esb
@@ -45,25 +37,21 @@ const fetchIssueData = async (
     .sort(esb.sort('_id'))
     .size(100)
     .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.subtasks', 'body.summary']);
+}
 
-  let unformattedIssues: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
-    Jira.Enums.IndexName.Issue,
-    issueQuery.toJSON()
-  );
-  let formattedIssues = await searchedDataFormator(unformattedIssues);
-
-  const issues = [];
-  issues.push(...formattedIssues);
-
-  while (formattedIssues?.length > 0) {
-    const lastHit = unformattedIssues?.hits?.hits[unformattedIssues.hits.hits.length - 1];
-    const query = issueQuery.searchAfter([lastHit.sort[0]]).toJSON();
-    unformattedIssues = await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Issue, query);
-    formattedIssues = await searchedDataFormator(unformattedIssues);
-    issues.push(...formattedIssues);
-  }
-
-  const subtaskQuery = esb
+/**
+ * Creates a search query for retrieving subtasks based on the provided parameters.
+ * @param projectId - The ID of the project.
+ * @param sprintId - The ID of the sprint.
+ * @param orgId - The ID of the organization.
+ * @returns The search query as a RequestBodySearch object.
+ */
+function createSubtaskSearchQuery(
+  projectId: string,
+  sprintId: string,
+  orgId: string
+): RequestBodySearch {
+  return esb
     .requestBodySearch()
     .query(
       esb
@@ -80,8 +68,44 @@ const fetchIssueData = async (
     .sort(esb.sort('_id'))
     .size(100)
     .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.summary']);
+}
+/**
+ * Fetches issue data from Jira based on the provided parameters.
+ *
+ * @param projectId - The ID of the project.
+ * @param sprintId - The ID of the sprint.
+ * @param orgId - The ID of the organization.
+ * @returns A promise that resolves to an object containing the fetched issues and subtasks.
+ */
+const fetchIssueData = async (
+  projectId: string,
+  sprintId: string,
+  orgId: string
+): Promise<{
+  issues: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
+  subtasks: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
+}> => {
+  const issueQuery = createIssueSearchQuery(projectId, sprintId, orgId);
 
-  let unformattedSubtasks: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
+  let unformattedIssues: Other.Type.HitBody = await esClientObj.search(
+    Jira.Enums.IndexName.Issue,
+    issueQuery.toJSON()
+  );
+  let formattedIssues = await searchedDataFormator(unformattedIssues);
+
+  const issues = [];
+  issues.push(...formattedIssues);
+
+  while (formattedIssues?.length > 0) {
+    const lastHit = unformattedIssues?.hits?.hits[unformattedIssues.hits.hits.length - 1];
+    const query = issueQuery.searchAfter([lastHit.sort[0]]).toJSON();
+    unformattedIssues = await esClientObj.search(Jira.Enums.IndexName.Issue, query);
+    formattedIssues = await searchedDataFormator(unformattedIssues);
+    issues.push(...formattedIssues);
+  }
+  const subtaskQuery = createSubtaskSearchQuery(projectId, sprintId, orgId);
+
+  let unformattedSubtasks: Other.Type.HitBody = await esClientObj.search(
     Jira.Enums.IndexName.Issue,
     subtaskQuery.toJSON()
   );
@@ -93,7 +117,7 @@ const fetchIssueData = async (
   while (formattedSubtasks.length > 0) {
     const lastHit = unformattedSubtasks.hits.hits[unformattedSubtasks.hits.hits.length - 1];
     const query = subtaskQuery.searchAfter([lastHit.sort[0]]).toJSON();
-    unformattedSubtasks = await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Issue, query);
+    unformattedSubtasks = await esClientObj.search(Jira.Enums.IndexName.Issue, query);
     formattedSubtasks = await searchedDataFormator(unformattedSubtasks);
     subtasks.push(...formattedSubtasks);
   }

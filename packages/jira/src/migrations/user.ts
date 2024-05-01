@@ -6,7 +6,7 @@ import { Queue } from 'sst/node/queue';
 import { logProcessToRetry } from '../util/retry-process';
 
 export const handler = async function userMigration(event: SQSEvent): Promise<void> {
-  const sqsClient = new SQSClient();
+  const sqsClient = SQSClient.getInstance();
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
       try {
@@ -24,12 +24,11 @@ export const handler = async function userMigration(event: SQSEvent): Promise<vo
           },
           Queue.qUserFormat.queueUrl
         );
-
       } catch (error) {
         logger.error(JSON.stringify({ error, event }));
         await logProcessToRetry(record, Queue.qUserMigrate.queueUrl, error as Error);
         logger.error('userMigrateDataReciever.error', error);
       }
     })
-  )
+  );
 };

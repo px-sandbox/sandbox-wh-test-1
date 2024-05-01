@@ -3,9 +3,11 @@ import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Github } from 'abstraction';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
+const sqsClient = SQSClient.getInstance();
 export async function initializeOctokit(): Promise<
   RequestInterface<
     object & {
@@ -21,7 +23,8 @@ export async function initializeOctokit(): Promise<
       Authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
-  return octokit;
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+  return octokitRequestWithTimeout;
 }
 async function getGHCopilotReports(
   octokit: RequestInterface<
@@ -51,12 +54,12 @@ async function getGHCopilotReports(
 
     await Promise.all(
       reportsPerPage.seats.map((seat) =>
-        new SQSClient().sendMessage(seat, Queue.qGhCopilotFormat.queueUrl)
+        sqsClient.sendMessage(seat, Queue.qGhCopilotFormat.queueUrl)
       )
     );
 
     if (reportsPerPage.seats.length < perPage) {
-      logger.info(`getGHCopilotReports.successfull for ${newCounter} records`);
+      logger.info(`getGHCopilotReports.successful for ${newCounter} records`);
       return newCounter;
     }
 

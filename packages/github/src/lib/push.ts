@@ -3,6 +3,8 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 
+const sqsClient = SQSClient.getInstance();
+
 export async function preparePush(
   commits: Array<Github.ExternalType.Webhook.Commits>,
   ref: string,
@@ -11,7 +13,7 @@ export async function preparePush(
   repoId: string
 ): Promise<void> {
   try {
-    await new SQSClient().sendMessage(
+    await sqsClient.sendMessage(
       { commits, ref, pusherId, id: lastCommitId, repoId },
       Queue.qGhPushFormat.queueUrl
     );

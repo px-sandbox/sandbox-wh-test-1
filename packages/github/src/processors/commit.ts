@@ -1,5 +1,5 @@
-import moment from 'moment';
 import { Github } from 'abstraction';
+import moment from 'moment';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
@@ -13,9 +13,15 @@ export class CommitProcessor extends DataProcessor<
     super(data);
   }
   public async processor(): Promise<Github.Type.Commits> {
-    const parentId: string = await this.getParentId(
-      `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`
-    );
+    let parentId = await this.getParentId(`${mappingPrefixes.commit}_${this.ghApiData.commits.id}`);
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(
+        parentId,
+        `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`
+      );
+    }
+
     const filesArr: Array<Github.Type.CommitedFiles> = this.ghApiData.files.map(
       (data: Github.Type.CommitedFiles) => ({
         filename: data.filename,
@@ -27,7 +33,7 @@ export class CommitProcessor extends DataProcessor<
     );
 
     const orgObj = {
-      id: parentId || uuid(),
+      id: parentId,
       body: {
         id: `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`,
         githubCommitId: this.ghApiData.commits.id,

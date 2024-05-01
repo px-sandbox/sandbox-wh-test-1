@@ -1,28 +1,25 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
 import { searchedDataFormator } from '../util/response-formatter';
 import { weeklyHeadlineStat } from './get-product-security';
 
+const esClientObj = ElasticSearchClient.getInstance();
+const getBranches = async (
+  repoIds: string[]
+): Promise<any[]> => {
+  const getBranchesQuery = esb
+    .boolQuery()
+    .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', true)])
+    .toJSON();
+
+  const getBrancheData = await esClientObj.search(Github.Enums.IndexName.GitBranch, getBranchesQuery);
+  const branchesName = await searchedDataFormator(getBrancheData);
+  return branchesName;
+};
 export async function getTscRagsDetails(repoIds: string[]): Promise<{ product_security: number }> {
-    const esClientObj = new ElasticSearchClient({
-        host: Config.OPENSEARCH_NODE,
-        username: Config.OPENSEARCH_USERNAME ?? '',
-        password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
     const branchesList = ['prod', 'master', 'main', 'uat', 'stage', 'qa', 'dev', 'develop'];
-
-    const getBranchesQuery = esb
-        .boolQuery()
-        .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', true)])
-        .toJSON();
-
-    const getBranches = await esClientObj.searchWithEsb(
-        Github.Enums.IndexName.GitBranch,
-        getBranchesQuery
-    );
-    const branchesName = await searchedDataFormator(getBranches);
+    const branchesName = await getBranches(repoIds);
     const branches = branchesName.reduce(
         (acc: { [x: string]: string[] }, branch: { repoId: string; name: string }) => {
             if (!acc[branch.repoId]) {

@@ -1,6 +1,7 @@
 import { actions } from './actions';
+import { retryProcess } from './retry-process';
 
-export interface Branch {
+export type Branch = retryProcess & {
   id: string;
   body: {
     id: string;

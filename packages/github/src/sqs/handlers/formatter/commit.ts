@@ -1,105 +1,105 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import esb from 'elastic-builder';
-import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
-import { processFileChanges } from '../../../util/process-commit-changes';
+import _ from 'lodash';
+import { Github } from 'abstraction';
+import async from 'async';
+import { OctokitResponse } from '@octokit/types';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
-import { searchedDataFormator } from '../../../util/response-formatter';
+import { processFileChanges } from '../../../util/process-commit-changes';
 import { logProcessToRetry } from '../../../util/retry-process';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
-async function checkCommitExists(isMergedCommit: string, commitId: string): Promise<boolean> {
-  const commitSearchQuery = esb.matchQuery('body.githubCommitId', commitId);
-  const searchInEsb = await new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-  }).searchWithEsb(Github.Enums.IndexName.GitCommits, commitSearchQuery);
-  const [commit] = await searchedDataFormator(searchInEsb);
-
-  if (commit && isMergedCommit === commit.isMergedCommit) {
-    logger.info('COMMIT_FOUND_IN_ELASTICSEARCH', { commit });
-    return false;
-  }
-  return true;
-}
 // eslint-disable-next-line max-lines-per-function
-export const handler = async function commitFormattedDataReciever(event: SQSEvent): Promise<void> {
+async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
+  try {
+    const messageBody = JSON.parse(record.body);
+    logger.info('COMMIT_SQS_RECEIVER_HANDLER_FORMATTER', { messageBody });
+    const {
+      commitId,
+      mergedBranch,
+      pushedBranch,
+      repository: { id: repoId, name: repoName, owner: repoOwner },
+      timestamp,
+    } = messageBody;
+
+    let { isMergedCommit } = messageBody;
+    /**
+     * ------------------------------------
+     * Get commit details from Github API
+     * ------------------------------------
+     */
+    const installationAccessToken = await getInstallationAccessToken();
+    const octokit = ghRequest.request.defaults({
+      headers: {
+        Authorization: `Bearer ${installationAccessToken.body.token}`,
+      },
+    });
+    const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+    const responseData = (await octokitRequestWithTimeout(
+      `GET /repos/${repoOwner}/${repoName}/commits/${commitId}`
+    )) as OctokitResponse<any>;
+    const filesLink = responseData.headers.link;
+    if (filesLink) {
+      const files = await processFileChanges(
+        responseData.data.files,
+        filesLink,
+        octokitRequestWithTimeout
+      );
+      responseData.data.files = files;
+    }
+    const parentCommit = responseData.data.parents.length >= 2;
+    if (parentCommit) {
+      logger.info(`parent_commit_found_for_commit_id:  ${commitId}`);
+      isMergedCommit = true;
+    }
+
+    logger.info(`FILE_COUNT: ${responseData.data.files.length}`);
+    const commitProcessor = new CommitProcessor({
+      ...getOctokitResp(responseData),
+      commits: {
+        id: commitId,
+        isMergedCommit,
+        mergedBranch,
+        pushedBranch,
+        timestamp,
+      },
+      repoId,
+    });
+    const data = await commitProcessor.processor();
+    await commitProcessor.save({
+      data,
+      eventType: Github.Enums.Event.Commit,
+      processId: messageBody?.processId,
+    });
+  } catch (error) {
+    logger.error(`commitFormattedDataReceiver.error, ${error}`);
+    await logProcessToRetry(record, Queue.qGhCommitFormat.queueUrl, error as Error);
+  }
+}
+export const handler = async function commitFormattedDataReceiver(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
-
+  const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
-    event.Records.map(async (record: SQSRecord) => {
-      const messageBody = JSON.parse(record.body);
-      try {
-        logger.info('COMMIT_SQS_RECIEVER_HANDLER_FORMATER', { messageBody });
-        const {
-          commitId,
-          mergedBranch,
-          pushedBranch,
-          repository: { id: repoId, name: repoName, owner: repoOwner },
-          timestamp,
-        } = messageBody;
-
-        let { isMergedCommit } = messageBody;
-        /**
-         * ------------------------------------
-         * Get commit details from Github API
-         * ------------------------------------
-         */
-        // CHECK DATA EXISTS IN ELASTICSEARCH
-
-        const check = await checkCommitExists(isMergedCommit, commitId);
-        if (check) {
-          const installationAccessToken = await getInstallationAccessToken();
-          const octokit = ghRequest.request.defaults({
-            headers: {
-              Authorization: `Bearer ${installationAccessToken.body.token}`,
+    Object.values(messageGroups).map(
+      async (group) =>
+        new Promise((resolve) => {
+          async.eachSeries(
+            group,
+            async (item: SQSRecord) => {
+              await processAndStoreSQSRecord(item);
             },
-          });
-          const responseData = await octokit(
-            `GET /repos/${repoOwner}/${repoName}/commits/${commitId}`
+            (error: any) => {
+              if (error) {
+                logger.error(`commitFormattedDataReceiver.error, ${error}`);
+              }
+              resolve('DONE');
+            }
           );
-          const filesLink = responseData.headers.link;
-          if (filesLink) {
-            const files = await processFileChanges(responseData.data.files, filesLink, octokit);
-            responseData.data.files = files;
-          }
-          const parentCommit = responseData.data.parents.length >= 2;
-          if (parentCommit) {
-            logger.info(`parent_commit_found_for_commit_id:  ${commitId}`);
-            isMergedCommit = true;
-          }
-
-          logger.info(`FILE_COUNT: ${responseData.data.files.length}`);
-          const commitProcessor = new CommitProcessor({
-            ...getOctokitResp(responseData),
-            commits: {
-              id: commitId,
-              isMergedCommit,
-              mergedBranch,
-              pushedBranch,
-              timestamp,
-            },
-            repoId,
-          });
-
-          const validatedData = commitProcessor.validate();
-          if (!validatedData) {
-            logger.error('commitFormattedDataReciever.error', { error: 'validation failed' });
-            return;
-          }
-          const data = await commitProcessor.processor();
-          await commitProcessor.sendDataToQueue(data, Queue.qGhCommitIndex.queueUrl);
-        }
-      } catch (error) {
-        logger.error('commitFormattedDataReciever', error);
-        await logProcessToRetry(record, Queue.qGhCommitFormat.queueUrl, error as Error);
-      }
-    })
+        })
+    )
   );
 };

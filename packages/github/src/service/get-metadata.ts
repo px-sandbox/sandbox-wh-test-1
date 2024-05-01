@@ -1,5 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { fetchAndSaveOrganizationDetails } from '../lib/update-organization';
 import { getRepos } from '../lib/get-repo-list';
 import { getUsers } from '../lib/get-user-list';
@@ -15,14 +16,18 @@ const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       authorization: `Bearer ${installationAccessToken.body.token}`,
     },
   });
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 
   logger.info('getAllMetadata.invoked', { organizationName });
   await createAllIndices();
   logger.info('AllIndices.created');
-  const organization = await fetchAndSaveOrganizationDetails(octokit, organizationName);
+  const organization = await fetchAndSaveOrganizationDetails(
+    octokitRequestWithTimeout,
+    organizationName
+  );
   const [users, repo] = await Promise.all([
-    getUsers(octokit, organizationName),
-    getRepos(octokit, organizationName),
+    getUsers(octokitRequestWithTimeout, organizationName),
+    getRepos(octokitRequestWithTimeout, organizationName),
   ]);
 
   return responseParser
@@ -34,9 +39,5 @@ const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
 };
 
 const handler = getMetadata;
-// Todo: Middy validation timeout
-//   APIHandler(getMetadata, {
-//   eventSchema: transpileSchema(getMetadataSchema),
-// });
 
 export { getMetadata, handler };

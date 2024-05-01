@@ -4,18 +4,14 @@ import { logger } from 'core';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { mappingPrefixes } from '../../constant/config';
 import { getReopenRateDataByIssueId } from '../../repository/issue/get-issue';
 import { logProcessToRetry } from '../../util/retry-process';
 
-const esClientObj = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClient.getInstance();
+
 export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);
   await Promise.all(
@@ -36,11 +32,15 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
 
         if (reopenRateData.length > 0) {
           const query = esb
-            .boolQuery()
-            .must([
-              esb.termQuery('body.issueId', `${mappingPrefixes.issue}_${messageBody.issue.id}`),
-              esb.termQuery('body.organizationId', `${orgData.id}`),
-            ])
+            .requestBodySearch()
+            .query(
+              esb
+                .boolQuery()
+                .must([
+                  esb.termQuery('body.issueId', `${mappingPrefixes.issue}_${messageBody.issue.id}`),
+                  esb.termQuery('body.organizationId', orgData.id),
+                ])
+            )
             .toJSON();
 
           const script = esb

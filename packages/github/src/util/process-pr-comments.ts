@@ -3,10 +3,10 @@ import { logger } from 'core';
 export async function processPRComments(
   owner: string,
   repo: string,
-  pull_number: number,
+  pullNumber: number,
   octokit: any,
-  commentLength: number = 0,
-  filesLink: string = `GET /repos/${owner}/${repo}/pulls/${pull_number}/comments`
+  commentLength = 0,
+  filesLink = `GET /repos/${owner}/${repo}/pulls/${pullNumber}/comments`
 ): Promise<number> {
   let nextLink = filesLink;
   let commentLengths = commentLength || 0;
@@ -20,9 +20,9 @@ export async function processPRComments(
       logger.info('PR_REVIEW_COMMENTS_LEN', { commentLengths });
       return commentLengths;
     }
-    return processPRComments(owner, repo, pull_number, octokit, commentLengths, nextLinkMatch[1]);
+    return processPRComments(owner, repo, pullNumber, octokit, commentLengths, nextLinkMatch[1]);
   } catch (error) {
-    logger.error('ERROR_IN_PROCESS_FILE_CHANGES_COMMIT', error);
+    logger.error('ERROR_IN_PROCESS_PR_COMMENTS', error);
     throw error;
   }
 }

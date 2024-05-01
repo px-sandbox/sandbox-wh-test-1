@@ -1,5 +1,5 @@
-import moment from 'moment';
 import { Github } from 'abstraction';
+import moment from 'moment';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
@@ -10,7 +10,12 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
     super(data);
   }
   public async processor(): Promise<Github.Type.User> {
-    const parentId = await this.getParentId(`${mappingPrefixes.user}_${this.ghApiData.id}`);
+    const githubId = `${mappingPrefixes.user}_${this.ghApiData.id}`;
+    let parentId = await this.getParentId(githubId);
+    if (!parentId) {
+      parentId = uuid();
+      await this.putDataToDynamoDB(parentId, githubId);
+    }
     const createdAt = this.ghApiData.created_at ?? new Date().toISOString();
     const action = [
       {
@@ -20,7 +25,7 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
       },
     ];
     const userObj = {
-      id: parentId || uuid(),
+      id: parentId,
       body: {
         id: `${mappingPrefixes.user}_${this.ghApiData?.id}`,
         githubUserId: this.ghApiData?.id,

@@ -1,22 +1,26 @@
 import moment from 'moment';
+import { OctokitResponse } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { OctokitResponse } from '@octokit/types';
+import { v4 as uuid } from 'uuid';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { mappingPrefixes } from '../constant/config';
 import { getInstallationAccessToken } from '../util/installation-access-token';
-import { getWorkingTime } from '../util/timezone-calculation';
 import { getOctokitResp } from '../util/octokit-response';
-import { ghRequest } from './request-default';
+import { getWorkingTime } from '../util/timezone-calculation';
 import { getPullRequestById } from './get-pull-request';
 import { getTimezoneOfUser } from './get-user-timezone';
+import { ghRequest } from './request-default';
 
 // Get token to pass into header of Github Api call
 async function getGithubApiToken(): Promise<string> {
   const installationAccessToken = await getInstallationAccessToken();
   return `Bearer ${installationAccessToken.body.token}`;
 }
+
+const sqsClient = SQSClient.getInstance();
 
 // Get pull request details through Github Api and update the same into index.
 async function getPullRequestDetails<T>(
@@ -29,8 +33,10 @@ async function getPullRequestDetails<T>(
       Authorization: await getGithubApiToken(),
     },
   });
-
-  const responseData = await octokit(`GET /repos/${owner}/${repo}/pulls/${pullNumber}`);
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+  const responseData = (await octokitRequestWithTimeout(
+    `GET /repos/${owner}/${repo}/pulls/${pullNumber}`
+  )) as OctokitResponse<any>;
   const octokitRespData = getOctokitResp(responseData);
   return octokitRespData;
 }
@@ -91,11 +97,11 @@ export async function pRReviewOnQueue(
     } = await setReviewTime(pullData, prReview);
 
     await Promise.all([
-      new SQSClient().sendMessage(
+      sqsClient.sendMessage(
         { review: prReview, pullId, repoId, action },
         Queue.qGhPrReviewFormat.queueUrl
       ),
-      new SQSClient().sendMessage(
+      sqsClient.sendFifoMessage(
         {
           ...octokitRespData,
           reviewed_at: reviewedAt,
@@ -103,7 +109,9 @@ export async function pRReviewOnQueue(
           review_seconds: reviewSeconds,
           action: Github.Enums.Comments.REVIEW_COMMENTED,
         },
-        Queue.qGhPrFormat.queueUrl
+        Queue.qGhPrFormat.queueUrl,
+        String(pullId),
+        uuid()
       ),
     ]);
   } catch (error: unknown) {

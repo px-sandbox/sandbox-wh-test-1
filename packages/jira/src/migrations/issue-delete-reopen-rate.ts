@@ -2,18 +2,13 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Config } from 'sst/node/config';
 import esb from 'elastic-builder';
 import { Jira, Other } from 'abstraction';
 import moment from 'moment';
 import { searchedDataFormator } from '../util/response-formatter';
 import { getOrganization } from '../repository/organization/get-organization';
 
-const esClientObj = new ElasticSearchClient({
-  host: Config.OPENSEARCH_NODE,
-  username: Config.OPENSEARCH_USERNAME ?? '',
-  password: Config.OPENSEARCH_PASSWORD ?? '',
-});
+const esClientObj = ElasticSearchClient.getInstance();
 
 /**
  * Fetches reopen rate data for the specified project, issue keys, and organization.
@@ -30,13 +25,17 @@ async function fetchReopenRateData(
 ): Promise<void> {
   try {
     const updateReopenRateDataQuery = esb
-      .boolQuery()
-      .must([
-        esb.termsQuery('body.issueKey.keyword', issueKeys),
-        esb.termQuery('body.projectId', projectId),
-        esb.termQuery('body.organizationId', orgId),
-        esb.termQuery('body.isDeleted', false),
-      ])
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.issueKey.keyword', issueKeys),
+            esb.termQuery('body.projectId', projectId),
+            esb.termQuery('body.organizationId', orgId),
+            esb.termQuery('body.isDeleted', false),
+          ])
+      )
       .toJSON();
 
     const script = esb
@@ -90,8 +89,8 @@ export const handler = async function issueDeleteReopenRateMigration(
         esb
           .boolQuery()
           .must([
-            esb.termQuery('body.organizationId.keyword', `${orgData.id}`),
-            esb.termQuery('body.projectId', `${projectId}`),
+            esb.termQuery('body.organizationId.keyword', orgData.id),
+            esb.termQuery('body.projectId', projectId),
             esb.termQuery('body.isDeleted', true),
           ])
       )
@@ -99,7 +98,7 @@ export const handler = async function issueDeleteReopenRateMigration(
       .size(1000)
       .sort(esb.sort('_id'));
 
-    let unformattedIssueData: Other.Type.HitBody = await esClientObj.esbRequestBodySearch(
+    let unformattedIssueData: Other.Type.HitBody = await esClientObj.search(
       Jira.Enums.IndexName.Issue,
       issueQuery.toJSON()
     );
@@ -111,7 +110,7 @@ export const handler = async function issueDeleteReopenRateMigration(
       const lastHit = unformattedIssueData.hits.hits[unformattedIssueData.hits.hits.length - 1];
       const requestBodyQuery = issueQuery.searchAfter([lastHit.sort[0]]).toJSON();
       unformattedIssueData = await searchedDataFormator(
-        await esClientObj.esbRequestBodySearch(Jira.Enums.IndexName.Issue, requestBodyQuery)
+        await esClientObj.search(Jira.Enums.IndexName.Issue, requestBodyQuery)
       );
       formattedIssueData = await searchedDataFormator(unformattedIssueData);
       issueData.push(...formattedIssueData);
@@ -119,7 +118,7 @@ export const handler = async function issueDeleteReopenRateMigration(
 
     const issueKeys = [...new Set(issueData.map((issue) => issue.issueKey))];
     logger.info(`issue-delete-reopen-rate: issueKeys: ${issueKeys}`);
-    await fetchReopenRateData(projectId, issueKeys, `${orgData.id}`);
+    await fetchReopenRateData(projectId, issueKeys, orgData.id);
   } catch (error) {
     logger.error(`issue-delete-reopen-rate.error:  ${error}`);
     throw error;

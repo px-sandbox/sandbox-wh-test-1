@@ -3,11 +3,10 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { Config } from 'sst/node/config';
-import {
-  formatProjectsResponse,
-  searchedDataFormator,
-} from '../../util/response-formatter';
+import esb from 'elastic-builder';
+import _ from 'lodash';
+import { paginate } from '../../util/pagination';
+import { formatProjectsResponse, searchedDataFormator } from '../../util/response-formatter';
 import { getProjectsSchema } from '../validations';
 
 /**
@@ -15,60 +14,44 @@ import { getProjectsSchema } from '../validations';
  * @param event - The APIGatewayProxyEvent object.
  * @returns A Promise that resolves to an APIGatewayProxyResult object.
  */
+const esClient = ElasticSearchClient.getInstance();
 const projects = async function getProjectsData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const searchTerm: string = event?.queryStringParameters?.search?.toLowerCase() ?? '';
   const page = Number(event?.queryStringParameters?.page ?? 1);
   const size = Number(event?.queryStringParameters?.size ?? 10);
-  let response;
-  try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
 
-    // match query if search term is present else get all projects
-    let query;
+  let paginatedResp;
+  try {
+    // TODO: Keeping size 2000 for now. Maybe need to fetch all projects recursively in future
+    let query = esb.requestBodySearch().size(2000);
+
     if (searchTerm) {
-      // TODO: Update elastic search query using esb builder
-      query = {
-        bool: {
-          must: [
-            { match: { 'body.name': { query: searchTerm, fuzziness: 'AUTO' } } },
-            { match: { 'body.isDeleted': false } },
-          ],
-        },
-      };
+      query = query.query(
+        esb
+          .boolQuery()
+          .must([esb.termQuery('body.isDeleted', false), esb.termQuery('body.name', searchTerm)])
+      );
     } else {
-      query = {
-        match: {
-          'body.isDeleted': false,
-        },
-      };
+      query = query.query(esb.termQuery('body.isDeleted', false));
     }
 
     // fetching data from elastic search based on query
-    const { body: data } = await esClient.getClient().search({
-      index: Jira.Enums.IndexName.Project,
-      from: (page - 1) * size,
-      size,
-      body: {
-        query,
-      },
-    });
+    const data = await esClient.search(Jira.Enums.IndexName.Project, query.toJSON());
 
     // formatting above query response data
-    response = await searchedDataFormator(data);
+    const response = await searchedDataFormator(data);
+    const sortedResp = _.sortBy(response, 'name');
+    paginatedResp = await paginate(sortedResp, page, size);
 
-    logger.info({ level: 'info', message: 'jira projects data', data: response });
+    logger.info({ level: 'info', message: 'jira projects data', data: paginatedResp });
   } catch (error) {
     logger.error('GET_JIRA_PROJECT_DETAILS', { error });
   }
   const { '200': ok, '404': notFound } = HttpStatusCode;
-  const statusCode = response ? ok : notFound;
-  const body = response ? formatProjectsResponse(response) : null;
+  const statusCode = paginatedResp ? ok : notFound;
+  const body = paginatedResp ? formatProjectsResponse(paginatedResp) : null;
   return responseParser
     .setBody(body)
     .setMessage('get jira projects details')
@@ -80,4 +63,4 @@ const handler = APIHandler(projects, {
   eventSchema: transpileSchema(getProjectsSchema),
 });
 
-export { projects, handler };
+export { handler, projects };

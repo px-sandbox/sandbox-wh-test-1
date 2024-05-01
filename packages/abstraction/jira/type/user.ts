@@ -1,6 +1,7 @@
 import { UserType } from '../enums/user-type';
+import { retryProcess } from './retry-process';
 
-export interface User {
+export type User = retryProcess & {
   id: string;
   body: {
     id: string;

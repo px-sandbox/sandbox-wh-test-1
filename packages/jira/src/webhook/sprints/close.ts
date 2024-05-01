@@ -1,10 +1,11 @@
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
+import { SQSClient } from '@pulse/event-handler';
 import { JiraClient } from '../../lib/jira-client';
 
+const sqsClient = SQSClient.getInstance();
 /**
  * Closes a Jira sprint and sends a message to an SQS queue.
  * @param sprint - The sprint to be closed.
@@ -31,7 +32,8 @@ export async function close(
     }
 
     logger.info('sprint_event: Send message to SQS');
-    await new SQSClient().sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
+
+    await sqsClient.sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
   } catch (e) {
     logger.error('sprintCloseEvent: Error in closing sprint', e);
     throw e;

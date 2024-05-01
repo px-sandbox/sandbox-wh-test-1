@@ -2,16 +2,18 @@ import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
+import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializePrReviewAndCommentsQueue(
   stack: Stack,
   githubDDb: GithubTables,
-  prIndexDataQueue: Queue
+  indexerQueue: Queue
 ): Queue[] {
   const {
     GIT_ORGANIZATION_ID,
     OPENSEARCH_NODE,
+    REQUEST_TIMEOUT,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     NODE_VERSION,
@@ -20,24 +22,18 @@ export function initializePrReviewAndCommentsQueue(
     GITHUB_SG_INSTALLATION_ID,
   } = use(commonConfig);
   const { retryProcessTable, githubMappingTable } = githubDDb;
-  const prReviewCommentIndexDataQueue = new Queue(stack, 'qGhPrReviewCommentIndex');
-  prReviewCommentIndexDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnGhPrReviewCommentIndex', {
-      handler: 'packages/github/src/sqs/handlers/indexer/pr-review-comment.handler',
-      bind: [prReviewCommentIndexDataQueue],
-      runtime: NODE_VERSION,
-    }),
+
+  const prReviewCommentFormatDataQueue = new Queue(stack, 'qGhPrReviewCommentFormat', {
     cdk: {
-      eventSource: {
-        batchSize: 5,
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhPrReviewCommentFormat'),
       },
     },
   });
-  const prReviewCommentFormatDataQueue = new Queue(stack, 'qGhPrReviewCommentFormat');
   prReviewCommentFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhPrReviewCommentFormat', {
       handler: 'packages/github/src/sqs/handlers/formatter/pr-review-comment.handler',
-      bind: [prReviewCommentFormatDataQueue, prReviewCommentIndexDataQueue],
+      bind: [prReviewCommentFormatDataQueue],
       runtime: NODE_VERSION,
     }),
     cdk: {
@@ -47,25 +43,17 @@ export function initializePrReviewAndCommentsQueue(
     },
   });
 
-  const prReviewIndexDataQueue = new Queue(stack, 'qGhPrReviewIndex');
-  prReviewIndexDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnGhPrReviewIndex', {
-      handler: 'packages/github/src/sqs/handlers/indexer/pr-review.handler',
-      bind: [prReviewIndexDataQueue],
-      runtime: NODE_VERSION,
-    }),
+  const prReviewFormatDataQueue = new Queue(stack, 'qGhPrReviewFormat', {
     cdk: {
-      eventSource: {
-        batchSize: 5,
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhPrReviewFormat'),
       },
     },
   });
-
-  const prReviewFormatDataQueue = new Queue(stack, 'qGhPrReviewFormat');
   prReviewFormatDataQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhPrReviewFormat', {
       handler: 'packages/github/src/sqs/handlers/formatter/pr-review.handler',
-      bind: [prReviewFormatDataQueue, prReviewIndexDataQueue],
+      bind: [prReviewFormatDataQueue],
       runtime: NODE_VERSION,
     }),
     cdk: {
@@ -75,7 +63,13 @@ export function initializePrReviewAndCommentsQueue(
     },
   });
 
-  const prReviewCommentMigrationQueue = new Queue(stack, 'qGhPrReviewCommentMigration');
+  const prReviewCommentMigrationQueue = new Queue(stack, 'qGhPrReviewCommentMigration', {
+    cdk: {
+      queue: {
+        deadLetterQueue: getDeadLetterQ(stack, 'qGhPrReviewCommentMigration'),
+      },
+    },
+  });
   prReviewCommentMigrationQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhPrReviewCommentMigration', {
       handler: 'packages/github/src/sqs/handlers/historical/pr-review-comment.handler',
@@ -91,48 +85,29 @@ export function initializePrReviewAndCommentsQueue(
   prReviewCommentFormatDataQueue.bind([
     githubMappingTable,
     retryProcessTable,
-    prReviewCommentIndexDataQueue,
     GIT_ORGANIZATION_ID,
+    indexerQueue,
   ]);
 
-  prReviewCommentIndexDataQueue.bind([
-    githubMappingTable,
-    retryProcessTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
   prReviewFormatDataQueue.bind([
     githubMappingTable,
     retryProcessTable,
-    prReviewIndexDataQueue,
     GIT_ORGANIZATION_ID,
-  ]);
-  prReviewIndexDataQueue.bind([
-    githubMappingTable,
-    retryProcessTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
+    indexerQueue,
   ]);
 
   prReviewCommentMigrationQueue.bind([
     retryProcessTable,
     OPENSEARCH_NODE,
+    REQUEST_TIMEOUT,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     GITHUB_APP_PRIVATE_KEY_PEM,
     GITHUB_APP_ID,
     GITHUB_SG_INSTALLATION_ID,
     GIT_ORGANIZATION_ID,
-    prIndexDataQueue,
+    indexerQueue,
   ]);
 
-  return [
-    prReviewCommentFormatDataQueue,
-    prReviewCommentIndexDataQueue,
-    prReviewFormatDataQueue,
-    prReviewIndexDataQueue,
-    prReviewCommentMigrationQueue,
-  ];
+  return [prReviewCommentFormatDataQueue, prReviewFormatDataQueue, prReviewCommentMigrationQueue];
 }

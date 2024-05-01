@@ -31,7 +31,7 @@ export class PRProcessor extends DataProcessor<
     action: Github.Type.actions
   ): Promise<Github.Type.PullRequest> {
     const pullObj = {
-      id: parentId || uuid(),
+      id: parentId,
       body: {
         id: `${mappingPrefixes.pull}_${this.ghApiData.id}`,
         githubPullId: this.ghApiData.id,
@@ -137,41 +137,35 @@ export class PRProcessor extends DataProcessor<
    * If commit id exists then update commit and proceed with PR.
    */
   public async processor(): Promise<Github.Type.PullRequest> {
-    await this.processPRAction();
+    try {
+      await this.processPRAction();
+      const githubId = `${mappingPrefixes.pull}_${this.ghApiData.id}`;
+      let parentId = await this.getParentId(githubId);
+      if (!parentId && this.ghApiData.action !== Github.Enums.PullRequest.Opened) {
+        throw new Error(
+          `pr_not_found_for_event: id:${this.ghApiData.id}, 
+          repoId:${this.ghApiData.head.repo.id}, 
+          action:${this.ghApiData.action}`
+        );
+      }
+      if (!parentId) {
+        parentId = uuid();
+        await this.putDataToDynamoDB(parentId, githubId);
+      }
+      const reqReviewersData: Array<Github.Type.RequestedReviewers> =
+        this.ghApiData.requested_reviewers.map((reqReviewer) => ({
+          userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
+        }));
 
-    // TODO: removing this as new logic for setting merge via parents object is implemented
-    // if (
-    //   this.ghApiData.action === Github.Enums.PullRequest.Closed &&
-    //   this.ghApiData.merged === true
-    // ) {
-    //   logger.info('PROCESS_MERGED_PR', this.ghApiData);
-    //   await new SQSClient().sendMessage(
-    //     {
-    //       commitId: this.ghApiData.merge_commit_sha,
-    //       isMergedCommit: this.ghApiData.merged,
-    //       mergedBranch: this.ghApiData.base.ref,
-    //       pushedBranch: this.ghApiData.head.ref,
-    //       repository: {
-    //         id: this.ghApiData.head.repo.id,
-    //         name: this.ghApiData.head.repo.name,
-    //         owner: this.ghApiData.head.repo.owner.login,
-    //       },
-    //     },
-    //     Queue.qGhMergeCommitProcess.queueUrl
-    //   );
-    // }
-
-    const parentId: string = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
-    const reqReviewersData: Array<Github.Type.RequestedReviewers> =
-      this.ghApiData.requested_reviewers.map((reqReviewer) => ({
-        userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
+      const labelsData: Array<Github.Type.Labels> = this.ghApiData.labels.map((label) => ({
+        name: label.name,
       }));
-
-    const labelsData: Array<Github.Type.Labels> = this.ghApiData.labels.map((label) => ({
-      name: label.name,
-    }));
-    const action = this.setAction();
-    const pullObj = await this.setPullObj(parentId, reqReviewersData, labelsData, action);
-    return pullObj;
+      const action = this.setAction();
+      const pullObj = await this.setPullObj(parentId, reqReviewersData, labelsData, action);
+      return pullObj;
+    } catch (error) {
+      logger.error(`PRProcessor.processor.error, ${error}`);
+      throw error;
+    }
   }
 }

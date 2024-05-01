@@ -1,23 +1,17 @@
-import esb from 'elastic-builder';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
+import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
-import { ParamsMapping } from '../model/params-mapping';
+import { deleteProcessfromDdb } from 'src/util/delete-process';
 
-export async function savePRReview(data: Github.Type.PRReview): Promise<void> {
+const esClientObj = ElasticSearchClient.getInstance();
+
+export async function savePRReview(data: Github.Type.PRReview, processId?: string): Promise<void> {
   try {
     const updatedData = { ...data };
-    await new DynamoDbDocClient().put(new ParamsMapping().preparePutParams(data.id, data.body.id));
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const matchQry = esb.matchQuery('body.id', data.body.id).toJSON();
-    const userData = await esClientObj.searchWithEsb(Github.Enums.IndexName.GitPRReview, matchQry);
+    const matchQry = esb.requestBodySearch().query(esb.matchQuery('body.id', data.body.id)).toJSON();
+    const userData = await esClientObj.search(Github.Enums.IndexName.GitPRReview, matchQry);
     const [formattedData] = await searchedDataFormator(userData);
     if (formattedData) {
       logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
@@ -27,6 +21,7 @@ export async function savePRReview(data: Github.Type.PRReview): Promise<void> {
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPRReview, updatedData);
     logger.info('savePRReview.successful');
+    await deleteProcessfromDdb(processId);
   } catch (error: unknown) {
     logger.error('savePRReview.error', {
       error,

@@ -2,30 +2,36 @@ import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { OctokitResponse } from '@octokit/types';
+import { v4 as uuid } from 'uuid';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { logProcessToRetry } from '../../../util/retry-process';
+import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
+
 
 const installationAccessToken = await getInstallationAccessToken();
+const sqsClient = SQSClient.getInstance();
 const octokit = ghRequest.request.defaults({
   headers: {
     Authorization: `Bearer ${installationAccessToken.body.token}`,
   },
 });
+const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
   const messageBody = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId, branchName } = messageBody;
   logger.info(`page: ${page}`);
   try {
-    const commitDataOnPr = await octokit(
+    const commitDataOnPr = (await octokitRequestWithTimeout(
       `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=100&page=${page}`
-    );
+    )) as OctokitResponse<any>;
     const octokitRespData = getOctokitResp(commitDataOnPr);
     let queueProcessed = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     queueProcessed = octokitRespData.map((commitData: any) =>
-      new SQSClient().sendMessage(
+      sqsClient.sendFifoMessage(
         {
           commitId: commitData.sha,
           isMergedCommit: false,
@@ -39,7 +45,8 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
           timestamp: new Date(),
         },
         Queue.qGhCommitFormat.queueUrl,
-        commitData.sha
+        commitData.sha,
+        uuid()
       )
     );
     await Promise.all(queueProcessed);

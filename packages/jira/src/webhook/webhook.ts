@@ -26,7 +26,8 @@ async function processWebhookEvent(
   organization: string
 ): Promise<void> {
   try {
-    switch (eventName?.toLowerCase()) {
+    const event = eventName?.toLowerCase();
+    switch (event) {
       case Jira.Enums.Event.ProjectCreated:
         await project.create(body.project, eventTime, organization);
         break;
@@ -76,10 +77,20 @@ async function processWebhookEvent(
         await board.delete(body.board.id, eventTime, organization);
         break;
       case Jira.Enums.Event.IssueCreated:
-        await issue.create({ issue: body.issue, changelog: body.changelog, organization });
+        await issue.create({
+          issue: body.issue,
+          changelog: body.changelog,
+          organization,
+          eventName,
+        });
         break;
       case Jira.Enums.Event.IssueUpdated:
-        await issue.update({ issue: body.issue, changelog: body.changelog, organization });
+        await issue.update({
+          issue: body.issue,
+          changelog: body.changelog,
+          organization,
+          eventName,
+        });
         break;
       case Jira.Enums.Event.IssueDeleted:
         await issue.remove(body.issue.id, eventTime, organization);
@@ -91,6 +102,11 @@ async function processWebhookEvent(
           } as Jira.Mapped.ReopenRateIssue,
           eventTime
         );
+        break;
+      case Jira.Enums.Event.WorklogCreated:
+      case Jira.Enums.Event.WorklogUpdated:
+      case Jira.Enums.Event.WorklogDeleted:
+        await issue.worklog(body.worklog.issueId, organization);
         break;
       default:
         logger.info(`No case found for ${eventName} in Jira webhook event`);

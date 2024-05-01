@@ -4,38 +4,35 @@ import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from 'src/util/response-formatter';
-import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import { searchedDataFormator } from '../util/response-formatter';
+
+const esClient = ElasticSearchClient.getInstance();
+const sqsClient = SQSClient.getInstance();
 
 async function fetchPRComments(repoId: string, owner: string, repoName: string): Promise<void> {
   try {
-    const esClient = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const sqs = new SQSClient();
     let prFormattedData: any = [];
     let from = 0;
-    let size = 100;
+    const size = 100;
 
-    const { query } = esb
-      .requestBodySearch()
-      .query(esb.boolQuery().must(esb.termQuery('body.repoId', repoId)))
-      .toJSON() as { query: object };
+    
     // fetch All PR data for given repo from Elasticsearch
     do {
-      const getPrData = await esClient.searchWithEsb(
+      const query = esb
+        .requestBodySearch()
+        .size(size)
+        .from(from)
+        .query(esb.boolQuery().must(esb.termQuery('body.repoId', repoId)))
+        .toJSON();
+      const getPrData = await esClient.search(
         Github.Enums.IndexName.GitPull,
         query,
-        from,
-        size
       );
       prFormattedData = await searchedDataFormator(getPrData);
       await Promise.all(
         prFormattedData.map(async (prData: any) => {
-          await sqs.sendMessage(
+          sqsClient.sendMessage(
             { prData, owner, repoName },
             Queue.qGhPrReviewCommentMigration.queueUrl
           );

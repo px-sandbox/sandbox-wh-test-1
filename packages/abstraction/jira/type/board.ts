@@ -1,6 +1,7 @@
 import { BoardType } from '../enums/board-type';
+import { retryProcess } from './retry-process';
 
-export type Board = {
+export type Board = retryProcess & {
   id: string;
   body: {
     id: string;

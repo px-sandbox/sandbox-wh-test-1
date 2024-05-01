@@ -88,5 +88,8 @@ export type Issue = {
         };
       };
     };
+    labels: Array<string>;
+    issuelinks: Array<string>;
   };
+  eventName: string;
 };

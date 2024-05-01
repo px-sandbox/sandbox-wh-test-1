@@ -12,17 +12,21 @@ import { JiraCredsMapping } from '../model/prepare-creds-params';
 import { mappingPrefixes } from '../constant/config';
 import { esResponseDataFormator } from '../util/es-response-formatter';
 
+const esClient = ElasticSearchClient.getInstance();
+const ddbClient = DynamoDbDocClient.getInstance();
+
 export async function getTokensByCode(code: string): Promise<Jira.ExternalType.Api.Credentials> {
   try {
-
     const response: AxiosResponse<Jira.ExternalType.Api.Credentials> = await axios.post(
-      'https://auth.atlassian.com/oauth/token', {
-      grant_type: 'authorization_code',
-      client_id: Config.JIRA_CLIENT_ID,
-      client_secret: Config.JIRA_CLIENT_SECRET,
-      code,
-      redirect_uri: Config.JIRA_REDIRECT_URI,
-    });
+      'https://auth.atlassian.com/oauth/token',
+      {
+        grant_type: 'authorization_code',
+        client_id: Config.JIRA_CLIENT_ID,
+        client_secret: Config.JIRA_CLIENT_SECRET,
+        code,
+        redirect_uri: Config.JIRA_REDIRECT_URI,
+      }
+    );
     return response.data;
   } catch (e) {
     logger.error(`Error while getting tokens by code: ${e}`);
@@ -30,7 +34,9 @@ export async function getTokensByCode(code: string): Promise<Jira.ExternalType.A
   }
 }
 
-export async function getAccessibleOrgs(accessToken: string): Promise<Array<Jira.ExternalType.Api.Organization>> {
+export async function getAccessibleOrgs(
+  accessToken: string
+): Promise<Array<Jira.ExternalType.Api.Organization>> {
   try {
     const response: AxiosResponse<Array<Jira.ExternalType.Api.Organization>> = await axios.get(
       'https://api.atlassian.com/oauth/token/accessible-resources',
@@ -53,14 +59,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const code: string = event?.queryStringParameters?.code ?? '';
   const jiraToken = await getTokensByCode(code);
 
-  const _esClient = new ElasticSearchClient({
-    host: Config.OPENSEARCH_NODE,
-    username: Config.OPENSEARCH_USERNAME ?? '',
-    password: Config.OPENSEARCH_PASSWORD ?? '',
-  });
-
-  const _ddbClient = new DynamoDbDocClient();
-
   let credId = uuid();
 
   const accessibleOrgs = await getAccessibleOrgs(jiraToken.access_token);
@@ -69,9 +67,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   logger.info('orgIds', { orgIds });
 
-  const getOrgsFromES = await _esClient.searchWithEsb(Jira.Enums.IndexName.Organization,
-    esb.termsQuery('body.orgId.keyword',
-      orgIds).toJSON());
+  const getOrgsFromES = await esClient.search(
+    Jira.Enums.IndexName.Organization,
+    esb.termsQuery('body.orgId.keyword', orgIds).toJSON()
+  );
 
   const orgsFromEs = await esResponseDataFormator(getOrgsFromES);
 
@@ -79,51 +78,41 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     credId = orgsFromEs[0].credId;
   }
 
-  // TODO: Remove this code after testing, as it is not used in preparePutParams
-  // const ddbRes = await _ddbClient.find(
-  //   new ParamsMapping().prepareGetParams(
-  //     `${mappingPrefixes.organization}_${accessibleOrgs[0].id}`
-  //   )
-  // );
-
-  // const parentId = ddbRes?.parentId as string | undefined;
-  // logger.info('parentId', { parentId });
-
   await Promise.all([
-    _ddbClient.put(new JiraCredsMapping().preparePutParams(credId, jiraToken)),
-    ...accessibleOrgs.filter((accOrg) => !orgsFromEs.find((esOrg: { id: string, orgId: string }) =>
-      esOrg.orgId === accOrg.id)
-
-    ).map(async ({ id, ...org }) => {
-      const uuidOrg = uuid();
-      await _ddbClient.put(
-        new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
-      );
-
-      const ddbRes = await _ddbClient.find(
-        new ParamsMapping().prepareGetParams(
-          `${mappingPrefixes.organization}_${id}`
-        )
-      );
-      let parentId = ddbRes?.parentId as string | undefined;
-
-      if (!parentId) {
-        parentId = uuidOrg;
-        await _ddbClient.put(
+    ddbClient.put(new JiraCredsMapping().preparePutParams(credId, jiraToken)),
+    ...accessibleOrgs
+      .filter(
+        (accOrg) =>
+          !orgsFromEs.find((esOrg: { id: string; orgId: string }) => esOrg.orgId === accOrg.id)
+      )
+      .map(async ({ id, ...org }) => {
+        const uuidOrg = uuid();
+        await ddbClient.put(
           new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
         );
-      }
-      await _esClient.putDocument(Jira.Enums.IndexName.Organization, {
-        id: parentId,
-        body: {
-          id: `${mappingPrefixes.organization}_${id}`,
-          orgId: id,
-          credId,
-          createdAt: new Date(),
-          ...org,
-        },
-      });
-    }),
+
+        const ddbRes = await ddbClient.find(
+          new ParamsMapping().prepareGetParams(`${mappingPrefixes.organization}_${id}`)
+        );
+        let parentId = ddbRes?.parentId as string | undefined;
+
+        if (!parentId) {
+          parentId = uuidOrg;
+          await ddbClient.put(
+            new ParamsMapping().preparePutParams(uuidOrg, `${mappingPrefixes.organization}_${id}`)
+          );
+        }
+        await esClient.putDocument(Jira.Enums.IndexName.Organization, {
+          id: parentId,
+          body: {
+            id: `${mappingPrefixes.organization}_${id}`,
+            orgId: id,
+            credId,
+            createdAt: new Date(),
+            ...org,
+          },
+        });
+      }),
   ]);
 
   return responseParser

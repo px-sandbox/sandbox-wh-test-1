@@ -3,9 +3,11 @@ import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Github } from 'abstraction';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 import { ghRequest } from './request-default';
 
+const sqsClient = SQSClient.getInstance();
 async function getBranchList(
   octokit: RequestInterface<
     object & {
@@ -36,12 +38,12 @@ async function getBranchList(
         const branchInfo = { ...branch };
         branchInfo.id = Buffer.from(`${repoId}_${branchInfo.name}`, 'binary').toString('base64');
         branchInfo.repo_id = repoId;
-        await new SQSClient().sendMessage(branchInfo, Queue.qGhBranchFormat.queueUrl);
+        return sqsClient.sendMessage(branchInfo, Queue.qGhBranchFormat.queueUrl);
       }),
     ]);
 
     if (branchesPerPage.length < perPage) {
-      logger.info('getBranchList.successfull');
+      logger.info('getBranchList.successful');
       return newCounter;
     }
     return getBranchList(octokit, repoId, repoName, repoOwner, page + 1, newCounter);
@@ -69,7 +71,8 @@ export async function getBranches(
         Authorization: `Bearer ${installationAccessToken.body.token}`,
       },
     });
-    branchCount = await getBranchList(octokit, repoId, repoName, repoOwner);
+    const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+    branchCount = await getBranchList(octokitRequestWithTimeout, repoId, repoName, repoOwner);
     return branchCount;
   } catch (error: unknown) {
     logger.error({

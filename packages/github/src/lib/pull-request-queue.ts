@@ -1,12 +1,14 @@
-import moment from 'moment';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
+import moment from 'moment';
 import { Queue } from 'sst/node/queue';
+import { v4 as uuid } from 'uuid';
 import { getWorkingTime } from '../util/timezone-calculation';
 import { getPullRequestById } from './get-pull-request';
 import { getTimezoneOfUser } from './get-user-timezone';
 
+const sqsClient = SQSClient.getInstance();
 export async function pROnQueue(
   pull: Github.ExternalType.Webhook.PullRequest,
   action: string
@@ -45,16 +47,19 @@ export async function pROnQueue(
         }
       }
     }
-    await new SQSClient().sendMessage(
-      {
-        ...pull,
-        reviewed_at: reviewedAt,
-        approved_at: approvedAt,
-        review_seconds: reviewSeconds,
-        action,
-      },
-      Queue.qGhPrFormat.queueUrl
-    );
+      await sqsClient.sendFifoMessage(
+        {
+          ...pull,
+          reviewed_at: reviewedAt,
+          approved_at: approvedAt,
+          review_seconds: reviewSeconds,
+          action,
+        },
+        Queue.qGhPrFormat.queueUrl,
+        String(pull.id),
+        uuid()
+      );
+    
   } catch (error: unknown) {
     logger.error({
       error,

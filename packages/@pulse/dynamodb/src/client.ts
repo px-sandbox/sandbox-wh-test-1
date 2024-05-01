@@ -12,40 +12,42 @@ import {
   DeleteCommand,
   BatchGetCommandInput,
   BatchGetCommand,
+  BatchGetCommandOutput,
+  QueryCommandOutput,
 } from '@aws-sdk/lib-dynamodb';
 import { IDynmoDbDocClient } from '../types';
+
+const translateConfig = {
+  marshallOptions: {
+    convertEmptyValues: true,
+    removeUndefinedValues: false,
+    convertClassInstanceToMap: false,
+  },
+  unmarshalOptions: {
+    wrapNumbers: false,
+  },
+};
 
 export class DynamoDbDocClient implements IDynmoDbDocClient {
   private ddbDocClient: DynamoDBDocumentClient;
 
-  private marshallOptions = {
-    // Whether to automatically convert empty strings, blobs, and sets to `null`.
-    convertEmptyValues: true, // false, by default.
-    // Whether to remove undefined values while marshalling.
-    removeUndefinedValues: false, // false, by default.
-    // Whether to convert typeof object to map attribute.
-    convertClassInstanceToMap: false, // false, by default.
-  };
-
-  private unmarshallOptions = {
-    // Whether to return numbers as a string instead of converting them to native JavaScript numbers.
-    wrapNumbers: false, // false, by default.
-  };
-
-  private translateConfig = {
-    marshallOptions: this.marshallOptions,
-    unmarshalOptions: this.unmarshallOptions,
-  };
-
   private dynamoDbLocalURL = 'http://localhost:8000';
   private region = process.env.AWS_REGION;
+  private static instance: DynamoDbDocClient;
 
-  constructor() {
+  private constructor() {
     const DbdClient = new DynamoDBClient({
       region: this.region,
       endpoint: process.env.IS_LOCAL ? this.dynamoDbLocalURL : undefined,
     });
-    this.ddbDocClient = DynamoDBDocumentClient.from(DbdClient, this.translateConfig);
+    this.ddbDocClient = DynamoDBDocumentClient.from(DbdClient, translateConfig);
+  }
+
+  public static getInstance(): DynamoDbDocClient {
+    if (!DynamoDbDocClient.instance) {
+      DynamoDbDocClient.instance = new DynamoDbDocClient();
+    }
+    return DynamoDbDocClient.instance;
   }
 
   public getDdbDocClient(): DynamoDBDocumentClient {
@@ -53,7 +55,10 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
   }
 
   public async find(getParams: QueryCommandInput): Promise<Record<string, unknown> | undefined> {
-    const ddbRes = await this.getDdbDocClient().send(new QueryCommand(getParams));
+    const ddbRes = (await this.ddbDocClient.send(
+      new QueryCommand(getParams)
+    )) as QueryCommandOutput;
+
     return ddbRes.Items ? ddbRes.Items[0] : undefined;
   }
 
@@ -62,26 +67,18 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
    * @param params - The input parameters for the batchGet operation.
    * @returns A promise that resolves with the result of the batchGet operation.
    */
-  public async batchGet(
-    params: BatchGetCommandInput
-  ): Promise<Record<string, Record<string, unknown>[]> | undefined> {
+  public async batchGet<T>(params: BatchGetCommandInput): Promise<T | undefined> {
     const command = new BatchGetCommand(params);
-    const ddbRes = await this.getDdbDocClient().send(command);
-    return ddbRes?.Responses;
+    const ddbRes = (await this.ddbDocClient.send(command)) as BatchGetCommandOutput;
+    return ddbRes?.Responses as T | undefined;
   }
 
   public async put(putParams: PutCommandInput): Promise<void> {
-    await this.getDdbDocClient().send(new PutCommand(putParams));
-  }
-
-  public async scan(scanParams: ScanCommandInput): Promise<Array<unknown>> {
-    const ddbRes = await this.getDdbDocClient().send(new ScanCommand(scanParams));
-
-    return ddbRes?.Items?.length ? ddbRes.Items : [];
+    await this.ddbDocClient.send(new PutCommand(putParams));
   }
 
   public async delete(deleteParams: DeleteCommandInput): Promise<void> {
-    await this.getDdbDocClient().send(new DeleteCommand(deleteParams));
+    await this.ddbDocClient.send(new DeleteCommand(deleteParams));
   }
 
   /**
@@ -93,8 +90,16 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
   public async scanAllItems(scanParams: ScanCommandInput): Promise<ScanCommandOutput> {
     const params: ScanCommandInput = { ...scanParams }; // Create a new object
 
-    const data = (await this.getDdbDocClient().send(new ScanCommand(params))) as ScanCommandOutput;
+    const data = (await this.ddbDocClient.send(new ScanCommand(params))) as ScanCommandOutput;
 
     return data;
+  }
+
+  public async scan<T>(scanParams: ScanCommandInput): Promise<T[]> {
+    const ddbRes = (await this.getDdbDocClient().send(
+      new ScanCommand(scanParams)
+    )) as ScanCommandOutput;
+
+    return ddbRes?.Items?.length ? (ddbRes.Items as T[]) : [];
   }
 }

@@ -5,6 +5,7 @@ import { Queue } from 'sst/node/queue';
 import moment from 'moment';
 import { mappingToApiData } from './mapper';
 
+const sqsClient = SQSClient.getInstance();
 /**
  * Creates a new user in Jira and sends a message to SQS.
  * @param user - The user object to be created.
@@ -21,7 +22,8 @@ export async function create(
     const createdAt = moment(eventTime).toISOString();
     const userData = mappingToApiData(user, createdAt, organization);
     logger.info('userCreatedEvent: Send message to SQS');
-    await new SQSClient().sendMessage(userData, Queue.qUserFormat.queueUrl);
+
+    await sqsClient.sendMessage(userData, Queue.qUserFormat.queueUrl);
   } catch (error) {
     logger.error('userCreatedEvent.error', { error });
   }

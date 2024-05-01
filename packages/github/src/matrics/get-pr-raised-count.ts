@@ -1,53 +1,50 @@
-import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { GraphResponse, IPrCommentAggregationResponse } from 'abstraction/github/type';
+import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
-import { esbDateHistogramInterval } from '../constant/config';
+import esb from 'elastic-builder';
+import { processGraphInterval } from '../util/process-graph-intervals';
 import { getWeekDaysCount } from '../util/weekend-calculations';
 
-function processGraphInterval(
-  intervals: string,
+const esClientObj = ElasticSearchClient.getInstance();
+const getGraphQuery = (
   startDate: string,
-  endDate: string
-): esb.DateHistogramAggregation {
-  // By default graph interval is day
-  let graphIntervals: esb.DateHistogramAggregation;
+  endDate: string,
+  intervals: string,
+  repoIds: string[]
+): object => {
+  const numberOfPrRaisedGraphQuery = esb.requestBodySearch().size(0);
+  numberOfPrRaisedGraphQuery.query(
+    esb
+      .boolQuery()
+      .must([
+        esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
+        esb.termsQuery('body.repoId', repoIds),
+      ])
+  );
+  const graphIntervals = processGraphInterval(intervals, startDate, endDate);
+  numberOfPrRaisedGraphQuery.agg(graphIntervals).toJSON();
 
-  switch (intervals) {
-    case esbDateHistogramInterval.day:
-    case esbDateHistogramInterval.month:
-    case esbDateHistogramInterval.year:
-      graphIntervals = esb
-        .dateHistogramAggregation('commentsPerDay')
-        .field('body.createdAt')
-        .format('yyyy-MM-dd')
-        .calendarInterval(intervals)
-        .extendedBounds(startDate, endDate)
-        .minDocCount(0);
-      break;
-    case esbDateHistogramInterval['2d']:
-    case esbDateHistogramInterval['3d']:
-      graphIntervals = esb
-        .dateHistogramAggregation('commentsPerDay')
-        .field('body.createdAt')
-        .format('yyyy-MM-dd')
-        .fixedInterval(intervals)
-        .extendedBounds(startDate, endDate)
-        .minDocCount(0);
-      break;
-    default:
-      graphIntervals = esb
-        .dateHistogramAggregation('commentsPerDay')
-        .field('body.createdAt')
-        .format('yyyy-MM-dd')
-        .calendarInterval(esbDateHistogramInterval.month)
-        .extendedBounds(startDate, endDate)
-        .minDocCount(0);
-  }
-  return graphIntervals;
-}
+  logger.info('NUMBER_OF_PR_RAISED_GRAPH_ESB_QUERY', numberOfPrRaisedGraphQuery);
+  return numberOfPrRaisedGraphQuery;
+};
+const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[]):object => {
+ const query = esb
+   .requestBodySearch()
+   .query(
+     esb
+       .boolQuery()
+       .must([
+         esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
+         esb.termsQuery('body.repoId', repoIds),
+       ])
+   )
+   .size(0)
+   .toJSON() as { query: object };
+  logger.info('NUMBER_OF_PR_RAISED_AVG_ESB_QUERY', query);
+  return query;
+};
 export async function numberOfPrRaisedGraph(
   startDate: string,
   endDate: string,
@@ -55,24 +52,7 @@ export async function numberOfPrRaisedGraph(
   repoIds: string[]
 ): Promise<GraphResponse[]> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const numberOfPrRaisedGraphQuery = await esb.requestBodySearch().size(0);
-    numberOfPrRaisedGraphQuery.query(
-      esb
-        .boolQuery()
-        .must([
-          esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-          esb.termsQuery('body.repoId', repoIds),
-        ])
-    );
-    const graphIntervals = processGraphInterval(intervals, startDate, endDate);
-    numberOfPrRaisedGraphQuery.agg(graphIntervals).toJSON();
-
-    logger.info('NUMBER_OF_PR_RAISED_GRAPH_ESB_QUERY', numberOfPrRaisedGraphQuery);
+    const numberOfPrRaisedGraphQuery = getGraphQuery(startDate, endDate, intervals, repoIds); 
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitPull,
@@ -83,7 +63,7 @@ export async function numberOfPrRaisedGraph(
       value: item.doc_count,
     }));
   } catch (e) {
-    logger.error('numberOfPrRaisedtGraph.error', e);
+    logger.error('numberOfPrRaisedGraph.error', e);
     throw e;
   }
 }
@@ -94,29 +74,12 @@ export async function numberOfPrRaisedAvg(
   repoIds: string[]
 ): Promise<{ value: number } | null> {
   try {
-    const esClientObj = new ElasticSearchClient({
-      host: Config.OPENSEARCH_NODE,
-      username: Config.OPENSEARCH_USERNAME ?? '',
-      password: Config.OPENSEARCH_PASSWORD ?? '',
-    });
-    const numberOfPrRaisedAvgQuery = await esb.requestBodySearch().size(0);
-    numberOfPrRaisedAvgQuery
-      .query(
-        esb
-          .boolQuery()
-          .must([
-            esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-            esb.termsQuery('body.repoId', repoIds),
-          ])
-      )
-      .size(0)
-      .toJSON();
-    logger.info('NUMBER_OF_PR_RAISED_AVG_ESB_QUERY', numberOfPrRaisedAvgQuery);
-    const data = await esClientObj.getClient().search({
-      index: Github.Enums.IndexName.GitPull,
-      body: numberOfPrRaisedAvgQuery,
-    });
-    const totalDoc = data.body.hits.total.value;
+    const query = getHeadlineQuery(startDate, endDate, repoIds);
+    const data:HitBody = await esClientObj.search(
+      Github.Enums.IndexName.GitPull,
+      query
+    )
+    const totalDoc = data.hits.total.value;
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
     return { value: totalDoc / weekDaysCount };
   } catch (e) {

@@ -19,4 +19,7 @@ export enum Event {
   IssueCreated = 'jira:issue_created',
   IssueUpdated = 'jira:issue_updated',
   IssueDeleted = 'jira:issue_deleted',
+  WorklogCreated = 'worklog_created',
+  WorklogUpdated = 'worklog_updated',
+  WorklogDeleted = 'worklog_deleted',
 }
