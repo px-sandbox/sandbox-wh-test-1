@@ -65,7 +65,6 @@ export class IssueProcessor extends DataProcessor<
     }
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
-
     // sending parent issue to issue format queue so that it gets updated along with it's subtask
     if (issueDataFromApi?.fields?.parent) {
       const parentIssueData = await jiraClient.getIssue(issueDataFromApi.fields.parent.key);
@@ -88,14 +87,14 @@ export class IssueProcessor extends DataProcessor<
         projectKey: this.apiData.issue.fields.project.key,
         projectId: `${mappingPrefixes.project}_${this.apiData.issue.fields.project.id}`,
         issueKey: this.apiData.issue.key,
-        isFTP: this.apiData.issue.fields.labels?.includes('FTP') ?? false,
-        isFTF: this.apiData.issue.fields.labels?.includes('FTF') ?? false,
+        isFTP: issueDataFromApi.fields.labels?.includes('FTP') ?? false,
+        isFTF: issueDataFromApi.fields.labels?.includes('FTF') ?? false,
         issueType: this.apiData.issue.fields.issuetype.name,
         isPrimary: true,
         priority: this.apiData.issue.fields.priority.name,
-        label: this.apiData.issue.fields.labels,
+        label: issueDataFromApi.fields.labels,
         summary: issueDataFromApi?.fields?.summary ?? '',
-        issueLinks: this.apiData.issue.fields.issuelinks,
+        issueLinks: issueDataFromApi.fields.issuelinks,
         assigneeId: this.apiData.issue.fields.assignee?.accountId
           ? `${mappingPrefixes.user}_${this.apiData.issue.fields.assignee.accountId}`
           : null,
