@@ -252,7 +252,9 @@ function createSprintQuery(
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
           esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
-          esb.boolQuery().must([esb.termQuery('body.state', SprintState.CLOSED)]),
+          esb
+            .boolQuery()
+            .must(esb.termsQuery('body.state', [SprintState.CLOSED, SprintState.ACTIVE])),
         ])
     )
     .sort(esb.sort('body.sprintId'));
