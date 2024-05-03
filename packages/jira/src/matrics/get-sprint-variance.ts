@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
-import { IssuesTypes, SprintState } from 'abstraction/jira/enums';
+import { IssuesTypes } from 'abstraction/jira/enums';
 import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb, { RequestBodySearch } from 'elastic-builder';
@@ -241,7 +241,8 @@ export async function sprintVarianceGraph(
  */
 function createSprintQuery(
   projectId: string,
-  dateRangeQueries: esb.RangeQuery[]
+  dateRangeQueries: esb.RangeQuery[],
+  sprintState: Jira.Enums.SprintState
 ): RequestBodySearch {
   return esb
     .requestBodySearch()
@@ -254,7 +255,14 @@ function createSprintQuery(
           esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
           esb
             .boolQuery()
-            .must(esb.termsQuery('body.state', [SprintState.CLOSED, SprintState.ACTIVE])),
+            .must(
+              sprintState
+                ? esb.termQuery('body.state', sprintState)
+                : esb.termsQuery('body.state', [
+                    Jira.Enums.SprintState.CLOSED,
+                    Jira.Enums.SprintState.ACTIVE,
+                  ])
+            ),
         ])
     )
     .sort(esb.sort('body.sprintId'));
@@ -310,12 +318,13 @@ async function ftpRateGraphResponse(sprintIdsArr: string[]): Promise<{
 export async function sprintVarianceGraphAvg(
   projectId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  sprintState: Jira.Enums.SprintState
 ): Promise<number> {
   const sprintIdsArr = [];
   try {
     const dateRangeQueries = getDateRangeQueries(startDate, endDate);
-    const sprintQuery = createSprintQuery(projectId, dateRangeQueries);
+    const sprintQuery = createSprintQuery(projectId, dateRangeQueries, sprintState);
 
     let sprintIds = [];
     let lastHit;
