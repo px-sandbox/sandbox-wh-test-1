@@ -31,7 +31,7 @@ const sprintVariance = async function sprintVariance(
         sortOrder,
         sprintState
       ),
-      await sprintVarianceGraphAvg(projectId, startDate, endDate),
+      await sprintVarianceGraphAvg(projectId, startDate, endDate, sprintState),
     ]);
 
     return responseParser
