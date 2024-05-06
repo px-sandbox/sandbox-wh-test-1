@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
-import { IssuesTypes, SprintState } from 'abstraction/jira/enums';
+import { IssuesTypes } from 'abstraction/jira/enums';
 import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb, { RequestBodySearch } from 'elastic-builder';
@@ -21,7 +21,8 @@ async function sprintHitsResponse(
   limit: number,
   page: number,
   projectId: string,
-  dateRangeQueries: esb.RangeQuery[]
+  dateRangeQueries: esb.RangeQuery[],
+  sprintState?: string
 ): Promise<{
   sprintHits: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
   totalPages: number;
@@ -31,18 +32,19 @@ async function sprintHitsResponse(
     .size(limit)
     .from((page - 1) * limit)
     .query(
-      esb.boolQuery().must([
-        esb.termQuery('body.projectId', projectId),
-        esb.termQuery('body.isDeleted', false),
-        esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
-        esb
-          .boolQuery()
-          .should([
-            esb.termQuery('body.state', SprintState.ACTIVE),
-            esb.termQuery('body.state', SprintState.CLOSED),
-          ])
-          .minimumShouldMatch(1),
-      ])
+      esb
+        .boolQuery()
+        .must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.isDeleted', false),
+          esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
+          sprintState
+            ? esb.termQuery('body.state', sprintState)
+            : esb.termsQuery('body.state', [
+                Jira.Enums.SprintState.CLOSED,
+                Jira.Enums.SprintState.ACTIVE,
+              ]),
+        ])
     )
     .sort(esb.sort('body.startDate', 'desc'))
     .toJSON();
@@ -188,7 +190,8 @@ export async function sprintVarianceGraph(
   page: number,
   limit: number,
   sortKey: Jira.Enums.IssueTimeTracker,
-  sortOrder: 'asc' | 'desc'
+  sortOrder: 'asc' | 'desc',
+  sprintState?: string
 ): Promise<SprintVarianceData> {
   try {
     const dateRangeQueries = getDateRangeQueries(startDate, endDate);
@@ -197,7 +200,8 @@ export async function sprintVarianceGraph(
       limit,
       page,
       projectId,
-      dateRangeQueries
+      dateRangeQueries,
+      sprintState
     );
 
     const sprintData: any = [];
@@ -237,23 +241,29 @@ export async function sprintVarianceGraph(
  */
 function createSprintQuery(
   projectId: string,
-  dateRangeQueries: esb.RangeQuery[]
+  dateRangeQueries: esb.RangeQuery[],
+  sprintState: Jira.Enums.SprintState
 ): RequestBodySearch {
   return esb
     .requestBodySearch()
     .query(
-      esb.boolQuery().must([
-        esb.termQuery('body.projectId', projectId),
-        esb.termQuery('body.isDeleted', false),
-        esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
-        esb
-          .boolQuery()
-          .should([
-            esb.termQuery('body.state', SprintState.ACTIVE),
-            esb.termQuery('body.state', SprintState.CLOSED),
-          ])
-          .minimumShouldMatch(1),
-      ])
+      esb
+        .boolQuery()
+        .must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.isDeleted', false),
+          esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
+          esb
+            .boolQuery()
+            .must(
+              sprintState
+                ? esb.termQuery('body.state', sprintState)
+                : esb.termsQuery('body.state', [
+                    Jira.Enums.SprintState.CLOSED,
+                    Jira.Enums.SprintState.ACTIVE,
+                  ])
+            ),
+        ])
     )
     .sort(esb.sort('body.sprintId'));
 }
@@ -308,12 +318,13 @@ async function ftpRateGraphResponse(sprintIdsArr: string[]): Promise<{
 export async function sprintVarianceGraphAvg(
   projectId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  sprintState: Jira.Enums.SprintState
 ): Promise<number> {
   const sprintIdsArr = [];
   try {
     const dateRangeQueries = getDateRangeQueries(startDate, endDate);
-    const sprintQuery = createSprintQuery(projectId, dateRangeQueries);
+    const sprintQuery = createSprintQuery(projectId, dateRangeQueries, sprintState);
 
     let sprintIds = [];
     let lastHit;

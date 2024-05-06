@@ -180,5 +180,13 @@ export function initializeRoutes(
       },
       authorizer: 'admin',
     },
+
+    'GET /github/tech-audit': {
+      function: {
+        handler: 'packages/github/src/service/tech-audit.handler',
+        timeout: '5 minutes',
+      },
+      authorizer: 'universal',
+    },
   };
 }
