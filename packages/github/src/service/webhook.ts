@@ -14,13 +14,13 @@ const sqsClient = SQSClient.getInstance();
 interface ReviewCommentProcessType {
   comment: Github.ExternalType.Webhook.PRReviewComment;
   pull_request: { id: number };
-  repository: { id: number };
+  repository: { id: number, owner: { id: number } };
   action: string;
 }
 interface ReviewProcessType {
   review: Github.ExternalType.Webhook.PRReview;
   pull_request: { id: number; number: number };
-  repository: { id: number; name: string; owner: { login: string } };
+  repository: { id: number; name: string; owner: { login: string, id:string } };
   action: string;
 }
 function generateHMACToken(payload: crypto.BinaryLike): Buffer {
@@ -54,7 +54,7 @@ async function processBranchEvent(
 ): Promise<void> {
   const {
     ref: name,
-    repository: { id: repoId, pushed_at: eventAt },
+    repository: { id: repoId, pushed_at: eventAt, owner: { id: orgId } },
   } = data;
   let obj = {};
 
@@ -65,6 +65,7 @@ async function processBranchEvent(
       action: Github.Enums.Branch.Created,
       repo_id: repoId,
       created_at: eventAt,
+      orgId,
     };
   }
   if (event.headers['x-github-event'] === 'delete') {
@@ -74,6 +75,7 @@ async function processBranchEvent(
       action: Github.Enums.Branch.Deleted,
       repo_id: repoId,
       deleted_at: eventAt,
+      orgId
     };
   }
   logger.info('-------Branch event --------');
@@ -125,7 +127,8 @@ async function processPRReviewCommentEvent(data: ReviewCommentProcessType): Prom
     data.pull_request.id,
     data.repository.id,
     data.action,
-    data.pull_request as Github.ExternalType.Webhook.PullRequest
+    data.pull_request as Github.ExternalType.Webhook.PullRequest,
+    data.repository.owner.id,
   );
 }
 async function processPRReviewEvent(data: ReviewProcessType): Promise<void> {
@@ -135,6 +138,7 @@ async function processPRReviewEvent(data: ReviewProcessType): Promise<void> {
     data.repository.id,
     data.repository.name,
     data.repository.owner.login,
+    data.repository.owner.id,
     data.pull_request.number,
     data.action
   );

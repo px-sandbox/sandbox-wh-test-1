@@ -5,7 +5,7 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
-import { deleteProcessfromDdb } from 'src/util/delete-process';
+import { deleteProcessfromDdb } from 'rp';
 
 const esClientObj = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();

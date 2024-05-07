@@ -4,14 +4,15 @@ import { Queue } from 'sst/node/queue';
 import async from 'async';
 import { Github } from 'abstraction';
 import { PRReviewCommentProcessor } from '../../../processors/pr-review-comment';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
+
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   try {
     const messageBody = JSON.parse(record.body);
     logger.info('PULL_REQUEST_REVIEW_COMMENT_SQS_RECEIVER_HANDLER', { messageBody });
-    const { comment, pullId, repoId, action } = messageBody;
-    const prReviewCommentProcessor = new PRReviewCommentProcessor(comment, pullId, repoId, action);
+    const { comment, pullId, repoId, action, orgId } = messageBody;
+    const prReviewCommentProcessor = new PRReviewCommentProcessor(comment, pullId, repoId, action, orgId);
     const data = await prReviewCommentProcessor.processor();
     await prReviewCommentProcessor.save({
       data,

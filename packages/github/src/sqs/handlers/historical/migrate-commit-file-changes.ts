@@ -6,7 +6,7 @@ import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
 import { OctokitResponse } from '@octokit/types';
 import { processFileChanges } from '../../../util/process-commit-changes';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';

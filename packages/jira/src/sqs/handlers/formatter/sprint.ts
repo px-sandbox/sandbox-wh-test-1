@@ -3,7 +3,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
 import { SprintProcessor } from '../../../processors/sprint';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 export const handler = async function sprintFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info(`Records Length: ${event.Records.length}`);

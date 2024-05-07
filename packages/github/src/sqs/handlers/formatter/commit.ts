@@ -10,8 +10,8 @@ import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { processFileChanges } from '../../../util/process-commit-changes';
-import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
+import { logProcessToRetry } from 'rp';
 
 // eslint-disable-next-line max-lines-per-function
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
@@ -22,10 +22,9 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       commitId,
       mergedBranch,
       pushedBranch,
-      repository: { id: repoId, name: repoName, owner: repoOwner },
+      repository: { id: repoId, name: repoName, owner: repoOwner, ownerId: orgId  },
       timestamp,
     } = messageBody;
-
     let { isMergedCommit } = messageBody;
     /**
      * ------------------------------------
@@ -66,6 +65,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
         mergedBranch,
         pushedBranch,
         timestamp,
+        orgId,
       },
       repoId,
     });

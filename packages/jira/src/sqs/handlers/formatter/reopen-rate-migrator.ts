@@ -12,7 +12,7 @@ import { JiraClient } from '../../../lib/jira-client';
 import { ParamsMapping } from '../../../model/params-mapping';
 import { getIssueStatusForReopenRate } from '../../../util/issue-status';
 import { reopenChangelogCals } from '../../../util/reopen-body-formatter';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 const ddbClient = DynamoDbDocClient.getInstance();
 const sqsClient = SQSClient.getInstance();

@@ -4,7 +4,7 @@ import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
 import { ReopenRateProcessor } from '../../../processors/reopen-rate';
 import { prepareReopenRate } from '../../../util/prepare-reopen-rate';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 /**
  * Processes the record from an SQS queue and performs operations related to reopening rate.

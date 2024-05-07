@@ -7,4 +7,6 @@ export type QueueMessage = retryProcess &{
   queue: string;
   MessageDeduplicationId: string;
   MessageGroupId: string;
+  LastEvaluatedKey: string;
+  
 };

@@ -70,6 +70,7 @@ export async function pRReviewOnQueue(
   repoId: number,
   repo: string,
   owner: string,
+  orgId: string,
   pullNumber: number,
   action: string
 ): Promise<void> {
@@ -98,7 +99,7 @@ export async function pRReviewOnQueue(
 
     await Promise.all([
       sqsClient.sendMessage(
-        { review: prReview, pullId, repoId, action },
+        { review: prReview, pullId, repoId, action, orgId },
         Queue.qGhPrReviewFormat.queueUrl
       ),
       sqsClient.sendFifoMessage(

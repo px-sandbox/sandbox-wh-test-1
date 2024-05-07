@@ -44,7 +44,7 @@ export class RepositoryProcessor extends DataProcessor<
         isPrivate: this.ghApiData.private,
         owner: this.ghApiData.owner.login,
         visibility: this.ghApiData.visibility,
-        organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        organizationId: `${mappingPrefixes.organization}_${this.ghApiData.owner.id}`,
         openIssuesCount: this.ghApiData.open_issues_count,
         topics: this.ghApiData.topics,
         createdAt: this.ghApiData.created_at,

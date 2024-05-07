@@ -4,7 +4,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { fetchDataFromS3 } from '../../../processors/repo-sast-errors';
 import { repoLibHelper } from '../../../service/repo-library/repo-library-helper';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 export const handler = async function repoLibS3(event: SQSEvent): Promise<void> {
     logger.info(`Records Length: ${event.Records.length}`);

@@ -8,7 +8,7 @@ import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
 import { searchedDataFormator } from '../../util/response-formatter';
-import { logProcessToRetry } from '../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 const esClient = ElasticSearchClient.getInstance();
 

@@ -115,32 +115,6 @@ export function initializeRoutes(
       },
     },
 
-    // GET github data ingestion failed retry
-    // bind all the queues and tables needed to the retry-process.handler
-    'GET /github/retry/failed': {
-      function: {
-        handler: 'packages/github/src/cron/retry-process.handler',
-        timeout: '60 seconds',
-        bind: [
-          retryProcessTable,
-          userFormatDataQueue,
-          repoFormatDataQueue,
-          branchFormatDataQueue,
-          commitFormatDataQueue,
-          pushFormatDataQueue,
-          prFormatDataQueue,
-          prReviewCommentFormatDataQueue,
-          prReviewFormatDataQueue,
-          depRegistryQueue,
-          currentDepRegistryQueue,
-          repoSastErrors,
-          scansSaveQueue,
-          repoLibS3Queue,
-          prReviewCommentMigrationQueue,
-        ],
-      },
-    },
-
     // GET create all ES indices
     'GET /github/create-indices': {
       function: 'packages/github/src/service/create-indices.handler',

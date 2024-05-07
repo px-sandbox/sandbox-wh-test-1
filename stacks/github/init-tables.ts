@@ -12,12 +12,12 @@ export function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
         },
         primaryIndex: { partitionKey: 'parentId' },
     });
-    const retryProcessTable = new Table(stack, 'process-retry', {
-        fields: {
-            processId: 'string',
-        },
-        primaryIndex: { partitionKey: 'processId' },
-    });
+    // const retryProcessTable = new Table(stack, 'process-retry', {
+    //     fields: {
+    //         processId: 'string',
+    //     },
+    //     primaryIndex: { partitionKey: 'processId' },
+    // });
 
     const libMasterTable = new Table(stack, 'libMaster', {
         fields: {
@@ -26,5 +26,5 @@ export function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
         primaryIndex: { partitionKey: 'libName' },
     });
 
-    return { githubMappingTable, retryProcessTable, libMasterTable };
+    return { githubMappingTable,  libMasterTable };
 }

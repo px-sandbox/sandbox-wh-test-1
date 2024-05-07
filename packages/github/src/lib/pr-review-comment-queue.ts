@@ -11,7 +11,8 @@ export async function pRReviewCommentOnQueue(
   pullId: number,
   repoId: number,
   action: string,
-  pullRequestData: Github.ExternalType.Webhook.PullRequest
+  pullRequestData: Github.ExternalType.Webhook.PullRequest,
+  orgId: number
 ): Promise<void> {
   try {
     /**
@@ -31,7 +32,7 @@ export async function pRReviewCommentOnQueue(
     }
     await Promise.all([
       sqsClient.sendMessage(
-        { comment: prReviewComment, pullId, repoId, action },
+        { comment: prReviewComment, pullId, repoId, action, orgId },
         Queue.qGhPrReviewCommentFormat.queueUrl
       ),
       sqsClient.sendFifoMessage(

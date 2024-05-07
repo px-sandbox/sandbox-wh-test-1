@@ -8,8 +8,8 @@ import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { processPRComments } from '../../../util/process-pr-comments';
 import { PRProcessor } from '../../../processors/pull-request';
-import { logProcessToRetry } from '../../../util/retry-process';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
+import { logProcessToRetry } from 'rp';
 
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({

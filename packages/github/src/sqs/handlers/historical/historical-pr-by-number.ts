@@ -10,7 +10,7 @@ import { getTimezoneOfUser } from '../../../lib/get-user-timezone';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 import { getWorkingTime } from '../../../util/timezone-calculation';
 
 const sqsClient = SQSClient.getInstance();

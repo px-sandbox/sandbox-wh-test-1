@@ -1,6 +1,5 @@
 import { Github } from 'abstraction';
 import moment from 'moment';
-import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
@@ -31,7 +30,6 @@ export class CommitProcessor extends DataProcessor<
         status: data.status,
       })
     );
-
     const orgObj = {
       id: parentId,
       body: {
@@ -48,7 +46,7 @@ export class CommitProcessor extends DataProcessor<
         changes: filesArr,
         totalChanges: this.ghApiData.stats.total,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
-        organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        organizationId: `${mappingPrefixes.organization}_${this.ghApiData.commits.orgId}`,
         createdAt: this.ghApiData.commit.committer.date,
         createdAtDay: moment(this.ghApiData.commit.committer.date).format('dddd'),
         computationalDate: await this.calculateComputationalDate(

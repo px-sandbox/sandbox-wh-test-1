@@ -7,7 +7,7 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
 import { ActiveBranchProcessor } from '../../../processors/active-branch';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 const esClient = ElasticSearchClient.getInstance();
 const getBranches = async (repoId: string, date: string): Promise<HitBody> => {

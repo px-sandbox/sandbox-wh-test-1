@@ -9,22 +9,11 @@ export function initializeCron(
     cronFunctions: Record<string, Function>,
 ): void {
     const {
-        processRetryFunction,
         ghCopilotFunction,
         ghBranchCounterFunction,
         ghUpdateLatestDepOnDDBFunction
     } = cronFunctions;
-    /** 
-     * Initialized cron job for every 1 hour to 
-     * fetch failed processes from `retryProcessTable` Table and process them out
-     * Cron Expression : cron(Minutes Hours Day-of-month Month Day-of-week Year
-     */
-    // eslint-disable-next-line no-new
-    new Cron(stack, 'cronFailedProcessRetry', {
-        schedule: 'cron(0/30 * ? * * *)',
-        job: processRetryFunction,
-    });
-
+ 
     if (stage === Stage.LIVE) {
         // eslint-disable-next-line no-new
         new Cron(stack, 'cronGithubCopilot', {

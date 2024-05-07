@@ -51,7 +51,7 @@ export function initializeProjectQueue(
   projectFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
-    jiraDDB.processJiraRetryTable,
+    jiraDDB.retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
