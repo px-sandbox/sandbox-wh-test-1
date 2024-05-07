@@ -12,7 +12,7 @@ jobs:
     with:
       project_name: pulse-data-integration
       package_manager: pnpm
-      build_command: pnpm run build
+      build_command: pnpm run build --stage=test
       lint_command: pnpm run -r --aggregate-output --reporter=append-only --no-bail lint
       excluded_jobs: docker
     secrets: inherit
