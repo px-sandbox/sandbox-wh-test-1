@@ -11,11 +11,12 @@ export async function preparePush(
   pusherId: string,
   lastCommitId: string,
   repoId: string,
+  orgId: string,
   reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   try {
     await sqsClient.sendMessage(
-      { commits, ref, pusherId, id: lastCommitId, repoId },
+      { commits, ref, pusherId, id: lastCommitId, repoId, orgId },
       Queue.qGhPushFormat.queueUrl,
       { ...reqCtx }
     );

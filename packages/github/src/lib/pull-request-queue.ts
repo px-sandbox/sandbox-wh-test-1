@@ -19,7 +19,12 @@ export async function pROnQueue(
     let approvedAt = null;
     let reviewSeconds = 0;
     const [pullData] = await getPullRequestById(pull.id);
-    logger.info({ message: 'ES : PR Data ', data: pullData, requestId, resourceId: String(pull.id)});
+    logger.info({
+      message: 'ES : PR Data ',
+      data: pullData,
+      requestId,
+      resourceId: String(pull.id),
+    });
     if (pullData) {
       if (action === Github.Enums.PullRequest.Opened) {
         logger.info({ message: 'PR already exist', requestId, resourceId: String(pull.id) });
@@ -48,22 +53,21 @@ export async function pROnQueue(
         }
       }
     }
-      await sqsClient.sendFifoMessage(
-        {
-          ...pull,
-          reviewed_at: reviewedAt,
-          approved_at: approvedAt,
-          review_seconds: reviewSeconds,
-          action,
-        },
-        Queue.qGhPrFormat.queueUrl,
-        { requestId, resourceId: String(pull.id)},
-        String(pull.id),
-        uuid(),
-      );
-    
+    await sqsClient.sendFifoMessage(
+      {
+        ...pull,
+        reviewed_at: reviewedAt,
+        approved_at: approvedAt,
+        review_seconds: reviewSeconds,
+        action,
+      },
+      Queue.qGhPrFormat.queueUrl,
+      { requestId, resourceId: String(pull.id) },
+      String(pull.id),
+      uuid()
+    );
   } catch (error: unknown) {
-    logger.error({message: 'Error in pROnQueue', requestId, resourceId: String(pull.id), error});
+    logger.error({ message: 'Error in pROnQueue', requestId, resourceId: String(pull.id), error });
     throw error;
   }
 }

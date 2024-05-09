@@ -7,7 +7,10 @@ import { preparePush } from './push';
 
 const sqsClient = SQSClient.getInstance();
 
-export async function getCommits(commits: Github.ExternalType.Webhook.Commit, requestId:string): Promise<void> {
+export async function getCommits(
+  commits: Github.ExternalType.Webhook.Commit,
+  requestId: string
+): Promise<void> {
   try {
     if (commits.commits.length > 0) {
       await Promise.all([
@@ -23,13 +26,14 @@ export async function getCommits(commits: Github.ExternalType.Webhook.Commit, re
                   id: commits.repository.id,
                   name: commits.repository.name,
                   owner: commits.repository.owner.name,
+                  ownerId: commits.repository.owner.id,
                 },
                 timestamp: commit.timestamp,
               },
               Queue.qGhCommitFormat.queueUrl,
               { requestId, resourceId: commit.id },
               commit.id,
-              uuid(),
+              uuid()
             )
         ),
         preparePush(
@@ -38,12 +42,13 @@ export async function getCommits(commits: Github.ExternalType.Webhook.Commit, re
           commits.sender.id,
           commits.after,
           commits.repository.id,
+          commits.repository.owner.id,
           { requestId, resourceId: commits.after }
         ),
       ]);
     }
   } catch (error: unknown) {
-    logger.error({message:"Error in getCommits", requestId, error});
+    logger.error({ message: 'Error in getCommits', requestId, error });
     throw error;
   }
 }

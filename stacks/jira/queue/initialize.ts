@@ -14,12 +14,12 @@ export function initializeQueues(
   stack: Stack,
   jiraMappingTable: Table,
   jiraCredsTable: Table,
-  processJiraRetryTable: Table
+  retryProcessTable: Table
 ): Record<string, Queue> {
   const jiraDDB = {
     jiraMappingTable,
     jiraCredsTable,
-    processJiraRetryTable,
+    retryProcessTable,
   };
   const jiraIndexer = initializeIndexQueue(stack, jiraDDB);
   const sprintFormatter = initializeSprintQueue(stack, jiraDDB, jiraIndexer);

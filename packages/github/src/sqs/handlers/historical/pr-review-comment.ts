@@ -8,7 +8,7 @@ import { Queue } from 'sst/node/queue';
 import { initializeOctokit } from '../../../cron/github-copilot';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { searchedDataFormator } from '../../../util/response-formatter';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();

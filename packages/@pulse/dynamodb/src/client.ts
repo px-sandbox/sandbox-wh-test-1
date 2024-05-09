@@ -97,11 +97,11 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
     return data;
   }
 
-  public async scan<T>(scanParams: ScanCommandInput): Promise<T[]> {
+  public async scan(scanParams: ScanCommandInput): Promise<ScanCommandOutput> {
     const ddbRes = (await this.getDdbDocClient().send(
       new ScanCommand(scanParams)
     )) as ScanCommandOutput;
 
-    return ddbRes?.Items?.length ? (ddbRes.Items as T[]) : [];
+    return ddbRes as ScanCommandOutput;
   }
 }

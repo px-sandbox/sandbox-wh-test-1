@@ -7,7 +7,7 @@ import {
   repoSastErrorsFormatter,
   storeSastErrorReportToES,
 } from '../../../processors/repo-sast-errors';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   const {

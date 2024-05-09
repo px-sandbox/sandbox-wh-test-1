@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import moment from 'moment';
 import { OctokitResponse } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
@@ -70,6 +71,7 @@ export async function pRReviewOnQueue(
   repoId: number,
   repo: string,
   owner: string,
+  orgId: string,
   pullNumber: number,
   action: string,
   requestId: string
@@ -81,12 +83,17 @@ export async function pRReviewOnQueue(
      */
     const [pullData] = await getPullRequestById(pullId);
     if (!pullData) {
-      logger.error({message:'pRReviewOnQueue.failed: PR NOT FOUND', data: {
-        review: prReview,
-        pullId,
-        repoId,
-        action,
-      }, requestId, resourceId: String(pullId)});
+      logger.error({
+        message: 'pRReviewOnQueue.failed: PR NOT FOUND',
+        data: {
+          review: prReview,
+          pullId,
+          repoId,
+          action,
+        },
+        requestId,
+        resourceId: String(pullId),
+      });
       return;
     }
 
@@ -99,7 +106,7 @@ export async function pRReviewOnQueue(
 
     await Promise.all([
       sqsClient.sendMessage(
-        { review: prReview, pullId, repoId, action },
+        { review: prReview, pullId, repoId, action, orgId },
         Queue.qGhPrReviewFormat.queueUrl,
         { requestId, resourceId: String(pullId) }
       ),
@@ -113,14 +120,20 @@ export async function pRReviewOnQueue(
         },
         Queue.qGhPrFormat.queueUrl,
         {
-          requestId, resourceId: String(pullId)
+          requestId,
+          resourceId: String(pullId),
         },
         String(pullId),
-        uuid(),
+        uuid()
       ),
     ]);
   } catch (error: unknown) {
-    logger.error({ message: 'Error in pRReviewOnQueue', requestId, resourceId: String(pullId), error});
+    logger.error({
+      message: 'Error in pRReviewOnQueue',
+      requestId,
+      resourceId: String(pullId),
+      error,
+    });
     throw error;
   }
 }

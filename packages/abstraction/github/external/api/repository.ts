@@ -7,6 +7,7 @@ export type Repository = {
   visibility: string;
   owner: {
     login: string;
+    id: string;
   };
   open_issues_count: number;
   topics: string[];

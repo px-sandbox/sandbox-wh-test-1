@@ -1,9 +1,10 @@
-import { Api, Function, StackContext } from 'sst/constructs';
+import { Api, Function, StackContext, use } from 'sst/constructs';
 import { initializeQueues } from './queue/initialize';
 import { initializeDynamoDBTables } from './ddb-tables';
 import { intializeJiraCron } from './cron-jobs';
 import { initializeFunctions } from './cron-functions';
 import { initializeApi } from './api';
+import { rp } from '../rp/rp';
 
 // eslint-disable-next-line max-lines-per-function,
 export function jira({ stack }: StackContext): {
@@ -14,7 +15,8 @@ export function jira({ stack }: StackContext): {
     admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
   }>;
 } {
-  const { jiraMappingTable, jiraCredsTable, processJiraRetryTable } =
+  const { retryProcessTable } = use(rp);
+  const { jiraMappingTable, jiraCredsTable } =
     initializeDynamoDBTables(stack);
 
   const {
@@ -25,17 +27,17 @@ export function jira({ stack }: StackContext): {
     issueMigrateQueue,
     issueTimeTrackingMigrationQueue,
     ...restQueues
-  } = initializeQueues(stack, jiraMappingTable, jiraCredsTable, processJiraRetryTable);
+  } = initializeQueues(stack, jiraMappingTable, jiraCredsTable, retryProcessTable);
 
-  const [refreshToken, processJiraRetryFunction, hardDeleteProjectsData] = initializeFunctions(
+  const [refreshToken, hardDeleteProjectsData] = initializeFunctions(
     stack,
     Object.values(restQueues),
-    { jiraMappingTable, jiraCredsTable, processJiraRetryTable }
+    { jiraMappingTable, jiraCredsTable, retryProcessTable }
   );
 
   const jiraApi = initializeApi(
     stack,
-    { jiraMappingTable, jiraCredsTable, processJiraRetryTable },
+    { jiraMappingTable, jiraCredsTable, retryProcessTable },
     [
       projectMigrateQueue,
       userMigrateQueue,
@@ -47,7 +49,7 @@ export function jira({ stack }: StackContext): {
     ]
   );
   // Initialize Cron for Jira
-  intializeJiraCron(stack, processJiraRetryFunction, refreshToken, hardDeleteProjectsData);
+  intializeJiraCron(stack, refreshToken, hardDeleteProjectsData);
 
   stack.addOutputs({
     ApiEndpoint: jiraApi.url,

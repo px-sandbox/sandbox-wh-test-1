@@ -3,7 +3,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
 import { ProjectProcessor } from '../../../processors/project';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 /**
  * Handler for formatting Jira project data.

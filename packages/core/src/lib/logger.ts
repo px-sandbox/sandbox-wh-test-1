@@ -1,4 +1,3 @@
-import { Config } from 'sst/node/config';
 import { createLogger, format, transports } from 'winston';
 
 type LogEntry = {
@@ -14,16 +13,7 @@ class Logger {
   private logger;
 
   constructor() {
-    const isLocal = Config.STAGE.toLowerCase() === 'manasaggarwal';
-    const logFormat = isLocal
-      ? format.combine(
-          // format.colorize({
-          //   all: true,
-          // }),
-          format.timestamp(),
-          format.json()
-        )
-      : format.combine(format.timestamp(), format.json());
+    const logFormat = format.combine(format.timestamp(), format.json());
 
     this.logger = createLogger({
       format: logFormat,

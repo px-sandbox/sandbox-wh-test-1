@@ -3,7 +3,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { PRReviewProcessor } from '../../../processors/pr-review';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   const {
@@ -17,12 +17,13 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId,
     });
-    const { review, pullId, repoId, action } = messageBody;
+    const { review, pullId, repoId, action, orgId } = messageBody;
     const prReviewProcessor = new PRReviewProcessor(
       review,
       pullId,
       repoId,
       action,
+      orgId,
       requestId,
       resourceId
     );

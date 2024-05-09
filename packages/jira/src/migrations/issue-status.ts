@@ -3,7 +3,7 @@ import { logger } from 'core';
 import { SQSClient } from '@pulse/event-handler';
 import { Jira, Other } from 'abstraction';
 import { Queue } from 'sst/node/queue';
-import { logProcessToRetry } from '../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 async function checkAndSave(
   organization: string,

@@ -2,8 +2,8 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
+import { deleteProcessfromDdb } from 'rp';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
-import { deleteProcessfromDdb } from '../../util/delete-process';
 
 /**
  * Saves the details of a Jira board to DynamoDB and Elasticsearch.

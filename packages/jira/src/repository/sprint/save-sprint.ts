@@ -4,6 +4,7 @@ import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import { deleteProcessfromDdb } from '../../util/delete-process';
 import { searchedDataFormator } from '../../util/response-formatter';
+import { deleteProcessfromDdb } from 'rp';
 
 /**
  * Saves the details of a Jira sprint to DynamoDB and Elasticsearch.

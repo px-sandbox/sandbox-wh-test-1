@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
@@ -17,17 +18,35 @@ const sprintVariance = async function sprintVariance(
     (event.queryStringParameters?.sortOrder as 'asc' | 'desc') ?? 'desc';
   const page: number = parseInt(event.queryStringParameters?.page || '1', 10);
   const limit: number = parseInt(event.queryStringParameters?.limit || '10', 10);
+  const sprintState: Jira.Enums.SprintState | undefined = event.queryStringParameters
+    ?.sprintState as Jira.Enums.SprintState;
 
   try {
     const [graphData, headline] = await Promise.all([
-      await sprintVarianceGraph(projectId, startDate, endDate, page, limit, sortKey, sortOrder, {
-        requestId,
-        resourceId: projectId,
-      }),
-      await sprintVarianceGraphAvg(projectId, startDate, endDate, {
-        requestId,
-        resourceId: projectId,
-      }),
+      await sprintVarianceGraph(
+        projectId,
+        startDate,
+        endDate,
+        page,
+        limit,
+        sortKey,
+        sortOrder,
+        {
+          requestId,
+          resourceId: projectId,
+        },
+        sprintState
+      ),
+      await sprintVarianceGraphAvg(
+        projectId,
+        startDate,
+        endDate,
+        {
+          requestId,
+          resourceId: projectId,
+        },
+        sprintState
+      ),
     ]);
 
     return responseParser

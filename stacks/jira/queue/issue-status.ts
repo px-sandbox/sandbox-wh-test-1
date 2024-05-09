@@ -43,7 +43,7 @@ export function initializeIssueStatusQueue(
   issueStatusFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
-    jiraDDB.processJiraRetryTable,
+    jiraDDB.retryProcessTable,
     jiraIndexDataQueue,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,

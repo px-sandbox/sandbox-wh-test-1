@@ -126,7 +126,7 @@ export function initializeIssueQueue(
   issueFormatDataQueue.bind([
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
-    jiraDDB.processJiraRetryTable,
+    jiraDDB.retryProcessTable,
     jiraIndexDataQueue,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -140,7 +140,7 @@ export function initializeIssueQueue(
 
   reOpenRateDataQueue.bind([
     jiraDDB.jiraCredsTable,
-    jiraDDB.processJiraRetryTable,
+    jiraDDB.retryProcessTable,
     jiraDDB.jiraMappingTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
@@ -153,7 +153,7 @@ export function initializeIssueQueue(
   reOpenRateMigratorQueue.bind([
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
-    jiraDDB.processJiraRetryTable,
+    jiraDDB.retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
@@ -161,7 +161,7 @@ export function initializeIssueQueue(
   ]);
 
   reOpenRateDeleteQueue.bind([
-    jiraDDB.processJiraRetryTable,
+    jiraDDB.retryProcessTable,
     jiraDDB.jiraMappingTable,
     jiraIndexDataQueue,
     OPENSEARCH_NODE,
@@ -173,7 +173,7 @@ export function initializeIssueQueue(
   issueTimeTrackingMigrationQueue.bind([
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
-    jiraDDB.processJiraRetryTable,
+    jiraDDB.retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,

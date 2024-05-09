@@ -12,7 +12,7 @@ import { savePushDetails } from '../../lib/save-push';
 import { saveUserDetails } from '../../lib/save-user';
 import { saveActiveBranch } from '../../lib/save-active-branches';
 import { saveGHCopilotReport } from '../../lib/save-copilot-report';
-import { logProcessToRetry } from '../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 import { saveCommitDetails } from '../../lib/save-commit';
 
 export const handler = async function indexDataReceiver(event: SQSEvent): Promise<void> {

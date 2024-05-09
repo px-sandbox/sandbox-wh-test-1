@@ -24,4 +24,5 @@ export type PRReviewComment = {
     eyes: number;
   };
   action: string;
+  orgId: number;
 };

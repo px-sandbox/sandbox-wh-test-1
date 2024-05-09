@@ -3,7 +3,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
 import { IssueStatusProcessor } from '../../../processors/issue-status';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 export const handler = async function issueStatusFormattedDataReciever(
   event: SQSEvent

@@ -2,7 +2,7 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
-import { logProcessToRetry } from '../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 export const handler = async function userMigration(event: SQSEvent): Promise<void> {
   const sqsClient = SQSClient.getInstance();

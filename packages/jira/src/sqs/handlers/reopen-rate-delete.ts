@@ -9,7 +9,7 @@ import esb from 'elastic-builder';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { mappingPrefixes } from '../../constant/config';
 import { getReopenRateDataByIssueId } from '../../repository/issue/get-issue';
-import { logProcessToRetry } from '../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
