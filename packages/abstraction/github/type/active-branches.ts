@@ -1,4 +1,5 @@
 import { retryProcess } from './retry-process';
+
 export type ActiveBranches = retryProcess & {
   id: string;
   body: {
@@ -8,7 +9,7 @@ export type ActiveBranches = retryProcess & {
     branchesCount: number;
     createdAt: string;
   };
-}
+};
 
 export interface RawActiveBRanches {
   repoId: string;

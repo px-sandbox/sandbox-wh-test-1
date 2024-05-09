@@ -2,9 +2,8 @@ import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
-import { deleteProcessfromDdb } from '../../util/delete-process';
-import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
 import { deleteProcessfromDdb } from 'rp';
+import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
 
 /**
  * Saves the user details to DynamoDB and Elasticsearch.
@@ -45,7 +44,7 @@ export async function saveUserDetails(
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.Users, updatedData);
     logger.info({ requestId, resourceId, message: 'saveUserDetails.successful' });
-    await deleteProcessfromDdb(processId);
+    await deleteProcessfromDdb(processId, reqCtx);
   } catch (error: unknown) {
     logger.error({ requestId, resourceId, message: 'saveUserDetails.error', error });
     throw error;

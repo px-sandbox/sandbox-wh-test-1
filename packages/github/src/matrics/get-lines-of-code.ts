@@ -27,8 +27,7 @@ const getGraphDataQuery = async (
   intervals: string,
   repoIds: string[],
   requestId: string
-):Promise<object> => {
-  
+): Promise<object> => {
   const linesOfCodeGraphQuery = esb.requestBodySearch().size(0);
 
   linesOfCodeGraphQuery.query(
@@ -56,10 +55,19 @@ const getGraphDataQuery = async (
         )
     )
     .toJSON();
-  logger.info({ message: 'LINE_OF_CODES_GRAPH_ESB_QUERY', data: JSON.stringify(linesOfCodeGraphQuery), requestId });
+  logger.info({
+    message: 'LINE_OF_CODES_GRAPH_ESB_QUERY',
+    data: JSON.stringify(linesOfCodeGraphQuery),
+    requestId,
+  });
   return linesOfCodeGraphQuery;
 };
-const getHeadlineQuery = async (startDate: string,endDate:string, repoIds:string[], requestId:string):Promise<object> => {
+const getHeadlineQuery = async (
+  startDate: string,
+  endDate: string,
+  repoIds: string[],
+  requestId: string
+): Promise<object> => {
   const query = esb
     .requestBodySearch()
     .query(
@@ -75,7 +83,7 @@ const getHeadlineQuery = async (startDate: string,endDate:string, repoIds:string
     .agg(esb.cardinalityAggregation('authorId', 'body.authorId'))
     .size(0)
     .toJSON();
-  logger.info({message: 'LINES_OF_CODE_AVG_ESB_QUERY', data: JSON.stringify(query), requestId});
+  logger.info({ message: 'LINES_OF_CODE_AVG_ESB_QUERY', data: JSON.stringify(query), requestId });
   return query;
 };
 
@@ -87,7 +95,13 @@ export async function linesOfCodeGraph(
   requestId: string
 ): Promise<{ date: string; value: number }[]> {
   try {
-    const linesOfCodeGraphQuery = await getGraphDataQuery(startDate, endDate, intervals, repoIds, requestId);
+    const linesOfCodeGraphQuery = await getGraphDataQuery(
+      startDate,
+      endDate,
+      intervals,
+      repoIds,
+      requestId
+    );
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitCommits,
@@ -98,7 +112,7 @@ export async function linesOfCodeGraph(
       value: parseFloat(item.combined_avg.value.toFixed(2)),
     }));
   } catch (e) {
-    logger.error({ message: 'linesOfCodeGraph.error', error: e , requestId});
+    logger.error({ message: 'linesOfCodeGraph.error', error: e, requestId });
     throw e;
   }
 }
@@ -118,7 +132,7 @@ export async function linesOfCodeAvg(
     const totalPerAuthor = totalChanges === 0 ? 0 : totalChanges / totalAuthor;
     return { value: parseFloat((totalPerAuthor / weekDaysCount).toFixed(2)) };
   } catch (e) {
-    logger.error({ message: 'linesOfCodeGraphAvg.error', error:e, requestId });
+    logger.error({ message: 'linesOfCodeGraphAvg.error', error: e, requestId });
     throw e;
   }
 }

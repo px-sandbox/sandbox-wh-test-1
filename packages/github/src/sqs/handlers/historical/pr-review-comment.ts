@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Github, Other } from 'abstraction';
@@ -5,10 +6,10 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
+import { logProcessToRetry } from 'rp';
 import { initializeOctokit } from '../../../cron/github-copilot';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { searchedDataFormator } from '../../../util/response-formatter';
-import { logProcessToRetry } from 'rp';
 
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();

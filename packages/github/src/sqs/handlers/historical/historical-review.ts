@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import moment from 'moment';
 import { SQSClient } from '@pulse/event-handler';
 import { OctokitResponse } from '@octokit/types';
@@ -5,11 +6,11 @@ import { Github, Other } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { logProcessToRetry } from 'rp';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
-import { logProcessToRetry } from 'rp';
 
 const sqsClient = SQSClient.getInstance();
 const installationAccessToken = await getInstallationAccessToken();

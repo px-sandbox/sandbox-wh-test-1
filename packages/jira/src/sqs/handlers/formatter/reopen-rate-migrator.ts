@@ -7,13 +7,13 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
+import { logProcessToRetry } from 'rp';
 import { mappingPrefixes as mp } from '../../../constant/config';
 import { getIssueChangelogs } from '../../../lib/get-issue-changelogs';
 import { JiraClient } from '../../../lib/jira-client';
 import { ParamsMapping } from '../../../model/params-mapping';
 import { getIssueStatusForReopenRate } from '../../../util/issue-status';
 import { reopenChangelogCals } from '../../../util/reopen-body-formatter';
-import { logProcessToRetry } from 'rp';
 
 const ddbClient = DynamoDbDocClient.getInstance();
 const sqsClient = SQSClient.getInstance();

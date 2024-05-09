@@ -2,12 +2,12 @@ import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { logProcessToRetry } from 'rp';
 import {
   fetchDataFromS3,
   repoSastErrorsFormatter,
   storeSastErrorReportToES,
 } from '../../../processors/repo-sast-errors';
-import { logProcessToRetry } from 'rp';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   const {

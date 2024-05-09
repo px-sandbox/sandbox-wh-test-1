@@ -37,7 +37,11 @@ const getGraphData = (
     .sort(esb.sort(`${PrDetailsSorting[sort.key] ?? PrDetailsSorting.prWaitTime}`, sort.order))
     .toJSON();
 
-  logger.info({ message: 'PR_WAIT_TIME_DETAILS_GRAPH_ESB_QUERY', data: JSON.stringify(query), requestId });
+  logger.info({
+    message: 'PR_WAIT_TIME_DETAILS_GRAPH_ESB_QUERY',
+    data: JSON.stringify(query),
+    requestId,
+  });
   return query;
 };
 export async function prWaitTimeDetailsData(
@@ -51,11 +55,11 @@ export async function prWaitTimeDetailsData(
   requestId: string
 ): Promise<PrDetails> {
   try {
-    const query = getGraphData(startDate, endDate, repoIds,page, limit,sort, requestId);
+    const query = getGraphData(startDate, endDate, repoIds, page, limit, sort, requestId);
     const [orgName, prData, repoNames] = await Promise.all([
       getOrganizationById(orgId),
       esClientObj.search(Github.Enums.IndexName.GitPull, query) as Other.Type.HitBody,
-      getRepoNames(repoIds),
+      getRepoNames(repoIds, requestId),
     ]);
 
     const formattedPrData = await searchedDataFormator(prData);
@@ -81,7 +85,7 @@ export async function prWaitTimeDetailsData(
     const totalPages = Math.ceil(prData.hits.total.value / limit);
     return { data: finalData, totalPages, page };
   } catch (e) {
-    logger.error({ message: "prWaitTimeDetailsBreakdown.error", error: e , requestId});
+    logger.error({ message: 'prWaitTimeDetailsBreakdown.error', error: e, requestId });
     throw e;
   }
 }

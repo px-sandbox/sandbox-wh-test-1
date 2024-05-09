@@ -1,7 +1,8 @@
 import { Table } from 'sst/constructs';
+
 type retryTable = {
   retryProcessTable: Table;
-}
+};
 export type JiraTables = {
   jiraMappingTable: Table;
   jiraCredsTable: Table;

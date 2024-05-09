@@ -1,13 +1,14 @@
+/* eslint-disable max-lines-per-function */
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Github } from 'abstraction';
 import { OctokitResponse } from '@octokit/types';
+import { logProcessToRetry } from 'rp';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
-import { logProcessToRetry } from 'rp';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 const installationAccessToken = await getInstallationAccessToken();

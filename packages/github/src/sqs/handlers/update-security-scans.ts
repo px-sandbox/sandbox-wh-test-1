@@ -7,8 +7,8 @@ import esb from 'elastic-builder';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
-import { searchedDataFormator } from '../../util/response-formatter';
 import { logProcessToRetry } from 'rp';
+import { searchedDataFormator } from '../../util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
 

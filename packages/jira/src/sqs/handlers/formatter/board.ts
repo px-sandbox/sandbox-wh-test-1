@@ -2,8 +2,8 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
-import { BoardProcessor } from '../../../processors/board';
 import { logProcessToRetry } from 'rp';
+import { BoardProcessor } from '../../../processors/board';
 
 export const handler = async function boardFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info({ message: `Records Length: ${event.Records.length}` });

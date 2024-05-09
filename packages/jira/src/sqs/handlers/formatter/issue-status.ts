@@ -2,8 +2,8 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
-import { IssueStatusProcessor } from '../../../processors/issue-status';
 import { logProcessToRetry } from 'rp';
+import { IssueStatusProcessor } from '../../../processors/issue-status';
 
 export const handler = async function issueStatusFormattedDataReciever(
   event: SQSEvent

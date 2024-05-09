@@ -11,8 +11,8 @@ export async function processFileChanges<T>(
         Authorization: string;
       };
     }
-    >, 
-  reqCtx: Other.Type.RequestCtx,
+  >,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<Array<T>> {
   let nextFilesLink = filesLink;
   let filesChanges = files;

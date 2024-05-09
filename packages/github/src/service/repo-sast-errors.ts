@@ -11,9 +11,13 @@ const sqsClient = SQSClient.getInstance();
 export const handler = async function repoSastErrors(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  const requestId = event.requestContext.requestId;
+  const { requestId } = event.requestContext;
   try {
-    logger.info({ message: 'repoSastErrors.handler.received', data: { errorData: event.body }, requestId });
+    logger.info({
+      message: 'repoSastErrors.handler.received',
+      data: { errorData: event.body },
+      requestId,
+    });
     const data: Github.ExternalType.Api.RepoSastErrors = JSON.parse(event.body ?? '{}');
 
     const s3 = new S3();

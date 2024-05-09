@@ -66,16 +66,20 @@ export async function storeSastErrorReportToES(
     if (data.length > 0) {
       logger.info({ message: 'storeSastErrorReportToES.data', data: data.length, ...reqCtx });
       await esClientObj.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, data);
-      logger.info({ message: 'storeSastErrorReportToES.success', ...reqCtx});
+      logger.info({ message: 'storeSastErrorReportToES.success', ...reqCtx });
     } else {
       logger.info({ message: 'storeSastErrorReportToES.no_data', ...reqCtx });
     }
   } catch (error) {
-    logger.error({ message: 'storeSastErrorReportToES.error',  error, ...reqCtx });
+    logger.error({ message: 'storeSastErrorReportToES.error', error, ...reqCtx });
     throw error;
   }
 }
-export async function fetchDataFromS3<T>(key: string, bucketName: string, reqCtx: Other.Type.RequestCtx): Promise<T> {
+export async function fetchDataFromS3<T>(
+  key: string,
+  bucketName: string,
+  reqCtx: Other.Type.RequestCtx
+): Promise<T> {
   const params: GetObjectRequest = {
     Bucket: `${bucketName}`,
     Key: key,
@@ -88,7 +92,7 @@ export async function fetchDataFromS3<T>(key: string, bucketName: string, reqCtx
     const jsonData = JSON.parse(data.Body?.toString() || '{}');
     return jsonData;
   } catch (error) {
-    logger.error({ message: 'fetchDataFromS3.error',  error, ...reqCtx });
+    logger.error({ message: 'fetchDataFromS3.error', error, ...reqCtx });
     throw error;
   }
 }

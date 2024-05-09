@@ -6,9 +6,9 @@ import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
+import { logProcessToRetry } from 'rp';
 import { mappingPrefixes } from '../../../constant/config';
 import { getNodeLibInfo } from '../../../util/node-library-info';
-import { logProcessToRetry } from 'rp';
 
 export const handler = async function dependencyRegistry(event: SQSEvent): Promise<void> {
   logger.info({ message: `Records Length: ${event.Records.length}` });

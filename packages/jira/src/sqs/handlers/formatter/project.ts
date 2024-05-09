@@ -2,8 +2,8 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
-import { ProjectProcessor } from '../../../processors/project';
 import { logProcessToRetry } from 'rp';
+import { ProjectProcessor } from '../../../processors/project';
 
 /**
  * Handler for formatting Jira project data.

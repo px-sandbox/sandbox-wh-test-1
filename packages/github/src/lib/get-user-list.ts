@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
@@ -20,10 +21,14 @@ async function getUserList(
   organizationName: string,
   requestId: string,
   page = 1,
-  counter = 0,
+  counter = 0
 ): Promise<number> {
   try {
-    logger.info({ message: 'getUserList.invoked', data: { organizationName, page, counter }, requestId });
+    logger.info({
+      message: 'getUserList.invoked',
+      data: { organizationName, page, counter },
+      requestId,
+    });
     const perPage = 100;
 
     const responseData = await octokit(
@@ -34,8 +39,7 @@ async function getUserList(
 
     await Promise.all(
       membersPerPage.map(async (member) =>
-        sqsClient.sendMessage(member, Queue.qGhUsersFormat.queueUrl, requestId),
-        
+        sqsClient.sendMessage(member, Queue.qGhUsersFormat.queueUrl, { requestId })
       )
     );
 
@@ -43,15 +47,19 @@ async function getUserList(
       logger.info({ message: 'getUserList.successful', requestId });
       return newCounter;
     }
-    return getUserList(octokit, organizationName, requestId, page + 1, newCounter, );
+    return getUserList(octokit, organizationName, requestId, page + 1, newCounter);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.error({message: 'getUserList.error', data:{
-      organizationName,
-      page,
-      counter,
-    }, error, requestId
-});
+    logger.error({
+      message: 'getUserList.error',
+      data: {
+        organizationName,
+        page,
+        counter,
+      },
+      error,
+      requestId,
+    });
 
     if (error.status === 401) {
       const {

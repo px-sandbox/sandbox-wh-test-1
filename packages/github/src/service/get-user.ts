@@ -32,14 +32,14 @@ const getGitUser = async (githubUserId: string): Promise<IformatUserDataResponse
 const githubUser = async function getUserData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  const requestId = event.requestContext.requestId;
+  const { requestId } = event.requestContext;
   const githubUserId: string = event?.pathParameters?.githubUserId || '';
   let response: IformatUserDataResponse[] = [];
   try {
     response = await getGitUser(githubUserId);
-    logger.info({  message: 'github user data', data: response, requestId });
+    logger.info({ message: 'github user data', data: response, requestId });
   } catch (error) {
-    logger.error({ message: 'GET_GITHUB_USER_DETAILS',  error, requestId });
+    logger.error({ message: 'GET_GITHUB_USER_DETAILS', error, requestId });
   }
   let body = null;
   const { '200': ok, '404': notFound } = HttpStatusCode;

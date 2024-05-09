@@ -56,7 +56,7 @@ async function fetchDDRecords(
         results = [...results, ...(data[tableIndex] as Github.Type.LibraryRecord[])];
       }
     } catch (err) {
-      logger.error({ message: 'Error fetching DD record items:', error: err, requestId});
+      logger.error({ message: 'Error fetching DD record items:', error: err, requestId });
     }
   }
   // storing result in key format to optimise search
@@ -74,7 +74,7 @@ async function fetchDDRecords(
 const repoLibsQuery = async (
   repoIds: string[],
   searchString: string,
-  counter: number,
+  counter: number
 ): Promise<any> => {
   const repoLibQuery = esb
     .requestBodySearch()
@@ -229,7 +229,11 @@ export async function getVersionUpgrades(
     const paginatedData = await paginate(sortedData, page, limit);
     return { versionData: paginatedData, totalPages, page };
   } catch (e) {
-    logger.error({ message: 'versionUpgrade.error: Error while fetching version upgrades', error: e, requestId });
+    logger.error({
+      message: 'versionUpgrade.error: Error while fetching version upgrades',
+      error: e,
+      requestId,
+    });
     throw e;
   }
 }

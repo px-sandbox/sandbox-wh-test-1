@@ -5,6 +5,6 @@ export function getOctokitResp<T>(octokitResp: OctokitResponse<T>): T {
   if (octokitResp.status === HttpStatusCode[200]) {
     return octokitResp.data;
   }
-  logger.error({ message: 'OCTOKIT_RESPONSE_ERROR', data:  octokitResp });
+  logger.error({ message: 'OCTOKIT_RESPONSE_ERROR', data: octokitResp });
   throw octokitResp;
 }

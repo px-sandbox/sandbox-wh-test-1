@@ -1,4 +1,4 @@
-import { Other } from '../../../abstraction';
+import { Other } from 'abstraction';
 
 export interface ISQSClient {
   sendMessage(

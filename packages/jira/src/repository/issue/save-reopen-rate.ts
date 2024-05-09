@@ -2,9 +2,8 @@ import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
-import { deleteProcessfromDdb } from '../../util/delete-process';
-import { searchedDataFormator } from '../../util/response-formatter';
 import { deleteProcessfromDdb } from 'rp';
+import { searchedDataFormator } from '../../util/response-formatter';
 
 /**
  * Saves the details of a Jira issue to DynamoDB and Elasticsearch.
@@ -40,7 +39,7 @@ export async function saveReOpenRate(
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.ReopenRate, updatedData);
     logger.info({ requestId, resourceId, message: 'saveReopenRateDetails.successful' });
-    await deleteProcessfromDdb(processId);
+    await deleteProcessfromDdb(processId, reqCtx);
   } catch (error: unknown) {
     logger.error({ requestId, resourceId, message: `saveReopenRateDetails.error,${error}` });
     throw error;

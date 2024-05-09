@@ -8,7 +8,7 @@ export class CommitProcessor extends DataProcessor<
   Github.ExternalType.Api.Commit,
   Github.Type.Commits
 > {
-  constructor(data: Github.ExternalType.Api.Commit,requestId: string, resource: string) {
+  constructor(data: Github.ExternalType.Api.Commit, requestId: string, resource: string) {
     super(data, requestId, resource);
   }
   public async processor(): Promise<Github.Type.Commits> {

@@ -17,6 +17,7 @@
     "@elastic/elasticsearch": "7.13.0",
     "aws-sdk": "^2.1444.0",
     "aws-sdk-js-codemod": "0.17.1",
+    "abstraction": "workspace:^1.0.0",
     "core": "workspace:0.0.1"
   }
 }

@@ -5,8 +5,8 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
-import { ActiveBranchProcessor } from '../../../processors/active-branch';
 import { logProcessToRetry } from 'rp';
+import { ActiveBranchProcessor } from '../../../processors/active-branch';
 
 const esClient = ElasticSearchClient.getInstance();
 const getBranches = async (repoId: string, date: string): Promise<HitBody> => {

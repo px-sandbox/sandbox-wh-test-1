@@ -2,8 +2,8 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
-import { UserProcessor } from '../../../processors/user';
 import { logProcessToRetry } from 'rp';
+import { UserProcessor } from '../../../processors/user';
 
 export const handler = async function userFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info({ message: `Records Length: ${event.Records.length}` });

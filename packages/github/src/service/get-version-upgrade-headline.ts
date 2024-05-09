@@ -73,7 +73,11 @@ const getLibFromDB = async (
       }
     });
 
-    logger.info({ message: 'getLibFromDB.response', data: { responses, countOutOfDateLib, countUpToDateLib }, requestId });
+    logger.info({
+      message: 'getLibFromDB.response',
+      data: { responses, countOutOfDateLib, countUpToDateLib },
+      requestId,
+    });
 
     return { countOutOfDateLib, countUpToDateLib };
   } catch (err) {
@@ -117,11 +121,19 @@ const getLibFromES = async (
 
       const esLibData = await esClientObj.search(Github.Enums.IndexName.GitRepoLibrary, query);
 
-      logger.info({ message: "getLibFromES - ES Query result", data: JSON.stringify(esLibData), requestId });
+      logger.info({
+        message: 'getLibFromES - ES Query result',
+        data: JSON.stringify(esLibData),
+        requestId,
+      });
 
       libFormatData = await searchedDataFormator(esLibData);
 
-      logger.info({ message: "getLibFromES.response", data: { counter: counter, libFormatData }, requestId });
+      logger.info({
+        message: 'getLibFromES.response',
+        data: { counter, libFormatData },
+        requestId,
+      });
 
       libData.push(...libFormatData);
       from += size;
@@ -143,7 +155,7 @@ const getLibFromES = async (
 };
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const requestId = event.requestContext.requestId;
+  const { requestId } = event.requestContext;
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [''];
   const range = event.queryStringParameters?.range ?? '<= 1';
   const lib = await getLibFromES(repoIds, range, requestId);

@@ -2,15 +2,15 @@ import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { PushProcessor } from '../../../processors/push';
 import { logProcessToRetry } from 'rp';
+import { PushProcessor } from '../../../processors/push';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   const {
     reqCtx: { requestId, resourceId },
     message: messageBody,
   } = JSON.parse(record.body);
-  console.log('messageBody', record.body);
+
   try {
     logger.info({
       message: 'PUSH_SQS_RECEIVER_HANDLER_FORMATER',

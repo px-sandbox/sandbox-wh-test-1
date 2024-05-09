@@ -2,9 +2,9 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
+import { logProcessToRetry } from 'rp';
 import { ReopenRateProcessor } from '../../../processors/reopen-rate';
 import { prepareReopenRate } from '../../../util/prepare-reopen-rate';
-import { logProcessToRetry } from 'rp';
 
 /**
  * Processes the record from an SQS queue and performs operations related to reopening rate.

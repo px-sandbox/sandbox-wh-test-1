@@ -5,13 +5,13 @@ import _ from 'lodash';
 import { Github } from 'abstraction';
 import async from 'async';
 import { OctokitResponse } from '@octokit/types';
+import { logProcessToRetry } from 'rp';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { processFileChanges } from '../../../util/process-commit-changes';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
-import { logProcessToRetry } from 'rp';
 
 // eslint-disable-next-line max-lines-per-function
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
@@ -19,7 +19,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     reqCtx: { requestId, resourceId },
     message: messageBody,
   } = JSON.parse(record.body);
-  console.log('messageBody', record.body);
+
   try {
     logger.info({
       message: 'COMMIT_SQS_RECEIVER_HANDLER_FORMATTER',
@@ -64,7 +64,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     if (parentCommit) {
       logger.info({
         message: 'parent_commit_found_for_commit_id',
-        data: { commitId: commitId },
+        data: { commitId },
         requestId,
         resourceId,
       });

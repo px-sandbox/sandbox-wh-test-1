@@ -4,15 +4,22 @@ import { logger } from 'core';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveGHCopilotReport(data: Github.Type.GHCopilotReport, reqCtx: Other.Type.RequestCtx): Promise<void> {
+export async function saveGHCopilotReport(
+  data: Github.Type.GHCopilotReport,
+  reqCtx: Other.Type.RequestCtx
+): Promise<void> {
   const { requestId, resourceId } = reqCtx;
   try {
     const updatedData = { ...data };
     await esClientObj.putDocument(Github.Enums.IndexName.GitCopilot, updatedData);
-    logger.info({ message: 'saveGHCopilotReport.successful', requestId, resourceId});
+    logger.info({ message: 'saveGHCopilotReport.successful', requestId, resourceId });
   } catch (error: unknown) {
-    logger.error({message: "saveGHCopilotReport.error", error: JSON.stringify(error), requestId, resourceId}
-    );
+    logger.error({
+      message: 'saveGHCopilotReport.error',
+      error: JSON.stringify(error),
+      requestId,
+      resourceId,
+    });
     throw error;
   }
 }

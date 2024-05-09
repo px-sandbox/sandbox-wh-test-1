@@ -42,7 +42,11 @@ const getGraphDataQuery = (
     )
     .toJSON();
 
-  logger.info({ message: 'PR_COMMENT_GRAPH_ESB_QUERY', data: JSON.stringify(prCommentGraphQuery), requestId });
+  logger.info({
+    message: 'PR_COMMENT_GRAPH_ESB_QUERY',
+    data: JSON.stringify(prCommentGraphQuery),
+    requestId,
+  });
   return prCommentGraphQuery;
 };
 
@@ -107,7 +111,13 @@ export async function prCommentsGraphData(
   requestId: string
 ): Promise<{ date: string; value: number }[]> {
   try {
-    const prCommentGraphQuery = getGraphDataQuery(startDate, endDate, intervals, repoIds, requestId);
+    const prCommentGraphQuery = getGraphDataQuery(
+      startDate,
+      endDate,
+      intervals,
+      repoIds,
+      requestId
+    );
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitPRReviewComment,
@@ -118,7 +128,7 @@ export async function prCommentsGraphData(
       value: parseFloat(item.combined_avg.value.toFixed(2)),
     }));
   } catch (e) {
-    logger.error({ message: 'prCommentsGraph.error', error: e , requestId});
+    logger.error({ message: 'prCommentsGraph.error', error: e, requestId });
     throw e;
   }
 }
@@ -131,7 +141,11 @@ export async function prCommentsAvg(
 ): Promise<string | null> {
   try {
     const prCommentAvgQuery = getHealineQuery(startDate, endDate, repoIds);
-    logger.info({ message: 'PR_COMMENT_AVG_ESB_QUERY', data: JSON.stringify(prCommentAvgQuery), requestId});
+    logger.info({
+      message: 'PR_COMMENT_AVG_ESB_QUERY',
+      data: JSON.stringify(prCommentAvgQuery),
+      requestId,
+    });
     const data: { pr_comment_avg: string } = await esClientObj.queryAggs<{
       pr_comment_avg: string;
     }>(Github.Enums.IndexName.GitPRReviewComment, prCommentAvgQuery);

@@ -1,18 +1,19 @@
+/* eslint-disable max-lines-per-function */
 import moment from 'moment';
 import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
+import { logProcessToRetry } from 'rp';
+import { Other } from 'abstraction';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 import { mappingPrefixes } from '../../../constant/config';
 import { getTimezoneOfUser } from '../../../lib/get-user-timezone';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
-import { logProcessToRetry } from 'rp';
 import { getWorkingTime } from '../../../util/timezone-calculation';
-import { Other } from 'abstraction';
 
 const sqsClient = SQSClient.getInstance();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
