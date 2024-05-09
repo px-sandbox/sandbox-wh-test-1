@@ -1,5 +1,4 @@
 import { Github } from 'abstraction';
-import async from 'async';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { GHCopilotProcessor } from '../../../processors/gh-copilot';
@@ -16,7 +15,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId,
     });
-    const ghCopilotProcessor = new GHCopilotProcessor(messageBody);
+    const ghCopilotProcessor = new GHCopilotProcessor(messageBody, requestId, resourceId);
     const data = await ghCopilotProcessor.processor();
     await ghCopilotProcessor.save({ data, eventType: Github.Enums.Event.Copilot });
   } catch (error) {
