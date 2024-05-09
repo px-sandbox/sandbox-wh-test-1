@@ -25,8 +25,9 @@ export async function fetchAndSaveOrganizationDetails(
     const responseData = await octokit(`GET /orgs/${organizationName}`);
     const orgId = `${mappingPrefixes.organization}_${responseData.data.id}`;
     const records = await dynamodbClient.find(new ParamsMapping().prepareGetParams(orgId));
+    const resourceId = orgId;
     if (responseData?.data) {
-      const result = new Organization(responseData.data).validate();
+      const result = new Organization(responseData.data, requestId, resourceId).validate();
       if (result) {
         const formattedData = await result.processor(records?.parentId as string);
         if (records === undefined) {
@@ -38,10 +39,11 @@ export async function fetchAndSaveOrganizationDetails(
       }
     }
     logger.info({
-      message: 'getOrganizationDetails.successful', data: {
+      message: 'getOrganizationDetails.successful',
+      data: {
         response: responseData?.data,
       },
-      requestId
+      requestId,
     });
     return responseData?.data?.login;
   } catch (error: unknown) {
