@@ -14,13 +14,13 @@ const sqsClient = SQSClient.getInstance();
 interface ReviewCommentProcessType {
   comment: Github.ExternalType.Webhook.PRReviewComment;
   pull_request: { id: number };
-  repository: { id: number, owner: { id: number } };
+  repository: { id: number; owner: { id: number } };
   action: string;
 }
 interface ReviewProcessType {
   review: Github.ExternalType.Webhook.PRReview;
   pull_request: { id: number; number: number };
-  repository: { id: number; name: string; owner: { login: string, id:string } };
+  repository: { id: number; name: string; owner: { login: string; id: string } };
   action: string;
 }
 function generateHMACToken(payload: crypto.BinaryLike): Buffer {
@@ -30,7 +30,11 @@ function generateHMACToken(payload: crypto.BinaryLike): Buffer {
   );
   return hmac;
 }
-function getEventType(eventType: string | undefined, refType: string, requestId:string): string | null {
+function getEventType(
+  eventType: string | undefined,
+  refType: string,
+  requestId: string
+): string | null {
   let updatedEventType = eventType;
   const branchEvents = ['create', 'delete'];
   if (updatedEventType) {
@@ -45,18 +49,25 @@ function getEventType(eventType: string | undefined, refType: string, requestId:
 async function processRepoEvent(
   data: Github.ExternalType.Webhook.Repository,
   action: string,
-  requestId?: string
+  requestId: string
 ): Promise<void> {
-  await sqsClient.sendMessage({ ...data, action }, Queue.qGhRepoFormat.queueUrl, { requestId, resourceId: data.name });
+  await sqsClient.sendMessage({ ...data, action }, Queue.qGhRepoFormat.queueUrl, {
+    requestId,
+    resourceId: data.name,
+  });
 }
 async function processBranchEvent(
   data: Github.ExternalType.Webhook.Branch,
   event: APIGatewayProxyEvent,
-  requestId?: string
+  requestId: string
 ): Promise<void> {
   const {
     ref: name,
-    repository: { id: repoId, pushed_at: eventAt, owner: { id: orgId } },
+    repository: {
+      id: repoId,
+      pushed_at: eventAt,
+      owner: { id: orgId },
+    },
   } = data;
   let obj = {};
   let resourceId = '';
@@ -78,11 +89,11 @@ async function processBranchEvent(
       action: Github.Enums.Branch.Deleted,
       repo_id: repoId,
       deleted_at: eventAt,
-      orgId
+      orgId,
     };
     resourceId = name;
   }
-  logger.info({ message: '------- Branch event--------',data:obj, requestId, resourceId});
+  logger.info({ message: '------- Branch event--------', data: obj, requestId, resourceId });
   await sqsClient.sendMessage(obj, Queue.qGhBranchFormat.queueUrl, { requestId, resourceId });
 }
 async function processOrgEvent(
@@ -107,33 +118,39 @@ async function processOrgEvent(
       break;
     default:
       // handle default case here
-      logger.info({message: 'No case found for ${data.action} in organization event'});
+      logger.info({ message: `No case found for ${data.action} in organization event` });
       break;
   }
   if (Object.keys(obj).length === 0) return false;
   const resourceId = data.membership.user.login;
-  logger.info({ message: '-------User event --------', data: obj, requestId, resourceId});
-  await sqsClient.sendMessage(obj, Queue.qGhUsersFormat.queueUrl, { requestId, resourceId});
+  logger.info({ message: '-------User event --------', data: obj, requestId, resourceId });
+  await sqsClient.sendMessage(obj, Queue.qGhUsersFormat.queueUrl, { requestId, resourceId });
 }
-async function processCommitEvent(data: Github.ExternalType.Webhook.Commit, requestId: string): Promise<void> {
+async function processCommitEvent(
+  data: Github.ExternalType.Webhook.Commit,
+  requestId: string
+): Promise<void> {
   const commitData = data;
-  await getCommits(commitData,requestId);
+  await getCommits(commitData, requestId);
 }
 async function processPREvent(
   pr: Github.ExternalType.Webhook.PullRequest,
   action: string,
   requestId: string
 ): Promise<void> {
-  await pROnQueue(pr, action,requestId);
+  await pROnQueue(pr, action, requestId);
 }
-async function processPRReviewCommentEvent(data: ReviewCommentProcessType, requestId: string): Promise<void> {
+async function processPRReviewCommentEvent(
+  data: ReviewCommentProcessType,
+  requestId: string
+): Promise<void> {
   await pRReviewCommentOnQueue(
     data.comment,
     data.pull_request.id,
     data.repository.id,
     data.action,
     data.pull_request as Github.ExternalType.Webhook.PullRequest,
-    data.repository.owner.id,,
+    data.repository.owner.id,
     requestId
   );
 }
@@ -184,7 +201,7 @@ async function processWebhookEvent(
       await processPRReviewEvent(data, requestId);
       break;
     default:
-      logger.info({message:`No case found for ${eventType} in webhook event`, requestId} );
+      logger.info({ message: `No case found for ${eventType} in webhook event`, requestId });
       break;
   }
 }
@@ -210,13 +227,13 @@ export const webhookData = async function getWebhookData(
     timeEpoch: number;
   };
   const eventTime = reqContext.timeEpoch;
-  const requestId = reqContext.requestId
+  const { requestId } = reqContext;
   logger.info({ message: 'time epoch -------', data: new Date(eventTime), requestId });
   logger.info({ message: 'method invoked', data: { event }, requestId });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payload: any = event.body ?? {};
   const data = JSON.parse(event.body ?? '{}');
-  
+
   if (!data.organization) return;
 
   const { id: orgId } = data.organization;
@@ -227,13 +244,17 @@ export const webhookData = async function getWebhookData(
   const hmac = generateHMACToken(payload);
 
   if (sig.length !== hmac.length || !crypto.timingSafeEqual(hmac, sig)) {
-    logger.error({ message: 'Webhook request not validated' , requestId});
+    logger.error({ message: 'Webhook request not validated', requestId });
     return {
       statusCode: 403,
       body: 'Permission Denied',
     };
   }
-  const eventType = getEventType(event.headers['x-github-event']?.toLowerCase(), data.ref_type, requestId);
+  const eventType = getEventType(
+    event.headers['x-github-event']?.toLowerCase(),
+    data.ref_type,
+    requestId
+  );
   if (!eventType) {
     return {
       statusCode: 400,
@@ -242,6 +263,6 @@ export const webhookData = async function getWebhookData(
   }
 
   logger.info({ message: 'REQUEST CONTEXT---------', data: event.requestContext, requestId });
-  
+
   await processWebhookEvent(eventType, data, eventTime, event, requestId);
 };

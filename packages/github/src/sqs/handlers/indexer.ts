@@ -1,8 +1,11 @@
+/* eslint-disable complexity */
+/* eslint-disable max-lines-per-function */
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Github } from 'abstraction';
 import async from 'async';
+import { logProcessToRetry } from 'rp';
 import { saveRepoDetails } from '../../lib/save-repo';
 import { saveBranchDetails } from '../../lib/save-branch';
 import { savePRReview } from '../../lib/save-pr-review';
@@ -12,7 +15,6 @@ import { savePushDetails } from '../../lib/save-push';
 import { saveUserDetails } from '../../lib/save-user';
 import { saveActiveBranch } from '../../lib/save-active-branches';
 import { saveGHCopilotReport } from '../../lib/save-copilot-report';
-import { logProcessToRetry } from 'rp';
 import { saveCommitDetails } from '../../lib/save-commit';
 
 export const handler = async function indexDataReceiver(event: SQSEvent): Promise<void> {

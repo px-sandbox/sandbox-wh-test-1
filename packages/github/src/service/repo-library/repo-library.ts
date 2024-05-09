@@ -10,7 +10,7 @@ const sqsClient = SQSClient.getInstance();
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<void | APIGatewayProxyResult> => {
-  const requestId = event.requestContext.requestId;
+  const { requestId } = event.requestContext;
   const data: Github.ExternalType.RepoLibrary = JSON.parse(event.body ?? '{}');
   logger.info({ message: 'repoLibrary.handler.received', data, requestId });
   const resourceId = data.repositoryInfo.repoId;

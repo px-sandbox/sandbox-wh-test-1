@@ -3,10 +3,10 @@ import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Github } from 'abstraction';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
-import { APIGatewayProxyEvent } from 'aws-lambda';
 
 const sqsClient = SQSClient.getInstance();
 export async function initializeOctokit(): Promise<
@@ -56,7 +56,7 @@ async function getGHCopilotReports(
 
     await Promise.all(
       reportsPerPage.seats.map((seat) =>
-        sqsClient.sendMessage(seat, Queue.qGhCopilotFormat.queueUrl, requestId)
+        sqsClient.sendMessage(seat, Queue.qGhCopilotFormat.queueUrl, { requestId })
       )
     );
 
@@ -89,7 +89,7 @@ async function getGHCopilotReports(
 }
 
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
-  const requestId = event.requestContext.requestId;
+  const requestId = event?.requestContext?.requestId;
   try {
     const octokit = await initializeOctokit();
     await getGHCopilotReports(octokit, requestId);

@@ -4,12 +4,12 @@ import { Queue } from 'sst/node/queue';
 import async from 'async';
 import { Github } from 'abstraction';
 import _ from 'lodash';
+import { logProcessToRetry } from 'rp';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { processPRComments } from '../../../util/process-pr-comments';
 import { PRProcessor } from '../../../processors/pull-request';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
-import { logProcessToRetry } from 'rp';
 
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({
@@ -49,21 +49,22 @@ export const handler = async function pRFormattedDataReceiver(event: SQSEvent): 
   logger.info({ message: 'Records Length:', data: event.Records.length });
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
-    Object.values(messageGroups).map(async (group) => {
-      return new Promise((resolve) => {
-        async.eachSeries(
-          group,
-          async function (item) {
-            await processAndStoreSQSRecord(item);
-          },
-          (error) => {
-            if (error) {
-              logger.error({ message: 'pRFormattedDataReceiver.error', error });
+    Object.values(messageGroups).map(
+      async (group) =>
+        new Promise((resolve) => {
+          async.eachSeries(
+            group,
+            async (item) => {
+              await processAndStoreSQSRecord(item);
+            },
+            (error) => {
+              if (error) {
+                logger.error({ message: 'pRFormattedDataReceiver.error', error });
+              }
+              resolve('Done');
             }
-            resolve('Done');
-          }
-        );
-      });
-    })
+          );
+        })
+    )
   );
 };

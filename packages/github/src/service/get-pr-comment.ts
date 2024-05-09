@@ -7,7 +7,7 @@ import { prCommentsGraphSchema } from './validations';
 const prCommentsGraph = async function getPrCommentsGraph(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  const requestId = event.requestContext.requestId;
+  const { requestId } = event.requestContext;
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
@@ -25,7 +25,7 @@ const prCommentsGraph = async function getPrCommentsGraph(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error({ message: "prCommentsGraph.error", error: e, requestId });
+    logger.error({ message: 'prCommentsGraph.error', error: e, requestId });
     throw new Error(`Something went wrong: ${e}`);
   }
 };

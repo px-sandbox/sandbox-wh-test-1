@@ -131,6 +131,9 @@ importers:
       '@elastic/elasticsearch':
         specifier: 7.13.0
         version: 7.13.0
+      abstraction:
+        specifier: workspace:^1.0.0
+        version: link:../../abstraction
       aws-sdk:
         specifier: ^2.1444.0
         version: 2.1444.0

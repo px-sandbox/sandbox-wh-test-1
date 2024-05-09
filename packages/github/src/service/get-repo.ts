@@ -54,7 +54,7 @@ async function fetchReposData(
 const gitRepos = async function getRepoData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  const requestId = event.requestContext.requestId;
+  const { requestId } = event.requestContext;
   const gitRepoName: string = event?.queryStringParameters?.search ?? '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
   const page = Number(event?.queryStringParameters?.page ?? 1);
@@ -65,7 +65,7 @@ const gitRepos = async function getRepoData(
 
     logger.info({ message: 'github repo data', data: response, requestId });
   } catch (error) {
-    logger.error({ message: "GET_GITHUB_REPO_DETAILS", error, requestId });
+    logger.error({ message: 'GET_GITHUB_REPO_DETAILS', error, requestId });
   }
   let body = null;
   const { '200': ok, '404': notFound } = HttpStatusCode;

@@ -4,12 +4,12 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { OctokitResponse } from '@octokit/types';
 import { v4 as uuid } from 'uuid';
+import { logProcessToRetry } from 'rp';
+import { Other } from 'abstraction';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
-import { logProcessToRetry } from 'rp';
-import { Other } from 'abstraction';
 
 const sqsClient = SQSClient.getInstance();
 const installationAccessToken = await getInstallationAccessToken();

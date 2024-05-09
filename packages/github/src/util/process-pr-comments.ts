@@ -17,7 +17,7 @@ export async function processPRComments(
     const nextLinkRegex = /<([^>]+)>;\s*rel="next"/;
     const nextLinkMatch = nextLink?.match(nextLinkRegex);
     if (!nextLinkMatch) {
-      logger.info({ message: 'PR_REVIEW_COMMENTS_LEN', data:  commentLengths });
+      logger.info({ message: 'PR_REVIEW_COMMENTS_LEN', data: commentLengths });
       return commentLengths;
     }
     return processPRComments(owner, repo, pullNumber, octokit, commentLengths, nextLinkMatch[1]);

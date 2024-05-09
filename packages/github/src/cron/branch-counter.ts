@@ -35,9 +35,9 @@ const getRepos = async (
 // get all repos from ES which are not deleted and send to SQS
 async function getReposAndSendToSQS(
   currentDate: string,
+  requestId: string,
   pageNo = 1,
-  perPage = 100,
-  requestId: string
+  perPage = 100
 ): Promise<number> {
   try {
     const repos = await getRepos(pageNo, perPage);
@@ -46,7 +46,7 @@ async function getReposAndSendToSQS(
         if (repo) {
           return sqsClient.sendMessage(
             {
-              repo: repo,
+              repo,
               date: currentDate,
             },
             Queue.qGhActiveBranchCounterFormat.queueUrl,
@@ -65,7 +65,7 @@ async function getReposAndSendToSQS(
 }
 
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
-  const requestId = event.requestContext.requestId;
+  const requestId = event?.requestContext?.requestId;
   try {
     const today =
       event && event.queryStringParameters?.date
@@ -77,7 +77,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     const perPage = 100;
     do {
       // eslint-disable-next-line no-await-in-loop
-      processingCount = await getReposAndSendToSQS(today, pageNo, perPage, requestId);
+      processingCount = await getReposAndSendToSQS(today, requestId, pageNo, perPage);
       logger.info({ message: 'processingCount', data: processingCount, requestId });
       pageNo += 1;
     } while (processingCount === perPage);

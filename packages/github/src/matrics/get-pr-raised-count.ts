@@ -27,23 +27,36 @@ const getGraphQuery = (
   const graphIntervals = processGraphInterval(intervals, startDate, endDate);
   numberOfPrRaisedGraphQuery.agg(graphIntervals).toJSON();
 
-  logger.info({ message: 'NUMBER_OF_PR_RAISED_GRAPH_ESB_QUERY', data: JSON.stringify(numberOfPrRaisedGraphQuery), requestId});
+  logger.info({
+    message: 'NUMBER_OF_PR_RAISED_GRAPH_ESB_QUERY',
+    data: JSON.stringify(numberOfPrRaisedGraphQuery),
+    requestId,
+  });
   return numberOfPrRaisedGraphQuery;
 };
-const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[], requestId:string):object => {
- const query = esb
-   .requestBodySearch()
-   .query(
-     esb
-       .boolQuery()
-       .must([
-         esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-         esb.termsQuery('body.repoId', repoIds),
-       ])
-   )
-   .size(0)
-   .toJSON() as { query: object };
-  logger.info({ message: 'NUMBER_OF_PR_RAISED_AVG_ESB_QUERY', data: JSON.stringify(query), requestId});
+const getHeadlineQuery = (
+  startDate: string,
+  endDate: string,
+  repoIds: string[],
+  requestId: string
+): object => {
+  const query = esb
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
+          esb.termsQuery('body.repoId', repoIds),
+        ])
+    )
+    .size(0)
+    .toJSON() as { query: object };
+  logger.info({
+    message: 'NUMBER_OF_PR_RAISED_AVG_ESB_QUERY',
+    data: JSON.stringify(query),
+    requestId,
+  });
   return query;
 };
 export async function numberOfPrRaisedGraph(
@@ -54,7 +67,13 @@ export async function numberOfPrRaisedGraph(
   requestId: string
 ): Promise<GraphResponse[]> {
   try {
-    const numberOfPrRaisedGraphQuery = getGraphQuery(startDate, endDate, intervals, repoIds, requestId); 
+    const numberOfPrRaisedGraphQuery = getGraphQuery(
+      startDate,
+      endDate,
+      intervals,
+      repoIds,
+      requestId
+    );
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitPull,
@@ -77,11 +96,8 @@ export async function numberOfPrRaisedAvg(
   requestId: string
 ): Promise<{ value: number } | null> {
   try {
-    const query = getHeadlineQuery(startDate, endDate, repoIds,requestId);
-    const data:HitBody = await esClientObj.search(
-      Github.Enums.IndexName.GitPull,
-      query
-    )
+    const query = getHeadlineQuery(startDate, endDate, repoIds, requestId);
+    const data: HitBody = await esClientObj.search(Github.Enums.IndexName.GitPull, query);
     const totalDoc = data.hits.total.value;
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
     return { value: totalDoc / weekDaysCount };

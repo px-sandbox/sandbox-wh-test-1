@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';

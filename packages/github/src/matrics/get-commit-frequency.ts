@@ -15,7 +15,7 @@ const getGraphDataQuery = (
   intervals: string,
   repoIds: string[],
   requestId: string
-):object => {
+): object => {
   const frquencyOfCodeCommitGraphQuery = esb.requestBodySearch().size(0);
   frquencyOfCodeCommitGraphQuery.query(
     esb
@@ -31,11 +31,20 @@ const getGraphDataQuery = (
 
   frquencyOfCodeCommitGraphQuery.agg(graphIntervals).toJSON();
 
-  logger.info({ message: 'FREQUENCY_CODE_COMMIT_GRAPH_ESB_QUERY', data: JSON.stringify(frquencyOfCodeCommitGraphQuery), requestId });
+  logger.info({
+    message: 'FREQUENCY_CODE_COMMIT_GRAPH_ESB_QUERY',
+    data: JSON.stringify(frquencyOfCodeCommitGraphQuery),
+    requestId,
+  });
   return frquencyOfCodeCommitGraphQuery;
-}; 
-const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[], requestId:string):object => {
-  const query  = esb
+};
+const getHeadlineQuery = (
+  startDate: string,
+  endDate: string,
+  repoIds: string[],
+  requestId: string
+): object => {
+  const query = esb
     .requestBodySearch()
     .size(0)
     .query(
@@ -48,7 +57,11 @@ const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[],
         ])
     )
     .toJSON();
-  logger.info({ message: 'FREQUENCY_CODE_COMMIT_AVG_ESB_QUERY', data: JSON.stringify(query), requestId });
+  logger.info({
+    message: 'FREQUENCY_CODE_COMMIT_AVG_ESB_QUERY',
+    data: JSON.stringify(query),
+    requestId,
+  });
   return query;
 };
 export async function frequencyOfCodeCommitGraph(
@@ -58,8 +71,14 @@ export async function frequencyOfCodeCommitGraph(
   repoIds: string[],
   requestId: string
 ): Promise<GraphResponse[]> {
-  try { 
-    const frquencyOfCodeCommitGraphQuery = getGraphDataQuery( startDate, endDate, intervals, repoIds, requestId);  
+  try {
+    const frquencyOfCodeCommitGraphQuery = getGraphDataQuery(
+      startDate,
+      endDate,
+      intervals,
+      repoIds,
+      requestId
+    );
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitCommits,
@@ -83,11 +102,8 @@ export async function frequencyOfCodeCommitAvg(
 ): Promise<{ value: number } | null> {
   try {
     const query = await getHeadlineQuery(startDate, endDate, repoIds, requestId);
-    const data:HitBody = await esClientObj.search(
-       Github.Enums.IndexName.GitCommits,
-      query
-    );
-      
+    const data: HitBody = await esClientObj.search(Github.Enums.IndexName.GitCommits, query);
+
     const totalDoc = data.hits.total.value;
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
     return { value: parseFloat((totalDoc / weekDaysCount).toFixed(2)) };

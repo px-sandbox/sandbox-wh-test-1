@@ -48,7 +48,7 @@ export async function saveBoardDetails(
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.Board, updatedData);
     logger.info({ requestId, resourceId, message: 'saveBoardDetails.successful' });
-    await deleteProcessfromDdb(processId);
+    await deleteProcessfromDdb(processId, reqCtx);
   } catch (error: unknown) {
     logger.error({ requestId, resourceId, message: 'saveBoardDetails.error', error });
     throw error;

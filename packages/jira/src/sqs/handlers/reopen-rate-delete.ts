@@ -6,10 +6,10 @@ import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import esb from 'elastic-builder';
+import { logProcessToRetry } from 'rp';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { mappingPrefixes } from '../../constant/config';
 import { getReopenRateDataByIssueId } from '../../repository/issue/get-issue';
-import { logProcessToRetry } from 'rp';
 
 const esClientObj = ElasticSearchClient.getInstance();
 

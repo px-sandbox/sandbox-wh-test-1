@@ -14,9 +14,9 @@ const getRepo = async (repo: string): Promise<any> => {
   const data = await esClientObj.search(Github.Enums.IndexName.GitRepo, query);
   const [repoData] = await searchedDataFormator(data);
   return repoData;
-}
+};
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const requestId = event.requestContext.requestId;
+  const { requestId } = event.requestContext;
   const historyType = event?.queryStringParameters?.type || '';
   const repo = event?.queryStringParameters?.repo || '';
   const branch = event?.queryStringParameters?.branch || '';
@@ -37,7 +37,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       await sqsClient.sendMessage(repoData, queueUrl, { requestId, resourceId });
     }
   } catch (error) {
-    logger.error({ message: "HISTORY_DATA_ERROR", error, requestId });
+    logger.error({ message: 'HISTORY_DATA_ERROR', error, requestId });
   }
   return responseParser
     .setBody('DONE')

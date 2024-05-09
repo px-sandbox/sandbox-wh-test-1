@@ -3,12 +3,11 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { deleteProcessfromDdb } from '../../util/delete-process';
+import { deleteProcessfromDdb } from 'rp';
 import {
   searchedDataFormator,
   searchedDataFormatorWithDeleted,
 } from '../../util/response-formatter';
-import { deleteProcessfromDdb } from 'rp';
 
 /**
  * Updates data in ElasticSearch index based on the provided matchField and matchValue.
@@ -131,7 +130,7 @@ export async function saveProjectDetails(
       ]);
     }
     logger.info({ requestId, resourceId, message: 'saveProjectDetails.successful' });
-    await deleteProcessfromDdb(processId);
+    await deleteProcessfromDdb(processId, reqCtx);
   } catch (error: unknown) {
     logger.error({ requestId, resourceId, message: 'saveProjectDetails.error', error });
     throw error;

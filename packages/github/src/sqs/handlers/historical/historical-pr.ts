@@ -1,13 +1,14 @@
+/* eslint-disable max-lines-per-function */
 import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { OctokitResponse } from '@octokit/types';
+import { logProcessToRetry } from 'rp';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
-import { logProcessToRetry } from 'rp';
 
 const installationAccessToken = await getInstallationAccessToken();
 const octokit = ghRequest.request.defaults({

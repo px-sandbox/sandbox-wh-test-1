@@ -80,7 +80,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
         },
       });
     } catch (err) {
-      logger.error('updateDocument.error : ', { err });
+      logger.error({ message: 'updateDocument.error : ', error: err });
       throw err;
     }
   }

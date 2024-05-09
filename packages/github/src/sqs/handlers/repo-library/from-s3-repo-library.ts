@@ -2,9 +2,9 @@ import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { logProcessToRetry } from 'rp';
 import { fetchDataFromS3 } from '../../../processors/repo-sast-errors';
 import { repoLibHelper } from '../../../service/repo-library/repo-library-helper';
-import { logProcessToRetry } from 'rp';
 
 export const handler = async function repoLibS3(event: SQSEvent): Promise<void> {
   logger.info({ message: 'Records Length', data: JSON.stringify(event.Records.length) });
@@ -35,7 +35,7 @@ export const handler = async function repoLibS3(event: SQSEvent): Promise<void> 
         }
       } catch (error) {
         await logProcessToRetry(record, Queue.qRepoLibS3.queueUrl, error as Error);
-        console.log(`repoLibS3DataReceiver.error, ${error}`);
+
         logger.error({
           message: 'repoLibS3DataReceiver.error',
           error,

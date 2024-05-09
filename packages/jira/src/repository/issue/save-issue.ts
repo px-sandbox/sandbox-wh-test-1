@@ -2,9 +2,8 @@ import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
-import { deleteProcessfromDdb } from '../../util/delete-process';
-import { searchedDataFormator } from '../../util/response-formatter';
 import { deleteProcessfromDdb } from 'rp';
+import { searchedDataFormator } from '../../util/response-formatter';
 /**
  * Saves the details of a Jira issue to DynamoDB and Elasticsearch.
  * @param data The issue data to be saved.
@@ -39,7 +38,7 @@ export async function saveIssueDetails(
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.Issue, updatedData);
     logger.info({ requestId, resourceId, message: 'saveIssueDetails.successful' });
-    await deleteProcessfromDdb(processId);
+    await deleteProcessfromDdb(processId, reqCtx);
   } catch (error: unknown) {
     logger.error({ requestId, resourceId, message: `saveIssueDetails.error: ${error}` });
     throw error;

@@ -1,7 +1,6 @@
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import moment from 'moment';
-import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
@@ -10,7 +9,11 @@ export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
   Github.Type.PullRequest
 > {
-  constructor(data: Github.ExternalType.Webhook.PullRequest, requestId: string, resourceId: string) {
+  constructor(
+    data: Github.ExternalType.Webhook.PullRequest,
+    requestId: string,
+    resourceId: string
+  ) {
     super(data, requestId, resourceId);
   }
 
@@ -71,7 +74,7 @@ export class PRProcessor extends DataProcessor<
         deletions: this.ghApiData.deletions,
         changedFiles: this.ghApiData.changed_files,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.head.repo.id}`,
-        organizationId: `${mappingPrefixes.organization}_${this.ghApiData.head.repo.owner.id}`, 
+        organizationId: `${mappingPrefixes.organization}_${this.ghApiData.head.repo.owner.id}`,
         action,
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
@@ -164,7 +167,7 @@ export class PRProcessor extends DataProcessor<
       const pullObj = await this.setPullObj(parentId, reqReviewersData, labelsData, action);
       return pullObj;
     } catch (error) {
-      logger.error({ message: "PRProcessor.processor.error", error });
+      logger.error({ message: 'PRProcessor.processor.error', error });
       throw error;
     }
   }

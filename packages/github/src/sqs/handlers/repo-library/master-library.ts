@@ -3,8 +3,8 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import axios from 'axios';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { getNodeLibInfo } from '../../../util/node-library-info';
 import { logProcessToRetry } from 'rp';
+import { getNodeLibInfo } from '../../../util/node-library-info';
 
 const sqsClient = SQSClient.getInstance();
 export const handler = async function masterLibrary(event: SQSEvent): Promise<void> {

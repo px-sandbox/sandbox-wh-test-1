@@ -1,7 +1,6 @@
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import moment from 'moment';
-import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
@@ -28,7 +27,8 @@ export class RepositoryProcessor extends DataProcessor<
       },
     ];
     if (!parentId && this.ghApiData?.action !== Github.Enums.Repo.Created) {
-      logger.error({ message: 'REPOSITORY_PROCESSOR_ERROR', 
+      logger.error({
+        message: 'REPOSITORY_PROCESSOR_ERROR',
         error: 'Repository not found',
         data: this.ghApiData,
         requestId: this.requestId,

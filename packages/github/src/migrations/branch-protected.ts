@@ -8,7 +8,7 @@ import { getBranches } from '../lib/get-branch-list';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
-const getReposFromES = async (requestId:string): Promise<any> => {
+const getReposFromES = async (requestId: string): Promise<any> => {
   let reposFormatData;
   try {
     const reposData = [];
@@ -31,7 +31,10 @@ const getReposFromES = async (requestId:string): Promise<any> => {
       from += size;
 
       const getBranchesPromises = reposData.map((repoData) =>
-        getBranches(repoData.githubRepoId, repoData.name, repoData.owner, { requestId , resourceId: repoData.name   })
+        getBranches(repoData.githubRepoId, repoData.name, repoData.owner, {
+          requestId,
+          resourceId: repoData.name,
+        })
       );
       await Promise.all(getBranchesPromises);
     } while (reposFormatData.length === size);
@@ -44,7 +47,7 @@ const getReposFromES = async (requestId:string): Promise<any> => {
 };
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const requestId = event.requestContext.requestId;
+  const { requestId } = event.requestContext;
   const repos = await getReposFromES(requestId);
   return responseParser
     .setBody({ headline: repos })

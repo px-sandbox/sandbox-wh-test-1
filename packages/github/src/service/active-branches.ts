@@ -7,7 +7,7 @@ import { prCommentsGraphSchema } from './validations';
 const activeBranches = async function getActiveBranches(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  const requestId = event.requestContext.requestId;
+  const { requestId } = event.requestContext;
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
@@ -25,7 +25,7 @@ const activeBranches = async function getActiveBranches(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error({ message: "active_branches.error", error: e, requestId });
+    logger.error({ message: 'active_branches.error', error: e, requestId });
     throw new Error(`Something went wrong: ${e}`);
   }
 };

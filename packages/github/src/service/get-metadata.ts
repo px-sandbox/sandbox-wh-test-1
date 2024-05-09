@@ -9,7 +9,7 @@ import { getInstallationAccessToken } from '../util/installation-access-token';
 import { ghRequest } from '../lib/request-default';
 
 const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const requestId = event.requestContext.requestId;
+  const { requestId } = event.requestContext;
   const organizationName: string = event?.queryStringParameters?.orgName || '';
   const installationAccessToken = await getInstallationAccessToken();
   const octokit = ghRequest.request.defaults({
@@ -19,7 +19,7 @@ const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
   });
   const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 
-  logger.info({message: 'getAllMetadata.invoked', data: organizationName , requestId });
+  logger.info({ message: 'getAllMetadata.invoked', data: organizationName, requestId });
   await createAllIndices();
   logger.info({ message: 'AllIndices.created', requestId });
   const organization = await fetchAndSaveOrganizationDetails(

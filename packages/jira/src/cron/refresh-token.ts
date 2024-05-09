@@ -15,7 +15,7 @@ export async function updateRefreshToken(): Promise<APIGatewayProxyResult> {
   const data = await ddbClient.scan({
     TableName: Table.jiraCreds.tableName,
   });
-  const items = data.Items ? data.Items : [] as { id: string; refresh_token: string }[]
+  const items = data.Items ? data.Items : ([] as { id: string; refresh_token: string }[]);
   const ddbResp = items.map((item): { credId: string; refreshToken: string } => ({
     credId: item.id,
     refreshToken: item.refresh_token,
