@@ -21,14 +21,18 @@ export async function pROnQueue(
     let reviewSeconds = 0;
     const [pullData] = await getPullRequestById(pull.id);
     logger.info({
-      message: 'ES : PR Data ',
+      message: 'pROnQueue.info ES : PR Data ',
       data: pullData,
       requestId,
       resourceId: String(pull.id),
     });
     if (pullData) {
       if (action === Github.Enums.PullRequest.Opened) {
-        logger.info({ message: 'PR already exist', requestId, resourceId: String(pull.id) });
+        logger.info({
+          message: 'pROnQueue.info PR already exist',
+          requestId,
+          resourceId: String(pull.id),
+        });
         return;
       }
       if (pullData.reviewedAt) {
@@ -68,7 +72,12 @@ export async function pROnQueue(
       uuid()
     );
   } catch (error: unknown) {
-    logger.error({ message: 'Error in pROnQueue', requestId, resourceId: String(pull.id), error });
+    logger.error({
+      message: 'pROnQueue.Error in pROnQueue',
+      requestId,
+      resourceId: String(pull.id),
+      error,
+    });
     throw error;
   }
 }

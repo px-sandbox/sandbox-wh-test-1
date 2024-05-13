@@ -28,7 +28,7 @@ export class RepositoryProcessor extends DataProcessor<
     ];
     if (!parentId && this.ghApiData?.action !== Github.Enums.Repo.Created) {
       logger.error({
-        message: 'REPOSITORY_PROCESSOR_ERROR',
+        message: 'RepositoryProcessor.error',
         error: 'Repository not found',
         data: this.ghApiData,
         requestId: this.requestId,

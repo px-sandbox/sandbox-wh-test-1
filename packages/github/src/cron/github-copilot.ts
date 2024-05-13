@@ -40,7 +40,10 @@ async function getGHCopilotReports(
   counter = 0
 ): Promise<number> {
   try {
-    logger.info({ message: 'Github Copilot invoked at', data: new Date().toISOString() });
+    logger.info({
+      message: 'getGHCopilotReports.info: Github Copilot invoked at',
+      data: new Date().toISOString(),
+    });
     const perPage = 100; // max allowed by github
     const org = Github.Enums.OrgConst.SG;
     const ghCopilotResp = await octokit(
@@ -79,7 +82,7 @@ async function getGHCopilotReports(
       const resetTime = new Date(parseInt(error.headers['X-Ratelimit-Reset'], 10) * 1000);
       const secondsUntilReset = Math.max(resetTime.getTime() - Date.now(), 0) / 1000;
       logger.info({
-        message: 'Github API rate limit exceeded. Waiting until reset',
+        message: 'getGHCopilotReports.info: Github API rate limit exceeded. Waiting until reset',
         data: secondsUntilReset,
         requestId,
       });

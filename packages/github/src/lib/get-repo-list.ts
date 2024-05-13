@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { OctokitResponse, RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
@@ -21,7 +22,11 @@ async function getReposList(
   counter = 0
 ): Promise<number> {
   try {
-    logger.info({ message: 'getReposList.invoked', data: { organizationName, page, counter } , requestId });
+    logger.info({
+      message: 'getReposList.invoked',
+      data: { organizationName, page, counter },
+      requestId,
+    });
     const perPage = 100;
 
     const responseData = await octokit(
@@ -31,7 +36,9 @@ async function getReposList(
     const newCounter = counter + reposPerPage.length;
 
     await Promise.all(
-      reposPerPage.map(async (repo) => sqsClient.sendMessage(repo, Queue.qGhRepoFormat.queueUrl, { requestId }))
+      reposPerPage.map(async (repo) =>
+        sqsClient.sendMessage(repo, Queue.qGhRepoFormat.queueUrl, { requestId })
+      )
     );
 
     if (reposPerPage.length < perPage) {
@@ -42,12 +49,16 @@ async function getReposList(
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.error({message: 'getReposList.error', data: {
-      organizationName,
-      page,
-      counter,
-    }, error, requestId
-});
+    logger.error({
+      message: 'getReposList.error',
+      data: {
+        organizationName,
+        page,
+        counter,
+      },
+      error,
+      requestId,
+    });
     if (error.status === 401) {
       const {
         body: { token },
@@ -59,7 +70,7 @@ async function getReposList(
         },
       });
       const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokitObj);
-      return getReposList(octokitRequestWithTimeout, organizationName, requestId,page, counter);
+      return getReposList(octokitRequestWithTimeout, organizationName, requestId, page, counter);
     }
     throw error;
   }

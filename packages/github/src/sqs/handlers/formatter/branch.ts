@@ -10,7 +10,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   } = JSON.parse(record.body);
   try {
     logger.info({
-      message: 'BRANCH_SQS_RECEIVER_HANDLER',
+      message: 'processAndStoreSQSRecord.info: BRANCH_SQS_RECEIVER_HANDLER',
       data: messageBody,
       requestId,
       resourceId,

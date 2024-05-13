@@ -97,7 +97,7 @@ export async function prCommentsDetailMetrics(
     const response = await searchedDataFormator(unformattedData);
 
     logger.info({
-      message: 'PR-Comment-Detail-Pull-Requests',
+      message: 'prCommentsDetailMetrics.info: PR-Comment-Detail-Pull-Requests',
       data: JSON.stringify(response),
       requestId,
     });
@@ -106,7 +106,7 @@ export async function prCommentsDetailMetrics(
     const { repoNames, orgname } = await getRepoNamesAndOrg(repoIds, orgId);
 
     logger.info({
-      message: 'PR-Comment-Detail-Repo-Names',
+      message: 'prCommentsDetailMetrics.info: PR-Comment-Detail-Repo-Names',
       data: JSON.stringify(repoNames),
       requestId,
     });
@@ -132,7 +132,11 @@ export async function prCommentsDetailMetrics(
       data: finalResponse,
     };
   } catch (e) {
-    logger.error({ message: 'Get PR Comment Detail.Error', error: e, requestId });
-    throw new Error(`Get PR Comment Detail.Error: ${e}`);
+    logger.error({
+      message: 'prCommentsDetailMetrics.error: Get PR Comment Detail.Error',
+      error: e,
+      requestId,
+    });
+    throw new Error(`prCommentsDetailMetrics.error: Get PR Comment Detail.Error: ${e}`);
   }
 }

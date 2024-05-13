@@ -48,7 +48,7 @@ export async function getCommits(
       ]);
     }
   } catch (error: unknown) {
-    logger.error({ message: 'Error in getCommits', requestId, error });
+    logger.error({ message: 'getCommits.error in getCommits', requestId, error });
     throw error;
   }
 }

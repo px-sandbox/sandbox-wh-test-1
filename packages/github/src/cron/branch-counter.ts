@@ -78,7 +78,11 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     do {
       // eslint-disable-next-line no-await-in-loop
       processingCount = await getReposAndSendToSQS(today, requestId, pageNo, perPage);
-      logger.info({ message: 'processingCount', data: processingCount, requestId });
+      logger.info({
+        message: 'getReposAndSendToSQS.handler.processingCount',
+        data: processingCount,
+        requestId,
+      });
       pageNo += 1;
     } while (processingCount === perPage);
 

@@ -38,7 +38,7 @@ const getGraphData = (
     .toJSON();
 
   logger.info({
-    message: 'PR_WAIT_TIME_DETAILS_GRAPH_ESB_QUERY',
+    message: 'getGraphData.info: PR_WAIT_TIME_DETAILS_GRAPH_ESB_QUERY',
     data: JSON.stringify(query),
     requestId,
   });

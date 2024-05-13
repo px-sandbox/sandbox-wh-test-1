@@ -42,10 +42,19 @@ const getGraphData = (
     )
     .toJSON();
 
-  logger.info({ message: 'PR_WAIT_TIME_GRAPH_ESB_QUERY', data: JSON.stringify(prWaitTimeGraphQuery), requestId });
+  logger.info({
+    message: 'getGraphData.info: PR_WAIT_TIME_GRAPH_ESB_QUERY',
+    data: JSON.stringify(prWaitTimeGraphQuery),
+    requestId,
+  });
   return prWaitTimeGraphQuery;
 };
-const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[], requestId:string): object => {
+const getHeadlineQuery = (
+  startDate: string,
+  endDate: string,
+  repoIds: string[],
+  requestId: string
+): object => {
   const prWaitTimeAvgQuery = esb.requestBodySearch().size(0);
   prWaitTimeAvgQuery
     .query(
@@ -60,7 +69,11 @@ const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[],
     .agg(esb.valueCountAggregation('pr_count', 'body.githubPullId'))
     .size(0)
     .toJSON();
-  logger.info({ message: 'NUMBER_OF_PR_WAIT_TIME_AVG_ESB_QUERY', data: JSON.stringify(prWaitTimeAvgQuery), requestId });
+  logger.info({
+    message: 'getHeadlineQuery.info: NUMBER_OF_PR_WAIT_TIME_AVG_ESB_QUERY',
+    data: JSON.stringify(prWaitTimeAvgQuery),
+    requestId,
+  });
   return prWaitTimeAvgQuery;
 };
 

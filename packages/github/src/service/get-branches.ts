@@ -22,14 +22,17 @@ async function fetchBranchesData(repoIds: string[]): Promise<string[]> {
     )
     .toJSON();
 
-  logger.info({ message: 'GET_GITHUB_BRANCH_DETAILS: will now fetch data from ES' });
+  logger.info({
+    message: 'fetchBranchesData.info: GET_GITHUB_BRANCH_DETAILS: will now fetch data from ES',
+  });
   const branches = await esClient.search(Github.Enums.IndexName.GitBranch, query);
 
   const formattedData = await searchedDataFormator(branches);
 
   if (!formattedData.length) {
     logger.info({
-      message: 'GET_GITHUB_BRANCH_DETAILS: No branches data found in ES for given repoIds',
+      message:
+        'fetchBranchesData.info: GET_GITHUB_BRANCH_DETAILS: No branches data found in ES for given repoIds',
     });
     return [];
   }
@@ -38,7 +41,8 @@ async function fetchBranchesData(repoIds: string[]): Promise<string[]> {
     (data: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody) => data.name
   );
   logger.info({
-    message: 'GET_GITHUB_BRANCH_DETAILS: branches data found in ES for given repoIds',
+    message:
+      'fetchBranchesData.info: GET_GITHUB_BRANCH_DETAILS: branches data found in ES for given repoIds',
     data: {
       branchesArr,
     },
@@ -60,7 +64,10 @@ const gitBranches = async function getBranchesData(
 
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
   if (repoIds.length <= 0) {
-    logger.error({ message: 'repoIds is empty but they are required', data: repoIds });
+    logger.error({
+      message: 'gitBranches.error: repoIds is empty but they are required',
+      data: repoIds,
+    });
     throw new Error('RepoIds are required');
   }
 
@@ -75,7 +82,7 @@ const gitBranches = async function getBranchesData(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (error) {
-    logger.error({ message: 'GET_GITHUB_BRANCH_DETAILS', error });
+    logger.error({ message: 'gitBranches.error: GET_GITHUB_BRANCH_DETAILS', error });
     throw error;
   }
 };

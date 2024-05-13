@@ -43,7 +43,7 @@ const getGraphDataQuery = (
     .toJSON();
 
   logger.info({
-    message: 'PR_COMMENT_GRAPH_ESB_QUERY',
+    message: 'getGraphDataQuery.info: PR_COMMENT_GRAPH_ESB_QUERY',
     data: JSON.stringify(prCommentGraphQuery),
     requestId,
   });
@@ -142,7 +142,7 @@ export async function prCommentsAvg(
   try {
     const prCommentAvgQuery = getHealineQuery(startDate, endDate, repoIds);
     logger.info({
-      message: 'PR_COMMENT_AVG_ESB_QUERY',
+      message: 'prCommentsAvg.info',
       data: JSON.stringify(prCommentAvgQuery),
       requestId,
     });

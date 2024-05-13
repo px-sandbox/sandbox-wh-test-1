@@ -25,7 +25,7 @@ const prWaitTimeGraph = async function getPrWaitTimeGraph(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error({ message: 'prWaitTimeGraph', error: e, requestId });
+    logger.error({ message: 'prWaitTimeGraph.error', error: e, requestId });
     throw new Error(`Something went wrong: ${e}`);
   }
 };

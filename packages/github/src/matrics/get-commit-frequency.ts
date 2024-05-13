@@ -32,7 +32,7 @@ const getGraphDataQuery = (
   frquencyOfCodeCommitGraphQuery.agg(graphIntervals).toJSON();
 
   logger.info({
-    message: 'FREQUENCY_CODE_COMMIT_GRAPH_ESB_QUERY',
+    message: 'getGraphDataQuery.info FREQUENCY_CODE_COMMIT_GRAPH_ESB_QUERY',
     data: JSON.stringify(frquencyOfCodeCommitGraphQuery),
     requestId,
   });
@@ -58,7 +58,7 @@ const getHeadlineQuery = (
     )
     .toJSON();
   logger.info({
-    message: 'FREQUENCY_CODE_COMMIT_AVG_ESB_QUERY',
+    message: 'getHeadlineQuery.info FREQUENCY_CODE_COMMIT_AVG_ESB_QUERY',
     data: JSON.stringify(query),
     requestId,
   });

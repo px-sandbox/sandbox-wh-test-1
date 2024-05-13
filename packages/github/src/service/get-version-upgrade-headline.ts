@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable no-await-in-loop */
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
@@ -117,12 +118,16 @@ const getLibFromES = async (
         .size(size)
         .toJSON();
 
-      logger.info({ message: 'ES-Query', data: JSON.stringify(query), requestId });
+      logger.info({
+        message: 'getLibFromES.info: ES-Query',
+        data: JSON.stringify(query),
+        requestId,
+      });
 
       const esLibData = await esClientObj.search(Github.Enums.IndexName.GitRepoLibrary, query);
 
       logger.info({
-        message: 'getLibFromES - ES Query result',
+        message: 'getLibFromES.info: ES Query result',
         data: JSON.stringify(esLibData),
         requestId,
       });

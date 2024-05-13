@@ -57,7 +57,7 @@ export async function pRReviewCommentOnQueue(
     ]);
   } catch (error: unknown) {
     logger.error({
-      message: 'Error in pRReviewCommentOnQueue',
+      message: 'pRReviewCommentOnQueue.Error',
       requestId,
       resourceId: String(pullId),
       error,

@@ -1,5 +1,5 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github, Other } from 'abstraction';
+import { Github } from 'abstraction';
 import { HitBody } from 'abstraction/other/type';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';

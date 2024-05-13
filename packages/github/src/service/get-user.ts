@@ -37,9 +37,9 @@ const githubUser = async function getUserData(
   let response: IformatUserDataResponse[] = [];
   try {
     response = await getGitUser(githubUserId);
-    logger.info({ message: 'github user data', data: response, requestId });
+    logger.info({ message: 'githubUser.info: github user data', data: response, requestId });
   } catch (error) {
-    logger.error({ message: 'GET_GITHUB_USER_DETAILS', error, requestId });
+    logger.error({ message: 'githubUser.error: GET_GITHUB_USER_DETAILS', error, requestId });
   }
   let body = null;
   const { '200': ok, '404': notFound } = HttpStatusCode;

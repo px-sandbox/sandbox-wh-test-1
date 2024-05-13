@@ -22,7 +22,7 @@ export async function savePushDetails(
     const [formattedData] = await searchedDataFormator(pushData);
     if (formattedData) {
       logger.info({
-        message: 'LAST_ACTIONS_PERFORMED',
+        message: 'savePushDetails.info LAST_ACTIONS_PERFORMED',
         data: formattedData.action,
         requestId,
         resourceId,

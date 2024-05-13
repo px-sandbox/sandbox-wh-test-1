@@ -22,7 +22,11 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
   const branch = event?.queryStringParameters?.branch || '';
   try {
     const repoData = await getRepo(repo);
-    logger.info({ message: 'github repo data', data: JSON.stringify(repoData), requestId });
+    logger.info({
+      message: 'collectData.info: github repo data',
+      data: JSON.stringify(repoData),
+      requestId,
+    });
 
     let queueUrl = '';
     if (historyType === 'commits') {
@@ -37,7 +41,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       await sqsClient.sendMessage(repoData, queueUrl, { requestId, resourceId });
     }
   } catch (error) {
-    logger.error({ message: 'HISTORY_DATA_ERROR', error, requestId });
+    logger.error({ message: 'collectData.error: HISTORY_DATA_ERROR', error, requestId });
   }
   return responseParser
     .setBody('DONE')

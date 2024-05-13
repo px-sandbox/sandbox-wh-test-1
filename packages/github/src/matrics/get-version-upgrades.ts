@@ -56,7 +56,11 @@ async function fetchDDRecords(
         results = [...results, ...(data[tableIndex] as Github.Type.LibraryRecord[])];
       }
     } catch (err) {
-      logger.error({ message: 'Error fetching DD record items:', error: err, requestId });
+      logger.error({
+        message: 'fetchDDRecords.Error fetching DD record items:',
+        error: err,
+        requestId,
+      });
     }
   }
   // storing result in key format to optimise search
@@ -230,7 +234,7 @@ export async function getVersionUpgrades(
     return { versionData: paginatedData, totalPages, page };
   } catch (e) {
     logger.error({
-      message: 'versionUpgrade.error: Error while fetching version upgrades',
+      message: 'getVersionUpgrades.error: Error while fetching version upgrades',
       error: e,
       requestId,
     });

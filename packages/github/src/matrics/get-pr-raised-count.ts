@@ -28,7 +28,7 @@ const getGraphQuery = (
   numberOfPrRaisedGraphQuery.agg(graphIntervals).toJSON();
 
   logger.info({
-    message: 'NUMBER_OF_PR_RAISED_GRAPH_ESB_QUERY',
+    message: 'getGraphQuery.info: NUMBER_OF_PR_RAISED_GRAPH_ESB_QUERY',
     data: JSON.stringify(numberOfPrRaisedGraphQuery),
     requestId,
   });
@@ -53,7 +53,7 @@ const getHeadlineQuery = (
     .size(0)
     .toJSON() as { query: object };
   logger.info({
-    message: 'NUMBER_OF_PR_RAISED_AVG_ESB_QUERY',
+    message: 'getHeadlineQuery.info: NUMBER_OF_PR_RAISED_AVG_ESB_QUERY',
     data: JSON.stringify(query),
     requestId,
   });

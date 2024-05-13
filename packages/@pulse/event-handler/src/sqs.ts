@@ -36,7 +36,12 @@ export class SQSClient implements ISQSClient {
       };
       await this.sqs.sendMessage(queueObj);
     } catch (error) {
-      logger.error({ message: 'ERROR_SQS_SEND_MESSAGE', error, data: { queueName }, ...reqCtx });
+      logger.error({
+        message: 'SQSClient.sendFifoMessage.ERROR_SQS_SEND_MESSAGE',
+        error,
+        data: { queueName },
+        ...reqCtx,
+      });
     }
   }
 
@@ -65,7 +70,7 @@ export class SQSClient implements ISQSClient {
     } catch (error) {
       logger.error({
         ...reqCtx,
-        message: 'ERROR_SQS_SEND_MESSAGE',
+        message: 'SQSClient.sendMessage.ERROR_SQS_SEND_MESSAGE',
         error,
         data: queueName,
       });

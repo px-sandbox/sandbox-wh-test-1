@@ -5,7 +5,7 @@ import { getOauthCode } from '../util/jwt-token';
 export async function getOauthToken(): Promise<APIGatewayProxyResult> {
   try {
     const { body } = await getOauthCode();
-    logger.info({ message: 'JWT token created successfully' });
+    logger.info({ message: 'getOauthToken.info: JWT token created successfully' });
     return responseParser
       .setBody({ token: body.token, expiry: body.expiry })
       .setMessage('get JWT token')

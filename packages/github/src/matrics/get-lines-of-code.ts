@@ -56,7 +56,7 @@ const getGraphDataQuery = async (
     )
     .toJSON();
   logger.info({
-    message: 'LINE_OF_CODES_GRAPH_ESB_QUERY',
+    message: 'getGraphDataQuery.info LINE_OF_CODES_GRAPH_ESB_QUERY',
     data: JSON.stringify(linesOfCodeGraphQuery),
     requestId,
   });
@@ -83,7 +83,11 @@ const getHeadlineQuery = async (
     .agg(esb.cardinalityAggregation('authorId', 'body.authorId'))
     .size(0)
     .toJSON();
-  logger.info({ message: 'LINES_OF_CODE_AVG_ESB_QUERY', data: JSON.stringify(query), requestId });
+  logger.info({
+    message: 'getHeadlineQuery.info LINES_OF_CODE_AVG_ESB_QUERY',
+    data: JSON.stringify(query),
+    requestId,
+  });
   return query;
 };
 

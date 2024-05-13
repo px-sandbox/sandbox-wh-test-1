@@ -63,9 +63,9 @@ const gitRepos = async function getRepoData(
   try {
     response = await fetchReposData(repoIds, gitRepoName, requestId, page, size);
 
-    logger.info({ message: 'github repo data', data: response, requestId });
+    logger.info({ message: 'fetchReposData.info: github repo data', data: response, requestId });
   } catch (error) {
-    logger.error({ message: 'GET_GITHUB_REPO_DETAILS', error, requestId });
+    logger.error({ message: 'fetchReposData.error: GET_GITHUB_REPO_DETAILS', error, requestId });
   }
   let body = null;
   const { '200': ok, '404': notFound } = HttpStatusCode;

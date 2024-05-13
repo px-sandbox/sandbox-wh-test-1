@@ -43,7 +43,7 @@ function getEventType(
     }
     return updatedEventType;
   }
-  logger.error({ message: 'Webhook event can not be empty', requestId });
+  logger.error({ message: 'getEventType.error: Webhook event can not be empty', requestId });
   return null;
 }
 async function processRepoEvent(
@@ -118,12 +118,19 @@ async function processOrgEvent(
       break;
     default:
       // handle default case here
-      logger.info({ message: `No case found for ${data.action} in organization event` });
+      logger.info({
+        message: `processOrgEvent.info: No case found for ${data.action} in organization event`,
+      });
       break;
   }
   if (Object.keys(obj).length === 0) return false;
   const resourceId = data.membership.user.login;
-  logger.info({ message: '-------User event --------', data: obj, requestId, resourceId });
+  logger.info({
+    message: 'processOrgEvent.info: -------User event --------',
+    data: obj,
+    requestId,
+    resourceId,
+  });
   await sqsClient.sendMessage(obj, Queue.qGhUsersFormat.queueUrl, { requestId, resourceId });
 }
 async function processCommitEvent(
@@ -201,7 +208,10 @@ async function processWebhookEvent(
       await processPRReviewEvent(data, requestId);
       break;
     default:
-      logger.info({ message: `No case found for ${eventType} in webhook event`, requestId });
+      logger.info({
+        message: `processWebhookEvent.info: No case found for ${eventType} in webhook event`,
+        requestId,
+      });
       break;
   }
 }
@@ -228,8 +238,12 @@ export const webhookData = async function getWebhookData(
   };
   const eventTime = reqContext.timeEpoch;
   const { requestId } = reqContext;
-  logger.info({ message: 'time epoch -------', data: new Date(eventTime), requestId });
-  logger.info({ message: 'method invoked', data: { event }, requestId });
+  logger.info({
+    message: 'webhookData.info: time epoch -------',
+    data: new Date(eventTime),
+    requestId,
+  });
+  logger.info({ message: 'webhookData.info: method invoked', data: { event }, requestId });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payload: any = event.body ?? {};
   const data = JSON.parse(event.body ?? '{}');
@@ -237,14 +251,18 @@ export const webhookData = async function getWebhookData(
   if (!data.organization) return;
 
   const { id: orgId } = data.organization;
-  logger.info({ message: 'Organization : ', data: { login: data.organization.login }, requestId });
+  logger.info({
+    message: 'webhookData.info: Organization : ',
+    data: { login: data.organization.login },
+    requestId,
+  });
   if (orgId !== Number(Config.GIT_ORGANIZATION_ID)) return;
 
   const sig = Buffer.from(event.headers['x-hub-signature-256'] ?? '');
   const hmac = generateHMACToken(payload);
 
   if (sig.length !== hmac.length || !crypto.timingSafeEqual(hmac, sig)) {
-    logger.error({ message: 'Webhook request not validated', requestId });
+    logger.error({ message: 'webhookData.error: Webhook request not validated', requestId });
     return {
       statusCode: 403,
       body: 'Permission Denied',
@@ -262,7 +280,11 @@ export const webhookData = async function getWebhookData(
     };
   }
 
-  logger.info({ message: 'REQUEST CONTEXT---------', data: event.requestContext, requestId });
+  logger.info({
+    message: 'webhookData.info: REQUEST CONTEXT---------',
+    data: event.requestContext,
+    requestId,
+  });
 
   await processWebhookEvent(eventType, data, eventTime, event, requestId);
 };

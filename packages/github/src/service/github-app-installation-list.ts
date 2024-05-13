@@ -19,7 +19,9 @@ export const getGitAppInstallations =
       const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
       const installation = await octokitRequestWithTimeout('GET /app/installations');
 
-      logger.info({ message: 'Get list of all installations of github app' });
+      logger.info({
+        message: 'getGitAppInstallations.info: Get list of all installations of github app',
+      });
 
       return responseParser
         .setBody(installation.data)

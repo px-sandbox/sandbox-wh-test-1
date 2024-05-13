@@ -85,7 +85,10 @@ export class PRProcessor extends DataProcessor<
   }
   private async isPRExist(): Promise<boolean> {
     const pull = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
-    logger.info({ message: 'PULL REQUEST ID : ', data: this.ghApiData.id });
+    logger.info({
+      message: 'PRProcessor.setPullObj.info: PULL REQUEST ID : ',
+      data: this.ghApiData.id,
+    });
     if (pull) {
       return true;
     }
@@ -118,13 +121,19 @@ export class PRProcessor extends DataProcessor<
         {
           const pr = await this.isPRExist();
           if (!pr) {
-            logger.info({ message: 'PR_NOT_FOUND', data: this.ghApiData.id });
+            logger.error({
+              message: 'PRProcessor.processPRAction.error PR_NOT_FOUND',
+              data: this.ghApiData.id,
+            });
             throw new Error('PR_NOT_FOUND');
           }
         }
         break;
       default:
-        logger.info({ message: 'PROCESS_NEW_PR', data: this.ghApiData.id });
+        logger.info({
+          message: 'PRProcessor.processPRAction.info: PROCESS_NEW_PR',
+          data: this.ghApiData.id,
+        });
         break;
     }
   }
@@ -146,7 +155,7 @@ export class PRProcessor extends DataProcessor<
       let parentId = await this.getParentId(githubId);
       if (!parentId && this.ghApiData.action !== Github.Enums.PullRequest.Opened) {
         throw new Error(
-          `pr_not_found_for_event: id:${this.ghApiData.id}, 
+          `PRProcessor.pr_not_found_for_event.error: id:${this.ghApiData.id}, 
           repoId:${this.ghApiData.head.repo.id}, 
           action:${this.ghApiData.action}`
         );

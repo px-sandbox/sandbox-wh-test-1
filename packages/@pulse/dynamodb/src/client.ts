@@ -29,12 +29,12 @@ const translateConfig = {
 };
 
 export class DynamoDbDocClient implements IDynmoDbDocClient {
-  private ddbDocClient: DynamoDBDocumentClient;
+  public ddbDocClient: DynamoDBDocumentClient;
 
-  private dynamoDbLocalURL = 'http://localhost:8000';
-  private region = process.env.AWS_REGION;
+  public dynamoDbLocalURL = 'http://localhost:8000';
+  public region = process.env.AWS_REGION;
   // eslint-disable-next-line no-use-before-define
-  private static instance: DynamoDbDocClient;
+  private static instance: IDynmoDbDocClient;
 
   private constructor() {
     const DbdClient = new DynamoDBClient({

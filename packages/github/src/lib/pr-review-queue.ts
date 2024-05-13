@@ -129,7 +129,7 @@ export async function pRReviewOnQueue(
     ]);
   } catch (error: unknown) {
     logger.error({
-      message: 'Error in pRReviewOnQueue',
+      message: 'pRReviewOnQueue.Error',
       requestId,
       resourceId: String(pullId),
       error,

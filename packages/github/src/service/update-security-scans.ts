@@ -32,7 +32,11 @@ const fetBranchesData = async (repoId: string, requestId: string): Promise<any> 
     const formattedData = await searchedDataFormator(branches);
     return formattedData;
   } catch (e) {
-    logger.error({ message: 'GET_GITHUB_BRANCH_DETAILS', error: e, requestId });
+    logger.error({
+      message: 'fetBranchesData.error: GET_GITHUB_BRANCH_DETAILS',
+      error: e,
+      requestId,
+    });
   }
 };
 /**
@@ -49,7 +53,7 @@ async function fetchBranchesData(
   const formattedData = await fetBranchesData(repoId, requestId);
   if (!formattedData?.length) {
     logger.info({
-      message: `GET_GITHUB_BRANCH_DETAILS: No branches found for repoId: ${repoId}`,
+      message: `fetchBranchesData.info: GET_GITHUB_BRANCH_DETAILS: No branches found for repoId: ${repoId}`,
       requestId,
     });
     return;
@@ -62,7 +66,7 @@ async function fetchBranchesData(
 
   // sending data to SQS for each branch of each repoId.
   logger.info({
-    message: `GET_GITHUB_BRANCH_DETAILS: sending data to SQS for repoId: ${repoId}, branches: ${branchesArr}`,
+    message: `fetchBranchesData.info:sending data to SQS for repoId: ${repoId}, branches: ${branchesArr}`,
     requestId,
   });
 

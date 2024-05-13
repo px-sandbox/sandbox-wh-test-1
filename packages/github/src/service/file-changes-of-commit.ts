@@ -20,7 +20,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
 
     const commits = await searchedDataFormator(commitData);
     logger.info({
-      message: 'commits_data_length',
+      message: 'fileChangesOfCommit.info: commits_data_length',
       data: { commitLength: commits.length },
       requestId,
     });
@@ -34,7 +34,7 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       )
     );
   } catch (error) {
-    logger.error({ message: 'file-changes-for-commit.error', error, requestId });
+    logger.error({ message: 'fileChangesOfCommit.error', error, requestId });
   }
   return responseParser
     .setBody('DONE')

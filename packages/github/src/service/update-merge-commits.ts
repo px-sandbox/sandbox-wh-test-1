@@ -62,7 +62,11 @@ const updateMergeCommit = async (event: APIGatewayProxyEvent): Promise<APIGatewa
       .setResponseBodyCode('Failed')
       .send();
   } catch (err) {
-    logger.error({ message: 'error in fetching github repo data', error: err, requestId });
+    logger.error({
+      message: 'updateMergeCommit.error in fetching github repo data',
+      error: err,
+      requestId,
+    });
     throw err;
   }
 };

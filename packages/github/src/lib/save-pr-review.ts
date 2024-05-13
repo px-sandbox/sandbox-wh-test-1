@@ -23,7 +23,7 @@ export async function savePRReview(
     const [formattedData] = await searchedDataFormator(userData);
     if (formattedData) {
       logger.info({
-        message: 'LAST_ACTIONS_PERFORMED',
+        message: 'savePRReview.info LAST_ACTIONS_PERFORMED',
         data: formattedData.action,
         requestId,
         resourceId,

@@ -17,7 +17,7 @@ export abstract class DataProcessor<T, S> {
     if (this.ghApiData !== undefined) {
       return this;
     }
-    logger.error({ message: 'EMPTY_DATA', data: this.ghApiData });
+    logger.error({ message: 'DataProcessor.validate.error: EMPTY_DATA', data: this.ghApiData });
     return false;
   }
 
@@ -32,7 +32,7 @@ export abstract class DataProcessor<T, S> {
   public async save<U>(data: U): Promise<void> {
     const validated = this.validate();
     if (!validated) {
-      throw new Error('data_validation_failed');
+      throw new Error('DataProcessor.save.error: data_validation_failed');
     }
     await this.SQSClient.sendMessage(data, Queue.qGhIndex.queueUrl, {
       requestId: this.requestId,

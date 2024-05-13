@@ -164,13 +164,19 @@ async function callGithubApis(
   return Promise.all([
     // reading workflow file
     octokit(workflowURL).catch((error: unknown) => {
-      logger.error({ requestId, message: `Error while fetching workflow file: ${error}` });
+      logger.error({
+        requestId,
+        message: `callGithubApis.error: Error while fetching workflow file: ${error}`,
+      });
       return null; // or some default value
     }),
 
     // readme
     octokit(readmeURL).catch((error: unknown) => {
-      logger.error({ requestId, message: `Error while fetching readme info: ${error}` });
+      logger.error({
+        requestId,
+        message: `callGithubApis.error: Error while fetching readme info: ${error}`,
+      });
       return null; // or some default value
     }),
   ]);
@@ -244,7 +250,7 @@ async function techAudit(
     }
     logger.info({
       requestId,
-      message: `Tech audit for repositories: ${repoIds}`,
+      message: `techAudit.info:  audit for repositories: ${repoIds}`,
       data: { formattedReposResp },
     });
 
@@ -253,7 +259,7 @@ async function techAudit(
       formattedReposResp.map(async (repo) => {
         logger.info({
           requestId,
-          message: `Tech audit for repository: ${repo.name}`,
+          message: `techAudit.info: Tech audit for repository: ${repo.name}`,
           data: { repo, org, ref, filename },
         });
 
@@ -274,7 +280,7 @@ async function techAudit(
 
         logger.info({
           requestId,
-          message: `Tech audit for repository: ${repo.name}`,
+          message: `techAudit.info: Tech audit for repository: ${repo.name}`,
           data: { repo: repo?.name ?? '', repoVisibility: repo?.visibility ?? '', tools },
         });
 
@@ -293,7 +299,10 @@ async function techAudit(
     );
     return result;
   } catch (error) {
-    logger.error({ requestId, message: `Error while fetching tech audit: ${error}` });
+    logger.error({
+      requestId,
+      message: `techAudit.error: Error while fetching tech audit: ${error}`,
+    });
     throw error;
   }
 }
@@ -320,10 +329,14 @@ export async function handler(event: APIGatewayProxyEvent): Promise<
   const repoArr = repoIds.split(',');
 
   if (!repoArr?.length) {
-    logger.error({ requestId, message: 'No repositories given' });
+    logger.error({ requestId, message: 'TechAuditHandler.error: No repositories given' });
     throw new Error('No repositories given');
   }
-  logger.info({ requestId, message: 'Tech audit request', data: { repoArr, ref, filename, org } });
+  logger.info({
+    requestId,
+    message: 'TechAuditHandler.info: Tech audit request',
+    data: { repoArr, ref, filename, org },
+  });
   try {
     const octokit = await initializeOctokit();
     return techAudit(octokit, repoArr, ref, filename, org, requestId);

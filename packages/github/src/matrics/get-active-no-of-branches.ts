@@ -41,7 +41,11 @@ const getGraphDataQuery = async (
     )
     .toJSON();
 
-  logger.info({ message: 'ACTIVE_BRANCHES_GRAPH_ESB_QUERY', data: JSON.stringify(activeBranchGraphQuery), requestId });
+  logger.info({
+    message: 'getGraphDataQuery.info ACTIVE_BRANCHES_GRAPH_ESB_QUERY',
+    data: JSON.stringify(activeBranchGraphQuery),
+    requestId,
+  });
   return activeBranchGraphQuery;
 };
 const getHeadlineQuery = async (
@@ -64,7 +68,11 @@ const getHeadlineQuery = async (
     .agg(esb.sumAggregation('branch_count', 'body.branchesCount'))
     .size(0)
     .toJSON();
-  logger.info({ message: 'ACTIVE_BRANCHES_AVG_ESB_QUERY', data: JSON.stringify(activeBranchesAvgQuery), requestId });
+  logger.info({
+    message: 'getHeadlineQuery.info ACTIVE_BRANCHES_AVG_ESB_QUERY',
+    data: JSON.stringify(activeBranchesAvgQuery),
+    requestId,
+  });
   return activeBranchesAvgQuery;
 };
 export async function activeBranchGraphData(
@@ -75,7 +83,13 @@ export async function activeBranchGraphData(
   requestId: string
 ): Promise<{ date: string; value: number }[]> {
   try {
-    const activeBranchGraphQuery = await getGraphDataQuery(startDate, endDate, intervals, repoIds, requestId);
+    const activeBranchGraphQuery = await getGraphDataQuery(
+      startDate,
+      endDate,
+      intervals,
+      repoIds,
+      requestId
+    );
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitActiveBranches,
@@ -86,7 +100,7 @@ export async function activeBranchGraphData(
       value: parseFloat(item.combined_avg.value.toFixed(2)),
     }));
   } catch (e) {
-    logger.error({ message: 'activeBranchGraph.error', error: e, requestId});
+    logger.error({ message: 'activeBranchGraph.error', error: e, requestId });
     throw e;
   }
 }

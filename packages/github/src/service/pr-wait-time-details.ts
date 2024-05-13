@@ -46,7 +46,7 @@ const prWaitTimeBreakdown = async function getprWaitTimeBreakdown(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error({ message: 'prWaitTimeBreakdown', error: e, requestId });
+    logger.error({ message: 'prWaitTimeBreakdown.error', error: e, requestId });
     throw new Error(`Something went wrong: ${e}`);
   }
 };
