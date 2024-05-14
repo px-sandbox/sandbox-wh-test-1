@@ -153,7 +153,7 @@ export const estimatesVsActualsBreakdown = async (
         const estimate = issue?.timeTracker?.estimate ?? 0;
         const actual = issue?.timeTracker?.actual ?? 0;
         let overallEstimate = estimate;
-        let overallActual = actual;
+        let overallActual = estimate ? actual : 0;
 
         const subtasksArr: {
           id: string;
