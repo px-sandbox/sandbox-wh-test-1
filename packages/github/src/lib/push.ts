@@ -1,5 +1,5 @@
 import { SQSClient } from '@pulse/event-handler';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 
@@ -11,17 +11,17 @@ export async function preparePush(
   pusherId: string,
   lastCommitId: string,
   repoId: string,
-  orgId: string
+  orgId: string,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   try {
     await sqsClient.sendMessage(
       { commits, ref, pusherId, id: lastCommitId, repoId, orgId },
-      Queue.qGhPushFormat.queueUrl
+      Queue.qGhPushFormat.queueUrl,
+      { ...reqCtx }
     );
   } catch (error: unknown) {
-    logger.error({
-      error,
-    });
+    logger.error({ message: 'preparePush.error', error, ...reqCtx });
     throw error;
   }
 }

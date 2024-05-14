@@ -14,7 +14,7 @@ export async function getTokens(refreshToken: string): Promise<Jira.ExternalType
     });
     return response.data;
   } catch (e) {
-    logger.error(`Error while getting tokens: ${e}`);
+    logger.error({ message: `Error while getting tokens: ${e}` });
     throw new Error(`Error while getting tokens: ${e}`);
   }
 }

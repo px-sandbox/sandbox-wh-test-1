@@ -5,13 +5,17 @@ import { ftpRateGraph, ftpRateGraphAvg } from '../matrics/get-ftp-rate';
 const ftpRate = async function ftpRateGraphs(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const requestId = event?.requestContext?.requestId;
   const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [''];
   const { organizationId, projectId } = event.queryStringParameters as { [key: string]: string };
 
   try {
     const [graphData, graphAvgData] = await Promise.all([
-      await ftpRateGraph(organizationId, projectId, sprintIds),
-      await ftpRateGraphAvg(sprintIds),
+      await ftpRateGraph(organizationId, projectId, sprintIds, {
+        requestId,
+        resourceId: projectId,
+      }),
+      await ftpRateGraphAvg(sprintIds, { requestId, resourceId: projectId }),
     ]);
     return responseParser
       .setBody({ graphData, headline: graphAvgData })
@@ -20,7 +24,7 @@ const ftpRate = async function ftpRateGraphs(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error(e);
+    logger.error({ requestId, resourceId: projectId, message: 'FTP rates fetch error', error: e });
     throw new Error(`Something went wrong: ${e}`);
   }
 };

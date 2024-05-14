@@ -19,17 +19,21 @@ export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.
           ])
       )
       .toJSON();
-    logger.info('ESB_QUERY_ISSUE_STATUS_QUERY', { issueStatusquery });
+    logger.info({ message: 'ESB_QUERY_ISSUE_STATUS_QUERY', data: { issueStatusquery } });
     const data = await esClientObj.search(Jira.Enums.IndexName.IssueStatus, issueStatusquery);
     const [issueStatusData] = await searchedDataFormator(data);
     return issueStatusData;
   } catch (error) {
-    logger.error('getIssueStatusData.error', { error });
+    logger.error({ message: 'getIssueStatusData.error', error });
     throw error;
   }
 }
 
-export async function getIssueStatusForReopenRate(orgId: string): Promise<Other.Type.HitBody> {
+export async function getIssueStatusForReopenRate(
+  orgId: string,
+  reqCtx: Other.Type.RequestCtx
+): Promise<Other.Type.HitBody> {
+  const { requestId, resourceId } = reqCtx;
   try {
     const issueStatusquery = esb
       .requestBodySearch()
@@ -40,7 +44,12 @@ export async function getIssueStatusForReopenRate(orgId: string): Promise<Other.
           .must([esb.termQuery('body.organizationId', orgId), esb.existsQuery('body.pxStatus')])
       )
       .toJSON();
-    logger.info('ESB_QUERY_REOPEN_RATE_QUERY', { issueStatusquery });
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'ESB_QUERY_REOPEN_RATE_QUERY',
+      data: { issueStatusquery },
+    });
     const data = await esClientObj.search(Jira.Enums.IndexName.IssueStatus, issueStatusquery);
     const issueStatusDataArr = await searchedDataFormator(data);
     const issueStatusData = issueStatusDataArr.reduce((acc: Record<string, any>, issueStatus) => {
@@ -49,7 +58,7 @@ export async function getIssueStatusForReopenRate(orgId: string): Promise<Other.
     }, {});
     return issueStatusData;
   } catch (error) {
-    logger.error('getIssueStatusData.error', { error });
+    logger.error({ requestId, resourceId, message: 'getIssueStatusData.error', error });
     throw error;
   }
 }

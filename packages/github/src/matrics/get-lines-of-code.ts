@@ -3,7 +3,7 @@ import { Github } from 'abstraction';
 import { IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
-import esb, { Query, Script } from 'elastic-builder';
+import esb, { Script } from 'elastic-builder';
 import { processGraphInterval } from '../util/process-graph-intervals';
 import { getWeekDaysCount } from '../util/weekend-calculations';
 
@@ -25,9 +25,9 @@ const getGraphDataQuery = async (
   startDate: string,
   endDate: string,
   intervals: string,
-  repoIds: string[]
-):Promise<object> => {
-  
+  repoIds: string[],
+  requestId: string
+): Promise<object> => {
   const linesOfCodeGraphQuery = esb.requestBodySearch().size(0);
 
   linesOfCodeGraphQuery.query(
@@ -55,10 +55,19 @@ const getGraphDataQuery = async (
         )
     )
     .toJSON();
-  logger.info('LINE_OF_CODES_GRAPH_ESB_QUERY', linesOfCodeGraphQuery);
+  logger.info({
+    message: 'getGraphDataQuery.info LINE_OF_CODES_GRAPH_ESB_QUERY',
+    data: JSON.stringify(linesOfCodeGraphQuery),
+    requestId,
+  });
   return linesOfCodeGraphQuery;
 };
-const getHeadlineQuery = async (startDate: string,endDate:string, repoIds:string[]):Promise<object> => {
+const getHeadlineQuery = async (
+  startDate: string,
+  endDate: string,
+  repoIds: string[],
+  requestId: string
+): Promise<object> => {
   const query = esb
     .requestBodySearch()
     .query(
@@ -74,7 +83,11 @@ const getHeadlineQuery = async (startDate: string,endDate:string, repoIds:string
     .agg(esb.cardinalityAggregation('authorId', 'body.authorId'))
     .size(0)
     .toJSON();
-  logger.info('LINES_OF_CODE_AVG_ESB_QUERY', Query);
+  logger.info({
+    message: 'getHeadlineQuery.info LINES_OF_CODE_AVG_ESB_QUERY',
+    data: JSON.stringify(query),
+    requestId,
+  });
   return query;
 };
 
@@ -82,10 +95,17 @@ export async function linesOfCodeGraph(
   startDate: string,
   endDate: string,
   intervals: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<{ date: string; value: number }[]> {
   try {
-    const linesOfCodeGraphQuery = await getGraphDataQuery(startDate, endDate, intervals, repoIds);
+    const linesOfCodeGraphQuery = await getGraphDataQuery(
+      startDate,
+      endDate,
+      intervals,
+      repoIds,
+      requestId
+    );
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitCommits,
@@ -96,7 +116,7 @@ export async function linesOfCodeGraph(
       value: parseFloat(item.combined_avg.value.toFixed(2)),
     }));
   } catch (e) {
-    logger.error('linesOfCodeGraph.error', e);
+    logger.error({ message: 'linesOfCodeGraph.error', error: e, requestId });
     throw e;
   }
 }
@@ -104,10 +124,11 @@ export async function linesOfCodeGraph(
 export async function linesOfCodeAvg(
   startDate: string,
   endDate: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<{ value: number } | null> {
   try {
-    const query = await getHeadlineQuery(startDate, endDate, repoIds);
+    const query = await getHeadlineQuery(startDate, endDate, repoIds, requestId);
     const data: HitBody = await esClientObj.queryAggs(Github.Enums.IndexName.GitCommits, query);
     const totalChanges = Number(data.file_changes_sum.value);
     const totalAuthor = Number(data.authorId.value);
@@ -115,7 +136,7 @@ export async function linesOfCodeAvg(
     const totalPerAuthor = totalChanges === 0 ? 0 : totalChanges / totalAuthor;
     return { value: parseFloat((totalPerAuthor / weekDaysCount).toFixed(2)) };
   } catch (e) {
-    logger.error('linesOfCodeGraphAvg.error', e);
+    logger.error({ message: 'linesOfCodeGraphAvg.error', error: e, requestId });
     throw e;
   }
 }

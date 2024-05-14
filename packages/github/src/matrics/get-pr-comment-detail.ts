@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github, Other } from 'abstraction';
 import { logger } from 'core';
@@ -68,9 +69,9 @@ export async function prCommentsDetailMetrics(
   limit: number,
   sortKey: string,
   sortOrder: string,
-  orgId: string
+  orgId: string,
+  requestId: string
 ): Promise<Github.Type.PRCommentsDetail> {
-  logger.info('Get PR Comment Detail');
   try {
     // esb query to fetch pull request data
     const query = esb
@@ -95,12 +96,20 @@ export async function prCommentsDetailMetrics(
     );
     const response = await searchedDataFormator(unformattedData);
 
-    logger.info(`PR-Comment-Detail-Pull-Requests: ${JSON.stringify(response)}`);
+    logger.info({
+      message: 'prCommentsDetailMetrics.info: PR-Comment-Detail-Pull-Requests',
+      data: JSON.stringify(response),
+      requestId,
+    });
 
     // Calling a function to get repoNames and orgname
     const { repoNames, orgname } = await getRepoNamesAndOrg(repoIds, orgId);
 
-    logger.info(`PR-Comment-Detail-Repo-Names: ${JSON.stringify(repoNames)}`);
+    logger.info({
+      message: 'prCommentsDetailMetrics.info: PR-Comment-Detail-Repo-Names',
+      data: JSON.stringify(repoNames),
+      requestId,
+    });
 
     // repo object with repoId as key and repoName as value for easy access when formatting final response
     const repoObj: Record<string, string> = {};
@@ -123,7 +132,11 @@ export async function prCommentsDetailMetrics(
       data: finalResponse,
     };
   } catch (e) {
-    logger.error(`Get PR Comment Detail.Error: ${e}`);
-    throw new Error(`Get PR Comment Detail.Error: ${e}`);
+    logger.error({
+      message: 'prCommentsDetailMetrics.error: Get PR Comment Detail.Error',
+      error: e,
+      requestId,
+    });
+    throw new Error(`prCommentsDetailMetrics.error: Get PR Comment Detail.Error: ${e}`);
   }
 }

@@ -348,18 +348,18 @@ async function createMapping(name: string, mappings: Jira.Type.IndexMapping): Pr
 
     const { statusCode } = await esClient.isIndexExists(name);
     if (statusCode === 200) {
-      logger.info(`Index '${name}' already exists.`);
+      logger.info({ message: `Index '${name}' already exists.` });
       await esClient.updateIndex(name, mappings);
       return;
     }
 
-    logger.info(`Creating mapping for index '${name}'...`);
+    logger.info({ message: `Creating mapping for index '${name}'...` });
 
     await esClient.createIndex(name, mappings);
 
-    logger.info(`Created mapping for '${name}' successful`);
+    logger.info({ message: `Created mapping for '${name}' successful` });
   } catch (error) {
-    logger.error(`Error creating mapping for '${name}':`, error);
+    logger.error({ message: `Error creating mapping for '${name}':`, error });
     throw error;
   }
 }
@@ -369,9 +369,9 @@ async function createMapping(name: string, mappings: Jira.Type.IndexMapping): Pr
  * @returns A Promise that resolves when all indices are created successfully.
  */
 export async function createIndices(): Promise<void> {
-  logger.info('Creating all indices...');
+  logger.info({ message: 'Creating all indices...' });
 
   await Promise.all(indices.map(async ({ name, mappings }) => createMapping(name, mappings)));
 
-  logger.info('All indices created successfully');
+  logger.info({ message: 'All indices created successfully' });
 }

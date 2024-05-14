@@ -1,6 +1,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
@@ -18,8 +18,11 @@ async function deletePrevDependencies(repoId: string): Promise<void> {
 
   await esClientObj.updateByQuery(Github.Enums.IndexName.GitRepoLibrary, matchQry, script.toJSON());
 }
-export async function repoLibHelper(data: Github.ExternalType.RepoLibrary): Promise<void> {
-  logger.info('repoLibrary.handler', { data });
+export async function repoLibHelper(
+  data: Github.ExternalType.RepoLibrary,
+  reqCtx: Other.Type.RequestCtx
+): Promise<void> {
+  logger.info({ message: 'repoLibrary.handler', data, ...reqCtx });
 
   if (data) {
     const {
@@ -46,7 +49,7 @@ export async function repoLibHelper(data: Github.ExternalType.RepoLibrary): Prom
           isCore: false,
         };
 
-        return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
+        return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl, { ...reqCtx });
       }),
       ...coreDependencies.map(async (dep) => {
         const message = {
@@ -57,7 +60,7 @@ export async function repoLibHelper(data: Github.ExternalType.RepoLibrary): Prom
           isCore: true,
         };
 
-        return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl);
+        return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl, { ...reqCtx });
       }),
     ]);
   }

@@ -131,6 +131,9 @@ importers:
       '@elastic/elasticsearch':
         specifier: 7.13.0
         version: 7.13.0
+      abstraction:
+        specifier: workspace:^1.0.0
+        version: link:../../abstraction
       aws-sdk:
         specifier: ^2.1444.0
         version: 2.1444.0
@@ -213,6 +216,9 @@ importers:
       sst:
         specifier: 2.28.0
         version: 2.28.0
+      uuid:
+        specifier: ^9.0.1
+        version: 9.0.1
       winston:
         specifier: ^3.8.2
         version: 3.8.2
@@ -298,6 +304,9 @@ importers:
       elastic-builder:
         specifier: ^2.21.0
         version: 2.21.0
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.0
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -310,6 +319,9 @@ importers:
       octokit:
         specifier: ^2.0.14
         version: 2.0.14
+      rp:
+        specifier: workspace:^1.0.0
+        version: link:../rp
       sst:
         specifier: 2.28.0
         version: 2.28.0
@@ -410,6 +422,9 @@ importers:
       moment:
         specifier: 2.29.4
         version: 2.29.4
+      rp:
+        specifier: workspace:^1.0.0
+        version: link:../rp
       sst:
         specifier: 2.28.0
         version: 2.28.0
@@ -449,6 +464,36 @@ importers:
         version: 1.1.1
       '@types/uuid':
         specifier: ^9.0.1
+        version: 9.0.1
+
+  packages/rp:
+    dependencies:
+      '@aws-sdk/lib-dynamodb':
+        specifier: ^3.0.0
+        version: 3.309.0(@aws-sdk/client-dynamodb@3.306.0)(@aws-sdk/smithy-client@3.374.0)(@aws-sdk/types@3.451.0)
+      '@pulse/dynamodb':
+        specifier: workspace:^1.0.0
+        version: link:../@pulse/dynamodb
+      '@pulse/elasticsearch':
+        specifier: workspace:^1.0.0
+        version: link:../@pulse/elasticsearch
+      '@pulse/event-handler':
+        specifier: workspace:^1.0.0
+        version: link:../@pulse/event-handler
+      '@types/uuid':
+        specifier: ^9.0.1
+        version: 9.0.1
+      abstraction:
+        specifier: workspace:^1.0.0
+        version: link:../abstraction
+      aws-lambda:
+        specifier: ^1.0.7
+        version: 1.0.7
+      core:
+        specifier: workspace:0.0.1
+        version: link:../core
+      uuid:
+        specifier: ^9.0.0
         version: 9.0.1
 
 packages:
@@ -5498,7 +5543,6 @@ packages:
 
   /@types/uuid@9.0.1:
     resolution: {integrity: sha512-rFT3ak0/2trgvp4yYZo5iKFEPsET7vKydKF+VRCxlQ9bpheehyAJH89dAkaLEq/j/RZXJIqcgsmPJKUP1Z28HA==}
-    dev: true
 
   /@types/ws@8.5.10:
     resolution: {integrity: sha512-vmQSUcfalpIq0R9q7uTo2lXs6eGIpt9wtnLdMv9LVpIjCA/+ufZRozlVoVelIYixx1ugCBKDhn89vnsEGOCx9A==}

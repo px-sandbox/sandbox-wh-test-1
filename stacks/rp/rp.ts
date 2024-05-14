@@ -8,6 +8,7 @@ export function rp({ stack }: StackContext): {
     admin: { type: 'lambda'; responseTypes: 'simple'[]; function: Function };
   }>;
   retryProcessTable: Table;
+  rpCron: Cron;
 } {
   const { NODE_VERSION, AUTH_PUBLIC_KEY } = use(commonConfig);
   const retryProcessTable = new Table(stack, 'processRetry', {
@@ -28,7 +29,7 @@ export function rp({ stack }: StackContext): {
       resources: ['*'],
     }),
   ]);
-  new Cron(stack, 'cronRp', {
+  const rpCron = new Cron(stack, 'cronRp', {
     schedule: 'cron(0/30 * ? * * *)',
     job: retryProcess,
   });
@@ -59,5 +60,6 @@ export function rp({ stack }: StackContext): {
   return {
     rpApi,
     retryProcessTable,
+    rpCron,
   };
 }

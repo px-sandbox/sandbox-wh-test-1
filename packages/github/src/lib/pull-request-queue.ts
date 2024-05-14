@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { logger } from 'core';
@@ -11,17 +12,27 @@ import { getTimezoneOfUser } from './get-user-timezone';
 const sqsClient = SQSClient.getInstance();
 export async function pROnQueue(
   pull: Github.ExternalType.Webhook.PullRequest,
-  action: string
+  action: string,
+  requestId: string
 ): Promise<void> {
   try {
     let reviewedAt = null;
     let approvedAt = null;
     let reviewSeconds = 0;
     const [pullData] = await getPullRequestById(pull.id);
-    logger.info('ES : PR Data ', pullData);
+    logger.info({
+      message: 'pROnQueue.info ES : PR Data ',
+      data: pullData,
+      requestId,
+      resourceId: String(pull.id),
+    });
     if (pullData) {
       if (action === Github.Enums.PullRequest.Opened) {
-        logger.info('PR already exist');
+        logger.info({
+          message: 'pROnQueue.info PR already exist',
+          requestId,
+          resourceId: String(pull.id),
+        });
         return;
       }
       if (pullData.reviewedAt) {
@@ -56,12 +67,15 @@ export async function pROnQueue(
         action,
       },
       Queue.qGhPrFormat.queueUrl,
+      { requestId, resourceId: String(pull.id) },
       String(pull.id),
       uuid()
     );
-
   } catch (error: unknown) {
     logger.error({
+      message: 'pROnQueue.Error in pROnQueue',
+      requestId,
+      resourceId: String(pull.id),
       error,
     });
     throw error;

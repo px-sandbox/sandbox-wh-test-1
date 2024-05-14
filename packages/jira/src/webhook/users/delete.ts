@@ -15,11 +15,12 @@ import { saveUserDetails } from '../../repository/user/save-user';
 export async function deleteUser(
   userId: string,
   eventTime: moment.Moment,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void | false> {
-  const userData = await getUserById(userId, organization);
+  const userData = await getUserById(userId, organization, { requestId, resourceId: userId });
   if (!userData) {
-    logger.info('userDeletedEvent: User not found');
+    logger.info({ requestId, resourceId: userId, message: 'userDeletedEvent: User not found' });
     return false;
   }
   const { _id, ...processUserData } = userData;
@@ -27,6 +28,13 @@ export async function deleteUser(
   processUserData.isDeleted = true;
   processUserData.deletedAt = moment(eventTime).toISOString();
 
-  logger.info(`userDeletedEvent: Delete User id ${_id}`);
-  await saveUserDetails({ id: _id, body: processUserData } as Jira.Type.User);
+  logger.info({
+    requestId,
+    resourceId: userId,
+    message: `userDeletedEvent: Delete User id ${_id}`,
+  });
+  await saveUserDetails({ id: _id, body: processUserData } as Jira.Type.User, {
+    requestId,
+    resourceId: userId,
+  });
 }

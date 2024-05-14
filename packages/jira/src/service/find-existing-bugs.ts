@@ -17,14 +17,15 @@ const sqsClient = SQSClient.getInstance();
 export const handler = async function getIssuesList(
   event: APIGatewayProxyEvent
 ): Promise<Other.Type.HitBody> {
+  const requestId = event?.requestContext?.requestId;
+  const jiraOrgId = `${mappingPrefixes.organization}_${event?.queryStringParameters?.orgId}`;
+  const projectId = event?.queryStringParameters?.projectId;
   let libFormatData;
 
   try {
     const size = 100;
     let from = 0;
 
-    const jiraOrgId = `${mappingPrefixes.organization}_${event?.queryStringParameters?.orgId}`;
-    const projectId = event?.queryStringParameters?.projectId;
     const orgData = await getOrganizationById(jiraOrgId);
 
     do {
@@ -49,9 +50,14 @@ export const handler = async function getIssuesList(
       const esLibData = await esClientObj.search(Jira.Enums.IndexName.Issue, getBugsQuery);
 
       libFormatData = await searchedDataFormator(esLibData);
-      logger.info('issue.migrate', {
-        issues: libFormatData.map((l) => l.issueKey).join(','),
-        from,
+      logger.info({
+        requestId,
+        resourceId: projectId,
+        message: 'issue.migrate',
+        data: {
+          issues: libFormatData.map((l) => l.issueKey).join(','),
+          from,
+        },
       });
 
       from += size;
@@ -74,7 +80,10 @@ export const handler = async function getIssuesList(
             sprintId: bug && bug.sprintId ? bug.sprintId.split('jira_sprint_')[1] : null,
             boardId: bug.boardId,
           };
-          return sqsClient.sendMessage(formattedBug, Queue.qReOpenRateMigrator.queueUrl);
+          return sqsClient.sendMessage(formattedBug, Queue.qReOpenRateMigrator.queueUrl, {
+            requestId,
+            resourceId: projectId,
+          });
         })
       );
     } while (libFormatData.length === size);
@@ -86,7 +95,11 @@ export const handler = async function getIssuesList(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (error) {
-    logger.error(`get existing bug for reopen error ${error}`);
+    logger.error({
+      requestId,
+      resourceId: projectId,
+      message: `get existing bug for reopen error ${error}`,
+    });
     throw error;
   }
 };

@@ -3,16 +3,20 @@ import { SQSClient } from '@pulse/event-handler';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { getOrganization } from 'src/repository/organization/get-organization';
-import { formatIssue } from 'src/util/issue-helper';
-import { searchedDataFormator } from 'src/util/response-formatter';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
+import { searchedDataFormator } from '../../util/response-formatter';
+import { formatIssue } from '../../util/issue-helper';
+import { getOrganization } from '../../repository/organization/get-organization';
 
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 
-async function fetchJiraIssues(issueId: string, orgId: string): Promise<Other.Type.HitBody> {
+async function fetchJiraIssues(
+  issueId: string,
+  orgId: string,
+  requestId: string
+): Promise<Other.Type.HitBody> {
   const issueQuery = esb
     .requestBodySearch()
     .query(
@@ -26,27 +30,36 @@ async function fetchJiraIssues(issueId: string, orgId: string): Promise<Other.Ty
     )
     .toJSON();
   try {
-    let unformattedIssues: Other.Type.HitBody = await esClient.search(
+    const unformattedIssues: Other.Type.HitBody = await esClient.search(
       Jira.Enums.IndexName.Issue,
       issueQuery
     );
     const [issuesData] = await searchedDataFormator(unformattedIssues);
 
-    logger.info(`fetchJiraIssues.successful id:, ${JSON.stringify(issuesData)}`);
+    logger.info({
+      requestId,
+      resourceId: issueId,
+      message: 'fetchJiraIssues.successful',
+      data: { issuesData },
+    });
     return issuesData;
   } catch (error) {
-    logger.error(`fetchJiraIssues.error, ${error} , ${issueId}`);
+    logger.error({ requestId, resourceId: issueId, message: 'fetchJiraIssues.error', error });
     throw error;
   }
 }
 
-export async function worklog(issueId: string, organization: string): Promise<void> {
+export async function worklog(
+  issueId: string,
+  organization: string,
+  requestId: string
+): Promise<void> {
   try {
     const orgId = await getOrganization(organization);
     if (!orgId) {
       throw new Error(`worklog.organization ${organization} not found`);
     }
-    const issueData = await fetchJiraIssues(issueId, orgId.id);
+    const issueData = await fetchJiraIssues(issueId, orgId.id, requestId);
     if (issueData.length === 0) {
       throw new Error(`worklog.no_issue_found: ${organization}, issueId: ${issueId}`);
     }
@@ -60,12 +73,13 @@ export async function worklog(issueId: string, organization: string): Promise<vo
         issue,
       },
       Queue.qIssueFormat.queueUrl,
+      { requestId, resourceId: issueId },
       issue.key,
       uuid()
     );
-    logger.info('worklog.success', { issueId });
+    logger.info({ requestId, resourceId: issueId, message: 'worklog.success' });
   } catch (error) {
-    logger.error(`worklog.error, ${error} , ${issueId}`);
+    logger.error({ requestId, resourceId: issueId, message: 'worklog.error', error });
     throw error;
   }
 }

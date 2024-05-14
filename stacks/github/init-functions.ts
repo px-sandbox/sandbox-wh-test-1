@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable max-lines-per-function */
 import { Stack } from 'aws-cdk-lib';
 import { Function, Queue, use } from 'sst/constructs';

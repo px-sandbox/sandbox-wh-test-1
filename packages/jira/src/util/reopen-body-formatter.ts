@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { ChangelogItem } from 'abstraction/jira/external/webhook';
 import { logger } from 'core';
 import { ChangelogStatus } from 'abstraction/jira/enums';
@@ -43,12 +43,18 @@ function getSprintForTo(to: string, from: string): string {
   return result[0];
 }
 
-function isValid(input: ChangelogItem[], issueStatus: HitBody, issueKey: string): boolean {
+function isValid(
+  input: ChangelogItem[],
+  issueStatus: HitBody,
+  issueKey: string,
+  reqCtx: Other.Type.RequestCtx
+): boolean {
+  const { requestId, resourceId } = reqCtx;
   let flag = true;
   let isReadyForQA = false;
   let isSprintChanged = false;
 
-  logger.info(`validity.check.started: ${issueKey}`);
+  logger.info({ requestId, resourceId, message: `validity.check.started: ${issueKey}` });
   for (const item of input) {
     switch (item.field) {
       case Jira.Enums.ChangelogField.STATUS:
@@ -79,14 +85,20 @@ function isValid(input: ChangelogItem[], issueStatus: HitBody, issueKey: string)
         break;
 
       default:
-        logger.info(`validity.default.case.check: 
+        logger.info({
+          requestId,
+          resourceId,
+          message: `validity.default.case.check: 
                 ${issueKey} - ${item.toString} - ${isReadyForQA} - ${isSprintChanged}
-                `);
+                `,
+        });
         break;
     }
-    logger.info(
-      `validity.check.flag: ${issueKey} - ${item.toString} - ${isReadyForQA} - ${isSprintChanged}`
-    );
+    logger.info({
+      requestId,
+      resourceId,
+      message: `validity.check.flag: ${issueKey} - ${item.toString} - ${isReadyForQA} - ${isSprintChanged}`,
+    });
 
     if (isReadyForQA && isSprintChanged) {
       flag = false;
@@ -94,7 +106,7 @@ function isValid(input: ChangelogItem[], issueStatus: HitBody, issueKey: string)
     }
   }
 
-  logger.info(`validity.check.ended: ${issueKey} , ${flag}`);
+  logger.info({ requestId, resourceId, message: `validity.check.ended: ${issueKey} , ${flag}` });
   return flag;
 }
 
@@ -109,17 +121,21 @@ function isValid(input: ChangelogItem[], issueStatus: HitBody, issueKey: string)
  * @param {String} projectKey - Project Key
  * @param {Object} issueStatus - Issue Status
  */
-export async function reopenChangelogCals(params: {
-  input: ChangelogItem[];
-  issueId: string;
-  sprintId: string;
-  organizationId: string;
-  boardId: string;
-  issueKey: string;
-  projectId: string;
-  projectKey: string;
-  issueStatus: HitBody;
-}): Promise<ReopenItem[]> {
+export async function reopenChangelogCals(
+  params: {
+    input: ChangelogItem[];
+    issueId: string;
+    sprintId: string;
+    organizationId: string;
+    boardId: string;
+    issueKey: string;
+    projectId: string;
+    projectKey: string;
+    issueStatus: HitBody;
+  },
+  reqCtx: Other.Type.RequestCtx
+): Promise<ReopenItem[]> {
+  const { requestId, resourceId } = reqCtx;
   try {
     const {
       input,
@@ -136,15 +152,25 @@ export async function reopenChangelogCals(params: {
     const reopen: ReopenItem[] = [];
     let reopenObject: ReopenItem | null | undefined = null;
     let currentSprint: string | null = null;
-    const isValidChangelog = isValid(input, issueStatus, issueKey);
+    const isValidChangelog = isValid(input, issueStatus, issueKey, reqCtx);
 
-    logger.info(`validity.check: ${issueKey} - ${isValidChangelog}`);
-    logger.info(`issuestatus.check: ${JSON.stringify(issueStatus)}`);
+    logger.info({
+      requestId,
+      resourceId,
+      message: `validity.check: ${issueKey} - ${isValidChangelog}`,
+    });
+    logger.info({
+      requestId,
+      resourceId,
+      message: `issuestatus.check: ${JSON.stringify(issueStatus)}`,
+    });
 
     if (!isValidChangelog) {
-      logger.info(
-        `reopen-rate.changelog.invalid with issueKey: ${issueKey}. Reopen rate calculation skipped.`
-      );
+      logger.info({
+        requestId,
+        resourceId,
+        message: `reopen-rate.changelog.invalid with issueKey: ${issueKey}. Reopen rate calculation skipped.`,
+      });
       return [];
     }
 
@@ -221,11 +247,15 @@ export async function reopenChangelogCals(params: {
             break;
 
           default:
-            logger.info(`reopen-rate.default.case.check: ${issueKey} - ${item.toString}`);
+            logger.info({
+              requestId,
+              resourceId,
+              message: `reopen-rate.default.case.check: ${issueKey} - ${item.toString}`,
+            });
             break;
         }
       } catch (error) {
-        logger.error(`reopen-rate.processor.error', ${error}`);
+        logger.error({ requestId, resourceId, message: `reopen-rate.processor.error', ${error}` });
         throw error;
       }
     });
@@ -242,7 +272,7 @@ export async function reopenChangelogCals(params: {
         issueId: `${mappingPrefixes.issue}_${bugId}`,
       }));
   } catch (error) {
-    logger.error(`error.reopen.calculator, ${error}`);
+    logger.error({ requestId, resourceId, message: `error.reopen.calculator, ${error}` });
     throw error;
   }
 }

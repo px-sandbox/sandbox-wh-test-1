@@ -31,7 +31,7 @@ export function initializeRoutes(
 
   /* We aso extract and bind the tables
    * from the githubDDb object to their respective functions/handlers called within routes */
-  const { retryProcessTable, githubMappingTable, libMasterTable } = githubDDb;
+  const { githubMappingTable, libMasterTable } = githubDDb;
   return {
     // GET Metadata route
     'GET /github/metadata': {

@@ -16,7 +16,7 @@ export abstract class DataProcessor<T, S> {
    * Constructor for DataProcessor class.
    * @param data - Jira API data to be processed.
    */
-  constructor(protected apiData: T) {
+  constructor(protected apiData: T, public requestId: string, public resourceId: string) {
     this.DynamoDbDocClient = DynamoDbDocClient.getInstance();
     this.SQSClient = SQSClient.getInstance();
   }
@@ -29,7 +29,12 @@ export abstract class DataProcessor<T, S> {
     if (this.apiData !== undefined) {
       return this;
     }
-    logger.error({ message: 'EMPTY_DATA', data: this.apiData });
+    logger.error({
+      message: 'EMPTY_DATA',
+      data: this.apiData,
+      requestId: this.requestId,
+      resourceId: this.resourceId,
+    });
     return false;
   }
 
@@ -61,7 +66,10 @@ export abstract class DataProcessor<T, S> {
     if (!validated) {
       throw new Error('data_validation_failed');
     }
-    await this.SQSClient.sendMessage(data, Queue.qJiraIndex.queueUrl);
+    await this.SQSClient.sendMessage(data, Queue.qJiraIndex.queueUrl, {
+      requestId: this.requestId,
+      resourceId: this.resourceId,
+    });
   }
 
   public async putDataToDynamoDB(parentId: string, jiraId: string): Promise<void> {
