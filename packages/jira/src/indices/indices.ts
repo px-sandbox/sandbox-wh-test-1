@@ -362,7 +362,10 @@ const indices = [
               handover: { type: 'long' },
               total: { type: 'long' },
             },
-            deployment: { type: 'long' },
+            deployment: {
+              deploy: { type: 'long' },
+              total: { type: 'long' },
+            },
             assignees: {
               properties: {
                 assigneeId: { type: 'keyword' },
