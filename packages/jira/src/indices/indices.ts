@@ -333,6 +333,76 @@ const indices = [
       },
     },
   },
+
+  {
+    name: Jira.Enums.IndexName.CycleTime,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            organizationId: { type: 'keyword' },
+            issueId: { type: 'keyword' },
+            projectId: { type: 'keyword' },
+            sprintId: { type: 'keyword' },
+            issueKey: { type: 'keyword' },
+            projectKey: { type: 'keyword' },
+            title: { type: 'text' },
+            development: {
+              coding: { type: 'long' },
+              pickup: { type: 'long' },
+              review: { type: 'long' },
+              handover: { type: 'long' },
+              total: { type: 'long' },
+            },
+            qa: {
+              pickup: { type: 'long' },
+              testing: { type: 'long' },
+              handover: { type: 'long' },
+              total: { type: 'long' },
+            },
+            deployment: { type: 'long' },
+            assignees: {
+              properties: {
+                assigneeId: { type: 'keyword' },
+                name: { type: 'text' },
+              },
+            },
+            hasSubtask: { type: 'boolean' },
+            subtask: {
+              properties: {
+                issueId: { type: 'keyword' },
+                issueKey: { type: 'keyword' },
+                title: { type: 'text' },
+                development: {
+                  coding: { type: 'long' },
+                  pickup: { type: 'long' },
+                  review: { type: 'long' },
+                  handover: { type: 'long' },
+                  total: { type: 'long' },
+                },
+                assignees: {
+                  properties: {
+                    assigneeId: { type: 'keyword' },
+                    name: { type: 'text' },
+                  },
+                },
+              },
+            },
+            history: {
+              properties: {
+                issueId: { type: 'keyword' },
+                issueType: { type: 'keyword' },
+                eventTime: { type: 'date', format: 'strict_date_optional_time' },
+                status: { type: 'keyword' },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 ];
 /**
  * Creates a mapping for an index in Elasticsearch.
