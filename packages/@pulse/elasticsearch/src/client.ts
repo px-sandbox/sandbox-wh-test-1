@@ -202,7 +202,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
     body: object
   ): Promise<TransportRequestPromise<ApiResponse<unknown, unknown>>> {
     try {
-      return this.client.indices.putSettings({ index: indexName, body });
+      return this.client.indices.putMapping({ index: indexName, body });
     } catch (err) {
       logger.error({ message: `${ElasticSearchClient.name}.updateIndex.error: ${err}` });
       throw err;
@@ -211,10 +211,10 @@ export class ElasticSearchClient implements IElasticSearchClient {
 
   public async createIndex(
     indexName: string,
-    body: object
+    mappings: object
   ): Promise<TransportRequestPromise<ApiResponse<unknown, unknown>>> {
     try {
-      return this.client.indices.create({ index: indexName, body });
+      return this.client.indices.create({ index: indexName, body: { mappings } });
     } catch (err) {
       logger.error({ message: `${ElasticSearchClient.name}.createIndex.error:  ${err}` });
       throw err;
