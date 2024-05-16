@@ -1,6 +1,7 @@
 import { logger } from 'core';
 import moment from 'moment';
 import { Jira } from 'abstraction';
+import { Config } from 'sst/node/config';
 import { getIssueById } from '../../repository/issue/get-issue';
 import { saveIssueDetails } from '../../repository/issue/save-issue';
 
@@ -21,6 +22,14 @@ export async function remove(
   if (!issueData) {
     logger.info('issueDeletedEvent: Issue not found');
     return false;
+  }
+
+  // checking is project key is available in our system
+  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const projectKey = issueData?.projectKey;
+  if (!projectKeys.includes(projectKey)) {
+    logger.info('processIssueDeletedEvent: Project not available in our system');
+    return;
   }
   const { _id, ...processIssue } = issueData;
 

@@ -4,6 +4,7 @@ import { Jira } from 'abstraction';
 import { ChangelogStatus, IssuesTypes } from 'abstraction/jira/enums';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { Config } from 'sst/node/config';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { getIssueStatusForReopenRate } from '../../util/issue-status';
 
@@ -15,6 +16,14 @@ const sqsClient = SQSClient.getInstance();
  */
 export async function update(issue: Jira.ExternalType.Webhook.Issue): Promise<void> {
   logger.info('issue_update_event: Send message to SQS');
+
+  // checking is project key is available in our system
+  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const projectKey = issue.issue.fields.project.key;
+  if (!projectKeys.includes(projectKey)) {
+    logger.info('processIssueUpdatedEvent: Project not available in our system');
+    return;
+  }
 
   await sqsClient.sendFifoMessage(
     { ...issue },
