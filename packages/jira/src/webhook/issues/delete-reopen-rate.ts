@@ -3,6 +3,7 @@ import { Jira } from 'abstraction';
 import { Hit, HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import moment from 'moment';
+import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 
 const sqsClient = SQSClient.getInstance();
@@ -18,6 +19,14 @@ export async function removeReopenRate(
   issue: (Pick<Hit, '_id'> & HitBody) | Jira.Mapped.ReopenRateIssue,
   eventTime: moment.Moment
 ): Promise<void | false> {
+  // checking is project key is available in our system
+  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const projectKey = issue?.issue?.fields?.project?.key;
+  if (!projectKeys.includes(projectKey)) {
+    logger.info('processDeleteReopenRateEvent: Project not available in our system');
+    return;
+  }
+
   try {
     await sqsClient.sendMessage({ ...issue, eventTime }, Queue.qReOpenRateDelete.queueUrl);
   } catch (error) {

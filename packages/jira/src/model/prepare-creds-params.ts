@@ -26,7 +26,11 @@ export class JiraCredsMapping {
   }
 
   public prepareGetParams(id: string): QueryCommandInput {
-    logger.info('JiraCredsMapping.prepareGetParams', { id, tableName: this.tableName });
+    logger.info({
+      message: 'JiraCredsMapping.prepareGetParams',
+      data: { id, tableName: this.tableName },
+    });
+
     return {
       TableName: this.tableName,
       KeyConditionExpression: 'id = :id',
