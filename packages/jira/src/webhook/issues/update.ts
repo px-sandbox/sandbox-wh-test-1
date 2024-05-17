@@ -17,6 +17,9 @@ export async function update(
   issue: Jira.ExternalType.Webhook.Issue,
   requestId: string
 ): Promise<void> {
+  if (issue.issue.fields.issuetype.name === IssuesTypes.TEST) {
+    return;
+  }
   const resourceId = issue.issue.id;
   logger.info({ requestId, resourceId, message: 'issue_update_event: Send message to SQS' });
 
