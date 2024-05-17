@@ -60,7 +60,7 @@ export async function worklog(
       throw new Error(`worklog.organization ${organization} not found`);
     }
     const issueData = await fetchJiraIssues(issueId, orgId.id, requestId);
-    if (issueData.length === 0) {
+    if (!issueData) {
       throw new Error(`worklog.no_issue_found: ${organization}, issueId: ${issueId}`);
     }
     const issue = formatIssue(issueData);
