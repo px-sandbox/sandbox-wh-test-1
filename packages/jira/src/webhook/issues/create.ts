@@ -4,6 +4,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { v4 as uuid } from 'uuid';
 import { Queue } from 'sst/node/queue';
 import { ProjectTypeKey } from 'abstraction/jira/enums/project';
+import { IssuesTypes } from 'abstraction/jira/enums';
 import { JiraClient } from '../../lib/jira-client';
 
 const sqsClient = SQSClient.getInstance();
@@ -16,6 +17,9 @@ export async function create(
   issue: Jira.ExternalType.Webhook.Issue,
   requestId: string
 ): Promise<void> {
+  if (issue.issue.fields.issuetype.name === IssuesTypes.TEST) {
+    return;
+  }
   const resourceId = issue.issue.id;
   logger.info({
     requestId,
