@@ -7,14 +7,15 @@ import { numberOfPrRaisedGraphSchema } from './validations';
 const numberOfPrRaised = async function getNumberOfPrRaised(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const { requestId } = event.requestContext;
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
   try {
     const [numberOfPrRaisedGraphData, numberOfPrRaisedStat] = await Promise.all([
-      numberOfPrRaisedGraph(startDate, endDate, interval, repoIds),
-      numberOfPrRaisedAvg(startDate, endDate, repoIds),
+      numberOfPrRaisedGraph(startDate, endDate, interval, repoIds, requestId),
+      numberOfPrRaisedAvg(startDate, endDate, repoIds, requestId),
     ]);
     return responseParser
       .setBody({ graphData: numberOfPrRaisedGraphData, headline: numberOfPrRaisedStat })
@@ -23,7 +24,7 @@ const numberOfPrRaised = async function getNumberOfPrRaised(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error(e);
+    logger.error({ message: 'numberOfPrRaised.error', error: e, requestId });
     throw new Error(`Something went wrong: ${e}`);
   }
 };

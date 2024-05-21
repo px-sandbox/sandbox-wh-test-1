@@ -1,9 +1,9 @@
 import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
-import { searchedDataFormator } from '../../util/response-formatter';
 import { deleteProcessfromDdb } from 'rp';
+import { searchedDataFormator } from '../../util/response-formatter';
 
 /**
  * Saves the details of a Jira sprint to DynamoDB and Elasticsearch.
@@ -14,7 +14,12 @@ import { deleteProcessfromDdb } from 'rp';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveSprintDetails(data: Jira.Type.Sprint, processId?: string): Promise<void> {
+export async function saveSprintDetails(
+  data: Jira.Type.Sprint,
+  reqCtx: Other.Type.RequestCtx,
+  processId?: string
+): Promise<void> {
+  const { requestId, resourceId } = reqCtx;
   try {
     const updatedData = { ...data };
     const matchQry = esb
@@ -34,12 +39,10 @@ export async function saveSprintDetails(data: Jira.Type.Sprint, processId?: stri
       updatedData.id = formattedData._id;
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.Sprint, updatedData);
-    logger.info('saveSprintDetails.successful');
-    await deleteProcessfromDdb(processId);
+    logger.info({ requestId, resourceId, message: 'saveSprintDetails.successful' });
+    await deleteProcessfromDdb(processId, reqCtx);
   } catch (error: unknown) {
-    logger.error('saveSprintDetails.error', {
-      error,
-    });
+    logger.error({ requestId, resourceId, message: 'saveSprintDetails.error', error });
     throw error;
   }
 }

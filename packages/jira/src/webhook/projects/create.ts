@@ -18,20 +18,33 @@ const sqsClient = SQSClient.getInstance();
 export async function create(
   project: Jira.ExternalType.Webhook.Project,
   eventTime: moment.Moment,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void> {
   // getting jira client and fetching project data using api
+  const resourceId = project.id.toString();
   const jiraClient = await JiraClient.getClient(organization);
   const projectData = await jiraClient.getProject(project.id.toString());
 
   // checking is project type is software. We dont wanna save maintainence projects
 
-  logger.info('processProjectCreatedEvent: Checking project type');
+  logger.info({
+    requestId,
+    message: 'processProjectCreatedEvent: Checking project type',
+    resourceId,
+  });
   if (projectData.projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE) {
     const createdAt = moment(eventTime).toISOString();
     const updatedProjectBody = projectKeysMapper(projectData, createdAt, organization);
-    logger.info('processProjectCreatedEvent: Send message to SQS');
+    logger.info({
+      requestId,
+      message: 'processProjectCreatedEvent: Send message to SQS',
+      resourceId,
+    });
 
-    await sqsClient.sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl);
+    await sqsClient.sendMessage(updatedProjectBody, Queue.qProjectFormat.queueUrl, {
+      requestId,
+      resourceId,
+    });
   }
 }

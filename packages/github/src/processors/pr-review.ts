@@ -1,6 +1,5 @@
 import { Github } from 'abstraction';
 import moment from 'moment';
-import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
@@ -17,9 +16,11 @@ export class PRReviewProcessor extends DataProcessor<
     pullId: number,
     repoId: number,
     action: string,
-    private orgId: number
+    private orgId: number,
+    requestId: string,
+    resourceId: string
   ) {
-    super(data);
+    super(data, requestId, resourceId);
     this.pullId = pullId;
     this.repoId = repoId;
     this.action = action;

@@ -17,19 +17,20 @@ export async function fetchAndSaveOrganizationDetails(
       };
     }
   >,
-  organizationName: string
+  organizationName: string,
+  requestId: string
 ): Promise<{ name: string }> {
   try {
-    logger.info('getOrganizationDetails.invoked');
+    logger.info({ message: 'getOrganizationDetails.invoked', requestId, data: organizationName });
     const responseData = await octokit(`GET /orgs/${organizationName}`);
     const orgId = `${mappingPrefixes.organization}_${responseData.data.id}`;
     const records = await dynamodbClient.find(new ParamsMapping().prepareGetParams(orgId));
+    const resourceId = orgId;
     if (responseData?.data) {
-      const result = new Organization(responseData.data).validate();
+      const result = new Organization(responseData.data, requestId, resourceId).validate();
       if (result) {
         const formattedData = await result.processor(records?.parentId as string);
         if (records === undefined) {
-          logger.info('---NEW_RECORD_FOUND---');
           await dynamodbClient.put(
             new ParamsMapping().preparePutParams(formattedData.id, formattedData.body.id)
           );
@@ -37,14 +38,16 @@ export async function fetchAndSaveOrganizationDetails(
         await esClientObj.putDocument(Github.Enums.IndexName.GitOrganization, formattedData);
       }
     }
-    logger.info('getOrganizationDetails.successful', {
-      response: responseData?.data,
+    logger.info({
+      message: 'getOrganizationDetails.successful',
+      data: {
+        response: responseData?.data,
+      },
+      requestId,
     });
     return responseData?.data?.login;
   } catch (error: unknown) {
-    logger.error({
-      error,
-    });
+    logger.error({ message: 'getOrganizationDetails.error', error, requestId });
     throw error;
   }
 }

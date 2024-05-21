@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
@@ -18,38 +19,46 @@ async function getUserList(
     }
   >,
   organizationName: string,
+  requestId: string,
   page = 1,
   counter = 0
 ): Promise<number> {
   try {
-    logger.info('getUserList.invoked', { organizationName, page, counter });
+    logger.info({
+      message: 'getUserList.invoked',
+      data: { organizationName, page, counter },
+      requestId,
+    });
     const perPage = 100;
 
     const responseData = await octokit(
       `GET /orgs/${organizationName}/members?per_page=${perPage}&page=${page}`
     );
     const membersPerPage: Github.ExternalType.Api.User[] = responseData.data;
-    logger.info('Response', membersPerPage);
     const newCounter = counter + membersPerPage.length;
 
     await Promise.all(
       membersPerPage.map(async (member) =>
-        sqsClient.sendMessage(member, Queue.qGhUsersFormat.queueUrl)
+        sqsClient.sendMessage(member, Queue.qGhUsersFormat.queueUrl, { requestId })
       )
     );
 
     if (membersPerPage.length < perPage) {
-      logger.info('getUserList.successful');
+      logger.info({ message: 'getUserList.successful', requestId });
       return newCounter;
     }
-    return getUserList(octokit, organizationName, page + 1, newCounter);
+    return getUserList(octokit, organizationName, requestId, page + 1, newCounter);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.error('getUserList.error', {
-      organizationName,
-      page,
-      counter,
+    logger.error({
+      message: 'getUserList.error',
+      data: {
+        organizationName,
+        page,
+        counter,
+      },
       error,
+      requestId,
     });
 
     if (error.status === 401) {
@@ -63,7 +72,7 @@ async function getUserList(
         },
       });
       const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokitObj);
-      return getUserList(octokitRequestWithTimeout, organizationName, page, counter);
+      return getUserList(octokitRequestWithTimeout, organizationName, requestId, page, counter);
     }
     throw error;
   }
@@ -77,16 +86,15 @@ export async function getUsers(
       };
     }
   >,
-  organizationName: string
+  organizationName: string,
+  requestId: string
 ): Promise<number> {
   let userCount: number;
   try {
-    userCount = await getUserList(octokit, organizationName);
+    userCount = await getUserList(octokit, organizationName, requestId);
     return userCount;
   } catch (error: unknown) {
-    logger.error({
-      error,
-    });
+    logger.error({ message: 'getUsers.list.error', error, requestId });
     throw error;
   }
 }

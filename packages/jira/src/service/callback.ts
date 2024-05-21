@@ -15,7 +15,10 @@ import { esResponseDataFormator } from '../util/es-response-formatter';
 const esClient = ElasticSearchClient.getInstance();
 const ddbClient = DynamoDbDocClient.getInstance();
 
-export async function getTokensByCode(code: string): Promise<Jira.ExternalType.Api.Credentials> {
+export async function getTokensByCode(
+  code: string,
+  requestId: string
+): Promise<Jira.ExternalType.Api.Credentials> {
   try {
     const response: AxiosResponse<Jira.ExternalType.Api.Credentials> = await axios.post(
       'https://auth.atlassian.com/oauth/token',
@@ -29,13 +32,14 @@ export async function getTokensByCode(code: string): Promise<Jira.ExternalType.A
     );
     return response.data;
   } catch (e) {
-    logger.error(`Error while getting tokens by code: ${e}`);
+    logger.error({ requestId, message: `Error while getting tokens by code: ${e}` });
     throw new Error(`Error while getting tokens by code: ${e}`);
   }
 }
 
 export async function getAccessibleOrgs(
-  accessToken: string
+  accessToken: string,
+  requestId: string
 ): Promise<Array<Jira.ExternalType.Api.Organization>> {
   try {
     const response: AxiosResponse<Array<Jira.ExternalType.Api.Organization>> = await axios.get(
@@ -49,23 +53,24 @@ export async function getAccessibleOrgs(
     );
     return response.data;
   } catch (e) {
-    logger.error(`Error while getting accessible orgs: ${e}`);
+    logger.error({ requestId, message: `Error while getting accessible orgs: ${e}` });
     throw new Error(`Error while getting accessible orgs: ${e}`);
   }
 }
 
 // eslint-disable-next-line max-lines-per-function
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  const requestId = event?.requestContext?.requestId;
   const code: string = event?.queryStringParameters?.code ?? '';
-  const jiraToken = await getTokensByCode(code);
+  const jiraToken = await getTokensByCode(code, requestId);
 
   let credId = uuid();
 
-  const accessibleOrgs = await getAccessibleOrgs(jiraToken.access_token);
+  const accessibleOrgs = await getAccessibleOrgs(jiraToken.access_token, requestId);
 
   const orgIds = accessibleOrgs.map(({ id }) => id);
 
-  logger.info('orgIds', { orgIds });
+  logger.info({ requestId, message: 'orgIds', data: { orgIds } });
 
   const getOrgsFromES = await esClient.search(
     Jira.Enums.IndexName.Organization,

@@ -5,12 +5,13 @@ import { reopenRateGraph, reopenRateGraphAvg } from '../matrics/get-reopen-rates
 const reopenRate = async function reopenRateGraphs(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const requestId = event?.requestContext?.requestId;
   const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [''];
 
   try {
     const [graphData, graphAvgData] = await Promise.all([
-      await reopenRateGraph(sprintIds),
-      await reopenRateGraphAvg(sprintIds),
+      await reopenRateGraph(sprintIds, { requestId, resourceId: sprintIds.join(',') }),
+      await reopenRateGraphAvg(sprintIds, { requestId, resourceId: sprintIds.join(',') }),
     ]);
     return responseParser
       .setBody({ graphData, headline: graphAvgData })
@@ -19,7 +20,12 @@ const reopenRate = async function reopenRateGraphs(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error(e);
+    logger.error({
+      error: e,
+      message: 'reopen rates fetch error',
+      requestId,
+      resourceId: sprintIds.join(','),
+    });
     throw new Error(`Something went wrong: ${e}`);
   }
 };

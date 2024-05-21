@@ -8,6 +8,7 @@ import async from 'async';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import esb from 'elastic-builder';
 import moment from 'moment';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 import { searchedDataFormatorWithDeleted } from '../util/response-formatter';
 
 // initializing elastic search client
@@ -46,10 +47,14 @@ function createDeleteQuery(data: { projectId: string; organizationId: string }):
  * @returns A Promise that resolves when the deletion is complete.
  */
 async function deleteProjectData(
-  result: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]
+  result: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[],
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   try {
-    logger.info('starting to delete project, sprint, boards and issues data from elastic search');
+    logger.info({
+      ...reqCtx,
+      message: 'starting to delete project, sprint, boards and issues data from elastic search',
+    });
     const projectData = result?.map((hit) => ({
       projectId: hit.id,
       organizationId: hit.organizationId,
@@ -71,9 +76,16 @@ async function deleteProjectData(
     });
 
     await Promise.all(deletePromises);
-    logger.info('deleted project, sprint, boards and issues data from elastic search');
+    logger.info({
+      ...reqCtx,
+      message: 'deleted project, sprint, boards and issues data from elastic search',
+    });
   } catch (err) {
-    logger.error('error while deleting project data from elastic search', err);
+    logger.error({
+      ...reqCtx,
+      message: 'error while deleting project data from elastic search',
+      error: err,
+    });
     throw err;
   }
 }
@@ -84,10 +96,11 @@ async function deleteProjectData(
  * @returns A Promise that resolves when all projects have been deleted from DynamoDB.
  */
 async function deleteProjectfromDD(
-  result: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]
+  result: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[],
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   try {
-    logger.info('starting to delete project from dynamo db');
+    logger.info({ ...reqCtx, message: 'starting to delete project from dynamo db' });
 
     const parentIds = result?.map((hit) => hit._id);
 
@@ -103,14 +116,21 @@ async function deleteProjectfromDD(
       try {
         await DynamoDbDocClientObj.delete(params);
 
-        logger.info(`Entry with parentId ${parentId} deleted from dynamo db`);
+        logger.info({
+          ...reqCtx,
+          message: `Entry with parentId ${parentId} deleted from dynamo db`,
+        });
       } catch (error) {
-        logger.error(`Error while deleting entry with parentId ${parentId} from dynamo DB`, error);
+        logger.error({
+          ...reqCtx,
+          message: `Error while deleting entry with parentId ${parentId} from dynamo DB`,
+          error,
+        });
         throw error;
       }
     });
   } catch (err) {
-    logger.error('Error while preparing delete requests', err);
+    logger.error({ ...reqCtx, message: 'Error while preparing delete requests', error: err });
     throw err;
   }
 }
@@ -139,8 +159,12 @@ function createRequestBodySearchQuery(dateToCompare: moment.Moment): object {
  * Deletes the corresponding entries from Elasticsearch and DynamoDB.
  * @returns Promise<void>
  */
-export async function handler(): Promise<void> {
-  logger.info('Hard delete projects from elastic search and dynamo db function invoked');
+export async function handler(event: APIGatewayProxyEvent): Promise<void> {
+  const requestId = event?.requestContext?.requestId;
+  logger.info({
+    requestId,
+    message: 'Hard delete projects from elastic search and dynamo db function invoked',
+  });
 
   const duration = Config.PROJECT_DELETION_AGE;
   const [value, unit] = duration.split(' ');
@@ -152,16 +176,19 @@ export async function handler(): Promise<void> {
 
   const query = createRequestBodySearchQuery(dateToCompare);
 
-  logger.info('searching for projects that have been soft-deleted >=PROJECT_DELETION_AGE');
+  logger.info({
+    requestId,
+    message: 'searching for projects that have been soft-deleted >=PROJECT_DELETION_AGE',
+  });
 
   const result = await esClientObj.search(Jira.Enums.IndexName.Project, query);
   const res = await searchedDataFormatorWithDeleted(result);
 
   if (res.length > 0) {
     // deleting projects data from projects/sprints/boards/issues document
-    await deleteProjectData(res);
+    await deleteProjectData(res, { requestId, resourceId: '' });
 
     // deleting project record from dynamo DB
-    await deleteProjectfromDD(res);
+    await deleteProjectfromDD(res, { requestId, resourceId: '' });
   }
 }

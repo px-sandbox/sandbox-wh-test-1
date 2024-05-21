@@ -11,8 +11,13 @@ const sqsClient = SQSClient.getInstance();
 export const handler = async function repoSastErrors(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const { requestId } = event.requestContext;
   try {
-    logger.info('repoSastErrors.handler.received', { errorData: event.body });
+    logger.info({
+      message: 'repoSastErrors.handler.received',
+      data: { errorData: event.body },
+      requestId,
+    });
     const data: Github.ExternalType.Api.RepoSastErrors = JSON.parse(event.body ?? '{}');
 
     const s3 = new S3();
@@ -26,7 +31,7 @@ export const handler = async function repoSastErrors(
       ContentType: 'application/json',
     };
     const s3Obj = await s3.upload(params).promise();
-    logger.info('repoSastErrors.handler.s3Upload', { s3Obj });
+    logger.info({ message: 'repoSastErrors.handler.s3Upload', data: { s3Obj }, requestId });
     await sqsClient.sendMessage(
       {
         repoId: data.repoId,
@@ -35,9 +40,10 @@ export const handler = async function repoSastErrors(
         orgId: data.orgId,
         createdAt: data.createdAt,
       },
-      Queue.qGhRepoSastError.queueUrl
+      Queue.qGhRepoSastError.queueUrl,
+      { requestId }
     );
-    logger.info('repoSastErrors.handler.received', { data });
+    logger.info({ message: 'repoSastErrors.handler.received', data, requestId });
     return responseParser
       .setBody({})
       .setMessage('Repo sast errors data received successfully')
@@ -45,7 +51,7 @@ export const handler = async function repoSastErrors(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (err) {
-    logger.error('repoSastErrors.handler.error', { err });
+    logger.error({ message: 'repoSastErrors.handler.error', error: err, requestId });
     return responseParser
       .setMessage(`Failed to get SAST errors: ${err}`)
       .setStatusCode(HttpStatusCode['500'])

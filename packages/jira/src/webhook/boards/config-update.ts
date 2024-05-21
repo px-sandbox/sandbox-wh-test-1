@@ -16,33 +16,44 @@ const sqsClient = SQSClient.getInstance();
  */
 export async function updateConfig(
   config: Jira.ExternalType.Webhook.BoardConfig,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void | false> {
+  const resourceId = config.id.toString();
   try {
     const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
     const jiraClient = await JiraClient.getClient(organization);
     const data = await jiraClient.getBoard(config.id);
 
-    logger.info('boardConfigUpdatedEvent', {
-      projectKey: data.location.projectKey,
-      availableProjectKeys: projectKeys,
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'boardConfigUpdatedEvent',
+      data: {
+        projectKey: data.location.projectKey,
+        availableProjectKeys: projectKeys,
+      },
     });
 
     if (!projectKeys.includes(data.location.projectKey)) {
-      logger.info('boardConfigUpdatedEvent: Project not available in our system');
+      logger.info({
+        requestId,
+        resourceId,
+        message: 'boardConfigUpdatedEvent: Project not available in our system',
+      });
       return;
     }
-    const boardIndexData = await getBoardById(config.id, organization);
+    const boardIndexData = await getBoardById(config.id, organization, { requestId, resourceId });
     if (!boardIndexData) {
-      logger.info('boardConfigUpdatedEvent: Board not found');
+      logger.info({ requestId, resourceId, message: 'boardConfigUpdatedEvent: Board not found' });
       return false;
     }
 
     const userData = mappingToApiDataConfig(config, boardIndexData, organization);
-    logger.info('boardUpdatedEvent: Send message to SQS');
+    logger.info({ requestId, resourceId, message: 'boardUpdatedEvent: Send message to SQS' });
 
-    await sqsClient.sendMessage(userData, Queue.qBoardFormat.queueUrl);
+    await sqsClient.sendMessage(userData, Queue.qBoardFormat.queueUrl, { requestId, resourceId });
   } catch (error) {
-    logger.error('boardUpdatedEvent.error', { error });
+    logger.error({ requestId, resourceId, message: 'boardUpdatedEvent.error', error });
   }
 }

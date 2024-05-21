@@ -2,9 +2,9 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
+import { logProcessToRetry } from 'rp';
 import { ReopenRateProcessor } from '../../../processors/reopen-rate';
 import { prepareReopenRate } from '../../../util/prepare-reopen-rate';
-import { logProcessToRetry } from 'rp';
 
 /**
  * Processes the record from an SQS queue and performs operations related to reopening rate.
@@ -12,18 +12,34 @@ import { logProcessToRetry } from 'rp';
  * @returns A Promise that resolves to void.
  */
 async function repoInfoQueueFunc(record: SQSRecord): Promise<void> {
+  const {
+    reqCtx: { requestId, resourceId },
+    message: messageBody,
+  } = JSON.parse(record.body);
   try {
-    const messageBody = JSON.parse(record.body);
     // store only when there is only one item in custom_10007 field of issue
 
-    logger.info('REOPEN_RATE_SQS_RECEIVER', { messageBody });
-    const inputData = await prepareReopenRate(messageBody, messageBody.typeOfChangelog);
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'REOPEN_RATE_SQS_RECEIVER',
+      data: { messageBody },
+    });
+    const inputData = await prepareReopenRate(messageBody, messageBody.typeOfChangelog, {
+      requestId,
+      resourceId,
+    });
     if (inputData) {
-      const reOpenRateProcessor = new ReopenRateProcessor(inputData);
+      const reOpenRateProcessor = new ReopenRateProcessor(inputData, requestId, resourceId);
 
       const data = await reOpenRateProcessor.processor();
       if (!data) {
-        logger.error('reopenRateInfoQueueDATA.error', { error: 'processor failed' });
+        logger.error({
+          requestId,
+          resourceId,
+          message: 'reopenRateInfoQueueDATA.error',
+          error: 'processor failed',
+        });
         return;
       }
       await reOpenRateProcessor.save({
@@ -32,9 +48,9 @@ async function repoInfoQueueFunc(record: SQSRecord): Promise<void> {
         processId: messageBody?.processId,
       });
     }
-    logger.info('reopenRateInfoQueue.success');
+    logger.info({ requestId, resourceId, message: 'reopenRateInfoQueue.success' });
   } catch (error) {
-    logger.error(`reopenRateInfoQueue.error ${error}`);
+    logger.error({ requestId, resourceId, message: `reopenRateInfoQueue.error ${error}` });
     await logProcessToRetry(record, Queue.qReOpenRate.queueUrl, error as Error);
   }
 }
@@ -44,7 +60,7 @@ async function repoInfoQueueFunc(record: SQSRecord): Promise<void> {
  * @returns A promise that resolves to void.
  */
 export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: `Records Length: ${event.Records.length}` });
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
       await repoInfoQueueFunc(record);

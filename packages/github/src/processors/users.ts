@@ -6,8 +6,8 @@ import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 
 export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, Github.Type.User> {
-  constructor(data: Github.ExternalType.Api.User) {
-    super(data);
+  constructor(data: Github.ExternalType.Api.User, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
   public async processor(): Promise<Github.Type.User> {
     const githubId = `${mappingPrefixes.user}_${this.ghApiData.id}`;

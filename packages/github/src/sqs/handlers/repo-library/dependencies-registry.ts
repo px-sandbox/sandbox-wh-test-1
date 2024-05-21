@@ -6,19 +6,21 @@ import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
+import { logProcessToRetry } from 'rp';
 import { mappingPrefixes } from '../../../constant/config';
 import { getNodeLibInfo } from '../../../util/node-library-info';
-import { logProcessToRetry } from 'rp';
 
 export const handler = async function dependencyRegistry(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: `Records Length: ${event.Records.length}` });
   const sqsClient = SQSClient.getInstance();
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
+      const {
+        reqCtx: { requestId, resourceId },
+        message: messageBody,
+      } = JSON.parse(record.body);
       try {
-        const messageBody = JSON.parse(record.body);
-
-        logger.info('DEPENDENCIES_INDEXED', { messageBody });
+        logger.info({ message: 'DEPENDENCIES_INDEXED', data: messageBody, requestId, resourceId });
 
         const { dependencyName, currentVersion, repoId, isDeleted, isCore } = messageBody;
 
@@ -37,20 +39,31 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
             isCore,
           },
         };
-        logger.info('DEPENDENCIES_DATA', { repoLibObj });
+        logger.info({ message: 'DEPENDENCIES_DATA', data: repoLibObj, requestId, resourceId });
         await Promise.all([
-          sqsClient.sendMessage(repoLibObj, Queue.qCurrentDepRegistry.queueUrl),
-          sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl),
+          sqsClient.sendMessage(repoLibObj, Queue.qCurrentDepRegistry.queueUrl, {
+            requestId,
+            resourceId,
+          }),
+          sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl, {
+            requestId,
+            resourceId,
+          }),
         ]);
       } catch (error) {
         if (axios.isAxiosError(error)) {
           if (error.response && error.response.status === 404) {
-            logger.info('DEPENDENCIES_NOT_FOUND', { record });
+            logger.info({ message: 'DEPENDENCIES_NOT_FOUND', data: record, requestId, resourceId });
             return;
           }
         }
         await logProcessToRetry(record, Queue.qDepRegistry.queueUrl, error as Error);
-        logger.error('dependencyRegistry.error', { error });
+        logger.error({
+          message: 'dependencyRegistry.error',
+          error: `${error}`,
+          requestId,
+          resourceId,
+        });
       }
     })
   );

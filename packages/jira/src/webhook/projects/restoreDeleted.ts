@@ -17,25 +17,40 @@ import { getProjectById } from '../../repository/project/get-project';
 export async function restoreDeleted(
   projectId: number,
   eventTime: moment.Moment,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void | false> {
+  const resourceId = projectId.toString();
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
   const jiraClient = await JiraClient.getClient(organization);
   const data = await jiraClient.getProject(projectId.toString());
 
-  logger.info('projectRestoreDeletedEvent', {
-    projectKey: data.key,
-    availableProjectKeys: projectKeys,
+  logger.info({
+    requestId,
+    resourceId,
+    message: 'projectRestoreDeletedEvent',
+    data: {
+      projectKey: data.key,
+      availableProjectKeys: projectKeys,
+    },
   });
 
   if (!projectKeys.includes(data.key)) {
-    logger.info('projectRestoreDeletedEvent: Project not available in our system');
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'projectRestoreDeletedEvent: Project not available in our system',
+    });
     return;
   }
 
-  const projectData = await getProjectById(projectId, organization);
+  const projectData = await getProjectById(projectId, organization, { requestId, resourceId });
   if (!projectData) {
-    logger.info('projectRestoreDeletedEvent: Project not found');
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'projectRestoreDeletedEvent: Project not found',
+    });
     return false;
   }
 
@@ -44,6 +59,13 @@ export async function restoreDeleted(
   processProjectData.isDeleted = false;
   processProjectData.deletedAt = null;
 
-  logger.info(`projectRestoreDeletedEvent: Restore Deleted Project id ${_id}`);
-  await saveProjectDetails({ id: _id, body: processProjectData } as Jira.Type.Project);
+  logger.info({
+    requestId,
+    resourceId,
+    message: `projectRestoreDeletedEvent: Restore Deleted Project id ${_id}`,
+  });
+  await saveProjectDetails({ id: _id, body: processProjectData } as Jira.Type.Project, {
+    requestId,
+    resourceId,
+  });
 }

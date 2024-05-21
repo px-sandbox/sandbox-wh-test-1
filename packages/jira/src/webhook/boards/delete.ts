@@ -15,13 +15,20 @@ import { saveBoardDetails } from '../../repository/board/save-board';
 export async function deleteBoard(
   boardId: number,
   eventTime: moment.Moment,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void | false> {
-  logger.info('boardDeletedEvent started for board id: ', boardId);
+  const resourceId = boardId.toString();
+  logger.info({
+    requestId,
+    resourceId,
+    message: 'boardDeletedEvent started for board id: ',
+    data: { boardId },
+  });
 
-  const boardData = await getBoardById(boardId, organization);
+  const boardData = await getBoardById(boardId, organization, { requestId, resourceId });
   if (!boardData) {
-    logger.info('boardDeletedEvent: Board not found');
+    logger.info({ requestId, resourceId, message: 'boardDeletedEvent: Board not found' });
     return false;
   }
 
@@ -30,6 +37,9 @@ export async function deleteBoard(
   processBoardData.isDeleted = true;
   processBoardData.deletedAt = eventTime.toISOString();
 
-  logger.info(`boardDeletedEvent: Delete Board id ${_id}`);
-  await saveBoardDetails({ id: _id, body: processBoardData } as Jira.Type.Board);
+  logger.info({ requestId, resourceId, message: `boardDeletedEvent: Delete Board id ${_id}` });
+  await saveBoardDetails({ id: _id, body: processBoardData } as Jira.Type.Board, {
+    requestId,
+    resourceId,
+  });
 }

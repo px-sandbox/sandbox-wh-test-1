@@ -16,9 +16,7 @@ export class ElasticSearchFormator {
       });
       return filteredArray;
     } catch (error) {
-      logger.error({
-        error,
-      });
+      logger.error({ message: 'Error while exporting actual result', error });
       throw error;
     }
   }

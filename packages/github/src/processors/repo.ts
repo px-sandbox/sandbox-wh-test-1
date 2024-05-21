@@ -1,7 +1,6 @@
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import moment from 'moment';
-import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
@@ -10,8 +9,8 @@ export class RepositoryProcessor extends DataProcessor<
   Github.ExternalType.Api.Repository,
   Github.Type.RepoFormatter
 > {
-  constructor(data: Github.ExternalType.Api.Repository) {
-    super(data);
+  constructor(data: Github.ExternalType.Api.Repository, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
   public async processor(): Promise<Github.Type.RepoFormatter> {
     const githubId = `${mappingPrefixes.repo}_${this.ghApiData.id}`;
@@ -28,9 +27,12 @@ export class RepositoryProcessor extends DataProcessor<
       },
     ];
     if (!parentId && this.ghApiData?.action !== Github.Enums.Repo.Created) {
-      logger.error('REPOSITORY_PROCESSOR_ERROR', {
+      logger.error({
+        message: 'RepositoryProcessor.error',
         error: 'Repository not found',
         data: this.ghApiData,
+        requestId: this.requestId,
+        resourceId: this.resourceId,
       });
       throw new Error('Repository not found');
     }

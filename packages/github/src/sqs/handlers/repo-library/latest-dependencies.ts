@@ -5,12 +5,20 @@ import { LibParamsMapping } from '../../../model/lib-master-mapping';
 
 const dynamodbClient = DynamoDbDocClient.getInstance();
 export const handler = async function latestDepRegistry(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: 'Records Length', data: JSON.stringify(event.Records.length) });
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
+      const {
+        reqCtx: { requestId, resourceId },
+        message: messageBody,
+      } = JSON.parse(record.body);
       try {
-        const messageBody = JSON.parse(record.body);
-        logger.info('LATEST_DEPENDENCIES_DYNAMODB', { messageBody });
+        logger.info({
+          message: 'LATEST_DEPENDENCIES_DYNAMODB',
+          data: messageBody,
+          requestId,
+          resourceId,
+        });
         const {
           libName,
           latest: { version, releaseDate },
@@ -18,9 +26,9 @@ export const handler = async function latestDepRegistry(event: SQSEvent): Promis
         await dynamodbClient.put(
           new LibParamsMapping().preparePutParams(libName, { version, releaseDate })
         );
-        logger.info('LATEST_DEPENDENCIES_DYNAMODB_SUCCESS');
+        logger.info({ message: 'LATEST_DEPENDENCIES_DYNAMODB_SUCCESS', requestId, resourceId });
       } catch (error) {
-        logger.error('latestDepRegistry.error', { error });
+        logger.error({ message: 'latestDepRegistry.error', error, requestId, resourceId });
       }
     })
   );

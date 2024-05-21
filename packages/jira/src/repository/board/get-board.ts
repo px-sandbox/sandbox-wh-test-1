@@ -15,12 +15,13 @@ import { getOrganization } from '../organization/get-organization';
 const esClientObj = ElasticSearchClient.getInstance();
 export async function getBoardById(
   boardId: number,
-  organization: string
+  organization: string,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<Other.Type.HitBody> {
   try {
     const orgData = await getOrganization(organization);
     if (!orgData) {
-      logger.error(`Organization ${organization} not found`);
+      logger.error({ ...reqCtx, message: `Organization ${organization} not found` });
       throw new Error(`Organization ${organization} not found`);
     }
     const matchQry = esb
@@ -38,7 +39,7 @@ export async function getBoardById(
     const [formattedBoardData] = await searchedDataFormatorWithDeleted(boardData);
     return formattedBoardData;
   } catch (error: unknown) {
-    logger.error('getBoardById.error', { error });
+    logger.error({ ...reqCtx, message: 'getBoardById.error', error });
     throw error;
   }
 }
@@ -52,7 +53,8 @@ export async function getBoardById(
  */
 export async function getBoardByOrgId(
   boardId: number,
-  organizationId: string
+  organizationId: string,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<Other.Type.HitBody> {
   try {
     const matchQry = esb
@@ -70,7 +72,7 @@ export async function getBoardByOrgId(
     const [formattedBoardData] = await searchedDataFormatorWithDeleted(boardData);
     return formattedBoardData;
   } catch (error: unknown) {
-    logger.error('getBoardById.error', { error });
+    logger.error({ ...reqCtx, message: 'getBoardById.error', error });
     throw error;
   }
 }

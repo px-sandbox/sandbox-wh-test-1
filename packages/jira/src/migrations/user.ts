@@ -1,7 +1,6 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { SQSClient } from '@pulse/event-handler';
-import { Jira } from 'abstraction';
 import { Queue } from 'sst/node/queue';
 import { logProcessToRetry } from 'rp';
 
@@ -9,9 +8,11 @@ export const handler = async function userMigration(event: SQSEvent): Promise<vo
   const sqsClient = SQSClient.getInstance();
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
+      const {
+        reqCtx,
+        message: { organization, user },
+      } = JSON.parse(record.body);
       try {
-        const { organization, user }: { organization: string; user: Jira.ExternalType.Api.User } =
-          JSON.parse(record.body);
         const createdAt = new Date().toISOString();
         const deletedAt = null;
         return sqsClient.sendMessage(
@@ -22,12 +23,13 @@ export const handler = async function userMigration(event: SQSEvent): Promise<vo
             createdAt,
             organization,
           },
-          Queue.qUserFormat.queueUrl
+          Queue.qUserFormat.queueUrl,
+          reqCtx
         );
       } catch (error) {
-        logger.error(JSON.stringify({ error, event }));
+        logger.error({ ...reqCtx, message: JSON.stringify({ error, event }) });
         await logProcessToRetry(record, Queue.qUserMigrate.queueUrl, error as Error);
-        logger.error('userMigrateDataReciever.error', error);
+        logger.error({ ...reqCtx, message: 'userMigrateDataReciever.error', error });
       }
     })
   );

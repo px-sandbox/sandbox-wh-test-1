@@ -6,9 +6,9 @@ import { IssuesTypes } from 'abstraction/jira/enums';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Queue } from 'sst/node/queue';
-import { searchedDataFormator } from '../util/response-formatter';
-import { formatIssue } from 'src/util/issue-helper';
 import { v4 as uuid } from 'uuid';
+import { formatIssue } from '../util/issue-helper';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
@@ -20,7 +20,11 @@ const sqsClient = SQSClient.getInstance();
  * @param orgId - The ID of the organization.
  * @returns A promise that resolves to an array of Jira issues.
  */
-async function fetchJiraIssues(projectId: string, orgId: string): Promise<Other.Type.HitBody[]> {
+async function fetchJiraIssues(
+  projectId: string,
+  orgId: string,
+  reqCtx: Other.Type.RequestCtx
+): Promise<Other.Type.HitBody[]> {
   const issueQuery = esb
     .requestBodySearch()
     .query(
@@ -52,10 +56,9 @@ async function fetchJiraIssues(projectId: string, orgId: string): Promise<Other.
     formattedIssues = await searchedDataFormator(unformattedIssues);
     issues.push(...formattedIssues);
   }
-  logger.info(`fetchJiraIssues.successful with length:, ${issues.length}`);
+  logger.info({ ...reqCtx, message: `fetchJiraIssues.successful with length:, ${issues.length}` });
   return issues;
 }
-
 
 /**
  * Updates issues with subtasks.
@@ -66,19 +69,23 @@ async function fetchJiraIssues(projectId: string, orgId: string): Promise<Other.
  */
 async function updateIssuesWithSubtasks(
   organization: string,
-  issueIdsArr: Other.Type.HitBody[]
+  issueIdsArr: Other.Type.HitBody[],
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   await Promise.all(
     issueIdsArr.map(async (issueData: Other.Type.HitBody) => {
       try {
         const issue = formatIssue(issueData);
-        logger.info(`
+        logger.info({
+          ...reqCtx,
+          message: `
   FETCHING ISSUES FOR THIS 
   projectId: ${issueData.projectId}
   organization: ${organization},
   issueId: ${issueData.issueId},
   sprintId: ${issueData.sprintId},
-  `);
+  `,
+        });
 
         await sqsClient.sendFifoMessage(
           {
@@ -89,15 +96,16 @@ async function updateIssuesWithSubtasks(
             issue,
           },
           Queue.qIssueFormat.queueUrl,
+          reqCtx,
           issue.key,
           uuid()
         );
       } catch (error) {
-        logger.error(`JIRA_SUBTASK_ISSUE_DETAILS_MIGRATION', ${error}`);
+        logger.error({ ...reqCtx, message: `JIRA_SUBTASK_ISSUE_DETAILS_MIGRATION', ${error}` });
       }
     })
   );
-  logger.info('subtaskMigrateFormatterDataReceiver.successful');
+  logger.info({ ...reqCtx, message: 'subtaskMigrateFormatterDataReceiver.successful' });
 }
 
 /**
@@ -111,15 +119,16 @@ async function updateIssuesWithSubtasks(
 export async function subtaskMigrate(
   projectId: string,
   organizationName: string,
-  orgId: string
+  orgId: string,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   try {
-    const issues = await fetchJiraIssues(projectId, orgId);
+    const issues = await fetchJiraIssues(projectId, orgId, reqCtx);
     if (issues.length === 0) {
       throw new Error(`No issues found orgName: ${organizationName}, ProjectId: ${projectId}`);
     }
-    await updateIssuesWithSubtasks(organizationName, issues);
+    await updateIssuesWithSubtasks(organizationName, issues, reqCtx);
   } catch (error) {
-    logger.error(`subtaskMigrateDataReceiver.error, ${error}`);
+    logger.error({ ...reqCtx, message: `subtaskMigrateDataReceiver.error, ${error}` });
   }
 }

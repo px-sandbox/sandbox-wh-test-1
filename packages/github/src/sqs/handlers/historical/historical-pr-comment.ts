@@ -3,11 +3,11 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { OctokitResponse } from '@octokit/types';
+import { logProcessToRetry } from 'rp';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
-import { logProcessToRetry } from 'rp';
 
 const sqsClient = SQSClient.getInstance();
 const installationAccessToken = await getInstallationAccessToken();
@@ -18,9 +18,12 @@ const octokit = ghRequest.request.defaults({
 });
 const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
-  const messageBody = JSON.parse(record.body);
+  const {
+    reqCtx: { requestId, resourceId },
+    message: messageBody,
+  } = JSON.parse(record.body);
   if (!messageBody && !messageBody.head) {
-    logger.info('HISTORY_MESSGE_BODY_EMPTY', messageBody);
+    logger.info({ message: 'HISTORY_MESSGE_BODY_EMPTY', data: messageBody, requestId, resourceId });
     return false;
   }
   const {
@@ -45,20 +48,31 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
           pullId: messageBody.id,
           repoId: messageBody.head.repo.id,
         },
-        Queue.qGhPrReviewCommentFormat.queueUrl
+        Queue.qGhPrReviewCommentFormat.queueUrl,
+        { requestId, resourceId }
       )
     );
     await Promise.all(queueProcessed);
-    logger.info(`total pr comments proccessed: ${queueProcessed.length}`);
+    logger.info({
+      message: 'total pr comments proccessed:',
+      data: queueProcessed.length,
+      requestId,
+      resourceId,
+    });
     if (octokitRespData.length < 100) {
-      logger.info('LAST_100_RECORD_PR_COMMENT');
+      logger.info({ message: 'LAST_100_RECORD_PR_COMMENT', requestId, resourceId });
       return true;
     }
     messageBody.page = page + 1;
-    logger.info(`message_body_pr_comments: ${JSON.stringify(messageBody)}`);
+    logger.info({
+      message: 'message_body_pr_comments',
+      data: JSON.stringify(messageBody),
+      requestId,
+      resourceId,
+    });
     await getPrComments({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
-    logger.error(`historical.comments.error: ${JSON.stringify(error)}`);
+    logger.error({ message: 'historical.comments.error', error, requestId, resourceId });
     await logProcessToRetry(record, Queue.qGhHistoricalPrComments.queueUrl, error as Error);
   }
 }
@@ -68,16 +82,17 @@ export const handler = async function collectPRCommentsData(event: SQSEvent): Pr
     event.Records.filter((record) => {
       const body = JSON.parse(record.body);
       if (body.head?.repo) {
-        logger.info(
-          `PR with repo: ${body}
-      `
-        );
+        logger.info({
+          message: `PR with repo: ${body}
+      `,
+        });
         return true;
       }
 
-      logger.info(`
-      PR with no repo: ${body}
-      `);
+      logger.info({
+        message: 'PR with no repo:',
+        data: JSON.stringify(body),
+      });
 
       return false;
     }).map(async (record) => getPrComments(record))
