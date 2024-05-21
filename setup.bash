@@ -23,7 +23,6 @@ inputs=(
   'OPENSEARCH_PASSWORD | "TBC"'
   'OPENSEARCH_USERNAME | "TBC"'
   'REQUEST_TIMEOUT | "2000"'
-  'ALLOWED_ISSUE_TYPES | "Epic,Story,Bug,Task,Sub-task"'
 )
 
 for ((i=0; i<${#inputs[@]}; i++))

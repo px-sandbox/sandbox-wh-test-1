@@ -9,3 +9,5 @@ export const mappingPrefixes = {
   org: 'org',
   reopen_rate: 'jira_reopen_rate',
 };
+
+export const ALLOWED_ISSUE_TYPES = ['Epic', 'Story', 'Task', 'Bug', 'Sub-task'];

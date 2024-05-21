@@ -9,6 +9,7 @@ import { v4 as uuid } from 'uuid';
 import { formatIssue } from '../../util/issue-helper';
 import { searchedDataFormator } from '../../util/response-formatter';
 import { getOrganization } from '../../repository/organization/get-organization';
+import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
@@ -53,8 +54,8 @@ export async function worklog(issueId: string, organization: string): Promise<vo
     }
 
     // checking if issue type is allowed
-    const allowedIssueTypes = Config.ALLOWED_ISSUE_TYPES?.split(',') || [];
-    if (!allowedIssueTypes.includes(issueData?.issueType)) {
+
+    if (!ALLOWED_ISSUE_TYPES.includes(issueData?.issueType)) {
       logger.info('processWorklogEvent: Issue type not allowed');
       return;
     }

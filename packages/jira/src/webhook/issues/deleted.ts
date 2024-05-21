@@ -4,6 +4,7 @@ import { Jira } from 'abstraction';
 import { Config } from 'sst/node/config';
 import { getIssueById } from '../../repository/issue/get-issue';
 import { saveIssueDetails } from '../../repository/issue/save-issue';
+import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 
 /**
  * Removes the issue with the given ID and marks it as deleted.
@@ -25,8 +26,8 @@ export async function remove(
   }
 
   // checking if issue type is allowed
-  const allowedIssueTypes = Config.ALLOWED_ISSUE_TYPES?.split(',') || [];
-  if (!allowedIssueTypes.includes(issueData?.issueType)) {
+
+  if (!ALLOWED_ISSUE_TYPES.includes(issueData?.issueType)) {
     logger.info('processIssueDeletedEvent: Issue type not allowed');
     return;
   }

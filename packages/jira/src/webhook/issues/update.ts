@@ -7,6 +7,7 @@ import { Queue } from 'sst/node/queue';
 import { Config } from 'sst/node/config';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { getIssueStatusForReopenRate } from '../../util/issue-status';
+import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 
 const sqsClient = SQSClient.getInstance();
 /**
@@ -18,8 +19,8 @@ export async function update(issue: Jira.ExternalType.Webhook.Issue): Promise<vo
   logger.info('issue_update_event: Send message to SQS');
 
   // checking if issue type is allowed
-  const allowedIssueTypes = Config.ALLOWED_ISSUE_TYPES?.split(',') || [];
-  if (!allowedIssueTypes.includes(issue.issue.fields.issuetype.name)) {
+
+  if (!ALLOWED_ISSUE_TYPES.includes(issue.issue.fields.issuetype.name)) {
     logger.info('processIssueUpdatedEvent: Issue type not allowed');
     return;
   }

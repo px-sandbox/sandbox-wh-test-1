@@ -6,6 +6,7 @@ import { Queue } from 'sst/node/queue';
 import { ProjectTypeKey } from 'abstraction/jira/enums/project';
 import { Config } from 'sst/node/config';
 import { JiraClient } from '../../lib/jira-client';
+import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 
 const sqsClient = SQSClient.getInstance();
 /**
@@ -17,8 +18,8 @@ export async function create(issue: Jira.ExternalType.Webhook.Issue): Promise<vo
   logger.info('issue_event: Send message to SQS');
 
   // checking if issue type is allowed
-  const allowedIssueTypes = Config.ALLOWED_ISSUE_TYPES?.split(',') || [];
-  if (!allowedIssueTypes.includes(issue.issue.fields.issuetype.name)) {
+
+  if (!ALLOWED_ISSUE_TYPES.includes(issue.issue.fields.issuetype.name)) {
     logger.info('processIssueCreatedEvent: Issue type not allowed');
     return;
   }

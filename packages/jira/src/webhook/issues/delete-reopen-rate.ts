@@ -5,6 +5,7 @@ import { logger } from 'core';
 import moment from 'moment';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 
 const sqsClient = SQSClient.getInstance();
 /**
@@ -20,8 +21,8 @@ export async function removeReopenRate(
   eventTime: moment.Moment
 ): Promise<void | false> {
   // checking if issue type is allowed
-  const allowedIssueTypes = Config.ALLOWED_ISSUE_TYPES?.split(',') || [];
-  if (!allowedIssueTypes.includes(issue?.issue?.fields?.issuetype?.name)) {
+
+  if (!ALLOWED_ISSUE_TYPES.includes(issue?.issue?.fields?.issuetype?.name)) {
     logger.info('processDeleteReopenRateEvent: Issue type not allowed');
     return;
   }

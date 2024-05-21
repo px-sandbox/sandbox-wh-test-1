@@ -24,7 +24,7 @@ export function initializeApi(
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     AVAILABLE_PROJECT_KEYS,
-    ALLOWED_ISSUE_TYPES,
+
     PROJECT_DELETION_AGE,
     NODE_VERSION,
     REQUEST_TIMEOUT,
@@ -89,7 +89,6 @@ export function initializeApi(
           AVAILABLE_PROJECT_KEYS,
           PROJECT_DELETION_AGE,
           REQUEST_TIMEOUT,
-          ALLOWED_ISSUE_TYPES,
         ],
         runtime: NODE_VERSION,
       },
