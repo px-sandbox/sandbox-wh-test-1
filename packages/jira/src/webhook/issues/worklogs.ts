@@ -54,7 +54,7 @@ export async function worklog(issueId: string, organization: string): Promise<vo
 
     // checking if issue type is allowed
     const allowedIssueTypes = Config.ALLOWED_ISSUE_TYPES?.split(',') || [];
-    if (!allowedIssueTypes.includes(issueData?.issuetype)) {
+    if (!allowedIssueTypes.includes(issueData?.issueType)) {
       logger.info('processWorklogEvent: Issue type not allowed');
       return;
     }

@@ -26,7 +26,7 @@ export async function remove(
 
   // checking if issue type is allowed
   const allowedIssueTypes = Config.ALLOWED_ISSUE_TYPES?.split(',') || [];
-  if (!allowedIssueTypes.includes(issueData?.issuetype)) {
+  if (!allowedIssueTypes.includes(issueData?.issueType)) {
     logger.info('processIssueDeletedEvent: Issue type not allowed');
     return;
   }
