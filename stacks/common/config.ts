@@ -18,6 +18,7 @@ export const commonConfig = ({
   GITHUB_WEBHOOK_SECRET: Config.Secret;
   GITHUB_SG_ACCESS_TOKEN: Config.Secret;
   AVAILABLE_PROJECT_KEYS: Config.Secret;
+
   PROJECT_DELETION_AGE: Config.Secret;
   NODE_VERSION: Runtime;
   REQUEST_TIMEOUT: Config.Secret;
