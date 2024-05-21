@@ -14,14 +14,19 @@ const getRepo = async (repo: string): Promise<any> => {
   const data = await esClientObj.search(Github.Enums.IndexName.GitRepo, query);
   const [repoData] = await searchedDataFormator(data);
   return repoData;
-}
+};
 const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  const { requestId } = event.requestContext;
   const historyType = event?.queryStringParameters?.type || '';
   const repo = event?.queryStringParameters?.repo || '';
   const branch = event?.queryStringParameters?.branch || '';
   try {
     const repoData = await getRepo(repo);
-    logger.info({ level: 'info', message: 'github repo data', repoData });
+    logger.info({
+      message: 'collectData.info: github repo data',
+      data: JSON.stringify(repoData),
+      requestId,
+    });
 
     let queueUrl = '';
     if (historyType === 'commits') {
@@ -32,10 +37,11 @@ const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     }
 
     if (repoData) {
-      await sqsClient.sendMessage(repoData, queueUrl);
+      const resourceId = repoData.githubRepoId;
+      await sqsClient.sendMessage(repoData, queueUrl, { requestId, resourceId });
     }
   } catch (error) {
-    logger.error(`HISTORY_DATA_ERROR:, ${error}`);
+    logger.error({ message: 'collectData.error: HISTORY_DATA_ERROR', error, requestId });
   }
   return responseParser
     .setBody('DONE')

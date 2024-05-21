@@ -4,6 +4,7 @@ export enum IssuesTypes {
   BUG = 'Bug',
   EPIC = 'Epic',
   SUBTASK = 'Sub-task',
+  TEST = 'Test',
 }
 export enum ChangelogStatus {
   QA_FAILED = 'QA_Failed',

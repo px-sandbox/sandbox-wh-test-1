@@ -16,9 +16,11 @@ export class PRReviewCommentProcessor extends DataProcessor<
     pullId: number,
     repoId: number,
     action: string,
-    private orgId: number
+    private orgId: number,
+    requestId: string,
+    resourceId: string
   ) {
-    super(data);
+    super(data, requestId, resourceId);
     this.pullId = pullId;
     this.repoId = repoId;
     this.action = action;

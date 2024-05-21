@@ -13,8 +13,9 @@ const getGraphDataQuery = (
   startDate: string,
   endDate: string,
   intervals: string,
-  repoIds: string[]
-):object => {
+  repoIds: string[],
+  requestId: string
+): object => {
   const frquencyOfCodeCommitGraphQuery = esb.requestBodySearch().size(0);
   frquencyOfCodeCommitGraphQuery.query(
     esb
@@ -30,11 +31,20 @@ const getGraphDataQuery = (
 
   frquencyOfCodeCommitGraphQuery.agg(graphIntervals).toJSON();
 
-  logger.info('FREQUENCY_CODE_COMMIT_GRAPH_ESB_QUERY', frquencyOfCodeCommitGraphQuery);
+  logger.info({
+    message: 'getGraphDataQuery.info FREQUENCY_CODE_COMMIT_GRAPH_ESB_QUERY',
+    data: JSON.stringify(frquencyOfCodeCommitGraphQuery),
+    requestId,
+  });
   return frquencyOfCodeCommitGraphQuery;
-}; 
-const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[]):object => {
-  const query  = esb
+};
+const getHeadlineQuery = (
+  startDate: string,
+  endDate: string,
+  repoIds: string[],
+  requestId: string
+): object => {
+  const query = esb
     .requestBodySearch()
     .size(0)
     .query(
@@ -47,17 +57,28 @@ const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[])
         ])
     )
     .toJSON();
-  logger.info('FREQUENCY_CODE_COMMIT_AVG_ESB_QUERY', query);
+  logger.info({
+    message: 'getHeadlineQuery.info FREQUENCY_CODE_COMMIT_AVG_ESB_QUERY',
+    data: JSON.stringify(query),
+    requestId,
+  });
   return query;
 };
 export async function frequencyOfCodeCommitGraph(
   startDate: string,
   endDate: string,
   intervals: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<GraphResponse[]> {
-  try { 
-    const frquencyOfCodeCommitGraphQuery = getGraphDataQuery( startDate, endDate, intervals, repoIds);  
+  try {
+    const frquencyOfCodeCommitGraphQuery = getGraphDataQuery(
+      startDate,
+      endDate,
+      intervals,
+      repoIds,
+      requestId
+    );
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitCommits,
@@ -68,7 +89,7 @@ export async function frequencyOfCodeCommitGraph(
       value: item.doc_count,
     }));
   } catch (e) {
-    logger.error('frequencyOfCodeCommitGraph.error', e);
+    logger.error({ message: 'frequencyOfCodeCommitGraph.error', error: e, requestId });
     throw e;
   }
 }
@@ -76,20 +97,18 @@ export async function frequencyOfCodeCommitGraph(
 export async function frequencyOfCodeCommitAvg(
   startDate: string,
   endDate: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<{ value: number } | null> {
   try {
-    const query = await getHeadlineQuery(startDate, endDate, repoIds);
-    const data:HitBody = await esClientObj.search(
-       Github.Enums.IndexName.GitCommits,
-      query
-    );
-      
+    const query = await getHeadlineQuery(startDate, endDate, repoIds, requestId);
+    const data: HitBody = await esClientObj.search(Github.Enums.IndexName.GitCommits, query);
+
     const totalDoc = data.hits.total.value;
     const weekDaysCount = getWeekDaysCount(startDate, endDate);
     return { value: parseFloat((totalDoc / weekDaysCount).toFixed(2)) };
   } catch (e) {
-    logger.error('frequencyOfCodeCommitGraphAvg.error', e);
+    logger.error({ message: 'frequencyOfCodeCommitGraphAvg.error', error: e, requestId });
     throw e;
   }
 }

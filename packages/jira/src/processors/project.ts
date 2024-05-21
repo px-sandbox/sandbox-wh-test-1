@@ -13,8 +13,8 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
    * Constructor for ProjectProcessor.
    * @param data - The Jira project data to be processed.
    */
-  constructor(data: Jira.Mapped.Project) {
-    super(data);
+  constructor(data: Jira.Mapped.Project, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
 
   /**
@@ -24,7 +24,11 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
   public async processor(): Promise<Jira.Type.Project> {
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
-      logger.error(`Organization ${this.apiData.organization} not found`);
+      logger.error({
+        requestId: this.requestId,
+        resourceId: this.resourceId,
+        message: `Organization ${this.apiData.organization} not found`,
+      });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
     const jiraId = `${mappingPrefixes.project}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`;

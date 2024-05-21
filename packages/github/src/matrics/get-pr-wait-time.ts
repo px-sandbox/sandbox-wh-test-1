@@ -12,7 +12,8 @@ const getGraphData = (
   startDate: string,
   endDate: string,
   intervals: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): object => {
   const prWaitTimeGraphQuery = esb.requestBodySearch().size(0);
   prWaitTimeGraphQuery.query(
@@ -41,10 +42,19 @@ const getGraphData = (
     )
     .toJSON();
 
-  logger.info('PR_WAIT_TIME_GRAPH_ESB_QUERY', prWaitTimeGraphQuery);
+  logger.info({
+    message: 'getGraphData.info: PR_WAIT_TIME_GRAPH_ESB_QUERY',
+    data: JSON.stringify(prWaitTimeGraphQuery),
+    requestId,
+  });
   return prWaitTimeGraphQuery;
 };
-const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[]): object => {
+const getHeadlineQuery = (
+  startDate: string,
+  endDate: string,
+  repoIds: string[],
+  requestId: string
+): object => {
   const prWaitTimeAvgQuery = esb.requestBodySearch().size(0);
   prWaitTimeAvgQuery
     .query(
@@ -59,7 +69,11 @@ const getHeadlineQuery = (startDate: string, endDate: string, repoIds: string[])
     .agg(esb.valueCountAggregation('pr_count', 'body.githubPullId'))
     .size(0)
     .toJSON();
-  logger.info('NUMBER_OF_PR_WAIT_TIME_AVG_ESB_QUERY', prWaitTimeAvgQuery);
+  logger.info({
+    message: 'getHeadlineQuery.info: NUMBER_OF_PR_WAIT_TIME_AVG_ESB_QUERY',
+    data: JSON.stringify(prWaitTimeAvgQuery),
+    requestId,
+  });
   return prWaitTimeAvgQuery;
 };
 
@@ -67,10 +81,11 @@ export async function prWaitTimeGraphData(
   startDate: string,
   endDate: string,
   intervals: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<GraphResponse[]> {
   try {
-    const prWaitTimeGraphQuery = getGraphData(startDate, endDate, intervals, repoIds);
+    const prWaitTimeGraphQuery = getGraphData(startDate, endDate, intervals, repoIds, requestId);
     const data: IPrCommentAggregationResponse =
       await esClientObj.queryAggs<IPrCommentAggregationResponse>(
         Github.Enums.IndexName.GitPull,
@@ -81,7 +96,7 @@ export async function prWaitTimeGraphData(
       value: parseFloat((item.combined_avg.value / 3600).toFixed(2)),
     }));
   } catch (e) {
-    logger.error('prWaitTimeGraph.error', e);
+    logger.error({ message: 'prWaitTimeGraph.error', error: e, requestId });
     throw e;
   }
 }
@@ -89,10 +104,11 @@ export async function prWaitTimeGraphData(
 export async function prWaitTimeAvg(
   startDate: string,
   endDate: string,
-  repoIds: string[]
+  repoIds: string[],
+  requestId: string
 ): Promise<{ value: number } | null> {
   try {
-    const prWaitTimeAvgQuery = getHeadlineQuery(startDate, endDate, repoIds);
+    const prWaitTimeAvgQuery = getHeadlineQuery(startDate, endDate, repoIds, requestId);
     const data: HitBody = await esClientObj.queryAggs(
       Github.Enums.IndexName.GitPull,
       prWaitTimeAvgQuery
@@ -103,7 +119,7 @@ export async function prWaitTimeAvg(
 
     return { value: totalTime === 0 ? 0 : totalTime / totalPr };
   } catch (e) {
-    logger.error('prWaitTimeAvg.error', e);
+    logger.error({ message: 'prWaitTimeAvg.error', error: e, requestId });
     throw e;
   }
 }

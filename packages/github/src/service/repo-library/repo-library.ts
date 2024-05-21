@@ -10,9 +10,11 @@ const sqsClient = SQSClient.getInstance();
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<void | APIGatewayProxyResult> => {
+  const { requestId } = event.requestContext;
+  const data: Github.ExternalType.RepoLibrary = JSON.parse(event.body ?? '{}');
+  logger.info({ message: 'repoLibrary.handler.received', data, requestId });
+  const resourceId = data.repositoryInfo.repoId;
   try {
-    const data: Github.ExternalType.RepoLibrary = JSON.parse(event.body ?? '{}');
-    logger.info('repoLibrary.handler.received', { data });
     const s3 = new S3();
     const createdAt = moment().toISOString();
     const params = {
@@ -22,16 +24,21 @@ export const handler = async (
       ContentType: 'application/json',
     };
     const s3Obj = await s3.upload(params).promise();
-    logger.info('versionUpgrade.handler.s3Upload', { s3Obj });
+    logger.info({
+      message: 'versionUpgrade.handler.s3Upload',
+      data: JSON.stringify(s3Obj),
+      requestId,
+    });
     await sqsClient.sendMessage(
       {
         s3ObjKey: s3Obj.Key,
         repoId: data.repositoryInfo.repoId,
         orgName: data.repositoryInfo.repoOwner,
       },
-      Queue.qRepoLibS3.queueUrl
+      Queue.qRepoLibS3.queueUrl,
+      { requestId, resourceId }
     );
   } catch (error) {
-    logger.error(`repoLibrary.handler.error', ${ error }`);
+    logger.error({ message: 'repoLibrary.handler.error', error, requestId, resourceId });
   }
 };

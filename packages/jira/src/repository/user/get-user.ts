@@ -16,12 +16,13 @@ const esClientObj = ElasticSearchClient.getInstance();
 
 export async function getUserById(
   userId: string,
-  organization: string
+  organization: string,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
   try {
     const orgData = await getOrganization(organization);
     if (!orgData) {
-      logger.error(`Organization ${organization} not found`);
+      logger.error({ ...reqCtx, message: `Organization ${organization} not found` });
       throw new Error(`Organization ${organization} not found`);
     }
     const matchQry = esb
@@ -39,7 +40,7 @@ export async function getUserById(
     const [formattedUserData] = await searchedDataFormatorWithDeleted(userData);
     return formattedUserData;
   } catch (error: unknown) {
-    logger.error('getUserById.error', { error });
+    logger.error({ ...reqCtx, message: 'getUserById.error', error });
     throw error;
   }
 }

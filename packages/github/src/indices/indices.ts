@@ -460,27 +460,27 @@ async function createMapping(name: string, mappings: Github.Type.IndexMapping): 
 
     const { statusCode } = await esClient.isIndexExists(name);
     if (statusCode === 200) {
-      logger.info(`Index '${name}' already exists.`);
+      logger.info({ message: `GithubIndices.info Index '${name}' already exists.` });
       // update
       await esClient.updateIndex(name, mappings);
       return;
     }
 
-    logger.info(`Creating mapping for index '${name}'...`);
+    logger.info({ message: `GithubIndices.info Creating mapping for index '${name}'...` });
 
     await esClient.createIndex(name, mappings);
 
-    logger.info(`Created mapping for '${name}' successful`);
+    logger.info({ message: `GithubIndices.info Created mapping for '${name}' successful` });
   } catch (error) {
-    logger.error(`Error creating mapping for '${name}':`, error);
+    logger.error({ message: `GithubIndices.error creating mapping for '${name}':`, error });
     throw error;
   }
 }
 
 export async function createAllIndices(): Promise<void> {
-  logger.info('Creating all indices...');
+  logger.info({ message: 'GithubIndices.info Creating all indices...' });
 
   await Promise.all(indices.map(async ({ name, mappings }) => createMapping(name, mappings)));
 
-  logger.info('All indices created successfully');
+  logger.info({ message: 'GithubIndices.info All indices created successfully' });
 }

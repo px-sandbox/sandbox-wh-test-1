@@ -7,12 +7,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/lib-dynamodb": "^3.0.0",
     "@pulse/dynamodb": "workspace:^1.0.0",
     "@pulse/elasticsearch": "workspace:^1.0.0",
     "@pulse/event-handler": "workspace:^1.0.0",
-    "@aws-sdk/lib-dynamodb": "^3.0.0",
+    "@types/uuid": "^9.0.1",
+    "abstraction": "workspace:^1.0.0",
+    "aws-lambda": "^1.0.7",
     "core": "workspace:0.0.1",
-    "uuid": "^9.0.0",
-    "@types/uuid": "^9.0.1"
+    "uuid": "^9.0.0"
   }
 }

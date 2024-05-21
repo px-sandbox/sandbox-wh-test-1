@@ -10,9 +10,7 @@ function getPrivateKey(pem: string): string {
   try {
     return keydata.exportKey('pkcs8-private-pem');
   } catch (error: unknown) {
-    logger.error({
-      error,
-    });
+    logger.error({ message: 'Error while exporting private key', error });
     throw error;
   }
 }
@@ -25,7 +23,7 @@ export async function getOauthCode(): Promise<JWTResponse> {
       id: appId,
       privateKey,
     });
-    logger.info('JWT token created successfully');
+    logger.info({ message: 'JWT token created successfully' });
     return {
       statusCode: 200,
       body: {
@@ -35,9 +33,7 @@ export async function getOauthCode(): Promise<JWTResponse> {
       },
     };
   } catch (error: unknown) {
-    logger.error({
-      error,
-    });
+    logger.error({ message: 'Error while creating JWT token', error });
     throw error;
   }
 }

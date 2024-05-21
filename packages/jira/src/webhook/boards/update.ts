@@ -16,29 +16,40 @@ const sqsClient = SQSClient.getInstance();
  */
 export async function update(
   board: Jira.ExternalType.Webhook.Board,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void | false> {
+  const resourceId = board.id.toString();
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
   const jiraClient = await JiraClient.getClient(organization);
   const data = await jiraClient.getBoard(board.id);
 
-  logger.info('board_event', {
-    projectKey: data.location.projectKey,
-    availableProjectKeys: projectKeys,
+  logger.info({
+    requestId,
+    resourceId,
+    message: 'board_event',
+    data: {
+      projectKey: data.location.projectKey,
+      availableProjectKeys: projectKeys,
+    },
   });
 
   if (!projectKeys.includes(data.location.projectKey)) {
-    logger.info('board_update_event: Project not available in our system');
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'board_update_event: Project not available in our system',
+    });
     return;
   }
 
-  const boardIndexData = await getBoardById(board.id, organization);
+  const boardIndexData = await getBoardById(board.id, organization, { requestId, resourceId });
   if (!boardIndexData) {
-    logger.info('boardUpdatedEvent: Board not found');
+    logger.info({ requestId, resourceId, message: 'boardUpdatedEvent: Board not found' });
     return false;
   }
 
   const boardData = mappingToApiData(board, boardIndexData.createdAt, organization);
-  logger.info('boardUpdatedEvent: Send message to SQS');
-  await sqsClient.sendMessage(boardData, Queue.qBoardFormat.queueUrl);
+  logger.info({ requestId, resourceId, message: 'boardUpdatedEvent: Send message to SQS' });
+  await sqsClient.sendMessage(boardData, Queue.qBoardFormat.queueUrl, { requestId, resourceId });
 }
