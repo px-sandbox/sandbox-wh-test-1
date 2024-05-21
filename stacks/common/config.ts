@@ -18,6 +18,7 @@ export const commonConfig = ({
   GITHUB_WEBHOOK_SECRET: Config.Secret;
   GITHUB_SG_ACCESS_TOKEN: Config.Secret;
   AVAILABLE_PROJECT_KEYS: Config.Secret;
+  ALLOWED_ISSUE_TYPES: Config.Secret;
   PROJECT_DELETION_AGE: Config.Secret;
   NODE_VERSION: Runtime;
   REQUEST_TIMEOUT: Config.Secret;
@@ -31,6 +32,7 @@ export const commonConfig = ({
   AUTH_PUBLIC_KEY: new Config.Secret(stack, 'AUTH_PUBLIC_KEY'),
   AVAILABLE_PROJECT_KEYS: new Config.Secret(stack, 'AVAILABLE_PROJECT_KEYS'),
   PROJECT_DELETION_AGE: new Config.Secret(stack, 'PROJECT_DELETION_AGE'),
+  ALLOWED_ISSUE_TYPES: new Config.Secret(stack, 'ALLOWED_ISSUE_TYPES'),
 
   /** GITHUB SECRETS */
   GITHUB_APP_PRIVATE_KEY_PEM: new Config.Secret(stack, 'GITHUB_APP_PRIVATE_KEY_PEM'),

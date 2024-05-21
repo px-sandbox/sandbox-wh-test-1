@@ -52,6 +52,13 @@ export async function worklog(issueId: string, organization: string): Promise<vo
       throw new Error(`worklog.no_issue_found: ${organization}, issueId: ${issueId}`);
     }
 
+    // checking if issue type is allowed
+    const allowedIssueTypes = Config.ALLOWED_ISSUE_TYPES?.split(',') || [];
+    if (!allowedIssueTypes.includes(issueData?.issuetype)) {
+      logger.info('processWorklogEvent: Issue type not allowed');
+      return;
+    }
+
     // checking is project key is available in our system
     const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
     const projectKey = issueData?.projectKey;

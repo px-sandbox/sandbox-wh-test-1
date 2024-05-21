@@ -19,6 +19,13 @@ export async function removeReopenRate(
   issue: (Pick<Hit, '_id'> & HitBody) | Jira.Mapped.ReopenRateIssue,
   eventTime: moment.Moment
 ): Promise<void | false> {
+  // checking if issue type is allowed
+  const allowedIssueTypes = Config.ALLOWED_ISSUE_TYPES?.split(',') || [];
+  if (!allowedIssueTypes.includes(issue?.issue?.fields?.issuetype?.name)) {
+    logger.info('processDeleteReopenRateEvent: Issue type not allowed');
+    return;
+  }
+
   // checking is project key is available in our system
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
   const projectKey = issue?.issue?.fields?.project?.key;

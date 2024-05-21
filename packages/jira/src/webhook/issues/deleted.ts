@@ -24,6 +24,13 @@ export async function remove(
     return false;
   }
 
+  // checking if issue type is allowed
+  const allowedIssueTypes = Config.ALLOWED_ISSUE_TYPES?.split(',') || [];
+  if (!allowedIssueTypes.includes(issueData?.issuetype)) {
+    logger.info('processIssueDeletedEvent: Issue type not allowed');
+    return;
+  }
+
   // checking is project key is available in our system
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
   const projectKey = issueData?.projectKey;
