@@ -84,13 +84,6 @@ export function initializeRoutes(
       authorizer: 'admin',
     },
 
-    'GET /jira/retry/failed': {
-      function: {
-        handler: 'packages/jira/src/cron/process-jira-retry.handler',
-      },
-      authorizer: 'admin',
-    },
-
     'GET /jira/reopen/migrate': {
       function: {
         handler: 'packages/jira/src/service/find-existing-bugs.handler',

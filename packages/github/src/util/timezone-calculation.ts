@@ -30,7 +30,9 @@ function getTimeWithOffset(date: moment.Moment, offset: Offset): moment.Moment {
       break;
     default:
       // Handle the default case here
-      logger.info(`No case found for offset.radical : ${offset.radical} in getTimeWithOffset`);
+      logger.info({
+        message: `No case found for offset.radical : ${offset.radical} in getTimeWithOffset`,
+      });
       break;
   }
 

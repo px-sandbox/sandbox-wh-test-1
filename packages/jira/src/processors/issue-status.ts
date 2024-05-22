@@ -9,15 +9,19 @@ export class IssueStatusProcessor extends DataProcessor<
   Jira.ExternalType.Api.IssueStatus,
   Jira.Type.IssueStatus
 > {
-  constructor(data: Jira.ExternalType.Api.IssueStatus) {
-    super(data);
+  constructor(data: Jira.ExternalType.Api.IssueStatus, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
 
   // eslint-disable-next-line complexity
   public async processor(): Promise<Jira.Type.IssueStatus> {
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
-      logger.error(`Organization ${this.apiData.organization} not found`);
+      logger.error({
+        requestId: this.requestId,
+        resourceId: this.resourceId,
+        message: `Organization ${this.apiData.organization} not found`,
+      });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
     const jiraId = `${mappingPrefixes.issueStatus}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`;

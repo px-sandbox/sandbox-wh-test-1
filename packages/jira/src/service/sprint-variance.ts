@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
@@ -6,6 +7,7 @@ import { sprintVarianceGraph, sprintVarianceGraphAvg } from '../matrics/get-spri
 const sprintVariance = async function sprintVariance(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const requestId = event?.requestContext?.requestId;
   const projectId: string = event.queryStringParameters?.projectId || '';
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
@@ -29,9 +31,22 @@ const sprintVariance = async function sprintVariance(
         limit,
         sortKey,
         sortOrder,
+        {
+          requestId,
+          resourceId: projectId,
+        },
         sprintState
       ),
-      await sprintVarianceGraphAvg(projectId, startDate, endDate, sprintState),
+      await sprintVarianceGraphAvg(
+        projectId,
+        startDate,
+        endDate,
+        {
+          requestId,
+          resourceId: projectId,
+        },
+        sprintState
+      ),
     ]);
 
     return responseParser
@@ -46,7 +61,12 @@ const sprintVariance = async function sprintVariance(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error(e);
+    logger.error({
+      requestId,
+      resourceId: projectId,
+      message: 'sprint variance fetch error',
+      error: `${e}`,
+    });
     throw new Error(`Something went wrong: ${e}`);
   }
 };

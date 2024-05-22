@@ -41,6 +41,7 @@
     "uuid": "^9.0.0",
     "vitest": "^0.29.7",
     "lodash": "^4.17.21",
-    "@types/lodash": "^4.14.201"
+    "@types/lodash": "^4.14.201",
+    "rp": "workspace:^1.0.0"
   }
 }

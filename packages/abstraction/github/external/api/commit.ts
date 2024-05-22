@@ -10,7 +10,6 @@ export type Commit = {
   };
   commit: {
     message: string;
-
     committer: {
       id: number;
       login: string;

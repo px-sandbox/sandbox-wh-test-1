@@ -59,5 +59,5 @@ export const formatRepoDataResponse = (
     githubId: repo.id,
     name: repo.name,
     topics: repo.topics,
-    organizationId: repo.organizationId
+    organizationId: repo.organizationId,
   }));

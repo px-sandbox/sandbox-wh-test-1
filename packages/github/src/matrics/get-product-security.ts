@@ -39,20 +39,25 @@ const getAggrigatedProductSecurityData = async (
 };
 
 const getHeadline = async (repoIds: string[], branch: string): Promise<HitBody> => {
-  const query = esb.
-    requestBodySearch()
-  .query(
-    esb.boolQuery()
+  const query = esb
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
         .must([
-            esb.termQuery('body.isDeleted', false),
-            esb.termsQuery('body.repoId', repoIds),
-            esb.termQuery('body.branch', branch),
-            esb.termQuery('body.date', moment().format('YYYY-MM-DD'))
-        ]));
+          esb.termQuery('body.isDeleted', false),
+          esb.termsQuery('body.repoId', repoIds),
+          esb.termQuery('body.branch', branch),
+          esb.termQuery('body.date', moment().format('YYYY-MM-DD')),
+        ])
+    );
 
-    const data: HitBody = await esClientObj.search(Github.Enums.IndexName.GitRepoSastErrors, query.toJSON());
-    return data;
-}
+  const data: HitBody = await esClientObj.search(
+    Github.Enums.IndexName.GitRepoSastErrors,
+    query.toJSON()
+  );
+  return data;
+};
 
 const getWeeklyHeadline = async (
   branch: { repoId: string; branch: string }[]
@@ -60,21 +65,24 @@ const getWeeklyHeadline = async (
   const query = esb
     .requestBodySearch()
     .query(
-    esb.boolQuery()
-    .should(
-      branch.map((branchData) =>
-        esb
-          .boolQuery()
-          .must([
-            esb.termQuery('body.branch', branchData.branch),
-            esb.termQuery('body.repoId', branchData.repoId),
-          ])
-      )
-    ).minimumShouldMatch(1)
-    .must([
-      esb.termQuery('body.isDeleted', false),
-      esb.termQuery('body.date', moment().format('YYYY-MM-DD')),
-    ]))
+      esb
+        .boolQuery()
+        .should(
+          branch.map((branchData) =>
+            esb
+              .boolQuery()
+              .must([
+                esb.termQuery('body.branch', branchData.branch),
+                esb.termQuery('body.repoId', branchData.repoId),
+              ])
+          )
+        )
+        .minimumShouldMatch(1)
+        .must([
+          esb.termQuery('body.isDeleted', false),
+          esb.termQuery('body.date', moment().format('YYYY-MM-DD')),
+        ])
+    )
     .toJSON();
   const data = await esClientObj.search(Github.Enums.IndexName.GitRepoSastErrors, query);
   const formattedData = await searchedDataFormator(data);
@@ -89,37 +97,46 @@ const getWeeklyHeadline = async (
  * @param branch The branch to filter the data by.
  * @returns A promise that resolves to an array of graph data objects, each containing a date and a value.
  */
-async function getGraphData(repoIds: string[], startDate: string, endDate: string, interval: string, branch: string):
-    Promise<Github.Type.ProdSecurityGraphData[]> {
+async function getGraphData(
+  repoIds: string[],
+  startDate: string,
+  endDate: string,
+  interval: string,
+  branch: string
+): Promise<Github.Type.ProdSecurityGraphData[]> {
+  let graphInterval: esb.DateHistogramAggregation;
 
-    let graphInterval: esb.DateHistogramAggregation;
+  // setting up graph interval query to fetch aggregated records based on interval (day/month/2d/3d)
+  if (interval === esbDateHistogramInterval.day || interval === esbDateHistogramInterval.month) {
+    graphInterval = esb
+      .dateHistogramAggregation('errorsOverTime')
+      .field('body.date')
+      .format('yyyy-MM-dd')
+      .calendarInterval(interval)
+      .extendedBounds(startDate, endDate)
+      .minDocCount(0);
+  } else {
+    graphInterval = esb
+      .dateHistogramAggregation('errorsOverTime')
+      .field('body.date')
+      .format('yyyy-MM-dd')
+      .fixedInterval(interval)
+      .extendedBounds(startDate, endDate)
+      .minDocCount(0);
+  }
 
-    // setting up graph interval query to fetch aggregated records based on interval (day/month/2d/3d)
-    if (interval === esbDateHistogramInterval.day || interval === esbDateHistogramInterval.month) {
-        graphInterval = esb
-            .dateHistogramAggregation('errorsOverTime')
-            .field('body.date')
-            .format('yyyy-MM-dd')
-            .calendarInterval(interval)
-            .extendedBounds(startDate, endDate)
-            .minDocCount(0);
-    } else {
-        graphInterval = esb
-            .dateHistogramAggregation('errorsOverTime')
-            .field('body.date')
-            .format('yyyy-MM-dd')
-            .fixedInterval(interval)
-            .extendedBounds(startDate, endDate)
-            .minDocCount(0);
-    }
-
-    const data = await getAggrigatedProductSecurityData(repoIds, startDate, endDate, branch, graphInterval);
-    // returning bucketed data
-    return data?.errorsOverTime?.buckets?.map((item: Github.Type.ErrorsOverTimeBuckets) => ({
-        date: item.key_as_string,
-        value: item.doc_count,
-    }));
-
+  const data = await getAggrigatedProductSecurityData(
+    repoIds,
+    startDate,
+    endDate,
+    branch,
+    graphInterval
+  );
+  // returning bucketed data
+  return data?.errorsOverTime?.buckets?.map((item: Github.Type.ErrorsOverTimeBuckets) => ({
+    date: item.key_as_string,
+    value: item.doc_count,
+  }));
 }
 
 /**
@@ -128,10 +145,9 @@ async function getGraphData(repoIds: string[], startDate: string, endDate: strin
  * @returns A promise that resolves to the number of headline statistics.
  */
 export async function getHeadlineStat(repoIds: string[], branch: string): Promise<number> {
-    const data = await getHeadline(repoIds, branch);
-    return data?.hits?.total?.value;
+  const data = await getHeadline(repoIds, branch);
+  return data?.hits?.total?.value;
 }
-
 
 /**
  * Retrieves product security data for a given date range, interval, and branch.
@@ -143,33 +159,36 @@ export async function getHeadlineStat(repoIds: string[], branch: string): Promis
  * @throws If there is an error while fetching the data.
  */
 export async function getProductSecurity(
-    repoIds: string[],
-    startDate: string,
-    endDate: string,
-    interval: string,
-    branch: string
+  repoIds: string[],
+  startDate: string,
+  endDate: string,
+  interval: string,
+  branch: string,
+  requestId: string
 ): Promise<Github.Type.ProductSecurity> {
-    try {
+  try {
+    const [graphData, headlineStat] = await Promise.all([
+      getGraphData(repoIds, startDate, endDate, interval, branch),
+      getHeadlineStat(repoIds, branch),
+    ]);
 
-        const [graphData, headlineStat] = await Promise.all([
-            getGraphData(repoIds, startDate, endDate, interval, branch),
-            getHeadlineStat(repoIds, branch)
-        ]);
-
-
-        return {
-            headline: headlineStat ?? 0,
-            graphData
-        }
-
-    } catch (e) {
-        logger.error('productSecurity.error: Error while fetching product security metrics', e);
-        throw e;
-    }
+    return {
+      headline: headlineStat ?? 0,
+      graphData,
+    };
+  } catch (e) {
+    logger.error({
+      message: 'productSecurity.error: Error while fetching product security metrics',
+      error: e,
+      requestId,
+    });
+    throw e;
+  }
 }
 
-export async function weeklyHeadlineStat(branch: { repoId: string, branch: string }[]): Promise<number> {
-    const formattedData = await getWeeklyHeadline(branch);
-    return formattedData.length;
+export async function weeklyHeadlineStat(
+  branch: { repoId: string; branch: string }[]
+): Promise<number> {
+  const formattedData = await getWeeklyHeadline(branch);
+  return formattedData.length;
 }
-

@@ -1,4 +1,5 @@
 import { RequestInterface } from '@octokit/types';
+import { Other } from 'abstraction';
 import { logger } from 'core';
 
 export async function processFileChanges<T>(
@@ -10,7 +11,8 @@ export async function processFileChanges<T>(
         Authorization: string;
       };
     }
-  >
+  >,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<Array<T>> {
   let nextFilesLink = filesLink;
   let filesChanges = files;
@@ -26,9 +28,9 @@ export async function processFileChanges<T>(
     const response = await octokit(`GET ${nextLinkMatch[1]}`);
     filesChanges = [...files, ...response.data.files];
     nextFilesLink = response.headers.link;
-    return processFileChanges(filesChanges, nextFilesLink, octokit);
+    return processFileChanges(filesChanges, nextFilesLink, octokit, reqCtx);
   } catch (error) {
-    logger.error('ERROR_IN_PROCESS_FILE_CHANGES_COMMIT', error);
+    logger.error({ message: 'ERROR_IN_PROCESS_FILE_CHANGES_COMMIT', error, ...reqCtx });
     throw error;
   }
 }

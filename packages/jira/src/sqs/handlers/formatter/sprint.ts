@@ -2,18 +2,26 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
+import { logProcessToRetry } from 'rp';
 import { SprintProcessor } from '../../../processors/sprint';
-import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function sprintFormattedDataReciever(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: `Records Length: ${event.Records.length}` });
 
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
+      const {
+        reqCtx: { requestId, resourceId },
+        message: messageBody,
+      } = JSON.parse(record.body);
       try {
-        const messageBody = JSON.parse(record.body);
-        logger.info('SPRINT_SQS_RECIEVER_HANDLER', { messageBody });
-        const sprintProcessor = new SprintProcessor(messageBody);
+        logger.info({
+          requestId,
+          resourceId,
+          message: 'SPRINT_SQS_RECIEVER_HANDLER',
+          data: { messageBody },
+        });
+        const sprintProcessor = new SprintProcessor(messageBody, requestId, resourceId);
 
         const data = await sprintProcessor.processor();
         await sprintProcessor.save({
@@ -23,7 +31,12 @@ export const handler = async function sprintFormattedDataReciever(event: SQSEven
         });
       } catch (error) {
         await logProcessToRetry(record, Queue.qSprintFormat.queueUrl, error as Error);
-        logger.error('sprintFormattedDataReciever.error', error);
+        logger.error({
+          requestId,
+          resourceId,
+          message: 'sprintFormattedDataReciever.error',
+          error,
+        });
       }
     })
   );

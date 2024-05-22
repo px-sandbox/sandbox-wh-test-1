@@ -1,12 +1,13 @@
+/* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
+import { deleteProcessfromDdb } from 'rp';
 import {
   searchedDataFormator,
   searchedDataFormatorWithDeleted,
 } from '../../util/response-formatter';
-import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 /**
  * Updates data in ElasticSearch index based on the provided matchField and matchValue.
@@ -23,10 +24,16 @@ async function updateData(
   matchField: string,
   matchValue: string,
   orgId: string,
+  reqCtx: Other.Type.RequestCtx,
   isDeleted = false
 ): Promise<void> {
+  const { requestId, resourceId } = reqCtx;
   // Starting to soft delete project, sprint, boards and issues data from elastic search
-  logger.info(`starting to soft delete ${indexName} data from elastic search`);
+  logger.info({
+    requestId,
+    resourceId,
+    message: `starting to soft delete ${indexName} data from elastic search`,
+  });
   const matchQry2 = esb
     .requestBodySearch()
     .query(
@@ -52,7 +59,7 @@ async function updateData(
       await esClientObj.bulkUpdate(indexName, formattedData);
     }
 
-    logger.info(`save${indexName}Details.successful`);
+    logger.info({ requestId, resourceId, message: `save ${indexName} Details.successful` });
   }
 }
 
@@ -62,7 +69,12 @@ async function updateData(
  * @returns A Promise that resolves when the project details have been saved successfully.
  * @throws An error if there was an issue saving the project details.
  */
-export async function saveProjectDetails(data: Jira.Type.Project, processId?: string): Promise<void> {
+export async function saveProjectDetails(
+  data: Jira.Type.Project,
+  reqCtx: Other.Type.RequestCtx,
+  processId?: string
+): Promise<void> {
+  const { requestId, resourceId } = reqCtx;
   try {
     const { ...updatedData } = data;
     const matchQry = esb
@@ -76,7 +88,12 @@ export async function saveProjectDetails(data: Jira.Type.Project, processId?: st
           ])
       )
       .toJSON();
-    logger.info('saveProjectDetails.matchQry------->', { matchQry });
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'saveProjectDetails.matchQry------->',
+      data: { matchQry },
+    });
     const projectData = await esClientObj.search(Jira.Enums.IndexName.Project, matchQry);
     const [formattedData] = await searchedDataFormator(projectData);
     if (formattedData) {
@@ -91,6 +108,7 @@ export async function saveProjectDetails(data: Jira.Type.Project, processId?: st
           'body.projectId',
           data.body.id,
           data.body.organizationId,
+          reqCtx,
           true
         ),
         updateData(
@@ -98,6 +116,7 @@ export async function saveProjectDetails(data: Jira.Type.Project, processId?: st
           'body.projectId',
           data.body.id,
           data.body.organizationId,
+          reqCtx,
           true
         ),
         updateData(
@@ -105,16 +124,15 @@ export async function saveProjectDetails(data: Jira.Type.Project, processId?: st
           'body.projectId',
           data.body.id,
           data.body.organizationId,
+          reqCtx,
           true
         ),
       ]);
     }
-    logger.info('saveProjectDetails.successful');
-    await deleteProcessfromDdb(processId);
+    logger.info({ requestId, resourceId, message: 'saveProjectDetails.successful' });
+    await deleteProcessfromDdb(processId, reqCtx);
   } catch (error: unknown) {
-    logger.error('saveProjectDetails.error', {
-      error,
-    });
+    logger.error({ requestId, resourceId, message: 'saveProjectDetails.error', error });
     throw error;
   }
 }

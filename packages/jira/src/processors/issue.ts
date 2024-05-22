@@ -16,16 +16,23 @@ export class IssueProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Issue,
   Jira.Type.Issue
 > {
-  constructor(data: Jira.ExternalType.Webhook.Issue) {
-    super(data);
+  constructor(data: Jira.ExternalType.Webhook.Issue, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
 
   public validate(): false | this {
     const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+    logger.info({
+      requestId: this.requestId,
+      resourceId: this.resourceId,
+      message: 'inside validate of processor',
+    });
     if (this.apiData !== undefined && projectKeys.includes(this.apiData.issue.fields.project.key)) {
       return this;
     }
     logger.info({
+      requestId: this.requestId,
+      resourceId: this.resourceId,
       message: 'EMPTY_DATA or projectKey not in available keys for this issue',
       data: this.apiData,
     });
@@ -49,7 +56,11 @@ export class IssueProcessor extends DataProcessor<
   public async processor(): Promise<Jira.Type.Issue> {
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
-      logger.error(`Organization ${this.apiData.organization} not found`);
+      logger.error({
+        requestId: this.requestId,
+        resourceId: this.resourceId,
+        message: `Organization ${this.apiData.organization} not found`,
+      });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
     const jiraId = `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`;
@@ -75,6 +86,7 @@ export class IssueProcessor extends DataProcessor<
           eventName: Jira.Enums.Event.IssueUpdated,
         },
         Queue.qIssueFormat.queueUrl,
+        { requestId: this.requestId, resourceId: this.resourceId },
         issueDataFromApi.key,
         uuid()
       );

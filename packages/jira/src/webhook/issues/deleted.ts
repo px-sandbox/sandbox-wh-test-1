@@ -17,11 +17,12 @@ import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 export async function remove(
   issueId: string,
   eventTime: moment.Moment,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void | false> {
-  const issueData = await getIssueById(issueId, organization);
+  const issueData = await getIssueById(issueId, organization, { requestId, resourceId: issueId });
   if (!issueData) {
-    logger.info('issueDeletedEvent: Issue not found');
+    logger.info({ requestId, resourceId: issueId, message: 'issueDeletedEvent: Issue not found' });
     return false;
   }
 
@@ -44,6 +45,13 @@ export async function remove(
   processIssue.isDeleted = true;
   processIssue.deletedAt = moment(eventTime).toISOString();
 
-  logger.info(`issueDeletedEvent: Delete Issue id ${_id}`);
-  await saveIssueDetails({ id: _id, body: processIssue } as Jira.Type.Issue);
+  logger.info({
+    requestId,
+    resourceId: issueId,
+    message: `issueDeletedEvent: Delete Issue id ${_id}`,
+  });
+  await saveIssueDetails({ id: _id, body: processIssue } as Jira.Type.Issue, {
+    requestId,
+    resourceId: issueId,
+  });
 }

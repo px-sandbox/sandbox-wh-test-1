@@ -1,12 +1,17 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
+import { deleteProcessfromDdb } from 'rp';
 import { searchedDataFormator } from '../util/response-formatter';
-import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 const esClientObj = ElasticSearchClient.getInstance();
-export async function savePushDetails(data: Github.Type.Push, processId?: string): Promise<void> {
+export async function savePushDetails(
+  data: Github.Type.Push,
+  reqCtx: Other.Type.RequestCtx,
+  processId?: string
+): Promise<void> {
+  const { requestId, resourceId } = reqCtx;
   try {
     const updatedData = { ...data };
     const matchQry = esb
@@ -16,16 +21,19 @@ export async function savePushDetails(data: Github.Type.Push, processId?: string
     const pushData = await esClientObj.search(Github.Enums.IndexName.GitPush, matchQry);
     const [formattedData] = await searchedDataFormator(pushData);
     if (formattedData) {
-      logger.info('LAST_ACTIONS_PERFORMED', formattedData.action);
+      logger.info({
+        message: 'savePushDetails.info LAST_ACTIONS_PERFORMED',
+        data: formattedData.action,
+        requestId,
+        resourceId,
+      });
       updatedData.body.action = [...formattedData.action, ...data.body.action];
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitPush, updatedData);
-    logger.info('savePushDetails.successful');
-    await deleteProcessfromDdb(processId);
+    logger.info({ message: 'savePushDetails.successful', requestId, resourceId });
+    await deleteProcessfromDdb(processId, { requestId, resourceId });
   } catch (error: unknown) {
-    logger.error('savePushDetails.error', {
-      error,
-    });
+    logger.error({ message: 'savePushDetails.error', error, requestId, resourceId });
     throw error;
   }
 }

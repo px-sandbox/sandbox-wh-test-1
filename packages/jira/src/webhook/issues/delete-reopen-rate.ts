@@ -18,8 +18,10 @@ const sqsClient = SQSClient.getInstance();
  */
 export async function removeReopenRate(
   issue: (Pick<Hit, '_id'> & HitBody) | Jira.Mapped.ReopenRateIssue,
-  eventTime: moment.Moment
+  eventTime: moment.Moment,
+  requestId: string
 ): Promise<void | false> {
+
   // checking if issue type is allowed
 
   if (!ALLOWED_ISSUE_TYPES.includes(issue?.issue?.fields?.issuetype?.name)) {
@@ -35,9 +37,15 @@ export async function removeReopenRate(
     return;
   }
 
+
+  const resourceId = issue.issue.id;
+
   try {
-    await sqsClient.sendMessage({ ...issue, eventTime }, Queue.qReOpenRateDelete.queueUrl);
+    await sqsClient.sendMessage({ ...issue, eventTime }, Queue.qReOpenRateDelete.queueUrl, {
+      requestId,
+      resourceId,
+    });
   } catch (error) {
-    logger.error(`removeReopenRate.error, ${error}`);
+    logger.error({ requestId, resourceId, message: 'removeReopenRate.error', error });
   }
 }

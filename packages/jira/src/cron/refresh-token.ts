@@ -9,17 +9,14 @@ import { JiraCredsMapping } from '../model/prepare-creds-params';
 // for each credId, call getToken
 // update the refresh token in dynamoDB
 export async function updateRefreshToken(): Promise<APIGatewayProxyResult> {
-  logger.info(`Get refresh token invoked at: ${new Date().toISOString()}`);
+  logger.info({ message: `Get refresh token invoked at: ${new Date().toISOString()}` });
   const ddbClient = DynamoDbDocClient.getInstance();
 
-  const data: { id: string; refresh_token: string }[] = await ddbClient.scan<{
-    id: string;
-    refresh_token: string;
-  }>({
+  const data = await ddbClient.scan({
     TableName: Table.jiraCreds.tableName,
   });
-
-  const ddbResp = data.map((item): { credId: string; refreshToken: string } => ({
+  const items = data.Items ? data.Items : ([] as { id: string; refresh_token: string }[]);
+  const ddbResp = items.map((item): { credId: string; refreshToken: string } => ({
     credId: item.id,
     refreshToken: item.refresh_token,
   }));
@@ -28,11 +25,11 @@ export async function updateRefreshToken(): Promise<APIGatewayProxyResult> {
   }
   await Promise.all(
     ddbResp.map(async (item) => {
-      logger.info(`Updating Refresh token for credId...: ${item.credId}`);
+      logger.info({ message: `Updating Refresh token for credId...: ${item.credId}` });
       const newRefreshToken = await getTokens(item.refreshToken);
-      logger.info(`New refresh token: ${newRefreshToken}`);
+      logger.info({ message: `New refresh token: ${newRefreshToken}` });
       await ddbClient.put(new JiraCredsMapping().preparePutParams(item.credId, newRefreshToken));
-      logger.info(`Refresh token updated for credId: ${item.credId}`);
+      logger.info({ message: `Refresh token updated for credId: ${item.credId}` });
     })
   );
 

@@ -2,11 +2,15 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
-import { Jira } from 'abstraction';
-import { logProcessToRetry } from '../util/retry-process';
+import { Jira, Other } from 'abstraction';
+import { logProcessToRetry } from 'rp';
 import { JiraClient } from '../lib/jira-client';
 
-async function checkAndSave(organization: string, projectId: string): Promise<void> {
+async function checkAndSave(
+  organization: string,
+  projectId: string,
+  reqCtx: Other.Type.RequestCtx
+): Promise<void> {
   const jira = await JiraClient.getClient(organization);
   const boards = await jira.getBoards(projectId);
 
@@ -27,7 +31,8 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
             createdAt,
             organization,
           },
-          Queue.qBoardFormat.queueUrl
+          Queue.qBoardFormat.queueUrl,
+          reqCtx
         )
       ),
     ...boards
@@ -35,7 +40,8 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
       .map(async (board) =>
         sqsClient.sendMessage(
           { organization, projectId, boardId: board.id },
-          Queue.qSprintMigrate.queueUrl
+          Queue.qSprintMigrate.queueUrl,
+          reqCtx
         )
       ),
   ]);
@@ -44,15 +50,16 @@ async function checkAndSave(organization: string, projectId: string): Promise<vo
 export const handler = async function boardMirgration(event: SQSEvent): Promise<void> {
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
+      const {
+        reqCtx,
+        message: { organization, projectId },
+      } = JSON.parse(record.body);
       try {
-        const { organization, projectId }: { organization: string; projectId: string } = JSON.parse(
-          record.body
-        );
-        return checkAndSave(organization, projectId);
+        return checkAndSave(organization, projectId, reqCtx);
       } catch (error) {
-        logger.error(JSON.stringify({ error, event }));
+        logger.error({ ...reqCtx, message: JSON.stringify({ error, event }) });
         await logProcessToRetry(record, Queue.qBoardMigrate.queueUrl, error as Error);
-        logger.error('boardMigrateDataReciever.error', error);
+        logger.error({ ...reqCtx, message: 'boardMigrateDataReciever.error', error });
       }
     })
   );

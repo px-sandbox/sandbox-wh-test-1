@@ -2,18 +2,14 @@ name: studiographene-ci
 
 on:
   pull_request: {}
-  push:
-    branches: ['master', 'dev']
-  workflow_dispatch:
+  issue_comment:
 
 jobs:
   call-workflow:
-    uses: studiographene/nodejs-ci/.github/workflows/ci.yml@master
+    uses: studiographene/github-action-workflows/.github/workflows/nodejs-ci.yml@master # if you want alternatively pin to tag version version
     with:
-      project_name: pulse-data-integration
       package_manager: pnpm
-      build_command: pnpm run build
       lint_command: pnpm run -r --aggregate-output --reporter=append-only --no-bail lint
-      excluded_jobs: docker
+      excluded_jobs: docker, build
     secrets: inherit
     permissions: write-all

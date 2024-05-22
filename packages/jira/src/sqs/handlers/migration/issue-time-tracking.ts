@@ -3,10 +3,10 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
 import axios from 'axios';
-import { logProcessToRetry } from '../../../util/retry-process';
+import { logProcessToRetry } from 'rp';
 import { JiraClient } from '../../../lib/jira-client';
 
-const sqsClient = new SQSClient();
+const sqsClient = SQSClient.getInstance();
 
 /**
  * Handles the migration of issue time tracking data.
@@ -15,18 +15,28 @@ const sqsClient = new SQSClient();
  * @returns A Promise that resolves to void.
  */
 export const handler = async function issueTimeTrackingMigration(event: SQSEvent): Promise<void> {
-  logger.info(`issueTimeTrackingMigration: Records Length: ${event?.Records?.length}`);
+  logger.info({ message: `issueTimeTrackingMigration: Records Length: ${event?.Records?.length}` });
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
+      const {
+        message: { issue, organization },
+        reqCtx: { requestId, resourceId },
+      } = JSON.parse(record.body);
+
       try {
-        const { issue, organization } = JSON.parse(record.body);
         const jiraClient = await JiraClient.getClient(organization);
-        logger.info(
-          `issueTimeTrackingMigrQueue: Fetching issue ${issue.issueKey} | ${issue.issueId} from API`
-        );
+        logger.info({
+          requestId,
+          resourceId,
+          message: `issueTimeTrackingMigrQueue: Fetching issue ${issue.issueKey} | ${issue.issueId} from API`,
+        });
         const issueDataFromApi = await jiraClient.getIssue(issue?.issueId);
 
-        logger.info(`issueTimeTrackingMigrQueue: Fetched issue successfully`);
+        logger.info({
+          requestId,
+          resourceId,
+          message: `issueTimeTrackingMigrQueue: Fetched issue successfully`,
+        });
         const { _id, ...rest } = issue;
 
         const modifiedIssue = {
@@ -41,13 +51,21 @@ export const handler = async function issueTimeTrackingMigration(event: SQSEvent
           },
         };
         // sending updated issue data to indexer
-        await sqsClient.sendMessage(modifiedIssue, Queue.qIssueIndex.queueUrl);
+        await sqsClient.sendMessage(modifiedIssue, Queue.qIssueIndex.queueUrl, {
+          requestId,
+          resourceId,
+        });
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
           return;
         }
         await logProcessToRetry(record, Queue.qIssueTimeTrackingMigration.queueUrl, error as Error);
-        logger.error('issueTimeTrackingMigrationQueue.error', error);
+        logger.error({
+          requestId,
+          resourceId,
+          message: 'issueTimeTrackingMigrationQueue.error',
+          error,
+        });
       }
     })
   );

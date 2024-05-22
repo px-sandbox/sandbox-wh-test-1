@@ -1,4 +1,5 @@
 import { retryProcess } from './retry-process';
+
 export type CommitedFiles = {
   filename: string;
   additions: string;
@@ -6,7 +7,6 @@ export type CommitedFiles = {
   changes: string;
   status: string;
 };
-
 
 export type Commits = retryProcess & {
   id: string;
@@ -28,4 +28,4 @@ export type Commits = retryProcess & {
     computationalDate: string;
     githubDate: string | Date;
   };
-}
+};

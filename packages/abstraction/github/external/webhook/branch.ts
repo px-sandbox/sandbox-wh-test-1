@@ -7,6 +7,9 @@ export type Branch = {
   repository: {
     id: string;
     pushed_at: string;
+    owner: {
+      id: string;
+    };
   };
   organization: object;
   sender: object;

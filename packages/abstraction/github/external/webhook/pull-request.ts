@@ -30,7 +30,7 @@ export type PullRequest = {
       id: number;
       name: string;
       owner: {
-        login: string;
+        id: string;
       };
     };
   };

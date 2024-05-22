@@ -1,9 +1,9 @@
 import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
+import { deleteProcessfromDdb } from 'rp';
 import { searchedDataFormator } from '../../util/response-formatter';
-import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 /**
  * Saves the issue status details to DynamoDB and Elasticsearch.
@@ -12,7 +12,12 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
  * @throws An error if there is an issue with saving the data.
  */
 const esClientObj = ElasticSearchClient.getInstance();
-export async function saveIssueStatusDetails(data: Jira.Type.IssueStatus, processId?: string): Promise<void> {
+export async function saveIssueStatusDetails(
+  data: Jira.Type.IssueStatus,
+  reqCtx: Other.Type.RequestCtx,
+  processId?: string
+): Promise<void> {
+  const { requestId, resourceId } = reqCtx;
   try {
     const updatedData = { ...data };
     const matchQry = esb
@@ -32,12 +37,10 @@ export async function saveIssueStatusDetails(data: Jira.Type.IssueStatus, proces
       updatedData.id = formattedData._id;
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.IssueStatus, updatedData);
-    logger.info('saveIssueStatusDetails.successful');
-    await deleteProcessfromDdb(processId);
+    logger.info({ requestId, resourceId, message: 'saveIssueStatusDetails.successful' });
+    await deleteProcessfromDdb(processId, reqCtx);
   } catch (error: unknown) {
-    logger.error('saveIssueStatusDetails.error', {
-      error,
-    });
+    logger.error({ requestId, resourceId, message: 'saveIssueStatusDetails.error', error });
     throw error;
   }
 }

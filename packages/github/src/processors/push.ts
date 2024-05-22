@@ -1,6 +1,5 @@
 import { Github } from 'abstraction';
 import moment from 'moment';
-import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
@@ -9,8 +8,8 @@ export class PushProcessor extends DataProcessor<
   Github.ExternalType.Webhook.Push,
   Github.Type.Push
 > {
-  constructor(data: Github.ExternalType.Webhook.Push) {
-    super(data);
+  constructor(data: Github.ExternalType.Webhook.Push, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
   public async processor(): Promise<Github.Type.Push> {
     const githubId = `${mappingPrefixes.push}_${this.ghApiData.id}`;
@@ -39,7 +38,7 @@ export class PushProcessor extends DataProcessor<
         ref: this.ghApiData.ref,
         commits: commitsArr,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
-        organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+        organizationId: `${mappingPrefixes.organization}_${this.ghApiData.orgId}`,
         action,
         createdAt,
         createdAtDay: moment(createdAt).format('dddd'),

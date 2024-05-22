@@ -14,28 +14,47 @@ const sqsClient = SQSClient.getInstance();
  */
 export async function start(
   sprint: Jira.ExternalType.Webhook.Sprint,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void> {
+  const resourceId = sprint.id;
   try {
     const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
     const jiraClient = await JiraClient.getClient(organization);
     const data = await jiraClient.getBoard(sprint.originBoardId);
 
-    logger.info('sprint_event', {
-      projectKey: data.location.projectKey,
-      availableProjectKeys: projectKeys,
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'sprint_event',
+      data: {
+        projectKey: data.location.projectKey,
+        availableProjectKeys: projectKeys,
+      },
     });
 
     if (!projectKeys.includes(data.location.projectKey)) {
-      logger.info('sprint_event: Project not available in our system');
+      logger.info({
+        requestId,
+        resourceId,
+        message: 'sprint_event: Project not available in our system',
+      });
       return;
     }
 
-    logger.info('sprint_event: Send message to SQS');
+    logger.info({ requestId, resourceId, message: 'sprint_event: Send message to SQS' });
 
-    await sqsClient.sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl);
-  } catch (e) {
-    logger.error('sprintStartEvent: Error in starting sprint', e);
-    throw e;
+    await sqsClient.sendMessage({ ...sprint, organization }, Queue.qSprintFormat.queueUrl, {
+      requestId,
+      resourceId,
+    });
+  } catch (error) {
+    logger.error({
+      requestId,
+      resourceId,
+      message: 'sprintStartEvent: Error in starting sprint',
+      error,
+    });
+    throw error;
   }
 }

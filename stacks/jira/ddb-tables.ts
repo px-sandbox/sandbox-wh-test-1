@@ -19,16 +19,8 @@ export function initializeDynamoDBTables(stack: Stack): Record<string, Table> {
     primaryIndex: { partitionKey: 'id' },
   });
 
-  const processJiraRetryTable = new Table(stack, 'jiraProcessRetry', {
-    fields: {
-      processId: 'string',
-    },
-    primaryIndex: { partitionKey: 'processId' },
-  });
-
   return {
     jiraMappingTable,
-    jiraCredsTable,
-    processJiraRetryTable,
+    jiraCredsTable
   };
 }

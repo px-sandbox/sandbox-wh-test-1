@@ -4,7 +4,7 @@ import { createAllIndices } from '../indices/indices';
 
 export const handler = async (): Promise<APIGatewayProxyResult> => {
   await createAllIndices();
-  logger.info('AllIndices.created');
+  logger.info({ message: 'AllIndices.created' });
   return responseParser
     .setBody({ message: 'AllIndices.created' })
     .setMessage('Create Indices')

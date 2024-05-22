@@ -7,6 +7,7 @@ import { linesOfCodeAvg, linesOfCodeGraph } from '../matrics/get-lines-of-code';
 const linesOfCode = async function getLinesOfCode(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const { requestId } = event.requestContext;
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const interval: string = event.queryStringParameters?.interval || '';
@@ -14,8 +15,8 @@ const linesOfCode = async function getLinesOfCode(
 
   try {
     const [linesOfCodeGraphData, linesOfCodeAvgData] = await Promise.all([
-      linesOfCodeGraph(startDate, endDate, interval, repoIds),
-      linesOfCodeAvg(startDate, endDate, repoIds),
+      linesOfCodeGraph(startDate, endDate, interval, repoIds, requestId),
+      linesOfCodeAvg(startDate, endDate, repoIds, requestId),
     ]);
     return responseParser
       .setBody({ graphData: linesOfCodeGraphData, headline: linesOfCodeAvgData })
@@ -24,7 +25,7 @@ const linesOfCode = async function getLinesOfCode(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (e) {
-    logger.error(e);
+    logger.error({ message: 'linesOfCode.error', error: e, requestId });
     throw new Error(`Something went wrong: ${e}`);
   }
 };

@@ -2,19 +2,27 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
+import { logProcessToRetry } from 'rp';
 import { BoardProcessor } from '../../../processors/board';
-import { logProcessToRetry } from '../../../util/retry-process';
 
 export const handler = async function boardFormattedDataReciever(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: `Records Length: ${event.Records.length}` });
 
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
+      const {
+        reqCtx: { requestId, resourceId },
+        message: messageBody,
+      } = JSON.parse(record.body);
       try {
-        const messageBody = JSON.parse(record.body);
-        logger.info('JIRA_BOARD_SQS_FORMATER', { messageBody });
+        logger.info({
+          requestId,
+          resourceId,
+          message: 'JIRA_BOARD_SQS_FORMATER',
+          data: { messageBody },
+        });
 
-        const boardProcessor = new BoardProcessor(messageBody);
+        const boardProcessor = new BoardProcessor(messageBody, requestId, resourceId);
 
         const data = await boardProcessor.processor();
         data.processId = messageBody.processId;
@@ -25,7 +33,7 @@ export const handler = async function boardFormattedDataReciever(event: SQSEvent
         });
       } catch (error) {
         await logProcessToRetry(record, Queue.qBoardFormat.queueUrl, error as Error);
-        logger.error('boardFormattedDataReciever.error', error);
+        logger.error({ requestId, resourceId, message: 'boardFormattedDataReciever.error', error });
       }
     })
   );
