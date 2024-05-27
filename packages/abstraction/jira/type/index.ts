@@ -11,3 +11,4 @@ export * from './issue-status';
 export * from './reopen-rate';
 export * from './index-mapping';
 export * from './aggrigation/sprint-variance';
+export * from './cycle-time';

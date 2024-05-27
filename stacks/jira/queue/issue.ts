@@ -8,7 +8,8 @@ import { getDeadLetterQ } from '../../common/dead-letter-queue';
 export function initializeIssueQueue(
   stack: Stack,
   jiraDDB: JiraTables,
-  jiraIndexDataQueue: Queue
+  jiraIndexDataQueue: Queue,
+  cycleTimeQueue: Queue
 ): Queue[] {
   const {
     OPENSEARCH_NODE,
@@ -136,6 +137,7 @@ export function initializeIssueQueue(
     JIRA_REDIRECT_URI,
     AVAILABLE_PROJECT_KEYS,
     REQUEST_TIMEOUT,
+    cycleTimeQueue,
   ]);
 
   reOpenRateDataQueue.bind([

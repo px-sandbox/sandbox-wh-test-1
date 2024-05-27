@@ -8,6 +8,7 @@ export const mappingPrefixes = {
   board: 'jira_board',
   org: 'org',
   reopen_rate: 'jira_reopen_rate',
+  cycle_time: 'jira_cycle_time',
 };
 
 export const ALLOWED_ISSUE_TYPES = ['Epic', 'Story', 'Task', 'Bug', 'Sub-task'];
