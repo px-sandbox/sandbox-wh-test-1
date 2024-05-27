@@ -32,17 +32,22 @@ export async function repoSastErrorsFormatter(
 
 const getQuery = (repoId: string, branch: string, orgId: string, createdAt: string): object => {
   const matchQry = esb
-    .boolQuery()
-    .must([
-      esb.termQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`),
-      esb.termQuery('body.branch', branch),
-      esb.termQuery('body.organizationId', `${mappingPrefixes.organization}_${orgId}`),
+    .requestBodySearch()
+    .query(
       esb
-        .rangeQuery('body.createdAt')
-        .gt(moment().utc().startOf('day').toISOString())
-        .lt(createdAt),
-      esb.termQuery('body.isDeleted', false),
-    ])
+        .boolQuery()
+        .must([
+          esb.termQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`),
+          esb.termQuery('body.branch', branch),
+          esb.termQuery('body.organizationId', `${mappingPrefixes.organization}_${orgId}`),
+          esb
+            .rangeQuery('body.createdAt')
+            .gt(moment().utc().startOf('day').toISOString())
+            .lt(createdAt),
+          esb.termQuery('body.isDeleted', false),
+        ])
+    )
+
     .toJSON();
   return matchQry;
 };

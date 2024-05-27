@@ -4,8 +4,10 @@ import { Jira } from 'abstraction';
 import { ChangelogStatus, IssuesTypes } from 'abstraction/jira/enums';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { Config } from 'sst/node/config';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { getIssueStatusForReopenRate } from '../../util/issue-status';
+import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 
 const sqsClient = SQSClient.getInstance();
 /**
@@ -22,6 +24,21 @@ export async function update(
   }
   const resourceId = issue.issue.id;
   logger.info({ requestId, resourceId, message: 'issue_update_event: Send message to SQS' });
+
+  // checking if issue type is allowed
+
+  if (!ALLOWED_ISSUE_TYPES.includes(issue.issue.fields.issuetype.name)) {
+    logger.info('processIssueUpdatedEvent: Issue type not allowed');
+    return;
+  }
+
+  // checking is project key is available in our system
+  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const projectKey = issue.issue.fields.project.key;
+  if (!projectKeys.includes(projectKey)) {
+    logger.info('processIssueUpdatedEvent: Project not available in our system ');
+    return;
+  }
 
   await sqsClient.sendFifoMessage(
     { ...issue },
