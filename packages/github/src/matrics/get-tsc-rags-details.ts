@@ -7,8 +7,12 @@ import { weeklyHeadlineStat } from './get-product-security';
 const esClientObj = ElasticSearchClient.getInstance();
 const getBranches = async (repoIds: string[]): Promise<any[]> => {
   const getBranchesQuery = esb
-    .boolQuery()
-    .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', true)])
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
+        .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.protected', true)])
+    )
     .toJSON();
 
   const getBrancheData = await esClientObj.search(

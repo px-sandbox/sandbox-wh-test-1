@@ -4,7 +4,10 @@ import { SQSClient } from '@pulse/event-handler';
 import { v4 as uuid } from 'uuid';
 import { Queue } from 'sst/node/queue';
 import { ProjectTypeKey } from 'abstraction/jira/enums/project';
+import { Config } from 'sst/node/config';
+import { IssuesTypes } from 'abstraction/jira/enums';
 import { JiraClient } from '../../lib/jira-client';
+import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 
 const sqsClient = SQSClient.getInstance();
 /**
@@ -16,12 +19,30 @@ export async function create(
   issue: Jira.ExternalType.Webhook.Issue,
   requestId: string
 ): Promise<void> {
+  if (issue.issue.fields.issuetype.name === IssuesTypes.TEST) {
+    return;
+  }
   const resourceId = issue.issue.id;
   logger.info({
     requestId,
     resourceId,
     message: 'issue_event.Send_message_to_SQS',
   });
+
+  // checking if issue type is allowed
+
+  if (!ALLOWED_ISSUE_TYPES.includes(issue.issue.fields.issuetype.name)) {
+    logger.info('processIssueCreatedEvent: Issue type not allowed');
+    return;
+  }
+
+  // checking is project key is available in our system
+  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const projectKey = issue.issue.fields.project.key;
+  if (!projectKeys.includes(projectKey)) {
+    logger.info('processIssueCreatedEvent: Project not available in our system');
+    return;
+  }
 
   const jiraClient = await JiraClient.getClient(issue.organization);
 

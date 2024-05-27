@@ -1,8 +1,10 @@
 import { logger } from 'core';
 import moment from 'moment';
 import { Jira } from 'abstraction';
+import { Config } from 'sst/node/config';
 import { getIssueById } from '../../repository/issue/get-issue';
 import { saveIssueDetails } from '../../repository/issue/save-issue';
+import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 
 /**
  * Removes the issue with the given ID and marks it as deleted.
@@ -22,6 +24,21 @@ export async function remove(
   if (!issueData) {
     logger.info({ requestId, resourceId: issueId, message: 'issueDeletedEvent: Issue not found' });
     return false;
+  }
+
+  // checking if issue type is allowed
+
+  if (!ALLOWED_ISSUE_TYPES.includes(issueData?.issueType)) {
+    logger.info('processIssueDeletedEvent: Issue type not allowed');
+    return;
+  }
+
+  // checking is project key is available in our system
+  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const projectKey = issueData?.projectKey;
+  if (!projectKeys.includes(projectKey)) {
+    logger.info('processIssueDeletedEvent: Project not available in our system');
+    return;
   }
   const { _id, ...processIssue } = issueData;
 

@@ -3,7 +3,9 @@ import { Jira } from 'abstraction';
 import { Hit, HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import moment from 'moment';
+import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 
 const sqsClient = SQSClient.getInstance();
 /**
@@ -19,7 +21,25 @@ export async function removeReopenRate(
   eventTime: moment.Moment,
   requestId: string
 ): Promise<void | false> {
+
+  // checking if issue type is allowed
+
+  if (!ALLOWED_ISSUE_TYPES.includes(issue?.issue?.fields?.issuetype?.name)) {
+    logger.info('processDeleteReopenRateEvent: Issue type not allowed');
+    return;
+  }
+
+  // checking is project key is available in our system
+  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const projectKey = issue?.issue?.fields?.project?.key;
+  if (!projectKeys.includes(projectKey)) {
+    logger.info('processDeleteReopenRateEvent: Project not available in our system');
+    return;
+  }
+
+
   const resourceId = issue.issue.id;
+
   try {
     await sqsClient.sendMessage({ ...issue, eventTime }, Queue.qReOpenRateDelete.queueUrl, {
       requestId,

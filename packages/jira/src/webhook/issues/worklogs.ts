@@ -3,11 +3,13 @@ import { SQSClient } from '@pulse/event-handler';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
+import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
-import { searchedDataFormator } from '../../util/response-formatter';
 import { formatIssue } from '../../util/issue-helper';
+import { searchedDataFormator } from '../../util/response-formatter';
 import { getOrganization } from '../../repository/organization/get-organization';
+import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
@@ -60,10 +62,27 @@ export async function worklog(
       throw new Error(`worklog.organization ${organization} not found`);
     }
     const issueData = await fetchJiraIssues(issueId, orgId.id, requestId);
-    if (issueData.length === 0) {
+    if (!issueData) {
       throw new Error(`worklog.no_issue_found: ${organization}, issueId: ${issueId}`);
     }
+
+    // checking if issue type is allowed
+
+    if (!ALLOWED_ISSUE_TYPES.includes(issueData?.issueType)) {
+      logger.info('processWorklogEvent: Issue type not allowed');
+      return;
+    }
+
+    // checking is project key is available in our system
+    const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+    const projectKey = issueData?.projectKey;
+    if (!projectKeys.includes(projectKey)) {
+      logger.info('processWorklogEvent: Project not available in our system');
+      return;
+    }
+
     const issue = formatIssue(issueData);
+
     await sqsClient.sendFifoMessage(
       {
         organization,
