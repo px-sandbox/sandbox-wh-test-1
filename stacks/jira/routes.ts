@@ -119,6 +119,13 @@ export function initializeRoutes(
       },
       authorizer: 'admin',
     },
+    'GET /jira/graph/cycle-time/overall': {
+      function: {
+        handler: 'packages/jira/src/service/cycle-time/overall.handler',
+        timeout: '1 minute',
+      },
+      authorizer: 'universal',
+    },
   };
 
   return routesObj;
