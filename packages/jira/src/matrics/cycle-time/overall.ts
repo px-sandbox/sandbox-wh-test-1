@@ -86,6 +86,8 @@ export async function calculateCycleTime(
     formattedCycleTime = await searchedDataFormator(unformattedCycleTime);
     cycleTime.push(...formattedCycleTime);
   }
+
+  // we will store total time sprint wise in key value pair in this object
   const sprintOverall: { [key: string]: { time: number; count: number } } = {};
 
   for (const cycle of cycleTime) {
@@ -99,11 +101,14 @@ export async function calculateCycleTime(
       };
     }
   }
+
+  // now we will calculate the average time for each sprint and then overall average time
   let overallTime = 0;
+
   for (const so in sprintOverall) {
     if (sprintOverall[so]) {
       overallTime += sprintOverall[so].time / sprintOverall[so].count;
     }
   }
-  return overallTime;
+  return overallTime / Object.keys(sprintOverall).length;
 }
