@@ -62,53 +62,34 @@ export async function calculateCycleTime(
       esb
         .boolQuery()
         .must([
-          esb.termsQuery('body.sprintId', sprints),
+          esb.termsQuery('body.sprintId.keyword', sprints),
           esb.termQuery('body.organizationId', orgId),
         ])
     )
-    .size(1000)
-    .sort(esb.sort('_id'))
-    .source(['body.issueKey', 'body.sprintId', 'body.development', 'body.qa', 'body.deployment']);
+    .agg(
+      esb
+        .termsAggregation('sprints', 'body.sprintId.keyword')
+        .agg(esb.sumAggregation('total_development', 'body.development.total'))
+        .agg(esb.sumAggregation('total_qa', 'body.qa.total'))
+        .agg(esb.sumAggregation('total_deployment', 'body.deployment.total'))
+    );
 
-  let unformattedCycleTime: Other.Type.HitBody = await esClientObj.search(
+  const result = await esClientObj.queryAggs<Jira.Type.CycleTimeAggregationResult>(
     Jira.Enums.IndexName.CycleTime,
     cycleTimeQuery.toJSON()
   );
-  let formattedCycleTime = await searchedDataFormator(unformattedCycleTime);
-  const cycleTime = [];
 
-  cycleTime.push(...formattedCycleTime);
-
-  while (formattedCycleTime?.length > 0) {
-    const lastHit = unformattedCycleTime?.hits?.hits[unformattedCycleTime.hits.hits.length - 1];
-    const query = cycleTimeQuery.searchAfter([lastHit.sort[0]]).toJSON();
-    unformattedCycleTime = await esClientObj.search(Jira.Enums.IndexName.Issue, query);
-    formattedCycleTime = await searchedDataFormator(unformattedCycleTime);
-    cycleTime.push(...formattedCycleTime);
-  }
-
-  // we will store total time sprint wise in key value pair in this object
-  const sprintOverall: { [key: string]: { time: number; count: number } } = {};
-
-  for (const cycle of cycleTime) {
-    const { sprintId, development, qa, deployment } = cycle;
-    if (!sprintOverall[sprintId]) {
-      sprintOverall[sprintId] = { time: development.total + qa.total + deployment.total, count: 0 };
-    } else {
-      sprintOverall[sprintId] = {
-        time: sprintOverall[sprintId].time + development.total + qa.total + deployment.total,
-        count: sprintOverall[sprintId].count + 1,
-      };
-    }
-  }
-
-  // now we will calculate the average time for each sprint and then overall average time
   let overallTime = 0;
+  let sprintCount = 0;
 
-  for (const so in sprintOverall) {
-    if (sprintOverall[so]) {
-      overallTime += sprintOverall[so].time / sprintOverall[so].count;
+  if (result?.sprints?.buckets) {
+    for (const bucket of result.sprints.buckets) {
+      const totalTime =
+        bucket.total_development.value + bucket.total_qa.value + bucket.total_deployment.value;
+      overallTime += totalTime / bucket.doc_count;
+      sprintCount += 1;
     }
   }
-  return overallTime / Object.keys(sprintOverall).length;
+
+  return overallTime / sprintCount;
 }

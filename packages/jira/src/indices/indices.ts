@@ -350,23 +350,31 @@ const indices = [
             projectKey: { type: 'keyword' },
             title: { type: 'text' },
             development: {
-              coding: { type: 'long' },
-              pickup: { type: 'long' },
-              review: { type: 'long' },
-              handover: { type: 'long' },
-              total: { type: 'long' },
+              type: 'object',
+              properties: {
+                coding: { type: 'long' },
+                pickup: { type: 'long' },
+                review: { type: 'long' },
+                handover: { type: 'long' },
+                total: { type: 'long' },
+              },
             },
             qa: {
-              pickup: { type: 'long' },
-              testing: { type: 'long' },
-              handover: { type: 'long' },
-              total: { type: 'long' },
+              type: 'object',
+              properties: {
+                pickup: { type: 'long' },
+                testing: { type: 'long' },
+                handover: { type: 'long' },
+                total: { type: 'long' },
+              },
             },
             deployment: {
-              deploy: { type: 'long' },
-              total: { type: 'long' },
+              type: 'object',
+
+              properties: { deploy: { type: 'long' }, total: { type: 'long' } },
             },
             assignees: {
+              type: 'object',
               properties: {
                 assigneeId: { type: 'keyword' },
                 name: { type: 'text' },
@@ -374,18 +382,23 @@ const indices = [
             },
             hasSubtask: { type: 'boolean' },
             subtask: {
+              type: 'object',
               properties: {
                 issueId: { type: 'keyword' },
                 issueKey: { type: 'keyword' },
                 title: { type: 'text' },
                 development: {
-                  coding: { type: 'long' },
-                  pickup: { type: 'long' },
-                  review: { type: 'long' },
-                  handover: { type: 'long' },
-                  total: { type: 'long' },
+                  type: 'object',
+                  properties: {
+                    coding: { type: 'long' },
+                    pickup: { type: 'long' },
+                    review: { type: 'long' },
+                    handover: { type: 'long' },
+                    total: { type: 'long' },
+                  },
                 },
                 assignees: {
+                  type: 'object',
                   properties: {
                     assigneeId: { type: 'keyword' },
                     name: { type: 'text' },
@@ -394,6 +407,7 @@ const indices = [
               },
             },
             history: {
+              type: 'object',
               properties: {
                 issueId: { type: 'keyword' },
                 issueType: { type: 'keyword' },
