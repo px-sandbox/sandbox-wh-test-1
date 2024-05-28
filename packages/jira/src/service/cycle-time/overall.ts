@@ -43,7 +43,7 @@ export const cycleTimeOverall = async (
     orgId
   );
   return responseParser
-    .setBody(response)
+    .setBody({ overall: response })
     .setMessage('successfully fetched overall cycle time')
     .setResponseBodyCode('SUCCESS')
     .setStatusCode(HttpStatusCode['200'])
