@@ -122,7 +122,7 @@ export function initializeRoutes(
     'GET /jira/graph/cycle-time/overall': {
       function: {
         handler: 'packages/jira/src/service/cycle-time/overall.handler',
-        timeout: '1 minute',
+        timeout: '10 seconds',
       },
       authorizer: 'universal',
     },

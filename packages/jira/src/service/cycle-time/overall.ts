@@ -1,7 +1,9 @@
 import { Other } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, logger, responseParser } from 'core';
+import { APIHandler, HttpStatusCode, responseParser } from 'core';
+import { transpileSchema } from '@middy/validator/transpile';
 import { fetchSprintsFromES, calculateCycleTime } from '../../matrics/cycle-time/overall';
+import { CycleTimeOverallValidator } from '../validations';
 
 /**
  * Fetches the overall cycle time for a given project within a specified date range.
@@ -24,21 +26,14 @@ async function fetchOverallCycleTime(
 
   return calculateCycleTime(reqCtx, sprints, orgId);
 }
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const cycleTimeOverall = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
   const { requestId } = event.requestContext;
-  const startDate = event.queryStringParameters?.startDate;
-  const endDate = event.queryStringParameters?.endDate;
-  const orgId = event.queryStringParameters?.orgId;
-  const projectId = event.queryStringParameters?.projectId;
-
-  if (!projectId || !orgId || !startDate || !endDate) {
-    logger.error({
-      requestId,
-      resourceId: projectId,
-      message: `Missing one of the following: ${projectId} ${orgId} ${startDate} ${endDate}`,
-    });
-    throw new Error('Missing required parameters');
-  }
+  const startDate = event.queryStringParameters?.startDate ?? '';
+  const endDate = event.queryStringParameters?.endDate ?? '';
+  const orgId = event.queryStringParameters?.orgId ?? '';
+  const projectId = event.queryStringParameters?.projectId ?? '';
 
   const response = await fetchOverallCycleTime(
     { requestId, resourceId: projectId },
@@ -54,3 +49,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     .setStatusCode(HttpStatusCode['200'])
     .send();
 };
+
+export const handler = APIHandler(cycleTimeOverall, {
+  eventSchema: transpileSchema(CycleTimeOverallValidator),
+});
