@@ -30,6 +30,10 @@ export async function fetchSprintsFromES(
         .must([
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.organizationId', orgId),
+          esb.termsQuery('body.state', [
+            Jira.Enums.SprintState.ACTIVE,
+            Jira.Enums.SprintState.CLOSED,
+          ]),
         ])
         .should([
           esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
