@@ -63,7 +63,6 @@ export async function fetchSprintsFromES(
   const sprints = await fetchSprints(projectId, startDate, endDate, orgId);
   return sprints.map((sprint) => sprint.id);
 }
-
 /**
  * Fetches sprints from Elasticsearch with their status.
  *

@@ -6,7 +6,12 @@ import esb from 'elastic-builder';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-function getQuery(sprintArr: string[], orgId: string): esb.RequestBodySearch {
+function getQuery(
+  sprintArr: string[],
+  orgId: string,
+  sortKey: Jira.Enums.CycleTimeSortKey,
+  sortOrder: 'asc' | 'desc'
+): esb.RequestBodySearch {
   return esb
     .requestBodySearch()
     .query(
@@ -22,78 +27,45 @@ function getQuery(sprintArr: string[], orgId: string): esb.RequestBodySearch {
     .agg(
       esb
         .termsAggregation('sprints', 'body.sprintId.keyword')
-        .agg(esb.sumAggregation('total_development_coding', 'body.development.coding'))
-        .agg(esb.sumAggregation('total_development_pickup', 'body.development.pickup'))
-        .agg(esb.sumAggregation('total_development_handover', 'body.development.handover'))
-        .agg(esb.sumAggregation('total_development_review', 'body.development.review'))
-        .agg(esb.sumAggregation('total_development_total', 'body.development.total'))
+        .agg(esb.avgAggregation('avg_development_coding', 'body.development.coding'))
+        .agg(esb.avgAggregation('avg_development_pickup', 'body.development.pickup'))
+        .agg(esb.avgAggregation('avg_development_handover', 'body.development.handover'))
+        .agg(esb.avgAggregation('avg_development_review', 'body.development.review'))
+        .agg(esb.avgAggregation('avg_development_total', 'body.development.total'))
 
-        .agg(esb.sumAggregation('total_qa_pickup', 'body.qa.pickup'))
-        .agg(esb.sumAggregation('total_qa_testing', 'body.qa.testing'))
-        .agg(esb.sumAggregation('total_qa_handover', 'body.qa.handover'))
-        .agg(esb.sumAggregation('total_qa_total', 'body.qa.total'))
+        .agg(esb.avgAggregation('avg_qa_pickup', 'body.qa.pickup'))
+        .agg(esb.avgAggregation('avg_qa_testing', 'body.qa.testing'))
+        .agg(esb.avgAggregation('avg_qa_handover', 'body.qa.handover'))
+        .agg(esb.avgAggregation('avg_qa_total', 'body.qa.total'))
 
-        .agg(esb.sumAggregation('total_deployment_total', 'body.deployment.total'))
+        .agg(esb.avgAggregation('avg_deployment_total', 'body.deployment.total'))
+
+        .agg(
+          esb
+            .bucketScriptAggregation('overall')
+            .bucketsPath({
+              devTotal: 'avg_development_total',
+              qaTotal: 'avg_qa_total',
+              depTotal: 'avg_deployment_total',
+            })
+            .script('params.devTotal + params.qaTotal + params.depTotal')
+        )
+
+        .agg(
+          esb
+            .bucketScriptAggregation('overallWithoutDeployment')
+            .bucketsPath({
+              devTotal: 'avg_development_total',
+              qaTotal: 'avg_qa_total',
+              depTotal: 'avg_deployment_total',
+            })
+            .script('params.devTotal + params.qaTotal')
+        )
+
+        .agg(esb.bucketSortAggregation('sorted').sort([esb.sort(sortKey, sortOrder)]))
     );
 }
 
-/**
- * Sorts the cycle time summary array based on the specified key and order.
- *
- * @param response - The cycle time summary array to be sorted.
- * @param key - The key to determine the sorting criteria.
- * @param order - The order of sorting ('asc' for ascending, 'desc' for descending).
- * @returns The sorted cycle time summary array.
- */
-function sortCycleTime(
-  response: Jira.Type.CycleTimeSummary[] | undefined,
-  key: Jira.Enums.CycleTimeSortKey,
-  order: 'asc' | 'desc'
-): Jira.Type.CycleTimeSummary[] | undefined {
-  const direction = order === 'desc' ? 1 : -1;
-
-  switch (key) {
-    case Jira.Enums.CycleTimeSortKey.DEPLOYMENT:
-      response?.sort((a, b) => direction * (b.deployment.total - a.deployment.total));
-      break;
-    case Jira.Enums.CycleTimeSortKey.DEVELOPMENT_CODING:
-      response?.sort((a, b) => direction * (b.development.coding - a.development.coding));
-      break;
-    case Jira.Enums.CycleTimeSortKey.DEVELOPMENT_HANDOVER:
-      response?.sort((a, b) => direction * (b.development.handover - a.development.handover));
-      break;
-    case Jira.Enums.CycleTimeSortKey.DEVELOPMENT_PICKUP:
-      response?.sort((a, b) => direction * (b.development.pickup - a.development.pickup));
-      break;
-    case Jira.Enums.CycleTimeSortKey.DEVELOPMENT_REVIEW:
-      response?.sort((a, b) => direction * (b.development.review - a.development.review));
-      break;
-
-    case Jira.Enums.CycleTimeSortKey.OVERALL_WITHOUT_DEPLOYMENT:
-      response?.sort(
-        (a, b) => direction * (b.overallWithoutDeployment - a.overallWithoutDeployment)
-      );
-      break;
-    case Jira.Enums.CycleTimeSortKey.QA_HANDOVER:
-      response?.sort((a, b) => direction * (b.qa.handover - a.qa.handover));
-      break;
-    case Jira.Enums.CycleTimeSortKey.QA_PICKUP:
-      response?.sort((a, b) => direction * (b.qa.pickup - a.qa.pickup));
-      break;
-    case Jira.Enums.CycleTimeSortKey.QA_TESTING:
-      response?.sort((a, b) => direction * (b.qa.testing - a.qa.testing));
-      break;
-    case Jira.Enums.CycleTimeSortKey.DEVELOPMENT:
-      response?.sort((a, b) => direction * (b.development.total - a.development.total));
-      break;
-    case Jira.Enums.CycleTimeSortKey.QA:
-      response?.sort((a, b) => direction * (b.qa.total - a.qa.total));
-      break;
-    default:
-      response?.sort((a, b) => direction * (b.overall - a.overall));
-  }
-  return response;
-}
 /**
  * Calculates the sprint level summary for cycle time.
  * @param sprints - An array of sprint objects containing sprint details.
@@ -134,7 +106,7 @@ export async function sprintLevelSummaryCalc(
     };
   });
 
-  const summaryQuery = getQuery(sprintArr, orgId);
+  const summaryQuery = getQuery(sprintArr, orgId, sortKey, sortOrder);
 
   const result = await esClientObj.queryAggs<Jira.Type.SprintLevelSummaryResult>(
     Jira.Enums.IndexName.CycleTime,
@@ -146,40 +118,33 @@ export async function sprintLevelSummaryCalc(
     response = result?.sprints?.buckets?.map((bucket) => ({
       sprintId: bucket.key,
       development: {
-        coding: bucket.total_development_coding.value / bucket.doc_count,
-        pickup: bucket.total_development_pickup.value / bucket.doc_count,
-        handover: bucket.total_development_handover.value / bucket.doc_count,
-        review: bucket.total_development_review.value / bucket.doc_count,
-        total: bucket.total_development_total.value / bucket.doc_count,
+        coding: bucket.avg_development_coding.value,
+        pickup: bucket.avg_development_pickup.value,
+        handover: bucket.avg_development_handover.value,
+        review: bucket.avg_development_review.value,
+        total: bucket.avg_development_total.value,
       },
       qa: {
-        pickup: bucket.total_qa_pickup.value / bucket.doc_count,
-        testing: bucket.total_qa_testing.value / bucket.doc_count,
-        handover: bucket.total_qa_handover.value / bucket.doc_count,
-        total: bucket.total_qa_total.value / bucket.doc_count,
+        pickup: bucket.avg_qa_pickup.value,
+        testing: bucket.avg_qa_testing.value,
+        handover: bucket.avg_qa_handover.value,
+        total: bucket.avg_qa_total.value,
       },
       deployment: {
-        total: bucket.total_deployment_total.value / bucket.doc_count,
+        total: bucket.avg_deployment_total.value,
       },
-      overall:
-        (bucket.total_development_total.value +
-          bucket.total_qa_total.value +
-          bucket.total_deployment_total.value) /
-        bucket.doc_count,
-      overallWithoutDeployment:
-        (bucket.total_development_total.value + bucket.total_qa_total.value) / bucket.doc_count,
+      overall: bucket.overall.value,
+      overallWithoutDeployment: bucket.overallWithoutDeployment.value,
     }));
   }
 
-  response = response?.map((item) => ({
+  return response?.map((item) => ({
     ...item,
     sprintName: sprintObj[item.sprintId]?.name,
     startDate: sprintObj[item.sprintId]?.startDate,
     endDate: sprintObj[item.sprintId]?.endDate,
     status: sprintObj[item.sprintId]?.status,
   }));
-
-  return sortCycleTime(response, sortKey, sortOrder);
 }
 
 /**

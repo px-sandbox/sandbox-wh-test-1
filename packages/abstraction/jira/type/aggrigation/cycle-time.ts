@@ -13,16 +13,18 @@ export interface SprintLevelSummaryResult {
   sprints: {
     buckets: Array<{
       key: string;
-      total_development_coding: { value: number };
-      total_development_pickup: { value: number };
-      total_development_handover: { value: number };
-      total_development_review: { value: number };
-      total_development_total: { value: number };
-      total_qa_pickup: { value: number };
-      total_qa_testing: { value: number };
-      total_qa_handover: { value: number };
-      total_qa_total: { value: number };
-      total_deployment_total: { value: number };
+      avg_development_coding: { value: number };
+      avg_development_pickup: { value: number };
+      avg_development_handover: { value: number };
+      avg_development_review: { value: number };
+      avg_development_total: { value: number };
+      avg_qa_pickup: { value: number };
+      avg_qa_testing: { value: number };
+      avg_qa_handover: { value: number };
+      avg_qa_total: { value: number };
+      avg_deployment_total: { value: number };
+      overall: { value: number };
+      overallWithoutDeployment: { value: number };
       doc_count: number;
     }>;
   };
