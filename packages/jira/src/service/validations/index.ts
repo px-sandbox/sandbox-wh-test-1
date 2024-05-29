@@ -50,3 +50,19 @@ export const updateIssueStatusSchema = {
     },
   },
 };
+
+export const CycleTimeOverallValidator = {
+  type: 'object',
+  properties: {
+    queryStringParameters: {
+      type: 'object',
+      properties: {
+        startDate: { type: 'string', pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' },
+        endDate: { type: 'string', pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' },
+        orgId: { type: 'string', pattern: '^jira_org_\\d+$' },
+        projectId: { type: 'string', pattern: '^jira_project_\\d+$' },
+      },
+      required: ['startDate', 'endDate', 'orgId', 'projectId'],
+    },
+  },
+};
