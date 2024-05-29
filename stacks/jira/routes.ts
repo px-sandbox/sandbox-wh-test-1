@@ -126,6 +126,12 @@ export function initializeRoutes(
       },
       authorizer: 'universal',
     },
+    'GET /jira/cycle-time/graph-and-table/summary': {
+      function: {
+        handler: 'packages/jira/src/service/cycle-time/summary.handler',
+        timeout: '20 seconds',
+      },
+    },
   };
 
   return routesObj;
