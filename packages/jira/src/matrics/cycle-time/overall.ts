@@ -100,18 +100,13 @@ export async function fetchSprintsFromESWithOtherInfo(
 }
 
 /**
- * Calculates the overall cycle time for a given set of sprints and organization.
- * @param reqCtx - The request context.
+ * Returns the Elasticsearch query for calculating cycle time.
  * @param sprints - An array of sprint IDs.
  * @param orgId - The organization ID.
- * @returns The overall cycle time as a number.
+ * @returns The Elasticsearch RequestBodySearch object.
  */
-export async function calculateCycleTime(
-  reqCtx: Other.Type.RequestCtx,
-  sprints: string[],
-  orgId: string
-): Promise<number> {
-  const cycleTimeQuery = esb
+function getCycleTimeQuery(sprints: string[], orgId: string): esb.RequestBodySearch {
+  return esb
     .requestBodySearch()
     .query(
       esb
@@ -128,6 +123,21 @@ export async function calculateCycleTime(
         .agg(esb.sumAggregation('total_qa', 'body.qa.total'))
         .agg(esb.sumAggregation('total_deployment', 'body.deployment.total'))
     );
+}
+
+/**
+ * Calculates the overall cycle time for a given set of sprints and organization.
+ * @param reqCtx - The request context.
+ * @param sprints - An array of sprint IDs.
+ * @param orgId - The organization ID.
+ * @returns The overall cycle time as a number.
+ */
+export async function calculateCycleTime(
+  reqCtx: Other.Type.RequestCtx,
+  sprints: string[],
+  orgId: string
+): Promise<number> {
+  const cycleTimeQuery = getCycleTimeQuery(sprints, orgId);
 
   const result = await esClientObj.queryAggs<Jira.Type.CycleTimeAggregationResult>(
     Jira.Enums.IndexName.CycleTime,
