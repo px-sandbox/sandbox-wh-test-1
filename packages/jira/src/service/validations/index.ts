@@ -87,3 +87,18 @@ export const CycleTimeSummaryValidator = {
     },
   },
 };
+
+export const CycleTimeDetailedValidator = {
+  type: 'object',
+  properties: {
+    queryStringParameters: {
+      type: 'object',
+      properties: {
+        sprintId: { type: 'string', pattern: '^jira_sprint_\\d+$' },
+        projectId: { type: 'string', pattern: '^jira_project_\\d+$' },
+        orgId: { type: 'string', pattern: '^jira_org_\\d+$' },
+      },
+      required: ['sprintId', 'projectId', 'orgId'],
+    },
+  },
+};
