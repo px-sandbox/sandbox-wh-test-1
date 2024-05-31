@@ -9,9 +9,48 @@ const esClientObj = ElasticSearchClient.getInstance();
 function getQuery(
   sprintArr: string[],
   orgId: string,
-  sortKey: Jira.Enums.CycleTimeSortKey,
-  sortOrder: 'asc' | 'desc'
+  sortKey?: Jira.Enums.CycleTimeSortKey,
+  sortOrder?: 'asc' | 'desc'
 ): esb.RequestBodySearch {
+  const baseAgg = esb
+    .termsAggregation('sprints', 'body.sprintId.keyword')
+    .agg(esb.avgAggregation('avg_development_coding', 'body.development.coding'))
+    .agg(esb.avgAggregation('avg_development_pickup', 'body.development.pickup'))
+    .agg(esb.avgAggregation('avg_development_handover', 'body.development.handover'))
+    .agg(esb.avgAggregation('avg_development_review', 'body.development.review'))
+    .agg(esb.avgAggregation('avg_development_total', 'body.development.total'))
+
+    .agg(esb.avgAggregation('avg_qa_pickup', 'body.qa.pickup'))
+    .agg(esb.avgAggregation('avg_qa_testing', 'body.qa.testing'))
+    .agg(esb.avgAggregation('avg_qa_handover', 'body.qa.handover'))
+    .agg(esb.avgAggregation('avg_qa_total', 'body.qa.total'))
+
+    .agg(esb.avgAggregation('avg_deployment_total', 'body.deployment.total'))
+
+    .agg(
+      esb
+        .bucketScriptAggregation('overall')
+        .bucketsPath({
+          devTotal: 'avg_development_total',
+          qaTotal: 'avg_qa_total',
+          depTotal: 'avg_deployment_total',
+        })
+        .script('params.devTotal + params.qaTotal + params.depTotal')
+    )
+
+    .agg(
+      esb
+        .bucketScriptAggregation('overallWithoutDeployment')
+        .bucketsPath({
+          devTotal: 'avg_development_total',
+          qaTotal: 'avg_qa_total',
+          depTotal: 'avg_deployment_total',
+        })
+        .script('params.devTotal + params.qaTotal')
+    );
+  if (sortKey) {
+    baseAgg.agg(esb.bucketSortAggregation('sorted').sort([esb.sort(sortKey, sortOrder)]));
+  }
   return esb
     .requestBodySearch()
     .query(
@@ -24,46 +63,7 @@ function getQuery(
     )
 
     .source(['body.sprintId'])
-    .agg(
-      esb
-        .termsAggregation('sprints', 'body.sprintId.keyword')
-        .agg(esb.avgAggregation('avg_development_coding', 'body.development.coding'))
-        .agg(esb.avgAggregation('avg_development_pickup', 'body.development.pickup'))
-        .agg(esb.avgAggregation('avg_development_handover', 'body.development.handover'))
-        .agg(esb.avgAggregation('avg_development_review', 'body.development.review'))
-        .agg(esb.avgAggregation('avg_development_total', 'body.development.total'))
-
-        .agg(esb.avgAggregation('avg_qa_pickup', 'body.qa.pickup'))
-        .agg(esb.avgAggregation('avg_qa_testing', 'body.qa.testing'))
-        .agg(esb.avgAggregation('avg_qa_handover', 'body.qa.handover'))
-        .agg(esb.avgAggregation('avg_qa_total', 'body.qa.total'))
-
-        .agg(esb.avgAggregation('avg_deployment_total', 'body.deployment.total'))
-
-        .agg(
-          esb
-            .bucketScriptAggregation('overall')
-            .bucketsPath({
-              devTotal: 'avg_development_total',
-              qaTotal: 'avg_qa_total',
-              depTotal: 'avg_deployment_total',
-            })
-            .script('params.devTotal + params.qaTotal + params.depTotal')
-        )
-
-        .agg(
-          esb
-            .bucketScriptAggregation('overallWithoutDeployment')
-            .bucketsPath({
-              devTotal: 'avg_development_total',
-              qaTotal: 'avg_qa_total',
-              depTotal: 'avg_deployment_total',
-            })
-            .script('params.devTotal + params.qaTotal')
-        )
-
-        .agg(esb.bucketSortAggregation('sorted').sort([esb.sort(sortKey, sortOrder)]))
-    );
+    .agg(baseAgg);
 }
 
 /**
