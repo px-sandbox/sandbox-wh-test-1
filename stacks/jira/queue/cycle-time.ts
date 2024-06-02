@@ -9,7 +9,13 @@ export function initializeCycleTimeQueue(
   jiraDDB: JiraTables,
   jiraIndexDataQueue: Queue
 ): Queue {
-  const { NODE_VERSION } = use(commonConfig);
+  const {
+    NODE_VERSION,
+    OPENSEARCH_NODE,
+    OPENSEARCH_PASSWORD,
+    OPENSEARCH_USERNAME,
+    REQUEST_TIMEOUT,
+  } = use(commonConfig);
   const cycleTimeFormatDataQueue = new Queue(stack, 'qCycleTimeFormat', {
     cdk: {
       queue: {
@@ -27,6 +33,10 @@ export function initializeCycleTimeQueue(
         jiraDDB.jiraCredsTable,
         jiraDDB.jiraMappingTable,
         jiraDDB.retryProcessTable,
+        OPENSEARCH_NODE,
+        OPENSEARCH_PASSWORD,
+        OPENSEARCH_USERNAME,
+        REQUEST_TIMEOUT,
       ],
       runtime: NODE_VERSION,
     }),
