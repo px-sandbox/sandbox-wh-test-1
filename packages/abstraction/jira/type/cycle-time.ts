@@ -75,8 +75,8 @@ export type CycleTimeSummary = {
   deployment: {
     total: number;
   };
-  overall:number;
-  overallWithoutDeployment: number
+  overall: number;
+  overallWithoutDeployment: number;
 };
 
 export type CycleTimeOverallSummary = {
@@ -96,4 +96,19 @@ export type CycleTimeOverallSummary = {
   deployment: {
     total: number;
   };
+};
+
+export type CycleTimeDetailedType = {
+  id:string;
+  issueKey: string;
+  title: string;
+  assignees: {
+    id: string;
+    name: string;
+    email: string;
+  }[];
+  development: unknown;
+  deployment: unknown;
+  qa: unknown;
+  link: string;
 };
