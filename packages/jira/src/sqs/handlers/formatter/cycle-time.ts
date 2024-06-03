@@ -112,7 +112,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
         }
         const projectKey = messageBody.issue.fields.project.key;
         logger.info({ message: 'projectKey', data: projectKey, requestId, resourceId });
-        if (['PT', 'PX'].includes(projectKey)) {
+        if (['PT', 'PX', 'FUZE', 'YT100'].includes(projectKey)) {
           const issueType = messageBody.issue.fields.issuetype.name;
           let issueId = messageBody.issue.id;
           if (issueType === IssuesTypes.SUBTASK) {
@@ -133,28 +133,46 @@ export const handler = async function cycleTimeFormattedDataReciever(
             return;
           }
           const formattedData = formatCycleTimeData(messageBody, orgData.orgId);
-          let mainTicketData = formattedData;
+          let mainTicketData: Jira.Type.FormatCycleTime;
           const orgId = `${mappingPrefixes.organization}_${orgData.orgId}`;
           const statusMapping = await initializeMapping(orgId);
 
-          const reverseMapping = Object.entries(statusMapping).reduce((acc, [key, value]) => {
-            acc[value] = { label: key, id: value };
-            return acc;
-          }, {});
+          const reverseMapping = Object.entries(statusMapping).reduce(
+            (acc: Record<string, any>, [key, value]) => {
+              acc[value] = { label: key, id: value };
+              return acc;
+            },
+            {}
+          );
           if (dataFromEsb.length > 0) {
             const ticketData = dataFromEsb[0];
             mainTicketData = ticketData;
+          } else {
+            mainTicketData = formattedData;
           }
+
           logger.info({
             message: 'CYCLE_TIME_SQS_RECEIVER_HANDLER',
             data: JSON.stringify(mainTicketData),
             requestId,
             resourceId,
           });
+
           const mainTicket = new MainTicket(mainTicketData, statusMapping, reverseMapping);
           if (issueType === IssuesTypes.SUBTASK) {
-            mainTicket.addSubtask(formatSubtask(messageBody.issue));
+            if (mainTicketData.subtasks.length > 0) {
+              const subtaskId = mainTicketData.subtasks.filter(
+                (subtask: Jira.ExternalType.Api.Subtasks) =>
+                  subtask.issueId === formattedData.issueId
+              );
+              if (subtaskId.length > 0) {
+                logger.info({ message: 'Subtask already exists', requestId, resourceId });
+              } else {
+                mainTicket.addSubtask(formatSubtask(messageBody.issue));
+              }
+            }
           }
+
           if (formattedData.changelog && formattedData.changelog.items) {
             mainTicket.changelog(formattedData.changelog);
           }
