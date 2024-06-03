@@ -374,7 +374,6 @@ const indices = [
               properties: { deploy: { type: 'long' }, total: { type: 'long' } },
             },
             assignees: {
-              type: 'object',
               properties: {
                 assigneeId: { type: 'keyword' },
                 name: { type: 'text' },
@@ -382,7 +381,6 @@ const indices = [
             },
             hasSubtask: { type: 'boolean' },
             subtask: {
-              type: 'object',
               properties: {
                 issueId: { type: 'keyword' },
                 issueKey: { type: 'keyword' },
@@ -398,7 +396,6 @@ const indices = [
                   },
                 },
                 assignees: {
-                  type: 'object',
                   properties: {
                     assigneeId: { type: 'keyword' },
                     name: { type: 'text' },

@@ -131,3 +131,63 @@ export type SubTicket = {
     eventTime: string;
   }[];
 };
+
+export type CycleTimeSummary = {
+  sprintName: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+  sprintId: string;
+  development: {
+    coding: number;
+    pickup: number;
+    handover: number;
+    review: number;
+    total: number;
+  };
+  qa: {
+    pickup: number;
+    testing: number;
+    handover: number;
+    total: number;
+  };
+  deployment: {
+    total: number;
+  };
+  overall: number;
+  overallWithoutDeployment: number;
+};
+
+export type CycleTimeOverallSummary = {
+  development: {
+    coding: number;
+    pickup: number;
+    handover: number;
+    review: number;
+    total: number;
+  };
+  qa: {
+    pickup: number;
+    testing: number;
+    handover: number;
+    total: number;
+  };
+  deployment: {
+    total: number;
+  };
+};
+
+export type CycleTimeDetailedType = {
+  id:string;
+  issueKey: string;
+  title: string;
+  assignees: {
+    id: string;
+    name: string;
+    email: string;
+  }[];
+  development: unknown;
+  deployment: unknown;
+  qa: unknown;
+  link: string;
+};
