@@ -5,25 +5,25 @@ import esb from 'elastic-builder';
 import { searchedDataFormator } from '../../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
+
 /**
- * Fetches sprints from Elasticsearch based on the provided parameters.
- * @param reqCtx - The request context.
+ * Fetches the sprints based on the provided parameters.
+ *
  * @param projectId - The ID of the project.
  * @param startDate - The start date of the sprints.
  * @param endDate - The end date of the sprints.
  * @param orgId - The ID of the organization.
- * @returns A promise that resolves to an array of sprint IDs.
+ * @returns A promise that resolves to an array of sprints.
  */
-export async function fetchSprintsFromES(
-  reqCtx: Other.Type.RequestCtx,
+async function fetchSprints(
   projectId: string,
   startDate: string,
   endDate: string,
   orgId: string
-): Promise<string[]> {
+): Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]> {
   const sprintsQuery = esb
     .requestBodySearch()
-    .source(['body.id'])
+    .source(['body.id', 'body.state', 'body.name', 'body.startDate', 'body.endDate'])
     .query(
       esb
         .boolQuery()
@@ -42,11 +42,62 @@ export async function fetchSprintsFromES(
         .minimumShouldMatch(1)
     )
     .toJSON();
-  const sprints = await searchedDataFormator(
-    await esClientObj.search(Jira.Enums.IndexName.Sprint, sprintsQuery)
-  );
+  return searchedDataFormator(await esClientObj.search(Jira.Enums.IndexName.Sprint, sprintsQuery));
+}
+/**
+ * Fetches sprints from Elasticsearch based on the provided parameters.
+ * @param reqCtx - The request context.
+ * @param projectId - The ID of the project.
+ * @param startDate - The start date of the sprints.
+ * @param endDate - The end date of the sprints.
+ * @param orgId - The ID of the organization.
+ * @returns A promise that resolves to an array of sprint IDs.
+ */
+export async function fetchSprintsFromES(
+  reqCtx: Other.Type.RequestCtx,
+  projectId: string,
+  startDate: string,
+  endDate: string,
+  orgId: string
+): Promise<string[]> {
+  const sprints = await fetchSprints(projectId, startDate, endDate, orgId);
   return sprints.map((sprint) => sprint.id);
 }
+/**
+ * Fetches sprints from Elasticsearch with their status.
+ *
+ * @param reqCtx - The request context.
+ * @param projectId - The ID of the project.
+ * @param startDate - The start date of the sprints.
+ * @param endDate - The end date of the sprints.
+ * @param orgId - The ID of the organization.
+ * @returns A promise that resolves to an array of objects containing the sprint ID and status.
+ */
+export async function fetchSprintsFromESWithOtherInfo(
+  reqCtx: Other.Type.RequestCtx,
+  projectId: string,
+  startDate: string,
+  endDate: string,
+  orgId: string
+): Promise<
+  {
+    sprintId: string;
+    status: Jira.Enums.SprintState;
+    name: string;
+    startDate: string;
+    endDate: string;
+  }[]
+> {
+  const sprints = await fetchSprints(projectId, startDate, endDate, orgId);
+  return sprints.map((sprint) => ({
+    sprintId: sprint.id,
+    name: sprint.name,
+    status: sprint.state,
+    startDate: sprint.startDate,
+    endDate: sprint.endDate,
+  }));
+}
+
 /**
  * Returns the Elasticsearch query for calculating cycle time.
  * @param sprints - An array of sprint IDs.
