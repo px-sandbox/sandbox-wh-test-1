@@ -1,7 +1,6 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { CycleTimeProcessor } from '../../../processors/cycle-time';
 
 export const handler = async function cycleTimeFormattedDataReciever(
   event: SQSEvent
