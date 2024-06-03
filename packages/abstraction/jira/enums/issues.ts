@@ -24,6 +24,7 @@ export enum ChangelogField {
   STATUS = 'status',
   CUSTOM = 'custom',
   JIRA = 'jira',
+  CUSTOM_FIELD = 'customfield_10007',
 }
 
 export enum IssueTimeTrackerSort {

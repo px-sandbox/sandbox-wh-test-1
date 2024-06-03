@@ -47,6 +47,15 @@ export async function update(
     issue.issue.key,
     uuid()
   );
+
+  await sqsClient.sendFifoMessage(
+    { ...issue },
+    Queue.qCycleTimeFormat.queueUrl,
+    { requestId, resourceId },
+    issue.issue.key,
+    uuid()
+  );
+
   if (issue.issue.fields.issuetype.name !== IssuesTypes.BUG) {
     return;
   }

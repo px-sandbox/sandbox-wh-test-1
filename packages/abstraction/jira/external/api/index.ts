@@ -8,3 +8,4 @@ export * from './response';
 export * from './issue';
 export * from './changelogs';
 export * from './issue-status';
+export * from './cycle-time';
