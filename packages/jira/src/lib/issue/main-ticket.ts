@@ -1,9 +1,9 @@
-import { IssuesTypes } from 'abstraction/jira/enums';
+import { ChangelogField, IssuesTypes } from 'abstraction/jira/enums';
 import { Subtasks } from 'abstraction/jira/external/api';
 import moment from 'moment';
 import { Jira } from 'abstraction';
-import { mappingPrefixes } from '../../constant/config';
 import { SubTicket } from './sub-ticket';
+import { calculateTimeDifference } from '../../util/cycle-time-subtasks';
 
 export class MainTicket {
   public issueId: string;
@@ -27,11 +27,11 @@ export class MainTicket {
   public title: string;
   public issueType: string;
 
-  constructor(data: Jira.Type.MainTicket, private StatusMapping, private Status) {
+  constructor(data: Jira.Type.MainTicket, private Status, private StatusMapping) {
     this.issueId = data.issueId;
     this.sprintId = data.sprintId;
     this.subtasks = data.subtasks ?? [];
-    this.orgId = data.orgId;
+    this.orgId = data.organizationId;
     this.projectId = data.projectId;
     this.issueKey = data.issueKey;
     this.projectKey = data.projectKey;
@@ -62,19 +62,14 @@ export class MainTicket {
     this.assignees.push(assignees);
   }
 
-  private calculateTimeDifference(
-    fromTime: string | undefined,
-    toTime: string | undefined
-  ): number {
-    if (!fromTime || !toTime) return 0;
-    return moment(toTime).diff(moment(fromTime), 'minutes');
-  }
-
   public async changelog(changelogs: any): Promise<any> {
     const [items] = changelogs.items.filter(
-      (item: Jira.ExternalType.Webhook.ChangelogItem) => item.fieldId === 'status'
+      (item: Jira.ExternalType.Webhook.ChangelogItem) =>
+        item.fieldId === ChangelogField.STATUS || item.field === ChangelogField.CUSTOM_FIELD
     );
-
+    if (items && items.field === ChangelogField.CUSTOM_FIELD) {
+      this.sprintId = items.to;
+    }
     if (items) {
       const statuses = [
         this.Status.To_Do,
@@ -129,14 +124,14 @@ export class MainTicket {
         );
 
         if (startTimeEvent && endTimeEvent) {
-          const duration = this.calculateTimeDifference(
+          const duration = calculateTimeDifference(
             startTimeEvent.eventTime,
             endTimeEvent.eventTime
           );
           totalDuration += duration;
 
           if (prevEndTime && moment(startTimeEvent.eventTime).isBefore(moment(prevEndTime))) {
-            const overlap = moment(prevEndTime).diff(moment(startTimeEvent.eventTime), 'minutes');
+            const overlap = calculateTimeDifference(prevEndTime, startTimeEvent.eventTime);
             overlapDuration += overlap;
           }
 
@@ -181,10 +176,10 @@ export class MainTicket {
       fromStatusArr.forEach((fromTime: string, index: number) => {
         isOverlap = false;
         if (toStatusArr[index]) {
-          const totalDuration = moment(toStatusArr[index]).diff(moment(fromTime), 'minutes');
+          const totalDuration = calculateTimeDifference(toStatusArr[index], fromTime);
           duration = totalDuration;
           if (prevToTime && moment(fromTime).isBefore(moment(prevToTime))) {
-            const overlap = moment(prevToTime).diff(moment(fromTime), 'minutes');
+            const overlap = calculateTimeDifference(prevToTime, fromTime);
             overlapDuration += overlap;
             isOverlap = true;
           }
@@ -194,9 +189,9 @@ export class MainTicket {
     } else if (fromStatusArr.length < toStatusArr.length) {
       toStatusArr.forEach((toTime: string, index: string) => {
         if (fromStatusArr[index]) {
-          const totalDuration = moment(toStatusArr[index + 1]).diff(
-            moment(fromStatusArr[index]),
-            'minutes'
+          const totalDuration = calculateTimeDifference(
+            toStatusArr[index + 1],
+            fromStatusArr[index]
           );
           duration += totalDuration;
         }
@@ -204,7 +199,7 @@ export class MainTicket {
     } else if (fromStatusArr.length > toStatusArr.length) {
       fromStatusArr.forEach((fromTime: string, index: number) => {
         if (toStatusArr[index]) {
-          const totalDuration = moment(toStatusArr[index]).diff(moment(fromTime), 'minutes');
+          const totalDuration = calculateTimeDifference(toStatusArr[index], fromTime);
           duration += totalDuration;
         }
       });
@@ -242,7 +237,7 @@ export class MainTicket {
     const toStatus = this.StatusMapping[to].label;
     if (this.history.length > 0) {
       const { status, eventTime } = this.history.slice(-1)[0];
-      const timeDiff = moment(timestamp).diff(moment(eventTime), 'minutes');
+      const timeDiff = calculateTimeDifference(timestamp, eventTime);
       const state = `from_${status.toLowerCase()}_to_${toStatus.toLowerCase()}`;
       switch (state) {
         case 'from_todo_to_in_progress':
@@ -293,9 +288,9 @@ export class MainTicket {
       (status) => status.status === this.StatusMapping[this.Status.Ready_For_QA].label
     );
     if (readyForQaTime) {
-      this.development.total = moment(readyForQaTime?.eventTime).diff(
-        moment(inProgressTime?.eventTime),
-        'minutes'
+      this.development.total = calculateTimeDifference(
+        readyForQaTime?.eventTime,
+        inProgressTime?.eventTime
       );
     }
 
@@ -315,9 +310,9 @@ export class MainTicket {
         .find((status) => status.status === this.StatusMapping[this.Status.Ready_For_QA].label);
 
       if (readyForQaTimeAfterQaFailed) {
-        this.development.total += moment(readyForQaTimeAfterQaFailed?.eventTime).diff(
-          moment(inProgressTimeAfterQaFailed?.eventTime),
-          'minutes'
+        this.development.total += calculateTimeDifference(
+          readyForQaTimeAfterQaFailed?.eventTime,
+          inProgressTimeAfterQaFailed?.eventTime
         );
       }
     }
@@ -331,25 +326,25 @@ export class MainTicket {
       (status) => status.status === this.StatusMapping[this.Status.QA_Pass_Deploy].label
     );
     if (qaPassDeployTime) {
-      this.qa.total = moment(qaPassDeployTime?.eventTime).diff(
-        moment(readyForQaTime?.eventTime),
-        'minutes'
+      this.qa.total = calculateTimeDifference(
+        qaPassDeployTime?.eventTime,
+        readyForQaTime?.eventTime
       );
     }
   }
 
   public toJSON(): Jira.Type.CycleTime {
     return {
-      id: `${mappingPrefixes.cycleTime}_${this.issueId}`,
+      id: this.issueId,
       body: {
-        id: `${mappingPrefixes.cycleTime}_${this.issueId}`,
-        issueId: `${mappingPrefixes.issue}_${this.issueId}`,
-        sprintId: `${mappingPrefixes.sprint}_${this.sprintId}`,
+        id: this.issueId,
+        issueId: this.issueId,
+        sprintId: this.sprintId,
         subtasks: this.subtasks.map((subtask) =>
           new SubTicket(subtask, this.StatusMapping).toJSON()
         ),
-        organizationId: `${mappingPrefixes.organization}_${this.orgId}`,
-        projectId: `${mappingPrefixes.project}_${this.projectId}`,
+        organizationId: this.orgId,
+        projectId: this.projectId,
         issueKey: this.issueKey,
         projectKey: this.projectKey,
         title: this.title,

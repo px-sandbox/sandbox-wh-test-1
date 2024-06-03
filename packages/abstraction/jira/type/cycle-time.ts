@@ -45,7 +45,7 @@ export type FormatCycleTime = {
   issueId: string;
   sprintId: string;
   subtasks: Subtasks[];
-  orgId: string;
+  organizationId: string;
   issueType: string;
   projectId: string;
   projectKey: string;
@@ -79,7 +79,7 @@ export type MainTicket = {
   issueKey: string;
   title: string;
   sprintId: string;
-  orgId: string;
+  organizationId: string;
   projectId: string;
   projectKey: string;
   issueType: string;

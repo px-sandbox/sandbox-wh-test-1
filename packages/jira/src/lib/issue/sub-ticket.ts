@@ -1,7 +1,6 @@
 import { Jira } from 'abstraction';
-import moment from 'moment';
 import { Subtasks } from 'abstraction/jira/external/api';
-import { mappingPrefixes } from '../../constant/config';
+import { calculateTimeDifference } from '../../util/cycle-time-subtasks';
 
 export class SubTicket {
   public issueId: string;
@@ -40,7 +39,7 @@ export class SubTicket {
     const toStatus = this.StatusMapping[to].label;
     if (this.history.length > 0) {
       const { status, eventTime } = this.history.slice(-1)[0];
-      const timeDiff = moment(timestamp).diff(moment(eventTime), 'minutes');
+      const timeDiff = calculateTimeDifference(timestamp, eventTime);
       const state = `from_${status.toLowerCase()}_to_${toStatus.toLowerCase()}`;
       switch (state) {
         case 'from_todo_to_in_progress':
@@ -70,9 +69,9 @@ export class SubTicket {
     const inProgressTime = this.history.find((status) => status.status === 'In_Progress');
     const readyForQaTime = this.history.find((status) => status.status === 'Ready_For_QA');
     if (readyForQaTime) {
-      this.development.total = moment(readyForQaTime?.eventTime).diff(
-        moment(inProgressTime?.eventTime),
-        'minutes'
+      this.development.total = calculateTimeDifference(
+        readyForQaTime?.eventTime,
+        inProgressTime?.eventTime
       );
     }
 
@@ -90,16 +89,16 @@ export class SubTicket {
         .find((status) => status.status === 'Ready_For_QA');
 
       if (readyForQaTimeAfterQaFailed) {
-        this.development.total += moment(readyForQaTimeAfterQaFailed?.eventTime).diff(
-          moment(inProgressTimeAfterQaFailed?.eventTime),
-          'minutes'
+        this.development.total += calculateTimeDifference(
+          readyForQaTimeAfterQaFailed?.eventTime,
+          inProgressTimeAfterQaFailed?.eventTime
         );
       }
     }
   }
   public toJSON(): Jira.Type.SubTicket {
     return {
-      issueId: `${mappingPrefixes.sprint}_${this.issueId}`,
+      issueId: this.issueId,
       issueKey: this.issueKey,
       title: this.title,
       development: this.development,

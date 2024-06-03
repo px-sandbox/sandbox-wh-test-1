@@ -22,8 +22,8 @@ function cycleTimeQuery(issueId: string, organization: string): Record<string, a
       esb
         .boolQuery()
         .must([
-          esb.termQuery('body.issueId', issueId),
-          esb.termQuery('body.organization', organization),
+          esb.termQuery('body.id', issueId),
+          esb.termQuery('body.organizationId', organization),
         ])
     )
     .toJSON();
@@ -33,21 +33,23 @@ async function getDataFromEsb(
   issueId: string,
   orgId: string
 ): Promise<(Pick<Hit, '_id'> & HitBody)[]> {
-  const cycleTimeEsb = esClientObj.search(
+  const id = `${mappingPrefixes.issue}_${issueId}`;
+  const organizationId = `${mappingPrefixes.organization}_${orgId}`;
+  const cycleTimeEsb = await esClientObj.search(
     Jira.Enums.IndexName.CycleTime,
-    cycleTimeQuery(issueId, orgId)
+    cycleTimeQuery(id, organizationId)
   );
   const cycleTimeData = await searchedDataFormator(cycleTimeEsb);
   return cycleTimeData;
 }
 
-function formatSubtask(data: Record<string, string>[]): Subtasks[] {
-  return data.map((subtask: any) => ({
-    issueId: subtask.id,
-    title: subtask.fields.summary,
-    assignees: subtask.fields.assignee,
-    issueKey: subtask.key,
-  }));
+function formatSubtask(data: any): Subtasks {
+  return {
+    issueId: `${mappingPrefixes.issue}_${data.id}`,
+    title: data.fields.summary,
+    assignees: data.fields.assignee,
+    issueKey: data.key,
+  };
 }
 
 function formatCycleTimeData(
@@ -55,26 +57,29 @@ function formatCycleTimeData(
   orgId: string
 ): Jira.Type.FormatCycleTime {
   const isSubtask = data.issue.fields.issuetype.subtask;
-  let subtasks: Subtasks[] = [];
+  const subtasks: Subtasks[] = [];
   if (isSubtask) {
-    subtasks = formatSubtask(data.issue.fields.subtasks);
+    const subtaskArr = data.issue.fields.subtasks;
+    subtaskArr.forEach((subtask) => {
+      subtasks.push(formatSubtask(subtask));
+    });
   }
   return {
-    issueId: data.issue.id,
-    sprintId: String(data.issue.fields.customfield_10007[0].id),
+    issueId: `${mappingPrefixes.issue}_${data.issue.id}`,
+    sprintId: `${mappingPrefixes.sprint}_${data.issue.fields.customfield_10007[0].id}`,
+    organizationId: `${mappingPrefixes.organization}_${orgId}`,
     subtasks,
-    orgId,
     issueType: data.issue.fields.issuetype.name,
-    projectId: data.issue.fields.project.id,
+    projectId: `${mappingPrefixes.project}_${data.issue.fields.project.id}`,
     projectKey: data.issue.fields.project.key,
     assignee: data.issue.fields?.assignee ?? [],
     title: data.issue.fields?.summary ?? '',
     issueKey: data.issue.key,
     changelog: {
       ...data.changelog,
-      timestamp: data.timestamp,
+      timestamp: data.issue.fields.updated,
       issuetype: data.issue.fields.issuetype.name,
-      issueId: data.issue.id,
+      issueId: `${mappingPrefixes.issue}_${data.issue.id}`,
     },
   };
 }
@@ -133,22 +138,22 @@ export const handler = async function cycleTimeFormattedDataReciever(
           const statusMapping = await initializeMapping(orgId);
 
           const reverseMapping = Object.entries(statusMapping).reduce((acc, [key, value]) => {
-            acc[value] = key;
+            acc[value] = { label: key, id: value };
             return acc;
           }, {});
-
+          if (dataFromEsb.length > 0) {
+            const ticketData = dataFromEsb[0];
+            mainTicketData = ticketData;
+          }
           logger.info({
             message: 'CYCLE_TIME_SQS_RECEIVER_HANDLER',
             data: JSON.stringify(mainTicketData),
             requestId,
             resourceId,
           });
-          if (dataFromEsb.length > 0) {
-            mainTicketData = dataFromEsb[0].body;
-          }
           const mainTicket = new MainTicket(mainTicketData, statusMapping, reverseMapping);
-          if (mainTicketData.issueType === IssuesTypes.SUBTASK) {
-            mainTicket.addSubtask(messageBody);
+          if (issueType === IssuesTypes.SUBTASK) {
+            mainTicket.addSubtask(formatSubtask(messageBody.issue));
           }
           if (formattedData.changelog && formattedData.changelog.items) {
             mainTicket.changelog(formattedData.changelog);
@@ -161,11 +166,18 @@ export const handler = async function cycleTimeFormattedDataReciever(
             requestId,
             resourceId,
           });
+        } else {
+          logger.info({
+            message: 'Project key not allowed',
+            data: { projectKey },
+            requestId,
+            resourceId,
+          });
         }
       } catch (error) {
         logger.error({
           message: 'cycleTimeFormattedDataReceiver.error',
-          error,
+          error: `${error}`,
           requestId,
           resourceId,
         });
