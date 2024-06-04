@@ -17,7 +17,7 @@ services:
       - 9200:9200
     security_opt:
       - no-new-privileges:true
-    read_only: false
+    read_only: true
     networks:
       - esnet
 
@@ -30,7 +30,7 @@ services:
       - 5601:5601
     security_opt:
       - no-new-privileges:true
-    read_only: false
+    read_only: true
     networks:
       - esnet
 
@@ -45,7 +45,7 @@ services:
       - 8000:8000
     security_opt:
       - no-new-privileges:true
-    read_only: false
+    read_only: true
     command: '-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/'
 
 volumes:
