@@ -18,3 +18,17 @@ export enum CycleTimeSummaryType {
   GRAPH = 'graph',
   TABLE = 'table',
 }
+
+export enum CycleTimeDetailSortKey {
+  DEVELOPMENT = 'development.total',
+  QA = 'qa.total',
+  DEPLOYMENT = 'deployment.total',
+
+  DEVELOPMENT_CODING = 'development.coding',
+  DEVELOPMENT_PICKUP = 'development.pickup',
+  DEVELOPMENT_HANDOVER = 'development.handover',
+  DEVELOPMENT_REVIEW = 'development.review',
+  QA_PICKUP = 'qa.pickup',
+  QA_TESTING = 'qa.testing',
+  QA_HANDOVER = 'qa.handover',
+}

@@ -13,7 +13,7 @@ function getQuery(
   sortOrder?: 'asc' | 'desc'
 ): esb.RequestBodySearch {
   const baseAgg = esb
-    .termsAggregation('sprints', 'body.sprintId.keyword')
+    .termsAggregation('sprints', 'body.sprintId')
     .agg(esb.avgAggregation('avg_development_coding', 'body.development.coding'))
     .agg(esb.avgAggregation('avg_development_pickup', 'body.development.pickup'))
     .agg(esb.avgAggregation('avg_development_handover', 'body.development.handover'))
@@ -57,7 +57,7 @@ function getQuery(
       esb
         .boolQuery()
         .must([
-          esb.termsQuery('body.sprintId.keyword', sprintArr),
+          esb.termsQuery('body.sprintId', sprintArr),
           esb.termQuery('body.organizationId', orgId),
         ])
     )

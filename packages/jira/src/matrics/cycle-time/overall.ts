@@ -111,13 +111,13 @@ function getCycleTimeQuery(sprints: string[], orgId: string): esb.RequestBodySea
       esb
         .boolQuery()
         .must([
-          esb.termsQuery('body.sprintId.keyword', sprints),
+          esb.termsQuery('body.sprintId', sprints),
           esb.termQuery('body.organizationId', orgId),
         ])
     )
     .agg(
       esb
-        .termsAggregation('sprints', 'body.sprintId.keyword')
+        .termsAggregation('sprints', 'body.sprintId')
         .agg(esb.sumAggregation('total_development', 'body.development.total'))
         .agg(esb.sumAggregation('total_qa', 'body.qa.total'))
         .agg(esb.sumAggregation('total_deployment', 'body.deployment.total'))
