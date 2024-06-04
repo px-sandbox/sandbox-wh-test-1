@@ -160,17 +160,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
 
           const mainTicket = new MainTicket(mainTicketData, statusMapping, reverseMapping);
           if (issueType === IssuesTypes.SUBTASK) {
-            if (mainTicketData.subtasks.length > 0) {
-              const subtaskId = mainTicketData.subtasks.filter(
-                (subtask: Jira.ExternalType.Api.Subtasks) =>
-                  subtask.issueId === formattedData.issueId
-              );
-              if (subtaskId.length > 0) {
-                logger.info({ message: 'Subtask already exists', requestId, resourceId });
-              } else {
-                mainTicket.addSubtask(formatSubtask(messageBody.issue));
-              }
-            }
+            mainTicket.addSubtask(formatSubtask(messageBody.issue));
           }
 
           if (formattedData.changelog && formattedData.changelog.items) {
