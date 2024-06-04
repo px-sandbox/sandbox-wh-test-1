@@ -1,17 +1,17 @@
-import { SQSEvent, SQSRecord } from 'aws-lambda';
-import { logger } from 'core';
-import { Jira } from 'abstraction';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import esb from 'elastic-builder';
-import { HitBody, Hit } from 'abstraction/other/type';
+import { Jira } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
 import { Subtasks } from 'abstraction/jira/external/api';
-import { MainTicket } from '../../../lib/issue/main-ticket';
-import { getOrganization } from '../../../repository/organization/get-organization';
-import { searchedDataFormator } from '../../../util/response-formatter';
-import { initializeMapping } from '../../../util/cycle-time-subtasks';
+import { Hit, HitBody } from 'abstraction/other/type';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
+import { logger } from 'core';
+import esb from 'elastic-builder';
 import { mappingPrefixes } from '../../../constant/config';
+import { MainTicket } from '../../../lib/issue/main-ticket';
 import { saveCycleTime } from '../../../repository/issue/save-cycle-time';
+import { getOrganization } from '../../../repository/organization/get-organization';
+import { initializeMapping } from '../../../util/cycle-time';
+import { searchedDataFormator } from '../../../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
