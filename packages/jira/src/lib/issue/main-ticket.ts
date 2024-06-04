@@ -2,6 +2,7 @@ import { ChangelogField, IssuesTypes } from 'abstraction/jira/enums';
 import { Subtasks } from 'abstraction/jira/external/api';
 import moment from 'moment';
 import { Jira } from 'abstraction';
+import { logger } from 'core';
 import { SubTicket } from './sub-ticket';
 import { calculateTimeDifference } from '../../util/cycle-time-subtasks';
 
@@ -55,6 +56,15 @@ export class MainTicket {
   }
 
   public addSubtask(subtask: Subtasks): void {
+    if (this.subtasks.length > 0) {
+      const subtaskId = this.subtasks.filter(
+        (data: Jira.ExternalType.Api.Subtasks) => data.issueId == subtask.issueId
+      );
+      if (subtaskId.length > 0) {
+        logger.info({ message: 'Subtask already exists', data: subtask.issueId });
+        return;
+      }
+    }
     this.subtasks.push(subtask);
   }
 
