@@ -1,6 +1,6 @@
 import { Jira } from 'abstraction';
 import { Subtasks } from 'abstraction/jira/external/api';
-import { calculateTimeDifference } from '../../util/cycle-time-subtasks';
+import { calculateTimeDifference } from '../../util/cycle-time';
 
 export class SubTicket {
   public issueId: string;
