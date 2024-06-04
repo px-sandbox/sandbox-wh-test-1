@@ -4,7 +4,7 @@ import moment from 'moment';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { SubTicket } from './sub-ticket';
-import { calculateTimeDifference } from '../../util/cycle-time-subtasks';
+import { calculateTimeDifference } from '../../util/cycle-time';
 
 export class MainTicket {
   public issueId: string;
