@@ -16,7 +16,11 @@ export class SubTicket {
   public assignees: any[];
   public history: { status: string; eventTime: string }[];
 
-  constructor(subtaskData: Subtasks, private StatusMapping: Record<string, { label: string }>) {
+  constructor(
+    subtaskData: Subtasks,
+    private StatusMapping: Record<string, { label: string; id: number }>,
+    private Status: Record<string, number>
+  ) {
     this.issueId = subtaskData.issueId;
     this.issueKey = subtaskData.issueKey;
     this.development = subtaskData.development ?? {
@@ -66,8 +70,12 @@ export class SubTicket {
   }
 
   public calculateTotal(): void {
-    const inProgressTime = this.history.find((status) => status.status === 'In_Progress');
-    const readyForQaTime = this.history.find((status) => status.status === 'Ready_For_QA');
+    const inProgressTime = this.history.find(
+      (status) => status.status === this.StatusMapping[this.Status.In_Progress].label
+    );
+    const readyForQaTime = this.history.find(
+      (status) => status.status === this.StatusMapping[this.Status.Ready_For_QA].label
+    );
     if (readyForQaTime) {
       this.development.total = calculateTimeDifference(
         readyForQaTime?.eventTime,
@@ -75,18 +83,20 @@ export class SubTicket {
       );
     }
 
-    const lastQaFailedIndex = this.history.map((status) => status.status).lastIndexOf('QA_Failed');
+    const lastQaFailedIndex = this.history
+      .map((status) => status.status)
+      .lastIndexOf(this.StatusMapping[this.Status.QA_Failed].label);
     const lastReadyForQaIndex = this.history
       .map((status) => status.status)
-      .lastIndexOf('Ready_For_QA');
+      .lastIndexOf(this.StatusMapping[this.Status.Ready_For_QA].label);
 
     if (lastQaFailedIndex !== -1 && lastReadyForQaIndex > lastQaFailedIndex) {
       const inProgressTimeAfterQaFailed = this.history
         .slice(lastQaFailedIndex + 1)
-        .find((status) => status.status === 'In_Progress');
+        .find((status) => status.status === this.StatusMapping[this.Status.In_Progress].label);
       const readyForQaTimeAfterQaFailed = this.history
         .slice(lastQaFailedIndex + 1)
-        .find((status) => status.status === 'Ready_For_QA');
+        .find((status) => status.status === this.StatusMapping[this.Status.Ready_For_QA].label);
 
       if (readyForQaTimeAfterQaFailed) {
         this.development.total += calculateTimeDifference(
