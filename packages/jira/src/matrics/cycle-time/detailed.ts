@@ -71,9 +71,16 @@ export async function fetchCycleTimeDetailed(
     ) as Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]>,
   ]);
 
-  const assigneeIds = formattedData.flatMap((fd) =>
-    fd.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId)
-  );
+  const assigneeIds = [
+    ...new Set(
+      formattedData.flatMap((fd) => [
+        ...fd.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId),
+        ...fd.subtask.flatMap((sub: { assignees: { assigneeId: string }[] }) =>
+          sub.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId)
+        ),
+      ])
+    ),
+  ];
 
   const userQuery = getAssigneeQuery(assigneeIds, orgId);
   const users = await searchedDataFormator(
@@ -97,7 +104,10 @@ export async function fetchCycleTimeDetailed(
     deployment: fd.deployment,
     assignees: fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId]),
     hasSubtask: fd.hasSubtask,
-    subtask: fd.subtask,
+    subtask: fd.subtask.map((sub: { assignees: { assigneeId: string }[] }) => ({
+      ...sub,
+      assignees: sub.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId]),
+    })),
     link: `https://${orgname}.atlassian.net/browse/${fd?.issueKey}`,
   }));
 }
