@@ -173,6 +173,7 @@ export function overallSummary(
     },
   };
   const len = sprintLevelSumm.length;
+
   sprintLevelSumm.forEach((sls) => {
     data.development.coding += sls.development.coding ?? 0;
     data.development.pickup += sls.development.pickup ?? 0;
@@ -187,16 +188,18 @@ export function overallSummary(
     data.deployment.total += sls.deployment.total ?? 0;
   });
   // Calculate the average after summing up all items
-  data.development.coding /= len;
-  data.development.pickup /= len;
-  data.development.review /= len;
-  data.development.handover /= len;
-  data.development.total /= len;
+  if (len) {
+    data.development.coding /= len;
+    data.development.pickup /= len;
+    data.development.review /= len;
+    data.development.handover /= len;
+    data.development.total /= len;
 
-  data.qa.pickup /= len;
-  data.qa.testing /= len;
-  data.qa.total /= len;
+    data.qa.pickup /= len;
+    data.qa.testing /= len;
+    data.qa.total /= len;
 
-  data.deployment.total /= len;
+    data.deployment.total /= len;
+  }
   return data;
 }
