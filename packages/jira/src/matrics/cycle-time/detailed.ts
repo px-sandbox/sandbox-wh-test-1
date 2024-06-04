@@ -75,9 +75,11 @@ export async function fetchCycleTimeDetailed(
     ...new Set(
       formattedData.flatMap((fd) => [
         ...fd.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId),
-        ...fd.subtask.flatMap((sub: { assignees: { assigneeId: string }[] }) =>
-          sub.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId)
-        ),
+        ...(fd?.subtask
+          ? fd.subtask.flatMap((sub: { assignees: { assigneeId: string }[] }) =>
+              sub.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId)
+            )
+          : []),
       ])
     ),
   ];
@@ -104,7 +106,7 @@ export async function fetchCycleTimeDetailed(
     deployment: fd.deployment,
     assignees: fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId]),
     hasSubtask: fd.hasSubtask,
-    subtask: fd.subtask.map((sub: { assignees: { assigneeId: string }[] }) => ({
+    subtask: fd?.subtask?.map((sub: { assignees: { assigneeId: string }[] }) => ({
       ...sub,
       assignees: sub.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId]),
     })),

@@ -166,7 +166,6 @@ export function overallSummary(
     qa: {
       pickup: 0,
       testing: 0,
-      handover: 0,
       total: 0,
     },
     deployment: {
@@ -175,17 +174,17 @@ export function overallSummary(
   };
   const len = sprintLevelSumm.length;
   sprintLevelSumm.forEach((sls) => {
-    data.development.coding += sls.development.coding;
-    data.development.pickup += sls.development.pickup;
-    data.development.review += sls.development.review;
-    data.development.handover += sls.development.handover;
-    data.development.total += sls.development.total;
+    data.development.coding += sls.development.coding ?? 0;
+    data.development.pickup += sls.development.pickup ?? 0;
+    data.development.review += sls.development.review ?? 0;
+    data.development.handover += sls.development.handover ?? 0;
+    data.development.total += sls.development.total ?? 0;
 
-    data.qa.pickup += sls.qa.pickup;
-    data.qa.testing += sls.qa.testing;
-    data.qa.total += sls.qa.total;
+    data.qa.pickup += sls.qa.pickup ?? 0;
+    data.qa.testing += sls.qa.testing ?? 0;
+    data.qa.total += sls.qa.total ?? 0;
 
-    data.deployment.total += sls.deployment.total;
+    data.deployment.total += sls.deployment.total ?? 0;
   });
   // Calculate the average after summing up all items
   data.development.coding /= len;
