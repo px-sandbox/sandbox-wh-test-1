@@ -155,5 +155,5 @@ export async function calculateCycleTime(
     }
   }
 
-  return overallTime / sprintCount;
+  return overallTime / sprintCount ?? 0;
 }
