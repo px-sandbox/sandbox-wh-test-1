@@ -95,10 +95,11 @@ export const CycleTimeDetailedValidator = {
       type: 'object',
       properties: {
         sprintId: { type: 'string', pattern: '^jira_sprint_\\d+$' },
-        projectId: { type: 'string', pattern: '^jira_project_\\d+$' },
+        sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
+        sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
         orgId: { type: 'string', pattern: '^jira_org_\\d+$' },
       },
-      required: ['sprintId', 'projectId', 'orgId'],
+      required: ['sprintId', 'orgId'],
     },
   },
 };
