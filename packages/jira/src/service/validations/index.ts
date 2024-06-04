@@ -61,8 +61,16 @@ export const CycleTimeOverallValidator = {
       properties: {
         startDate: { type: 'string', pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' },
         endDate: { type: 'string', pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' },
-        orgId: { type: 'string', pattern: '^jira_org_\\d+$' },
-        projectId: { type: 'string', pattern: '^jira_project_\\d+$' },
+        orgId: {
+          type: 'string',
+          pattern:
+            '^jira_org_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+        },
+        projectId: {
+          type: 'string',
+          pattern:
+            '^jira_project_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+        },
       },
       required: ['startDate', 'endDate', 'orgId', 'projectId'],
     },
@@ -77,8 +85,16 @@ export const CycleTimeSummaryValidator = {
       properties: {
         startDate: { type: 'string', pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' },
         endDate: { type: 'string', pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' },
-        orgId: { type: 'string', pattern: '^jira_org_\\d+$' },
-        projectId: { type: 'string', pattern: '^jira_project_\\d+$' },
+        orgId: {
+          type: 'string',
+          pattern:
+            '^jira_org_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+        },
+        projectId: {
+          type: 'string',
+          pattern:
+            '^jira_project_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+        },
         sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
         sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
         type: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSummaryType) },
@@ -94,10 +110,18 @@ export const CycleTimeDetailedValidator = {
     queryStringParameters: {
       type: 'object',
       properties: {
-        sprintId: { type: 'string', pattern: '^jira_sprint_\\d+$' },
+        sprintId: {
+          type: 'string',
+          pattern:
+            '^jira_sprint_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+        },
         sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
         sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
-        orgId: { type: 'string', pattern: '^jira_org_\\d+$' },
+        orgId: {
+          type: 'string',
+          pattern:
+            '^jira_org_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+        },
       },
       required: ['sprintId', 'orgId'],
     },
