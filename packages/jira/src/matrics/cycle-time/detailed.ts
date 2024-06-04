@@ -6,12 +6,14 @@ import { searchedDataFormator } from '../../util/response-formatter';
 const esClientObj = ElasticSearchClient.getInstance();
 function getCycleTimeDetailQuery(
   sprintId: string,
-  projectId: string,
-  orgId: string
+  orgId: string,
+  sortKey: Jira.Enums.CycleTimeDetailSortKey,
+  sortOrder: 'asc' | 'desc'
 ): esb.RequestBodySearch {
   return esb
     .requestBodySearch()
     .size(200)
+    .sort(esb.sort(`body.${sortKey}`, sortOrder))
     .source([
       'body.id',
       'body.issueKey',
@@ -27,8 +29,7 @@ function getCycleTimeDetailQuery(
       esb
         .boolQuery()
         .must([
-          esb.termQuery('body.sprintId.keyword', sprintId),
-          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.sprintId', sprintId),
           esb.termQuery('body.organizationId', orgId),
         ])
     );
@@ -54,10 +55,11 @@ function getOrgNameQuery(orgId: string): esb.RequestBodySearch {
 export async function fetchCycleTimeDetailed(
   reqCtx: Other.Type.RequestCtx,
   sprintId: string,
-  projectId: string,
-  orgId: string
+  orgId: string,
+  sortKey: Jira.Enums.CycleTimeDetailSortKey,
+  sortOrder: 'asc' | 'desc'
 ): Promise<Jira.Type.CycleTimeDetailedType[]> {
-  const cycleTimeDetailQuery = getCycleTimeDetailQuery(sprintId, projectId, orgId);
+  const cycleTimeDetailQuery = getCycleTimeDetailQuery(sprintId, orgId, sortKey, sortOrder);
   const orgnameQuery = getOrgNameQuery(orgId);
 
   const [orgname, formattedData] = await Promise.all([
@@ -69,7 +71,16 @@ export async function fetchCycleTimeDetailed(
     ) as Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]>,
   ]);
 
-  const assigneeIds = formattedData.map((fd) => fd.assignees.assigneeId);
+  const assigneeIds = [
+    ...new Set(
+      formattedData.flatMap((fd) => [
+        ...fd.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId),
+        ...fd.subtask.flatMap((sub: { assignees: { assigneeId: string }[] }) =>
+          sub.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId)
+        ),
+      ])
+    ),
+  ];
 
   const userQuery = getAssigneeQuery(assigneeIds, orgId);
   const users = await searchedDataFormator(
@@ -93,7 +104,10 @@ export async function fetchCycleTimeDetailed(
     deployment: fd.deployment,
     assignees: fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId]),
     hasSubtask: fd.hasSubtask,
-    subtask: fd.subtask,
+    subtask: fd.subtask.map((sub: { assignees: { assigneeId: string }[] }) => ({
+      ...sub,
+      assignees: sub.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId]),
+    })),
     link: `https://${orgname}.atlassian.net/browse/${fd?.issueKey}`,
   }));
 }
