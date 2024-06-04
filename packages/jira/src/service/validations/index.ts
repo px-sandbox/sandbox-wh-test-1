@@ -68,8 +68,7 @@ export const CycleTimeOverallValidator = {
         },
         projectId: {
           type: 'string',
-          pattern:
-            '^jira_project_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+          pattern: '^jira_project_\\d+$',
         },
       },
       required: ['startDate', 'endDate', 'orgId', 'projectId'],
@@ -92,8 +91,7 @@ export const CycleTimeSummaryValidator = {
         },
         projectId: {
           type: 'string',
-          pattern:
-            '^jira_project_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+          pattern: '^jira_project_\\d+$',
         },
         sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
         sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
@@ -112,8 +110,7 @@ export const CycleTimeDetailedValidator = {
       properties: {
         sprintId: {
           type: 'string',
-          pattern:
-            '^jira_sprint_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+          pattern: '^jira_sprint_\\d+$',
         },
         sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
         sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
