@@ -83,8 +83,8 @@ export async function sprintLevelSummaryCalc(
     endDate: string;
   }[],
   orgId: string,
-  sortKey: Jira.Enums.CycleTimeSortKey,
-  sortOrder: 'asc' | 'desc'
+  sortKey?: Jira.Enums.CycleTimeSortKey,
+  sortOrder?: 'asc' | 'desc'
 ): Promise<Jira.Type.CycleTimeSummary[] | undefined> {
   const sprintArr = sprints.map((sp) => sp.sprintId);
   const sprintObj: {

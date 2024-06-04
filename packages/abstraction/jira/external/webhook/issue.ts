@@ -1,5 +1,6 @@
 export type ChangelogItem = {
   field: string;
+  fieldId: string;
   fieldtype: string;
   from: string;
   fromString: string;
@@ -13,6 +14,17 @@ export type Issue = {
     self: string;
     key: string;
     fields: {
+      customfield_10007: [
+        {
+          boardId: number;
+          endDate: string;
+          goal: '';
+          id: number;
+          name: string;
+          startDate: string;
+          state: string;
+        }
+      ];
       issuetype: {
         self: string;
         id: string;
@@ -24,6 +36,43 @@ export type Issue = {
         heirarchyLevel: number;
       };
       timespent: number;
+      parent: {
+        fields: {
+          issuetype: {
+            avatarId: number;
+            description: string;
+            hierarchyLevel: number;
+            iconUrl: string;
+            id: string;
+            name: string;
+            self: string;
+            subtask: false;
+          };
+          priority: {
+            iconUrl: string;
+            id: string;
+            name: string;
+            self: string;
+          };
+          status: {
+            description: string;
+            iconUrl: string;
+            id: string;
+            name: string;
+            self: string;
+            statusCategory: {
+              id: string;
+              key: string;
+              name: string;
+              self: string;
+            };
+          };
+          summary: string;
+        };
+        id: string;
+        key: string;
+        self: string;
+      };
       project: {
         self: string;
         id: string;
@@ -73,6 +122,8 @@ export type Issue = {
         accountType: string;
       };
       lastViewed: string;
+      summary: string;
+      timestamp: string;
     };
   };
   changelog: {
@@ -83,4 +134,5 @@ export type Issue = {
   deletedAt?: string;
   organization: string;
   eventName: string;
+  timestamp: string;
 };

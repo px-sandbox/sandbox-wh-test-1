@@ -69,5 +69,13 @@ export async function create(
       issue.issue.key,
       uuid()
     );
+
+    await sqsClient.sendFifoMessage(
+      { ...issue },
+      Queue.qCycleTimeFormat.queueUrl,
+      { requestId, resourceId },
+      issue.issue.key,
+      uuid()
+    );
   }
 }
