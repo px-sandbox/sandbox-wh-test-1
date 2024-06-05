@@ -159,7 +159,7 @@ function sprintEstimateResponse(
  * @param endDate - The end date of the range (optional).
  * @returns An array of Elasticsearch range queries.
  */
-function getDateRangeQueries(startDate: string, endDate: string): esb.RangeQuery[] {
+export function getDateRangeQueries(startDate: string, endDate: string): esb.RangeQuery[] {
   let dateRangeQueries = [
     esb.rangeQuery('body.startDate').gte(startDate),
     esb.rangeQuery('body.endDate').gte(startDate),

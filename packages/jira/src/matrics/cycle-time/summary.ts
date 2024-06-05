@@ -87,6 +87,7 @@ export async function sprintLevelSummaryCalc(
   sortOrder?: 'asc' | 'desc'
 ): Promise<Jira.Type.CycleTimeSummary[] | undefined> {
   const sprintArr = sprints.map((sp) => sp.sprintId);
+
   const sprintObj: {
     [key: string]: {
       sprintId: string;
