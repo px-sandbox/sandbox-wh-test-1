@@ -1,6 +1,7 @@
 import { Jira } from 'abstraction';
 import { Subtasks } from 'abstraction/jira/external/api';
 import { calculateTimeDifference } from '../../util/cycle-time';
+import { logger } from 'core';
 
 export class SubTicket {
   public issueId: string;
@@ -37,6 +38,19 @@ export class SubTicket {
 
   private updateHistory(to: string, timestamp: string): void {
     this.history.push({ status: to, eventTime: timestamp });
+  }
+
+  public addAssignee(assignee: { assigneeId: string; name: string }): void {
+    if (this.assignees.length > 0) {
+      const assigneeId = this.assignees.filter(
+        (data: { assigneeId: string; name: string }) => data.assigneeId === assignee.assigneeId
+      );
+      if (assigneeId.length > 0) {
+        logger.info({ message: 'assignee already exists', data: assignee.assigneeId });
+        return;
+      }
+    }
+    this.assignees.push(assignee);
   }
 
   public async statusTransition(to: string, timestamp: string): Promise<void> {

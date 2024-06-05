@@ -29,9 +29,8 @@ export type CycleTime = retryProcess & {
       total: number;
     };
     assignees: {
-      id: string;
+      assigneeId: string;
       name: string;
-      email: string;
     }[];
     subtasks: Subtasks[];
     history: {
@@ -50,12 +49,8 @@ export type FormatCycleTime = {
   projectId: string;
   projectKey: string;
   assignee: {
-    self: string;
-    accountId: string;
-    displayName: string;
-    active: boolean;
-    timeZone: string;
-    accountType: string;
+    assigneeId: string;
+    name: string;
   };
   title: string;
   issueKey: string;
@@ -84,9 +79,8 @@ export type MainTicket = {
   projectKey: string;
   issueType: string;
   assignees?: {
-    id: string;
+    assigneeId: string;
     name: string;
-    email: string;
   }[];
   history?: {
     status: string;
