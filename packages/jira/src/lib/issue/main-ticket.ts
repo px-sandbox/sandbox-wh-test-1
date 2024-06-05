@@ -113,14 +113,15 @@ export class MainTicket {
           const assignee = { assigneeId: items.to, name: items.toString };
           this.addAssignee(assignee);
         }
-        if (this.subtasks.length > 0 && statuses.includes(items.to)) {
-          const toStatus = this.StatusMapping[items.to].label;
-          this.updateHistory(toStatus, changelogs.timestamp);
-        } else {
-          this.statusTransition(items.to, changelogs.timestamp);
+        if (items.fieldId === ChangelogField.STATUS) {
+          if (this.subtasks.length > 0 && statuses.includes(items.to)) {
+            const toStatus = this.StatusMapping[items.to].label;
+            this.updateHistory(toStatus, changelogs.timestamp);
+          } else {
+            this.statusTransition(items.to, changelogs.timestamp);
+          }
         }
       }
-
       this.subtasks = this.subtasks.map((subtask, i) => {
         if (changelogs.issueId === this.subtasks[i].issueId) {
           const updatedSubtask = new SubTicket(subtask, this.StatusMapping);
@@ -128,7 +129,10 @@ export class MainTicket {
             const assignee = { assigneeId: items.to, name: items.toString };
             updatedSubtask.addAssignee(assignee);
           }
-          if (items.to !== String(this.StatusMapping[this.Status.To_Do].id)) {
+          if (
+            items.to !== String(this.StatusMapping[this.Status.To_Do].id) &&
+            items.fieldId === ChangelogField.STATUS
+          ) {
             updatedSubtask.statusTransition(items.to, changelogs.timestamp);
             updatedSubtask.toJSON();
             const { status } = updatedSubtask.history.slice(-2)[0];
