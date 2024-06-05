@@ -163,7 +163,6 @@ export type CycleTimeOverallSummary = {
   qa: {
     pickup: number;
     testing: number;
-    handover: number;
     total: number;
   };
   deployment: {
