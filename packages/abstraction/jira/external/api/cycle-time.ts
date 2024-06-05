@@ -10,9 +10,8 @@ export type Subtasks = {
     total: number;
   };
   assignees: {
-    id: string;
+    assigneeId: string;
     name: string;
-    email: string;
   }[];
   history?: {
     status: string;
@@ -40,9 +39,8 @@ export type CycleTime = {
   qa: { pickup: number; testing: number; total: number };
   deployment: { total: number };
   assignees: {
-    id: string;
+    assigneeId: string;
     name: string;
-    email: string;
   }[];
   history: {
     status: string;

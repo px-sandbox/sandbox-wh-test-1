@@ -23,7 +23,10 @@ export class MainTicket {
   };
   public qa: { pickup: number; testing: number; total: number };
   public deployment: { total: number };
-  public assignees: { id: string; name: string; email: string }[];
+  public assignees: {
+    assigneeId: string;
+    name: string;
+  }[];
   public history: { status: string; eventTime: string }[];
   public title: string;
   public issueType: string;
@@ -68,15 +71,27 @@ export class MainTicket {
     this.subtasks.push(subtask);
   }
 
-  public addAssignee(assignees: { id: string; name: string; email: string }): void {
-    this.assignees.push(assignees);
+  public addAssignee(assignee: { assigneeId: string; name: string }): void {
+    if (this.assignees.length > 0) {
+      const assigneeId = this.assignees.filter(
+        (data: { assigneeId: string; name: string }) => data.assigneeId === assignee.assigneeId
+      );
+      if (assigneeId.length > 0) {
+        logger.info({ message: 'assignee already exists', data: assignee.assigneeId });
+        return;
+      }
+    }
+    this.assignees.push(assignee);
   }
 
   public async changelog(changelogs: any): Promise<any> {
     const [items] = changelogs.items.filter(
       (item: Jira.ExternalType.Webhook.ChangelogItem) =>
-        item.fieldId === ChangelogField.STATUS || item.field === ChangelogField.CUSTOM_FIELD
+        item.fieldId === ChangelogField.STATUS ||
+        item.field === ChangelogField.CUSTOM_FIELD ||
+        item.field === ChangelogField.ASSIGNEE
     );
+
     if (items && items.field === ChangelogField.CUSTOM_FIELD) {
       this.sprintId = items.to;
     }
@@ -94,6 +109,10 @@ export class MainTicket {
           changelogs.issuetype as IssuesTypes
         )
       ) {
+        if (items.field === ChangelogField.ASSIGNEE) {
+          const assignee = { assigneeId: items.to, name: items.toString };
+          this.addAssignee(assignee);
+        }
         if (this.subtasks.length > 0 && statuses.includes(items.to)) {
           const toStatus = this.StatusMapping[items.to].label;
           this.updateHistory(toStatus, changelogs.timestamp);
@@ -105,6 +124,10 @@ export class MainTicket {
       this.subtasks = this.subtasks.map((subtask, i) => {
         if (changelogs.issueId === this.subtasks[i].issueId) {
           const updatedSubtask = new SubTicket(subtask, this.StatusMapping);
+          if (items.field === ChangelogField.ASSIGNEE) {
+            const assignee = { assigneeId: items.to, name: items.toString };
+            updatedSubtask.addAssignee(assignee);
+          }
           if (items.to !== String(this.StatusMapping[this.Status.To_Do].id)) {
             updatedSubtask.statusTransition(items.to, changelogs.timestamp);
             updatedSubtask.toJSON();
