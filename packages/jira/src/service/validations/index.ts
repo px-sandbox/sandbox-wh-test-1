@@ -59,8 +59,8 @@ export const CycleTimeOverallValidator = {
     queryStringParameters: {
       type: 'object',
       properties: {
-        startDate: { type: 'string', pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' },
-        endDate: { type: 'string', pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' },
+        startDate: { type: 'string', format: 'date-time' },
+        endDate: { type: 'string', format: 'date-time' },
         orgId: {
           type: 'string',
           pattern:
@@ -82,8 +82,8 @@ export const CycleTimeSummaryValidator = {
     queryStringParameters: {
       type: 'object',
       properties: {
-        startDate: { type: 'string', pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' },
-        endDate: { type: 'string', pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' },
+        startDate: { type: 'string', format: 'date-time' },
+        endDate: { type: 'string', format: 'date-time' },
         orgId: {
           type: 'string',
           pattern:

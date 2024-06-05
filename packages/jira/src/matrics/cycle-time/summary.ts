@@ -128,7 +128,6 @@ export async function sprintLevelSummaryCalc(
       qa: {
         pickup: bucket.avg_qa_pickup.value,
         testing: bucket.avg_qa_testing.value,
-        handover: bucket.avg_qa_handover.value,
         total: bucket.avg_qa_total.value,
       },
       deployment: {
