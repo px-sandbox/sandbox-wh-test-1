@@ -13,7 +13,7 @@ function getQuery(
   sortOrder?: 'asc' | 'desc'
 ): esb.RequestBodySearch {
   const baseAgg = esb
-    .termsAggregation('sprints', 'body.sprintId.keyword')
+    .termsAggregation('sprints', 'body.sprintId')
     .agg(esb.avgAggregation('avg_development_coding', 'body.development.coding'))
     .agg(esb.avgAggregation('avg_development_pickup', 'body.development.pickup'))
     .agg(esb.avgAggregation('avg_development_handover', 'body.development.handover'))
@@ -57,7 +57,7 @@ function getQuery(
       esb
         .boolQuery()
         .must([
-          esb.termsQuery('body.sprintId.keyword', sprintArr),
+          esb.termsQuery('body.sprintId', sprintArr),
           esb.termQuery('body.organizationId', orgId),
         ])
     )
@@ -166,7 +166,6 @@ export function overallSummary(
     qa: {
       pickup: 0,
       testing: 0,
-      handover: 0,
       total: 0,
     },
     deployment: {
@@ -174,30 +173,33 @@ export function overallSummary(
     },
   };
   const len = sprintLevelSumm.length;
+
   sprintLevelSumm.forEach((sls) => {
-    data.development.coding += sls.development.coding;
-    data.development.pickup += sls.development.pickup;
-    data.development.review += sls.development.review;
-    data.development.handover += sls.development.handover;
-    data.development.total += sls.development.total;
+    data.development.coding += sls.development.coding ?? 0;
+    data.development.pickup += sls.development.pickup ?? 0;
+    data.development.review += sls.development.review ?? 0;
+    data.development.handover += sls.development.handover ?? 0;
+    data.development.total += sls.development.total ?? 0;
 
-    data.qa.pickup += sls.qa.pickup;
-    data.qa.testing += sls.qa.testing;
-    data.qa.total += sls.qa.total;
+    data.qa.pickup += sls.qa.pickup ?? 0;
+    data.qa.testing += sls.qa.testing ?? 0;
+    data.qa.total += sls.qa.total ?? 0;
 
-    data.deployment.total += sls.deployment.total;
+    data.deployment.total += sls.deployment.total ?? 0;
   });
   // Calculate the average after summing up all items
-  data.development.coding /= len;
-  data.development.pickup /= len;
-  data.development.review /= len;
-  data.development.handover /= len;
-  data.development.total /= len;
+  if (len) {
+    data.development.coding /= len;
+    data.development.pickup /= len;
+    data.development.review /= len;
+    data.development.handover /= len;
+    data.development.total /= len;
 
-  data.qa.pickup /= len;
-  data.qa.testing /= len;
-  data.qa.total /= len;
+    data.qa.pickup /= len;
+    data.qa.testing /= len;
+    data.qa.total /= len;
 
-  data.deployment.total /= len;
+    data.deployment.total /= len;
+  }
   return data;
 }
