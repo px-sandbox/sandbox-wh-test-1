@@ -3,6 +3,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../../util/response-formatter';
+import { getDateRangeQueries } from '../get-sprint-variance';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -21,6 +22,8 @@ async function fetchSprints(
   endDate: string,
   orgId: string
 ): Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]> {
+  const dateRangeQueries = getDateRangeQueries(startDate, endDate);
+
   const sprintsQuery = esb
     .requestBodySearch()
     .source(['body.id', 'body.state', 'body.name', 'body.startDate', 'body.endDate'])
@@ -29,19 +32,16 @@ async function fetchSprints(
         .boolQuery()
         .must([
           esb.termQuery('body.projectId', projectId),
-          esb.termQuery('body.organizationId', orgId),
+          esb.termQuery('body.organizationId.keyword', orgId),
           esb.termsQuery('body.state', [
             Jira.Enums.SprintState.ACTIVE,
             Jira.Enums.SprintState.CLOSED,
           ]),
+          esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
         ])
-        .should([
-          esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
-          esb.rangeQuery('body.endDate').gte(startDate).lte(endDate),
-        ])
-        .minimumShouldMatch(1)
     )
     .toJSON();
+
   return searchedDataFormator(await esClientObj.search(Jira.Enums.IndexName.Sprint, sprintsQuery));
 }
 /**
@@ -61,6 +61,7 @@ export async function fetchSprintsFromES(
   orgId: string
 ): Promise<string[]> {
   const sprints = await fetchSprints(projectId, startDate, endDate, orgId);
+  if (!sprints?.length) return [];
   return sprints.map((sprint) => sprint.id);
 }
 /**
@@ -89,6 +90,7 @@ export async function fetchSprintsFromESWithOtherInfo(
   }[]
 > {
   const sprints = await fetchSprints(projectId, startDate, endDate, orgId);
+
   return sprints.map((sprint) => ({
     sprintId: sprint.id,
     name: sprint.name,
