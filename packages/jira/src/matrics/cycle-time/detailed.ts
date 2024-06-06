@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import esb from 'elastic-builder';
@@ -104,12 +105,18 @@ export async function fetchCycleTimeDetailed(
     development: fd.development,
     qa: fd.qa,
     deployment: fd.deployment,
-    assignees: fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId]),
+    assignees: fd.assignees?.length
+      ? fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId])
+      : [],
     hasSubtask: fd.hasSubtask,
-    subtask: fd?.subtask?.map((sub: { assignees: { assigneeId: string }[] }) => ({
-      ...sub,
-      assignees: sub.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId]),
-    })),
-    link: `https://${orgname}.atlassian.net/browse/${fd?.issueKey}`,
+    subtask: fd.subtask?.length
+      ? fd.subtask?.map((sub: { assignees: { assigneeId: string }[] }) => ({
+          ...sub,
+          assignees: sub?.assignees?.length
+            ? sub.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId])
+            : [],
+        }))
+      : [],
+    link: `https://${orgname[0]?.name}.atlassian.net/browse/${fd?.issueKey}`,
   }));
 }
