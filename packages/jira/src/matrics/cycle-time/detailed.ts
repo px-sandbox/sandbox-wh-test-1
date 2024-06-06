@@ -72,19 +72,22 @@ export async function fetchCycleTimeDetailed(
     ) as Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]>,
   ]);
 
-  const assigneeIds = [
-    ...new Set(
-      formattedData.flatMap((fd) => [
-        ...fd.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId),
-        ...(fd?.subtask
-          ? fd.subtask.flatMap((sub: { assignees: { assigneeId: string }[] }) =>
-              sub.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId)
-            )
-          : []),
-      ])
-    ),
-  ];
-
+  const assigneeIds = Array.from(
+    new Set(
+      formattedData
+        .flatMap((fd) => [
+          ...fd.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId),
+          ...(fd?.subtask?.length
+            ? fd.subtask.flatMap((sub: { assignees: { assigneeId: string }[] }) =>
+                sub.assignees?.length
+                  ? sub.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId)
+                  : []
+              )
+            : []),
+        ])
+        .filter(Boolean)
+    )
+  );
   const userQuery = getAssigneeQuery(assigneeIds, orgId);
   const users = await searchedDataFormator(
     await esClientObj.search(Jira.Enums.IndexName.Users, userQuery.toJSON())
@@ -105,6 +108,8 @@ export async function fetchCycleTimeDetailed(
     development: fd.development,
     qa: fd.qa,
     deployment: fd.deployment,
+    overall: fd.development.total + fd.qa.total + fd.deployment.total,
+    overallWithoutDeployment: fd.development.total + fd.qa.total,
     assignees: fd.assignees?.length
       ? fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId])
       : [],
