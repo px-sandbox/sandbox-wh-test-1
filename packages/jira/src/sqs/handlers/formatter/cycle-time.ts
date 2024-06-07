@@ -72,7 +72,11 @@ function formatCycleTimeData(
     issueType: data.issue.fields.issuetype.name,
     projectId: `${mappingPrefixes.project}_${data.issue.fields.project.id}`,
     projectKey: data.issue.fields.project.key,
-    assignee: data.issue.fields?.assignee ?? [],
+    assignee:
+      {
+        assigneeId: data.issue.fields?.assignee.accountId,
+        name: data.issue.fields?.assignee.displayName,
+      } ?? [],
     title: data.issue.fields?.summary ?? '',
     issueKey: data.issue.key,
     changelog: {
