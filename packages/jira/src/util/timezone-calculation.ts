@@ -129,8 +129,8 @@ export function getWorkingTime(
 ): number {
   const offsetTime = getOffsetTime(offset);
 
-  const newStartDate = regulariseDate(getTimeWithOffset(startDate, offsetTime));
-  const newEndDate = regulariseDate(getTimeWithOffset(endDate, offsetTime));
+  const newStartDate = getTimeWithOffset(startDate, offsetTime);
+  const newEndDate = getTimeWithOffset(endDate, offsetTime);
 
   const totalDays = getDays(newStartDate, newEndDate);
 

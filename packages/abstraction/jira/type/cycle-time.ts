@@ -116,9 +116,8 @@ export type SubTicket = {
     total: number;
   };
   assignees: {
-    id: string;
+    assigneeId: string;
     name: string;
-    email: string;
   }[];
   history: {
     status: string;

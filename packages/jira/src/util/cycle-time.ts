@@ -15,8 +15,8 @@ export async function initializeMapping(orgId: string): Promise<HitBody> {
 }
 
 export function calculateTimeDifference(
-  fromTime: string | undefined,
-  toTime: string | undefined
+  fromTime: string | undefined | number,
+  toTime: string | undefined | number
 ): number {
   if (!fromTime || !toTime) return 0;
   const fromTimeMoment = moment(fromTime);
