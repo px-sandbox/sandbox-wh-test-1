@@ -105,11 +105,23 @@ export async function fetchCycleTimeDetailed(
     id: fd.id,
     issueKey: fd.issueKey,
     title: fd.title,
-    development: fd.development,
-    qa: fd.qa,
-    deployment: fd.deployment,
-    overall: fd.development.total + fd.qa.total + fd.deployment.total,
-    overallWithoutDeployment: fd.development.total + fd.qa.total,
+    development: {
+      coding: parseFloat(fd.development.coding.toFixed(2)),
+      pickup: parseFloat(fd.development.pickup.toFixed(2)),
+      review: parseFloat(fd.development.review.toFixed(2)),
+      handover: parseFloat(fd.development.handover.toFixed(2)),
+      total: parseFloat(fd.development.total.toFixed(2)),
+    },
+    qa: {
+      pickup: parseFloat(fd.qa.pickup.toFixed(2)),
+      testing: parseFloat(fd.qa.testing.toFixed(2)),
+      total: parseFloat(fd.qa.total.toFixed(2)),
+    },
+    deployment: {
+      total: parseFloat(fd.deployment.total.toFixed(2)),
+    },
+    overall: parseFloat((fd.development.total + fd.qa.total + fd.deployment.total).toFixed(2)),
+    overallWithoutDeployment: parseFloat((fd.development.total + fd.qa.total).toFixed(2)),
     assignees: fd.assignees?.length
       ? fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId])
       : [],
