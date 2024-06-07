@@ -54,10 +54,34 @@ export class SubTicket {
     this.assignees.push(assignee);
   }
 
+  private isValidStatusTransition(currentStatus: string, newStatus: string): boolean {
+    const validTransitions: Record<string, string[]> = {
+      To_Do: ['In_Progress'],
+      In_Progress: ['Ready_For_Review'],
+      Ready_For_Review: ['Code_Review'],
+      Code_Review: ['Dev_Complete', 'In_Progress'],
+      Dev_Complete: ['Ready_For_QA'],
+    };
+
+    const allowedTransitions = validTransitions[currentStatus];
+    if (!allowedTransitions) {
+      throw new Error(`Invalid_Status_Transition: ${currentStatus}`);
+    }
+
+    return allowedTransitions.includes(newStatus);
+  }
+
   public async statusTransition(to: string, timestamp: string): Promise<void> {
     const toStatus = this.StatusMapping[to].label;
     if (this.history.length > 0) {
       const { status, eventTime } = this.history.slice(-1)[0];
+      if (!this.isValidStatusTransition(status, this.StatusMapping[to].label)) {
+        logger.error({
+          message: 'Invalid status transition',
+          data: { from: this.history.slice(-1)[0].status, to },
+        });
+        return;
+      }
       const timeDiff = calculateTimeDifference(timestamp, eventTime);
       const state = `from_${status.toLowerCase()}_to_${toStatus.toLowerCase()}`;
       switch (state) {
