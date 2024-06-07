@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import esb from 'elastic-builder';
@@ -6,12 +7,14 @@ import { searchedDataFormator } from '../../util/response-formatter';
 const esClientObj = ElasticSearchClient.getInstance();
 function getCycleTimeDetailQuery(
   sprintId: string,
-  projectId: string,
-  orgId: string
+  orgId: string,
+  sortKey: Jira.Enums.CycleTimeDetailSortKey,
+  sortOrder: 'asc' | 'desc'
 ): esb.RequestBodySearch {
   return esb
     .requestBodySearch()
     .size(200)
+    .sort(esb.sort(`body.${sortKey}`, sortOrder))
     .source([
       'body.id',
       'body.issueKey',
@@ -27,8 +30,7 @@ function getCycleTimeDetailQuery(
       esb
         .boolQuery()
         .must([
-          esb.termQuery('body.sprintId.keyword', sprintId),
-          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.sprintId', sprintId),
           esb.termQuery('body.organizationId', orgId),
         ])
     );
@@ -54,10 +56,11 @@ function getOrgNameQuery(orgId: string): esb.RequestBodySearch {
 export async function fetchCycleTimeDetailed(
   reqCtx: Other.Type.RequestCtx,
   sprintId: string,
-  projectId: string,
-  orgId: string
+  orgId: string,
+  sortKey: Jira.Enums.CycleTimeDetailSortKey,
+  sortOrder: 'asc' | 'desc'
 ): Promise<Jira.Type.CycleTimeDetailedType[]> {
-  const cycleTimeDetailQuery = getCycleTimeDetailQuery(sprintId, projectId, orgId);
+  const cycleTimeDetailQuery = getCycleTimeDetailQuery(sprintId, orgId, sortKey, sortOrder);
   const orgnameQuery = getOrgNameQuery(orgId);
 
   const [orgname, formattedData] = await Promise.all([
@@ -69,8 +72,22 @@ export async function fetchCycleTimeDetailed(
     ) as Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]>,
   ]);
 
-  const assigneeIds = formattedData.map((fd) => fd.assignees.assigneeId);
-
+  const assigneeIds = Array.from(
+    new Set(
+      formattedData
+        .flatMap((fd) => [
+          ...fd.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId),
+          ...(fd?.subtask?.length
+            ? fd.subtask.flatMap((sub: { assignees: { assigneeId: string }[] }) =>
+                sub.assignees?.length
+                  ? sub.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId)
+                  : []
+              )
+            : []),
+        ])
+        .filter(Boolean)
+    )
+  );
   const userQuery = getAssigneeQuery(assigneeIds, orgId);
   const users = await searchedDataFormator(
     await esClientObj.search(Jira.Enums.IndexName.Users, userQuery.toJSON())
@@ -88,12 +105,35 @@ export async function fetchCycleTimeDetailed(
     id: fd.id,
     issueKey: fd.issueKey,
     title: fd.title,
-    development: fd.development,
-    qa: fd.qa,
-    deployment: fd.deployment,
-    assignees: fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId]),
+    development: {
+      coding: parseFloat(fd.development.coding.toFixed(2)),
+      pickup: parseFloat(fd.development.pickup.toFixed(2)),
+      review: parseFloat(fd.development.review.toFixed(2)),
+      handover: parseFloat(fd.development.handover.toFixed(2)),
+      total: parseFloat(fd.development.total.toFixed(2)),
+    },
+    qa: {
+      pickup: parseFloat(fd.qa.pickup.toFixed(2)),
+      testing: parseFloat(fd.qa.testing.toFixed(2)),
+      total: parseFloat(fd.qa.total.toFixed(2)),
+    },
+    deployment: {
+      total: parseFloat(fd.deployment.total.toFixed(2)),
+    },
+    overall: parseFloat((fd.development.total + fd.qa.total + fd.deployment.total).toFixed(2)),
+    overallWithoutDeployment: parseFloat((fd.development.total + fd.qa.total).toFixed(2)),
+    assignees: fd.assignees?.length
+      ? fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId])
+      : [],
     hasSubtask: fd.hasSubtask,
-    subtask: fd.subtask,
-    link: `https://${orgname}.atlassian.net/browse/${fd?.issueKey}`,
+    subtask: fd.subtask?.length
+      ? fd.subtask?.map((sub: { assignees: { assigneeId: string }[] }) => ({
+          ...sub,
+          assignees: sub?.assignees?.length
+            ? sub.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId])
+            : [],
+        }))
+      : [],
+    link: `https://${orgname[0]?.name}.atlassian.net/browse/${fd?.issueKey}`,
   }));
 }

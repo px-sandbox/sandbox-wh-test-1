@@ -131,12 +131,14 @@ export function initializeRoutes(
         handler: 'packages/jira/src/service/cycle-time/summary.handler',
         timeout: '10 seconds',
       },
+      authorizer: 'universal',
     },
     'GET /jira/graph/cycle-time/detailed': {
       function: {
         handler: 'packages/jira/src/service/cycle-time/detailed.handler',
         timeout: '10 seconds',
       },
+      authorizer: 'universal',
     },
   };
 
