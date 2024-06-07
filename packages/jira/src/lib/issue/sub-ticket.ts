@@ -1,7 +1,8 @@
 import { Jira } from 'abstraction';
 import { Subtasks } from 'abstraction/jira/external/api';
-import { calculateTimeDifference } from '../../util/cycle-time';
 import { logger } from 'core';
+import moment from 'moment';
+import { calculateTimeDifference } from '../../util/cycle-time';
 
 export class SubTicket {
   public issueId: string;
@@ -84,41 +85,43 @@ export class SubTicket {
   }
 
   public calculateTotal(): void {
-    const inProgressTime = this.history.find(
-      (status) => status.status === this.StatusMapping[this.Status.In_Progress].label
-    );
-    const readyForQaTime = this.history.find(
-      (status) => status.status === this.StatusMapping[this.Status.Ready_For_QA].label
-    );
-    if (readyForQaTime) {
-      this.development.total = calculateTimeDifference(
-        readyForQaTime?.eventTime,
-        inProgressTime?.eventTime
+    const statusTimesArr: [number, number][] = [];
+    let duration = 0;
+    let prevToTime: number;
+    let tempHistory = [...this.history];
+    let startIndex;
+    let endIndex;
+    while (tempHistory.length > 0) {
+      startIndex = tempHistory.findIndex(
+        (event) => event.status === this.StatusMapping[this.Status.In_Progress].label
       );
-    }
 
-    const lastQaFailedIndex = this.history
-      .map((status) => status.status)
-      .lastIndexOf(this.StatusMapping[this.Status.QA_Failed].label);
-    const lastReadyForQaIndex = this.history
-      .map((status) => status.status)
-      .lastIndexOf(this.StatusMapping[this.Status.Ready_For_QA].label);
-
-    if (lastQaFailedIndex !== -1 && lastReadyForQaIndex > lastQaFailedIndex) {
-      const inProgressTimeAfterQaFailed = this.history
-        .slice(lastQaFailedIndex + 1)
-        .find((status) => status.status === this.StatusMapping[this.Status.In_Progress].label);
-      const readyForQaTimeAfterQaFailed = this.history
-        .slice(lastQaFailedIndex + 1)
-        .find((status) => status.status === this.StatusMapping[this.Status.Ready_For_QA].label);
-
-      if (readyForQaTimeAfterQaFailed) {
-        this.development.total += calculateTimeDifference(
-          readyForQaTimeAfterQaFailed?.eventTime,
-          inProgressTimeAfterQaFailed?.eventTime
-        );
+      endIndex = tempHistory.findIndex(
+        (event) => event.status === this.StatusMapping[this.Status.Ready_For_QA].label
+      );
+      if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+        statusTimesArr.push([
+          Number(tempHistory[startIndex].eventTime),
+          Number(tempHistory[endIndex].eventTime),
+        ]);
+        tempHistory = tempHistory.slice(endIndex + 1);
+      } else {
+        break;
       }
     }
+    statusTimesArr.sort((a, b) => a[0] - b[0]);
+    statusTimesArr.forEach((times) => {
+      const totalDuration = calculateTimeDifference(times[1], times[0]);
+      duration += totalDuration;
+      if (prevToTime && moment(times[0]).isBefore(moment(prevToTime))) {
+        const overlap = calculateTimeDifference(prevToTime, times[0]);
+        duration -= overlap;
+      }
+      const lastEventTime = times[1];
+      prevToTime = lastEventTime;
+    });
+
+    this.development.total = duration;
   }
   public toJSON(): Jira.Type.SubTicket {
     return {

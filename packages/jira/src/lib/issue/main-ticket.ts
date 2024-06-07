@@ -124,7 +124,7 @@ export class MainTicket {
       }
       this.subtasks = this.subtasks.map((subtask, i) => {
         if (changelogs.issueId === this.subtasks[i].issueId) {
-          const updatedSubtask = new SubTicket(subtask, this.StatusMapping);
+          const updatedSubtask = new SubTicket(subtask, this.StatusMapping, this.Status);
           if (items.field === ChangelogField.ASSIGNEE) {
             const assignee = { assigneeId: items.to, name: items.toString };
             updatedSubtask.addAssignee(assignee);
@@ -146,109 +146,109 @@ export class MainTicket {
   }
 
   private calculateDevTotalIfWithSubtasks(): void {
-    if (this.subtasks.length > 0) {
-      let totalDuration = 0;
-      let overlapDuration = 0;
-      let prevEndTime = '';
+    const statusTimesArr: [number, number][] = [];
+    let duration = 0;
+    let prevToTime: number;
 
-      this.subtasks.forEach((subtask) => {
-        const subTicket = new SubTicket(subtask, this.StatusMapping);
-        const startTimeEvent = subTicket.history.find(
-          (status) => status.status === this.StatusMapping[this.Status.In_Progress].label
+    this.subtasks.forEach((subtask) => {
+      const subTicket = new SubTicket(subtask, this.StatusMapping, this.Status);
+
+      let startIndex;
+      let endIndex;
+      while (subTicket.history.length > 0) {
+        startIndex = subTicket.history.findIndex(
+          (event) => event.status === this.StatusMapping[this.Status.In_Progress].label
         );
-        const endTimeEvent = subTicket.history.find(
-          (status) => status.status === this.StatusMapping[this.Status.Ready_For_QA].label
+        endIndex = subTicket.history.findIndex(
+          (event) => event.status === this.StatusMapping[this.Status.Ready_For_QA].label
         );
 
-        if (startTimeEvent && endTimeEvent) {
-          const duration = calculateTimeDifference(
-            startTimeEvent.eventTime,
-            endTimeEvent.eventTime
-          );
-          totalDuration += duration;
-
-          if (prevEndTime && moment(startTimeEvent.eventTime).isBefore(moment(prevEndTime))) {
-            const overlap = calculateTimeDifference(prevEndTime, startTimeEvent.eventTime);
-            overlapDuration += overlap;
-          }
-
-          prevEndTime = endTimeEvent.eventTime;
+        if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+          statusTimesArr.push([
+            Number(subTicket.history[startIndex].eventTime),
+            Number(subTicket.history[endIndex].eventTime),
+          ]);
+          subTicket.history = subTicket.history.slice(endIndex + 1);
+        } else {
+          break;
         }
-      });
+      }
+    });
 
-      totalDuration -= overlapDuration;
-      this.development.total = totalDuration;
-    }
+    statusTimesArr.sort((a, b) => a[0] - b[0]);
+    statusTimesArr.forEach((times) => {
+      const totalDuration = calculateTimeDifference(times[1], times[0]);
+      duration += totalDuration;
+
+      if (prevToTime && moment(times[0]).isBefore(moment(prevToTime))) {
+        const overlap = calculateTimeDifference(prevToTime, times[0]);
+        duration -= overlap;
+      }
+      const lastEventTime = times[1];
+      prevToTime = lastEventTime;
+    });
+
+    this.development.total = duration;
   }
 
   private overLappingTimeForSubtask(toStatus: string, fromStatus: string): void | number {
-    toStatus = this.StatusMapping[toStatus].label;
-    if (toStatus === fromStatus) return;
+    const toStatusLabel = this.StatusMapping[toStatus].label;
+    if (toStatusLabel === fromStatus) return;
     let duration = 0;
-    const fromStatusArr: any = [];
-    const toStatusArr: any = [];
-    let prevToTime: string;
-    let overlapDuration = 0;
-    let isOverlap = false;
-    const state = `from_${fromStatus.toLowerCase()}_to_${toStatus.toLowerCase()}`;
+    let toStatusTimes: string[] = [];
+    let prevToTime: number;
+
+    const state = `from_${fromStatus.toLowerCase()}_to_${toStatusLabel.toLowerCase()}`;
+    const statusTimesArr: [number, number][] = [];
 
     this.subtasks.forEach((subtask) => {
-      const subTicket = new SubTicket(subtask, this.StatusMapping);
+      const subTicket = new SubTicket(subtask, this.StatusMapping, this.Status);
       if (subTicket.history.length > 0) {
-        fromStatusArr.push(
-          ...subTicket.history
-            .filter((status) => status.status === fromStatus)
-            .map((event) => event.eventTime)
-            .slice(-1)
-        );
-        toStatusArr.push(
-          ...subTicket.history
-            .filter((status) => status.status === toStatus)
-            .map((event) => event.eventTime)
-            .slice(-1)
-        );
+        const fromStatusTimes = subTicket.history
+          .filter((status) => status.status === fromStatus)
+          .map((event) => event.eventTime);
+        if (fromStatus === this.StatusMapping[this.Status.Code_Review].label) {
+          let prevStatus: string;
+          toStatusTimes = subTicket.history
+            .filter((status) => {
+              const isTargetStatus =
+                status.status === this.StatusMapping[this.Status.In_Progress].label ||
+                status.status === this.StatusMapping[this.Status.Dev_Complete].label;
+              const isFollowedByCodeReview =
+                prevStatus === this.StatusMapping[this.Status.Code_Review].label;
+              prevStatus = status.status;
+              return isTargetStatus && isFollowedByCodeReview;
+            })
+            .map((event) => event.eventTime);
+        } else {
+          toStatusTimes = subTicket.history
+            .filter((status) => status.status === toStatusLabel)
+            .map((event) => event.eventTime);
+        }
+
+        fromStatusTimes.forEach((fromTime, index): void => {
+          if (toStatusTimes[index]) {
+            statusTimesArr.push([Number(fromTime), Number(toStatusTimes[index])]);
+          }
+        });
       }
     });
-    if (fromStatusArr.length === toStatusArr.length) {
-      fromStatusArr.forEach((fromTime: string, index: number) => {
-        isOverlap = false;
-        if (toStatusArr[index]) {
-          const totalDuration = calculateTimeDifference(toStatusArr[index], fromTime);
-          duration = totalDuration;
-          if (prevToTime && moment(fromTime).isBefore(moment(prevToTime))) {
-            const overlap = calculateTimeDifference(prevToTime, fromTime);
-            overlapDuration += overlap;
-            isOverlap = true;
-          }
-          prevToTime = toStatusArr[index];
-        }
-      });
-    } else if (fromStatusArr.length < toStatusArr.length) {
-      toStatusArr.forEach((toTime: string, index: string) => {
-        if (fromStatusArr[index]) {
-          const totalDuration = calculateTimeDifference(
-            toStatusArr[index + 1],
-            fromStatusArr[index]
-          );
-          duration += totalDuration;
-        }
-      });
-    } else if (fromStatusArr.length > toStatusArr.length) {
-      fromStatusArr.forEach((fromTime: string, index: number) => {
-        if (toStatusArr[index]) {
-          const totalDuration = calculateTimeDifference(toStatusArr[index], fromTime);
-          duration += totalDuration;
-        }
-      });
-    }
 
-    if (toStatus === this.StatusMapping[this.Status.Ready_For_QA].label) {
-      this.calculateDevTotalIfWithSubtasks();
-    }
+    statusTimesArr.sort((a: [number, number], b: [number, number]): number => a[0] - b[0]);
 
-    const updateDevelopment = (field: any): void => {
-      this.development[field] += duration;
-      if (isOverlap) this.development[field] -= overlapDuration;
+    statusTimesArr.forEach((times) => {
+      const totalDuration = calculateTimeDifference(times[1], times[0]);
+      duration += totalDuration;
+      if (prevToTime && moment(times[0]).isBefore(moment(prevToTime))) {
+        const overlap = calculateTimeDifference(prevToTime, times[0]);
+        duration -= overlap;
+      }
+      const lastEventTime = times[1];
+      prevToTime = lastEventTime;
+    });
+
+    const updateDevelopment = (field): void => {
+      this.development[field] = duration;
     };
 
     switch (state) {
@@ -263,10 +263,13 @@ export class MainTicket {
         updateDevelopment('review');
         break;
       case 'from_dev_complete_to_ready_for_qa':
-        this.development.handover += duration;
+        updateDevelopment('handover');
         break;
       default:
         break;
+    }
+    if (toStatus === this.StatusMapping[this.Status.Ready_For_QA].label) {
+      this.calculateDevTotalIfWithSubtasks();
     }
   }
 
@@ -310,7 +313,9 @@ export class MainTicket {
 
     this.updateHistory(toStatus, timestamp);
     this.calDevelopmentTime();
-    this.calQaTotals();
+    if (toStatus === this.StatusMapping[this.Status.QA_Pass_Deploy].label) {
+      this.calQaTotals();
+    }
   }
 
   private calDevelopmentTime(): void {
@@ -356,18 +361,41 @@ export class MainTicket {
   }
 
   private calQaTotals(): void {
-    const readyForQaTime = this.history.find(
-      (status) => status.status === this.StatusMapping[this.Status.Ready_For_QA].label
-    );
-    const qaPassDeployTime = this.history.find(
-      (status) => status.status === this.StatusMapping[this.Status.QA_Pass_Deploy].label
-    );
-    if (qaPassDeployTime) {
-      this.qa.total = calculateTimeDifference(
-        qaPassDeployTime?.eventTime,
-        readyForQaTime?.eventTime
-      );
-    }
+    const statusTimesArr: [number, number][] = [];
+    let duration = 0;
+    let prevToTime: number;
+
+    const fromStatusTimes = this.history
+      .filter((status) => status.status === this.StatusMapping[this.Status.Ready_For_QA].label)
+      .map((event) => event.eventTime);
+
+    const toStatusTimes = this.history
+      .filter(
+        (status) =>
+          status.status === this.StatusMapping[this.Status.QA_Pass_Deploy].label ||
+          status.status === this.StatusMapping[this.Status.QA_Failed].label
+      )
+      .map((event) => event.eventTime);
+
+    fromStatusTimes.forEach((fromTime, index) => {
+      if (toStatusTimes[index]) {
+        statusTimesArr.push([Number(fromTime), Number(toStatusTimes[index])]);
+      }
+    });
+    statusTimesArr.sort((a, b) => a[0] - b[0]);
+
+    statusTimesArr.forEach((times) => {
+      const totalDuration = calculateTimeDifference(times[1], times[0]);
+      duration += totalDuration;
+
+      if (prevToTime && moment(times[0]).isBefore(moment(prevToTime))) {
+        const overlap = calculateTimeDifference(prevToTime, times[0]);
+        duration -= overlap;
+      }
+      const lastEventTime = times[1];
+      prevToTime = lastEventTime;
+    });
+    this.qa.total = duration;
   }
 
   public toJSON(): Jira.Type.CycleTime {
@@ -378,7 +406,7 @@ export class MainTicket {
         issueId: this.issueId,
         sprintId: this.sprintId,
         subtasks: this.subtasks.map((subtask) =>
-          new SubTicket(subtask, this.StatusMapping).toJSON()
+          new SubTicket(subtask, this.StatusMapping, this.Status).toJSON()
         ),
         organizationId: this.orgId,
         projectId: this.projectId,
