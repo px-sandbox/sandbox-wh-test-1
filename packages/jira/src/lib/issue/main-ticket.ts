@@ -84,7 +84,7 @@ export class MainTicket {
     this.assignees.push(assignee);
   }
 
-  public async changelog(changelogs: any): Promise<any> {
+  public async changelog(changelogs: any): Promise<void> {
     const [items] = changelogs.items.filter(
       (item: Jira.ExternalType.Webhook.ChangelogItem) =>
         item.fieldId === ChangelogField.STATUS ||
@@ -273,10 +273,35 @@ export class MainTicket {
     }
   }
 
+  private isValidStatusTransition(currentStatus: string, newStatus: string): boolean {
+    const validTransitions: Record<string, string[]> = {
+      To_Do: ['In_Progress'],
+      In_Progress: ['Ready_For_Review'],
+      Ready_For_Review: ['Code_Review'],
+      Code_Review: ['Dev_Complete', 'In_Progress'],
+      Dev_Complete: ['Ready_For_QA'],
+      Ready_For_QA: ['QA_In_Progress'],
+      QA_In_Progress: ['QA_Failed', 'QA_Pass_Deploy'],
+      QA_Failed: ['In_Progress'],
+      QA_Pass: ['Done'],
+    };
+
+    const allowedTransitions = validTransitions[currentStatus];
+    if (!allowedTransitions) {
+      throw new Error(`Invalid_Status_Transition: ${currentStatus}`);
+    }
+
+    return allowedTransitions.includes(newStatus);
+  }
+
   public async statusTransition(to: string, timestamp: string): Promise<void> {
     const toStatus = this.StatusMapping[to].label;
     if (this.history.length > 0) {
       const { status, eventTime } = this.history.slice(-1)[0];
+      if (!this.isValidStatusTransition(status, to)) {
+        logger.error({ message: 'Invalid status transition', data: { issueId: this.issueId, to } });
+        return;
+      }
       const timeDiff = calculateTimeDifference(timestamp, eventTime);
       const state = `from_${status.toLowerCase()}_to_${toStatus.toLowerCase()}`;
       switch (state) {
