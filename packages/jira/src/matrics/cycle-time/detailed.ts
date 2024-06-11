@@ -39,11 +39,11 @@ function getCycleTimeDetailQuery(
 export function getAssigneeQuery(ids: string[], orgId: string): esb.RequestBodySearch {
   return esb
     .requestBodySearch()
-    .source(['body.displayName', 'body.id', 'body.emailAddress'])
+    .source(['body.displayName', 'body.userId', 'body.emailAddress'])
     .query(
       esb
         .boolQuery()
-        .must([esb.termsQuery('body.id', ids), esb.termQuery('body.organizationId', orgId)])
+        .must([esb.termsQuery('body.userId', ids), esb.termQuery('body.organizationId', orgId)])
     );
 }
 
@@ -88,6 +88,7 @@ export async function fetchCycleTimeDetailed(
         .filter(Boolean)
     )
   );
+
   const userQuery = getAssigneeQuery(assigneeIds, orgId);
   const users = await searchedDataFormator(
     await esClientObj.search(Jira.Enums.IndexName.Users, userQuery.toJSON())
@@ -95,8 +96,8 @@ export async function fetchCycleTimeDetailed(
 
   const userObj: Record<string, { id: string; name: string; email: string }> = {};
   users.forEach((user) => {
-    userObj[user.id] = {
-      id: user.id,
+    userObj[user.userId] = {
+      id: user.userId,
       name: user.displayName,
       email: user.emailAddress,
     };
