@@ -43,7 +43,7 @@ export function getAssigneeQuery(ids: string[], orgId: string): esb.RequestBodyS
     .query(
       esb
         .boolQuery()
-        .must([esb.termsQuery('body.id', ids), esb.termQuery('body.organizationId', orgId)])
+        .must([esb.termsQuery('body.userId', ids), esb.termQuery('body.organizationId', orgId)])
     );
 }
 
@@ -88,6 +88,7 @@ export async function fetchCycleTimeDetailed(
         .filter(Boolean)
     )
   );
+
   const userQuery = getAssigneeQuery(assigneeIds, orgId);
   const users = await searchedDataFormator(
     await esClientObj.search(Jira.Enums.IndexName.Users, userQuery.toJSON())
