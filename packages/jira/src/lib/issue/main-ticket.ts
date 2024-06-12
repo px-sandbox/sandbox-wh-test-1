@@ -326,7 +326,6 @@ export class MainTicket {
         case 'from_qa_in_progress_to_qa_failed':
         case 'from_qa_in_progress_to_qa_pass_deploy':
           this.qa.testing += timeDiff;
-
           break;
         case 'from_qa_pass_deploy_to_done':
           this.deployment.total = timeDiff;
@@ -339,6 +338,10 @@ export class MainTicket {
     this.updateHistory(toStatus, timestamp);
     this.calDevelopmentTime();
     if (toStatus === this.StatusMapping[this.Status.QA_Pass_Deploy].label) {
+      logger.info({
+        message: 'QA pass deploy',
+        data: { toStatus, statuses: this.StatusMapping[this.Status.QA_Pass_Deploy].label },
+      });
       this.calQaTotals();
     }
   }
@@ -408,7 +411,7 @@ export class MainTicket {
       }
     });
     statusTimesArr.sort((a, b) => a[0] - b[0]);
-
+    logger.info({ message: 'QA Totals', data: statusTimesArr });
     statusTimesArr.forEach((times) => {
       const totalDuration = calculateTimeDifference(times[1], times[0]);
       duration += totalDuration;
@@ -420,6 +423,7 @@ export class MainTicket {
       const lastEventTime = times[1];
       prevToTime = lastEventTime;
     });
+    logger.info({ message: 'QA Totals durations', data: duration });
     this.qa.total = duration;
   }
 
