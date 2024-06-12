@@ -74,8 +74,8 @@ function formatCycleTimeData(
     projectKey: data.issue.fields.project.key,
     assignee:
       {
-        assigneeId: data.issue.fields?.assignee.accountId,
-        name: data.issue.fields?.assignee.displayName,
+        assigneeId: data.issue.fields?.assignee?.accountId,
+        name: data.issue.fields?.assignee?.displayName,
       } ?? [],
     title: data.issue.fields?.summary ?? '',
     issueKey: data.issue.key,
