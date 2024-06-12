@@ -392,7 +392,7 @@ export class MainTicket {
     const statusTimesArr: [number, number][] = [];
     let duration = 0;
     let prevToTime: number;
-
+    logger.info({ message: 'QA Totals', data: this.Status });
     const fromStatusTimes = this.history
       .filter((status) => status.status === this.StatusMapping[this.Status.Ready_For_QA].label)
       .map((event) => event.eventTime);
@@ -404,7 +404,7 @@ export class MainTicket {
           status.status === this.StatusMapping[this.Status.QA_Failed].label
       )
       .map((event) => event.eventTime);
-
+    logger.info({ message: 'QA Totals', data: { fromStatusTimes, toStatusTimes } });
     fromStatusTimes.forEach((fromTime, index) => {
       if (toStatusTimes[index]) {
         statusTimesArr.push([Number(fromTime), Number(toStatusTimes[index])]);
