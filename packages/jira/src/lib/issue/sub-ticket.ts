@@ -75,7 +75,7 @@ export class SubTicket {
     const toStatus = this.StatusMapping[to].label;
     if (this.history.length > 0) {
       const { status, eventTime } = this.history.slice(-1)[0];
-      if (!this.isValidStatusTransition(status, this.StatusMapping[to].label)) {
+      if (!this.isValidStatusTransition(status, toStatus)) {
         logger.error({
           message: 'Invalid status transition',
           data: { from: this.history.slice(-1)[0].status, to },

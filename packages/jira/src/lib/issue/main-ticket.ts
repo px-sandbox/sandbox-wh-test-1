@@ -283,7 +283,7 @@ export class MainTicket {
       Ready_For_QA: ['QA_In_Progress'],
       QA_In_Progress: ['QA_Failed', 'QA_Pass_Deploy'],
       QA_Failed: ['In_Progress'],
-      QA_Pass: ['Done'],
+      QA_Pass_Deploy: ['Done'],
     };
 
     const allowedTransitions = validTransitions[currentStatus];
@@ -298,7 +298,7 @@ export class MainTicket {
     const toStatus = this.StatusMapping[to].label;
     if (this.history.length > 0) {
       const { status, eventTime } = this.history.slice(-1)[0];
-      if (!this.isValidStatusTransition(status, to)) {
+      if (!this.isValidStatusTransition(status, toStatus)) {
         logger.error({ message: 'Invalid status transition', data: { issueId: this.issueId, to } });
         return;
       }
