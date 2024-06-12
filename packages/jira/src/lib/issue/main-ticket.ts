@@ -407,6 +407,7 @@ export class MainTicket {
     logger.info({ message: 'QA Totals', data: { fromStatusTimes, toStatusTimes } });
     fromStatusTimes.forEach((fromTime, index) => {
       if (toStatusTimes[index]) {
+        logger.info({ message: 'QA Totals_from_time', data: { fromTime, index } });
         statusTimesArr.push([Number(fromTime), Number(toStatusTimes[index])]);
       }
     });
