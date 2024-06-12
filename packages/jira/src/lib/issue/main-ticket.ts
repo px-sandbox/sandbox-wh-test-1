@@ -408,7 +408,7 @@ export class MainTicket {
     fromStatusTimes.forEach((fromTime, index) => {
       if (toStatusTimes[index]) {
         logger.info({ message: 'QA Totals_from_time', data: { fromTime, index } });
-        statusTimesArr.push([Number(fromTime), Number(toStatusTimes[index])]);
+        statusTimesArr.push([moment(fromTime).valueOf(), moment(toStatusTimes[index]).valueOf()]);
       }
     });
     statusTimesArr.sort((a, b) => a[0] - b[0]);
