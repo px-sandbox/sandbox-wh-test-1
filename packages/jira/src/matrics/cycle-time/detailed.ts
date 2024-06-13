@@ -24,7 +24,7 @@ function getCycleTimeDetailQuery(
       'body.deployment',
       'body.assignees',
       'body.hasSubtask',
-      'body.subtask',
+      'body.subtasks',
     ])
     .query(
       esb
@@ -77,8 +77,8 @@ export async function fetchCycleTimeDetailed(
       formattedData
         .flatMap((fd) => [
           ...fd.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId),
-          ...(fd?.subtask?.length
-            ? fd.subtask.flatMap((sub: { assignees: { assigneeId: string }[] }) =>
+          ...(fd?.subtasks?.length
+            ? fd.subtasks.flatMap((sub: { assignees: { assigneeId: string }[] }) =>
                 sub.assignees?.length
                   ? sub.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId)
                   : []
@@ -127,8 +127,8 @@ export async function fetchCycleTimeDetailed(
       ? fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId])
       : [],
     hasSubtask: fd.hasSubtask,
-    subtask: fd.subtask?.length
-      ? fd.subtask?.map((sub: { assignees: { assigneeId: string }[] }) => ({
+    subtask: fd.subtasks?.length
+      ? fd.subtasks?.map((sub: { assignees: { assigneeId: string }[] }) => ({
           ...sub,
           assignees: sub?.assignees?.length
             ? sub.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId])
