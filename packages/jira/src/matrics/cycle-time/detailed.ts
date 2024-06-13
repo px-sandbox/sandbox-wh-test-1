@@ -127,7 +127,7 @@ export async function fetchCycleTimeDetailed(
       ? fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId])
       : [],
     hasSubtask: fd.hasSubtask,
-    subtask: fd.subtasks?.length
+    subtasks: fd.subtasks?.length
       ? fd.subtasks?.map((sub: { assignees: { assigneeId: string }[] }) => ({
           ...sub,
           assignees: sub?.assignees?.length
