@@ -338,10 +338,6 @@ export class MainTicket {
     this.updateHistory(toStatus, timestamp);
     this.calDevelopmentTime();
     if (toStatus === this.StatusMapping[this.Status.QA_Pass_Deploy].label) {
-      logger.info({
-        message: 'QA pass deploy',
-        data: { toStatus, statuses: this.StatusMapping[this.Status.QA_Pass_Deploy].label },
-      });
       this.calQaTotals();
     }
   }
@@ -404,15 +400,13 @@ export class MainTicket {
           status.status === this.StatusMapping[this.Status.QA_Failed].label
       )
       .map((event) => event.eventTime);
-    logger.info({ message: 'QA Totals', data: { fromStatusTimes, toStatusTimes } });
+
     fromStatusTimes.forEach((fromTime, index) => {
       if (toStatusTimes[index]) {
-        logger.info({ message: 'QA Totals_from_time', data: { fromTime, index } });
         statusTimesArr.push([moment(fromTime).valueOf(), moment(toStatusTimes[index]).valueOf()]);
       }
     });
     statusTimesArr.sort((a, b) => a[0] - b[0]);
-    logger.info({ message: 'QA Totals', data: statusTimesArr });
     statusTimesArr.forEach((times) => {
       const totalDuration = calculateTimeDifference(times[1], times[0]);
       duration += totalDuration;
@@ -424,7 +418,6 @@ export class MainTicket {
       const lastEventTime = times[1];
       prevToTime = lastEventTime;
     });
-    logger.info({ message: 'QA Totals durations', data: duration });
     this.qa.total = duration;
   }
 
