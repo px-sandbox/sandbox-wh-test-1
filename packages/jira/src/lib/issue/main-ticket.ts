@@ -176,8 +176,8 @@ export class MainTicket {
 
         if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
           statusTimesArr.push([
-            Number(subTicket.history[startIndex].eventTime),
-            Number(subTicket.history[endIndex].eventTime),
+            moment(subTicket.history[startIndex].eventTime).valueOf(),
+            moment(subTicket.history[endIndex].eventTime).valueOf(),
           ]);
           subTicket.history = subTicket.history.slice(endIndex + 1);
         } else {
@@ -239,7 +239,10 @@ export class MainTicket {
 
         fromStatusTimes.forEach((fromTime, index): void => {
           if (toStatusTimes[index]) {
-            statusTimesArr.push([Number(fromTime), Number(toStatusTimes[index])]);
+            statusTimesArr.push([
+              moment(fromTime).valueOf(),
+              moment(toStatusTimes[index]).valueOf(),
+            ]);
           }
         });
       }
