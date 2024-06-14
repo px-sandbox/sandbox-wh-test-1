@@ -102,7 +102,7 @@ export class MainTicket {
         this.Status.Ready_For_Review,
         this.Status.Code_Review,
         this.Status.Dev_Complete,
-        this.Status.Ready_For_QA,
+        this.Status.Done,
       ];
       if (
         [IssuesTypes.STORY, IssuesTypes.TASK, IssuesTypes.BUG].includes(
@@ -114,7 +114,18 @@ export class MainTicket {
           this.addAssignee(assignee);
         }
         if (items.fieldId === ChangelogField.STATUS) {
-          if (this.subtasks.length > 0 && statuses.includes(items.to)) {
+          if (
+            items.to === this.StatusMapping[this.Status.Done].id &&
+            changelogs.issuetype !== IssuesTypes.SUBTASK
+          ) {
+            this.statusTransition(items.to, changelogs.timestamp);
+          } else if (this.subtasks.length > 0 && statuses.includes(items.to)) {
+            const toStatus = this.StatusMapping[items.to].label;
+            this.updateHistory(toStatus, changelogs.timestamp);
+          } else if (
+            items.to === this.StatusMapping[this.Status.Ready_For_QA].id &&
+            this.subtasks.length > 0
+          ) {
             const toStatus = this.StatusMapping[items.to].label;
             this.updateHistory(toStatus, changelogs.timestamp);
           } else {
@@ -160,7 +171,7 @@ export class MainTicket {
           (event) => event.status === this.StatusMapping[this.Status.In_Progress].label
         );
         endIndex = subTicket.history.findIndex(
-          (event) => event.status === this.StatusMapping[this.Status.Ready_For_QA].label
+          (event) => event.status === this.StatusMapping[this.Status.Done].label
         );
 
         if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
@@ -262,13 +273,13 @@ export class MainTicket {
       case 'from_code_review_to_in_progress':
         updateDevelopment('review');
         break;
-      case 'from_dev_complete_to_ready_for_qa':
+      case 'from_dev_complete_to_done':
         updateDevelopment('handover');
         break;
       default:
         break;
     }
-    if (toStatus === this.StatusMapping[this.Status.Ready_For_QA].label) {
+    if (toStatusLabel === this.StatusMapping[this.Status.Done].label) {
       this.calculateDevTotalIfWithSubtasks();
     }
   }
@@ -388,7 +399,6 @@ export class MainTicket {
     const statusTimesArr: [number, number][] = [];
     let duration = 0;
     let prevToTime: number;
-    logger.info({ message: 'QA Totals', data: this.Status });
     const fromStatusTimes = this.history
       .filter((status) => status.status === this.StatusMapping[this.Status.Ready_For_QA].label)
       .map((event) => event.eventTime);
