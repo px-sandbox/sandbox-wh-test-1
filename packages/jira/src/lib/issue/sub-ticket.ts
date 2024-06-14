@@ -15,7 +15,7 @@ export class SubTicket {
     total: number;
   };
   public title: string;
-  public assignees: any[];
+  public assignees: { assigneeId: string; name: string }[];
   public history: { status: string; eventTime: string }[];
 
   constructor(
@@ -60,12 +60,13 @@ export class SubTicket {
       In_Progress: ['Ready_For_Review'],
       Ready_For_Review: ['Code_Review'],
       Code_Review: ['Dev_Complete', 'In_Progress'],
-      Dev_Complete: ['Ready_For_QA'],
+      Dev_Complete: ['Done'],
+      Done: ['In_Progress'],
     };
 
     const allowedTransitions = validTransitions[currentStatus];
     if (!allowedTransitions) {
-      throw new Error(`Invalid_Status_Transition: ${currentStatus}`);
+      throw new Error(`Invalid_Status_Transition: ${currentStatus} => ${newStatus}`);
     }
 
     return allowedTransitions.includes(newStatus);
@@ -97,7 +98,7 @@ export class SubTicket {
         case 'from_code_review_to_dev_complete':
           this.development.review += timeDiff;
           break;
-        case 'from_dev_complete_to_ready_for_qa':
+        case 'from_dev_complete_to_done':
           this.development.handover += timeDiff;
           break;
         default:
@@ -121,7 +122,7 @@ export class SubTicket {
       );
 
       endIndex = tempHistory.findIndex(
-        (event) => event.status === this.StatusMapping[this.Status.Ready_For_QA].label
+        (event) => event.status === this.StatusMapping[this.Status.Done].label
       );
       if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
         statusTimesArr.push([
