@@ -126,8 +126,8 @@ export class SubTicket {
       );
       if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
         statusTimesArr.push([
-          Number(tempHistory[startIndex].eventTime),
-          Number(tempHistory[endIndex].eventTime),
+          moment(tempHistory[startIndex].eventTime).valueOf(),
+          moment(tempHistory[endIndex].eventTime).valueOf(),
         ]);
         tempHistory = tempHistory.slice(endIndex + 1);
       } else {
