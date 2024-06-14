@@ -31,7 +31,11 @@ export class MainTicket {
   public title: string;
   public issueType: string;
 
-  constructor(data: Jira.Type.MainTicket, private Status, private StatusMapping) {
+  constructor(
+    data: Jira.Type.MainTicket,
+    private Status: Record<string, number>,
+    private StatusMapping: Record<string, { label: string; id: number }>
+  ) {
     this.issueId = data.issueId;
     this.sprintId = data.sprintId;
     this.subtasks = data.subtasks ?? [];
@@ -261,7 +265,7 @@ export class MainTicket {
       prevToTime = lastEventTime;
     });
 
-    const updateDevelopment = (field): void => {
+    const updateDevelopment = (field: 'coding' | 'pickup' | 'review' | 'handover'): void => {
       this.development[field] = duration;
     };
 
