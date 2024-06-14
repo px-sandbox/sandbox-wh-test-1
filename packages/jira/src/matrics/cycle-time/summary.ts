@@ -114,30 +114,58 @@ export async function sprintLevelSummaryCalc(
     summaryQuery.toJSON()
   );
 
-  let response;
-  if (result?.sprints?.buckets) {
-    response = result?.sprints?.buckets?.map((bucket) => ({
-      sprintId: bucket.key,
-      development: {
-        coding: parseFloat(bucket.avg_development_coding.value.toFixed(2)),
-        pickup: parseFloat(bucket.avg_development_pickup.value.toFixed(2)),
-        handover: parseFloat(bucket.avg_development_handover.value.toFixed(2)),
-        review: parseFloat(bucket.avg_development_review.value.toFixed(2)),
-        total: parseFloat(bucket.avg_development_total.value.toFixed(2)),
-      },
-      qa: {
-        pickup: parseFloat(bucket.avg_qa_pickup.value.toFixed(2)),
-        testing: parseFloat(bucket.avg_qa_testing.value.toFixed(2)),
-        total: parseFloat(bucket.avg_qa_total.value.toFixed(2)),
-      },
-      deployment: {
-        total: parseFloat(bucket.avg_deployment_total.value.toFixed(2)),
-      },
-      overall: parseFloat(bucket.overall.value.toFixed(2)),
-      overallWithoutDeployment: parseFloat(bucket.overallWithoutDeployment.value.toFixed(2)),
-    }));
+  const response: Jira.Type.CycleTimeSummaryResponse[] = [];
+  if (sprintArr.length > 0) {
+    sprintArr.map((sprintId) => {
+      const bucket = result?.sprints?.buckets?.find((b) => b.key === sprintId);
+      if (bucket) {
+        if (result?.sprints?.buckets) {
+          response.push({
+            sprintId: bucket.key,
+            development: {
+              coding: parseFloat(bucket.avg_development_coding.value.toFixed(2)),
+              pickup: parseFloat(bucket.avg_development_pickup.value.toFixed(2)),
+              handover: parseFloat(bucket.avg_development_handover.value.toFixed(2)),
+              review: parseFloat(bucket.avg_development_review.value.toFixed(2)),
+              total: parseFloat(bucket.avg_development_total.value.toFixed(2)),
+            },
+            qa: {
+              pickup: parseFloat(bucket.avg_qa_pickup.value.toFixed(2)),
+              testing: parseFloat(bucket.avg_qa_testing.value.toFixed(2)),
+              total: parseFloat(bucket.avg_qa_total.value.toFixed(2)),
+            },
+            deployment: {
+              total: parseFloat(bucket.avg_deployment_total.value.toFixed(2)),
+            },
+            overall: parseFloat(bucket.overall.value.toFixed(2)),
+            overallWithoutDeployment: parseFloat(bucket.overallWithoutDeployment.value.toFixed(2)),
+          });
+        }
+      } else {
+        response.push({
+          sprintId,
+          development: {
+            coding: 0,
+            pickup: 0,
+            handover: 0,
+            review: 0,
+            total: 0,
+          },
+          qa: {
+            pickup: 0,
+            testing: 0,
+            total: 0,
+          },
+          deployment: {
+            total: 0,
+          },
+          overall: 0,
+          overallWithoutDeployment: 0,
+        });
+      }
+      return response;
+    });
   }
-
   return response?.map((item) => ({
     ...item,
     sprintName: sprintObj[item.sprintId]?.name,
@@ -149,7 +177,7 @@ export async function sprintLevelSummaryCalc(
 
 /**
  * Calculates the overall summary of cycle time.
- * @param sprintLevelSumm - An array of sprint level summaries.
+ * @param sprintLevelSum - An array of sprint level summaries.
  * @returns The overall summary of cycle time.
  */
 export function overallSummary(

@@ -27,6 +27,7 @@ async function fetchSprints(
   const sprintsQuery = esb
     .requestBodySearch()
     .source(['body.id', 'body.state', 'body.name', 'body.startDate', 'body.endDate'])
+    .size(1000)
     .query(
       esb
         .boolQuery()

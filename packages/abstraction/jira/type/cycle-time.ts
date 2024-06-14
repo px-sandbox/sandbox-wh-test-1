@@ -184,3 +184,24 @@ export type CycleTimeDetailedType = {
   qa: unknown;
   link: string;
 };
+
+export type CycleTimeSummaryResponse = {
+  sprintId: string;
+  development: {
+    coding: number;
+    pickup: number;
+    handover: number;
+    review: number;
+    total: number;
+  };
+  qa: {
+    pickup: number;
+    testing: number;
+    total: number;
+  };
+  deployment: {
+    total: number;
+  };
+  overall: number;
+  overallWithoutDeployment: number;
+};
