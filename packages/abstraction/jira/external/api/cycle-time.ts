@@ -17,6 +17,8 @@ export type Subtasks = {
     status: string;
     eventTime: string;
   }[];
+  isDeleted?: boolean;
+  deletedAt?: string;
 };
 
 export type CycleTime = {
