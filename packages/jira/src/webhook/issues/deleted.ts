@@ -5,7 +5,6 @@ import { Config } from 'sst/node/config';
 import { getIssueById } from '../../repository/issue/get-issue';
 import { saveIssueDetails } from '../../repository/issue/save-issue';
 import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
-import { softDeleteCycleTimeDocument } from '../../repository/cycle-time.ts/update';
 
 /**
  * Removes the issue with the given ID and marks it as deleted.
@@ -19,8 +18,7 @@ export async function remove(
   issueId: string,
   eventTime: moment.Moment,
   organization: string,
-  requestId: string,
-  parentId?: string
+  requestId: string
 ): Promise<void | false> {
   const issueData = await getIssueById(issueId, organization, { requestId, resourceId: issueId });
   if (!issueData) {
@@ -31,7 +29,7 @@ export async function remove(
   // checking if issue type is allowed
 
   if (!ALLOWED_ISSUE_TYPES.includes(issueData?.issueType)) {
-    logger.info({ message: 'processIssueDeletedEvent: Issue type not allowed' });
+    logger.info('processIssueDeletedEvent: Issue type not allowed');
     return;
   }
 
@@ -56,7 +54,4 @@ export async function remove(
     requestId,
     resourceId: issueId,
   });
-
-  // soft delete cycle time document
-  await softDeleteCycleTimeDocument(issueId, issueData.issueType, parentId);
 }

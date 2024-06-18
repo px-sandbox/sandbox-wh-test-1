@@ -116,7 +116,6 @@ function getCycleTimeQuery(sprints: string[], orgId: string): esb.RequestBodySea
         .must([
           esb.termsQuery('body.sprintId', sprints),
           esb.termQuery('body.organizationId', orgId),
-          esb.termQuery('body.isDeleted', false),
         ])
     )
     .agg(

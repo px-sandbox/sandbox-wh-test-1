@@ -32,7 +32,6 @@ function getCycleTimeDetailQuery(
         .must([
           esb.termQuery('body.sprintId', sprintId),
           esb.termQuery('body.organizationId', orgId),
-          esb.termQuery('body.isDeleted', false),
         ])
     );
 }
@@ -79,16 +78,11 @@ export async function fetchCycleTimeDetailed(
         .flatMap((fd) => [
           ...fd.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId),
           ...(fd?.subtasks?.length
-            ? fd.subtasks
-                .filter(
-                  (sub: { assignees: { assigneeId: string }[]; isDeleted?: boolean }) =>
-                    !sub.isDeleted
-                )
-                .flatMap((sub: { assignees: { assigneeId: string }[] }) =>
-                  sub.assignees?.length
-                    ? sub.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId)
-                    : []
-                )
+            ? fd.subtasks.flatMap((sub: { assignees: { assigneeId: string }[] }) =>
+                sub.assignees?.length
+                  ? sub.assignees.map((assignee: { assigneeId: string }) => assignee.assigneeId)
+                  : []
+              )
             : []),
         ])
         .filter(Boolean)
