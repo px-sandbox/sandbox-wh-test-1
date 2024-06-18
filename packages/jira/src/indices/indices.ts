@@ -401,8 +401,6 @@ const indices = [
                     name: { type: 'text' },
                   },
                 },
-                isDeleted: { type: 'boolean' },
-                deletedAt: { type: 'date', format: 'strict_date_optional_time' },
               },
             },
             history: {
@@ -414,8 +412,6 @@ const indices = [
                 status: { type: 'keyword' },
               },
             },
-            isDeleted: { type: 'boolean' },
-            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
           },
         },
       },

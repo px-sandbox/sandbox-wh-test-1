@@ -37,8 +37,6 @@ export type CycleTime = retryProcess & {
       status: string;
       eventTime: string;
     }[];
-    isDeleted: boolean;
-    deletedAt: string;
   };
 };
 
@@ -106,8 +104,6 @@ export type MainTicket = {
     total: number;
   };
   subtasks: Subtasks[];
-  isDeleted: boolean;
-  deletedAt: string;
 };
 
 export type SubTicket = {
@@ -129,8 +125,6 @@ export type SubTicket = {
     status: string;
     eventTime: string;
   }[];
-  isDeleted: boolean;
-  deletedAt: string;
 };
 
 export type CycleTimeSummary = {
