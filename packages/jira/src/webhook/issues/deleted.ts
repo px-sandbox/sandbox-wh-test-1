@@ -19,7 +19,8 @@ export async function remove(
   issueId: string,
   eventTime: moment.Moment,
   organization: string,
-  requestId: string
+  requestId: string,
+  parentId?: string
 ): Promise<void | false> {
   const issueData = await getIssueById(issueId, organization, { requestId, resourceId: issueId });
   if (!issueData) {
@@ -30,7 +31,7 @@ export async function remove(
   // checking if issue type is allowed
 
   if (!ALLOWED_ISSUE_TYPES.includes(issueData?.issueType)) {
-    logger.info('processIssueDeletedEvent: Issue type not allowed');
+    logger.info({ message: 'processIssueDeletedEvent: Issue type not allowed' });
     return;
   }
 
@@ -57,5 +58,5 @@ export async function remove(
   });
 
   // soft delete cycle time document
-  await softDeleteCycleTimeDocument(issueId, issueData.issueType);
+  await softDeleteCycleTimeDocument(issueId, issueData.issueType, parentId);
 }

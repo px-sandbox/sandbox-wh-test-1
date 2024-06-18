@@ -3,13 +3,20 @@ import { Jira } from 'abstraction';
 import esb from 'elastic-builder';
 import moment from 'moment';
 import { mappingPrefixes } from '../../constant/config';
+import { logger } from 'core';
 
 const esClientObj = ElasticSearchClient.getInstance();
 export async function softDeleteCycleTimeDocument(
   issueId: string,
-  issueType: string
+  issueType: string,
+  parentId?: string
 ): Promise<void> {
   const id = `${mappingPrefixes.issue}_${issueId}`;
+  const pId = `${mappingPrefixes.issue}_${parentId}`;
+  logger.info({
+    message: 'softDeleteCycleTimeDocument: Soft deleting cycle time document',
+    data: { subtask: id, issueType, parent: parentId },
+  });
   if (
     [
       Jira.Enums.IssuesTypes.BUG,
@@ -41,7 +48,7 @@ export async function softDeleteCycleTimeDocument(
         subtaskId: id,
         deletedAt: moment().toISOString(),
       });
-    const query = esb.requestBodySearch().toJSON();
+    const query = esb.requestBodySearch().query(esb.termQuery('body.id', pId)).toJSON();
     await esClientObj.updateByQuery(Jira.Enums.IndexName.CycleTime, query, script.toJSON());
   }
 }

@@ -59,6 +59,7 @@ function getQuery(
         .must([
           esb.termsQuery('body.sprintId', sprintArr),
           esb.termQuery('body.organizationId', orgId),
+          esb.termQuery('body.isDeleted', false),
         ])
     )
 
