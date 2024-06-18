@@ -17,6 +17,8 @@ export class SubTicket {
   public title: string;
   public assignees: { assigneeId: string; name: string }[];
   public history: { status: string; eventTime: string }[];
+  public isDeleted: boolean;
+  public deletedAt: string;
 
   constructor(
     subtaskData: Subtasks,
@@ -35,6 +37,8 @@ export class SubTicket {
     this.assignees = subtaskData.assignees ?? [];
     this.title = subtaskData.title ?? '';
     this.history = subtaskData.history ?? [];
+    this.isDeleted = subtaskData.isDeleted ?? false;
+    this.deletedAt = subtaskData.deletedAt ?? '';
   }
 
   private updateHistory(to: string, timestamp: string): void {
@@ -156,6 +160,8 @@ export class SubTicket {
       development: this.development,
       assignees: this.assignees,
       history: this.history,
+      isDeleted: this.isDeleted ?? false,
+      deletedAt: this.deletedAt ?? '',
     };
   }
 }
