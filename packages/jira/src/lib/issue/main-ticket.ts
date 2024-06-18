@@ -30,8 +30,14 @@ export class MainTicket {
   public history: { status: string; eventTime: string }[];
   public title: string;
   public issueType: string;
+  public isDeleted: boolean;
+  public deletedAt: string;
 
-  constructor(data: Jira.Type.MainTicket, private Status, private StatusMapping) {
+  constructor(
+    data: Jira.Type.MainTicket,
+    private Status: Record<string, number>,
+    private StatusMapping: Record<string, { label: string; id: number }>
+  ) {
     this.issueId = data.issueId;
     this.sprintId = data.sprintId;
     this.subtasks = data.subtasks ?? [];
@@ -52,6 +58,8 @@ export class MainTicket {
     this.history = data.history ?? [];
     this.title = data.title;
     this.issueType = data.issueType;
+    this.deletedAt = data.deletedAt ?? '';
+    this.isDeleted = data.isDeleted ?? false;
   }
 
   private updateHistory(toStatus: string, timestamp: string): void {
@@ -134,7 +142,7 @@ export class MainTicket {
         }
       }
       this.subtasks = this.subtasks.map((subtask, i) => {
-        if (changelogs.issueId === this.subtasks[i].issueId) {
+        if (changelogs.issueId === this.subtasks[i].issueId && subtask.isDeleted === false) {
           const updatedSubtask = new SubTicket(subtask, this.StatusMapping, this.Status);
           if (items.field === ChangelogField.ASSIGNEE) {
             const assignee = { assigneeId: items.to, name: items.toString };
@@ -261,7 +269,7 @@ export class MainTicket {
       prevToTime = lastEventTime;
     });
 
-    const updateDevelopment = (field): void => {
+    const updateDevelopment = (field: 'coding' | 'pickup' | 'review' | 'handover'): void => {
       this.development[field] = duration;
     };
 
@@ -455,6 +463,8 @@ export class MainTicket {
         assignees: this.assignees,
         history: this.history,
         issueType: this.issueType,
+        isDeleted: this.isDeleted ?? false,
+        deletedAt: this.deletedAt ?? '',
       },
     };
   }

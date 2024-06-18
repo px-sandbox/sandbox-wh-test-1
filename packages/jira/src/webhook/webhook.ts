@@ -102,7 +102,13 @@ async function processWebhookEvent(
         );
         break;
       case Jira.Enums.Event.IssueDeleted:
-        await issue.remove(body.issue.id, eventTime, organization, requestId);
+        await issue.remove(
+          body.issue.id,
+          eventTime,
+          organization,
+          requestId,
+          body.issue.fields.parent.id
+        );
         await removeReopenRate(
           {
             issue: body.issue,
@@ -192,7 +198,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     logger.error({
       requestId,
       message: 'webhook.handler.error',
-      data: { error, event },
+      data: `${error}_${event}`,
       resourceId,
     });
   }
