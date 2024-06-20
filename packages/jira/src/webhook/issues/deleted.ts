@@ -5,7 +5,7 @@ import { Config } from 'sst/node/config';
 import { getIssueById } from '../../repository/issue/get-issue';
 import { saveIssueDetails } from '../../repository/issue/save-issue';
 import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
-import { softDeleteCycleTimeDocument } from '../../repository/cycle-time.ts/update';
+import { softDeleteCycleTimeDocument } from '../../repository/cycle-time/update';
 
 /**
  * Removes the issue with the given ID and marks it as deleted.

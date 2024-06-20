@@ -8,10 +8,10 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import { mappingPrefixes } from '../../../constant/config';
 import { MainTicket } from '../../../lib/issue/main-ticket';
-import { saveCycleTime } from '../../../repository/issue/save-cycle-time';
 import { getOrganization } from '../../../repository/organization/get-organization';
 import { initializeMapping } from '../../../util/cycle-time';
 import { searchedDataFormator } from '../../../util/response-formatter';
+import { saveCycleTime } from '../../../repository/cycle-time/save-cycle-time';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
