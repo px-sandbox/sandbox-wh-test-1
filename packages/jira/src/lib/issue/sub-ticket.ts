@@ -161,7 +161,7 @@ export class SubTicket {
       assignees: this.assignees,
       history: this.history,
       isDeleted: this.isDeleted ?? false,
-      deletedAt: this.deletedAt ?? '',
+      deletedAt: this.deletedAt || null,
     };
   }
 }
