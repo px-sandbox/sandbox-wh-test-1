@@ -11,7 +11,7 @@ import { MainTicket } from '../../../lib/issue/main-ticket';
 import { getOrganization } from '../../../repository/organization/get-organization';
 import { initializeMapping } from '../../../util/cycle-time';
 import { searchedDataFormator } from '../../../util/response-formatter';
-import { saveCycleTime } from '../../../repository/cycle-time.ts/save-cycle-time';
+import { saveCycleTime } from '../../../repository/cycle-time/save-cycle-time';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
