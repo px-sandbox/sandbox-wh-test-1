@@ -59,8 +59,6 @@ export const CycleTimeOverallValidator = {
     queryStringParameters: {
       type: 'object',
       properties: {
-        startDate: { type: 'string', format: 'date-time' },
-        endDate: { type: 'string', format: 'date-time' },
         orgId: {
           type: 'string',
           pattern:
@@ -71,7 +69,7 @@ export const CycleTimeOverallValidator = {
           pattern: '^jira_project_\\d+$',
         },
       },
-      required: ['startDate', 'endDate', 'orgId', 'projectId'],
+      required: ['orgId', 'projectId'],
     },
   },
 };
@@ -82,8 +80,6 @@ export const CycleTimeSummaryValidator = {
     queryStringParameters: {
       type: 'object',
       properties: {
-        startDate: { type: 'string', format: 'date-time' },
-        endDate: { type: 'string', format: 'date-time' },
         orgId: {
           type: 'string',
           pattern:
@@ -97,7 +93,7 @@ export const CycleTimeSummaryValidator = {
         sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
         type: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSummaryType) },
       },
-      required: ['startDate', 'endDate', 'orgId', 'projectId', 'type'],
+      required: ['orgId', 'projectId', 'type'],
     },
   },
 };
