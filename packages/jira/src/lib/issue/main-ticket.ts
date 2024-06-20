@@ -464,7 +464,7 @@ export class MainTicket {
         history: this.history,
         issueType: this.issueType,
         isDeleted: this.isDeleted ?? false,
-        deletedAt: this.deletedAt ?? '',
+        deletedAt: this.deletedAt || null,
       },
     };
   }

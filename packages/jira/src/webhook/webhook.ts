@@ -107,7 +107,7 @@ async function processWebhookEvent(
           eventTime,
           organization,
           requestId,
-          body.issue.fields.parent.id
+          body.issue.fields?.parent?.id
         );
         await removeReopenRate(
           {

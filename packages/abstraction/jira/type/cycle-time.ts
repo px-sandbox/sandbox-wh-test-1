@@ -38,7 +38,7 @@ export type CycleTime = retryProcess & {
       eventTime: string;
     }[];
     isDeleted: boolean;
-    deletedAt: string;
+    deletedAt: string | null;
   };
 };
 
@@ -130,7 +130,7 @@ export type SubTicket = {
     eventTime: string;
   }[];
   isDeleted: boolean;
-  deletedAt: string;
+  deletedAt: string | null;
 };
 
 export type CycleTimeSummary = {
