@@ -1,5 +1,6 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
+import { v4 as uuid } from 'uuid';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
 import { logProcessToRetry } from 'rp';
@@ -32,7 +33,7 @@ async function checkAndSave(
 
   await Promise.all(
     issues.map(async (issue) =>
-      sqsClient.sendMessage(
+      sqsClient.sendFifoMessage(
         {
           organization,
           projectId,
@@ -41,7 +42,9 @@ async function checkAndSave(
           issue,
         },
         Queue.qIssueFormat.queueUrl,
-        reqCtx
+        reqCtx,
+        issue.key,
+        uuid()
       )
     )
   );
