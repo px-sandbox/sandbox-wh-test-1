@@ -64,7 +64,7 @@ export async function fetchCycleTimeDetailed(
   const cycleTimeDetailQuery = getCycleTimeDetailQuery(sprintId, orgId, sortKey, sortOrder);
   const orgnameQuery = getOrgNameQuery(orgId);
 
-  const [orgname, formattedData] = await Promise.all([
+  let [orgname, formattedData] = await Promise.all([
     searchedDataFormator(
       await esClientObj.search(Jira.Enums.IndexName.Organization, orgnameQuery.toJSON())
     ) as Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]>,
@@ -72,7 +72,12 @@ export async function fetchCycleTimeDetailed(
       await esClientObj.search(Jira.Enums.IndexName.CycleTime, cycleTimeDetailQuery.toJSON())
     ) as Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]>,
   ]);
-
+  formattedData = formattedData.map((fd) => ({
+    ...fd,
+    subtasks: fd?.subtasks?.length
+      ? fd.subtasks.filter((sub: { isDeleted: boolean }) => sub.isDeleted === false)
+      : [],
+  }));
   const assigneeIds = Array.from(
     new Set(
       formattedData
@@ -82,7 +87,7 @@ export async function fetchCycleTimeDetailed(
             ? fd.subtasks
                 .filter(
                   (sub: { assignees: { assigneeId: string }[]; isDeleted?: boolean }) =>
-                    !sub.isDeleted
+                    sub.isDeleted === false
                 )
                 .flatMap((sub: { assignees: { assigneeId: string }[] }) =>
                   sub.assignees?.length
@@ -134,8 +139,9 @@ export async function fetchCycleTimeDetailed(
       : [],
     hasSubtask: fd.hasSubtask,
     subtasks: fd.subtasks?.length
-      ? fd.subtasks?.map((sub: { assignees: { assigneeId: string }[] }) => ({
+      ? fd.subtasks?.map((sub: { assignees: { assigneeId: string }[]; issueKey: string }) => ({
           ...sub,
+          link: `https://${orgname[0]?.name}.atlassian.net/browse/${sub?.issueKey}`,
           assignees: sub?.assignees?.length
             ? sub.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId])
             : [],
