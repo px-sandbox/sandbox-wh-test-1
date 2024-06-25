@@ -96,7 +96,7 @@ export class MainTicket {
     const [items] = changelogs.items.filter(
       (item: Jira.ExternalType.Webhook.ChangelogItem) =>
         item.fieldId === ChangelogField.STATUS ||
-        item.field === ChangelogField.CUSTOM_FIELD ||
+        item.field === ChangelogField.SPRINT ||
         item.field === ChangelogField.ASSIGNEE
     );
 
