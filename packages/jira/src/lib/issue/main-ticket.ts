@@ -101,7 +101,7 @@ export class MainTicket {
         item.field === ChangelogField.ASSIGNEE
     );
 
-    if (items && items.field === ChangelogField.CUSTOM_FIELD) {
+    if (items && items.field === ChangelogField.SPRINT) {
       this.sprintId = `${mappingPrefixes.sprint}_${items.to}`;
     }
     if (items) {
