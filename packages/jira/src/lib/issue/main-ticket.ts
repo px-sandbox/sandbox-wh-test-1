@@ -5,6 +5,7 @@ import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { SubTicket } from './sub-ticket';
 import { calculateTimeDifference } from '../../util/cycle-time';
+import { mappingPrefixes } from 'src/constant/config';
 
 export class MainTicket {
   public issueId: string;
@@ -96,12 +97,12 @@ export class MainTicket {
     const [items] = changelogs.items.filter(
       (item: Jira.ExternalType.Webhook.ChangelogItem) =>
         item.fieldId === ChangelogField.STATUS ||
-        item.field === ChangelogField.CUSTOM_FIELD ||
+        item.field === ChangelogField.SPRINT ||
         item.field === ChangelogField.ASSIGNEE
     );
 
     if (items && items.field === ChangelogField.CUSTOM_FIELD) {
-      this.sprintId = items.to;
+      this.sprintId = `${mappingPrefixes.sprint}_${items.to}`;
     }
     if (items) {
       const statuses = [
