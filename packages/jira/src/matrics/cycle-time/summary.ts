@@ -2,6 +2,7 @@
 /* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
+import { logger } from 'core';
 import esb from 'elastic-builder';
 
 const esClientObj = ElasticSearchClient.getInstance();
@@ -9,6 +10,7 @@ const esClientObj = ElasticSearchClient.getInstance();
 function getQuery(sprintArr: string[], orgId: string): esb.RequestBodySearch {
   const baseAgg = esb
     .termsAggregation('sprints', 'body.sprintId')
+    .size(sprintArr.length)
     .agg(esb.avgAggregation('avg_development_coding', 'body.development.coding'))
     .agg(esb.avgAggregation('avg_development_pickup', 'body.development.pickup'))
     .agg(esb.avgAggregation('avg_development_handover', 'body.development.handover'))
@@ -98,7 +100,7 @@ export async function sprintLevelSummaryCalc(
       endDate: sp.endDate,
     };
   });
-
+  logger.info({ message: 'cycle_time_summary_query', data: JSON.stringify(sprintArr) });
   const summaryQuery = getQuery(sprintArr, orgId);
 
   const result = await esClientObj.queryAggs<Jira.Type.SprintLevelSummaryResult>(
