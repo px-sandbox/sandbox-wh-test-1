@@ -132,16 +132,16 @@ export function getWorkingTime(
   const newStartDate = getTimeWithOffset(startDate, offsetTime);
   const newEndDate = getTimeWithOffset(endDate, offsetTime);
 
-  const totalDays = getDays(newStartDate, newEndDate);
+  const totalDays = getDays(newEndDate, newStartDate);
 
   const weekends = getWeekenedCount(
-    newStartDate.format('YYYY-MM-DD'),
-    newEndDate.format('YYYY-MM-DD')
+    newEndDate.format('YYYY-MM-DD'),
+    newStartDate.format('YYYY-MM-DD')
   );
 
   const totalTime = newStartDate.diff(newEndDate, 'milliseconds');
-  const offhoursTime = (totalDays - weekends) * 15 * 60 * 60;
-  const weekendTime = weekends * 24 * 60 * 60;
+  const offhoursTime = (totalDays - weekends) * 15 * 60 * 60 * 1000;
+  const weekendTime = weekends * 24 * 60 * 60 * 1000;
 
   return totalTime - offhoursTime - weekendTime;
 }
