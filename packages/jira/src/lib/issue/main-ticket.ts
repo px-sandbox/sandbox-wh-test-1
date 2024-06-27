@@ -360,7 +360,10 @@ export class MainTicket {
 
     this.updateHistory(toStatus, timestamp);
     this.calDevelopmentTime();
-    if (toStatus === this.StatusMapping[this.Status.QA_Pass_Deploy].label) {
+    if (
+      toStatus === this.StatusMapping[this.Status.QA_Pass_Deploy].label ||
+      this.StatusMapping[this.Status.QA_Failed].label
+    ) {
       this.calQaTotals();
     }
   }
