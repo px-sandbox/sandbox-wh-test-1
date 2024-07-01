@@ -20,7 +20,7 @@ import { IDynmoDbDocClient } from '../types';
 const translateConfig = {
   marshallOptions: {
     convertEmptyValues: true,
-    removeUndefinedValues: false,
+    removeUndefinedValues: true,
     convertClassInstanceToMap: false,
   },
   unmarshalOptions: {
