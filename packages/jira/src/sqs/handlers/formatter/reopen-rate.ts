@@ -25,6 +25,7 @@ async function repoInfoQueueFunc(record: SQSRecord): Promise<void> {
       message: 'REOPEN_RATE_SQS_RECEIVER',
       data: { messageBody },
     });
+    throw new Error('intentional_error_for_reopen_rate');
     const inputData = await prepareReopenRate(messageBody, messageBody.typeOfChangelog, {
       requestId,
       resourceId,

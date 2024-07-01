@@ -25,7 +25,7 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
       message: 'ISSUE_SQS_RECIEVER_HANDLER',
       data: messageBody,
     });
-
+    throw new Error('intentional_error_for_issue');
     const issueProcessor = new IssueProcessor(messageBody, requestId, resourceId);
     const validProject = issueProcessor.validateIssueForProjects();
     if (validProject) {
