@@ -13,7 +13,6 @@ export async function logProcessToRetry(
     body,
     attributes: { MessageDeduplicationId, MessageGroupId },
   } = record;
-  console.log('logProcessToRetry', record);
   const {
     retry,
     reqCtx: { requestId, resourceId },
