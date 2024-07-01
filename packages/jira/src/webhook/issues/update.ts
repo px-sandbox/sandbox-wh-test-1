@@ -28,7 +28,7 @@ export async function update(
   // checking if issue type is allowed
 
   if (!ALLOWED_ISSUE_TYPES.includes(issue.issue.fields.issuetype.name)) {
-    logger.info('processIssueUpdatedEvent: Issue type not allowed');
+    logger.info({ message: 'processIssueUpdatedEvent: Issue type not allowed' });
     return;
   }
 
@@ -36,7 +36,10 @@ export async function update(
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
   const projectKey = issue.issue.fields.project.key;
   if (!projectKeys.includes(projectKey)) {
-    logger.info('processIssueUpdatedEvent: Project not available in our system ');
+    logger.info({
+      message: 'processIssueUpdatedEvent: Project not available in our system',
+      data: projectKey,
+    });
     return;
   }
 

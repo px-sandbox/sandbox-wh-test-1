@@ -12,6 +12,8 @@ import { getOrganization } from '../../../repository/organization/get-organizati
 import { initializeMapping } from '../../../util/cycle-time';
 import { searchedDataFormator } from '../../../util/response-formatter';
 import { saveCycleTime } from '../../../repository/cycle-time/save-cycle-time';
+import { Queue } from 'sst/node/queue';
+import { logProcessToRetry } from 'rp';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -107,6 +109,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
           requestId,
           resourceId,
         });
+
         const orgData = await getOrganization(messageBody.organization);
         if (!orgData) {
           logger.error({
@@ -172,7 +175,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
             mainTicket.changelog(formattedData.changelog);
           }
           const cycleTimeData = mainTicket.toJSON();
-          await saveCycleTime(cycleTimeData, { requestId, resourceId });
+          await saveCycleTime(cycleTimeData, { requestId, resourceId }, messageBody.processId);
           logger.info({
             message: 'CYCLE_TIME_SQS_RECEIVER_HANDLER',
             data: cycleTimeData,
@@ -188,6 +191,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
           });
         }
       } catch (error) {
+        await logProcessToRetry(record, Queue.qCycleTimeFormat.queueUrl, error as Error);
         logger.error({
           message: 'cycleTimeFormattedDataReceiver.error',
           error: `${error}`,
