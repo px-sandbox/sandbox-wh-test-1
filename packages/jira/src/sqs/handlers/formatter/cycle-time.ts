@@ -175,7 +175,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
             mainTicket.changelog(formattedData.changelog);
           }
           const cycleTimeData = mainTicket.toJSON();
-          await saveCycleTime(cycleTimeData, { requestId, resourceId });
+          await saveCycleTime(cycleTimeData, { requestId, resourceId }, messageBody.processId);
           logger.info({
             message: 'CYCLE_TIME_SQS_RECEIVER_HANDLER',
             data: cycleTimeData,

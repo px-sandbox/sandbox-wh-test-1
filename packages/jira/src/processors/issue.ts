@@ -20,7 +20,7 @@ export class IssueProcessor extends DataProcessor<
     super(data, requestId, resourceId);
   }
 
-  public validate(): false | this {
+  public validateIssueForProjects(): boolean {
     const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
     logger.info({
       requestId: this.requestId,
@@ -28,13 +28,13 @@ export class IssueProcessor extends DataProcessor<
       message: 'inside validate of processor',
     });
     if (this.apiData !== undefined && projectKeys.includes(this.apiData.issue.fields.project.key)) {
-      return this;
+      return true;
     }
     logger.info({
       requestId: this.requestId,
       resourceId: this.resourceId,
-      message: 'EMPTY_DATA or projectKey not in available keys for this issue',
-      data: this.apiData,
+      message: 'ProjectKey not in available keys for this issue',
+      data: { ProjectKey: this.apiData.issue.fields.project.key, issueKey: this.apiData.issue.key },
     });
     return false;
   }
