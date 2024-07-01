@@ -6,6 +6,7 @@ import { logger } from 'core';
 import { SubTicket } from './sub-ticket';
 import { calculateTimeDifference } from '../../util/cycle-time';
 import { mappingPrefixes } from 'src/constant/config';
+import { getSprintForTo } from 'src/util/prepare-reopen-rate';
 
 export class MainTicket {
   public issueId: string;
@@ -102,7 +103,8 @@ export class MainTicket {
     );
 
     if (items && items.field === ChangelogField.SPRINT) {
-      this.sprintId = `${mappingPrefixes.sprint}_${items.to}`;
+      const sprintId = getSprintForTo(items.to, items.from);
+      this.sprintId = `${mappingPrefixes.sprint}_${sprintId}`;
     }
     if (items) {
       const statuses = [
