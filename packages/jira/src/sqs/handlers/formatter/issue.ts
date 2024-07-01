@@ -26,10 +26,6 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
       data: messageBody,
     });
 
-    const projectKey = messageBody.issue.fields.project.key;
-    if (projectKey == 'PT') {
-      throw new Error('intentional_error_for_issue');
-    }
     const issueProcessor = new IssueProcessor(messageBody, requestId, resourceId);
     const validProject = issueProcessor.validateIssueForProjects();
     if (validProject) {
