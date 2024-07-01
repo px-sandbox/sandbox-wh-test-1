@@ -21,7 +21,7 @@ export const handler = async function boardFormattedDataReciever(event: SQSEvent
           message: 'JIRA_BOARD_SQS_FORMATER',
           data: { messageBody },
         });
-
+        throw new Error('intentional_error_for_board');
         const boardProcessor = new BoardProcessor(messageBody, requestId, resourceId);
 
         const data = await boardProcessor.processor();

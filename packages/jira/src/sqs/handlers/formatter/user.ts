@@ -21,7 +21,7 @@ export const handler = async function userFormattedDataReciever(event: SQSEvent)
           message: 'JIRA_USER_SQS_FORMATER',
           data: { messageBody },
         });
-
+        throw new Error('intentional_error_for_user');
         const userProcessor = new UserProcessor(messageBody, requestId, resourceId);
 
         const data = await userProcessor.processor();
