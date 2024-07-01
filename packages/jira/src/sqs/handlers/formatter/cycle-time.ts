@@ -109,7 +109,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
           requestId,
           resourceId,
         });
-        throw new Error('intentional_error_for_cycle_time');
+
         const orgData = await getOrganization(messageBody.organization);
         if (!orgData) {
           logger.error({

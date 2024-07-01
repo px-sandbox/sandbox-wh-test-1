@@ -21,7 +21,6 @@ export const handler = async function sprintFormattedDataReciever(event: SQSEven
           message: 'SPRINT_SQS_RECIEVER_HANDLER',
           data: { messageBody },
         });
-        throw new Error('intentional_error_for_sprint');
         const sprintProcessor = new SprintProcessor(messageBody, requestId, resourceId);
 
         const data = await sprintProcessor.processor();
