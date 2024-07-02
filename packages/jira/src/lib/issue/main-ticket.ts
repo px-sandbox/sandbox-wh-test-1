@@ -104,7 +104,7 @@ export class MainTicket {
 
     if (items && items.field === ChangelogField.SPRINT) {
       const sprintId = getSprintForTo(items.to, items.from);
-      this.sprintId = `${mappingPrefixes.sprint}_${sprintId}`;
+      this.sprintId = sprintId ?? `${mappingPrefixes.sprint}_${sprintId}`;
     }
     if (items) {
       const statuses = [

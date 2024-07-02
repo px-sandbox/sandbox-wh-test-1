@@ -68,7 +68,9 @@ function formatCycleTimeData(
   }
   return {
     issueId: `${mappingPrefixes.issue}_${data.issue.id}`,
-    sprintId: `${mappingPrefixes.sprint}_${data.issue.fields.customfield_10007[0].id}`,
+    sprintId: `${mappingPrefixes.sprint}_${
+      data.issue.fields.customfield_10007 ? data.issue.fields.customfield_10007[0].id : null
+    }`,
     organizationId: `${mappingPrefixes.organization}_${orgId}`,
     subtasks,
     issueType: data.issue.fields.issuetype.name,
@@ -141,7 +143,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
             return;
           }
           const formattedData = formatCycleTimeData(messageBody, orgData.orgId);
-          let mainTicketData: Jira.Type.FormatCycleTime;
+          let mainTicketData: any;
           const orgId = `${mappingPrefixes.organization}_${orgData.orgId}`;
           const statusMapping = await initializeMapping(orgId);
 
