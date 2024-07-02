@@ -157,15 +157,15 @@ export class MainTicket {
         }
       }
       this.subtasks = this.subtasks.map((subtask, i) => {
-        if (changelogs.issueId === this.subtasks[i].issueId && subtask.isDeleted === false) {
-          const updatedSubtask = new SubTicket(subtask, this.StatusMapping, this.Status);
+        const updatedSubtask = new SubTicket(subtask, this.StatusMapping, this.Status);
+        if (changelogs.issueId === this.subtasks[i].issueId) {
           switch (items.fieldId) {
             case ChangelogField.ASSIGNEE:
               const assignee = { assigneeId: items.to, name: items.toString };
               updatedSubtask.addAssignee(assignee);
               break;
             case ChangelogField.SUMMARY:
-              updatedSubtask.title = items.toString;
+              updatedSubtask.updateTitle(items.toString);
               break;
             case ChangelogField.STATUS:
               if (items.to !== String(this.StatusMapping[this.Status.To_Do].id)) {
@@ -173,14 +173,13 @@ export class MainTicket {
                 updatedSubtask.toJSON();
                 const { status } = updatedSubtask.history.slice(-2)[0];
                 this.overLappingTimeForSubtask(items.to, status);
-                return updatedSubtask;
               }
               break;
             default:
               break;
           }
         }
-        return subtask;
+        return updatedSubtask;
       });
     }
   }

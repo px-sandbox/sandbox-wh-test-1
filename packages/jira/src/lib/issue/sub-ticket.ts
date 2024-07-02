@@ -58,6 +58,10 @@ export class SubTicket {
     this.assignees.push(assignee);
   }
 
+  public updateTitle(title: string): void {
+    this.title = title;
+  }
+
   private isValidStatusTransition(currentStatus: string, newStatus: string): boolean {
     const validTransitions: Record<string, string[]> = {
       To_Do: ['In_Progress'],
