@@ -44,7 +44,7 @@ export type CycleTime = retryProcess & {
 
 export type FormatCycleTime = {
   issueId: string;
-  sprintId: string;
+  sprintId: string | null;
   subtasks: Subtasks[];
   organizationId: string;
   issueType: string;
