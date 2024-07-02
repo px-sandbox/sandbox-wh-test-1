@@ -68,7 +68,9 @@ function formatCycleTimeData(
   }
   return {
     issueId: `${mappingPrefixes.issue}_${data.issue.id}`,
-    sprintId: `${mappingPrefixes.sprint}_${data.issue.fields.customfield_10007[0].id}`,
+    sprintId: data.issue.fields.customfield_10007
+      ? `${mappingPrefixes.sprint}_${data.issue.fields.customfield_10007[0].id}`
+      : null,
     organizationId: `${mappingPrefixes.organization}_${orgId}`,
     subtasks,
     issueType: data.issue.fields.issuetype.name,
