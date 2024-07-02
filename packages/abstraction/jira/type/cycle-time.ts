@@ -11,7 +11,7 @@ export type CycleTime = retryProcess & {
     projectKey: string;
     organizationId: string;
     title: string;
-    sprintId: string;
+    sprintId: string | null;
     issueType: string;
     development: {
       coding: number;

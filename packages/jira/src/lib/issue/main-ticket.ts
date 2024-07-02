@@ -10,7 +10,7 @@ import { getSprintForTo } from 'src/util/prepare-reopen-rate';
 
 export class MainTicket {
   public issueId: string;
-  public sprintId: string;
+  public sprintId: string | null;
   public subtasks: Subtasks[];
   public orgId: string;
   public projectId: string;
@@ -99,12 +99,17 @@ export class MainTicket {
       (item: Jira.ExternalType.Webhook.ChangelogItem) =>
         item.fieldId === ChangelogField.STATUS ||
         item.field === ChangelogField.SPRINT ||
-        item.field === ChangelogField.ASSIGNEE
+        item.field === ChangelogField.ASSIGNEE ||
+        item.fieldId === ChangelogField.SUMMARY
     );
 
     if (items && items.field === ChangelogField.SPRINT) {
+      if (items.to === null) {
+        this.sprintId = null;
+        return;
+      }
       const sprintId = getSprintForTo(items.to, items.from);
-      this.sprintId = sprintId ?? `${mappingPrefixes.sprint}_${sprintId}`;
+      this.sprintId = sprintId ? `${mappingPrefixes.sprint}_${sprintId}` : null;
     }
     if (items) {
       const statuses = [
@@ -120,46 +125,59 @@ export class MainTicket {
           changelogs.issuetype as IssuesTypes
         )
       ) {
-        if (items.field === ChangelogField.ASSIGNEE) {
-          const assignee = { assigneeId: items.to, name: items.toString };
-          this.addAssignee(assignee);
-        }
-        if (items.fieldId === ChangelogField.STATUS) {
-          if (
-            items.to === this.StatusMapping[this.Status.Done].id &&
-            changelogs.issuetype !== IssuesTypes.SUBTASK
-          ) {
-            this.statusTransition(items.to, changelogs.timestamp);
-          } else if (this.subtasks.length > 0 && statuses.includes(items.to)) {
-            const toStatus = this.StatusMapping[items.to].label;
-            this.updateHistory(toStatus, changelogs.timestamp);
-          } else if (
-            items.to === this.StatusMapping[this.Status.Ready_For_QA].id &&
-            this.subtasks.length > 0
-          ) {
-            const toStatus = this.StatusMapping[items.to].label;
-            this.updateHistory(toStatus, changelogs.timestamp);
-          } else {
-            this.statusTransition(items.to, changelogs.timestamp);
-          }
+        switch (items.fieldId) {
+          case ChangelogField.ASSIGNEE:
+            const assignee = { assigneeId: items.to, name: items.toString };
+            this.addAssignee(assignee);
+            break;
+          case ChangelogField.SUMMARY:
+            this.title = items.toString;
+            break;
+          case ChangelogField.STATUS:
+            if (
+              items.to === this.StatusMapping[this.Status.Done].id &&
+              changelogs.issuetype !== IssuesTypes.SUBTASK
+            ) {
+              this.statusTransition(items.to, changelogs.timestamp);
+            } else if (this.subtasks.length > 0 && statuses.includes(items.to)) {
+              const toStatus = this.StatusMapping[items.to].label;
+              this.updateHistory(toStatus, changelogs.timestamp);
+            } else if (
+              items.to === this.StatusMapping[this.Status.Ready_For_QA].id &&
+              this.subtasks.length > 0
+            ) {
+              const toStatus = this.StatusMapping[items.to].label;
+              this.updateHistory(toStatus, changelogs.timestamp);
+            } else {
+              this.statusTransition(items.to, changelogs.timestamp);
+            }
+            break;
+          default:
+            break;
         }
       }
       this.subtasks = this.subtasks.map((subtask, i) => {
         if (changelogs.issueId === this.subtasks[i].issueId && subtask.isDeleted === false) {
           const updatedSubtask = new SubTicket(subtask, this.StatusMapping, this.Status);
-          if (items.field === ChangelogField.ASSIGNEE) {
-            const assignee = { assigneeId: items.to, name: items.toString };
-            updatedSubtask.addAssignee(assignee);
-          }
-          if (
-            items.to !== String(this.StatusMapping[this.Status.To_Do].id) &&
-            items.fieldId === ChangelogField.STATUS
-          ) {
-            updatedSubtask.statusTransition(items.to, changelogs.timestamp);
-            updatedSubtask.toJSON();
-            const { status } = updatedSubtask.history.slice(-2)[0];
-            this.overLappingTimeForSubtask(items.to, status);
-            return updatedSubtask;
+          switch (items.fieldId) {
+            case ChangelogField.ASSIGNEE:
+              const assignee = { assigneeId: items.to, name: items.toString };
+              updatedSubtask.addAssignee(assignee);
+              break;
+            case ChangelogField.SUMMARY:
+              updatedSubtask.title = items.toString;
+              break;
+            case ChangelogField.STATUS:
+              if (items.to !== String(this.StatusMapping[this.Status.To_Do].id)) {
+                updatedSubtask.statusTransition(items.to, changelogs.timestamp);
+                updatedSubtask.toJSON();
+                const { status } = updatedSubtask.history.slice(-2)[0];
+                this.overLappingTimeForSubtask(items.to, status);
+                return updatedSubtask;
+              }
+              break;
+            default:
+              break;
           }
         }
         return subtask;

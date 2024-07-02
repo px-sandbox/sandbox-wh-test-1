@@ -143,7 +143,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
             return;
           }
           const formattedData = formatCycleTimeData(messageBody, orgData.orgId);
-          let mainTicketData: any;
+          let mainTicketData: Jira.Type.FormatCycleTime;
           const orgId = `${mappingPrefixes.organization}_${orgData.orgId}`;
           const statusMapping = await initializeMapping(orgId);
 
