@@ -6,7 +6,7 @@ import { getIssueChangelogs } from '../lib/get-issue-changelogs';
 import { JiraClient } from '../lib/jira-client';
 import { getReopenRateDataById } from '../repository/issue/get-issue';
 
-function getSprintForTo(to: string, from: string): string {
+export function getSprintForTo(to: string, from: string): string {
   const toElements = to.split(', ');
   const fromElements = from.split(', ');
 
