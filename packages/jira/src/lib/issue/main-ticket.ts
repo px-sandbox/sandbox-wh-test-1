@@ -467,9 +467,9 @@ export class MainTicket {
 
   public toJSON(): Jira.Type.CycleTime {
     return {
-      id: this.issueId,
+      id: `${this.orgId}_${this.issueId.replace(mappingPrefixes.issue, mappingPrefixes.cycleTime)}`,
       body: {
-        id: this.issueId,
+        id: this.issueId.replace(mappingPrefixes.issue, mappingPrefixes.cycleTime),
         issueId: this.issueId,
         sprintId: this.sprintId,
         subtasks: this.subtasks.map((subtask) =>

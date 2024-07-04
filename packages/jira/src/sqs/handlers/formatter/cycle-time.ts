@@ -35,7 +35,7 @@ async function getDataFromEsb(
   issueId: string,
   orgId: string
 ): Promise<(Pick<Hit, '_id'> & HitBody)[]> {
-  const id = `${mappingPrefixes.issue}_${issueId}`;
+  const id = `${mappingPrefixes.cycleTime}_${issueId}`;
   const organizationId = `${mappingPrefixes.organization}_${orgId}`;
   const cycleTimeEsb = await esClientObj.search(
     Jira.Enums.IndexName.CycleTime,
