@@ -125,6 +125,7 @@ export class MainTicket {
           changelogs.issuetype as IssuesTypes
         )
       ) {
+        const isAllSubtaskDeleted = this.subtasks.every((subtask) => subtask.isDeleted);
         switch (items.fieldId) {
           case ChangelogField.ASSIGNEE:
             const assignee = { assigneeId: items.to, name: items.toString };
@@ -139,7 +140,11 @@ export class MainTicket {
               changelogs.issuetype !== IssuesTypes.SUBTASK
             ) {
               this.statusTransition(items.to, changelogs.timestamp);
-            } else if (this.subtasks.length > 0 && statuses.includes(items.to)) {
+            } else if (
+              this.subtasks.length > 0 &&
+              statuses.includes(items.to) &&
+              !isAllSubtaskDeleted
+            ) {
               const toStatus = this.StatusMapping[items.to].label;
               this.updateHistory(toStatus, changelogs.timestamp);
             } else if (
@@ -148,6 +153,8 @@ export class MainTicket {
             ) {
               const toStatus = this.StatusMapping[items.to].label;
               this.updateHistory(toStatus, changelogs.timestamp);
+            } else if (this.subtasks.length > 0 && isAllSubtaskDeleted) {
+              this.statusTransition(items.to, changelogs.timestamp);
             } else {
               this.statusTransition(items.to, changelogs.timestamp);
             }
@@ -158,7 +165,7 @@ export class MainTicket {
       }
       this.subtasks = this.subtasks.map((subtask, i) => {
         const updatedSubtask = new SubTicket(subtask, this.StatusMapping, this.Status);
-        if (changelogs.issueId === this.subtasks[i].issueId) {
+        if (changelogs.issueId === this.subtasks[i].issueId && subtask.isDeleted === false) {
           switch (items.fieldId) {
             case ChangelogField.ASSIGNEE:
               const assignee = { assigneeId: items.to, name: items.toString };

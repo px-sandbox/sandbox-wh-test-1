@@ -49,7 +49,9 @@ function formatSubtask(data: any): Subtasks {
   return {
     issueId: `${mappingPrefixes.issue}_${data.id}`,
     title: data.fields.summary,
-    assignees: data.fields.assignee,
+    assignees: [
+      { assigneeId: data.fields.assignee.accountId, name: data.fields.assignee.displayName },
+    ],
     issueKey: data.key,
   };
 }
@@ -162,7 +164,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
           }
 
           logger.info({
-            message: 'CYCLE_TIME_SQS_RECEIVER_HANDLER',
+            message: 'CYCLE_TIME_SQS_RECEIVER_HANDLER-FORMATTED',
             data: JSON.stringify(mainTicketData),
             requestId,
             resourceId,
