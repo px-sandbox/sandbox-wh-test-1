@@ -50,11 +50,13 @@ export type FormatCycleTime = {
   issueType: string;
   projectId: string;
   projectKey: string;
-  assignee:
-    | {
-        assigneeId: string;
-        name: string;
-      }
+  assignees:
+    | [
+        {
+          assigneeId: string;
+          name: string;
+        }
+      ]
     | [];
   title: string;
   issueKey: string;

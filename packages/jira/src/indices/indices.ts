@@ -380,7 +380,7 @@ const indices = [
               },
             },
             hasSubtask: { type: 'boolean' },
-            subtask: {
+            subtasks: {
               properties: {
                 issueId: { type: 'keyword' },
                 issueKey: { type: 'keyword' },
