@@ -49,9 +49,9 @@ function formatSubtask(data: any): Subtasks {
   return {
     issueId: `${mappingPrefixes.issue}_${data.id}`,
     title: data.fields.summary,
-    assignees: [
-      { assigneeId: data.fields.assignee.accountId, name: data.fields.assignee.displayName },
-    ],
+    assignees: data.fields.assignee
+      ? [{ assigneeId: data.fields.assignee.accountId, name: data.fields.assignee.displayName }]
+      : [],
     issueKey: data.key,
   };
 }
