@@ -342,6 +342,7 @@ const indices = [
         body: {
           type: 'object',
           properties: {
+            id: { type: 'text' },
             organizationId: { type: 'keyword' },
             issueId: { type: 'keyword' },
             projectId: { type: 'keyword' },
@@ -380,8 +381,8 @@ const indices = [
             },
             subtasks: {
               properties: {
-                issueId: { type: 'keyword' },
-                issueKey: { type: 'keyword' },
+                issueId: { type: 'text' },
+                issueKey: { type: 'text' },
                 title: { type: 'text' },
                 development: {
                   type: 'object',
@@ -395,7 +396,7 @@ const indices = [
                 },
                 assignees: {
                   properties: {
-                    assigneeId: { type: 'keyword' },
+                    assigneeId: { type: 'text' },
                     name: { type: 'text' },
                   },
                 },
@@ -417,6 +418,7 @@ const indices = [
                 status: { type: 'keyword' },
               },
             },
+            issueType: { type: 'text' },
             isDeleted: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
           },
