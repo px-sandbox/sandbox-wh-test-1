@@ -404,7 +404,7 @@ const indices = [
                   type: 'object',
                   properties: {
                     eventTime: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
-                    status: { type: 'keyword' },
+                    status: { type: 'text' },
                   },
                 },
                 isDeleted: { type: 'boolean' },
