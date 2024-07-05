@@ -414,7 +414,7 @@ const indices = [
             history: {
               type: 'object',
               properties: {
-                eventTime: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
+                eventTime: { type: 'date', format: 'strict_date_optional_time' },
                 status: { type: 'keyword' },
               },
             },
