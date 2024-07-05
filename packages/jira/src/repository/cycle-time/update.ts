@@ -82,5 +82,6 @@ export async function softDeleteCycleTimeDocument(
       message: 'softDeleteCycleTimeDocument: Error while soft deleting cycle time document',
       error: `${error}`,
     });
+    throw error;
   }
 }

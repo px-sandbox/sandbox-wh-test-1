@@ -407,7 +407,7 @@ const indices = [
                   },
                 },
                 isDeleted: { type: 'boolean' },
-                deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+                deletedAt: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
               },
             },
             history: {
@@ -418,7 +418,7 @@ const indices = [
               },
             },
             isDeleted: { type: 'boolean' },
-            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
           },
         },
       },

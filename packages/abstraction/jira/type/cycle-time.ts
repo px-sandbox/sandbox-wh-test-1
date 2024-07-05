@@ -28,10 +28,10 @@ export type CycleTime = retryProcess & {
     deployment: {
       total: number;
     };
-    assignees: {
+    assignees: Array<{
       assigneeId: string;
       name: string;
-    }[];
+    }>;
     subtasks: Subtasks[];
     history: {
       status: string;
@@ -50,14 +50,10 @@ export type FormatCycleTime = {
   issueType: string;
   projectId: string;
   projectKey: string;
-  assignees:
-    | [
-        {
-          assigneeId: string;
-          name: string;
-        }
-      ]
-    | [];
+  assignees: Array<{
+    assigneeId: string;
+    name: string;
+  }>;
   title: string;
   issueKey: string;
   changelog: {
@@ -84,10 +80,10 @@ export type MainTicket = {
   projectId: string;
   projectKey: string;
   issueType: string;
-  assignees?: {
+  assignees?: Array<{
     assigneeId: string;
     name: string;
-  }[];
+  }>;
   history?: {
     status: string;
     eventTime: string;
@@ -123,10 +119,10 @@ export type SubTicket = {
     handover: number;
     total: number;
   };
-  assignees: {
+  assignees: Array<{
     assigneeId: string;
     name: string;
-  }[];
+  }>;
   history: {
     status: string;
     eventTime: string;
