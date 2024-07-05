@@ -364,14 +364,13 @@ const indices = [
               properties: {
                 pickup: { type: 'long' },
                 testing: { type: 'long' },
-                handover: { type: 'long' },
                 total: { type: 'long' },
               },
             },
             deployment: {
               type: 'object',
 
-              properties: { deploy: { type: 'long' }, total: { type: 'long' } },
+              properties: { total: { type: 'long' } },
             },
             assignees: {
               properties: {
@@ -379,8 +378,7 @@ const indices = [
                 name: { type: 'text' },
               },
             },
-            hasSubtask: { type: 'boolean' },
-            subtask: {
+            subtasks: {
               properties: {
                 issueId: { type: 'keyword' },
                 issueKey: { type: 'keyword' },
@@ -401,21 +399,26 @@ const indices = [
                     name: { type: 'text' },
                   },
                 },
+                history: {
+                  type: 'object',
+                  properties: {
+                    eventTime: { type: 'date', format: 'strict_date_optional_time' },
+                    status: { type: 'keyword' },
+                  },
+                },
                 isDeleted: { type: 'boolean' },
-                deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+                deletedAt: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
               },
             },
             history: {
               type: 'object',
               properties: {
-                issueId: { type: 'keyword' },
-                issueType: { type: 'keyword' },
                 eventTime: { type: 'date', format: 'strict_date_optional_time' },
                 status: { type: 'keyword' },
               },
             },
             isDeleted: { type: 'boolean' },
-            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
           },
         },
       },

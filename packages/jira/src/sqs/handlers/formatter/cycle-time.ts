@@ -49,7 +49,9 @@ function formatSubtask(data: any): Subtasks {
   return {
     issueId: `${mappingPrefixes.issue}_${data.id}`,
     title: data.fields.summary,
-    assignees: data.fields.assignee,
+    assignees: data.fields.assignee
+      ? [{ assigneeId: data.fields.assignee.accountId, name: data.fields.assignee.displayName }]
+      : [],
     issueKey: data.key,
   };
 }
@@ -76,11 +78,13 @@ function formatCycleTimeData(
     issueType: data.issue.fields.issuetype.name,
     projectId: `${mappingPrefixes.project}_${data.issue.fields.project.id}`,
     projectKey: data.issue.fields.project.key,
-    assignee: data.issue.fields?.assignee
-      ? {
-          assigneeId: data.issue.fields?.assignee.accountId,
-          name: data.issue.fields?.assignee.displayName,
-        }
+    assignees: data.issue.fields?.assignee
+      ? [
+          {
+            assigneeId: data.issue.fields?.assignee.accountId,
+            name: data.issue.fields?.assignee.displayName,
+          },
+        ]
       : [],
     title: data.issue.fields?.summary ?? '',
     issueKey: data.issue.key,
@@ -162,7 +166,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
           }
 
           logger.info({
-            message: 'CYCLE_TIME_SQS_RECEIVER_HANDLER',
+            message: 'CYCLE_TIME_SQS_RECEIVER_HANDLER-FORMATTED',
             data: JSON.stringify(mainTicketData),
             requestId,
             resourceId,
