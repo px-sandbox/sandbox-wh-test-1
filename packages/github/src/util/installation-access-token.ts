@@ -26,15 +26,13 @@ export async function getInstallationAccessToken(): Promise<Other.Type.LambdaRes
       }
     );
 
-    logger.info('Get installation access token');
+    logger.info({ message: 'Get installation access token' });
     return {
       statusCode: 200,
       body: installationAccessToken.data,
     };
   } catch (error: unknown) {
-    logger.error({
-      error,
-    });
+    logger.error({ message: 'Get installation access token error', error });
     throw error;
   }
 }

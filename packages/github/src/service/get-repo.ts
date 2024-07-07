@@ -12,6 +12,7 @@ const esClient = ElasticSearchClient.getInstance();
 async function fetchReposData(
   repoIds: string[],
   gitRepoName: string,
+  requestId: string,
   page: number,
   size: number
 ): Promise<IRepo[]> {
@@ -44,7 +45,7 @@ async function fetchReposData(
       .toJSON() as { query: object };
     esbQuery = finalQ;
   }
-  logger.info('esbQuery', JSON.stringify(esbQuery));
+  logger.info({ message: 'esbQuery', data: JSON.stringify(esbQuery), requestId });
   const data = await esClient.search(Github.Enums.IndexName.GitRepo, esbQuery);
 
   return searchedDataFormator(data);
@@ -53,17 +54,18 @@ async function fetchReposData(
 const gitRepos = async function getRepoData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const { requestId } = event.requestContext;
   const gitRepoName: string = event?.queryStringParameters?.search ?? '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
   const page = Number(event?.queryStringParameters?.page ?? 1);
   const size = Number(event?.queryStringParameters?.size ?? 10);
   let response: IRepo[] = [];
   try {
-    response = await fetchReposData(repoIds, gitRepoName, page, size);
+    response = await fetchReposData(repoIds, gitRepoName, requestId, page, size);
 
-    logger.info({ level: 'info', message: 'github repo data', data: response });
+    logger.info({ message: 'fetchReposData.info: github repo data', data: response, requestId });
   } catch (error) {
-    logger.error(`GET_GITHUB_REPO_DETAILS, ${error}`);
+    logger.error({ message: 'fetchReposData.error: GET_GITHUB_REPO_DETAILS', error, requestId });
   }
   let body = null;
   const { '200': ok, '404': notFound } = HttpStatusCode;

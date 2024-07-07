@@ -3,17 +3,17 @@ import { HttpStatusCode, responseParser } from 'core';
 import { getTscRagsDetails } from '../matrics/get-tsc-rags-details';
 
 export const handler = async function tscRagsDetails(
-    event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-    const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
-    // const metricCategories: string[] = event.queryStringParameters?.categories?.split(',') || [];
+  const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
+  // const metricCategories: string[] = event.queryStringParameters?.categories?.split(',') || [];
 
-    // TODO: only product_security for now
-    const data = await getTscRagsDetails(repoIds);
+  // TODO: only product_security for now
+  const data = await getTscRagsDetails(repoIds);
 
-    return responseParser
-        .setBody(data)
-        .setMessage('get tsc rags details')
-        .setStatusCode(HttpStatusCode[200])
-        .send();
+  return responseParser
+    .setBody(data)
+    .setMessage('get tsc rags details')
+    .setStatusCode(HttpStatusCode[200])
+    .send();
 };

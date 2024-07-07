@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { OctokitResponse, RequestInterface } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
@@ -16,11 +17,16 @@ async function getReposList(
     }
   >,
   organizationName: string,
+  requestId: string,
   page = 1,
   counter = 0
 ): Promise<number> {
   try {
-    logger.info('getReposList.invoked', { organizationName, page, counter });
+    logger.info({
+      message: 'getReposList.invoked',
+      data: { organizationName, page, counter },
+      requestId,
+    });
     const perPage = 100;
 
     const responseData = await octokit(
@@ -30,22 +36,28 @@ async function getReposList(
     const newCounter = counter + reposPerPage.length;
 
     await Promise.all(
-      reposPerPage.map(async (repo) => sqsClient.sendMessage(repo, Queue.qGhRepoFormat.queueUrl))
+      reposPerPage.map(async (repo) =>
+        sqsClient.sendMessage(repo, Queue.qGhRepoFormat.queueUrl, { requestId })
+      )
     );
 
     if (reposPerPage.length < perPage) {
-      logger.info('getReposList.successfull');
+      logger.info({ message: 'getReposList.successfull' });
       return newCounter;
     }
-    return getReposList(octokit, organizationName, page + 1, newCounter);
+    return getReposList(octokit, organizationName, requestId, page + 1, newCounter);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.error('getReposList.error', {
-      organizationName,
+    logger.error({
+      message: 'getReposList.error',
+      data: {
+        organizationName,
+        page,
+        counter,
+      },
       error,
-      page,
-      counter,
+      requestId,
     });
     if (error.status === 401) {
       const {
@@ -58,7 +70,7 @@ async function getReposList(
         },
       });
       const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokitObj);
-      return getReposList(octokitRequestWithTimeout, organizationName, page, counter);
+      return getReposList(octokitRequestWithTimeout, organizationName, requestId, page, counter);
     }
     throw error;
   }
@@ -72,16 +84,15 @@ export async function getRepos(
       };
     }
   >,
-  organizationName: string
+  organizationName: string,
+  requestId: string
 ): Promise<number> {
   let repoCount: number;
   try {
-    repoCount = await getReposList(octokit, organizationName);
+    repoCount = await getReposList(octokit, organizationName, requestId);
     return repoCount;
   } catch (error: unknown) {
-    logger.error({
-      error,
-    });
+    logger.error({ message: 'getRepos.list.error', error, requestId });
     throw error;
   }
 }

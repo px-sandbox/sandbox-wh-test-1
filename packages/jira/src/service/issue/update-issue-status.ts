@@ -15,11 +15,17 @@ const esClient = ElasticSearchClient.getInstance();
 const issueStatus = async function updateIssueStatus(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  const { requestId } = event.requestContext;
   const { issueStatusDocId, pxStatus } = event.queryStringParameters as {
     issueStatusDocId: string;
     pxStatus: string;
   };
-  logger.info({ level: 'info', message: 'jira orgId', data: { issueStatusDocId, pxStatus } });
+  logger.info({
+    requestId,
+    resourceId: issueStatusDocId,
+    message: 'jira orgId',
+    data: { pxStatus },
+  });
 
   // To update issue status for an organization we first get that issue and then update its status
 
@@ -35,7 +41,12 @@ const issueStatus = async function updateIssueStatus(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (error) {
-    logger.error('UPDATE_JIRA_ISSUE_STATUS', { error });
+    logger.error({
+      requestId,
+      resourceId: issueStatusDocId,
+      message: 'UPDATE_JIRA_ISSUE_STATUS',
+      error,
+    });
     throw new Error(`Not able to update issue status: ${error}`);
   }
 };

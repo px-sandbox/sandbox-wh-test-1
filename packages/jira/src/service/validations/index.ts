@@ -1,3 +1,5 @@
+import { Jira } from 'abstraction';
+
 export const getProjectsSchema = {
   type: 'object',
   properties: {
@@ -47,6 +49,74 @@ export const updateIssueStatusSchema = {
         },
       },
       required: ['issueStatusDocId', 'pxStatus'],
+    },
+  },
+};
+
+export const CycleTimeOverallValidator = {
+  type: 'object',
+  properties: {
+    queryStringParameters: {
+      type: 'object',
+      properties: {
+        orgId: {
+          type: 'string',
+          pattern:
+            '^jira_org_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+        },
+        projectId: {
+          type: 'string',
+          pattern: '^jira_project_\\d+$',
+        },
+      },
+      required: ['orgId', 'projectId'],
+    },
+  },
+};
+
+export const CycleTimeSummaryValidator = {
+  type: 'object',
+  properties: {
+    queryStringParameters: {
+      type: 'object',
+      properties: {
+        orgId: {
+          type: 'string',
+          pattern:
+            '^jira_org_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+        },
+        projectId: {
+          type: 'string',
+          pattern: '^jira_project_\\d+$',
+        },
+        sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
+        sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
+        type: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSummaryType) },
+      },
+      required: ['orgId', 'projectId', 'type'],
+    },
+  },
+};
+
+export const CycleTimeDetailedValidator = {
+  type: 'object',
+  properties: {
+    queryStringParameters: {
+      type: 'object',
+      properties: {
+        sprintId: {
+          type: 'string',
+          pattern: '^jira_sprint_\\d+$',
+        },
+        sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
+        sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
+        orgId: {
+          type: 'string',
+          pattern:
+            '^jira_org_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+        },
+      },
+      required: ['sprintId', 'orgId'],
     },
   },
 };

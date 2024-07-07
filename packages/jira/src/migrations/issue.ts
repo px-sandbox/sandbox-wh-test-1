@@ -1,20 +1,25 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
+import { v4 as uuid } from 'uuid';
 import { SQSClient } from '@pulse/event-handler';
 import { Queue } from 'sst/node/queue';
-import { logProcessToRetry } from '../util/retry-process';
+import { logProcessToRetry } from 'rp';
+import { Other } from 'abstraction';
 import { JiraClient } from '../lib/jira-client';
 
 async function checkAndSave(
   organization: string,
   projectId: string,
   boardId: string,
-  sprintId: string
+  sprintId: string,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   const jira = await JiraClient.getClient(organization);
   const issues = await jira.getIssues(sprintId);
 
-  logger.info(`
+  logger.info({
+    ...reqCtx,
+    message: `
   FETCHING ISSUES FOR THIS 
   sprintId: ${sprintId}
   boardId: ${boardId}
@@ -22,12 +27,13 @@ async function checkAndSave(
   organization: ${organization}
   issues: ${issues.length}
   total: ${Array.from(new Set(issues.map((issue) => issue.id))).length}
-  `);
+  `,
+  });
   const sqsClient = SQSClient.getInstance();
 
   await Promise.all(
     issues.map(async (issue) =>
-      sqsClient.sendMessage(
+      sqsClient.sendFifoMessage(
         {
           organization,
           projectId,
@@ -35,33 +41,29 @@ async function checkAndSave(
           sprintId,
           issue,
         },
-        Queue.qIssueFormat.queueUrl
+        Queue.qIssueFormat.queueUrl,
+        reqCtx,
+        issue.key,
+        uuid()
       )
     )
   );
-  logger.info('issuesMigrateDataReciever.successful');
+  logger.info({ ...reqCtx, message: 'issuesMigrateDataReciever.successful' });
 }
 
 export const handler = async function issuesMigrate(event: SQSEvent): Promise<void> {
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
+      const {
+        reqCtx,
+        message: { organization, projectId, originBoardId, sprintId },
+      } = JSON.parse(record.body);
       try {
-        const {
-          organization,
-          projectId,
-          originBoardId,
-          sprintId,
-        }: {
-          organization: string;
-          projectId: string;
-          originBoardId: string;
-          sprintId: string;
-        } = JSON.parse(record.body);
-        return checkAndSave(organization, projectId, originBoardId, sprintId);
+        return checkAndSave(organization, projectId, originBoardId, sprintId, reqCtx);
       } catch (error) {
-        logger.error(JSON.stringify({ error, record }));
+        logger.error({ ...reqCtx, message: JSON.stringify({ error, record }) });
         await logProcessToRetry(record, Queue.qIssueMigrate.queueUrl, error as Error);
-        logger.error('issueMigrateDataReciever.error', error);
+        logger.error({ ...reqCtx, message: 'issueMigrateDataReciever.error', error });
       }
     })
   );

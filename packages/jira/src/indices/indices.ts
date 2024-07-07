@@ -333,6 +333,99 @@ const indices = [
       },
     },
   },
+
+  {
+    name: Jira.Enums.IndexName.CycleTime,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'text' },
+            organizationId: { type: 'keyword' },
+            issueId: { type: 'keyword' },
+            projectId: { type: 'keyword' },
+            sprintId: { type: 'keyword' },
+            issueKey: { type: 'keyword' },
+            projectKey: { type: 'keyword' },
+            title: { type: 'text' },
+            development: {
+              type: 'object',
+              properties: {
+                coding: { type: 'long' },
+                pickup: { type: 'long' },
+                review: { type: 'long' },
+                handover: { type: 'long' },
+                total: { type: 'long' },
+              },
+            },
+            qa: {
+              type: 'object',
+              properties: {
+                pickup: { type: 'long' },
+                testing: { type: 'long' },
+                total: { type: 'long' },
+              },
+            },
+            deployment: {
+              type: 'object',
+
+              properties: { total: { type: 'long' } },
+            },
+            assignees: {
+              properties: {
+                assigneeId: { type: 'keyword' },
+                name: { type: 'text' },
+              },
+            },
+            subtasks: {
+              properties: {
+                issueId: { type: 'text' },
+                issueKey: { type: 'text' },
+                title: { type: 'text' },
+                development: {
+                  type: 'object',
+                  properties: {
+                    coding: { type: 'long' },
+                    pickup: { type: 'long' },
+                    review: { type: 'long' },
+                    handover: { type: 'long' },
+                    total: { type: 'long' },
+                  },
+                },
+                assignees: {
+                  properties: {
+                    assigneeId: { type: 'text' },
+                    name: { type: 'text' },
+                  },
+                },
+                history: {
+                  type: 'object',
+                  properties: {
+                    eventTime: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
+                    status: { type: 'text' },
+                  },
+                },
+                isDeleted: { type: 'boolean' },
+                deletedAt: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
+              },
+            },
+            history: {
+              type: 'object',
+              properties: {
+                eventTime: { type: 'date', format: 'strict_date_optional_time' },
+                status: { type: 'keyword' },
+              },
+            },
+            issueType: { type: 'text' },
+            isDeleted: { type: 'boolean' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
+          },
+        },
+      },
+    },
+  },
 ];
 /**
  * Creates a mapping for an index in Elasticsearch.
@@ -348,18 +441,18 @@ async function createMapping(name: string, mappings: Jira.Type.IndexMapping): Pr
 
     const { statusCode } = await esClient.isIndexExists(name);
     if (statusCode === 200) {
-      logger.info(`Index '${name}' already exists.`);
+      logger.info({ message: `Index '${name}' already exists.` });
       await esClient.updateIndex(name, mappings);
       return;
     }
 
-    logger.info(`Creating mapping for index '${name}'...`);
+    logger.info({ message: `Creating mapping for index '${name}'...` });
 
     await esClient.createIndex(name, mappings);
 
-    logger.info(`Created mapping for '${name}' successful`);
+    logger.info({ message: `Created mapping for '${name}' successful` });
   } catch (error) {
-    logger.error(`Error creating mapping for '${name}':`, error);
+    logger.error({ message: `Error creating mapping for '${name}':`, error });
     throw error;
   }
 }
@@ -369,9 +462,9 @@ async function createMapping(name: string, mappings: Jira.Type.IndexMapping): Pr
  * @returns A Promise that resolves when all indices are created successfully.
  */
 export async function createIndices(): Promise<void> {
-  logger.info('Creating all indices...');
+  logger.info({ message: 'Creating all indices...' });
 
   await Promise.all(indices.map(async ({ name, mappings }) => createMapping(name, mappings)));
 
-  logger.info('All indices created successfully');
+  logger.info({ message: 'All indices created successfully' });
 }

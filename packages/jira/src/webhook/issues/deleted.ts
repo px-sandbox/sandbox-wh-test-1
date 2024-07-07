@@ -5,6 +5,7 @@ import { Config } from 'sst/node/config';
 import { getIssueById } from '../../repository/issue/get-issue';
 import { saveIssueDetails } from '../../repository/issue/save-issue';
 import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
+import { softDeleteCycleTimeDocument } from '../../repository/cycle-time/update';
 
 /**
  * Removes the issue with the given ID and marks it as deleted.
@@ -17,18 +18,20 @@ import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 export async function remove(
   issueId: string,
   eventTime: moment.Moment,
-  organization: string
+  organization: string,
+  requestId: string,
+  parentId?: string
 ): Promise<void | false> {
-  const issueData = await getIssueById(issueId, organization);
+  const issueData = await getIssueById(issueId, organization, { requestId, resourceId: issueId });
   if (!issueData) {
-    logger.info('issueDeletedEvent: Issue not found');
+    logger.info({ requestId, resourceId: issueId, message: 'issueDeletedEvent: Issue not found' });
     return false;
   }
 
   // checking if issue type is allowed
 
   if (!ALLOWED_ISSUE_TYPES.includes(issueData?.issueType)) {
-    logger.info('processIssueDeletedEvent: Issue type not allowed');
+    logger.info({ message: 'processIssueDeletedEvent: Issue type not allowed' });
     return;
   }
 
@@ -36,7 +39,7 @@ export async function remove(
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
   const projectKey = issueData?.projectKey;
   if (!projectKeys.includes(projectKey)) {
-    logger.info('processIssueDeletedEvent: Project not available in our system');
+    logger.info({ message: 'processIssueDeletedEvent: Project not available in our system' });
     return;
   }
   const { _id, ...processIssue } = issueData;
@@ -44,6 +47,16 @@ export async function remove(
   processIssue.isDeleted = true;
   processIssue.deletedAt = moment(eventTime).toISOString();
 
-  logger.info(`issueDeletedEvent: Delete Issue id ${_id}`);
-  await saveIssueDetails({ id: _id, body: processIssue } as Jira.Type.Issue);
+  logger.info({
+    requestId,
+    resourceId: issueId,
+    message: `issueDeletedEvent: Delete Issue id ${_id}`,
+  });
+  await saveIssueDetails({ id: _id, body: processIssue } as Jira.Type.Issue, {
+    requestId,
+    resourceId: issueId,
+  });
+
+  // soft delete cycle time document
+  await softDeleteCycleTimeDocument(issueId, issueData.issueType, organization, parentId);
 }

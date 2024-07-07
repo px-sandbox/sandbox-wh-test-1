@@ -1,20 +1,21 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { logger } from 'core';
-import { deleteProcessfromDdb } from 'src/util/delete-process';
+import { deleteProcessfromDdb } from 'rp';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function saveRepoLibraryDetails(data: Github.Type.RepoLibrary): Promise<void> {
+export async function saveRepoLibraryDetails(
+  data: Github.Type.RepoLibrary,
+  reqCtx: Other.Type.RequestCtx
+): Promise<void> {
   try {
     const { processId, ...updatedData } = data;
     await esClientObj.putDocument(Github.Enums.IndexName.GitRepoLibrary, updatedData);
-    logger.info('saveRepoLibraryDetails.successful');
-    await deleteProcessfromDdb(processId);
+    logger.info({ message: 'saveRepoLibraryDetails.successful', ...reqCtx });
+    await deleteProcessfromDdb(processId, reqCtx);
   } catch (error: unknown) {
-    logger.error('saveRepoLibraryDetails.error', {
-      error,
-    });
+    logger.error({ message: 'saveRepoLibraryDetails.error', error, ...reqCtx });
     throw error;
   }
 }

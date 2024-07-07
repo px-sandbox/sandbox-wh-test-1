@@ -1,4 +1,4 @@
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { ChangelogField, ChangelogStatus } from 'abstraction/jira/enums';
 import { Hit, HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
@@ -6,12 +6,17 @@ import { getIssueChangelogs } from '../lib/get-issue-changelogs';
 import { JiraClient } from '../lib/jira-client';
 import { getReopenRateDataById } from '../repository/issue/get-issue';
 
-function getSprintForTo(to: string, from: string): string {
+export function getSprintForTo(to: string, from: string): string | null {
   const toElements = to.split(', ');
   const fromElements = from.split(', ');
-
-  const result = toElements.filter((item) => !fromElements.includes(item));
-
+  let result = [];
+  if (toElements.length === 0) {
+    result[0] = null;
+  } else if (toElements.length === 1) {
+    result[0] = toElements[0];
+  } else {
+    result = toElements.filter((item) => !fromElements.includes(item));
+  }
   return result[0];
 }
 async function prepareData(
@@ -24,18 +29,25 @@ async function prepareData(
     issueWebhookData.isReopen = !!reOpenCount;
     return { ...issueWebhookData };
   } catch (error) {
-    logger.error(`prepareReopenRate.error, ${error} `);
+    logger.error({ message: `prepareReopenRate.error, ${error} ` });
     throw error;
   }
 }
 async function getSprintId(
-  messageBody: (Pick<Hit, '_id'> & HitBody) | Jira.Mapped.ReopenRateIssue
+  messageBody: (Pick<Hit, '_id'> & HitBody) | Jira.Mapped.ReopenRateIssue,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<string> {
+  const { requestId, resourceId } = reqCtx;
   let sprintId = null;
   const jiraClient = await JiraClient.getClient(messageBody.organization);
   const changelogArr = await getIssueChangelogs(messageBody.issue.id, jiraClient);
   if (changelogArr.length > 0) {
-    logger.info('changelogArr', { changelogLength: changelogArr.length });
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'changelogArr',
+      data: { changelogLength: changelogArr.length },
+    });
     const reverseArrChangelog = changelogArr.reverse();
     const changelogSprint = reverseArrChangelog.find(
       (item) => item.field === ChangelogField.SPRINT
@@ -52,37 +64,48 @@ async function getSprintId(
 }
 export async function prepareReopenRate(
   messageBody: Jira.Mapped.ReopenRateIssue,
-  typeOfChangelog: ChangelogStatus | ChangelogField
+  typeOfChangelog: ChangelogStatus | ChangelogField,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<Jira.Mapped.ReopenRateIssue | false> {
-  const sprintId = await getSprintId(messageBody);
+  const { requestId, resourceId } = reqCtx;
+  const sprintId = await getSprintId(messageBody, reqCtx);
   if (!sprintId || sprintId === 'null') {
-    logger.info(`No sprint found for issueId: ${messageBody.issue.id}`);
+    logger.info({
+      requestId,
+      resourceId,
+      message: `No sprint found for issueId: ${messageBody.issue.id}`,
+    });
     return false;
   }
   messageBody.sprintId = sprintId;
   const reOpenRateData = await getReopenRateDataById(
     messageBody.issue.id,
     sprintId,
-    messageBody.organization
+    messageBody.organization,
+    { requestId, resourceId }
   );
   let returnObj = {};
   switch (typeOfChangelog) {
     case ChangelogStatus.READY_FOR_QA:
       if (reOpenRateData) {
-        logger.info(
-          `issue_already_exists_in_reopen_rate_index',issueId: ${messageBody.issue.id},
-                    typeOfChangelog: ${typeOfChangelog}  `
-        );
+        logger.info({
+          requestId,
+          resourceId,
+          message: `issue_already_exists_in_reopen_rate_index',issueId: ${messageBody.issue.id},
+                    typeOfChangelog: ${typeOfChangelog}  `,
+        });
         return false;
       }
       returnObj = await prepareData(messageBody);
       break;
     case ChangelogStatus.QA_FAILED:
       if (!reOpenRateData) {
-        logger.info(
-          `issue_not_exists_in_reopen_rate_index', issueId: ${messageBody.issue.id},
-                    typeOfChangelog: ${typeOfChangelog} `
-        );
+        logger.info({
+          requestId,
+          resourceId,
+          message: `issue_not_exists_in_reopen_rate_index', issueId: ${messageBody.issue.id},
+                    typeOfChangelog: ${typeOfChangelog} `,
+        });
         throw new Error(`issue_not_exists_in_reopen_rate_index_key: ${messageBody.issue.key}`);
       }
       returnObj = await prepareData(messageBody, reOpenRateData.reOpenCount + 1);

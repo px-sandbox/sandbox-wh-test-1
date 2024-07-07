@@ -14,7 +14,11 @@ import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 
-async function fetchJiraIssues(issueId: string, orgId: string): Promise<Other.Type.HitBody> {
+async function fetchJiraIssues(
+  issueId: string,
+  orgId: string,
+  requestId: string
+): Promise<Other.Type.HitBody> {
   const issueQuery = esb
     .requestBodySearch()
     .query(
@@ -34,29 +38,38 @@ async function fetchJiraIssues(issueId: string, orgId: string): Promise<Other.Ty
     );
     const [issuesData] = await searchedDataFormator(unformattedIssues);
 
-    logger.info(`fetchJiraIssues.successful id:, ${JSON.stringify(issuesData)}`);
+    logger.info({
+      requestId,
+      resourceId: issueId,
+      message: 'fetchJiraIssues.successful',
+      data: { issuesData },
+    });
     return issuesData;
   } catch (error) {
-    logger.error(`fetchJiraIssues.error, ${error} , ${issueId}`);
+    logger.error({ requestId, resourceId: issueId, message: 'fetchJiraIssues.error', error });
     throw error;
   }
 }
 
-export async function worklog(issueId: string, organization: string): Promise<void> {
+export async function worklog(
+  issueId: string,
+  organization: string,
+  requestId: string
+): Promise<void> {
   try {
     const orgId = await getOrganization(organization);
     if (!orgId) {
       throw new Error(`worklog.organization ${organization} not found`);
     }
-    const issueData = await fetchJiraIssues(issueId, orgId.id);
-    if (issueData.length === 0) {
+    const issueData = await fetchJiraIssues(issueId, orgId.id, requestId);
+    if (!issueData) {
       throw new Error(`worklog.no_issue_found: ${organization}, issueId: ${issueId}`);
     }
 
     // checking if issue type is allowed
 
     if (!ALLOWED_ISSUE_TYPES.includes(issueData?.issueType)) {
-      logger.info('processWorklogEvent: Issue type not allowed');
+      logger.info({message: 'processWorklogEvent: Issue type not allowed'});
       return;
     }
 
@@ -64,7 +77,7 @@ export async function worklog(issueId: string, organization: string): Promise<vo
     const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
     const projectKey = issueData?.projectKey;
     if (!projectKeys.includes(projectKey)) {
-      logger.info('processWorklogEvent: Project not available in our system');
+      logger.info({message: 'processWorklogEvent: Project not available in our system'});
       return;
     }
 
@@ -79,12 +92,13 @@ export async function worklog(issueId: string, organization: string): Promise<vo
         issue,
       },
       Queue.qIssueFormat.queueUrl,
+      { requestId, resourceId: issueId },
       issue.key,
       uuid()
     );
-    logger.info('worklog.success', { issueId });
+    logger.info({ requestId, resourceId: issueId, message: 'worklog.success' });
   } catch (error) {
-    logger.error(`worklog.error, ${error} , ${issueId}`);
+    logger.error({ requestId, resourceId: issueId, message: 'worklog.error', error });
     throw error;
   }
 }

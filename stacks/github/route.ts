@@ -31,7 +31,7 @@ export function initializeRoutes(
 
   /* We aso extract and bind the tables
    * from the githubDDb object to their respective functions/handlers called within routes */
-  const { retryProcessTable, githubMappingTable, libMasterTable } = githubDDb;
+  const { githubMappingTable, libMasterTable } = githubDDb;
   return {
     // GET Metadata route
     'GET /github/metadata': {
@@ -112,32 +112,6 @@ export function initializeRoutes(
       function: {
         handler: 'packages/github/src/service/history-data.handler',
         bind: [collectPRData, historicalBranch],
-      },
-    },
-
-    // GET github data ingestion failed retry
-    // bind all the queues and tables needed to the retry-process.handler
-    'GET /github/retry/failed': {
-      function: {
-        handler: 'packages/github/src/cron/retry-process.handler',
-        timeout: '60 seconds',
-        bind: [
-          retryProcessTable,
-          userFormatDataQueue,
-          repoFormatDataQueue,
-          branchFormatDataQueue,
-          commitFormatDataQueue,
-          pushFormatDataQueue,
-          prFormatDataQueue,
-          prReviewCommentFormatDataQueue,
-          prReviewFormatDataQueue,
-          depRegistryQueue,
-          currentDepRegistryQueue,
-          repoSastErrors,
-          scansSaveQueue,
-          repoLibS3Queue,
-          prReviewCommentMigrationQueue,
-        ],
       },
     },
 

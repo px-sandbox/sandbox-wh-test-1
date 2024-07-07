@@ -9,6 +9,7 @@ import { getInstallationAccessToken } from '../util/installation-access-token';
 import { ghRequest } from '../lib/request-default';
 
 const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  const { requestId } = event.requestContext;
   const organizationName: string = event?.queryStringParameters?.orgName || '';
   const installationAccessToken = await getInstallationAccessToken();
   const octokit = ghRequest.request.defaults({
@@ -18,16 +19,17 @@ const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
   });
   const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 
-  logger.info('getAllMetadata.invoked', { organizationName });
+  logger.info({ message: 'getAllMetadata.invoked', data: organizationName, requestId });
   await createAllIndices();
-  logger.info('AllIndices.created');
+  logger.info({ message: 'AllIndices.created', requestId });
   const organization = await fetchAndSaveOrganizationDetails(
     octokitRequestWithTimeout,
-    organizationName
+    organizationName,
+    requestId
   );
   const [users, repo] = await Promise.all([
-    getUsers(octokitRequestWithTimeout, organizationName),
-    getRepos(octokitRequestWithTimeout, organizationName),
+    getUsers(octokitRequestWithTimeout, organizationName, requestId),
+    getRepos(octokitRequestWithTimeout, organizationName, requestId),
   ]);
 
   return responseParser

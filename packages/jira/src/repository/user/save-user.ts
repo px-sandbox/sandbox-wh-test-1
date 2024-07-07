@@ -1,9 +1,9 @@
 import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
+import { deleteProcessfromDdb } from 'rp';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
-import { deleteProcessfromDdb } from 'src/util/delete-process';
 
 /**
  * Saves the user details to DynamoDB and Elasticsearch.
@@ -12,7 +12,12 @@ import { deleteProcessfromDdb } from 'src/util/delete-process';
  * @throws An error if there was an issue saving the user details.
  */
 const esClientObj = ElasticSearchClient.getInstance();
-export async function saveUserDetails(data: Jira.Type.User, processId?: string): Promise<void> {
+export async function saveUserDetails(
+  data: Jira.Type.User,
+  reqCtx: Other.Type.RequestCtx,
+  processId?: string
+): Promise<void> {
+  const { requestId, resourceId } = reqCtx;
   try {
     const updatedData = { ...data };
     const matchQry = esb
@@ -26,19 +31,22 @@ export async function saveUserDetails(data: Jira.Type.User, processId?: string):
           ])
       )
       .toJSON();
-    logger.info('saveUserDetails.matchQry------->', { matchQry });
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'saveUserDetails.matchQry------->',
+      data: { matchQry },
+    });
     const userData = await esClientObj.search(Jira.Enums.IndexName.Users, matchQry);
     const [formattedData] = await searchedDataFormatorWithDeleted(userData);
     if (formattedData) {
       updatedData.id = formattedData._id;
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.Users, updatedData);
-    logger.info('saveUserDetails.successful');
-    await deleteProcessfromDdb(processId);
+    logger.info({ requestId, resourceId, message: 'saveUserDetails.successful' });
+    await deleteProcessfromDdb(processId, reqCtx);
   } catch (error: unknown) {
-    logger.error('saveUserDetails.error', {
-      error,
-    });
+    logger.error({ requestId, resourceId, message: 'saveUserDetails.error', error });
     throw error;
   }
 }

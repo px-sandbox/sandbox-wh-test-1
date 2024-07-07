@@ -7,8 +7,9 @@ import { Config } from 'sst/node/config';
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<{ isAuthorized: boolean; context: APIGatewayAuthorizerResultContext }> => {
+  const requestId = event?.requestContext?.requestId;
   try {
-    logger.info('AdminAuth.invoked', { event });
+    logger.info({ message: 'AdminAuth.invoked', requestId, data: { event } });
     if (process.env.IS_LOCAL) {
       return {
         isAuthorized: true,
@@ -33,7 +34,7 @@ export const handler = async (
       context: {},
     };
   } catch (error) {
-    logger.error('AdminAuth.error', { error });
+    logger.error({ requestId, message: 'AdminAuth.error', error });
     return {
       isAuthorized: false,
       context: {},

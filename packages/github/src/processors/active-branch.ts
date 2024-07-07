@@ -7,8 +7,8 @@ export class ActiveBranchProcessor extends DataProcessor<
   Github.Type.RawActiveBRanches,
   Github.Type.ActiveBranches
 > {
-  constructor(data: Github.Type.RawActiveBRanches) {
-    super(data);
+  constructor(data: Github.Type.RawActiveBRanches, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
 
   public async processor(): Promise<Github.Type.ActiveBranches> {

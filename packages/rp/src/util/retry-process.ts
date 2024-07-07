@@ -1,6 +1,5 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSRecord } from 'aws-lambda';
-import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
 import { RetryTableMapping } from '../model/retry-table-mapping';
 
@@ -10,29 +9,33 @@ export async function logProcessToRetry(
   queue: string,
   error: Error
 ): Promise<void> {
+  const {
+    body,
+    attributes: { MessageDeduplicationId, MessageGroupId },
+  } = record;
+  const {
+    retry,
+    reqCtx: { requestId, resourceId },
+    message,
+  } = JSON.parse(body);
   try {
-    const {
-      body,
-      attributes: { MessageDeduplicationId, MessageGroupId },
-    } = record;
-
-    const { retry, processId,  ...messageBody } = JSON.parse(body);
+    const { processId } = message;
     // entry in dynamodb table
-    // const processId = uuid();
     const retryBody = {
-      messageBody: JSON.stringify({ ...messageBody, retry: retry ? retry + 1 : 1 }),
+      messageBody: JSON.stringify({ ...message, retry: retry ? retry + 1 : 1 }),
       queue,
       ...(MessageDeduplicationId && MessageGroupId
         ? { MessageGroupId, MessageDeduplicationId }
         : {}),
     };
-
     await dynamodbClient.put(
-      new RetryTableMapping().preparePutParams(processId || uuid(), retryBody)
+      new RetryTableMapping().preparePutParams(processId || requestId, retryBody)
     );
   } catch (err) {
-    logger.error(
-      JSON.stringify({ message: 'logProcessToRetry.failed', body: { record, queue, err, error } })
-    );
+    logger.error({
+      requestId,
+      resourceId,
+      message: JSON.stringify(`logProcessToRetry.failed: ${err}, error: ${error}`),
+    });
   }
 }

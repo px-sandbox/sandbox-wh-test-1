@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
@@ -10,13 +11,17 @@ import { searchedDataFormator } from '../util/response-formatter';
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 
-async function fetchPRComments(repoId: string, owner: string, repoName: string): Promise<void> {
+async function fetchPRComments(
+  repoId: string,
+  owner: string,
+  repoName: string,
+  requestId: string
+): Promise<void> {
   try {
     let prFormattedData: any = [];
     let from = 0;
     const size = 100;
 
-    
     // fetch All PR data for given repo from Elasticsearch
     do {
       const query = esb
@@ -25,23 +30,25 @@ async function fetchPRComments(repoId: string, owner: string, repoName: string):
         .from(from)
         .query(esb.boolQuery().must(esb.termQuery('body.repoId', repoId)))
         .toJSON();
-      const getPrData = await esClient.search(
-        Github.Enums.IndexName.GitPull,
-        query,
-      );
+      const getPrData = await esClient.search(Github.Enums.IndexName.GitPull, query);
       prFormattedData = await searchedDataFormator(getPrData);
       await Promise.all(
         prFormattedData.map(async (prData: any) => {
           sqsClient.sendMessage(
             { prData, owner, repoName },
-            Queue.qGhPrReviewCommentMigration.queueUrl
+            Queue.qGhPrReviewCommentMigration.queueUrl,
+            { requestId, resourceId: prData.githubPRId }
           );
         })
       );
       from += size;
     } while (prFormattedData.length == size);
   } catch (error) {
-    logger.error(`error_fetching_PR_comments:, ${error}`);
+    logger.error({
+      message: 'fetchPRComments.error: error_fetching_PR_comments',
+      error,
+      requestId,
+    });
   }
 }
 
@@ -49,7 +56,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const repoIds = event.queryStringParameters?.repoIds;
   const owner = event.queryStringParameters?.owner;
   const repoName = event.queryStringParameters?.repoName;
-
+  const { requestId } = event.requestContext;
   if (!repoIds || !owner || !repoName) {
     return responseParser
       .setBody('repoIds, owner, repoName are required')
@@ -58,7 +65,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       .setResponseBodyCode('BAD_REQUEST')
       .send();
   }
-  const repos = await fetchPRComments(repoIds, owner, repoName);
+  const repos = await fetchPRComments(repoIds, owner, repoName, requestId);
   return responseParser
     .setBody({ headline: repos })
     .setMessage('Headline for update protected keyword in branch data')

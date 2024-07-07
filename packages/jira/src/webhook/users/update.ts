@@ -14,16 +14,18 @@ const sqsClient = SQSClient.getInstance();
  */
 export async function update(
   user: Jira.ExternalType.Webhook.User,
-  organization: string
+  organization: string,
+  requestId: string
 ): Promise<void | false> {
-  const userIndexData = await getUserById(user.accountId, organization);
+  const resourceId = user.accountId;
+  const userIndexData = await getUserById(user.accountId, organization, { requestId, resourceId });
   if (!userIndexData) {
-    logger.info('userUpdatedEvent: User not found');
+    logger.info({ requestId, resourceId, message: 'userUpdatedEvent: User not found' });
     return false;
   }
 
   const userData = mappingToApiData(user, userIndexData.createdAt, organization);
-  logger.info('userUpdatedEvent: Send message to SQS');
+  logger.info({ requestId, resourceId, message: 'userUpdatedEvent: Send message to SQS' });
 
-  await sqsClient.sendMessage(userData, Queue.qUserFormat.queueUrl);
+  await sqsClient.sendMessage(userData, Queue.qUserFormat.queueUrl, { requestId, resourceId });
 }

@@ -15,13 +15,20 @@ const sqsClient = SQSClient.getInstance();
  * @param issue The Jira issue to update.
  * @returns A Promise that resolves when the update is complete.
  */
-export async function update(issue: Jira.ExternalType.Webhook.Issue): Promise<void> {
-  logger.info('issue_update_event: Send message to SQS');
+export async function update(
+  issue: Jira.ExternalType.Webhook.Issue,
+  requestId: string
+): Promise<void> {
+  if (issue.issue.fields.issuetype.name === IssuesTypes.TEST) {
+    return;
+  }
+  const resourceId = issue.issue.id;
+  logger.info({ requestId, resourceId, message: 'issue_update_event: Send message to SQS' });
 
   // checking if issue type is allowed
 
   if (!ALLOWED_ISSUE_TYPES.includes(issue.issue.fields.issuetype.name)) {
-    logger.info('processIssueUpdatedEvent: Issue type not allowed');
+    logger.info({ message: 'processIssueUpdatedEvent: Issue type not allowed' });
     return;
   }
 
@@ -29,35 +36,55 @@ export async function update(issue: Jira.ExternalType.Webhook.Issue): Promise<vo
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
   const projectKey = issue.issue.fields.project.key;
   if (!projectKeys.includes(projectKey)) {
-    logger.info('processIssueUpdatedEvent: Project not available in our system ');
+    logger.info({
+      message: 'processIssueUpdatedEvent: Project not available in our system',
+      data: projectKey,
+    });
     return;
   }
 
   await sqsClient.sendFifoMessage(
     { ...issue },
     Queue.qIssueFormat.queueUrl,
+    { requestId, resourceId },
     issue.issue.key,
     uuid()
   );
+
+  await sqsClient.sendFifoMessage(
+    { ...issue },
+    Queue.qCycleTimeFormat.queueUrl,
+    { requestId, resourceId },
+    issue.issue.key,
+    uuid()
+  );
+
   if (issue.issue.fields.issuetype.name !== IssuesTypes.BUG) {
     return;
   }
   const orgData = await getOrganization(issue.organization);
   const issueState = issue.changelog.items[0];
   if (orgData) {
-    const issueStatus = await getIssueStatusForReopenRate(orgData.id);
+    const issueStatus = await getIssueStatusForReopenRate(orgData.id, { requestId, resourceId });
     if (
       [issueStatus[ChangelogStatus.READY_FOR_QA], issueStatus[ChangelogStatus.QA_FAILED]].includes(
         issueState.to
       )
     ) {
-      logger.info('issue_info_ready_for_QA_update_event: Send message to SQS');
+      logger.info({
+        requestId,
+        resourceId,
+        message: 'issue_info_ready_for_QA_update_event: Send message to SQS',
+      });
       const typeOfChangelog =
         issueStatus[ChangelogStatus.READY_FOR_QA] === issueState.to
           ? ChangelogStatus.READY_FOR_QA
           : ChangelogStatus.QA_FAILED;
 
-      await sqsClient.sendMessage({ ...issue, typeOfChangelog }, Queue.qReOpenRate.queueUrl);
+      await sqsClient.sendMessage({ ...issue, typeOfChangelog }, Queue.qReOpenRate.queueUrl, {
+        requestId,
+        resourceId,
+      });
     }
   }
 }

@@ -4,8 +4,8 @@ import { Queue } from 'sst/node/queue';
 import _ from 'lodash';
 import async from 'async';
 import { Jira } from 'abstraction';
+import { logProcessToRetry } from 'rp';
 import { IssueProcessor } from '../../../processors/issue';
-import { logProcessToRetry } from '../../../util/retry-process';
 
 /**
  * Formats the issue data received from an SQS record.
@@ -13,15 +13,37 @@ import { logProcessToRetry } from '../../../util/retry-process';
  * @returns A Promise that resolves to void.
  */
 async function issueFormatterFunc(record: SQSRecord): Promise<void> {
+  const {
+    reqCtx: { requestId, resourceId },
+    message: messageBody,
+  } = JSON.parse(record.body);
+
   try {
-    const messageBody = JSON.parse(record.body);
-    logger.info('ISSUE_SQS_RECIEVER_HANDLER', { messageBody });
-    const issueProcessor = new IssueProcessor(messageBody);
-    const data = await issueProcessor.processor();
-    await issueProcessor.save({ data, index: Jira.Enums.IndexName.Issue, processId: messageBody?.processId});
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'ISSUE_SQS_RECIEVER_HANDLER',
+      data: messageBody,
+    });
+
+    const issueProcessor = new IssueProcessor(messageBody, requestId, resourceId);
+    const validProject = issueProcessor.validateIssueForProjects();
+    if (validProject) {
+      const data = await issueProcessor.processor();
+      await issueProcessor.save({
+        data,
+        index: Jira.Enums.IndexName.Issue,
+        processId: messageBody?.processId,
+      });
+    }
   } catch (error) {
     await logProcessToRetry(record, Queue.qIssueFormat.queueUrl, error as Error);
-    logger.error('issueFormattedDataReciever.error', error);
+    logger.error({
+      requestId,
+      resourceId,
+      message: 'issueFormattedDataReciever.error',
+      error,
+    });
   }
 }
 
@@ -31,7 +53,9 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
  * @returns A Promise that resolves to void.
  */
 export const handler = async function issueFormattedDataReciever(event: SQSEvent): Promise<void> {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({
+    message: `Records Length: ${event.Records.length}`,
+  });
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
   await Promise.all(
     Object.values(messageGroups).map(
@@ -40,12 +64,17 @@ export const handler = async function issueFormattedDataReciever(event: SQSEvent
           async.eachSeries(
             group,
             async (record) => {
-              logger.info('ISSUE_SQS_RECIEVER_HANDLER_RECORD', { record });
+              const { reqCtx } = JSON.parse(record.body);
+              logger.info({
+                ...reqCtx,
+                message: 'ISSUE_SQS_RECIEVER_HANDLER_RECORD',
+                data: { record },
+              });
               await issueFormatterFunc(record);
             },
             (error) => {
               if (error) {
-                logger.error('issueFormattedDataReciever.error', error);
+                logger.error({ message: 'issueFormattedDataReciever.error', error });
               }
               resolve('DONE');
             }

@@ -8,4 +8,5 @@ export type PRReview = {
   body: string;
   submitted_at: string;
   state: string;
+  orgId: number;
 };

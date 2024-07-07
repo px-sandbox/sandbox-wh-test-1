@@ -10,4 +10,5 @@ export type Push = {
   organizationId: string;
   repoId: string;
   action: string;
+  orgId: string;
 };

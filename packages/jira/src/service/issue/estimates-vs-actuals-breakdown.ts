@@ -20,6 +20,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const sortKey = event?.queryStringParameters?.sortKey ?? 'estimate';
   const SortOrder = event?.queryStringParameters?.sortOrder ?? 'asc';
   const orgId = event?.queryStringParameters?.orgId ?? '';
+
   const orgnameQuery = esb
     .requestBodySearch()
     .query(esb.boolQuery().must(esb.termQuery('body.id', orgId)))

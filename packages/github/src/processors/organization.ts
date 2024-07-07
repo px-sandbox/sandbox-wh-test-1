@@ -7,8 +7,8 @@ export class Organization extends DataProcessor<
   Github.ExternalType.Api.Organization,
   Github.Type.Organization
 > {
-  constructor(data: Github.ExternalType.Api.Organization) {
-    super(data);
+  constructor(data: Github.ExternalType.Api.Organization, requestId: string, resourceId: string) {
+    super(data, requestId, resourceId);
   }
   public async processor(): Promise<Github.Type.Organization> {
     let parentId: string = await this.getParentId(

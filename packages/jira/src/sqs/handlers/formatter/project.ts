@@ -2,8 +2,8 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
+import { logProcessToRetry } from 'rp';
 import { ProjectProcessor } from '../../../processors/project';
-import { logProcessToRetry } from '../../../util/retry-process';
 
 /**
  * Handler for formatting Jira project data.
@@ -11,15 +11,23 @@ import { logProcessToRetry } from '../../../util/retry-process';
  * @returns A Promise that resolves when the message is sent to SQS.
  */
 export const handler = async (event: SQSEvent): Promise<void> => {
-  logger.info(`Records Length: ${event.Records.length}`);
+  logger.info({ message: `Records Length: ${event.Records.length}` });
 
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
+      const {
+        reqCtx: { requestId, resourceId },
+        message: messageBody,
+      } = JSON.parse(record.body);
       try {
-        const messageBody = JSON.parse(record.body);
-        logger.info('JIRA_PROJECT_SQS_FORMATER', { messageBody });
+        logger.info({
+          requestId,
+          resourceId,
+          message: 'JIRA_PROJECT_SQS_FORMATER',
+          data: { messageBody },
+        });
 
-        const projectProcessor = new ProjectProcessor(messageBody);
+        const projectProcessor = new ProjectProcessor(messageBody, requestId, resourceId);
 
         const data = await projectProcessor.processor();
         return projectProcessor.save({
@@ -29,7 +37,12 @@ export const handler = async (event: SQSEvent): Promise<void> => {
         });
       } catch (error) {
         await logProcessToRetry(record, Queue.qProjectFormat.queueUrl, error as Error);
-        logger.error('projectFormattedDataReciever.error', error);
+        logger.error({
+          requestId,
+          resourceId,
+          message: 'projectFormattedDataReciever.error',
+          error,
+        });
 
         throw error;
       }

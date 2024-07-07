@@ -8,8 +8,12 @@ export class GHCopilotProcessor extends DataProcessor<
   Github.ExternalType.Api.GHCopilotReport,
   Github.Type.GHCopilotReport
 > {
-  constructor(data: Github.ExternalType.Api.GHCopilotReport) {
-    super(data);
+  constructor(
+    data: Github.ExternalType.Api.GHCopilotReport,
+    requestId: string,
+    resourceId: string
+  ) {
+    super(data, requestId, resourceId);
   }
   public async processor(): Promise<Github.Type.GHCopilotReport> {
     const lastActivityAt = this.ghApiData.last_activity_at;

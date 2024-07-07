@@ -3,6 +3,7 @@ import { APIGatewayProxyEvent } from 'aws-lambda';
 import moment from 'moment';
 import { logger } from 'core';
 import { Jira } from 'abstraction';
+
 import * as user from './users';
 import * as project from './projects';
 import * as sprint from './sprints';
@@ -23,102 +24,120 @@ async function processWebhookEvent(
   eventName: Jira.Enums.Event,
   eventTime: moment.Moment,
   body: Jira.Type.Webhook,
-  organization: string
+  organization: string,
+  requestId: string,
+  resourceId: string
 ): Promise<void> {
   try {
     const event = eventName?.toLowerCase();
     switch (event) {
       case Jira.Enums.Event.ProjectCreated:
-        await project.create(body.project, eventTime, organization);
+        await project.create(body.project, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.ProjectUpdated:
-        await project.update(body.project, eventTime, organization);
+        await project.update(body.project, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.ProjectSoftDeleted:
-        await project.delete(body.project.id, eventTime, organization);
+        await project.delete(body.project.id, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.ProjectRestoreDeleted:
-        await project.restoreDeleted(body.project.id, eventTime, organization);
+        await project.restoreDeleted(body.project.id, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.UserCreated:
-        await user.create(body.user, eventTime, organization);
+        await user.create(body.user, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.UserUpdated:
-        await user.update(body.user, organization);
+        await user.update(body.user, organization, requestId);
         break;
       case Jira.Enums.Event.UserDeleted:
-        await user.deleted(body.accountId, eventTime, organization);
+        await user.deleted(body.accountId, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.SprintCreated:
-        await sprint.create(body.sprint, organization);
+        await sprint.create(body.sprint, organization, requestId);
         break;
       case Jira.Enums.Event.SprintStarted:
-        await sprint.start(body.sprint, organization);
+        await sprint.start(body.sprint, organization, requestId);
         break;
       case Jira.Enums.Event.SprintUpdated:
-        await sprint.update(body.sprint, organization);
+        await sprint.update(body.sprint, organization, requestId);
         break;
       case Jira.Enums.Event.SprintDeleted:
-        await sprint.delete(body.sprint, eventTime, organization);
+        await sprint.delete(body.sprint, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.SprintClosed:
-        await sprint.close(body.sprint, organization);
+        await sprint.close(body.sprint, organization, requestId);
         break;
       case Jira.Enums.Event.BoardCreated:
-        await board.create(body.board, eventTime, organization);
+        await board.create(body.board, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.BoardConfigUpdated:
-        await board.updateConfig(body.configuration, organization);
+        await board.updateConfig(body.configuration, organization, requestId);
         break;
       case Jira.Enums.Event.BoardUpdated:
-        await board.update(body.board, organization);
+        await board.update(body.board, organization, requestId);
         break;
       case Jira.Enums.Event.BoardDeleted:
-        await board.delete(body.board.id, eventTime, organization);
+        await board.delete(body.board.id, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.IssueCreated:
-        await issue.create({
-          issue: body.issue,
-          changelog: body.changelog,
-          organization,
-          eventName,
-        });
+        await issue.create(
+          {
+            issue: body.issue,
+            changelog: body.changelog,
+            organization,
+            eventName,
+          },
+          requestId
+        );
         break;
       case Jira.Enums.Event.IssueUpdated:
-        await issue.update({
-          issue: body.issue,
-          changelog: body.changelog,
-          organization,
-          eventName,
-        });
+        await issue.update(
+          {
+            issue: body.issue,
+            changelog: body.changelog,
+            organization,
+            eventName,
+          },
+          requestId
+        );
         break;
       case Jira.Enums.Event.IssueDeleted:
-        await issue.remove(body.issue.id, eventTime, organization);
+        await issue.remove(
+          body.issue.id,
+          eventTime,
+          organization,
+          requestId,
+          body.issue.fields?.parent?.id
+        );
         await removeReopenRate(
           {
             issue: body.issue,
             changelog: body.changelog,
             organization,
           } as Jira.Mapped.ReopenRateIssue,
-          eventTime
+          eventTime,
+          requestId
         );
         break;
       case Jira.Enums.Event.WorklogCreated:
       case Jira.Enums.Event.WorklogUpdated:
       case Jira.Enums.Event.WorklogDeleted:
-        await issue.worklog(body.worklog.issueId, organization);
+        await issue.worklog(body.worklog.issueId, organization, requestId);
         break;
       default:
-        logger.info(`No case found for ${eventName} in Jira webhook event`);
+        logger.info({
+          requestId,
+          message: `No case found for ${eventName} in Jira webhook event`,
+          resourceId,
+        });
         break;
     }
   } catch (error) {
-    logger.error('webhook.handler.processWebhookEvent.error', {
-      error,
-      eventName,
-      eventTime,
-      body,
-      organization,
+    logger.error({
+      requestId,
+      message: 'webhook.handler.processWebhookEvent.error',
+      data: { error, eventName, eventTime, body, organization },
+      resourceId,
     });
     throw error;
   }
@@ -130,24 +149,57 @@ async function processWebhookEvent(
  * @returns A Promise that resolves to void.
  */
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
+  const { requestId } = event.requestContext;
+  const { organization } = event.queryStringParameters as { organization: string };
+  const body: Jira.Type.Webhook | undefined = event.body ? JSON.parse(event.body) : undefined;
+  const resourceId =
+    body?.issue?.id ||
+    body?.board?.id ||
+    body?.project?.id ||
+    body?.sprint?.id ||
+    body?.configuration?.id ||
+    '';
   try {
-    logger.info('webhook.handler.invoked', { event });
-    const { organization } = event.queryStringParameters as { organization: string };
-    const body: Jira.Type.Webhook | undefined = event.body ? JSON.parse(event.body) : undefined;
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'webhook.handler.invoked',
+    });
 
     if (!organization || !body) {
-      logger.info('webhook.handler.returnWithoutProcessing', { organization, body });
+      logger.warn({
+        requestId,
+        message: 'webhook.handler.returnWithoutProcessing',
+        data: { organization, body },
+        resourceId,
+      });
       return;
     }
 
-    logger.info('webhook.handler.received', { organization, body });
+    logger.info({
+      requestId,
+      message: 'webhook.handler.received',
+      data: { organization, body },
+      resourceId,
+    });
 
     const eventTime = moment(body.timestamp);
-    logger.info('webhook.handler.eventTime', { eventTime });
+
+    logger.info({
+      requestId,
+      message: 'webhook.handler.processing',
+      data: { eventTime },
+      resourceId,
+    });
 
     const eventName = body.webhookEvent as Jira.Enums.Event;
-    await processWebhookEvent(eventName, eventTime, body, organization);
+    await processWebhookEvent(eventName, eventTime, body, organization, requestId, resourceId);
   } catch (error) {
-    logger.error('webhook.handler.error', { error, event });
+    logger.error({
+      requestId,
+      message: 'webhook.handler.error',
+      data: `${error}_${event}`,
+      resourceId,
+    });
   }
 }

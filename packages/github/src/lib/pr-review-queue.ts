@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import moment from 'moment';
 import { OctokitResponse } from '@octokit/types';
 import { SQSClient } from '@pulse/event-handler';
@@ -70,8 +71,10 @@ export async function pRReviewOnQueue(
   repoId: number,
   repo: string,
   owner: string,
+  orgId: string,
   pullNumber: number,
-  action: string
+  action: string,
+  requestId: string
 ): Promise<void> {
   try {
     /**
@@ -80,11 +83,16 @@ export async function pRReviewOnQueue(
      */
     const [pullData] = await getPullRequestById(pullId);
     if (!pullData) {
-      logger.error('pRReviewOnQueue.failed: PR NOT FOUND', {
-        review: prReview,
-        pullId,
-        repoId,
-        action,
+      logger.error({
+        message: 'pRReviewOnQueue.failed: PR NOT FOUND',
+        data: {
+          review: prReview,
+          pullId,
+          repoId,
+          action,
+        },
+        requestId,
+        resourceId: String(pullId),
       });
       return;
     }
@@ -98,8 +106,9 @@ export async function pRReviewOnQueue(
 
     await Promise.all([
       sqsClient.sendMessage(
-        { review: prReview, pullId, repoId, action },
-        Queue.qGhPrReviewFormat.queueUrl
+        { review: prReview, pullId, repoId, action, orgId },
+        Queue.qGhPrReviewFormat.queueUrl,
+        { requestId, resourceId: String(pullId) }
       ),
       sqsClient.sendFifoMessage(
         {
@@ -110,12 +119,19 @@ export async function pRReviewOnQueue(
           action: Github.Enums.Comments.REVIEW_COMMENTED,
         },
         Queue.qGhPrFormat.queueUrl,
+        {
+          requestId,
+          resourceId: String(pullId),
+        },
         String(pullId),
         uuid()
       ),
     ]);
   } catch (error: unknown) {
     logger.error({
+      message: 'pRReviewOnQueue.Error',
+      requestId,
+      resourceId: String(pullId),
       error,
     });
     throw error;

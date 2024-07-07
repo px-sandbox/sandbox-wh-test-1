@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable no-await-in-loop */
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
@@ -21,7 +22,8 @@ const esClientObj = ElasticSearchClient.getInstance();
 async function fetchReopenRateData(
   projectId: string,
   issueKeys: string[],
-  orgId: string
+  orgId: string,
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   try {
     const updateReopenRateDataQuery = esb
@@ -55,10 +57,10 @@ async function fetchReopenRateData(
       script
     );
   } catch (error) {
-    logger.error(`issue-delete-reopen-rate.error: ${error}`);
+    logger.error({ ...reqCtx, message: `issue-delete-reopen-rate.error: ${error}` });
     throw error;
   }
-  logger.info('issue-delete-reopen-rate-migration:success');
+  logger.info({ ...reqCtx, message: 'issue-delete-reopen-rate-migration:success' });
 }
 /**
  * Handles the issue delete reopen rate migration.
@@ -70,6 +72,7 @@ async function fetchReopenRateData(
 export const handler = async function issueDeleteReopenRateMigration(
   event: APIGatewayProxyEvent
 ): Promise<void> {
+  const requestId = event?.requestContext?.requestId;
   const projectId = event?.queryStringParameters?.projectId;
   if (!projectId) {
     throw new Error('projectId is required');
@@ -78,7 +81,11 @@ export const handler = async function issueDeleteReopenRateMigration(
   const orgData = await getOrganization(organization);
 
   if (!orgData) {
-    logger.error(`Organization ${organization} not found`);
+    logger.error({
+      requestId,
+      resourceId: projectId,
+      message: `Organization ${organization} not found`,
+    });
     throw new Error(`Organization ${organization} not found`);
   }
 
@@ -117,10 +124,21 @@ export const handler = async function issueDeleteReopenRateMigration(
     }
 
     const issueKeys = [...new Set(issueData.map((issue) => issue.issueKey))];
-    logger.info(`issue-delete-reopen-rate: issueKeys: ${issueKeys}`);
-    await fetchReopenRateData(projectId, issueKeys, orgData.id);
+    logger.info({
+      requestId,
+      resourceId: projectId,
+      message: `issue-delete-reopen-rate: issueKeys: ${issueKeys}`,
+    });
+    await fetchReopenRateData(projectId, issueKeys, orgData.id, {
+      requestId,
+      resourceId: projectId,
+    });
   } catch (error) {
-    logger.error(`issue-delete-reopen-rate.error:  ${error}`);
+    logger.error({
+      requestId,
+      resourceId: projectId,
+      message: `issue-delete-reopen-rate.error:  ${error}`,
+    });
     throw error;
   }
 };

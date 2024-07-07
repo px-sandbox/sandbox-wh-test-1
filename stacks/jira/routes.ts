@@ -84,13 +84,6 @@ export function initializeRoutes(
       authorizer: 'admin',
     },
 
-    'GET /jira/retry/failed': {
-      function: {
-        handler: 'packages/jira/src/cron/process-jira-retry.handler',
-      },
-      authorizer: 'admin',
-    },
-
     'GET /jira/reopen/migrate': {
       function: {
         handler: 'packages/jira/src/service/find-existing-bugs.handler',
@@ -125,6 +118,27 @@ export function initializeRoutes(
         timeout: '5 minutes',
       },
       authorizer: 'admin',
+    },
+    'GET /jira/graph/cycle-time/overall': {
+      function: {
+        handler: 'packages/jira/src/service/cycle-time/overall.handler',
+        timeout: '10 seconds',
+      },
+      authorizer: 'universal',
+    },
+    'GET /jira/cycle-time/graph-and-table/summary': {
+      function: {
+        handler: 'packages/jira/src/service/cycle-time/summary.handler',
+        timeout: '10 seconds',
+      },
+      authorizer: 'universal',
+    },
+    'GET /jira/graph/cycle-time/detailed': {
+      function: {
+        handler: 'packages/jira/src/service/cycle-time/detailed.handler',
+        timeout: '10 seconds',
+      },
+      authorizer: 'universal',
     },
   };
 
