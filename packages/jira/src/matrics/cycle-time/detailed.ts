@@ -3,6 +3,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../../util/response-formatter';
+import { logger } from 'core';
 
 const esClientObj = ElasticSearchClient.getInstance();
 function getCycleTimeDetailQuery(
@@ -72,6 +73,9 @@ export async function fetchCycleTimeDetailed(
       await esClientObj.search(Jira.Enums.IndexName.CycleTime, cycleTimeDetailQuery.toJSON())
     ) as Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]>,
   ]);
+
+  logger.info({ ...reqCtx, message: 'Cycle Time Details', data: JSON.stringify(formattedData) });
+
   formattedData = formattedData.map((fd) => ({
     ...fd,
     subtasks: fd?.subtasks?.length
@@ -99,7 +103,7 @@ export async function fetchCycleTimeDetailed(
         .filter(Boolean)
     )
   );
-
+  logger.info({ ...reqCtx, message: 'Cycle Time assignee ids', data: JSON.stringify(assigneeIds) });
   const userQuery = getAssigneeQuery(assigneeIds, orgId);
   const users = await searchedDataFormator(
     await esClientObj.search(Jira.Enums.IndexName.Users, userQuery.toJSON())
@@ -113,6 +117,7 @@ export async function fetchCycleTimeDetailed(
       email: user.emailAddress,
     };
   });
+  logger.info({ message: 'cycle time userObj', data: JSON.stringify(userObj) });
   return formattedData.map((fd) => ({
     id: fd.id,
     issueKey: fd.issueKey,
