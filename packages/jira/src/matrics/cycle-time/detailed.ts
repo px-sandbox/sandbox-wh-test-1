@@ -41,7 +41,7 @@ function getCycleTimeDetailQuery(
 export function getAssigneeQuery(ids: string[], orgId: string): esb.RequestBodySearch {
   return esb
     .requestBodySearch()
-    .size(100)
+    .size(ids.length)
     .source(['body.displayName', 'body.userId', 'body.emailAddress'])
     .query(
       esb
