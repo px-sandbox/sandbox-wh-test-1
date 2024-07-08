@@ -68,16 +68,16 @@ export const handler = async function migrate(
   });
 
   await Promise.all([
-    ...projectsToSend.map(({ id }) =>
-      sqsClient.sendMessage(
-        {
-          organization,
-          projectId: id,
-        },
-        Queue.qProjectMigrate.queueUrl,
-        { requestId, resourceId: '' }
-      )
-    ),
+    // ...projectsToSend.map(({ id }) =>
+    //   sqsClient.sendMessage(
+    //     {
+    //       organization,
+    //       projectId: id,
+    //     },
+    //     Queue.qProjectMigrate.queueUrl,
+    //     { requestId, resourceId: '' }
+    //   )
+    // ),
     ...usersFromJira.map((user) =>
       sqsClient.sendMessage({ organization, user }, Queue.qUserMigrate.queueUrl, {
         requestId,
