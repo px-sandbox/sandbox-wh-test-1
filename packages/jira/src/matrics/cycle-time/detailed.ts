@@ -3,6 +3,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../../util/response-formatter';
+import { logger } from 'core';
 
 const esClientObj = ElasticSearchClient.getInstance();
 function getCycleTimeDetailQuery(
@@ -40,6 +41,7 @@ function getCycleTimeDetailQuery(
 export function getAssigneeQuery(ids: string[], orgId: string): esb.RequestBodySearch {
   return esb
     .requestBodySearch()
+    .size(ids.length)
     .source(['body.displayName', 'body.userId', 'body.emailAddress'])
     .query(
       esb
@@ -64,6 +66,12 @@ export async function fetchCycleTimeDetailed(
   const cycleTimeDetailQuery = getCycleTimeDetailQuery(sprintId, orgId, sortKey, sortOrder);
   const orgnameQuery = getOrgNameQuery(orgId);
 
+  logger.info({
+    ...reqCtx,
+    message: `fetchCycleTimeDetailed.query:`,
+    data: JSON.stringify(cycleTimeDetailQuery.toJSON()),
+  });
+
   let [orgname, formattedData] = await Promise.all([
     searchedDataFormator(
       await esClientObj.search(Jira.Enums.IndexName.Organization, orgnameQuery.toJSON())
@@ -72,6 +80,7 @@ export async function fetchCycleTimeDetailed(
       await esClientObj.search(Jira.Enums.IndexName.CycleTime, cycleTimeDetailQuery.toJSON())
     ) as Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]>,
   ]);
+
   formattedData = formattedData.map((fd) => ({
     ...fd,
     subtasks: fd?.subtasks?.length
@@ -101,6 +110,10 @@ export async function fetchCycleTimeDetailed(
   );
 
   const userQuery = getAssigneeQuery(assigneeIds, orgId);
+  logger.info({
+    message: `fetchCycleTimeDetailed.assignee.query:`,
+    data: JSON.stringify(userQuery.toJSON()),
+  });
   const users = await searchedDataFormator(
     await esClientObj.search(Jira.Enums.IndexName.Users, userQuery.toJSON())
   );
@@ -113,6 +126,7 @@ export async function fetchCycleTimeDetailed(
       email: user.emailAddress,
     };
   });
+
   return formattedData.map((fd) => ({
     id: fd.id,
     issueKey: fd.issueKey,
