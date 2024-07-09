@@ -74,7 +74,11 @@ export class SubTicket {
 
     const allowedTransitions = validTransitions[currentStatus];
     if (!allowedTransitions) {
-      throw new Error(`Invalid_Status_Transition: ${currentStatus} => ${newStatus}`);
+      logger.info({
+        message: 'Invalid_Status_Transition_Subtask:',
+        data: ` ${currentStatus} => ${newStatus}`,
+      });
+      return true;
     }
 
     return allowedTransitions.includes(newStatus);

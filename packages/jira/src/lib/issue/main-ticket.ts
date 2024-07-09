@@ -337,7 +337,8 @@ export class MainTicket {
 
     const allowedTransitions = validTransitions[currentStatus];
     if (!allowedTransitions) {
-      throw new Error(`Invalid_Status_Transition: ${currentStatus}`);
+      logger.info({ message: 'Invalid_Status_Transition', data: currentStatus });
+      return false;
     }
 
     return allowedTransitions.includes(newStatus);
