@@ -10,10 +10,20 @@ const summary = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResu
   const { requestId } = event.requestContext;
   const projectId = event.queryStringParameters?.projectId ?? '';
   const orgId = event.queryStringParameters?.orgId ?? '';
-  const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [''];
+  const sprintIds: string[] | undefined =
+    event.queryStringParameters?.sprintIds?.split(',') || undefined;
   const type =
     (event.queryStringParameters?.type as Jira.Enums.CycleTimeSummaryType) ??
     Jira.Enums.CycleTimeSummaryType.GRAPH;
+
+  if (!sprintIds) {
+    return responseParser
+      .setBody([])
+      .setMessage('No sprint id in the request')
+      .setResponseBodyCode('SUCCESS')
+      .setStatusCode(HttpStatusCode['200'])
+      .send();
+  }
 
   const sprints = await fetchSprintsFromESWithOtherInfo(
     { requestId, resourceId: projectId },

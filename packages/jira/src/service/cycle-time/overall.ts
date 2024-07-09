@@ -29,10 +29,19 @@ export const cycleTimeOverall = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const { requestId } = event.requestContext;
-  const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [''];
+  const sprintIds: string[] | undefined =
+    event.queryStringParameters?.sprintIds?.split(',') || undefined;
   const orgId = event.queryStringParameters?.orgId ?? '';
   const projectId = event.queryStringParameters?.projectId ?? '';
 
+  if (!sprintIds) {
+    return responseParser
+      .setBody([])
+      .setMessage('No sprint id in the request')
+      .setResponseBodyCode('SUCCESS')
+      .setStatusCode(HttpStatusCode['200'])
+      .send();
+  }
   const response = await fetchOverallCycleTime(
     { requestId, resourceId: projectId },
     projectId,
