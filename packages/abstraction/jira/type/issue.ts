@@ -34,7 +34,6 @@ export type Issue = retryProcess & {
     isDeleted?: boolean | null;
     deletedAt?: string | null;
     organizationId: string;
-    changelog: ChangelogItem[];
     timeTracker: {
       estimate: number;
       actual: number;
