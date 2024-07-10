@@ -50,6 +50,7 @@ export class IssueProcessor extends DataProcessor<
     const [sprintChangelog] = data.changelog.items.filter(
       (item) => item.fieldId === ChangelogField.SPRINT
     );
+
     sprintId =
       Number(
         sprintChangelog
@@ -61,6 +62,17 @@ export class IssueProcessor extends DataProcessor<
       data.issue.fields.customfield_10007?.find((item) => item.id == Number(sprintId))?.boardId ??
       null;
 
+    if (boardId === null) {
+      logger.info({
+        message: 'sprint_board_data_for_issue',
+        data: JSON.stringify({
+          sprintChangelog,
+          customfield_10007: data.issue.fields.customfield_10007,
+        }),
+        requestId: this.requestId,
+        resourceId: this.resourceId,
+      });
+    }
     return {
       sprintId: `${mappingPrefixes.sprint}_${sprintId}`,
       boardId: `${mappingPrefixes.board}_${boardId}`,
