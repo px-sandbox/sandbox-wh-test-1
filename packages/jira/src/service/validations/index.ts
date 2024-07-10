@@ -68,8 +68,12 @@ export const CycleTimeOverallValidator = {
           type: 'string',
           pattern: '^jira_project_\\d+$',
         },
+        sprintIds: {
+          type: 'string',
+          pattern: '^jira_sprint_\\d+$',
+        },
       },
-      required: ['orgId', 'projectId'],
+      required: ['orgId', 'projectId', 'sprintIds'],
     },
   },
 };
@@ -89,11 +93,15 @@ export const CycleTimeSummaryValidator = {
           type: 'string',
           pattern: '^jira_project_\\d+$',
         },
+        sprintIds: {
+          type: 'string',
+          pattern: '^jira_sprint_\\d+$',
+        },
         sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
         sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
         type: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSummaryType) },
       },
-      required: ['orgId', 'projectId', 'type'],
+      required: ['orgId', 'projectId', 'type', 'sprintIds'],
     },
   },
 };
