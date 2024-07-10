@@ -42,7 +42,7 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
       requestId,
       resourceId,
       message: 'issueFormattedDataReciever.error',
-      error,
+      error: `${error}`,
     });
   }
 }

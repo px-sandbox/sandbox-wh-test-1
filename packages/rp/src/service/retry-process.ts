@@ -17,7 +17,7 @@ async function processIt(record: Github.Type.QueueMessage, requestId: string): P
       sendMessagePromise = sqsClient.sendFifoMessage(
         { ...JSON.parse(messageBody), processId },
         queue,
-        { requestId, resourceId: '' },
+        { requestId, resourceId: MessageGroupId },
         MessageGroupId,
         MessageDeduplicationId
       );
@@ -78,7 +78,9 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     );
     logger.info({
       requestId,
-      message: `RetryProcessHandler lastEvaluatedKey: ${processes.LastEvaluatedKey}`,
+      message: `RetryProcessHandler lastEvaluatedKey: ${JSON.stringify(
+        processes.LastEvaluatedKey
+      )}`,
     });
     if (processes.LastEvaluatedKey === undefined) {
       return;
