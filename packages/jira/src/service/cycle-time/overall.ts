@@ -29,7 +29,7 @@ export const cycleTimeOverall = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const { requestId } = event.requestContext;
-  const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [''];
+  const sprintIds: string[] | undefined = event.queryStringParameters?.sprintIds?.split(',') || [];
   const orgId = event.queryStringParameters?.orgId ?? '';
   const projectId = event.queryStringParameters?.projectId ?? '';
 
