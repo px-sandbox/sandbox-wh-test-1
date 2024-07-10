@@ -76,7 +76,7 @@ export class SubTicket {
     if (!allowedTransitions) {
       logger.info({
         message: 'Invalid_Status_Transition_Subtask:',
-        data: ` ${currentStatus} => ${newStatus}`,
+        data: { status: `${currentStatus} => ${newStatus}`, issueKey: this.issueKey },
       });
       return true;
     }

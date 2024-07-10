@@ -337,7 +337,10 @@ export class MainTicket {
 
     const allowedTransitions = validTransitions[currentStatus];
     if (!allowedTransitions) {
-      logger.info({ message: 'Invalid_Status_Transition', data: currentStatus });
+      logger.info({
+        message: 'Invalid_Status_Transition',
+        data: { status: currentStatus, issueKey: this.issueKey },
+      });
       return false;
     }
 
