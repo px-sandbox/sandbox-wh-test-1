@@ -10,20 +10,10 @@ const summary = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResu
   const { requestId } = event.requestContext;
   const projectId = event.queryStringParameters?.projectId ?? '';
   const orgId = event.queryStringParameters?.orgId ?? '';
-  const sprintIds: string[] | undefined =
-    event.queryStringParameters?.sprintIds?.split(',') || undefined;
+  const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [];
   const type =
     (event.queryStringParameters?.type as Jira.Enums.CycleTimeSummaryType) ??
     Jira.Enums.CycleTimeSummaryType.GRAPH;
-
-  if (!sprintIds) {
-    return responseParser
-      .setBody([])
-      .setMessage('No sprint id in the request')
-      .setResponseBodyCode('SUCCESS')
-      .setStatusCode(HttpStatusCode['200'])
-      .send();
-  }
 
   const sprints = await fetchSprintsFromESWithOtherInfo(
     { requestId, resourceId: projectId },
@@ -31,6 +21,16 @@ const summary = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResu
     sprintIds,
     orgId
   );
+
+  if (sprints.length === 0) {
+    return responseParser
+      .setBody([])
+      .setMessage('Invalid sprintId')
+      .setResponseBodyCode('SUCCESS')
+      .setStatusCode(HttpStatusCode['200'])
+      .send();
+  }
+
   const sprintLevelSummary = await sprintLevelSummaryCalc(sprints, orgId);
 
   if (type === Jira.Enums.CycleTimeSummaryType.TABLE && sprintLevelSummary) {
