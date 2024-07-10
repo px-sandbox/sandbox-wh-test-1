@@ -2,7 +2,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { S3 } from 'aws-sdk';
-import { logger } from 'core';
+import { HttpStatusCode, logger, responseParser } from 'core';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 
@@ -29,6 +29,15 @@ export const handler = async (
       data: JSON.stringify(s3Obj),
       requestId,
     });
+
+    // Todo: Remove return statement once the version upgrade is stable
+    return responseParser
+      .setBody({})
+      .setMessage('Version upgrades stopped for now. Will be back soon.')
+      .setStatusCode(HttpStatusCode['200'])
+      .setResponseBodyCode('SUCCESS')
+      .send();
+
     await sqsClient.sendMessage(
       {
         s3ObjKey: s3Obj.Key,
