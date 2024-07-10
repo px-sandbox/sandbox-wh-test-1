@@ -19,6 +19,7 @@ export function initializeMigrateQueue(
     boardFormatter,
     issueFormatter,
     issueStatusFormatter,
+    reOpenRateMigratorQueue,
   ] = formatterQueues;
 
   const sprintMigrateQueue = new Queue(stack, 'qSprintMigrate', {
@@ -146,6 +147,7 @@ export function initializeMigrateQueue(
       bind: [
         issueMigrateQueue,
         issueFormatter,
+        reOpenRateMigratorQueue,
         ...Object.values(jiraDDB),
         ...Object.values(restEnvs),
       ],

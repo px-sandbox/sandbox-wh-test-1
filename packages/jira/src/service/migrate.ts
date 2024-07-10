@@ -26,23 +26,15 @@ export const handler = async function migrate(
       .send();
   }
 
-  if (projects.length === 0) {
-    return responseParser
-      .setBody({})
-      .setMessage('Please send some projects name to migrate')
-      .setStatusCode(HttpStatusCode[400])
-      .setResponseBodyCode('SUCCESS')
-      .send();
-  }
-
   const client = await JiraClient.getClient(organization);
 
   let usersFromJira: Jira.ExternalType.Api.User[] = [];
+  let projectsFromJira: Jira.ExternalType.Api.Project[] = [];
   if (importUsers === 'true') {
     usersFromJira = await client.getUsers();
+  } else {
+    projectsFromJira = await client.getProjects();
   }
-
-  const projectsFromJira = await client.getProjects();
 
   // Filter from projects based on name and project type ('software')
   const projectsToSend = projectsFromJira.filter(
@@ -52,7 +44,7 @@ export const handler = async function migrate(
   );
 
   if (projectsToSend.length === 0) {
-    return responseParser.setMessage('No projects to migrate').send();
+    logger.info({ message: 'No projects to migrate' });
   }
   logger.info({
     requestId,
@@ -60,7 +52,7 @@ export const handler = async function migrate(
 
   SENDING Projects ############
 
-  ${JSON.stringify(projectsToSend.map(({ name }) => name).join(' | '))}
+  ${JSON.stringify(projectsToSend.map(({ name }) => name ?? 'NO PROJECTS').join(' | '))}
 
   Users: ${usersFromJira.length}
 

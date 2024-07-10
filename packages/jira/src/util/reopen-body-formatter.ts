@@ -270,6 +270,8 @@ export async function reopenChangelogCals(
         id: `${mappingPrefixes.reopen_rate}_${bugId}_${mappingPrefixes.sprint}_${sprint}`,
         sprintId: `${mappingPrefixes.sprint}_${sprint}`,
         issueId: `${mappingPrefixes.issue}_${bugId}`,
+        projectId: `${mappingPrefixes.project}_${projectId}`,
+        boardId: `${mappingPrefixes.board}_${boardId}`,
       }));
   } catch (error) {
     logger.error({ requestId, resourceId, message: `error.reopen.calculator, ${error}` });

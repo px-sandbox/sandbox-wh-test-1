@@ -49,6 +49,7 @@ export class SQSClient implements ISQSClient {
     message: T,
     queueUrl: string,
     reqCtx: Other.Type.RequestCtx,
+    delay?: number,
     messageGroupId?: string,
     MessageDeduplicationId?: string
   ): Promise<void> {
@@ -57,6 +58,7 @@ export class SQSClient implements ISQSClient {
       let queueObj: AWS_SQS.SendMessageCommandInput = {
         MessageBody: JSON.stringify({ message, reqCtx }),
         QueueUrl: queueUrl,
+        DelaySeconds: delay,
       };
 
       if (messageGroupId) {
