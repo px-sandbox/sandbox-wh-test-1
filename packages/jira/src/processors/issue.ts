@@ -10,6 +10,8 @@ import { mappingPrefixes } from '../constant/config';
 import { JiraClient } from '../lib/jira-client';
 import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
+import { ChangelogField } from 'abstraction/jira/enums';
+import { getSprintForTo } from 'src/util/prepare-reopen-rate';
 
 const sqsClient = SQSClient.getInstance();
 export class IssueProcessor extends DataProcessor<
@@ -39,17 +41,42 @@ export class IssueProcessor extends DataProcessor<
     return false;
   }
 
-  public getSprintAndBoardId(issue: Jira.ExternalType.Api.Issue): {
+  private getSprintAndBoardId(data: Jira.ExternalType.Webhook.Issue): {
     sprintId: string | null;
     boardId: string | null;
   } {
-    const sprint = issue.fields?.customfield_10007 && issue.fields.customfield_10007[0];
-    return sprint
-      ? {
-          sprintId: `${mappingPrefixes.sprint}_${sprint.id}`,
-          boardId: `${mappingPrefixes.board}_${sprint.boardId}`,
-        }
-      : { sprintId: null, boardId: null };
+    let sprintId: number | null;
+    let boardId: number | null;
+    const [sprintChangelog] = data.changelog.items.filter(
+      (item) => item.fieldId === ChangelogField.SPRINT
+    );
+
+    sprintId =
+      Number(
+        sprintChangelog
+          ? getSprintForTo(sprintChangelog.from, sprintChangelog.to)
+          : data.issue.fields.customfield_10007?.[0]?.id
+      ) ?? null;
+
+    boardId =
+      data.issue.fields.customfield_10007?.find((item) => item.id == Number(sprintId))?.boardId ??
+      null;
+
+    if (boardId === null) {
+      logger.info({
+        message: 'sprint_board_data_for_issue',
+        data: JSON.stringify({
+          sprintChangelog,
+          customfield_10007: data.issue.fields.customfield_10007,
+        }),
+        requestId: this.requestId,
+        resourceId: this.resourceId,
+      });
+    }
+    return {
+      sprintId: `${mappingPrefixes.sprint}_${sprintId}`,
+      boardId: `${mappingPrefixes.board}_${boardId}`,
+    };
   }
 
   // eslint-disable-next-line complexity
@@ -121,7 +148,7 @@ export class IssueProcessor extends DataProcessor<
         createdDate: this.apiData.issue.fields.created,
         lastUpdated: this.apiData.issue.fields.updated,
         lastViewed: this.apiData.issue.fields.lastViewed,
-        ...this.getSprintAndBoardId(issueDataFromApi),
+        ...this.getSprintAndBoardId(this.apiData),
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.id,
@@ -129,9 +156,6 @@ export class IssueProcessor extends DataProcessor<
           estimate: issueDataFromApi?.fields?.timetracking?.originalEstimateSeconds ?? 0,
           actual: issueDataFromApi?.fields?.timetracking?.timeSpentSeconds ?? 0,
         },
-        changelog: this.apiData.changelog
-          ? await filterIssueChangelogs([this.apiData.changelog])
-          : [],
       },
     };
     return issueObj;
