@@ -70,7 +70,7 @@ export const CycleTimeOverallValidator = {
         },
         sprintIds: {
           type: 'string',
-          pattern: '^jira_sprint_\\d+$',
+          pattern: '^jira_sprint_\\d+(,jira_sprint_\\d+)*$',
         },
       },
       required: ['orgId', 'projectId', 'sprintIds'],
@@ -95,7 +95,7 @@ export const CycleTimeSummaryValidator = {
         },
         sprintIds: {
           type: 'string',
-          pattern: '^jira_sprint_\\d+$',
+          pattern: '^jira_sprint_\\d+(,jira_sprint_\\d+)*$',
         },
         sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
         sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
