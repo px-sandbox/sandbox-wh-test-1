@@ -6,12 +6,14 @@ import { Queue } from 'sst/node/queue';
 import { logProcessToRetry } from 'rp';
 import { Other } from 'abstraction';
 import { JiraClient } from '../lib/jira-client';
+import { getOrganization } from 'src/repository/organization/get-organization';
 
 async function checkAndSave(
   organization: string,
   projectId: string,
   boardId: string,
   sprintId: string,
+  orgId: string,
   reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   const jira = await JiraClient.getClient(organization);
@@ -32,7 +34,7 @@ async function checkAndSave(
   const sqsClient = SQSClient.getInstance();
 
   await Promise.all(
-    issues.map(async (issue) =>
+    issues.map(async (issue, i) => [
       sqsClient.sendFifoMessage(
         {
           organization,
@@ -45,8 +47,20 @@ async function checkAndSave(
         reqCtx,
         issue.key,
         uuid()
-      )
-    )
+      ),
+      sqsClient.sendMessage(
+        {
+          organization,
+          projectId,
+          boardId,
+          sprintId,
+          issue,
+          orgId,
+        },
+        Queue.qReOpenRateMigrator.queueUrl,
+        reqCtx
+      ),
+    ])
   );
   logger.info({ ...reqCtx, message: 'issuesMigrateDataReciever.successful' });
 }
@@ -59,7 +73,8 @@ export const handler = async function issuesMigrate(event: SQSEvent): Promise<vo
         message: { organization, projectId, originBoardId, sprintId },
       } = JSON.parse(record.body);
       try {
-        return checkAndSave(organization, projectId, originBoardId, sprintId, reqCtx);
+        const org = await getOrganization(organization);
+        return checkAndSave(organization, projectId, originBoardId, sprintId, org?.id, reqCtx);
       } catch (error) {
         logger.error({ ...reqCtx, message: JSON.stringify({ error, record }) });
         await logProcessToRetry(record, Queue.qIssueMigrate.queueUrl, error as Error);

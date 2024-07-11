@@ -41,7 +41,8 @@ async function checkAndSave(
         sqsClient.sendMessage(
           { organization, projectId, boardId: board.id },
           Queue.qSprintMigrate.queueUrl,
-          reqCtx
+          reqCtx,
+          20
         )
       ),
   ]);
