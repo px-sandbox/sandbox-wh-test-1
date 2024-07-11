@@ -45,18 +45,15 @@ export class IssueProcessor extends DataProcessor<
     sprintId: string | null;
     boardId: string | null;
   } {
-    let sprintId: number | null;
+    let sprintId: number | null | string;
     let boardId: number | null;
     const [sprintChangelog] = data.changelog.items.filter(
       (item) => item.fieldId === ChangelogField.SPRINT
     );
 
-    sprintId =
-      Number(
-        sprintChangelog
-          ? getSprintForTo(sprintChangelog.from, sprintChangelog.to)
-          : data.issue.fields.customfield_10007?.[0]?.id
-      ) ?? null;
+    sprintId = sprintChangelog
+      ? getSprintForTo(sprintChangelog.from, sprintChangelog.to)
+      : data.issue.fields.customfield_10007?.[0]?.id ?? null;
 
     boardId =
       data.issue.fields.customfield_10007?.find((item) => item.id == Number(sprintId))?.boardId ??
@@ -74,8 +71,8 @@ export class IssueProcessor extends DataProcessor<
       });
     }
     return {
-      sprintId: `${mappingPrefixes.sprint}_${sprintId}`,
-      boardId: `${mappingPrefixes.board}_${boardId}`,
+      sprintId: sprintId ? `${mappingPrefixes.sprint}_${sprintId}` : null,
+      boardId: boardId ? `${mappingPrefixes.board}_${boardId}` : null,
     };
   }
 
