@@ -62,7 +62,7 @@ async function countBranchesAndSendToSQS(
     logger.error({
       message: 'countBranchesAndSendToSQS.error',
       data: { repoId: repo.id, date },
-      error,
+      error: `${error}`,
     });
     throw error;
   }
@@ -73,12 +73,16 @@ export async function handler(event: SQSEvent): Promise<void> {
     event.Records.map(async (record: SQSRecord) => {
       try {
         const {
-          repo,
-          date,
+          message: { repo, date },
           reqCtx: { requestId, resourceId },
         } = JSON.parse(record.body);
+        throw new Error('Not implemented');
         await countBranchesAndSendToSQS(repo, date, requestId, resourceId);
       } catch (error) {
+        logger.error({
+          message: 'active_branch.handler.error',
+          error: `${error}`,
+        });
         await logProcessToRetry(
           record,
           Queue.qGhActiveBranchCounterFormat.queueUrl,
