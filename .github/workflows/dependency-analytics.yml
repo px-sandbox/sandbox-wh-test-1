@@ -1,11 +1,8 @@
-name: sg-dependacies-analytics
-
+name: StudioGraphene-Dependency-Analytics
 on:
   push:
     branches: [dev]
-
 jobs:
-  analytics:
-    uses: studiographene/nodejs-ci/.github/workflows/dependencies-analytics.yml@master
+  dependency_analytics:
+    uses: studiographene/github-action-workflows/.github/workflows/pulse-dependencies-analytics.yml@master
     secrets: inherit
-    permissions: write-all
