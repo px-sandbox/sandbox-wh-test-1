@@ -76,7 +76,6 @@ export async function handler(event: SQSEvent): Promise<void> {
           message: { repo, date },
           reqCtx: { requestId, resourceId },
         } = JSON.parse(record.body);
-        throw new Error('Not implemented');
         await countBranchesAndSendToSQS(repo, date, requestId, resourceId);
       } catch (error) {
         logger.error({
