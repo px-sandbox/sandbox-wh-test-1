@@ -9,44 +9,41 @@ import {
 } from '../template';
 import { StatusMapping } from '../type';
 import { describe, expect, test } from 'vitest';
+import { toMilliseconds } from '../milliseconds_converter';
 
 const operations = [
   {
     name: 'Create Task',
     action: format(getIssueCreate(getTimestamp('2024-05-20T01:00:00.000Z'))),
     expect: {
-      id: '118738',
-      body: {
-        id: '118738',
-        development: {
-          coding: 0,
-          pickup: 0,
-          review: 0,
-          handover: 0,
-          total: 0,
-        },
-        qa: {
-          pickup: 0,
-          testing: 0,
-          total: 0,
-        },
-        deployment: {
-          total: 0,
-        },
-        history: [],
-        assignees: [],
-        issueId: '118738',
-        issueKey: 'PT-13',
-        organizationId: '12345',
-        projectId: '14128',
-        projectKey: 'PT',
-        sprintId: 1764,
-        subtasks: [],
-        title: 'Parent Task [No subtasks]',
-        issueType: 'Task',
-        isDeleted: false,
-        deletedAt: null,
+      development: {
+        coding: toMilliseconds(0),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
+      qa: {
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
+      },
+      deployment: {
+        total: toMilliseconds(0),
+      },
+      history: [],
+      assignees: [],
+      issueId: '118738',
+      issueKey: 'PT-13',
+      organizationId: '12345',
+      projectId: '14128',
+      projectKey: 'PT',
+      sprintId: 1764,
+      subtasks: [],
+      title: 'Parent Task [No subtasks]',
+      issueType: 'Task',
+      isDeleted: false,
+      deletedAt: null,
     },
   },
   {
@@ -55,43 +52,39 @@ const operations = [
       getChangelog(Status.To_Do, Status.In_Progress, getTimestamp('2024-05-20T01:10:00.000Z'))
     ),
     expect: {
-      id: '118738',
-      body: {
-        id: '118738',
-        development: {
-          coding: 0,
-          pickup: 0,
-          review: 0,
-          handover: 0,
-          total: 0,
-        },
-        qa: {
-          pickup: 0,
-          testing: 0,
-          total: 0,
-        },
-        deployment: {
-          total: 0,
-        },
-        history: [
-          {
-            eventTime: 1716167400000,
-            status: 'In_Progress',
-          },
-        ],
-        assignees: [],
-        issueId: '118738',
-        issueKey: 'PT-13',
-        organizationId: '12345',
-        projectId: '14128',
-        projectKey: 'PT',
-        sprintId: 1764,
-        subtasks: [],
-        title: 'Parent Task [No subtasks]',
-        issueType: 'Task',
-        deletedAt: null,
-        isDeleted: false,
+      development: {
+        coding: toMilliseconds(0),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
+      qa: {
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
+      },
+      deployment: {
+        total: toMilliseconds(0),
+      },
+      history: [
+        {
+          eventTime: 1716167400000,
+          status: 'In_Progress',
+        },
+      ],
+      assignees: [],
+      issueId: '118738',
+      issueKey: 'PT-13',
+      organizationId: '12345',
+      projectId: '14128',
+      projectKey: 'PT',
+      sprintId: 1764,
+      subtasks: [],
+      title: 'Parent Task [No subtasks]',
+      issueType: 'Task',
+      deletedAt: null,
+      isDeleted: false,
     },
   },
   {
@@ -104,47 +97,43 @@ const operations = [
       )
     ),
     expect: {
-      id: '118738',
-      body: {
-        id: '118738',
-        development: {
-          coding: 20,
-          pickup: 0,
-          review: 0,
-          handover: 0,
-          total: 0,
-        },
-        qa: {
-          pickup: 0,
-          testing: 0,
-          total: 0,
-        },
-        deployment: {
-          total: 0,
-        },
-        history: [
-          {
-            eventTime: 1716167400000,
-            status: 'In_Progress',
-          },
-          {
-            eventTime: 1716168600000,
-            status: 'Ready_For_Review',
-          },
-        ],
-        assignees: [],
-        issueId: '118738',
-        issueKey: 'PT-13',
-        organizationId: '12345',
-        projectId: '14128',
-        projectKey: 'PT',
-        sprintId: 1764,
-        subtasks: [],
-        title: 'Parent Task [No subtasks]',
-        issueType: 'Task',
-        deletedAt: null,
-        isDeleted: false,
+      development: {
+        coding: toMilliseconds(20),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
+      qa: {
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
+      },
+      deployment: {
+        total: toMilliseconds(0),
+      },
+      history: [
+        {
+          eventTime: 1716167400000,
+          status: 'In_Progress',
+        },
+        {
+          eventTime: 1716168600000,
+          status: 'Ready_For_Review',
+        },
+      ],
+      assignees: [],
+      issueId: '118738',
+      issueKey: 'PT-13',
+      organizationId: '12345',
+      projectId: '14128',
+      projectKey: 'PT',
+      sprintId: 1764,
+      subtasks: [],
+      title: 'Parent Task [No subtasks]',
+      issueType: 'Task',
+      deletedAt: null,
+      isDeleted: false,
     },
   },
   {
@@ -157,51 +146,47 @@ const operations = [
       )
     ),
     expect: {
-      id: '118738',
-      body: {
-        id: '118738',
-        development: {
-          coding: 20,
-          pickup: 10,
-          review: 0,
-          handover: 0,
-          total: 0,
-        },
-        qa: {
-          pickup: 0,
-          testing: 0,
-          total: 0,
-        },
-        deployment: {
-          total: 0,
-        },
-        history: [
-          {
-            eventTime: 1716167400000,
-            status: 'In_Progress',
-          },
-          {
-            eventTime: 1716168600000,
-            status: 'Ready_For_Review',
-          },
-          {
-            eventTime: 1716169200000,
-            status: 'Code_Review',
-          },
-        ],
-        assignees: [],
-        issueId: '118738',
-        issueKey: 'PT-13',
-        organizationId: '12345',
-        projectId: '14128',
-        projectKey: 'PT',
-        sprintId: 1764,
-        subtasks: [],
-        title: 'Parent Task [No subtasks]',
-        issueType: 'Task',
-        deletedAt: null,
-        isDeleted: false,
+      development: {
+        coding: toMilliseconds(20),
+        pickup: toMilliseconds(10),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
+      qa: {
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
+      },
+      deployment: {
+        total: toMilliseconds(0),
+      },
+      history: [
+        {
+          eventTime: 1716167400000,
+          status: 'In_Progress',
+        },
+        {
+          eventTime: 1716168600000,
+          status: 'Ready_For_Review',
+        },
+        {
+          eventTime: 1716169200000,
+          status: 'Code_Review',
+        },
+      ],
+      assignees: [],
+      issueId: '118738',
+      issueKey: 'PT-13',
+      organizationId: '12345',
+      projectId: '14128',
+      projectKey: 'PT',
+      sprintId: 1764,
+      subtasks: [],
+      title: 'Parent Task [No subtasks]',
+      issueType: 'Task',
+      deletedAt: null,
+      isDeleted: false,
     },
   },
   {
@@ -214,57 +199,54 @@ const operations = [
       )
     ),
     expect: {
-      id: '118738',
-      body: {
-        id: '118738',
-        development: {
-          coding: 20,
-          pickup: 10,
-          review: 10,
-          handover: 0,
-          total: 0,
-        },
-        qa: {
-          pickup: 0,
-          testing: 0,
-          total: 0,
-        },
-        deployment: {
-          total: 0,
-        },
-        history: [
-          {
-            eventTime: 1716167400000,
-            status: 'In_Progress',
-          },
-          {
-            eventTime: 1716168600000,
-            status: 'Ready_For_Review',
-          },
-          {
-            eventTime: 1716169200000,
-            status: 'Code_Review',
-          },
-          {
-            eventTime: 1716169800000,
-            status: 'Dev_Complete',
-          },
-        ],
-        assignees: [],
-        issueId: '118738',
-        issueKey: 'PT-13',
-        organizationId: '12345',
-        projectId: '14128',
-        projectKey: 'PT',
-        sprintId: 1764,
-        subtasks: [],
-        title: 'Parent Task [No subtasks]',
-        issueType: 'Task',
-        deletedAt: null,
-        isDeleted: false,
+      development: {
+        coding: toMilliseconds(20),
+        pickup: toMilliseconds(10),
+        review: toMilliseconds(10),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
+      qa: {
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
+      },
+      deployment: {
+        total: toMilliseconds(0),
+      },
+      history: [
+        {
+          eventTime: 1716167400000,
+          status: 'In_Progress',
+        },
+        {
+          eventTime: 1716168600000,
+          status: 'Ready_For_Review',
+        },
+        {
+          eventTime: 1716169200000,
+          status: 'Code_Review',
+        },
+        {
+          eventTime: 1716169800000,
+          status: 'Dev_Complete',
+        },
+      ],
+      assignees: [],
+      issueId: '118738',
+      issueKey: 'PT-13',
+      organizationId: '12345',
+      projectId: '14128',
+      projectKey: 'PT',
+      sprintId: 1764,
+      subtasks: [],
+      title: 'Parent Task [No subtasks]',
+      issueType: 'Task',
+      deletedAt: null,
+      isDeleted: false,
     },
   },
+
   {
     name: 'Ready_For_QA',
     action: format(
@@ -275,59 +257,55 @@ const operations = [
       )
     ),
     expect: {
-      id: '118738',
-      body: {
-        id: '118738',
-        development: {
-          coding: 20,
-          pickup: 10,
-          review: 10,
-          handover: 10,
-          total: 50,
-        },
-        qa: {
-          pickup: 0,
-          testing: 0,
-          total: 0,
-        },
-        deployment: {
-          total: 0,
-        },
-        history: [
-          {
-            eventTime: 1716167400000,
-            status: 'In_Progress',
-          },
-          {
-            eventTime: 1716168600000,
-            status: 'Ready_For_Review',
-          },
-          {
-            eventTime: 1716169200000,
-            status: 'Code_Review',
-          },
-          {
-            eventTime: 1716169800000,
-            status: 'Dev_Complete',
-          },
-          {
-            eventTime: 1716170400000,
-            status: 'Ready_For_QA',
-          },
-        ],
-        assignees: [],
-        issueId: '118738',
-        issueKey: 'PT-13',
-        organizationId: '12345',
-        projectId: '14128',
-        projectKey: 'PT',
-        sprintId: 1764,
-        subtasks: [],
-        title: 'Parent Task [No subtasks]',
-        issueType: 'Task',
-        deletedAt: null,
-        isDeleted: false,
+      development: {
+        coding: toMilliseconds(20),
+        pickup: toMilliseconds(10),
+        review: toMilliseconds(10),
+        handover: toMilliseconds(10),
+        total: toMilliseconds(50),
       },
+      qa: {
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
+      },
+      deployment: {
+        total: toMilliseconds(0),
+      },
+      history: [
+        {
+          eventTime: 1716167400000,
+          status: 'In_Progress',
+        },
+        {
+          eventTime: 1716168600000,
+          status: 'Ready_For_Review',
+        },
+        {
+          eventTime: 1716169200000,
+          status: 'Code_Review',
+        },
+        {
+          eventTime: 1716169800000,
+          status: 'Dev_Complete',
+        },
+        {
+          eventTime: 1716170400000,
+          status: 'Ready_For_QA',
+        },
+      ],
+      assignees: [],
+      issueId: '118738',
+      issueKey: 'PT-13',
+      organizationId: '12345',
+      projectId: '14128',
+      projectKey: 'PT',
+      sprintId: 1764,
+      subtasks: [],
+      title: 'Parent Task [No subtasks]',
+      issueType: 'Task',
+      deletedAt: null,
+      isDeleted: false,
     },
   },
   {
@@ -340,64 +318,62 @@ const operations = [
       )
     ),
     expect: {
-      id: '118738',
-      body: {
-        development: {
-          coding: 20,
-          pickup: 10,
-          review: 10,
-          handover: 10,
-          total: 50,
-        },
-        qa: {
-          pickup: 5,
-          testing: 0,
-          total: 0,
-        },
-        deployment: {
-          total: 0,
-        },
-        history: [
-          {
-            eventTime: 1716167400000,
-            status: 'In_Progress',
-          },
-          {
-            eventTime: 1716168600000,
-            status: 'Ready_For_Review',
-          },
-          {
-            eventTime: 1716169200000,
-            status: 'Code_Review',
-          },
-          {
-            eventTime: 1716169800000,
-            status: 'Dev_Complete',
-          },
-          {
-            eventTime: 1716170400000,
-            status: 'Ready_For_QA',
-          },
-          {
-            eventTime: 1716170700000,
-            status: 'QA_In_Progress',
-          },
-        ],
-        assignees: [],
-        issueId: '118738',
-        issueKey: 'PT-13',
-        organizationId: '12345',
-        projectId: '14128',
-        projectKey: 'PT',
-        sprintId: 1764,
-        subtasks: [],
-        title: 'Parent Task [No subtasks]',
-        issueType: 'Task',
-        deletedAt: null,
-        isDeleted: false,
+      development: {
+        coding: toMilliseconds(20),
+        pickup: toMilliseconds(10),
+        review: toMilliseconds(10),
+        handover: toMilliseconds(10),
+        total: toMilliseconds(50),
       },
+      qa: {
+        pickup: toMilliseconds(5),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
+      },
+      deployment: {
+        total: toMilliseconds(0),
+      },
+      history: [
+        {
+          eventTime: 1716167400000,
+          status: 'In_Progress',
+        },
+        {
+          eventTime: 1716168600000,
+          status: 'Ready_For_Review',
+        },
+        {
+          eventTime: 1716169200000,
+          status: 'Code_Review',
+        },
+        {
+          eventTime: 1716169800000,
+          status: 'Dev_Complete',
+        },
+        {
+          eventTime: 1716170400000,
+          status: 'Ready_For_QA',
+        },
+        {
+          eventTime: 1716170700000,
+          status: 'QA_In_Progress',
+        },
+      ],
+      assignees: [],
+      issueId: '118738',
+      issueKey: 'PT-13',
+      organizationId: '12345',
+      projectId: '14128',
+      projectKey: 'PT',
+      sprintId: 1764,
+      subtasks: [],
+      title: 'Parent Task [No subtasks]',
+      issueType: 'Task',
+      deletedAt: null,
+      isDeleted: false,
     },
   },
+
   {
     name: 'QA_Pass_Deploy',
     action: format(
@@ -408,67 +384,63 @@ const operations = [
       )
     ),
     expect: {
-      id: '118738',
-      body: {
-        id: '118738',
-        development: {
-          coding: 20,
-          pickup: 10,
-          review: 10,
-          handover: 10,
-          total: 50,
-        },
-        qa: {
-          pickup: 5,
-          testing: 20,
-          total: 25,
-        },
-        deployment: {
-          total: 0,
-        },
-        history: [
-          {
-            eventTime: 1716167400000,
-            status: 'In_Progress',
-          },
-          {
-            eventTime: 1716168600000,
-            status: 'Ready_For_Review',
-          },
-          {
-            eventTime: 1716169200000,
-            status: 'Code_Review',
-          },
-          {
-            eventTime: 1716169800000,
-            status: 'Dev_Complete',
-          },
-          {
-            eventTime: 1716170400000,
-            status: 'Ready_For_QA',
-          },
-          {
-            eventTime: 1716170700000,
-            status: 'QA_In_Progress',
-          },
-          {
-            eventTime: 1716171900000,
-            status: 'QA_Pass_Deploy',
-          },
-        ],
-        assignees: [],
-        issueId: '118738',
-        issueKey: 'PT-13',
-        organizationId: '12345',
-        projectId: '14128',
-        projectKey: 'PT',
-        sprintId: 1764,
-        subtasks: [],
-        title: 'Parent Task [No subtasks]',
-        issueType: 'Task',
-        deletedAt: null,
-        isDeleted: false,
+      development: {
+        coding: toMilliseconds(20),
+        pickup: toMilliseconds(10),
+        review: toMilliseconds(10),
+        handover: toMilliseconds(10),
+        total: toMilliseconds(50),
       },
+      qa: {
+        pickup: toMilliseconds(5),
+        testing: toMilliseconds(20),
+        total: toMilliseconds(25),
+      },
+      deployment: {
+        total: toMilliseconds(0),
+      },
+      history: [
+        {
+          eventTime: 1716167400000,
+          status: 'In_Progress',
+        },
+        {
+          eventTime: 1716168600000,
+          status: 'Ready_For_Review',
+        },
+        {
+          eventTime: 1716169200000,
+          status: 'Code_Review',
+        },
+        {
+          eventTime: 1716169800000,
+          status: 'Dev_Complete',
+        },
+        {
+          eventTime: 1716170400000,
+          status: 'Ready_For_QA',
+        },
+        {
+          eventTime: 1716170700000,
+          status: 'QA_In_Progress',
+        },
+        {
+          eventTime: 1716171900000,
+          status: 'QA_Pass_Deploy',
+        },
+      ],
+      assignees: [],
+      issueId: '118738',
+      issueKey: 'PT-13',
+      organizationId: '12345',
+      projectId: '14128',
+      projectKey: 'PT',
+      sprintId: 1764,
+      subtasks: [],
+      title: 'Parent Task [No subtasks]',
+      issueType: 'Task',
+      deletedAt: null,
+      isDeleted: false,
     },
   },
   {
@@ -477,71 +449,67 @@ const operations = [
       getChangelog(Status.QA_Pass_Deploy, Status.Done, getTimestamp('2024-05-20T04:00:00.000Z'))
     ),
     expect: {
-      id: '118738',
-      body: {
-        id: '118738',
-        development: {
-          coding: 20,
-          pickup: 10,
-          review: 10,
-          handover: 10,
-          total: 50,
-        },
-        qa: {
-          pickup: 5,
-          testing: 20,
-          total: 25,
-        },
-        deployment: {
-          total: 95,
-        },
-        history: [
-          {
-            eventTime: 1716167400000,
-            status: 'In_Progress',
-          },
-          {
-            eventTime: 1716168600000,
-            status: 'Ready_For_Review',
-          },
-          {
-            eventTime: 1716169200000,
-            status: 'Code_Review',
-          },
-          {
-            eventTime: 1716169800000,
-            status: 'Dev_Complete',
-          },
-          {
-            eventTime: 1716170400000,
-            status: 'Ready_For_QA',
-          },
-          {
-            eventTime: 1716170700000,
-            status: 'QA_In_Progress',
-          },
-          {
-            eventTime: 1716171900000,
-            status: 'QA_Pass_Deploy',
-          },
-          {
-            eventTime: 1716177600000,
-            status: 'Done',
-          },
-        ],
-        assignees: [],
-        issueId: '118738',
-        issueKey: 'PT-13',
-        organizationId: '12345',
-        projectId: '14128',
-        projectKey: 'PT',
-        sprintId: 1764,
-        subtasks: [],
-        title: 'Parent Task [No subtasks]',
-        issueType: 'Task',
-        deletedAt: null,
-        isDeleted: false,
+      development: {
+        coding: toMilliseconds(20),
+        pickup: toMilliseconds(10),
+        review: toMilliseconds(10),
+        handover: toMilliseconds(10),
+        total: toMilliseconds(50),
       },
+      qa: {
+        pickup: toMilliseconds(5),
+        testing: toMilliseconds(20),
+        total: toMilliseconds(25),
+      },
+      deployment: {
+        total: toMilliseconds(95),
+      },
+      history: [
+        {
+          eventTime: 1716167400000,
+          status: 'In_Progress',
+        },
+        {
+          eventTime: 1716168600000,
+          status: 'Ready_For_Review',
+        },
+        {
+          eventTime: 1716169200000,
+          status: 'Code_Review',
+        },
+        {
+          eventTime: 1716169800000,
+          status: 'Dev_Complete',
+        },
+        {
+          eventTime: 1716170400000,
+          status: 'Ready_For_QA',
+        },
+        {
+          eventTime: 1716170700000,
+          status: 'QA_In_Progress',
+        },
+        {
+          eventTime: 1716171900000,
+          status: 'QA_Pass_Deploy',
+        },
+        {
+          eventTime: 1716177600000,
+          status: 'Done',
+        },
+      ],
+      assignees: [],
+      issueId: '118738',
+      issueKey: 'PT-13',
+      organizationId: '12345',
+      projectId: '14128',
+      projectKey: 'PT',
+      sprintId: 1764,
+      subtasks: [],
+      title: 'Parent Task [No subtasks]',
+      issueType: 'Task',
+      deletedAt: null,
+      isDeleted: false,
     },
   },
 ];
@@ -557,7 +525,8 @@ describe('Case 1', () => {
           s.changelog(operations[j].action.changelog);
         }
       }
-      expect(s.toJSON()).toStrictEqual(operations[i].expect);
+      const { id, ...obj } = s.toJSON().body;
+      expect(obj).toStrictEqual(operations[i].expect);
     });
   }
 });

@@ -3,6 +3,7 @@ import { MainTicket } from '../../src/lib/issue/main-ticket';
 import { Status, format, getChangelog, getIssueCreate, getTimestamp, issueType } from '../template';
 import { StatusMapping } from '../type';
 import test, { describe } from 'node:test';
+import { toMilliseconds } from '../milliseconds_converter';
 
 const operations = [
   // Create Parent Task
@@ -30,7 +31,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -48,6 +49,7 @@ const operations = [
       issueKey: 'PT-1',
       title: 'helo1',
       assignees: [],
+      isDeleted: false,
     },
     expect: {
       development: {
@@ -68,7 +70,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -102,6 +104,7 @@ const operations = [
       issueKey: 'PT-2',
       title: 'helo2',
       assignees: [],
+      isDeleted: false,
     },
     expect: {
       development: {
@@ -122,7 +125,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -170,6 +173,7 @@ const operations = [
       issueKey: 'PT-3',
       title: 'helo3',
       assignees: [],
+      isDeleted: false,
     },
     expect: {
       development: {
@@ -190,7 +194,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -275,7 +279,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -365,7 +369,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -460,7 +464,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -560,7 +564,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -664,7 +668,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -772,7 +776,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -884,7 +888,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -1000,7 +1004,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -1120,7 +1124,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -1245,7 +1249,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -1373,7 +1377,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -1505,7 +1509,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -1642,7 +1646,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -1783,7 +1787,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -1928,7 +1932,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -2077,7 +2081,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -2230,7 +2234,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -2387,7 +2391,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -2548,7 +2552,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -2713,7 +2717,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -2882,7 +2886,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -3055,7 +3059,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -3232,7 +3236,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -3387,7 +3391,7 @@ describe('Case 1', () => {
   for (let i = 0; i < operations.length; i++) {
     // for (let i = 0; i < 10; i++) {
     test(`Test ${i}: ${operations[i].name}`, () => {
-      let s: MainTicket = new MainTicket({});
+      let s = {} as MainTicket;
       for (let j = 0; j <= i; j++) {
         const operation = operations[j];
         switch (operation.operator) {
@@ -3403,7 +3407,8 @@ describe('Case 1', () => {
             break;
         }
       }
-      expect(s.toJSON()).toStrictEqual(operations[i].expect);
+      const { id, isDeleted, deletedAt, ...obj } = s.toJSON().body;
+      expect(obj).toStrictEqual(operations[i].expect);
     });
   }
 });

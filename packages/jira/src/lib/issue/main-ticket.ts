@@ -142,7 +142,7 @@ export class MainTicket {
         }
       }
       this.subtasks = this.subtasks.map((subtask, i) => {
-        if (changelogs.issueId === this.subtasks[i].issueId && subtask.isDeleted === false) {
+        if (changelogs.issueId == this.subtasks[i].issueId && subtask.isDeleted === false) {
           const updatedSubtask = new SubTicket(subtask, this.StatusMapping, this.Status);
           if (items.field === ChangelogField.ASSIGNEE) {
             const assignee = { assigneeId: items.to, name: items.toString };

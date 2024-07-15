@@ -1,3 +1,4 @@
+import { toMilliseconds } from '../milliseconds_converter';
 import { MainTicket } from '../../src/lib/issue/main-ticket';
 import {
   getAssigneeAdded,
@@ -16,25 +17,25 @@ const operations = [
     action: format(getIssueCreate(getTimestamp('2024-05-20T02:00:00.000Z'))),
     expect: {
       development: {
-        coding: 0,
-        pickup: 0,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(0),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [],
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -50,19 +51,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 0,
-        pickup: 0,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(0),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -73,7 +74,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -93,19 +94,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 50,
-        pickup: 0,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(50),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -120,7 +121,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -140,19 +141,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 50,
-        pickup: 15,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(50),
+        pickup: toMilliseconds(15),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -171,7 +172,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -187,19 +188,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 50,
-        pickup: 15,
-        review: 5,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(50),
+        pickup: toMilliseconds(15),
+        review: toMilliseconds(5),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -222,7 +223,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -242,19 +243,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 55,
-        pickup: 15,
-        review: 5,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(55),
+        pickup: toMilliseconds(15),
+        review: toMilliseconds(5),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -281,7 +282,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -301,19 +302,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 55,
-        pickup: 20,
-        review: 5,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(55),
+        pickup: toMilliseconds(20),
+        review: toMilliseconds(5),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -344,7 +345,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -360,19 +361,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 55,
-        pickup: 20,
-        review: 10,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(55),
+        pickup: toMilliseconds(20),
+        review: toMilliseconds(10),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -407,7 +408,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -427,19 +428,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 70,
-        pickup: 20,
-        review: 10,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(20),
+        review: toMilliseconds(10),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -478,7 +479,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -498,19 +499,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 70,
-        pickup: 25,
-        review: 10,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(25),
+        review: toMilliseconds(10),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -553,7 +554,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -573,19 +574,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 70,
-        pickup: 25,
-        review: 20,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(25),
+        review: toMilliseconds(20),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -632,7 +633,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -652,19 +653,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 70,
-        pickup: 25,
-        review: 20,
-        handover: 30,
-        total: 145,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(25),
+        review: toMilliseconds(20),
+        handover: toMilliseconds(30),
+        total: toMilliseconds(145),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -715,7 +716,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -735,19 +736,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 70,
-        pickup: 25,
-        review: 20,
-        handover: 30,
-        total: 145,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(25),
+        review: toMilliseconds(20),
+        handover: toMilliseconds(30),
+        total: toMilliseconds(145),
       },
       qa: {
-        pickup: 5,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(5),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -802,7 +803,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -822,19 +823,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 70,
-        pickup: 25,
-        review: 20,
-        handover: 30,
-        total: 145,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(25),
+        review: toMilliseconds(20),
+        handover: toMilliseconds(30),
+        total: toMilliseconds(145),
       },
       qa: {
-        pickup: 5,
-        testing: 25,
-        total: 30,
+        pickup: toMilliseconds(5),
+        testing: toMilliseconds(25),
+        total: toMilliseconds(30),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [
         {
@@ -893,7 +894,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -909,19 +910,19 @@ const operations = [
     ),
     expect: {
       development: {
-        coding: 70,
-        pickup: 25,
-        review: 20,
-        handover: 30,
-        total: 145,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(25),
+        review: toMilliseconds(20),
+        handover: toMilliseconds(30),
+        total: toMilliseconds(145),
       },
       qa: {
-        pickup: 5,
-        testing: 25,
-        total: 30,
+        pickup: toMilliseconds(5),
+        testing: toMilliseconds(25),
+        total: toMilliseconds(30),
       },
       deployment: {
-        total: 55,
+        total: toMilliseconds(55),
       },
       history: [
         {
@@ -984,7 +985,7 @@ const operations = [
       assignees: [],
       issueId: '118738',
       issueKey: 'PT-13',
-      orgId: 12345,
+      organizationId: '12345',
       projectId: '14128',
       projectKey: 'PT',
       sprintId: 1764,
@@ -1006,7 +1007,8 @@ describe('Case 2', () => {
           s.changelog(operations[j].action.changelog);
         }
       }
-      expect(s.toJSON()).toStrictEqual(operations[i].expect);
+      const { id, deletedAt, isDeleted, ...obj } = s.toJSON().body;
+      expect(obj).toStrictEqual(operations[i].expect);
     });
   }
 });

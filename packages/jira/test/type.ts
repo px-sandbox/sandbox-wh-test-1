@@ -23,7 +23,7 @@ export type CycleTime = {
   issueId: string;
   sprintId: string;
   subtasks: Subtasks[];
-  orgId: string;
+  organizationId: string;
   projectId: string;
   issueKey: string;
   projectKey: string;
