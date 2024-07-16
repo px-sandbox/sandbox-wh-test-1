@@ -13,8 +13,11 @@ export async function logProcessToRetry(
     body,
     attributes: { MessageDeduplicationId, MessageGroupId },
   } = record;
-
-  const { retry, requestId, resourceId, message } = JSON.parse(body);
+  const {
+    retry,
+    reqCtx: { requestId, resourceId },
+    message,
+  } = JSON.parse(body);
   try {
     const { processId } = message;
     // entry in dynamodb table

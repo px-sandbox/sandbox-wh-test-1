@@ -18,11 +18,10 @@ import { CycleTimeOverallValidator } from '../validations';
 async function fetchOverallCycleTime(
   reqCtx: Other.Type.RequestCtx,
   projectId: string,
-  startDate: string,
-  endDate: string,
-  orgId: string
+  orgId: string,
+  sprintIds: string[]
 ): Promise<number> {
-  const sprints = await fetchSprintsFromES(reqCtx, projectId, startDate, endDate, orgId);
+  const sprints = await fetchSprintsFromES(reqCtx, projectId, sprintIds, orgId);
 
   return calculateCycleTime(reqCtx, sprints, orgId);
 }
@@ -30,17 +29,15 @@ export const cycleTimeOverall = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const { requestId } = event.requestContext;
-  const startDate = event.queryStringParameters?.startDate ?? '';
-  const endDate = event.queryStringParameters?.endDate ?? '';
+  const sprintIds: string[] | undefined = event.queryStringParameters?.sprintIds?.split(',') || [];
   const orgId = event.queryStringParameters?.orgId ?? '';
   const projectId = event.queryStringParameters?.projectId ?? '';
 
   const response = await fetchOverallCycleTime(
     { requestId, resourceId: projectId },
     projectId,
-    startDate,
-    endDate,
-    orgId
+    orgId,
+    sprintIds
   );
   return responseParser
     .setBody({ overall: response })

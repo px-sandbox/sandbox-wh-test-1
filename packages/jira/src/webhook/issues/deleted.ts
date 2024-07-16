@@ -39,7 +39,7 @@ export async function remove(
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
   const projectKey = issueData?.projectKey;
   if (!projectKeys.includes(projectKey)) {
-    logger.info('processIssueDeletedEvent: Project not available in our system');
+    logger.info({ message: 'processIssueDeletedEvent: Project not available in our system' });
     return;
   }
   const { _id, ...processIssue } = issueData;
@@ -58,5 +58,5 @@ export async function remove(
   });
 
   // soft delete cycle time document
-  await softDeleteCycleTimeDocument(issueId, issueData.issueType, parentId);
+  await softDeleteCycleTimeDocument(issueId, issueData.issueType, organization, parentId);
 }

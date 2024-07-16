@@ -6,12 +6,17 @@ import { getIssueChangelogs } from '../lib/get-issue-changelogs';
 import { JiraClient } from '../lib/jira-client';
 import { getReopenRateDataById } from '../repository/issue/get-issue';
 
-function getSprintForTo(to: string, from: string): string {
+export function getSprintForTo(to: string, from: string): string | null {
   const toElements = to.split(', ');
   const fromElements = from.split(', ');
-
-  const result = toElements.filter((item) => !fromElements.includes(item));
-
+  let result = [];
+  if (toElements.length === 0) {
+    result[0] = null;
+  } else if (toElements.length === 1) {
+    result[0] = toElements[0];
+  } else {
+    result = toElements.filter((item) => !fromElements.includes(item));
+  }
   return result[0];
 }
 async function prepareData(

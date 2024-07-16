@@ -32,7 +32,7 @@ export async function create(
   // checking if issue type is allowed
 
   if (!ALLOWED_ISSUE_TYPES.includes(issue.issue.fields.issuetype.name)) {
-    logger.info('processIssueCreatedEvent: Issue type not allowed');
+    logger.info({message: 'processIssueCreatedEvent: Issue type not allowed'});
     return;
   }
 
@@ -40,7 +40,7 @@ export async function create(
   const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
   const projectKey = issue.issue.fields.project.key;
   if (!projectKeys.includes(projectKey)) {
-    logger.info('processIssueCreatedEvent: Project not available in our system');
+    logger.info({message: 'processIssueCreatedEvent: Project not available in our system'});
     return;
   }
 

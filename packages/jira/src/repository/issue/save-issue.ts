@@ -34,7 +34,6 @@ export async function saveIssueDetails(
     const [formattedData] = await searchedDataFormator(issueData);
     if (formattedData) {
       updatedData.id = formattedData._id;
-      updatedData.body.changelog = [...formattedData.changelog, ...data.body.changelog];
     }
     await esClientObj.putDocument(Jira.Enums.IndexName.Issue, updatedData);
     logger.info({ requestId, resourceId, message: 'saveIssueDetails.successful' });

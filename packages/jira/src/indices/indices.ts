@@ -193,19 +193,6 @@ const indices = [
                 subtaskKey: { type: 'keyword' },
               },
             },
-            changelog: {
-              properties: {
-                id: { type: 'keyword' },
-                items: {
-                  properties: {
-                    field: { type: 'text' },
-                    statusChangedFrom: { type: 'text' },
-                    statusChangedTo: { type: 'text' },
-                    statusChangedOn: { type: 'date', format: 'strict_date_optional_time' },
-                  },
-                },
-              },
-            },
             sprint: {
               properties: {
                 name: { type: 'keyword' },
@@ -342,6 +329,7 @@ const indices = [
         body: {
           type: 'object',
           properties: {
+            id: { type: 'text' },
             organizationId: { type: 'keyword' },
             issueId: { type: 'keyword' },
             projectId: { type: 'keyword' },
@@ -364,14 +352,13 @@ const indices = [
               properties: {
                 pickup: { type: 'long' },
                 testing: { type: 'long' },
-                handover: { type: 'long' },
                 total: { type: 'long' },
               },
             },
             deployment: {
               type: 'object',
 
-              properties: { deploy: { type: 'long' }, total: { type: 'long' } },
+              properties: { total: { type: 'long' } },
             },
             assignees: {
               properties: {
@@ -379,11 +366,10 @@ const indices = [
                 name: { type: 'text' },
               },
             },
-            hasSubtask: { type: 'boolean' },
-            subtask: {
+            subtasks: {
               properties: {
-                issueId: { type: 'keyword' },
-                issueKey: { type: 'keyword' },
+                issueId: { type: 'text' },
+                issueKey: { type: 'text' },
                 title: { type: 'text' },
                 development: {
                   type: 'object',
@@ -397,25 +383,31 @@ const indices = [
                 },
                 assignees: {
                   properties: {
-                    assigneeId: { type: 'keyword' },
+                    assigneeId: { type: 'text' },
                     name: { type: 'text' },
                   },
                 },
+                history: {
+                  type: 'object',
+                  properties: {
+                    eventTime: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
+                    status: { type: 'text' },
+                  },
+                },
                 isDeleted: { type: 'boolean' },
-                deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+                deletedAt: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
               },
             },
             history: {
               type: 'object',
               properties: {
-                issueId: { type: 'keyword' },
-                issueType: { type: 'keyword' },
                 eventTime: { type: 'date', format: 'strict_date_optional_time' },
                 status: { type: 'keyword' },
               },
             },
+            issueType: { type: 'text' },
             isDeleted: { type: 'boolean' },
-            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
           },
         },
       },

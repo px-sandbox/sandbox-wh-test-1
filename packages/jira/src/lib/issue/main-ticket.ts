@@ -5,10 +5,12 @@ import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { SubTicket } from './sub-ticket';
 import { calculateTimeDifference } from '../../util/cycle-time';
+import { mappingPrefixes } from 'src/constant/config';
+import { getSprintForTo } from 'src/util/prepare-reopen-rate';
 
 export class MainTicket {
   public issueId: string;
-  public sprintId: string;
+  public sprintId: string | null;
   public subtasks: Subtasks[];
   public orgId: string;
   public projectId: string;
@@ -96,12 +98,18 @@ export class MainTicket {
     const [items] = changelogs.items.filter(
       (item: Jira.ExternalType.Webhook.ChangelogItem) =>
         item.fieldId === ChangelogField.STATUS ||
-        item.field === ChangelogField.CUSTOM_FIELD ||
-        item.field === ChangelogField.ASSIGNEE
+        item.field === ChangelogField.SPRINT ||
+        item.field === ChangelogField.ASSIGNEE ||
+        item.fieldId === ChangelogField.SUMMARY
     );
 
-    if (items && items.field === ChangelogField.CUSTOM_FIELD) {
-      this.sprintId = items.to;
+    if (items && items.field === ChangelogField.SPRINT) {
+      if (items.to === null) {
+        this.sprintId = null;
+        return;
+      }
+      const sprintId = getSprintForTo(items.to, items.from);
+      this.sprintId = sprintId ? `${mappingPrefixes.sprint}_${sprintId}` : null;
     }
     if (items) {
       const statuses = [
@@ -117,49 +125,68 @@ export class MainTicket {
           changelogs.issuetype as IssuesTypes
         )
       ) {
-        if (items.field === ChangelogField.ASSIGNEE) {
-          const assignee = { assigneeId: items.to, name: items.toString };
-          this.addAssignee(assignee);
-        }
-        if (items.fieldId === ChangelogField.STATUS) {
-          if (
-            items.to === this.StatusMapping[this.Status.Done].id &&
-            changelogs.issuetype !== IssuesTypes.SUBTASK
-          ) {
-            this.statusTransition(items.to, changelogs.timestamp);
-          } else if (this.subtasks.length > 0 && statuses.includes(items.to)) {
-            const toStatus = this.StatusMapping[items.to].label;
-            this.updateHistory(toStatus, changelogs.timestamp);
-          } else if (
-            items.to === this.StatusMapping[this.Status.Ready_For_QA].id &&
-            this.subtasks.length > 0
-          ) {
-            const toStatus = this.StatusMapping[items.to].label;
-            this.updateHistory(toStatus, changelogs.timestamp);
-          } else {
-            this.statusTransition(items.to, changelogs.timestamp);
-          }
+        const isAllSubtaskDeleted = this.subtasks.every((subtask) => subtask.isDeleted);
+        switch (items.fieldId) {
+          case ChangelogField.ASSIGNEE:
+            const assignee = { assigneeId: items.to, name: items.toString };
+            this.addAssignee(assignee);
+            break;
+          case ChangelogField.SUMMARY:
+            this.title = items.toString;
+            break;
+          case ChangelogField.STATUS:
+            if (
+              items.to === this.StatusMapping[this.Status.Done].id &&
+              changelogs.issuetype !== IssuesTypes.SUBTASK
+            ) {
+              this.statusTransition(items.to, changelogs.timestamp);
+            } else if (
+              this.subtasks.length > 0 &&
+              statuses.includes(items.to) &&
+              !isAllSubtaskDeleted
+            ) {
+              const toStatus = this.StatusMapping[items.to].label;
+              this.updateHistory(toStatus, changelogs.timestamp);
+            } else if (
+              items.to === this.StatusMapping[this.Status.Ready_For_QA].id &&
+              this.subtasks.length > 0
+            ) {
+              const toStatus = this.StatusMapping[items.to].label;
+              this.updateHistory(toStatus, changelogs.timestamp);
+            } else if (this.subtasks.length > 0 && isAllSubtaskDeleted) {
+              this.statusTransition(items.to, changelogs.timestamp);
+            } else {
+              this.statusTransition(items.to, changelogs.timestamp);
+            }
+            break;
+          default:
+            break;
         }
       }
       this.subtasks = this.subtasks.map((subtask, i) => {
-        if (changelogs.issueId == this.subtasks[i].issueId && subtask.isDeleted === false) {
-          const updatedSubtask = new SubTicket(subtask, this.StatusMapping, this.Status);
-          if (items.field === ChangelogField.ASSIGNEE) {
-            const assignee = { assigneeId: items.to, name: items.toString };
-            updatedSubtask.addAssignee(assignee);
-          }
-          if (
-            items.to !== String(this.StatusMapping[this.Status.To_Do].id) &&
-            items.fieldId === ChangelogField.STATUS
-          ) {
-            updatedSubtask.statusTransition(items.to, changelogs.timestamp);
-            updatedSubtask.toJSON();
-            const { status } = updatedSubtask.history.slice(-2)[0];
-            this.overLappingTimeForSubtask(items.to, status);
-            return updatedSubtask;
+        const updatedSubtask = new SubTicket(subtask, this.StatusMapping, this.Status);
+        if (changelogs.issueId === this.subtasks[i].issueId && subtask.isDeleted === false) {
+          switch (items.fieldId) {
+            case ChangelogField.ASSIGNEE:
+              const assignee = { assigneeId: items.to, name: items.toString };
+              updatedSubtask.addAssignee(assignee);
+              break;
+            case ChangelogField.SUMMARY:
+              updatedSubtask.updateTitle(items.toString);
+              break;
+            case ChangelogField.STATUS:
+              if (items.to !== String(this.StatusMapping[this.Status.To_Do].id)) {
+                updatedSubtask.statusTransition(items.to, changelogs.timestamp);
+                updatedSubtask.toJSON();
+                const { status } = updatedSubtask.history.slice(-2)[0];
+                this.overLappingTimeForSubtask(items.to, status);
+              }
+              break;
+            default:
+              break;
           }
         }
-        return subtask;
+        return updatedSubtask;
       });
     }
   }
@@ -310,7 +337,11 @@ export class MainTicket {
 
     const allowedTransitions = validTransitions[currentStatus];
     if (!allowedTransitions) {
-      throw new Error(`Invalid_Status_Transition: ${currentStatus}`);
+      logger.info({
+        message: 'Invalid_Status_Transition',
+        data: { status: currentStatus, issueKey: this.issueKey },
+      });
+      return false;
     }
 
     return allowedTransitions.includes(newStatus);
@@ -359,7 +390,10 @@ export class MainTicket {
 
     this.updateHistory(toStatus, timestamp);
     this.calDevelopmentTime();
-    if (toStatus === this.StatusMapping[this.Status.QA_Pass_Deploy].label) {
+    if (
+      toStatus === this.StatusMapping[this.Status.QA_Pass_Deploy].label ||
+      this.StatusMapping[this.Status.QA_Failed].label
+    ) {
       this.calQaTotals();
     }
   }
@@ -444,9 +478,9 @@ export class MainTicket {
 
   public toJSON(): Jira.Type.CycleTime {
     return {
-      id: this.issueId,
+      id: `${this.orgId}_${this.issueId.replace(mappingPrefixes.issue, mappingPrefixes.cycleTime)}`,
       body: {
-        id: this.issueId,
+        id: this.issueId.replace(mappingPrefixes.issue, mappingPrefixes.cycleTime),
         issueId: this.issueId,
         sprintId: this.sprintId,
         subtasks: this.subtasks.map((subtask) =>

@@ -2,18 +2,15 @@
 /* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
+import { logger } from 'core';
 import esb from 'elastic-builder';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-function getQuery(
-  sprintArr: string[],
-  orgId: string,
-  sortKey?: Jira.Enums.CycleTimeSortKey,
-  sortOrder?: 'asc' | 'desc'
-): esb.RequestBodySearch {
+function getQuery(sprintArr: string[], orgId: string): esb.RequestBodySearch {
   const baseAgg = esb
     .termsAggregation('sprints', 'body.sprintId')
+    .size(sprintArr.length)
     .agg(esb.avgAggregation('avg_development_coding', 'body.development.coding'))
     .agg(esb.avgAggregation('avg_development_pickup', 'body.development.pickup'))
     .agg(esb.avgAggregation('avg_development_handover', 'body.development.handover'))
@@ -48,9 +45,7 @@ function getQuery(
         })
         .script('params.devTotal + params.qaTotal')
     );
-  if (sortKey) {
-    baseAgg.agg(esb.bucketSortAggregation('sorted').sort([esb.sort(sortKey, sortOrder)]));
-  }
+
   return esb
     .requestBodySearch()
     .query(
@@ -83,9 +78,7 @@ export async function sprintLevelSummaryCalc(
     startDate: string;
     endDate: string;
   }[],
-  orgId: string,
-  sortKey?: Jira.Enums.CycleTimeSortKey,
-  sortOrder?: 'asc' | 'desc'
+  orgId: string
 ): Promise<Jira.Type.CycleTimeSummary[] | undefined> {
   const sprintArr = sprints.map((sp) => sp.sprintId);
 
@@ -107,8 +100,8 @@ export async function sprintLevelSummaryCalc(
       endDate: sp.endDate,
     };
   });
-
-  const summaryQuery = getQuery(sprintArr, orgId, sortKey, sortOrder);
+  logger.info({ message: 'cycle_time_summary_query', data: JSON.stringify(sprintArr) });
+  const summaryQuery = getQuery(sprintArr, orgId);
 
   const result = await esClientObj.queryAggs<Jira.Type.SprintLevelSummaryResult>(
     Jira.Enums.IndexName.CycleTime,

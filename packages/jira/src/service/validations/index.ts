@@ -59,8 +59,6 @@ export const CycleTimeOverallValidator = {
     queryStringParameters: {
       type: 'object',
       properties: {
-        startDate: { type: 'string', format: 'date-time' },
-        endDate: { type: 'string', format: 'date-time' },
         orgId: {
           type: 'string',
           pattern:
@@ -70,8 +68,12 @@ export const CycleTimeOverallValidator = {
           type: 'string',
           pattern: '^jira_project_\\d+$',
         },
+        sprintIds: {
+          type: 'string',
+          pattern: '^jira_sprint_\\d+(,jira_sprint_\\d+)*$',
+        },
       },
-      required: ['startDate', 'endDate', 'orgId', 'projectId'],
+      required: ['orgId', 'projectId', 'sprintIds'],
     },
   },
 };
@@ -82,8 +84,6 @@ export const CycleTimeSummaryValidator = {
     queryStringParameters: {
       type: 'object',
       properties: {
-        startDate: { type: 'string', format: 'date-time' },
-        endDate: { type: 'string', format: 'date-time' },
         orgId: {
           type: 'string',
           pattern:
@@ -93,11 +93,15 @@ export const CycleTimeSummaryValidator = {
           type: 'string',
           pattern: '^jira_project_\\d+$',
         },
+        sprintIds: {
+          type: 'string',
+          pattern: '^jira_sprint_\\d+(,jira_sprint_\\d+)*$',
+        },
         sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
         sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
         type: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSummaryType) },
       },
-      required: ['startDate', 'endDate', 'orgId', 'projectId', 'type'],
+      required: ['orgId', 'projectId', 'type', 'sprintIds'],
     },
   },
 };

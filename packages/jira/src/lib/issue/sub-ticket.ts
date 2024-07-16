@@ -58,6 +58,10 @@ export class SubTicket {
     this.assignees.push(assignee);
   }
 
+  public updateTitle(title: string): void {
+    this.title = title;
+  }
+
   private isValidStatusTransition(currentStatus: string, newStatus: string): boolean {
     const validTransitions: Record<string, string[]> = {
       To_Do: ['In_Progress'],
@@ -70,7 +74,11 @@ export class SubTicket {
 
     const allowedTransitions = validTransitions[currentStatus];
     if (!allowedTransitions) {
-      throw new Error(`Invalid_Status_Transition: ${currentStatus} => ${newStatus}`);
+      logger.info({
+        message: 'Invalid_Status_Transition_Subtask:',
+        data: { status: `${currentStatus} => ${newStatus}`, issueKey: this.issueKey },
+      });
+      return true;
     }
 
     return allowedTransitions.includes(newStatus);

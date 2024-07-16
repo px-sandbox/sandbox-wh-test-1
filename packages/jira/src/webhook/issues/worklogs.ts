@@ -69,7 +69,7 @@ export async function worklog(
     // checking if issue type is allowed
 
     if (!ALLOWED_ISSUE_TYPES.includes(issueData?.issueType)) {
-      logger.info('processWorklogEvent: Issue type not allowed');
+      logger.info({message: 'processWorklogEvent: Issue type not allowed'});
       return;
     }
 
@@ -77,7 +77,7 @@ export async function worklog(
     const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
     const projectKey = issueData?.projectKey;
     if (!projectKeys.includes(projectKey)) {
-      logger.info('processWorklogEvent: Project not available in our system');
+      logger.info({message: 'processWorklogEvent: Project not available in our system'});
       return;
     }
 

@@ -7,6 +7,7 @@ import { APIGatewayProxyEvent } from 'aws-lambda';
 import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
+import { v4 as uuid } from 'uuid';
 
 const sqsClient = SQSClient.getInstance();
 export async function initializeOctokit(): Promise<
@@ -92,7 +93,7 @@ async function getGHCopilotReports(
 }
 
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
-  const requestId = event?.requestContext?.requestId;
+  const requestId = uuid();
   try {
     const octokit = await initializeOctokit();
     await getGHCopilotReports(octokit, requestId);

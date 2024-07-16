@@ -30,11 +30,12 @@ async function checkAndSave(
         reqCtx
       )
     ),
-    ...sprints.map(async (sprint) =>
+    ...sprints.map(async (sprint, i) =>
       sqsClient.sendMessage(
         { organization, projectId, originBoardId, sprintId: sprint.id },
         Queue.qIssueMigrate.queueUrl,
-        reqCtx
+        reqCtx,
+        12 * i
       )
     ),
   ]);

@@ -2,7 +2,6 @@ import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import moment from 'moment';
 import { getIssueStatusForReopenRate } from './issue-status';
-import { getWorkingTime } from './timezone-calculation';
 
 export async function initializeMapping(orgId: string): Promise<HitBody> {
   try {
@@ -15,12 +14,12 @@ export async function initializeMapping(orgId: string): Promise<HitBody> {
 }
 
 export function calculateTimeDifference(
-  fromTime: string | undefined | number,
-  toTime: string | undefined | number
+  endTime: string | undefined | number,
+  startTime: string | undefined | number
 ): number {
-  if (!fromTime || !toTime) return 0;
-  const fromTimeMoment = moment(fromTime);
-  const toTimeMoment = moment(toTime);
-  const time = getWorkingTime(fromTimeMoment, toTimeMoment, '0');
+  if (!startTime || !endTime) return 0;
+  const startTimeMoment = moment(startTime);
+  const endTimeMoment = moment(endTime);
+  const time = endTimeMoment.diff(startTimeMoment, 'milliseconds');
   return time;
 }
