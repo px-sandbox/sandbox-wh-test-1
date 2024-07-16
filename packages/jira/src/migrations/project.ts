@@ -42,7 +42,8 @@ async function checkAndSave(
     sqsClient.sendMessage(
       { organization, projectId: project.id },
       Queue.qBoardMigrate.queueUrl,
-      reqCtx
+      reqCtx,
+      12
     ),
   ]);
 }

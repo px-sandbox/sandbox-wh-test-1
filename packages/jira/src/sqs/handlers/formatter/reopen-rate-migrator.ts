@@ -14,6 +14,7 @@ import { JiraClient } from '../../../lib/jira-client';
 import { ParamsMapping } from '../../../model/params-mapping';
 import { getIssueStatusForReopenRate } from '../../../util/issue-status';
 import { reopenChangelogCals } from '../../../util/reopen-body-formatter';
+import { Jira } from 'abstraction';
 
 const ddbClient = DynamoDbDocClient.getInstance();
 const sqsClient = SQSClient.getInstance();
@@ -40,8 +41,8 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
           data: { messageBody },
         });
 
-        const organizationId = messageBody?.organization[0]?.id;
-        const organizationName = messageBody?.organization[0]?.name;
+        const organizationId = messageBody?.orgId;
+        const organizationName = messageBody?.organization;
         const boardId = messageBody?.boardId;
         const issueKey = messageBody?.issue?.key;
         const projectId = messageBody?.issue?.fields?.project?.id;
@@ -49,7 +50,7 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
         const sprintId = messageBody?.sprintId;
         const jiraClient = await JiraClient.getClient(organizationName);
         const changelogArr: ChangelogItem[] = await getIssueChangelogs(
-          messageBody.bugId,
+          messageBody.issue.id,
           jiraClient
         );
 
@@ -67,7 +68,7 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
         const reopenEntries = await reopenChangelogCals(
           {
             input: changelogArr,
-            issueId: messageBody.bugId,
+            issueId: messageBody.issue.id,
             sprintId,
             organizationId,
             boardId,
@@ -90,17 +91,21 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
 
         const newOrganizationID = organizationId?.split('_')[2];
         const parentId = await getParentId(
-          `${mp.reopen_rate}_${messageBody.bugId}_${mp.sprint}_${sprintId}_${mp.org}_${newOrganizationID}`
+          `${mp.reopen_rate}_${messageBody.issue.id}_${mp.sprint}_${sprintId}_${mp.org}_${newOrganizationID}`
         );
 
         await Promise.all(
           reopenEntries.map(async (entry): Promise<void> => {
             const id = parentId || uuid();
             const body = entry;
-            await sqsClient.sendMessage({ id, body }, Queue.qJiraIndex.queueUrl, {
-              requestId,
-              resourceId,
-            });
+            await sqsClient.sendMessage(
+              { data: { id, body }, index: Jira.Enums.IndexName.ReopenRate },
+              Queue.qJiraIndex.queueUrl,
+              {
+                requestId,
+                resourceId,
+              }
+            );
           })
         );
         logger.info({ requestId, resourceId, message: 'reopenRateInfoQueue.success' });
