@@ -1,15 +1,14 @@
-name: studiographene-ci
-
+name: CI
 on:
   pull_request: {}
   issue_comment:
-
 jobs:
   call-workflow:
     uses: studiographene/github-action-workflows/.github/workflows/nodejs-ci.yml@master # if you want alternatively pin to tag version version
+    secrets: inherit
+    permissions: write-all
     with:
       package_manager: pnpm
       lint_command: pnpm run -r --aggregate-output --reporter=append-only --no-bail lint
       excluded_jobs: docker, build
-    secrets: inherit
-    permissions: write-all
+      
