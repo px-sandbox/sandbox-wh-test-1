@@ -1362,7 +1362,7 @@ const operations = [
       },
       qa: {
         pickup: toMilliseconds(30),
-        testing: 30,
+        testing: toMilliseconds(30),
         total: toMilliseconds(60),
       },
       deployment: {
@@ -1481,7 +1481,7 @@ const operations = [
       },
       qa: {
         pickup: toMilliseconds(30),
-        testing: 30,
+        testing: toMilliseconds(30),
         total: toMilliseconds(60),
       },
       deployment: {

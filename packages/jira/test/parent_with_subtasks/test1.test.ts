@@ -1,8 +1,7 @@
-import { expect } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { MainTicket } from '../../src/lib/issue/main-ticket';
 import { Status, format, getChangelog, getIssueCreate, getTimestamp, issueType } from '../template';
 import { StatusMapping } from '../type';
-import test, { describe } from 'node:test';
 import { toMilliseconds } from '../milliseconds_converter';
 
 const operations = [
@@ -13,19 +12,19 @@ const operations = [
     action: format(getIssueCreate(getTimestamp('2024-05-20T10:00:00.000Z'))),
     expect: {
       development: {
-        coding: 0,
-        pickup: 0,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(0),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       history: [],
       assignees: [],
@@ -53,19 +52,19 @@ const operations = [
     },
     expect: {
       development: {
-        coding: 0,
-        pickup: 0,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(0),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -80,11 +79,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -108,19 +107,19 @@ const operations = [
     },
     expect: {
       development: {
-        coding: 0,
-        pickup: 0,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(0),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -135,11 +134,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -149,11 +148,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -177,19 +176,19 @@ const operations = [
     },
     expect: {
       development: {
-        coding: 0,
-        pickup: 0,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(0),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -204,11 +203,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -218,11 +217,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -232,11 +231,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -256,25 +255,25 @@ const operations = [
         Status.To_Do,
         Status.In_Progress,
         getTimestamp('2024-05-20T10:10:00.000Z'),
-        1,
+        '1',
         issueType.SubTask
       )
     ).changelog,
     expect: {
       development: {
-        coding: 0,
-        pickup: 0,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(0),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -289,11 +288,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -308,11 +307,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -322,11 +321,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -352,19 +351,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 0,
-        pickup: 0,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(0),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -379,11 +378,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -398,11 +397,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -412,11 +411,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -447,19 +446,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 0,
-        pickup: 0,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(0),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -474,11 +473,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -493,11 +492,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -512,11 +511,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -547,19 +546,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 50,
-        pickup: 0,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(50),
+        pickup: toMilliseconds(0),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -574,11 +573,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -597,11 +596,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -616,11 +615,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -651,19 +650,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 50,
-        pickup: 5,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(50),
+        pickup: toMilliseconds(5),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -678,11 +677,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 0,
-            pickup: 5,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -705,11 +704,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -724,11 +723,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -759,19 +758,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 70,
-        pickup: 5,
-        review: 0,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(5),
+        review: toMilliseconds(0),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -786,11 +785,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 0,
-            pickup: 5,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -813,11 +812,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -836,11 +835,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -871,19 +870,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 70,
-        pickup: 5,
-        review: 25,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(5),
+        review: toMilliseconds(25),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -898,11 +897,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 0,
-            pickup: 5,
-            review: 25,
-            total: 0,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -929,11 +928,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -952,11 +951,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -987,19 +986,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 70,
-        pickup: 15,
-        review: 25,
-        handover: 0,
-        total: 0,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(15),
+        review: toMilliseconds(25),
+        handover: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -1014,11 +1013,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 0,
-            pickup: 5,
-            review: 25,
-            total: 0,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -1045,11 +1044,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 0,
-            pickup: 10,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -1072,11 +1071,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -1107,19 +1106,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 70,
-        pickup: 15,
-        review: 25,
-        handover: 5,
-        total: 85,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(15),
+        review: toMilliseconds(25),
+        handover: toMilliseconds(5),
+        total: toMilliseconds(85),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -1134,11 +1133,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -1169,12 +1168,12 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 0,
-            pickup: 10,
-            review: 0,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(0),
 
-            total: 0,
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -1197,11 +1196,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -1232,19 +1231,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 70,
-        pickup: 15,
-        review: 55,
-        handover: 5,
-        total: 85,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(15),
+        review: toMilliseconds(55),
+        handover: toMilliseconds(5),
+        total: toMilliseconds(85),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -1259,11 +1258,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -1294,11 +1293,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 0,
-            pickup: 10,
-            review: 30,
-            total: 0,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -1325,11 +1324,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -1360,19 +1359,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 70,
-        pickup: 15,
-        review: 55,
-        handover: 35,
-        total: 140,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(15),
+        review: toMilliseconds(55),
+        handover: toMilliseconds(35),
+        total: toMilliseconds(140),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -1387,11 +1386,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -1422,11 +1421,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -1457,11 +1456,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [],
           assignees: [],
@@ -1492,19 +1491,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 70,
-        pickup: 15,
-        review: 55,
-        handover: 35,
-        total: 140,
+        coding: toMilliseconds(70),
+        pickup: toMilliseconds(15),
+        review: toMilliseconds(55),
+        handover: toMilliseconds(35),
+        total: toMilliseconds(140),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -1519,11 +1518,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -1554,11 +1553,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -1589,11 +1588,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 0,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(0),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -1629,19 +1628,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 95,
-        pickup: 15,
-        review: 55,
-        handover: 35,
-        total: 140,
+        coding: toMilliseconds(95),
+        pickup: toMilliseconds(15),
+        review: toMilliseconds(55),
+        handover: toMilliseconds(35),
+        total: toMilliseconds(140),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -1656,11 +1655,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -1691,11 +1690,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -1726,11 +1725,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 25,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(25),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -1770,19 +1769,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 95,
-        pickup: 15,
-        review: 55,
-        handover: 35,
-        total: 140,
+        coding: toMilliseconds(95),
+        pickup: toMilliseconds(15),
+        review: toMilliseconds(55),
+        handover: toMilliseconds(35),
+        total: toMilliseconds(140),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -1797,11 +1796,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -1832,11 +1831,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -1867,11 +1866,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 25,
-            handover: 0,
-            pickup: 0,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(25),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(0),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -1915,19 +1914,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 95,
-        pickup: 20,
-        review: 55,
-        handover: 35,
-        total: 140,
+        coding: toMilliseconds(95),
+        pickup: toMilliseconds(20),
+        review: toMilliseconds(55),
+        handover: toMilliseconds(35),
+        total: toMilliseconds(140),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -1942,11 +1941,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -1977,11 +1976,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -2012,11 +2011,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 25,
-            handover: 0,
-            pickup: 5,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(25),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -2064,19 +2063,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 95,
-        pickup: 20,
-        review: 55,
-        handover: 35,
-        total: 140,
+        coding: toMilliseconds(95),
+        pickup: toMilliseconds(20),
+        review: toMilliseconds(55),
+        handover: toMilliseconds(35),
+        total: toMilliseconds(140),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -2091,11 +2090,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -2126,11 +2125,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -2161,11 +2160,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 25,
-            handover: 0,
-            pickup: 5,
-            review: 0,
-            total: 0,
+            coding: toMilliseconds(25),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(0),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -2217,19 +2216,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 95,
-        pickup: 20,
-        review: 85,
-        handover: 35,
-        total: 140,
+        coding: toMilliseconds(95),
+        pickup: toMilliseconds(20),
+        review: toMilliseconds(85),
+        handover: toMilliseconds(35),
+        total: toMilliseconds(140),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -2244,11 +2243,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -2279,11 +2278,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -2314,11 +2313,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 25,
-            handover: 0,
-            pickup: 5,
-            review: 30,
-            total: 0,
+            coding: toMilliseconds(25),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(30),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -2374,19 +2373,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 95,
-        pickup: 20,
-        review: 85,
-        handover: 35,
-        total: 140,
+        coding: toMilliseconds(95),
+        pickup: toMilliseconds(20),
+        review: toMilliseconds(85),
+        handover: toMilliseconds(35),
+        total: toMilliseconds(140),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -2401,11 +2400,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -2436,11 +2435,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -2471,11 +2470,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 25,
-            handover: 0,
-            pickup: 5,
-            review: 30,
-            total: 0,
+            coding: toMilliseconds(25),
+            handover: toMilliseconds(0),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(30),
+            total: toMilliseconds(0),
           },
           history: [
             {
@@ -2535,19 +2534,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 95,
-        pickup: 20,
-        review: 85,
-        handover: 65,
-        total: 230,
+        coding: toMilliseconds(95),
+        pickup: toMilliseconds(20),
+        review: toMilliseconds(85),
+        handover: toMilliseconds(65),
+        total: toMilliseconds(230),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -2562,11 +2561,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -2597,11 +2596,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -2632,11 +2631,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 25,
-            handover: 30,
-            pickup: 5,
-            review: 30,
-            total: 90,
+            coding: toMilliseconds(25),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(30),
+            total: toMilliseconds(90),
           },
           history: [
             {
@@ -2700,19 +2699,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 95,
-        pickup: 20,
-        review: 85,
-        handover: 65,
-        total: 230,
+        coding: toMilliseconds(95),
+        pickup: toMilliseconds(20),
+        review: toMilliseconds(85),
+        handover: toMilliseconds(65),
+        total: toMilliseconds(230),
       },
       qa: {
-        pickup: 0,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(0),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -2727,11 +2726,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -2762,11 +2761,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -2797,11 +2796,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 25,
-            handover: 30,
-            pickup: 5,
-            review: 30,
-            total: 90,
+            coding: toMilliseconds(25),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(30),
+            total: toMilliseconds(90),
           },
           history: [
             {
@@ -2869,19 +2868,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 95,
-        pickup: 20,
-        review: 85,
-        handover: 65,
-        total: 230,
+        coding: toMilliseconds(95),
+        pickup: toMilliseconds(20),
+        review: toMilliseconds(85),
+        handover: toMilliseconds(65),
+        total: toMilliseconds(230),
       },
       qa: {
-        pickup: 65,
-        testing: 0,
-        total: 0,
+        pickup: toMilliseconds(65),
+        testing: toMilliseconds(0),
+        total: toMilliseconds(0),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -2896,11 +2895,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -2931,11 +2930,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -2966,11 +2965,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 25,
-            handover: 30,
-            pickup: 5,
-            review: 30,
-            total: 90,
+            coding: toMilliseconds(25),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(30),
+            total: toMilliseconds(90),
           },
           history: [
             {
@@ -3042,19 +3041,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 95,
-        pickup: 20,
-        review: 85,
-        handover: 65,
-        total: 230,
+        coding: toMilliseconds(95),
+        pickup: toMilliseconds(20),
+        review: toMilliseconds(85),
+        handover: toMilliseconds(65),
+        total: toMilliseconds(230),
       },
       qa: {
-        pickup: 65,
-        testing: 35,
-        total: 100,
+        pickup: toMilliseconds(65),
+        testing: toMilliseconds(35),
+        total: toMilliseconds(100),
       },
       deployment: {
-        total: 0,
+        total: toMilliseconds(0),
       },
       assignees: [],
       issueId: '118738',
@@ -3069,11 +3068,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -3104,11 +3103,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -3139,11 +3138,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 25,
-            handover: 30,
-            pickup: 5,
-            review: 30,
-            total: 90,
+            coding: toMilliseconds(25),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(30),
+            total: toMilliseconds(90),
           },
           history: [
             {
@@ -3219,19 +3218,19 @@ const operations = [
     ).changelog,
     expect: {
       development: {
-        coding: 95,
-        pickup: 20,
-        review: 85,
-        handover: 65,
-        total: 230,
+        coding: toMilliseconds(95),
+        pickup: toMilliseconds(20),
+        review: toMilliseconds(85),
+        handover: toMilliseconds(65),
+        total: toMilliseconds(230),
       },
       qa: {
-        pickup: 65,
-        testing: 35,
-        total: 100,
+        pickup: toMilliseconds(65),
+        testing: toMilliseconds(35),
+        total: toMilliseconds(100),
       },
       deployment: {
-        total: 80,
+        total: toMilliseconds(80),
       },
       assignees: [],
       issueId: '118738',
@@ -3246,11 +3245,11 @@ const operations = [
           issueKey: 'PT-1',
           title: 'helo1',
           development: {
-            coding: 50,
-            handover: 5,
-            pickup: 5,
-            review: 25,
-            total: 85,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(5),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(25),
+            total: toMilliseconds(85),
           },
           history: [
             {
@@ -3281,11 +3280,11 @@ const operations = [
           issueKey: 'PT-2',
           title: 'helo2',
           development: {
-            coding: 50,
-            handover: 30,
-            pickup: 10,
-            review: 30,
-            total: 120,
+            coding: toMilliseconds(50),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(10),
+            review: toMilliseconds(30),
+            total: toMilliseconds(120),
           },
           history: [
             {
@@ -3316,11 +3315,11 @@ const operations = [
           issueKey: 'PT-3',
           title: 'helo3',
           development: {
-            coding: 25,
-            handover: 30,
-            pickup: 5,
-            review: 30,
-            total: 90,
+            coding: toMilliseconds(25),
+            handover: toMilliseconds(30),
+            pickup: toMilliseconds(5),
+            review: toMilliseconds(30),
+            total: toMilliseconds(90),
           },
           history: [
             {
@@ -3389,7 +3388,7 @@ const operations = [
 
 describe('Case 1', () => {
   for (let i = 0; i < operations.length; i++) {
-    // for (let i = 0; i < 10; i++) {
+    // for (let i = 23; i < 24; i++) {
     test(`Test ${i}: ${operations[i].name}`, () => {
       let s = {} as MainTicket;
       for (let j = 0; j <= i; j++) {
@@ -3407,7 +3406,9 @@ describe('Case 1', () => {
             break;
         }
       }
-      const { id, isDeleted, deletedAt, ...obj } = s.toJSON().body;
+      const { id, subtasks, deletedAt, isDeleted, ...rest } = s.toJSON().body;
+      const newSubtasks = subtasks.map(({ deletedAt, isDeleted, ...restSubtask }) => restSubtask);
+      const obj = { subtasks: newSubtasks, ...rest };
       expect(obj).toStrictEqual(operations[i].expect);
     });
   }

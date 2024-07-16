@@ -29,7 +29,7 @@ const operations = [
       history: [],
       development: {
         coding: toMilliseconds(0),
-        pickup: toMilliseconds(toMilliseconds(0)),
+        pickup: toMilliseconds(0),
         review: toMilliseconds(0),
         handover: toMilliseconds(0),
         total: toMilliseconds(0),
@@ -842,7 +842,7 @@ const operations = [
       qa: {
         pickup: toMilliseconds(5),
         testing: toMilliseconds(10),
-        total: toMilliseconds(0),
+        total: toMilliseconds(15),
       },
       deployment: {
         total: toMilliseconds(0),
@@ -929,7 +929,7 @@ const operations = [
       qa: {
         pickup: toMilliseconds(5),
         testing: toMilliseconds(10),
-        total: toMilliseconds(0),
+        total: toMilliseconds(15),
       },
       deployment: {
         total: toMilliseconds(0),
@@ -1024,7 +1024,7 @@ const operations = [
       qa: {
         pickup: toMilliseconds(5),
         testing: toMilliseconds(10),
-        total: toMilliseconds(0),
+        total: toMilliseconds(15),
       },
       deployment: {
         total: toMilliseconds(0),
@@ -1123,7 +1123,7 @@ const operations = [
       qa: {
         pickup: toMilliseconds(5),
         testing: toMilliseconds(10),
-        total: toMilliseconds(0),
+        total: toMilliseconds(15),
       },
       deployment: {
         total: toMilliseconds(0),
@@ -1226,7 +1226,7 @@ const operations = [
       qa: {
         pickup: toMilliseconds(5),
         testing: toMilliseconds(10),
-        total: toMilliseconds(0),
+        total: toMilliseconds(15),
       },
       deployment: {
         total: toMilliseconds(0),
@@ -1333,7 +1333,7 @@ const operations = [
       qa: {
         pickup: toMilliseconds(5),
         testing: toMilliseconds(10),
-        total: toMilliseconds(0),
+        total: toMilliseconds(15),
       },
       deployment: {
         total: toMilliseconds(0),
@@ -1444,7 +1444,7 @@ const operations = [
       qa: {
         pickup: toMilliseconds(10),
         testing: toMilliseconds(10),
-        total: toMilliseconds(0),
+        total: toMilliseconds(15),
       },
       deployment: {
         total: toMilliseconds(0),
