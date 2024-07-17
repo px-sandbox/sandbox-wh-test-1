@@ -1,21 +1,32 @@
 type retryProcess = {
-    processId?: string;
-}
+  processId?: string;
+};
 
-export type RepoSastErrors = retryProcess &
-{
-    _id: string;
-    body: {
-        errorMsg: string;
-        ruleId: string;
-        repoId: string;
-        organizationId: string;
-        branch: string;
-        fileName: string;
-        lineNumber: number;
-        codeSnippet: string;
-        date: string;
-        createdAt: string;
-        isDeleted: boolean;
-    }
-}
+export type RepoSastErrors = retryProcess & {
+  _id: string;
+  body: {
+    errorMsg: string;
+    ruleId: string;
+    repoId: string;
+    organizationId: string;
+    fileName: string;
+    lineNumber: number;
+    codeSnippet: string;
+    date: string;
+    createdAt: string;
+    metadata: Array<{
+      branch: string;
+      firstReportedOn: string;
+      lastReportedOn: string;
+      isResolved: boolean;
+    }>;
+  };
+};
+
+export type SastCompositeKeys =
+  | 'errorMsg'
+  | 'ruleId'
+  | 'repoId'
+  | 'fileName'
+  | 'lineNumber'
+  | 'codeSnippet';
