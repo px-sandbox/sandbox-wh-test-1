@@ -5,6 +5,7 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { LibParamsMapping } from '../model/lib-master-mapping';
+import { v4 as uuid } from 'uuid';
 
 const dynamodbClient = DynamoDbDocClient.getInstance();
 const sqsClient = SQSClient.getInstance();
@@ -38,7 +39,7 @@ async function sendAllDepsToQueue(
 }
 
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
-  const requestId = event?.requestContext?.requestId;
+  const requestId = uuid();
   logger.info({
     message: 'UpdateLatestDepHandler invoked',
     data: new Date().toISOString(),

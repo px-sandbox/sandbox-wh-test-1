@@ -1,11 +1,8 @@
-name: sg-sast-analytics
-
+name: StudioGraphene-SAST-Analytics
 on:
   push:
-    branches: [dev, master, qa, uat, prod]
-
+    branches: [dev, master]
 jobs:
-  analytics:
-    uses: studiographene/nodejs-ci/.github/workflows/sast-analytics.yml@master
+  sast_analytics:
+    uses: studiographene/github-action-workflows/.github/workflows/pulse-sast-analytics.yml@master
     secrets: inherit
-    permissions: write-all

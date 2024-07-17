@@ -5,8 +5,8 @@ import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { SubTicket } from './sub-ticket';
 import { calculateTimeDifference } from '../../util/cycle-time';
-import { mappingPrefixes } from 'src/constant/config';
-import { getSprintForTo } from 'src/util/prepare-reopen-rate';
+import { mappingPrefixes } from '../../constant/config';
+import { getSprintForTo } from '../../util/prepare-reopen-rate';
 
 export class MainTicket {
   public issueId: string;
@@ -136,7 +136,7 @@ export class MainTicket {
             break;
           case ChangelogField.STATUS:
             if (
-              items.to === this.StatusMapping[this.Status.Done].id &&
+              items.to == this.StatusMapping[this.Status.Done].id &&
               changelogs.issuetype !== IssuesTypes.SUBTASK
             ) {
               this.statusTransition(items.to, changelogs.timestamp);
@@ -148,7 +148,7 @@ export class MainTicket {
               const toStatus = this.StatusMapping[items.to].label;
               this.updateHistory(toStatus, changelogs.timestamp);
             } else if (
-              items.to === this.StatusMapping[this.Status.Ready_For_QA].id &&
+              items.to == this.StatusMapping[this.Status.Ready_For_QA].id &&
               this.subtasks.length > 0
             ) {
               const toStatus = this.StatusMapping[items.to].label;
@@ -165,7 +165,7 @@ export class MainTicket {
       }
       this.subtasks = this.subtasks.map((subtask, i) => {
         const updatedSubtask = new SubTicket(subtask, this.StatusMapping, this.Status);
-        if (changelogs.issueId === this.subtasks[i].issueId && subtask.isDeleted === false) {
+        if (changelogs.issueId == this.subtasks[i].issueId && subtask.isDeleted === false) {
           switch (items.fieldId) {
             case ChangelogField.ASSIGNEE:
               const assignee = { assigneeId: items.to, name: items.toString };
