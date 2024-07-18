@@ -10,6 +10,7 @@ import {
   storeSastErrorReportToES,
 } from '../../../processors/repo-sast-errors';
 import { SastCompositeKeys } from 'abstraction/github/type/repo-sast-errors';
+import moment from 'moment';
 
 const compareAndUpdateData = async (
   apiData: Github.Type.RepoSastErrors[],
@@ -46,7 +47,7 @@ const compareAndUpdateData = async (
       if (dbItem) {
         const branchObj = dbItem.body.metadata.find((item) => item.branch == branch);
         if (branchObj) {
-          branchObj.lastReportedOn = new Date().toISOString();
+          branchObj.lastReportedOn = moment().toISOString();
         } else {
           dbItem.body.metadata.push(...apiItem.body.metadata);
         }
@@ -91,14 +92,12 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
 
     const sastErrorFormattedData = await repoSastErrorsFormatter(data);
     const sastDataFromES = await getSastDataFromES(repoId, orgId);
-
     const dataForUpdate = await compareAndUpdateData(
       sastErrorFormattedData,
       sastDataFromES,
       branch
     );
-
-    await await storeSastErrorReportToES(sastErrorFormattedData, {
+    await storeSastErrorReportToES(dataForUpdate, {
       requestId,
       resourceId,
     });
@@ -106,7 +105,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     await logProcessToRetry(record, Queue.qGhRepoSastError.queueUrl, error as Error);
     logger.error({
       message: 'repoSastScanFormattedDataReceiver.error',
-      error,
+      error: `${error}`,
       requestId,
       resourceId,
     });

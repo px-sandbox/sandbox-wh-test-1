@@ -6,7 +6,8 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
-import { searchedDataFormator } from 'src/util/response-formatter';
+import { formatRepoSastData } from 'src/util/response-formatter';
+import moment from 'moment';
 
 const esClientObj = ElasticSearchClient.getInstance();
 export async function repoSastErrorsFormatter(
@@ -27,9 +28,9 @@ export async function repoSastErrorsFormatter(
       metadata: [
         {
           branch: data.branch,
-          firstReportedOn: data.firstReportedOn,
-          lastReportedOn: data.lastReportedOn,
-          isResolved: data.isResolved,
+          firstReportedOn: moment().toISOString(),
+          lastReportedOn: moment().toISOString(),
+          isResolved: false,
         },
       ],
     },
@@ -47,6 +48,7 @@ const getQuery = (repoId: string, orgId: string): object => {
           esb.termQuery('body.organizationId', `${mappingPrefixes.organization}_${orgId}`),
         ])
     )
+    .size(10000)
     .toJSON();
   return matchQry;
 };
@@ -57,7 +59,7 @@ export async function getSastDataFromES(
 ): Promise<Github.Type.RepoSastErrors[]> {
   const matchQry = getQuery(repoId, orgId);
   const res = await esClientObj.search(Github.Enums.IndexName.GitRepoSastErrors, matchQry);
-  const finalRes = await searchedDataFormator(res);
+  const finalRes = await formatRepoSastData(res);
   return finalRes;
 }
 

@@ -41,6 +41,21 @@ export const searchedDataFormator = async (data: any): Promise<any> => {
   return [];
 };
 
+export const formatRepoSastData = async (data: any): Promise<any> => {
+  if (data?.hits?.total.value > 0) {
+    return data.hits.hits
+      .filter(
+        (hit: Hit) =>
+          typeof hit._source.body.isDeleted === 'undefined' || hit._source.body.isDeleted === false
+      )
+      .map((hit: Hit) => ({
+        _id: hit._id,
+        body: hit._source.body,
+      }));
+  }
+  return [];
+};
+
 export const formatUserDataResponse = (
   data: IformatUserDataResponse
 ): { [key: string]: unknown } => ({
