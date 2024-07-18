@@ -154,5 +154,5 @@ export async function calculateCycleTime(
     }
   }
 
-  return overallTime ? parseFloat((overallTime / sprintCount).toFixed(2)) : 0;
+  return overallTime ? parseFloat((overallTime / sprints.length).toFixed(2)) : 0;
 }
