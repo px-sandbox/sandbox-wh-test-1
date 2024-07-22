@@ -44,7 +44,7 @@ export class IssueProcessor extends DataProcessor<
   }> {
     let sprintId: number | null | string;
     let boardId: number | null;
-    const esbParentData = await getIssueById(data.issue.id, data.organization, {
+    const esbIssueData = await getIssueById(data.issue.id, data.organization, {
       requestId: this.requestId,
     });
     const [sprintChangelog] = data.changelog.items.filter(
@@ -53,13 +53,15 @@ export class IssueProcessor extends DataProcessor<
 
     sprintId = sprintChangelog
       ? getSprintForTo(sprintChangelog.to, sprintChangelog.from)
-      : esbParentData?.body?.sprintId
-      ? esbParentData.body.sprintId
+      : esbIssueData?.body?.sprintId
+      ? esbIssueData.body.sprintId
       : data.issue.fields.customfield_10007?.[0]?.id ?? null;
 
-    boardId =
-      data.issue.fields.customfield_10007?.find((item) => item.id == Number(sprintId))?.boardId ??
-      null;
+    boardId = data.issue.fields.customfield_10007
+      ? data.issue.fields.customfield_10007.find((item) => item.id == Number(sprintId))?.boardId
+      : esbIssueData?.body?.boardId
+      ? esbIssueData.body.boardId
+      : null;
 
     if (boardId === null) {
       logger.info({
