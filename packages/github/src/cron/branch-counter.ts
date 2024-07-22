@@ -7,6 +7,7 @@ import esb from 'elastic-builder';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { searchedDataFormator } from '../util/response-formatter';
+import { v4 as uuid } from 'uuid';
 
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
@@ -35,7 +36,6 @@ const getRepos = async (
 // get all repos from ES which are not deleted and send to SQS
 async function getReposAndSendToSQS(
   currentDate: string,
-  requestId: string,
   pageNo = 1,
   perPage = 100
 ): Promise<number> {
@@ -44,6 +44,7 @@ async function getReposAndSendToSQS(
     await Promise.all(
       repos.map((repo: Hit<{ body: Github.Type.Repository }>) => {
         if (repo) {
+          const requestId = uuid();
           return sqsClient.sendMessage(
             {
               repo,
@@ -59,13 +60,12 @@ async function getReposAndSendToSQS(
 
     return repos.length;
   } catch (error: unknown) {
-    logger.error({ message: 'getReposAndSendToSQS.error', error, requestId });
+    logger.error({ message: 'getReposAndSendToSQS.error', error });
     throw error;
   }
 }
 
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
-  const requestId = event?.requestContext?.requestId;
   try {
     const today =
       event && event.queryStringParameters?.date
@@ -77,11 +77,10 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     const perPage = 100;
     do {
       // eslint-disable-next-line no-await-in-loop
-      processingCount = await getReposAndSendToSQS(today, requestId, pageNo, perPage);
+      processingCount = await getReposAndSendToSQS(today, pageNo, perPage);
       logger.info({
         message: 'getReposAndSendToSQS.handler.processingCount',
         data: processingCount,
-        requestId,
       });
       pageNo += 1;
     } while (processingCount === perPage);
@@ -89,14 +88,12 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     logger.info({
       message: 'getReposAndSendToSQS.handler.successful',
       data: { pageNo, date: new Date().toISOString() },
-      requestId,
     });
   } catch (error: unknown) {
     logger.error({
       message: 'getReposAndSendToSQS.handler.error',
       data: { date: new Date().toISOString() },
       error,
-      requestId,
     });
 
     throw error;
