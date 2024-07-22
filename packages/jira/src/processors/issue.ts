@@ -38,18 +38,23 @@ export class IssueProcessor extends DataProcessor<
     return false;
   }
 
-  private getSprintAndBoardId(data: Jira.ExternalType.Webhook.Issue): {
+  private async getSprintAndBoardId(data: Jira.ExternalType.Webhook.Issue): Promise<{
     sprintId: string | null;
     boardId: string | null;
-  } {
+  }> {
     let sprintId: number | null | string;
     let boardId: number | null;
+    const esbParentData = await getIssueById(data.issue.id, data.organization, {
+      requestId: this.requestId,
+    });
     const [sprintChangelog] = data.changelog.items.filter(
       (item) => item.fieldId === ChangelogField.SPRINT
     );
 
     sprintId = sprintChangelog
-      ? getSprintForTo(sprintChangelog.from, sprintChangelog.to)
+      ? getSprintForTo(sprintChangelog.to, sprintChangelog.from)
+      : esbParentData?.body?.sprintId
+      ? esbParentData.body.sprintId
       : data.issue.fields.customfield_10007?.[0]?.id ?? null;
 
     boardId =
@@ -159,7 +164,7 @@ export class IssueProcessor extends DataProcessor<
         createdDate: this.apiData.issue.fields.created,
         lastUpdated: this.apiData.issue.fields.updated,
         lastViewed: this.apiData.issue.fields.lastViewed,
-        ...this.getSprintAndBoardId(this.apiData),
+        ...(await this.getSprintAndBoardId(this.apiData)),
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.id,
