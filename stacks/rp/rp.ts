@@ -29,10 +29,11 @@ export function rp({ stack }: StackContext): {
       resources: ['*'],
     }),
   ]);
-  const rpCron = new Cron(stack, 'cronRp', {
-    schedule: 'cron(0/30 * ? * * *)',
-    job: retryProcess,
-  });
+  // Uncomment this block to enable cron job
+  // const rpCron = new Cron(stack, 'cronRp', {
+  //   schedule: 'cron(0/30 * ? * * *)',
+  //   job: retryProcess,
+  // });
   const rpApi = new Api(stack, 'rpApi', {
     authorizers: {
       admin: {
@@ -57,9 +58,10 @@ export function rp({ stack }: StackContext): {
     ApiEndpoint: rpApi.url,
   });
 
+  // Uncomment this block to enable cron job
   return {
     rpApi,
     retryProcessTable,
-    rpCron,
+    // rpCron,
   };
 }
