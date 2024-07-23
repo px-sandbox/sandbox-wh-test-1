@@ -12,8 +12,6 @@ export type RepoSastErrors = retryProcess & {
     fileName: string;
     lineNumber: number;
     codeSnippet: string;
-    date: string;
-    createdAt: string;
     metadata: Array<{
       branch: string;
       firstReportedOn: string;
