@@ -110,3 +110,17 @@ export async function getReopenRateDataByIssueId(
     throw error;
   }
 }
+
+export async function updateIssueWithSubtask(
+  id: string,
+  subtasks: Array<{
+    id: string;
+    key: string;
+    self: string;
+    fields: { summary: string; status: string; issuetype: string; priority: string };
+  }>
+): Promise<void> {
+  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, id, {
+    body: { subtasks },
+  });
+}

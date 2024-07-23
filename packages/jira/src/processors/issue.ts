@@ -1,19 +1,16 @@
 /* eslint-disable max-lines-per-function */
-import { SQSClient } from '@pulse/event-handler';
 import { Jira } from 'abstraction';
+import { ChangelogField } from 'abstraction/jira/enums';
 import { logger } from 'core';
+import { getIssueById, updateIssueWithSubtask } from 'src/repository/issue/get-issue';
+import { getSprintForTo } from 'src/util/prepare-reopen-rate';
 import { Config } from 'sst/node/config';
-import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
-import { filterIssueChangelogs } from '../lib/get-issue-changelogs';
 import { mappingPrefixes } from '../constant/config';
 import { JiraClient } from '../lib/jira-client';
 import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
-import { ChangelogField } from 'abstraction/jira/enums';
-import { getSprintForTo } from 'src/util/prepare-reopen-rate';
 
-const sqsClient = SQSClient.getInstance();
 export class IssueProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Issue,
   Jira.Type.Issue
@@ -41,23 +38,30 @@ export class IssueProcessor extends DataProcessor<
     return false;
   }
 
-  private getSprintAndBoardId(data: Jira.ExternalType.Webhook.Issue): {
+  private async getSprintAndBoardId(data: Jira.ExternalType.Webhook.Issue): Promise<{
     sprintId: string | null;
     boardId: string | null;
-  } {
+  }> {
     let sprintId: number | null | string;
     let boardId: number | null;
+    const esbIssueData = await getIssueById(data.issue.id, data.organization, {
+      requestId: this.requestId,
+    });
     const [sprintChangelog] = data.changelog.items.filter(
       (item) => item.fieldId === ChangelogField.SPRINT
     );
 
     sprintId = sprintChangelog
-      ? getSprintForTo(sprintChangelog.from, sprintChangelog.to)
+      ? getSprintForTo(sprintChangelog.to, sprintChangelog.from)
+      : esbIssueData?.body?.sprintId
+      ? esbIssueData.body.sprintId
       : data.issue.fields.customfield_10007?.[0]?.id ?? null;
 
-    boardId =
-      data.issue.fields.customfield_10007?.find((item) => item.id == Number(sprintId))?.boardId ??
-      null;
+    boardId = data.issue.fields.customfield_10007
+      ? data.issue.fields.customfield_10007.find((item) => item.id == Number(sprintId))?.boardId
+      : esbIssueData?.body?.boardId
+      ? esbIssueData.body.boardId
+      : null;
 
     if (boardId === null) {
       logger.info({
@@ -101,19 +105,36 @@ export class IssueProcessor extends DataProcessor<
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
     // sending parent issue to issue format queue so that it gets updated along with it's subtask
-    if (issueDataFromApi?.fields?.parent) {
-      const parentIssueData = await jiraClient.getIssue(issueDataFromApi.fields.parent.key);
-      await sqsClient.sendFifoMessage(
-        {
-          organization: this?.apiData?.organization ?? '',
-          issue: parentIssueData,
-          eventName: Jira.Enums.Event.IssueUpdated,
-        },
-        Queue.qIssueFormat.queueUrl,
-        { requestId: this.requestId, resourceId: this.resourceId },
-        issueDataFromApi.key,
-        uuid()
-      );
+    if (this.apiData.issue.fields?.parent) {
+      /**
+       * update in elasticsearch for parent issue for subtask data
+       * if no document for parent then log error
+       * update subtask array in parent document
+       **/
+      const parent = this.apiData.issue.fields?.parent;
+      try {
+        const parentIssueData = await jiraClient.getIssue(parent.key);
+        const esbParentData = await getIssueById(parent.id, this.apiData.organization, {
+          requestId: this.requestId,
+        });
+        if (esbParentData) {
+          await updateIssueWithSubtask(esbParentData._id, parentIssueData.fields.subtasks);
+        } else {
+          logger.error({
+            requestId: this.requestId,
+            resourceId: this.resourceId,
+            message: `issue.processor.parent_issue_not_found_in_esb`,
+            data: { parentIssueId: parent.id, parentIssueKey: parent.key },
+          });
+        }
+      } catch (error) {
+        logger.error({
+          requestId: this.requestId,
+          resourceId: this.resourceId,
+          message: 'issue.processor.error.getting_parent_issue',
+          error: `${error}`,
+        });
+      }
     }
     const issueObj = {
       id: parentId ?? uuid(),
@@ -145,7 +166,7 @@ export class IssueProcessor extends DataProcessor<
         createdDate: this.apiData.issue.fields.created,
         lastUpdated: this.apiData.issue.fields.updated,
         lastViewed: this.apiData.issue.fields.lastViewed,
-        ...this.getSprintAndBoardId(this.apiData),
+        ...(await this.getSprintAndBoardId(this.apiData)),
         isDeleted: this.apiData.isDeleted ?? false,
         deletedAt: this.apiData.deletedAt ?? null,
         organizationId: orgData.id,
