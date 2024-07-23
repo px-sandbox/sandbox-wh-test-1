@@ -23,6 +23,17 @@ export type RepoSastErrors = retryProcess & {
   };
 };
 
+export type RepoSastErrorCount = retryProcess & {
+  id: string;
+  body: {
+    count: number;
+    branch: string;
+    repoId: string;
+    organizationId: string;
+    date: string;
+  };
+};
+
 export type SastCompositeKeys =
   | 'errorMsg'
   | 'ruleId'

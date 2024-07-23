@@ -62,27 +62,30 @@ export async function getSastDataFromES(
   const finalRes = await formatRepoSastData(res);
   return finalRes;
 }
+function countUnresolvedErrorForBranch(data: Github.Type.RepoSastErrors[], branch: string) {
+  return data.reduce((count, item) => {
+    return (
+      count +
+      item.body.metadata.filter(
+        (meta: any) => meta.branch === branch.replace('gh_branch_', '') && !meta.isResolved
+      ).length
+    );
+  }, 0);
+}
 
 export async function storeSastErrorReportToES(
   data: Github.Type.RepoSastErrors[],
-  // repoId: string,
-  // branch: string,
-  // orgId: string,
-  // createdAt: string,
+  errorCountData: Github.Type.RepoSastErrorCount,
   reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   try {
-    // const matchQry = getQuery(repoId, branch, orgId, createdAt);
-    // const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
-    // await esClientObj.updateByQuery(
-    //   Github.Enums.IndexName.GitRepoSastErrors,
-    //   matchQry,
-    //   script.toJSON()
-    // );
-
     if (data.length > 0) {
       logger.info({ message: 'storeSastErrorReportToES.data', data: data.length, ...reqCtx });
       await esClientObj.bulkInsert(Github.Enums.IndexName.GitRepoSastErrors, data);
+      // store error count
+      const errorCountLen = countUnresolvedErrorForBranch(data, errorCountData.body.branch);
+      errorCountData.body.count = errorCountLen;
+      await esClientObj.putDocument(Github.Enums.IndexName.GitRepoSastErrorCount, errorCountData);
       logger.info({ message: 'storeSastErrorReportToES.success', ...reqCtx });
     } else {
       logger.info({ message: 'storeSastErrorReportToES.no_data', ...reqCtx });

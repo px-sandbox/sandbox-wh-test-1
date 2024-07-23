@@ -11,6 +11,7 @@ import {
 } from '../../../processors/repo-sast-errors';
 import { SastCompositeKeys } from 'abstraction/github/type/repo-sast-errors';
 import moment from 'moment';
+import { mappingPrefixes } from 'src/constant/config';
 
 const compareAndUpdateData = async (
   apiData: Github.Type.RepoSastErrors[],
@@ -97,7 +98,19 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       sastDataFromES,
       branch
     );
-    await storeSastErrorReportToES(dataForUpdate, {
+    // error counting format
+    const errorCountData: Github.Type.RepoSastErrorCount = {
+      id: `${mappingPrefixes.sast_errors}_${repoId}_${branch}_${orgId}`,
+      body: {
+        repoId: `${mappingPrefixes.repo}_${repoId}`,
+        branch: `${mappingPrefixes.branch}_${branch}`,
+        organizationId: `${mappingPrefixes.organization}_${orgId}`,
+        count: dataForUpdate.length,
+        date: moment().toISOString(),
+      },
+    };
+
+    await storeSastErrorReportToES(dataForUpdate, errorCountData, {
       requestId,
       resourceId,
     });
