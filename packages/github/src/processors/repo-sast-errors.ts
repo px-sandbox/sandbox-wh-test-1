@@ -23,8 +23,6 @@ export async function repoSastErrorsFormatter(
       fileName: error.location,
       lineNumber: error.lineNo,
       codeSnippet: error.snippet,
-      date: data.date,
-      createdAt: data.createdAt,
       metadata: [
         {
           branch: data.branch,
