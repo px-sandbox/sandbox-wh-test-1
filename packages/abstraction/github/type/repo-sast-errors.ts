@@ -38,4 +38,5 @@ export type SastCompositeKeys =
   | 'repoId'
   | 'fileName'
   | 'lineNumber'
-  | 'codeSnippet';
+  | 'codeSnippet'
+  | 'organizationId';

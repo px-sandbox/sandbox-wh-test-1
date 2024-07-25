@@ -26,6 +26,7 @@ const compareAndUpdateData = async (
     'fileName',
     'lineNumber',
     'codeSnippet',
+    'organizationId',
   ];
 
   const createBase64Key = (item: Github.Type.RepoSastErrors, keys: Array<SastCompositeKeys>) => {
