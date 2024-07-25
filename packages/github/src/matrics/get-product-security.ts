@@ -24,15 +24,14 @@ const getAggrigatedProductSecurityData = async (
     .query(
       esb
         .boolQuery()
-        .filter(esb.termQuery('body.isDeleted', false))
         .filter(esb.termsQuery('body.repoId', repoIds))
         .filter(esb.termQuery('body.branch', branch))
         .filter(esb.rangeQuery('body.date').gte(startDate).lte(endDate).format('yyyy-MM-dd'))
     )
-    .agg(graphInterval);
+    .agg(graphInterval.agg(esb.sumAggregation('totalErrorCount', 'body.count')));
 
   const data = await esClientObj.queryAggs<Github.Type.ProdSecurityAgg>(
-    Github.Enums.IndexName.GitRepoSastErrors,
+    Github.Enums.IndexName.GitRepoSastErrorsCount,
     query.toJSON()
   );
   return data;
@@ -135,7 +134,7 @@ async function getGraphData(
   // returning bucketed data
   return data?.errorsOverTime?.buckets?.map((item: Github.Type.ErrorsOverTimeBuckets) => ({
     date: item.key_as_string,
-    value: item.doc_count,
+    value: item.totalErrorCount.value,
   }));
 }
 

@@ -31,7 +31,7 @@ import {
 } from './aggregations/version-upgrades';
 import { ErrorsOverTimeBuckets, ProdSecurityAgg } from './aggregations/product-security';
 import { ProdSecurityGraphData, ProductSecurity } from './product-security';
-import { RepoSastErrors } from './repo-sast-errors';
+import { RepoSastErrors, RepoSastErrorCount } from './repo-sast-errors';
 import {
   SastErrorsData,
   ISastErrorAggregationResult,
@@ -41,7 +41,13 @@ import {
 } from './aggregations/repo-sast-errors';
 
 import { MetricCategories, MetricFunction, Metrics } from './aggregations/metric-categories';
-import { PrDetails, PrDetailsSort, prDetailsData, PrDetailsGraph, PrDetailsSorting } from './aggregations/pr-details';
+import {
+  PrDetails,
+  PrDetailsSort,
+  prDetailsData,
+  PrDetailsGraph,
+  PrDetailsSorting,
+} from './aggregations/pr-details';
 
 import { CommentsDetailResponse, PRCommentsDetail, RepoNamesResponse } from './pr-comments-detail';
 
@@ -105,5 +111,6 @@ export {
   PrDetailsSorting,
   PRCommentsDetail,
   CommentsDetailResponse,
-  RepoNamesResponse
+  RepoNamesResponse,
+  RepoSastErrorCount,
 };
