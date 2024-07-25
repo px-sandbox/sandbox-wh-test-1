@@ -12,6 +12,7 @@ import {
 import { SastCompositeKeys } from 'abstraction/github/type/repo-sast-errors';
 import moment from 'moment';
 import { mappingPrefixes } from 'src/constant/config';
+import crypto from 'crypto';
 
 const compareAndUpdateData = async (
   apiData: Github.Type.RepoSastErrors[],
@@ -29,7 +30,7 @@ const compareAndUpdateData = async (
 
   const createBase64Key = (item: Github.Type.RepoSastErrors, keys: Array<SastCompositeKeys>) => {
     const compositeKey = keys.map((key: SastCompositeKeys) => item.body[key]).join('|');
-    return Buffer.from(compositeKey).toString('base64');
+    return crypto.createHash('sha256').update(compositeKey).digest('base64');
   };
 
   const apiDataMap = new Map(apiData.map((item) => [createBase64Key(item, compositeKeys), item]));
