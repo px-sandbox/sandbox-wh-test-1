@@ -12,5 +12,5 @@ export enum IndexName {
   GitActiveBranches = 'git_active_branches',
   GitRepoLibrary = 'git_repo_library',
   GitRepoSastErrors = 'git_repo_sast_errors',
-  GitRepoSastErrorsCount = 'git_repo_sast_errors_count',
+  GitRepoSastErrorCount = 'git_repo_sast_errors_count',
 }
