@@ -34,7 +34,6 @@ import { ProdSecurityGraphData, ProductSecurity } from './product-security';
 import { RepoSastErrors, RepoSastErrorCount } from './repo-sast-errors';
 import {
   SastErrorsData,
-  ISastErrorAggregationResult,
   SastErrorReport,
   SastErrorsAggregationData,
   SastErrorsAggregation,
@@ -96,7 +95,6 @@ export {
   ProductSecurity,
   ProdSecurityGraphData,
   SastErrorsData,
-  ISastErrorAggregationResult,
   SastErrorReport,
   SastErrorsAggregationData,
   SastErrorsAggregation,

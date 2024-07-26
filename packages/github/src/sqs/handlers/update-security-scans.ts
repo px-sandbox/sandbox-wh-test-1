@@ -87,7 +87,7 @@ async function getScans(
     do {
       result = [];
       const query = createScanQuery(repoId, branch, date, from, limit);
-      const scans = await esClient.search(Github.Enums.IndexName.GitRepoSastErrorsCount, query);
+      const scans = await esClient.search(Github.Enums.IndexName.GitRepoSastErrorCount, query);
 
       result = await searchedDataFormator(scans);
       from += limit;
@@ -149,7 +149,7 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
 
       // bulk inserting scans for today
       logger.info({ message: `Updating scans for repoId: ${repoId}, branch: ${branch}` });
-      await esClient.bulkInsert(Github.Enums.IndexName.GitRepoSastErrorsCount, updatedBody);
+      await esClient.bulkInsert(Github.Enums.IndexName.GitRepoSastErrorCount, updatedBody);
 
       logger.info({
         message: `Successfully copied scans for repoId: ${repoId}, branch: ${branch} from ${yesterDate} to ${currDate}`,
