@@ -26,8 +26,8 @@ export async function repoSastErrorsFormatter(
       metadata: [
         {
           branch: data.branch,
-          firstReportedOn: moment().toISOString(),
-          lastReportedOn: moment().toISOString(),
+          firstReportedOn: data.date,
+          lastReportedOn: data.date,
           isResolved: false,
         },
       ],
