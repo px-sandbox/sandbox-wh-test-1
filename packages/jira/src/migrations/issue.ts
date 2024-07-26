@@ -149,12 +149,26 @@ async function checkAndSave(
     return formattedIssue;
   });
 
-  await esClient.bulkInsert(Jira.Enums.IndexName.Issue, issuesToSave);
+  if (issuesToSave.length > 0) {
+    await esClient.bulkInsert(Jira.Enums.IndexName.Issue, issuesToSave);
+  }
 
-  await Promise.all(
-    issues
-      .filter((issue) => issue.fields.issuetype.name === Jira.Enums.IssuesTypes.BUG)
-      .map(async (issue, i) =>
+  const bugs = issues.filter((issue) => issue.fields.issuetype.name == Jira.Enums.IssuesTypes.BUG);
+
+  if(bugs.length > 0) {
+    logger.info({
+      message: 'Reopen rate migrator',
+      data: {
+        sprintId,
+        boardId,
+        projectId,
+        organization,
+        bugs: bugs.map((issue) => `${issue.key} - ${issue.fields.issuetype.name}`).join(" | "),
+      },
+    });
+    
+    await Promise.all(
+      bugs.map(async (issue) =>
         sqsClient.sendMessage(
           {
             organization,
@@ -168,7 +182,10 @@ async function checkAndSave(
           reqCtx
         )
       )
-  );
+    );
+  }
+
+  
   logger.info({ ...reqCtx, message: 'issuesMigrateDataReciever.successful' });
 }
 
