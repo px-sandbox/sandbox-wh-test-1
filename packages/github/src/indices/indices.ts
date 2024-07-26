@@ -461,7 +461,7 @@ const indices = [
     },
   },
   {
-    name: Github.Enums.IndexName.GitRepoSastErrorsCount,
+    name: Github.Enums.IndexName.GitRepoSastErrorCount,
     _id: { type: 'keyword' },
     mappings: {
       properties: {
