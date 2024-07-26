@@ -439,7 +439,6 @@ const indices = [
             ruleId: { type: 'keyword' },
             repoId: { type: 'keyword' },
             organizationId: { type: 'keyword' },
-            branch: { type: 'keyword' },
             fileName: { type: 'keyword' },
             lineNumber: { type: 'integer' },
             codeSnippet: { type: 'text' },
@@ -447,6 +446,33 @@ const indices = [
             createdAt: { type: 'date', format: 'strict_date_optional_time' },
             isDeleted: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+            metadata: {
+              type: 'nested',
+              properties: {
+                branch: { type: 'keyword' },
+                firstReportedOn: { type: 'date', format: 'strict_date_optional_time' },
+                lastReportedOn: { type: 'date', format: 'strict_date_optional_time' },
+                isResolved: { type: 'boolean' },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    name: Github.Enums.IndexName.GitRepoSastErrorCount,
+    _id: { type: 'keyword' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            repoId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            date: { type: 'date', format: 'strict_date_optional_time' },
+            branch: { type: 'keyword' },
+            count: { type: 'integer' },
           },
         },
       },

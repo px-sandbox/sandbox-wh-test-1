@@ -1,154 +1,11 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from '../util/response-formatter';
+import { formatRepoSastData, searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-const getAggrigatedDataSastErrors = async (
-  repoIds: string[],
-  startDate: string,
-  endDate: string,
-  branch: string[],
-  requestId: string,
-  afterKey?: object | undefined
-): Promise<Github.Type.ISastErrorAggregationResult> => {
-  let compositeAgg = esb
-    .compositeAggregation('errorsBucket')
-    .sources(
-      esb.CompositeAggregation.termsValuesSource('errorMsg', 'body.errorMsg'),
-      esb.CompositeAggregation.termsValuesSource('errorRuleId', 'body.ruleId'),
-      esb.CompositeAggregation.termsValuesSource('errorFileName', 'body.fileName'),
-      esb.CompositeAggregation.termsValuesSource('errorRepoId', 'body.repoId')
-    );
-  if (afterKey) {
-    compositeAgg = compositeAgg.after(afterKey);
-  }
-  const matchQry = esb
-    .requestBodySearch()
-    .query(
-      esb.boolQuery().must([
-        esb.termsQuery('body.repoId', repoIds),
-        // esb.termQuery('body.organizationId', orgId.id),
-        esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-        esb.termsQuery('body.branch', branch),
-        esb.termQuery('body.isDeleted', false),
-      ])
-    )
-    .agg(compositeAgg)
-    .toJSON();
-
-  logger.info({
-    message: 'searchSastErrorsMatrics.query',
-    data: JSON.stringify(matchQry),
-    requestId,
-  });
-  const searchedData: Github.Type.ISastErrorAggregationResult = await esClientObj.queryAggs(
-    Github.Enums.IndexName.GitRepoSastErrors,
-    matchQry
-  );
-  return searchedData;
-};
-async function searchSastErrors(
-  repoIds: string[],
-  // orgName: string,
-  startDate: string,
-  endDate: string,
-  branch: string[],
-  requestId: string,
-  afterKey?: object | undefined
-): Promise<Github.Type.SastErrorReport[]> {
-  let formattedData: Github.Type.SastErrorReport[] = [];
-  try {
-    const searchedData = await getAggrigatedDataSastErrors(
-      repoIds,
-      startDate,
-      endDate,
-      branch,
-      requestId,
-      afterKey
-    );
-    formattedData = searchedData?.errorsBucket?.buckets?.map((bucket) => ({
-      errorMsg: bucket.key.errorMsg as string,
-      errorRuleId: bucket.key.errorRuleId as string,
-      errorFileName: bucket.key.errorFileName as string,
-      errorRepoId: bucket.key.errorRepoId as string,
-    }));
-
-    return formattedData;
-  } catch (err) {
-    logger.error({
-      message: 'searchSastErrorsMatrics.error',
-      data: JSON.stringify(err),
-      requestId,
-    });
-    throw err;
-  }
-}
-
-async function getRepoSastErrorsQuery(
-  repoIds: string[],
-  // orgName: string,
-  startDate: string,
-  endDate: string,
-  branch: string[],
-  afterKey: object | undefined,
-  requestId: string
-): Promise<object | undefined> {
-  const data = await searchSastErrors(repoIds, startDate, endDate, branch, requestId, afterKey);
-  logger.info({ message: 'getRepoSastErrorsSearch.data', data: { length: data.length } });
-  if (data.length === 0) {
-    return undefined;
-  }
-
-  let compositeAgg = esb
-    .compositeAggregation('errorsBucket')
-    .sources(
-      esb.CompositeAggregation.termsValuesSource('errorMsg', 'body.errorMsg'),
-      esb.CompositeAggregation.termsValuesSource('errorRuleId', 'body.ruleId'),
-      esb.CompositeAggregation.termsValuesSource('errorFileName', 'body.fileName'),
-      esb.CompositeAggregation.termsValuesSource('errorRepoId', 'body.repoId')
-    )
-    .aggs([
-      esb.cardinalityAggregation('distinctBranch', 'body.branch'),
-      esb.termsAggregation('distinctBranchName', 'body.branch'),
-      esb.minAggregation('errorFirstOccurred', 'body.date'),
-    ]);
-
-  if (afterKey) {
-    compositeAgg = compositeAgg.after(afterKey);
-  }
-  const query = esb
-    .requestBodySearch()
-    .size(0)
-    .query(
-      esb
-        .boolQuery()
-        .should(
-          data.map((error) =>
-            esb
-              .boolQuery()
-              .must([
-                esb.termsQuery('body.errorMsg', error.errorMsg),
-                esb.termsQuery('body.ruleId', error.errorRuleId),
-                esb.termsQuery('body.fileName', error.errorFileName),
-                esb.termsQuery('body.repoId', error.errorRepoId),
-              ])
-          )
-        )
-        .minimumShouldMatch(1)
-    )
-    .agg(compositeAgg)
-    .toJSON();
-
-  logger.info({
-    message: 'getRepoSastErrorsFinalMatrics.query',
-    data: JSON.stringify(query),
-    requestId,
-  });
-  return query;
-}
 /* eslint-disable no-await-in-loop */
 export async function getRepoNames(
   repoIds: string[],
@@ -190,6 +47,52 @@ export async function getRepoNames(
   }
   return repoNamesArr;
 }
+
+async function getRepoSastErrorsFromEsb(
+  repoId: string[],
+  startDate: string,
+  endDate: string,
+  branch: string[],
+  afterKeyObj?: string[]
+): Promise<any> {
+  let newAfterKeyObj = '';
+  const sastDetailedQuery = esb
+    .requestBodySearch()
+    .query(
+      esb.boolQuery().must([
+        esb.termsQuery('body.repoId', [...repoId]),
+        esb
+          .nestedQuery()
+          .path('body.metadata')
+          .query(
+            esb
+              .boolQuery()
+              .must([
+                esb.rangeQuery('body.metadata.firstReportedOn').gte(startDate).lte(endDate),
+                esb.termsQuery('body.metadata.branch', [...branch]),
+                esb.termQuery('body.metadata.isResolved', false),
+              ])
+          ),
+      ])
+    )
+    .sort(esb.sort('body.metadata.firstReportedOn', 'asc').nestedPath('body.metadata'));
+  if (afterKeyObj) {
+    sastDetailedQuery.searchAfter(afterKeyObj);
+  }
+  const finalQuery = sastDetailedQuery.toJSON();
+  const report: Other.Type.HitBody = await esClientObj.search(
+    Github.Enums.IndexName.GitRepoSastErrors,
+    finalQuery
+  );
+
+  const formattedSastData = await formatRepoSastData(report);
+  // If there are more records, call the function recursively with the new afterKeyObj
+  if (report.hits && report.hits.hits.length > 0) {
+    const lastElement = report.hits.hits[report.hits.hits.length - 1];
+    newAfterKeyObj = lastElement.sort;
+  }
+  return { formattedSastData, newAfterKeyObj };
+}
 /* eslint-disable max-lines-per-function */
 // Main Function
 export async function getRepoSastErrors(
@@ -198,7 +101,7 @@ export async function getRepoSastErrors(
   endDate: string,
   branch: string[],
   requestId: string,
-  afterKeyObj?: object | undefined
+  afterKeyObj?: string[]
 ): Promise<Github.Type.SastErrorsAggregationData> {
   logger.info({
     message: 'getRepoSastErrors.details',
@@ -206,51 +109,40 @@ export async function getRepoSastErrors(
     requestId,
   });
   let afterKey;
-  const finalData: Github.Type.SastErrorsAggregation[] = [];
+  let finalData;
   try {
-    const requestBody = await getRepoSastErrorsQuery(
+    const sastData = await getRepoSastErrorsFromEsb(
       repoIds,
       startDate,
       endDate,
       branch,
-      afterKeyObj,
-      requestId
+      afterKeyObj
     );
-    if (requestBody) {
-      const report = await esClientObj.queryAggs<Github.Type.ISastErrorAggregationResult>(
-        Github.Enums.IndexName.GitRepoSastErrors,
-        requestBody
-      );
+    if (sastData) {
       logger.info({
         message: 'getRepoSastErrorsMatrics.report',
         data: {
-          report_length: report ?? '',
+          report_length: sastData ?? '',
         },
       });
-      afterKey = report?.errorsBucket?.after_key;
+      afterKey = sastData.newAfterKeyObj;
       const repoNames = await getRepoNames(repoIds, requestId);
-      if (report) {
-        finalData.push(
-          ...report.errorsBucket.buckets.map((bucket) => ({
-            repoName: repoNames.find(
-              (repo: Github.Type.RepoNameType) => repo.id === bucket.key.errorRepoId
-            )?.name as string | '',
-            errorName: bucket.key.errorMsg as string,
-            ruleId: bucket.key.errorRuleId as string,
-            filename: bucket.key.errorFileName as string,
-            branch: bucket.distinctBranchName.buckets.map(
-              (branchBucket) => branchBucket.key as string
-            ),
-            firstOccurredAt: bucket.errorFirstOccurred.value_as_string as string,
-          }))
-        );
-      }
-      logger.info({
-        message: 'getRepoSastErrorsMatrics.finalData',
-        data: { finalData_length: finalData?.length },
-        requestId,
-      });
 
+      if (sastData) {
+        finalData = sastData.formattedSastData.map((data: Github.Type.RepoSastErrors) => ({
+          repoName: repoNames.find((repo: Github.Type.RepoNameType) => repo.id === data.body.repoId)
+            ?.name as string | '',
+          errorName: data.body.errorMsg as string,
+          ruleId: data.body.ruleId as string,
+          filename: data.body.fileName as string,
+          branch: data.body.metadata.map((branch: { branch: string; firstReportedOn: string }) => {
+            return {
+              name: branch.branch as string,
+              firstOccurredAt: branch.firstReportedOn as string,
+            };
+          }),
+        }));
+      }
       logger.info({
         message: 'getRepoSastErrorsMatrics.finalData',
         data: { finalData_length: finalData?.length },
@@ -262,7 +154,7 @@ export async function getRepoSastErrors(
       afterKey: afterKey ? Buffer.from(JSON.stringify(afterKey), 'utf-8').toString('base64') : '',
     };
   } catch (err) {
-    logger.error({ message: 'getRepoSastErrorsMatrics.error', error: err, requestId });
+    logger.error({ message: 'getRepoSastErrorsMatrics.error', error: `${err}`, requestId });
     throw err;
   }
 }

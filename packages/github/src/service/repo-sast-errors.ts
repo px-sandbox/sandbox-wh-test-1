@@ -34,12 +34,12 @@ export const handler = async function repoSastErrors(
     logger.info({ message: 'repoSastErrors.handler.s3Upload', data: { s3Obj }, requestId });
 
     // Todo: Remove return statement once the sast error is stable
-    return responseParser
-      .setBody({})
-      .setMessage('Repo sast stopped for now. Will be back soon.')
-      .setStatusCode(HttpStatusCode['200'])
-      .setResponseBodyCode('SUCCESS')
-      .send();
+    // return responseParser
+    //   .setBody({})
+    //   .setMessage('Repo sast stopped for now. Will be back soon.')
+    //   .setStatusCode(HttpStatusCode['200'])
+    //   .setResponseBodyCode('SUCCESS')
+    //   .send();
 
     await sqsClient.sendMessage(
       {

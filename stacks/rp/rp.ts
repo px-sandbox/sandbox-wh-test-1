@@ -29,6 +29,8 @@ export function rp({ stack }: StackContext): {
       resources: ['*'],
     }),
   ]);
+
+  
   // Uncomment this block to enable cron job
   // const rpCron = new Cron(stack, 'cronRp', {
   //   schedule: 'cron(0/30 * ? * * *)',
