@@ -103,6 +103,14 @@ export class JiraClient {
     return boards;
   }
 
+  public async getSprint(sprintId: string): Promise<Jira.ExternalType.Api.Sprint> {
+    const { data: sprint } = await this.axiosInstance.get<Jira.ExternalType.Api.Sprint>(
+      `/rest/agile/1.0/sprint/${sprintId}`
+    );
+
+    return sprint;
+  }
+
   public async getBoardConfig(boardId: number): Promise<Jira.ExternalType.Api.BoardConfig> {
     try {
       const { data: boardConfig } = await this.axiosInstance.get<Jira.ExternalType.Api.BoardConfig>(
