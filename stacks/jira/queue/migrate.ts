@@ -154,7 +154,7 @@ export function initializeMigrateQueue(
     }),
     cdk: {
       eventSource: {
-        batchSize: 5,
+        batchSize: 1,
       },
     },
   });
