@@ -102,7 +102,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     );
     // error counting format
     const errorCountData: Github.Type.RepoSastErrorCount = {
-      id: `${mappingPrefixes.sast_errors}_${branch}_${repoId}_${orgId}_${data.date}`,
+      id: `${mappingPrefixes.sast_errors}_${branch}_${repoId}_${orgId}_${data.createdAt}`,
       body: {
         repoId: `${mappingPrefixes.repo}_${repoId}`,
         branch,
