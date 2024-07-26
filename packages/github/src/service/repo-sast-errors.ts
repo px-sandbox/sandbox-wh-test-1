@@ -21,7 +21,7 @@ export const handler = async function repoSastErrors(
     const data: Github.ExternalType.Api.RepoSastErrors = JSON.parse(event.body ?? '{}');
 
     const s3 = new S3();
-    data.createdAt = moment().subtract(1, 'day').toISOString();
+    data.createdAt = data.createdAt || data.testDate || moment().toISOString();
     const params = {
       Bucket: `${process.env.SST_STAGE}-sast-errors`,
       Key: `sast_errors_${data.orgId}_${data.repoId}_${data.branch.replace(/\//g, '_')}_${
