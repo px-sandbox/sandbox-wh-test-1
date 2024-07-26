@@ -101,15 +101,14 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       branch
     );
     // error counting format
-    const date = moment().format('YYYY-MM-DD');
     const errorCountData: Github.Type.RepoSastErrorCount = {
-      id: `${mappingPrefixes.sast_errors}_${branch}_${repoId}_${orgId}_${date}`,
+      id: `${mappingPrefixes.sast_errors}_${branch}_${repoId}_${orgId}_${data.date}`,
       body: {
         repoId: `${mappingPrefixes.repo}_${repoId}`,
         branch,
         organizationId: `${mappingPrefixes.organization}_${orgId}`,
         count: sastErrorFormattedData.length,
-        date,
+        date: moment(data.date).toISOString(),
       },
     };
 
