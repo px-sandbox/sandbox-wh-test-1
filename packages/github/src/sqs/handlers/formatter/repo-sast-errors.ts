@@ -108,7 +108,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
         branch,
         organizationId: `${mappingPrefixes.organization}_${orgId}`,
         count: sastErrorFormattedData.length,
-        date: moment(data.date).toISOString(),
+        date: moment(data.createdAt).toISOString(),
       },
     };
 

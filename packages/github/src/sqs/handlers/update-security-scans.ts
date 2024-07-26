@@ -62,7 +62,7 @@ function formatScansForBulkInsert(data: (Pick<Other.Type.Hit, '_id'> & Other.Typ
       )}_${dataItem.organizationId.replace('gh_org_', '')}_${date}`,
       body: {
         ...rest,
-        date: moment().format('YYYY-MM-DD:HH:mm:ss'),
+        date: moment().toISOString(),
       },
     };
   });
