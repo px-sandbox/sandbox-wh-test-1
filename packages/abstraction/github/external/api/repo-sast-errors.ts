@@ -18,4 +18,5 @@ export type RepoSastErrors = retryProcess & {
   firstReportedOn: string;
   lastReportedOn: string;
   isResolved: boolean;
+  testDate?: string;
 };
