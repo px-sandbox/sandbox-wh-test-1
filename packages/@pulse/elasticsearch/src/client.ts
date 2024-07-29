@@ -99,7 +99,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
     try {
       await this.client.deleteByQuery({
         index: indexName,
-        body: { query },
+        body: query,
       });
     } catch (error) {
       logger.error({ message: `${ElasticSearchClient.name}.deleteByQuery.error : ${error}` });
