@@ -14,9 +14,8 @@ async function deletePrevDependencies(repoId: string): Promise<void> {
     .requestBodySearch()
     .query(esb.matchQuery('body.repoId', `${mappingPrefixes.repo}_${repoId}`))
     .toJSON();
-  const script = esb.script('inline', 'ctx._source.body.isDeleted = true');
 
-  await esClientObj.updateByQuery(Github.Enums.IndexName.GitRepoLibrary, matchQry, script.toJSON());
+  await esClientObj.deleteByQuery(Github.Enums.IndexName.GitRepoLibrary, matchQry);
 }
 export async function repoLibHelper(
   data: Github.ExternalType.RepoLibrary,

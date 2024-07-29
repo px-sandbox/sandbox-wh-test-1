@@ -22,23 +22,25 @@ const DynamoDbDocClientObj = DynamoDbDocClient.getInstance();
  */
 function createDeleteQuery(data: { projectId: string; organizationId: string }): object {
   return esb
-    .boolQuery()
-    .must([
-      esb
-        .boolQuery()
-        .should([
-          esb.termQuery('body.id', data.projectId),
-          esb.termQuery('body.projectId', data.projectId),
-        ])
-        .minimumShouldMatch(1),
-      esb
-        .boolQuery()
-        .should([
-          esb.termQuery('body.organizationId', data.organizationId),
-          esb.termQuery('body.organizationId.keyword', data.organizationId),
-        ])
-        .minimumShouldMatch(1),
-    ])
+    .requestBodySearch()
+    .query(
+      esb.boolQuery().must([
+        esb
+          .boolQuery()
+          .should([
+            esb.termQuery('body.id', data.projectId),
+            esb.termQuery('body.projectId', data.projectId),
+          ])
+          .minimumShouldMatch(1),
+        esb
+          .boolQuery()
+          .should([
+            esb.termQuery('body.organizationId', data.organizationId),
+            esb.termQuery('body.organizationId.keyword', data.organizationId),
+          ])
+          .minimumShouldMatch(1),
+      ])
+    )
     .toJSON();
 }
 /**

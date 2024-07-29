@@ -30,14 +30,6 @@ export const handler = async (
       requestId,
     });
 
-    // Todo: Remove return statement once the version upgrade is stable
-    return responseParser
-      .setBody({})
-      .setMessage('Version upgrades stopped for now. Will be back soon.')
-      .setStatusCode(HttpStatusCode['200'])
-      .setResponseBodyCode('SUCCESS')
-      .send();
-
     await sqsClient.sendMessage(
       {
         s3ObjKey: s3Obj.Key,
