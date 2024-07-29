@@ -47,22 +47,25 @@ function createScanQuery(
  * @param data - The array of scan data to be formatted.
  * @returns An array of formatted scan data objects.
  */
-function formatScansForBulkInsert(data: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]): {
+function formatScansForBulkInsert(
+  data: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[],
+  currDate: string
+): {
   _id: string;
   body: Other.Type.HitBody;
 }[] {
   // modifying data to be easily sent for ElasticSearch-bulk-insert
   return data.map((dataItem) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, date, createdAt, ...rest } = dataItem;
+    const { _id, date, ...rest } = dataItem;
     return {
       _id: `${mappingPrefixes.sast_errors}_${dataItem.branch}_${dataItem.repoId.replace(
         'gh_repo_',
         ''
-      )}_${dataItem.organizationId.replace('gh_org_', '')}_${date}`,
+      )}_${dataItem.organizationId.replace('gh_org_', '')}_${currDate}`,
       body: {
         ...rest,
-        date: moment().format('YYYY-MM-DD'),
+        date: currDate,
       },
     };
   });
@@ -145,8 +148,7 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
       }
 
       // formatting yesterday's scans
-      const updatedBody = formatScansForBulkInsert(yesterdayScans);
-
+      const updatedBody = formatScansForBulkInsert(yesterdayScans, currDate);
       // bulk inserting scans for today
       logger.info({ message: `Updating scans for repoId: ${repoId}, branch: ${branch}` });
       await esClient.bulkInsert(Github.Enums.IndexName.GitRepoSastErrorCount, updatedBody);
