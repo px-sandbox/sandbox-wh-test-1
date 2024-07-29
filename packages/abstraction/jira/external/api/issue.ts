@@ -39,7 +39,7 @@ export type Issue = {
       remainingEstimateSeconds: number;
       timeSpentSeconds: number;
     };
-    customfield_10007: [
+    customfield_10007: 
       {
         id: string;
         self: string;
@@ -47,8 +47,7 @@ export type Issue = {
         name: string;
         boardId: string;
         goal: string;
-      }
-    ];
+      }[];
     summary: string;
     parent: {
       id: string;
@@ -90,6 +89,27 @@ export type Issue = {
     };
     labels: Array<string>;
     issuelinks: Array<string>;
+    issuetype: {
+      name: string;
+    };
+    priority: {
+      name: string;
+    };
+    assignee: {
+      accountId: string;
+    };
+    reporter: {
+      accountId: string;
+    };
+    creator: {
+      accountId: string;
+    };
+    status: {
+      name: string;
+    };
+    created: string;
+    updated: string;
+    lastViewed: string | null;
   };
   eventName: string;
 };
