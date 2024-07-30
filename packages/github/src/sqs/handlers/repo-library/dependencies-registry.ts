@@ -42,7 +42,7 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
         logger.info({ message: 'DEPENDENCIES_DATA', data: repoLibObj, requestId, resourceId });
         await Promise.all([
           sqsClient.sendMessage(
-            { ...repoLibObj, processId: messageBody.processId },
+            { ...repoLibObj, processId: messageBody?.processId },
             Queue.qCurrentDepRegistry.queueUrl,
             {
               requestId,
@@ -50,7 +50,7 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
             }
           ),
           sqsClient.sendMessage(
-            { latest, libName, processId: messageBody.processId },
+            { latest, libName, processId: messageBody?.processId },
             Queue.qLatestDepRegistry.queueUrl,
             {
               requestId,
