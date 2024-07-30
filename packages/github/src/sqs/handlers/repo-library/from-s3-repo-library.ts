@@ -41,7 +41,7 @@ export const handler = async function repoLibS3(event: SQSEvent): Promise<void> 
 
         logger.error({
           message: 'repoLibS3DataReceiver.error',
-          error,
+          error: `${error}`,
           requestId,
           resourceId,
         });

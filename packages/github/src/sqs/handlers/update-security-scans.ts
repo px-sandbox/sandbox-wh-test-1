@@ -6,7 +6,7 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
-import { logProcessToRetry } from 'rp';
+import { deleteProcessfromDdb, logProcessToRetry } from 'rp';
 import { searchedDataFormator } from '../../util/response-formatter';
 import { mappingPrefixes } from 'src/constant/config';
 
@@ -122,7 +122,7 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
   for (const record of event.Records) {
     try {
       const {
-        message: { repoId, branch, currDate },
+        message: { repoId, branch, currDate, processId },
       } = JSON.parse(record.body);
       const todaysScans = await getScans(repoId, branch, currDate, false);
 
@@ -155,6 +155,10 @@ export const handler = async function updateSecurityScans(event: SQSEvent): Prom
 
       logger.info({
         message: `Successfully copied scans for repoId: ${repoId}, branch: ${branch} from ${yesterDate} to ${currDate}`,
+      });
+      await deleteProcessfromDdb(processId, {
+        requestId: processId,
+        resourceId: `${branch}_${repoId}`,
       });
     } catch (error) {
       // retrying the update security scans process if any error occurs

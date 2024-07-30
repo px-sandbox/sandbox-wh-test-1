@@ -13,7 +13,7 @@ export async function saveRepoLibraryDetails(
     const { processId, ...updatedData } = data;
     await esClientObj.putDocument(Github.Enums.IndexName.GitRepoLibrary, updatedData);
     logger.info({ message: 'saveRepoLibraryDetails.successful', ...reqCtx });
-    await deleteProcessfromDdb(data.processId, reqCtx);
+    await deleteProcessfromDdb(processId, reqCtx);
   } catch (error: unknown) {
     logger.error({ message: 'saveRepoLibraryDetails.error', error, ...reqCtx });
     throw error;
