@@ -41,14 +41,22 @@ export const handler = async function dependencyRegistry(event: SQSEvent): Promi
         };
         logger.info({ message: 'DEPENDENCIES_DATA', data: repoLibObj, requestId, resourceId });
         await Promise.all([
-          sqsClient.sendMessage(repoLibObj, Queue.qCurrentDepRegistry.queueUrl, {
-            requestId,
-            resourceId,
-          }),
-          sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl, {
-            requestId,
-            resourceId,
-          }),
+          sqsClient.sendMessage(
+            { ...repoLibObj, processId: messageBody.processId },
+            Queue.qCurrentDepRegistry.queueUrl,
+            {
+              requestId,
+              resourceId,
+            }
+          ),
+          sqsClient.sendMessage(
+            { latest, libName, processId: messageBody.processId },
+            Queue.qLatestDepRegistry.queueUrl,
+            {
+              requestId,
+              resourceId,
+            }
+          ),
         ]);
       } catch (error) {
         if (axios.isAxiosError(error)) {

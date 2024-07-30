@@ -28,6 +28,7 @@ export async function repoLibHelper(
       coreDependencies,
       repositoryInfo: { repoId, repoOwner: orgName },
       dependencies,
+      processId,
     } = data;
 
     const uniqueDeps = dependencies.filter(
@@ -46,6 +47,7 @@ export async function repoLibHelper(
           orgName,
           isDeleted: false,
           isCore: false,
+          processId,
         };
 
         return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl, { ...reqCtx });
@@ -57,6 +59,7 @@ export async function repoLibHelper(
           orgName,
           isDeleted: false,
           isCore: true,
+          processId,
         };
 
         return sqsClient.sendMessage(message, Queue.qDepRegistry.queueUrl, { ...reqCtx });

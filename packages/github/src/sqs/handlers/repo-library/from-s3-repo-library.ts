@@ -24,7 +24,10 @@ export const handler = async function repoLibS3(event: SQSEvent): Promise<void> 
         });
 
         if (data) {
-          await repoLibHelper(data, { requestId, resourceId });
+          await repoLibHelper(
+            { ...data, processId: messageBody?.processId },
+            { requestId, resourceId }
+          );
         } else {
           logger.error({
             message: 'repoLibS3DataReceiver.nodata',

@@ -22,11 +22,12 @@ export async function logProcessToRetry(
     const { processId } = message;
     // entry in dynamodb table
     const retryBody = {
-      messageBody: JSON.stringify({ ...message, retry: retry ? retry + 1 : 1 }),
+      messageBody: JSON.stringify({ ...message }),
       queue,
       ...(MessageDeduplicationId && MessageGroupId
         ? { MessageGroupId, MessageDeduplicationId }
         : {}),
+      retry: retry ? retry + 1 : 1,
     };
     await dynamodbClient.put(
       new RetryTableMapping().preparePutParams(processId || requestId, retryBody)

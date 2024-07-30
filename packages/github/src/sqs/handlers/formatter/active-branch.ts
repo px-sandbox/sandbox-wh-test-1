@@ -32,7 +32,8 @@ async function countBranchesAndSendToSQS(
   repo: Github.Type.Repository,
   date: string,
   requestId: string,
-  resourceId: string
+  resourceId: string,
+  processId?: string
 ): Promise<void> {
   try {
     const esData = await getBranches(repo.id, date);
@@ -56,7 +57,7 @@ async function countBranchesAndSendToSQS(
     await branchProcessor.save({
       data,
       eventType: Github.Enums.Event.ActiveBranches,
-      processId: data?.processId,
+      processId,
     });
   } catch (error: unknown) {
     logger.error({
@@ -73,10 +74,10 @@ export async function handler(event: SQSEvent): Promise<void> {
     event.Records.map(async (record: SQSRecord) => {
       try {
         const {
-          message: { repo, date },
+          message: { repo, date, processId },
           reqCtx: { requestId, resourceId },
         } = JSON.parse(record.body);
-        await countBranchesAndSendToSQS(repo, date, requestId, resourceId);
+        await countBranchesAndSendToSQS(repo, date, requestId, resourceId, processId);
       } catch (error) {
         logger.error({
           message: 'active_branch.handler.error',
