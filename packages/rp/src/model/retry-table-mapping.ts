@@ -16,7 +16,7 @@ export class RetryTableMapping {
   public prepareScanParams(): ScanCommandInput {
     return {
       TableName: this.tableName,
-      Limit: 20,
+      Limit: 200,
       FilterExpression: 'attribute_not_exists(#retry) OR #retry <= :maxRetry',
       ExpressionAttributeNames: {
         '#retry': 'retry',
