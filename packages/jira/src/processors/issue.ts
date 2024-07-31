@@ -47,9 +47,9 @@ export class IssueProcessor extends DataProcessor<
     const esbIssueData = await getIssueById(data.issue.id, data.organization, {
       requestId: this.requestId,
     });
-    const [sprintChangelog] = data?.changelog.items.filter(
-      (item) => item.fieldId === ChangelogField.SPRINT
-    );
+    const [sprintChangelog] = !data.changelog
+      ? []
+      : data.changelog.items.filter((item) => item.fieldId === ChangelogField.SPRINT);
 
     sprintId = sprintChangelog
       ? getSprintForTo(sprintChangelog.to, sprintChangelog.from)
