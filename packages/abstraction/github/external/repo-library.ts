@@ -2,7 +2,10 @@ type Dependency = {
   dependencyName: string;
   currentVersion: string;
 };
-export type RepoLibrary = {
+type retryProcess = {
+  processId?: string;
+};
+export type RepoLibrary = retryProcess & {
   repositoryInfo: {
     repoId: string;
     repoName: string;
@@ -10,5 +13,4 @@ export type RepoLibrary = {
   };
   coreDependencies: Array<Dependency>;
   dependencies: Array<Dependency>;
-  processId?: string;
 };

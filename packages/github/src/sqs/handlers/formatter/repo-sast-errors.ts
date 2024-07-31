@@ -2,7 +2,7 @@ import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { deleteProcessfromDdb, logProcessToRetry } from 'rp';
+import { logProcessToRetry } from 'rp';
 import {
   fetchDataFromS3,
   getSastDataFromES,
@@ -85,7 +85,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId,
     });
-    const { s3Obj, repoId, branch, orgId, processId } = messageBody;
+    const { s3Obj, repoId, branch, orgId } = messageBody;
     const bucketName = `${process.env.SST_STAGE}-sast-errors`;
     const data: Github.ExternalType.Api.RepoSastErrors = await fetchDataFromS3(
       s3Obj.key,
@@ -117,8 +117,6 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId,
     });
-
-    await deleteProcessfromDdb(processId, { requestId, resourceId });
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhRepoSastError.queueUrl, error as Error);
     logger.error({

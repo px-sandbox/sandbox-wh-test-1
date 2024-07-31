@@ -79,7 +79,7 @@ export function initializeRoutes(
     'POST /github/repo-libraries': {
       function: {
         handler: 'packages/github/src/service/repo-library/repo-library.handler',
-        bind: [depRegistryQueue, currentDepRegistryQueue, latestDepRegistry, repoLibS3Queue],
+        bind: [repoLibS3Queue],
       },
       authorizer: 'none',
     },
