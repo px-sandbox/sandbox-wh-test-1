@@ -30,12 +30,10 @@ export function rp({ stack }: StackContext): {
     }),
   ]);
 
-  
-  // Uncomment this block to enable cron job
-  // const rpCron = new Cron(stack, 'cronRp', {
-  //   schedule: 'cron(0/30 * ? * * *)',
-  //   job: retryProcess,
-  // });
+  const rpCron = new Cron(stack, 'cronRp', {
+    schedule: 'cron(0/30 * ? * * *)',
+    job: retryProcess,
+  });
   const rpApi = new Api(stack, 'rpApi', {
     authorizers: {
       admin: {
@@ -64,6 +62,6 @@ export function rp({ stack }: StackContext): {
   return {
     rpApi,
     retryProcessTable,
-    // rpCron,
+    rpCron,
   };
 }
