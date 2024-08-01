@@ -10,13 +10,6 @@ import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 
-const installationAccessToken = await getInstallationAccessToken();
-const octokit = ghRequest.request.defaults({
-  headers: {
-    Authorization: `Bearer ${installationAccessToken.body.token}`,
-  },
-});
-const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 const sqsClient = SQSClient.getInstance();
 
 async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
@@ -41,6 +34,13 @@ async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
   }
   const { page = 1 } = messageBody;
   const { owner, name } = messageBody;
+  const installationAccessToken = await getInstallationAccessToken(owner);
+  const octokit = ghRequest.request.defaults({
+    headers: {
+      Authorization: `Bearer ${installationAccessToken.body.token}`,
+    },
+  });
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
     const responseData = (await octokitRequestWithTimeout(
       `GET /repos/${owner}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`

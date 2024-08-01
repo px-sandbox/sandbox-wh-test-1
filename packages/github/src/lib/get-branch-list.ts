@@ -76,7 +76,7 @@ export async function getBranches(
 ): Promise<number> {
   let branchCount: number;
   try {
-    const installationAccessToken = await getInstallationAccessToken();
+    const installationAccessToken = await getInstallationAccessToken(repoOwner);
     const octokit = ghRequest.request.defaults({
       headers: {
         Authorization: `Bearer ${installationAccessToken.body.token}`,

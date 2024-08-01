@@ -10,20 +10,21 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
-const installationAccessToken = await getInstallationAccessToken();
-const sqsClient = SQSClient.getInstance();
-const octokit = ghRequest.request.defaults({
-  headers: {
-    Authorization: `Bearer ${installationAccessToken.body.token}`,
-  },
-});
-const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
   const {
     reqCtx: { requestId, resourceId },
     message: messageBody,
   } = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId, branchName } = messageBody;
+
+  const installationAccessToken = await getInstallationAccessToken(owner);
+  const sqsClient = SQSClient.getInstance();
+  const octokit = ghRequest.request.defaults({
+    headers: {
+      Authorization: `Bearer ${installationAccessToken.body.token}`,
+    },
+  });
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
     const commitDataOnPr = (await octokitRequestWithTimeout(
       `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=100&page=${page}`

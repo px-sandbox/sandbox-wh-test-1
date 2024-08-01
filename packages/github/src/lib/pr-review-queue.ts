@@ -16,8 +16,8 @@ import { getTimezoneOfUser } from './get-user-timezone';
 import { ghRequest } from './request-default';
 
 // Get token to pass into header of Github Api call
-async function getGithubApiToken(): Promise<string> {
-  const installationAccessToken = await getInstallationAccessToken();
+async function getGithubApiToken(orgName: string): Promise<string> {
+  const installationAccessToken = await getInstallationAccessToken(orgName);
   return `Bearer ${installationAccessToken.body.token}`;
 }
 
@@ -31,7 +31,7 @@ async function getPullRequestDetails<T>(
 ): Promise<OctokitResponse<T>> {
   const octokit = ghRequest.request.defaults({
     headers: {
-      Authorization: await getGithubApiToken(),
+      Authorization: await getGithubApiToken(owner),
     },
   });
   const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);

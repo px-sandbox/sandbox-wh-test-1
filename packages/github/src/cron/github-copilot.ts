@@ -10,7 +10,7 @@ import { getInstallationAccessToken } from '../util/installation-access-token';
 import { v4 as uuid } from 'uuid';
 
 const sqsClient = SQSClient.getInstance();
-export async function initializeOctokit(): Promise<
+export async function initializeOctokit(orgName: string): Promise<
   RequestInterface<
     object & {
       headers: {
@@ -19,7 +19,7 @@ export async function initializeOctokit(): Promise<
     }
   >
 > {
-  const installationAccessToken = await getInstallationAccessToken();
+  const installationAccessToken = await getInstallationAccessToken(orgName);
   const octokit = ghRequest.request.defaults({
     headers: {
       Authorization: `Bearer ${installationAccessToken.body.token}`,
@@ -37,6 +37,7 @@ async function getGHCopilotReports(
     }
   >,
   requestId: string,
+  orgName: string,
   pageNo = 1,
   counter = 0
 ): Promise<number> {
@@ -46,9 +47,9 @@ async function getGHCopilotReports(
       data: new Date().toISOString(),
     });
     const perPage = 100; // max allowed by github
-    const org = Github.Enums.OrgConst.SG;
+
     const ghCopilotResp = await octokit(
-      `GET /orgs/${org}/copilot/billing/seats?page=${pageNo}&per_page=${perPage}`
+      `GET /orgs/${orgName}/copilot/billing/seats?page=${pageNo}&per_page=${perPage}`
     );
 
     const reportsPerPage = ghCopilotResp.data as {
@@ -69,15 +70,15 @@ async function getGHCopilotReports(
       return newCounter;
     }
 
-    return getGHCopilotReports(octokit, requestId, pageNo + 1, newCounter);
+    return getGHCopilotReports(octokit, requestId, orgName, pageNo + 1, newCounter);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     logger.error({ message: 'getGHCopilotReports.error', data: pageNo, error });
 
     if (error.status === 401) {
       // Generate new installation access token to make request
-      const octokitInstance = await initializeOctokit();
-      return getGHCopilotReports(octokitInstance, requestId, pageNo, counter);
+      const octokitInstance = await initializeOctokit(orgName);
+      return getGHCopilotReports(octokitInstance, requestId, orgName, pageNo, counter);
     }
     if (error.status === 403) {
       const resetTime = new Date(parseInt(error.headers['X-Ratelimit-Reset'], 10) * 1000);
@@ -94,9 +95,10 @@ async function getGHCopilotReports(
 
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
   const requestId = uuid();
+  const orgName = event?.queryStringParameters?.orgName || '';
   try {
-    const octokit = await initializeOctokit();
-    await getGHCopilotReports(octokit, requestId);
+    const octokit = await initializeOctokit(orgName);
+    await getGHCopilotReports(octokit, requestId, orgName);
   } catch (error: unknown) {
     logger.error({ message: 'github_copilot.handler.error', error, requestId });
     throw error;

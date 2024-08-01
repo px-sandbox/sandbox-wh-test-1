@@ -9,21 +9,21 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
-const installationAccessToken = await getInstallationAccessToken();
-const sqsClient = SQSClient.getInstance();
-
-const octokit = ghRequest.request.defaults({
-  headers: {
-    Authorization: `Bearer ${installationAccessToken.body.token}`,
-  },
-});
-const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getRepoBranches(record: SQSRecord | { body: string }): Promise<boolean | undefined> {
   const {
     reqCtx: { requestId, resourceId },
     message: messageBody,
   } = JSON.parse(record.body);
   const { owner, name, page = 1, githubRepoId } = messageBody;
+  const installationAccessToken = await getInstallationAccessToken(owner);
+  const sqsClient = SQSClient.getInstance();
+
+  const octokit = ghRequest.request.defaults({
+    headers: {
+      Authorization: `Bearer ${installationAccessToken.body.token}`,
+    },
+  });
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
     let branches = [];
     if (messageBody.reqBranch) {

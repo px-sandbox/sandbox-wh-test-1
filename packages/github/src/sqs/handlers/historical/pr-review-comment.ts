@@ -63,7 +63,7 @@ export const handler = async function prReviewComment(event: SQSEvent): Promise<
       } = JSON.parse(record.body);
       try {
         const { owner, repoName, prData } = messageBody;
-        const octokit = await initializeOctokit();
+        const octokit = await initializeOctokit(owner);
         const prReviewCommentIdfromApi: number[] = [];
         // await prFormattedData.map(async (prData: any) => {
         const commentsDataOnPr = await octokit(
