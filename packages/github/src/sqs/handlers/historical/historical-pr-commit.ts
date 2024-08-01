@@ -11,6 +11,7 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
+const sqsClient = SQSClient.getInstance();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function saveCommit(
   commitData: any,
@@ -66,7 +67,6 @@ async function getPRCommits(record: SQSRecord): Promise<boolean | undefined> {
       logger.info({ message: 'HISTORY_MESSAGE_BODY', data: messageBody, requestId, resourceId });
       return;
     }
-    const sqsClient = SQSClient.getInstance();
     const installationAccessToken = await getInstallationAccessToken(owner);
     const octokit = ghRequest.request.defaults({
       headers: {
