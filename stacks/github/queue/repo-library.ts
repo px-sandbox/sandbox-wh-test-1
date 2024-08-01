@@ -19,65 +19,6 @@ export function initializeRepoLibraryQueue(
     NODE_VERSION,
   } = use(commonConfig);
   const { retryProcessTable, libMasterTable } = githubDDb;
-  const depRegistryQueue = new Queue(stack, 'qDepRegistry', {
-    cdk: {
-      queue: {
-        deadLetterQueue: getDeadLetterQ(stack, 'qDepRegistry'),
-      },
-    },
-  });
-  depRegistryQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnDepRegistry', {
-      handler: 'packages/github/src/sqs/handlers/repo-library/dependencies-registry.handler',
-      bind: [depRegistryQueue],
-      runtime: NODE_VERSION,
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
-
-  const currentDepRegistryQueue = new Queue(stack, 'qCurrentDepRegistry', {
-    cdk: {
-      queue: {
-        deadLetterQueue: getDeadLetterQ(stack, 'qCurrentDepRegistry'),
-      },
-    },
-  });
-  currentDepRegistryQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnCurrentDepRegistry', {
-      handler: 'packages/github/src/sqs/handlers/repo-library/current-dependencies.handler',
-      bind: [currentDepRegistryQueue],
-      runtime: NODE_VERSION,
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
-
-  const latestDepRegistry = new Queue(stack, 'qLatestDepRegistry', {
-    cdk: {
-      queue: {
-        deadLetterQueue: getDeadLetterQ(stack, 'qLatestDepRegistry'),
-      },
-    },
-  });
-  latestDepRegistry.addConsumer(stack, {
-    function: new Function(stack, 'fnLatestDepRegistry', {
-      handler: 'packages/github/src/sqs/handlers/repo-library/latest-dependencies.handler',
-      bind: [libMasterTable],
-      runtime: NODE_VERSION,
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
   const masterLibraryQueue = new Queue(stack, 'qMasterLibInfo', {
     cdk: {
       queue: {
@@ -119,13 +60,14 @@ export function initializeRepoLibraryQueue(
   });
 
   repoLibS3Queue.bind([
-    depRegistryQueue,
     OPENSEARCH_NODE,
     REQUEST_TIMEOUT,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     versionUpgradeBucket,
     retryProcessTable,
+    GIT_ORGANIZATION_ID,
+    libMasterTable,
   ]);
   masterLibraryQueue.bind([
     retryProcessTable,
@@ -133,33 +75,7 @@ export function initializeRepoLibraryQueue(
     REQUEST_TIMEOUT,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
-    latestDepRegistry,
   ]);
 
-  currentDepRegistryQueue.bind([
-    retryProcessTable,
-    OPENSEARCH_NODE,
-    REQUEST_TIMEOUT,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-  ]);
-
-  depRegistryQueue.bind([
-    retryProcessTable,
-    GIT_ORGANIZATION_ID,
-    OPENSEARCH_NODE,
-    REQUEST_TIMEOUT,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-    currentDepRegistryQueue,
-    latestDepRegistry,
-  ]);
-
-  return [
-    depRegistryQueue,
-    currentDepRegistryQueue,
-    latestDepRegistry,
-    masterLibraryQueue,
-    repoLibS3Queue,
-  ];
+  return [masterLibraryQueue, repoLibS3Queue];
 }

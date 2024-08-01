@@ -3,10 +3,13 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import axios from 'axios';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { logProcessToRetry } from 'rp';
+import { deleteProcessfromDdb, logProcessToRetry } from 'rp';
 import { getNodeLibInfo } from '../../../util/node-library-info';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { LibParamsMapping } from 'src/model/lib-master-mapping';
 
-const sqsClient = SQSClient.getInstance();
+const dynamodbClient = DynamoDbDocClient.getInstance();
+
 export const handler = async function masterLibrary(event: SQSEvent): Promise<void> {
   logger.info({ message: 'Records Length', data: event.Records.length });
   await Promise.all(
@@ -18,7 +21,7 @@ export const handler = async function masterLibrary(event: SQSEvent): Promise<vo
       try {
         logger.info({ message: 'MASTER_LIBRARY_INDEXED', data: messageBody });
 
-        const { depName, version } = messageBody;
+        const { depName, version, processId } = messageBody;
 
         const { latest } = await getNodeLibInfo(depName, version);
         const libName = `npm_${depName}`;
@@ -26,10 +29,17 @@ export const handler = async function masterLibrary(event: SQSEvent): Promise<vo
           logger.info({
             message: `UpdateLatestDepHandler: ${depName} updated to ${latest.version}`,
           });
-          await sqsClient.sendMessage({ latest, libName }, Queue.qLatestDepRegistry.queueUrl, {
-            requestId,
-            resourceId,
-          });
+          const ddbPutData = [
+            {
+              libName,
+              version: {
+                version: latest.version,
+                releaseDate: latest.releaseDate,
+              },
+            },
+          ];
+          await dynamodbClient.batchWrite(new LibParamsMapping().preparePutParams(ddbPutData));
+          await deleteProcessfromDdb(processId, { requestId, resourceId });
         }
       } catch (error) {
         if (axios.isAxiosError(error)) {
