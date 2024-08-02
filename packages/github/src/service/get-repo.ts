@@ -19,7 +19,11 @@ async function fetchReposData(
 ): Promise<IRepo[]> {
   let esbQuery;
 
-  const orgQuery = esb.boolQuery().should(esb.termQuery('body.organisationId', organisationId));
+  let orgQuery = esb.boolQuery();
+
+  if (organisationId && organisationId.length > 0) {
+    orgQuery = orgQuery.should(esb.termQuery('body.organisationId', organisationId));
+  }
 
   if (repoIds.length > 0) {
     const repoNameQuery = esb
@@ -31,7 +35,7 @@ async function fetchReposData(
       .toJSON();
     esbQuery = repoNameQuery;
   } else {
-    
+
     if (gitRepoName) {
       orgQuery
         .must([
