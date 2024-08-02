@@ -478,6 +478,22 @@ const indices = [
       },
     },
   },
+  {
+    name: Github.Enums.IndexName.GitMigrationStatus,
+    _id: { type: 'keyword' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            organizationId: { type: 'keyword' },
+            status: { type: 'keyword' },
+            date: { type: 'date', format: 'strict_date_optional_time' },
+          },
+        },
+      },
+    },
+  },
 ];
 
 async function createMapping(name: string, mappings: Github.Type.IndexMapping): Promise<void> {
