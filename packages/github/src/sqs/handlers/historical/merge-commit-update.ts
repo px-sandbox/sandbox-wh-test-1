@@ -11,13 +11,6 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
-const installationAccessToken = await getInstallationAccessToken();
-const octokit = ghRequest.request.defaults({
-  headers: {
-    Authorization: `Bearer ${installationAccessToken.body.token}`,
-  },
-});
-const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 export const handler = async function updateMergeCommitDataReceiver(
   event: SQSEvent
 ): Promise<void> {
@@ -46,7 +39,13 @@ export const handler = async function updateMergeCommitDataReceiver(
           createdAt,
         } = messageBody;
         let { isMergedCommit } = messageBody;
-
+        const installationAccessToken = await getInstallationAccessToken(repoOwner);
+        const octokit = ghRequest.request.defaults({
+          headers: {
+            Authorization: `Bearer ${installationAccessToken.body.token}`,
+          },
+        });
+        const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
         const responseData = (await octokitRequestWithTimeout(
           `GET /repos/${repoOwner}/${repoName}/commits/${githubCommitId}`
         )) as OctokitResponse<any>;

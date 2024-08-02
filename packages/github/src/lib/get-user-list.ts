@@ -64,7 +64,7 @@ async function getUserList(
     if (error.status === 401) {
       const {
         body: { token },
-      } = await getInstallationAccessToken();
+      } = await getInstallationAccessToken(organizationName);
 
       const octokitObj = ghRequest.request.defaults({
         headers: {

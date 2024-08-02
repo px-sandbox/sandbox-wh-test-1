@@ -42,13 +42,6 @@ async function processQueueOnMergedPR(
   );
 }
 export const handler = async function collectPrByNumberData(event: SQSEvent): Promise<void> {
-  const installationAccessToken = await getInstallationAccessToken();
-  const octokit = ghRequest.request.defaults({
-    headers: {
-      Authorization: `Bearer ${installationAccessToken.body.token}`,
-    },
-  });
-  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   await Promise.all(
     event.Records.map(async (record) => {
       const {
@@ -63,6 +56,13 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         resourceId,
       });
       try {
+        const installationAccessToken = await getInstallationAccessToken(messageBody.owner);
+        const octokit = ghRequest.request.defaults({
+          headers: {
+            Authorization: `Bearer ${installationAccessToken.body.token}`,
+          },
+        });
+        const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
         const dataOnPr = await octokitRequestWithTimeout(
           `GET /repos/${messageBody.owner}/${messageBody.repoName}/pulls/${messageBody.prNumber}`
         );

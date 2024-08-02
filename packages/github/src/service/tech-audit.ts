@@ -16,7 +16,7 @@ const esClient = ElasticSearchClient.getInstance();
  * Initializes the Octokit client with the necessary headers for authorization.
  * @returns A Promise that resolves to a RequestInterface object with the required headers.
  */
-export async function initializeOctokit(): Promise<
+export async function initializeOctokit(orgName: string): Promise<
   RequestInterface<
     object & {
       headers: {
@@ -25,7 +25,7 @@ export async function initializeOctokit(): Promise<
     }
   >
 > {
-  const installationAccessToken = await getInstallationAccessToken();
+  const installationAccessToken = await getInstallationAccessToken(orgName);
   const octokit = ghRequest.request.defaults({
     headers: {
       Authorization: `Bearer ${installationAccessToken.body.token}`,
@@ -338,7 +338,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<
     data: { repoArr, ref, filename, org },
   });
   try {
-    const octokit = await initializeOctokit();
+    const octokit = await initializeOctokit(org);
     return techAudit(octokit, repoArr, ref, filename, org, requestId);
   } catch (error: unknown) {
     logger.error({
