@@ -9,6 +9,7 @@ import { getCommits } from '../lib/git-commit-list';
 import { pRReviewCommentOnQueue } from '../lib/pr-review-comment-queue';
 import { pRReviewOnQueue } from '../lib/pr-review-queue';
 import { pROnQueue } from '../lib/pull-request-queue';
+import { orgInstallation } from 'src/lib/create-installation';
 
 const sqsClient = SQSClient.getInstance();
 interface ReviewCommentProcessType {
@@ -174,6 +175,14 @@ async function processPRReviewEvent(data: ReviewProcessType, requestId: string):
     requestId
   );
 }
+
+async function installationEvent(
+  data: Github.ExternalType.Webhook.Installation,
+  requestId: string
+): Promise<void> {
+  await orgInstallation(data, requestId);
+}
+
 async function processWebhookEvent(
   eventType: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -206,6 +215,9 @@ async function processWebhookEvent(
       break;
     case Github.Enums.Event.PRReview:
       await processPRReviewEvent(data, requestId);
+      break;
+    case Github.Enums.Event.InstallationCreated:
+      await installationEvent(data, requestId);
       break;
     default:
       logger.info({
