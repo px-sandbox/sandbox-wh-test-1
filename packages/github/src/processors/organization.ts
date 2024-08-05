@@ -35,6 +35,8 @@ export class Organization extends DataProcessor<
         name: this.ghApiData.installation.account.login,
         createdAt: this.ghApiData.installation.created_at,
         updatedAt: this.ghApiData.installation.updated_at,
+        deletedAt: this.ghApiData.installation.deleted_at ?? null,
+        isDeleted: this.ghApiData.installation.deleted_at ? true : false,
       },
     };
     return orgObj;

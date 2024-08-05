@@ -217,6 +217,7 @@ async function processWebhookEvent(
       await processPRReviewEvent(data, requestId);
       break;
     case Github.Enums.Event.InstallationCreated:
+    case Github.Enums.Event.InstallationDeleted:
       await installationEvent(data, requestId);
       break;
     default:

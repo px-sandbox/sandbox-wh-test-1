@@ -64,6 +64,7 @@ export type Installation = {
     events: string[];
     created_at: string;
     updated_at: string;
+    deleted_at: string;
     single_file_name: string | null;
     has_multiple_single_files: boolean;
     single_file_paths: string[];

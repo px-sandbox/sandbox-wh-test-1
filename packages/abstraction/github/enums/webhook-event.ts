@@ -10,4 +10,5 @@ export enum Event {
   Copilot = 'copilot',
   ActiveBranches = 'active_branches',
   InstallationCreated = 'installation.created',
+  InstallationDeleted = 'installation.deleted',
 }
