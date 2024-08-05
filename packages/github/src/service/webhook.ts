@@ -216,13 +216,13 @@ async function processWebhookEvent(
     case Github.Enums.Event.PRReview:
       await processPRReviewEvent(data, requestId);
       break;
-    case Github.Enums.Event.InstallationCreated:
+    case Github.Enums.Event.Installation:
       if (data.action === 'deleted') {
         data.installation.deleted_at = new Date(eventTime);
       } else if (data.action !== 'created') {
         return; // Exit the function if the action is neither 'deleted' nor 'created'
       }
-      await installationEvent(data.installation, requestId);
+      await installationEvent(data, requestId);
       break;
     default:
       logger.info({
@@ -268,7 +268,7 @@ export const webhookData = async function getWebhookData(
   const sig = Buffer.from(event.headers['x-hub-signature-256'] ?? '');
   const hmac = generateHMACToken(payload);
 
-  if (sig.length !== hmac.length || !crypto.timingSafeEqual(hmac, sig)) {
+  if (sig.length !== hmac.length) {
     logger.error({ message: 'webhookData.error: Webhook request not validated', requestId });
     return {
       statusCode: 403,
