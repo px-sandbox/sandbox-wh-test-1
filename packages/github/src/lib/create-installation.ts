@@ -15,12 +15,11 @@ export async function orgInstallation(
 ): Promise<void> {
   logger.info({
     message: 'INSTALLATION_CREATED',
-    data: '',
     requestId,
   });
   try {
     logger.info({
-      message: 'getOrganizationDetails.invoked',
+      message: 'create.installation.invoked',
       requestId,
       data: JSON.stringify(data),
     });
@@ -40,7 +39,7 @@ export async function orgInstallation(
       //TODO: start migration process here
     }
   } catch (error: unknown) {
-    logger.error({ message: 'getOrganizationDetails.error', error, requestId });
+    logger.error({ message: 'create.installation.error', error, requestId });
     throw error;
   }
 }

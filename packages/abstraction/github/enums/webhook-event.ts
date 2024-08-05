@@ -9,6 +9,5 @@ export enum Event {
   PRReview = 'pull_request_review',
   Copilot = 'copilot',
   ActiveBranches = 'active_branches',
-  InstallationCreated = 'installation.created',
-  InstallationDeleted = 'installation.deleted',
+  InstallationCreated = 'installation',
 }
