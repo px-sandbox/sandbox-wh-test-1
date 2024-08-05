@@ -487,7 +487,13 @@ const indices = [
           type: 'object',
           properties: {
             organizationId: { type: 'keyword' },
-            status: { type: 'keyword' },
+            statusLogs: {
+              type: 'nested',
+              properties: {
+                status: { type: 'keyword' },
+                timestamp: { type: 'date', format: 'strict_date_optional_time' },
+              },
+            },
             date: { type: 'date', format: 'strict_date_optional_time' },
           },
         },
