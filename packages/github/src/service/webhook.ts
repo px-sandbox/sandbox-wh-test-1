@@ -219,8 +219,10 @@ async function processWebhookEvent(
     case Github.Enums.Event.InstallationCreated:
       if (data.action === 'deleted') {
         data.installation.deleted_at = new Date(eventTime);
+      } else if (data.action !== 'created') {
+        return; // Exit the function if the action is neither 'deleted' nor 'created'
       }
-      await installationEvent(data, requestId);
+      await installationEvent(data.installation, requestId);
       break;
     default:
       logger.info({
@@ -263,18 +265,17 @@ export const webhookData = async function getWebhookData(
   const payload: any = event.body ?? {};
   const data = JSON.parse(event.body ?? '{}');
 
-  if (event.headers['x-github-hook-installation-target-type'] !== 'integration') {
-    const sig = Buffer.from(event.headers['x-hub-signature-256'] ?? '');
-    const hmac = generateHMACToken(payload);
+  const sig = Buffer.from(event.headers['x-hub-signature-256'] ?? '');
+  const hmac = generateHMACToken(payload);
 
-    if (sig.length !== hmac.length || !crypto.timingSafeEqual(hmac, sig)) {
-      logger.error({ message: 'webhookData.error: Webhook request not validated', requestId });
-      return {
-        statusCode: 403,
-        body: 'Permission Denied',
-      };
-    }
+  if (sig.length !== hmac.length || !crypto.timingSafeEqual(hmac, sig)) {
+    logger.error({ message: 'webhookData.error: Webhook request not validated', requestId });
+    return {
+      statusCode: 403,
+      body: 'Permission Denied',
+    };
   }
+
   const eventType = getEventType(
     event.headers['x-github-event']?.toLowerCase(),
     data.ref_type,

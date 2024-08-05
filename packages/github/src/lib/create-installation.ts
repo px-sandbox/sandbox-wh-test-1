@@ -25,8 +25,7 @@ export async function orgInstallation(
     });
     const orgId = `${mappingPrefixes.organization}_${data.installation.account.id}`;
     const records = await dynamodbClient.find(new ParamsMapping().prepareGetParams(orgId));
-    const resourceId = orgId;
-    const result = new Organization(data, requestId, resourceId).validate();
+    const result = new Organization(data, requestId, orgId).validate();
     if (result) {
       const formattedData = await result.processor(records?.parentId as string);
       if (records === undefined) {
