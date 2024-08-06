@@ -22,7 +22,7 @@ async function fetchReposData(
   let orgQuery = esb.boolQuery();
 
   if (organisationId && organisationId.length > 0) {
-    orgQuery = orgQuery.should(esb.termQuery('body.organisationId', organisationId));
+    orgQuery = orgQuery.should(esb.termQuery('body.organizationId', organisationId));
   }
 
   if (repoIds.length > 0) {
