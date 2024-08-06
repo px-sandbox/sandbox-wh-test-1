@@ -5,6 +5,9 @@ import { logger } from 'core';
 import { mappingPrefixes } from 'src/constant/config';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Organization } from 'src/processors/organization';
+import { getOauthCode } from 'src/util/jwt-token';
+import { ghRequest } from './request-default';
+import { getOctokitTimeoutReqFn } from 'src/util/octokit-timeout-fn';
 
 const esClientObj = ElasticSearchClient.getInstance();
 const dynamodbClient = DynamoDbDocClient.getInstance();
@@ -23,9 +26,30 @@ export async function orgInstallation(
       requestId,
       data: JSON.stringify(data),
     });
+    const {
+      body: { token },
+    } = await getOauthCode();
+
+    const octokit = ghRequest.request.defaults({
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    });
+    const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+    const installation = await octokitRequestWithTimeout('GET /app/installations');
+    logger.info({
+      message: 'installation',
+      data: JSON.stringify(installation),
+      requestId,
+    });
+
+    const [installationId] = installation.data.filter(
+      (name: any) => data.installation.account.login === name.account.login
+    );
+
     const orgId = `${mappingPrefixes.organization}_${data.installation.account.id}`;
     const records = await dynamodbClient.find(new ParamsMapping().prepareGetParams(orgId));
-    const result = new Organization(data, requestId, orgId).validate();
+    const result = new Organization({ ...data, installationId }, requestId, orgId).validate();
     if (result) {
       const formattedData = await result.processor(records?.parentId as string);
       if (records === undefined) {

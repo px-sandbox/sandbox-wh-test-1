@@ -1,5 +1,8 @@
 export type Installation = {
   action: string;
+  installationId: {
+    id: number;
+  };
   installation: {
     id: number;
     account: {
