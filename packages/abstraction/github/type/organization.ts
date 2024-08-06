@@ -2,17 +2,13 @@ export interface Organization {
   id: string;
   body: {
     id: string;
-    githubOrganizationId: string;
+    githubOrganizationId: number;
     name: string;
-    description: string;
-    company: string;
-    location: string;
-    email: string;
-    isVerified: boolean;
-    hasOrganizationProjects: boolean;
-    hasRepositoryProjects: boolean;
-    publicRepos: number;
+    installationId: number;
+    appId: number;
     createdAt: string;
     updatedAt: string;
+    deletedAt: string;
+    isDeleted: boolean;
   };
 }

@@ -4,39 +4,39 @@ import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 
 export class Organization extends DataProcessor<
-  Github.ExternalType.Api.Organization,
+  Github.ExternalType.Webhook.Installation,
   Github.Type.Organization
 > {
-  constructor(data: Github.ExternalType.Api.Organization, requestId: string, resourceId: string) {
+  constructor(
+    data: Github.ExternalType.Webhook.Installation,
+    requestId: string,
+    resourceId: string
+  ) {
     super(data, requestId, resourceId);
   }
   public async processor(): Promise<Github.Type.Organization> {
     let parentId: string = await this.getParentId(
-      `${mappingPrefixes.organization}_${this.ghApiData.id}`
+      `${mappingPrefixes.organization}_${this.ghApiData.installation.account.id}`
     );
     if (!parentId) {
       parentId = uuid();
       await this.putDataToDynamoDB(
         parentId,
-        `${mappingPrefixes.organization}_${this.ghApiData.id}`
+        `${mappingPrefixes.organization}_${this.ghApiData.installation.account.id}`
       );
     }
     const orgObj = {
       id: parentId,
       body: {
-        id: `${mappingPrefixes.organization}_${this.ghApiData.id}`,
-        githubOrganizationId: this.ghApiData.id,
-        name: this.ghApiData.login,
-        description: this.ghApiData?.description,
-        company: this.ghApiData?.company,
-        location: this.ghApiData?.location,
-        email: this.ghApiData?.email,
-        isVerified: this.ghApiData.is_verified,
-        hasOrganizationProjects: this.ghApiData.has_organization_projects,
-        hasRepositoryProjects: this.ghApiData.has_repository_projects,
-        publicRepos: this.ghApiData.public_repos,
-        createdAt: this.ghApiData.created_at,
-        updatedAt: this.ghApiData.updated_at,
+        id: `${mappingPrefixes.organization}_${this.ghApiData.installation.account.id}`,
+        githubOrganizationId: this.ghApiData.installation.account.id,
+        installationId: this.ghApiData.installationData.id,
+        appId: this.ghApiData.installation.app_id,
+        name: this.ghApiData.installation.account.login,
+        createdAt: this.ghApiData.installation.created_at,
+        updatedAt: this.ghApiData.installation.updated_at,
+        deletedAt: this.ghApiData.installation.deleted_at ?? null,
+        isDeleted: this.ghApiData.installation.deleted_at ? true : false,
       },
     };
     return orgObj;
