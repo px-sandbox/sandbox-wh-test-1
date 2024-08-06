@@ -13,4 +13,5 @@ export enum IndexName {
   GitRepoLibrary = 'git_repo_library',
   GitRepoSastErrors = 'git_repo_sast_errors',
   GitRepoSastErrorCount = 'git_repo_sast_errors_count',
+  GitMigrationStatus = 'git_migration_status',
 }
