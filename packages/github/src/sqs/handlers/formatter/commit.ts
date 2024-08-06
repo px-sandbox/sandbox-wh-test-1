@@ -40,7 +40,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
      * Get commit details from Github API
      * ------------------------------------
      */
-    const installationAccessToken = await getInstallationAccessToken();
+    const installationAccessToken = await getInstallationAccessToken(repoOwner);
     const octokit = ghRequest.request.defaults({
       headers: {
         Authorization: `Bearer ${installationAccessToken.body.token}`,

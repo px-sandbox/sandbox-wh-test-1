@@ -15,13 +15,6 @@ import { getOctokitResp } from '../../../util/octokit-response';
 import { searchedDataFormator } from '../../../util/response-formatter';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
-const installationAccessToken = await getInstallationAccessToken();
-const octokit = ghRequest.request.defaults({
-  headers: {
-    Authorization: `Bearer ${installationAccessToken.body.token}`,
-  },
-});
-const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 const esclient = ElasticSearchClient.getInstance();
 
 async function getRepoNameById(repoId: string): Promise<string> {
@@ -65,6 +58,13 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
           throw new Error('repoId is missing');
         }
         const repoName = await getRepoNameById(repoId);
+        const installationAccessToken = await getInstallationAccessToken(repoOwner);
+        const octokit = ghRequest.request.defaults({
+          headers: {
+            Authorization: `Bearer ${installationAccessToken.body.token}`,
+          },
+        });
+        const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
         const responseData = (await octokitRequestWithTimeout(
           `GET /repos/${repoOwner}/${repoName}/commits/${githubCommitId}`
         )) as OctokitResponse<any>;

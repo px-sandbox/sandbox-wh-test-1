@@ -11,7 +11,7 @@ import { ghRequest } from '../lib/request-default';
 const getMetadata = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const { requestId } = event.requestContext;
   const organizationName: string = event?.queryStringParameters?.orgName || '';
-  const installationAccessToken = await getInstallationAccessToken();
+  const installationAccessToken = await getInstallationAccessToken(organizationName);
   const octokit = ghRequest.request.defaults({
     headers: {
       authorization: `Bearer ${installationAccessToken.body.token}`,

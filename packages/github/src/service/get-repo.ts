@@ -10,6 +10,7 @@ import { getGitRepoSchema } from './validations';
 
 const esClient = ElasticSearchClient.getInstance();
 async function fetchReposData(
+  organisationId: string,
   repoIds: string[],
   gitRepoName: string,
   requestId: string,
@@ -18,30 +19,35 @@ async function fetchReposData(
 ): Promise<IRepo[]> {
   let esbQuery;
 
+  let orgQuery = esb.boolQuery();
+
+  if (organisationId && organisationId.length > 0) {
+    orgQuery = orgQuery.should(esb.termQuery('body.organisationId', organisationId));
+  }
+
   if (repoIds.length > 0) {
     const repoNameQuery = esb
       .requestBodySearch()
       .query(
-        esb
-          .boolQuery()
+        orgQuery
           .must([esb.termsQuery('body.id', repoIds), esb.termQuery('body.isDeleted', false)])
       )
       .toJSON();
     esbQuery = repoNameQuery;
   } else {
-    const query = esb.boolQuery();
 
     if (gitRepoName) {
-      query.must([
-        esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`),
-        esb.termQuery('body.isDeleted', false),
-      ]);
+      orgQuery
+        .must([
+          esb.wildcardQuery('body.name', `*${gitRepoName.toLowerCase()}*`),
+          esb.termQuery('body.isDeleted', false),
+        ])
     }
     const finalQ = esb
       .requestBodySearch()
       .size(size)
       .from((page - 1) * size)
-      .query(query)
+      .query(orgQuery)
       .toJSON() as { query: object };
     esbQuery = finalQ;
   }
@@ -57,11 +63,12 @@ const gitRepos = async function getRepoData(
   const { requestId } = event.requestContext;
   const gitRepoName: string = event?.queryStringParameters?.search ?? '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
+  const organisationId: string = event?.queryStringParameters?.organisationId ?? '';
   const page = Number(event?.queryStringParameters?.page ?? 1);
   const size = Number(event?.queryStringParameters?.size ?? 10);
   let response: IRepo[] = [];
   try {
-    response = await fetchReposData(repoIds, gitRepoName, requestId, page, size);
+    response = await fetchReposData(organisationId, repoIds, gitRepoName, requestId, page, size);
 
     logger.info({ message: 'fetchReposData.info: github repo data', data: response, requestId });
   } catch (error) {

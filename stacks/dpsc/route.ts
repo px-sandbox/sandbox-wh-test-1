@@ -81,6 +81,13 @@ export function initializeRoutes(
                 handler: 'packages/github/src/service/pr-wait-time-details.handler',
             },
             authorizer: 'none',
+        },
+
+        'GET /github/organisations': {
+            function: {
+                handler: 'packages/github/src/service/get-organisations.handler',
+            },
+            authorizer: 'universal'
         }
     };
 }

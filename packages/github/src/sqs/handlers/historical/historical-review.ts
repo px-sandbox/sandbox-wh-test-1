@@ -13,13 +13,7 @@ import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 const sqsClient = SQSClient.getInstance();
-const installationAccessToken = await getInstallationAccessToken();
-const octokit = ghRequest.request.defaults({
-  headers: {
-    Authorization: `Bearer ${installationAccessToken.body.token}`,
-  },
-});
-const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+
 async function processReviewQueueForPageOne(
   prReviews: OctokitResponse<Github.Type.CommentState[]>,
   messageBody: Github.Type.MessageBody,
@@ -80,6 +74,13 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
       repo: { owner, name },
     },
   } = messageBody;
+  const installationAccessToken = await getInstallationAccessToken(owner);
+  const octokit = ghRequest.request.defaults({
+    headers: {
+      Authorization: `Bearer ${installationAccessToken.body.token}`,
+    },
+  });
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
     const prReviews = (await octokitRequestWithTimeout(
       `GET /repos/${owner.login}/${name}/pulls/${number}/reviews?per_page=100&page=${page}`
