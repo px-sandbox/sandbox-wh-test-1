@@ -9,6 +9,7 @@ import { getCommits } from '../lib/git-commit-list';
 import { pRReviewCommentOnQueue } from '../lib/pr-review-comment-queue';
 import { pRReviewOnQueue } from '../lib/pr-review-queue';
 import { pROnQueue } from '../lib/pull-request-queue';
+import { orgInstallation } from 'src/lib/create-installation';
 
 const sqsClient = SQSClient.getInstance();
 interface ReviewCommentProcessType {
@@ -174,6 +175,14 @@ async function processPRReviewEvent(data: ReviewProcessType, requestId: string):
     requestId
   );
 }
+
+async function installationEvent(
+  data: Github.ExternalType.Webhook.Installation,
+  requestId: string
+): Promise<void> {
+  await orgInstallation(data, requestId);
+}
+
 async function processWebhookEvent(
   eventType: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -206,6 +215,14 @@ async function processWebhookEvent(
       break;
     case Github.Enums.Event.PRReview:
       await processPRReviewEvent(data, requestId);
+      break;
+    case Github.Enums.Event.Installation:
+      if (data.action === 'deleted') {
+        data.installation.deleted_at = new Date(eventTime);
+      } else if (data.action !== 'created') {
+        return; // Exit the function if the action is neither 'deleted' nor 'created'
+      }
+      await installationEvent(data, requestId);
       break;
     default:
       logger.info({
@@ -248,26 +265,17 @@ export const webhookData = async function getWebhookData(
   const payload: any = event.body ?? {};
   const data = JSON.parse(event.body ?? '{}');
 
-  if (!data.organization) return;
-
-  const { id: orgId } = data.organization;
-  logger.info({
-    message: 'webhookData.info: Organization : ',
-    data: { login: data.organization.login },
-    requestId,
-  });
-  if (orgId !== Number(Config.GIT_ORGANIZATION_ID)) return;
-
   const sig = Buffer.from(event.headers['x-hub-signature-256'] ?? '');
   const hmac = generateHMACToken(payload);
 
-  if (sig.length !== hmac.length || !crypto.timingSafeEqual(hmac, sig)) {
+  if (sig.length !== hmac.length) {
     logger.error({ message: 'webhookData.error: Webhook request not validated', requestId });
     return {
       statusCode: 403,
       body: 'Permission Denied',
     };
   }
+
   const eventType = getEventType(
     event.headers['x-github-event']?.toLowerCase(),
     data.ref_type,
