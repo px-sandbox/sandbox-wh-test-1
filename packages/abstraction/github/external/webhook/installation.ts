@@ -1,6 +1,6 @@
 export type Installation = {
   action: string;
-  installationId: {
+  installationData: {
     id: number;
   };
   installation: {
