@@ -30,7 +30,7 @@ export class Organization extends DataProcessor<
       body: {
         id: `${mappingPrefixes.organization}_${this.ghApiData.installation.account.id}`,
         githubOrganizationId: this.ghApiData.installation.account.id,
-        installationId: this.ghApiData.installationData.id,
+        installationId: this.ghApiData.installationData?.id ?? null,
         appId: this.ghApiData.installation.app_id,
         name: this.ghApiData.installation.account.login,
         createdAt: this.ghApiData.installation.created_at,
