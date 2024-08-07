@@ -27,7 +27,7 @@ async function getReposList(
       data: { organizationName, page, counter },
       requestId,
     });
-    const perPage = 1;
+    const perPage = 100;
 
     const responseData = await octokit(
       `GET /orgs/${organizationName}/repos?per_page=${perPage}&page=${page}`
@@ -43,7 +43,7 @@ async function getReposList(
       })
     );
 
-    if (reposPerPage.length <= 1) {
+    if (reposPerPage.length <= 0) {
       logger.info({ message: 'getReposList.successful' });
       return newCounter;
     }
