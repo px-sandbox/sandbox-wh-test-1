@@ -71,6 +71,8 @@ export function initializeRoutes(
           githubMappingTable,
           GITHUB_APP_PRIVATE_KEY_PEM,
           GITHUB_APP_ID,
+          historicalBranch,
+          collectPRData,
         ],
       },
       authorizer: 'none',

@@ -16,31 +16,7 @@ import { getOctokitResp } from '../../../util/octokit-response';
 import { getWorkingTime } from '../../../util/timezone-calculation';
 
 const sqsClient = SQSClient.getInstance();
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function processQueueOnMergedPR(
-  octokitRespData: any,
-  messageBody: any,
-  reqCtx: Other.Type.RequestCtx
-): Promise<void> {
-  await sqsClient.sendFifoMessage(
-    {
-      commitId: octokitRespData.merge_commit_sha,
-      isMergedCommit: octokitRespData.merged,
-      mergedBranch: null,
-      pushedBranch: octokitRespData?.head?.ref,
-      repository: {
-        id: messageBody.repoId,
-        name: messageBody.repoName,
-        owner: messageBody.owner,
-      },
-      timestamp: new Date(),
-    },
-    Queue.qGhCommitFormat.queueUrl,
-    { ...reqCtx },
-    octokitRespData.merge_commit_sha,
-    uuid()
-  );
-}
+
 export const handler = async function collectPrByNumberData(event: SQSEvent): Promise<void> {
   await Promise.all(
     event.Records.map(async (record) => {
@@ -98,9 +74,9 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         );
 
         // setting the `isMergedCommit` for commit
-        if (octokitRespData.merged === true) {
-          await processQueueOnMergedPR(octokitRespData, messageBody, { requestId, resourceId });
-        }
+        // if (octokitRespData.merged === true) {
+        //   await processQueueOnMergedPR(octokitRespData, messageBody, { requestId, resourceId });
+        // }
       } catch (error) {
         await logProcessToRetry(record, Queue.qGhHistoricalPrByNumber.queueUrl, error as Error);
         logger.error({ message: 'historical.pr.number.error', error, requestId, resourceId });

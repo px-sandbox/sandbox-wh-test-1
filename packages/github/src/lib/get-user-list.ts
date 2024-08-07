@@ -14,7 +14,7 @@ async function getUserList(
   octokit: RequestInterface<
     object & {
       headers: {
-        authorization: string | undefined;
+        Authorization: string | undefined;
       };
     }
   >,
@@ -82,7 +82,7 @@ export async function getUsers(
   octokit: RequestInterface<
     object & {
       headers: {
-        authorization: string | undefined;
+        Authorization: string | undefined;
       };
     }
   >,

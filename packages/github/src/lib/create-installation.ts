@@ -8,6 +8,7 @@ import { Organization } from 'src/processors/organization';
 import { getOauthCode } from 'src/util/jwt-token';
 import { ghRequest } from './request-default';
 import { getOctokitTimeoutReqFn } from 'src/util/octokit-timeout-fn';
+import { collectData } from 'src/service/history-data';
 
 const esClientObj = ElasticSearchClient.getInstance();
 const dynamodbClient = DynamoDbDocClient.getInstance();
@@ -58,7 +59,7 @@ export async function orgInstallation(
         );
       }
       await esClientObj.putDocument(Github.Enums.IndexName.GitOrganization, formattedData);
-
+      await collectData(formattedData.body.name, { requestId, resourceId: formattedData.body.id });
       //TODO: start migration process here
     }
   } catch (error: unknown) {
