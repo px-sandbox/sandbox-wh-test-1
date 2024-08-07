@@ -22,11 +22,14 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
     page = 1,
     number,
     head: {
-      repo: { owner, name },
+      repo: {
+        owner: { login },
+        name,
+      },
     },
   } = messageBody;
   const sqsClient = SQSClient.getInstance();
-  const installationAccessToken = await getInstallationAccessToken(owner);
+  const installationAccessToken = await getInstallationAccessToken(login);
   const octokit = ghRequest.request.defaults({
     headers: {
       Authorization: `Bearer ${installationAccessToken.body.token}`,
@@ -35,7 +38,7 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
   const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
     const commentsDataOnPr = (await octokitRequestWithTimeout(
-      `GET /repos/${owner.login}/${name}/pulls/${number}/comments?per_page=100&page=${page}`
+      `GET /repos/${login}/${name}/pulls/${number}/comments?per_page=100&page=${page}`
     )) as OctokitResponse<any>;
     const octokitRespData = getOctokitResp(commentsDataOnPr);
     let queueProcessed = [];

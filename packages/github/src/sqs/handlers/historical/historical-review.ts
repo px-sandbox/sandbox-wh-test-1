@@ -71,10 +71,13 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
     page = 1,
     number,
     head: {
-      repo: { owner, name },
+      repo: {
+        owner: { login },
+        name,
+      },
     },
   } = messageBody;
-  const installationAccessToken = await getInstallationAccessToken(owner);
+  const installationAccessToken = await getInstallationAccessToken(login);
   const octokit = ghRequest.request.defaults({
     headers: {
       Authorization: `Bearer ${installationAccessToken.body.token}`,
@@ -83,7 +86,7 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
   const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
     const prReviews = (await octokitRequestWithTimeout(
-      `GET /repos/${owner.login}/${name}/pulls/${number}/reviews?per_page=100&page=${page}`
+      `GET /repos/${login}/${name}/pulls/${number}/reviews?per_page=100&page=${page}`
     )) as OctokitResponse<Github.Type.CommentState[]>;
     const octokitRespData = getOctokitResp(prReviews);
     let queueProcessed = [];
@@ -135,7 +138,7 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
 export const handler = async function collectPrReviewsData(event: SQSEvent): Promise<void> {
   await Promise.all(
     event.Records.filter((record: SQSRecord) => {
-      const body = JSON.parse(record.body);
+      const { message: body } = JSON.parse(record.body);
       if (body.head?.repo) {
         return true;
       }

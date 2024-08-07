@@ -33,8 +33,12 @@ async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
     return false;
   }
   const { page = 1 } = messageBody;
-  const { owner, name } = messageBody;
-  const installationAccessToken = await getInstallationAccessToken(owner);
+  const {
+    owner: { login },
+    name,
+  } = messageBody;
+
+  const installationAccessToken = await getInstallationAccessToken(login);
   const octokit = ghRequest.request.defaults({
     headers: {
       Authorization: `Bearer ${installationAccessToken.body.token}`,
@@ -43,7 +47,7 @@ async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
   const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
     const responseData = (await octokitRequestWithTimeout(
-      `GET /repos/${owner}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
+      `GET /repos/${login}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
     )) as OctokitResponse<any>;
     logger.info({
       message: `total prs from GH: ${responseData.data.length}`,
@@ -106,7 +110,7 @@ export const handler = async function collectPRData(event: SQSEvent): Promise<un
   logger.info({ message: `total event records: ${event.Records.length}` });
   await Promise.all(
     event.Records.filter((record) => {
-      const body = JSON.parse(record.body);
+      const { message: body } = JSON.parse(record.body);
 
       if (body.owner && body.name) {
         return true;

@@ -35,7 +35,7 @@ export async function getInstallationAccessToken(
       body: installationAccessToken.data,
     };
   } catch (error: unknown) {
-    logger.error({ message: 'Get installation access token error', error });
+    logger.error({ message: 'Get installation access token error', error: `${error}` });
     throw error;
   }
 }
