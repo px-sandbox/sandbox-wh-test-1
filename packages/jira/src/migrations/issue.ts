@@ -155,7 +155,7 @@ async function checkAndSave(
 
   const bugs = issues.filter((issue) => issue.fields.issuetype.name == Jira.Enums.IssuesTypes.BUG);
 
-  if(bugs.length > 0) {
+  if (bugs.length > 0) {
     logger.info({
       message: 'Reopen rate migrator',
       data: {
@@ -166,7 +166,7 @@ async function checkAndSave(
         bugs: bugs.map((issue) => `${issue.key} - ${issue.fields.issuetype.name}`).join(" | "),
       },
     });
-    
+
     await Promise.all(
       bugs.map(async (issue) =>
         sqsClient.sendMessage(
@@ -185,7 +185,6 @@ async function checkAndSave(
     );
   }
 
-  
   logger.info({ ...reqCtx, message: 'issuesMigrateDataReciever.successful' });
 }
 
