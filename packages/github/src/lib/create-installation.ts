@@ -70,9 +70,12 @@ export async function orgInstallation(
           new ParamsMapping().preparePutParams(formattedData.id, formattedData.body.id)
         );
       }
+      // create entry in elasticsearch for organization
       await esClientObj.putDocument(Github.Enums.IndexName.GitOrganization, formattedData);
+      // create entry in elasticsearch for migration status
       const migrationStatus = formatMigrationStatus(formattedData.body.githubOrganizationId);
       await esClientObj.putDocument(Github.Enums.IndexName.GitMigrationStatus, migrationStatus);
+      //trigger migration
       await collectData(formattedData.body.name, { requestId, resourceId: formattedData.body.id });
     }
   } catch (error: unknown) {

@@ -127,7 +127,7 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
   } catch (error) {
     logger.error({
       message: 'historical.reviews.error',
-      error: JSON.stringify(error),
+      error: `${error}`,
       requestId,
       resourceId,
     });
