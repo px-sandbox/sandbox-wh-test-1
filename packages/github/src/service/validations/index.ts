@@ -101,3 +101,17 @@ export const prWaitTimeBreakdownSchema = {
     },
   },
 };
+
+export const migrationStatusSchema = {
+  type: 'object',
+  properties: {
+    queryStringParameters: {
+      type: 'object',
+      properties: {
+        status: { enum: ['IN_PROGRESS', 'COMPLETED'] },
+        orgId: { type: 'string' },
+      },
+      required: ['status', 'orgId'],
+    },
+  },
+};

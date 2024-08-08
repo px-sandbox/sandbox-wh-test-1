@@ -2,17 +2,29 @@ import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import { mappingPrefixes } from 'src/constant/config';
+import { MigrationStatus, mappingPrefixes } from 'src/constant/config';
 import { ParamsMapping } from 'src/model/params-mapping';
 import { Organization } from 'src/processors/organization';
 import { getOauthCode } from 'src/util/jwt-token';
 import { ghRequest } from './request-default';
 import { getOctokitTimeoutReqFn } from 'src/util/octokit-timeout-fn';
 import { collectData } from 'src/service/history-data';
-
+import { v4 as uuid } from 'uuid';
 const esClientObj = ElasticSearchClient.getInstance();
 const dynamodbClient = DynamoDbDocClient.getInstance();
 
+function formatMigrationStatus(orgId: number) {
+  return {
+    id: uuid(),
+    body: {
+      organizationId: `${mappingPrefixes.organization}_${orgId}`,
+      statusLogs: {
+        status: MigrationStatus.IN_PROGRESS,
+        date: new Date().toISOString(),
+      },
+    },
+  };
+}
 export async function orgInstallation(
   data: Github.ExternalType.Webhook.Installation,
   requestId: string
@@ -59,8 +71,9 @@ export async function orgInstallation(
         );
       }
       await esClientObj.putDocument(Github.Enums.IndexName.GitOrganization, formattedData);
+      const migrationStatus = formatMigrationStatus(formattedData.body.githubOrganizationId);
+      await esClientObj.putDocument(Github.Enums.IndexName.GitMigrationStatus, migrationStatus);
       await collectData(formattedData.body.name, { requestId, resourceId: formattedData.body.id });
-      //TODO: start migration process here
     }
   } catch (error: unknown) {
     logger.error({ message: 'create.installation.error', error, requestId });
