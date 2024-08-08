@@ -14,6 +14,8 @@ import {
   BatchGetCommand,
   BatchGetCommandOutput,
   QueryCommandOutput,
+  BatchWriteCommandInput,
+  BatchWriteCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { IDynmoDbDocClient } from '../types';
 
@@ -77,6 +79,10 @@ export class DynamoDbDocClient implements IDynmoDbDocClient {
 
   public async put(putParams: PutCommandInput): Promise<void> {
     await this.ddbDocClient.send(new PutCommand(putParams));
+  }
+
+  public async batchWrite(params: BatchWriteCommandInput): Promise<void> {
+    await this.ddbDocClient.send(new BatchWriteCommand(params));
   }
 
   public async delete(deleteParams: DeleteCommandInput): Promise<void> {

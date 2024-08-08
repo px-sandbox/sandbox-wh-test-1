@@ -2,31 +2,38 @@ import { PutCommandInput, ScanCommandInput, DeleteCommandInput } from '@aws-sdk/
 import { Table } from 'sst/node/table';
 
 export class RetryTableMapping {
-    private tableName = Table.processRetry.tableName;
+  private tableName = Table.processRetry.tableName;
 
-    public prepareDeleteParams(processId: string): DeleteCommandInput {
-        return {
-            TableName: this.tableName,
-            Key: {
-                processId,
-            },
-        };
-    }
+  public prepareDeleteParams(processId: string): DeleteCommandInput {
+    return {
+      TableName: this.tableName,
+      Key: {
+        processId,
+      },
+    };
+  }
 
-    public prepareScanParams(limit: number): ScanCommandInput {
-        return {
-            TableName: this.tableName,
-            Limit: limit,
-        };
-    }
+  public prepareScanParams(): ScanCommandInput {
+    return {
+      TableName: this.tableName,
+      Limit: 200,
+      FilterExpression: 'attribute_not_exists(#retry) OR #retry <= :maxRetry',
+      ExpressionAttributeNames: {
+        '#retry': 'retry',
+      },
+      ExpressionAttributeValues: {
+        ':maxRetry': 3,
+      },
+    };
+  }
 
-    public preparePutParams<T>(processId: string, otherData: T): PutCommandInput {
-        return {
-            TableName: this.tableName,
-            Item: {
-                processId,
-                ...otherData,
-            },
-        };
-    }
+  public preparePutParams<T>(processId: string, otherData: T): PutCommandInput {
+    return {
+      TableName: this.tableName,
+      Item: {
+        processId,
+        ...otherData,
+      },
+    };
+  }
 }

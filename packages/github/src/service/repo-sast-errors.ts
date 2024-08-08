@@ -21,7 +21,7 @@ export const handler = async function repoSastErrors(
     const data: Github.ExternalType.Api.RepoSastErrors = JSON.parse(event.body ?? '{}');
 
     const s3 = new S3();
-    data.createdAt = moment().toISOString();
+    data.createdAt = data.createdAt || moment().toISOString();
     const params = {
       Bucket: `${process.env.SST_STAGE}-sast-errors`,
       Key: `sast_errors_${data.orgId}_${data.repoId}_${data.branch.replace(/\//g, '_')}_${
@@ -32,14 +32,6 @@ export const handler = async function repoSastErrors(
     };
     const s3Obj = await s3.upload(params).promise();
     logger.info({ message: 'repoSastErrors.handler.s3Upload', data: { s3Obj }, requestId });
-
-    // Todo: Remove return statement once the sast error is stable
-    return responseParser
-      .setBody({})
-      .setMessage('Repo sast stopped for now. Will be back soon.')
-      .setStatusCode(HttpStatusCode['200'])
-      .setResponseBodyCode('SUCCESS')
-      .send();
 
     await sqsClient.sendMessage(
       {

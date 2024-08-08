@@ -6,7 +6,7 @@ import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import esb from 'elastic-builder';
-import { logProcessToRetry } from 'rp';
+import { deleteProcessfromDdb, logProcessToRetry } from 'rp';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { mappingPrefixes } from '../../constant/config';
 import { getReopenRateDataByIssueId } from '../../repository/issue/get-issue';
@@ -69,6 +69,7 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
             .toJSON();
 
           await esClientObj.updateByQuery(Jira.Enums.IndexName.ReopenRate, query, script);
+          await deleteProcessfromDdb(messageBody.processId, { requestId, resourceId });
         } else {
           logger.info({
             requestId,

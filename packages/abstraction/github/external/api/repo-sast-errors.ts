@@ -15,4 +15,7 @@ export type RepoSastErrors = retryProcess & {
   orgId: string;
   errors: SastError[];
   createdAt: string;
+  firstReportedOn: string;
+  lastReportedOn: string;
+  isResolved: boolean;
 };

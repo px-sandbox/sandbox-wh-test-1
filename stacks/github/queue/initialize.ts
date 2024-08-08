@@ -57,13 +57,11 @@ export function initializeQueue(
 
   const userFormatDataQueue = initializeUserQueue(stack, githubDDb, indexerQueue);
   const branchCounterFormatterQueue = initializeBranchCounterQueue(stack, githubDDb, indexerQueue);
-  const [
-    depRegistryQueue,
-    currentDepRegistryQueue,
-    latestDepRegistry,
-    masterLibraryQueue,
-    repoLibS3Queue,
-  ] = initializeRepoLibraryQueue(stack, githubDDb, buckets.versionUpgradeBucket);
+  const [masterLibraryQueue, repoLibS3Queue] = initializeRepoLibraryQueue(
+    stack,
+    githubDDb,
+    buckets.versionUpgradeBucket
+  );
 
   const repoSastErrors = initializeRepoSastErrorQueue(stack, buckets.sastErrorsBucket, githubDDb);
   const [scansSaveQueue] = initializeSecurityScanQueue(stack, githubDDb);
@@ -91,9 +89,6 @@ export function initializeQueue(
     branchCounterFormatterQueue,
     prReviewCommentFormatDataQueue,
     prReviewFormatDataQueue,
-    depRegistryQueue,
-    currentDepRegistryQueue,
-    latestDepRegistry,
     masterLibraryQueue,
     repoSastErrors,
     scansSaveQueue,

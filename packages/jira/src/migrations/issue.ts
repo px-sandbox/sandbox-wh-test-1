@@ -163,7 +163,7 @@ async function checkAndSave(
         boardId,
         projectId,
         organization,
-        bugs: bugs.map((issue) => `${issue.key} - ${issue.fields.issuetype.name}`).join(' | '),
+        bugs: bugs.map((issue) => `${issue.key} - ${issue.fields.issuetype.name}`).join(" | "),
       },
     });
 
