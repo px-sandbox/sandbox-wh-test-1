@@ -1,54 +1,30 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { SQSClient } from '@pulse/event-handler';
-import { Github } from 'abstraction';
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, logger, responseParser } from 'core';
-import esb from 'elastic-builder';
-import { Queue } from 'sst/node/queue';
-import { searchedDataFormator } from '../util/response-formatter';
+import { Other } from 'abstraction';
+import { logger } from 'core';
+import { getRepos } from 'src/lib/get-repo-list';
+import { getUsers } from 'src/lib/get-user-list';
+import { ghRequest } from 'src/lib/request-default';
+import { getInstallationAccessToken } from 'src/util/installation-access-token';
 
-const esClientObj = ElasticSearchClient.getInstance();
-const sqsClient = SQSClient.getInstance();
-const getRepo = async (repo: string): Promise<any> => {
-  const query = esb.requestBodySearch().query(esb.matchQuery('body.name', repo)).toJSON();
-  const data = await esClientObj.search(Github.Enums.IndexName.GitRepo, query);
-  const [repoData] = await searchedDataFormator(data);
-  return repoData;
-};
-const collectData = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const { requestId } = event.requestContext;
-  const historyType = event?.queryStringParameters?.type || '';
-  const repo = event?.queryStringParameters?.repo || '';
-  const branch = event?.queryStringParameters?.branch || '';
+const collectData = async (orgName: string, reqCtx: Other.Type.RequestCtx): Promise<void> => {
+  const { requestId, resourceId } = reqCtx;
   try {
-    const repoData = await getRepo(repo);
-    logger.info({
-      message: 'collectData.info: github repo data',
-      data: JSON.stringify(repoData),
+    const installationAccessToken = await getInstallationAccessToken(orgName);
+    const octokit = ghRequest.request.defaults({
+      headers: {
+        Authorization: `Bearer ${installationAccessToken.body.token}`,
+      },
+    });
+    await Promise.all([
+      getUsers(octokit, orgName, requestId),
+      getRepos(octokit, orgName, requestId),
+    ]);
+  } catch (error) {
+    logger.error({
+      message: 'collectData.error: HISTORY_DATA_ERROR',
+      error: `${error}`,
       requestId,
     });
-
-    let queueUrl = '';
-    if (historyType === 'commits') {
-      repoData.reqBranch = branch;
-      queueUrl = Queue.qGhHistoricalBranch.queueUrl;
-    } else {
-      queueUrl = Queue.qGhHistoricalPr.queueUrl;
-    }
-
-    if (repoData) {
-      const resourceId = repoData.githubRepoId;
-      await sqsClient.sendMessage(repoData, queueUrl, { requestId, resourceId });
-    }
-  } catch (error) {
-    logger.error({ message: 'collectData.error: HISTORY_DATA_ERROR', error, requestId });
   }
-  return responseParser
-    .setBody('DONE')
-    .setMessage('get metadata')
-    .setStatusCode(HttpStatusCode[200])
-    .setResponseBodyCode('SUCCESS')
-    .send();
 };
 
 const handler = collectData;

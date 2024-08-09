@@ -71,6 +71,8 @@ export function initializeRoutes(
           githubMappingTable,
           GITHUB_APP_PRIVATE_KEY_PEM,
           GITHUB_APP_ID,
+          historicalBranch,
+          collectPRData,
         ],
       },
       authorizer: 'none',
@@ -188,6 +190,13 @@ export function initializeRoutes(
         timeout: '5 minutes',
       },
       authorizer: 'universal',
+    },
+
+    'GET /github/migration/status': {
+      function: {
+        handler: 'packages/github/src/service/migration-status.handler',
+      },
+      authorizer: 'admin',
     },
   };
 }

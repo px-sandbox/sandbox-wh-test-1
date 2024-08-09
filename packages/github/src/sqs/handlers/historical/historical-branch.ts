@@ -14,8 +14,13 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
     reqCtx: { requestId, resourceId },
     message: messageBody,
   } = JSON.parse(record.body);
-  const { owner, name, page = 1, githubRepoId } = messageBody;
-  const installationAccessToken = await getInstallationAccessToken(owner);
+  const {
+    owner: { login, id: orgId },
+    name,
+    page = 1,
+    id,
+  } = messageBody;
+  const installationAccessToken = await getInstallationAccessToken(login);
   const sqsClient = SQSClient.getInstance();
 
   const octokit = ghRequest.request.defaults({
@@ -30,12 +35,12 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
       branches.push(messageBody.reqBranch);
     } else {
       const githubBranches = (await octokitRequestWithTimeout(
-        `GET /repos/${owner}/${name}/branches?per_page=100&page=${page}`
+        `GET /repos/${login}/${name}/branches?per_page=100&page=${page}`
       )) as OctokitResponse<any>;
       const octokitRespData = getOctokitResp(githubBranches);
       const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/; // eslint-disable-line no-useless-escape
       branches = octokitRespData
-        .filter((branchName: { name: string }) => branchNameRegx.test(branchName.name))
+        // .filter((branchName: { name: string }) => branchNameRegx.test(branchName.name))
         .map((branch: { name: string }) => branch.name);
     }
     logger.info({ message: 'Processing data for repo', data: branches });
@@ -43,10 +48,11 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
       sqsClient.sendMessage(
         {
           branchName: branch,
-          owner,
+          owner: login,
           name,
-          githubRepoId,
+          id,
           page: 1,
+          orgId,
         },
         Queue.qGhHistoricalCommits.queueUrl,
         { requestId, resourceId }
@@ -77,10 +83,11 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
 export const handler = async function collectBranchData(event: SQSEvent): Promise<void> {
   await Promise.all(
     event.Records.filter((record: SQSRecord) => {
-      const body = JSON.parse(record.body);
+      const { message: body } = JSON.parse(record.body);
       if (body.owner && body.name) {
         return true;
       }
+
       return false;
     }).map(async (record) => {
       try {

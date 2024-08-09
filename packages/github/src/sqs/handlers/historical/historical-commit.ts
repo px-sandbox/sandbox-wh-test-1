@@ -15,7 +15,8 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
     reqCtx: { requestId, resourceId },
     message: messageBody,
   } = JSON.parse(record.body);
-  const { owner, name, page = 1, githubRepoId, branchName } = messageBody;
+
+  const { owner, name, page = 1, id, branchName, orgId: ownerId } = messageBody;
 
   const installationAccessToken = await getInstallationAccessToken(owner);
   const sqsClient = SQSClient.getInstance();
@@ -32,7 +33,7 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
     const octokitRespData = getOctokitResp(commitDataOnPr);
     let queueProcessed = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    queueProcessed = octokitRespData.map((commitData: any) =>
+    queueProcessed = octokitRespData.map((commitData: any) => {
       sqsClient.sendFifoMessage(
         {
           commitId: commitData.sha,
@@ -40,9 +41,10 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
           mergedBranch: null,
           pushedBranch: null,
           repository: {
-            id: githubRepoId,
+            id,
             name,
             owner,
+            ownerId,
           },
           timestamp: new Date(),
         },
@@ -50,8 +52,8 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
         { requestId, resourceId },
         commitData.sha,
         uuid()
-      )
-    );
+      );
+    });
     await Promise.all(queueProcessed);
 
     logger.info({
@@ -74,7 +76,7 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
     });
     await getRepoCommits({ body: JSON.stringify(messageBody) } as SQSRecord);
   } catch (error) {
-    logger.error({ message: 'historical.commits.error', error, requestId, resourceId });
+    logger.error({ message: 'historical.commits.error', error: `${error}`, requestId, resourceId });
     await logProcessToRetry(record, Queue.qGhHistoricalCommits.queueUrl, error as Error);
   }
 }
@@ -82,7 +84,7 @@ export const handler = async function collectCommitData(event: SQSEvent): Promis
   logger.info({ message: 'total event records:', data: event.Records.length });
   await Promise.all(
     event.Records.filter((record) => {
-      const body = JSON.parse(record.body);
+      const { message: body } = JSON.parse(record.body);
       if (body.owner && body.name && body.branchName) {
         return true;
       }

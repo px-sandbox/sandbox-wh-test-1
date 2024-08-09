@@ -18,3 +18,7 @@ export const esbDateHistogramInterval = {
   '2d': '2d',
   '3d': '3d',
 };
+export enum MigrationStatus {
+  COMPLETED = 'COMPLETED',
+  IN_PROGRESS = 'IN_PROGRESS',
+}
