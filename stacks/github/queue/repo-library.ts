@@ -51,10 +51,11 @@ export function initializeRepoLibraryQueue(
       handler: 'packages/github/src/sqs/handlers/repo-library/from-s3-repo-library.handler',
       bind: [repoLibS3Queue],
       runtime: NODE_VERSION,
+      timeout: '60 seconds',
     }),
     cdk: {
       eventSource: {
-        batchSize: 5,
+        batchSize: 1,
       },
     },
   });
