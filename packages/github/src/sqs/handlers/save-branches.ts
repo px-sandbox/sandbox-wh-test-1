@@ -16,6 +16,7 @@ export const handler = async function saveBranches(event: SQSEvent): Promise<voi
           messageBody.body.githubRepoId,
           messageBody.body.name,
           messageBody.body.owner,
+          messageBody.body.organizationId,
           {
             requestId,
             resourceId,
