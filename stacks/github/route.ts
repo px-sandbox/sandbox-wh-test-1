@@ -199,7 +199,7 @@ export function initializeRoutes(
       authorizer: 'admin',
     },
 
-    'GET /github/migration/status/{orgId}': {
+    'GET /github/migration/status': {
       function: {
         handler: 'packages/github/src/service/get-migration-status.handler',
       },

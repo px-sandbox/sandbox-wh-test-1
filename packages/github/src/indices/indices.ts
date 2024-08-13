@@ -483,10 +483,9 @@ const indices = [
               type: 'nested',
               properties: {
                 status: { type: 'keyword' },
-                timestamp: { type: 'date', format: 'strict_date_optional_time' },
+                date: { type: 'date', format: 'strict_date_optional_time' },
               },
             },
-            date: { type: 'date', format: 'strict_date_optional_time' },
           },
         },
       },

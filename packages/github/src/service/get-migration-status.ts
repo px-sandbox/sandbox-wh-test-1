@@ -11,7 +11,7 @@ const esClient = ElasticSearchClient.getInstance();
 const getMigrationStatus = async function getStatus(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  const orgId = event.pathParameters?.orgId || '';
+  const orgId = event.queryStringParameters?.orgId || '';
   try {
     const matchQry = esb
       .requestBodySearch()

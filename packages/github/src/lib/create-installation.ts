@@ -18,10 +18,12 @@ function formatMigrationStatus(orgId: number) {
     id: uuid(),
     body: {
       organizationId: `${mappingPrefixes.organization}_${orgId}`,
-      statusLogs: {
-        status: MigrationStatus.IN_PROGRESS,
-        date: new Date().toISOString(),
-      },
+      statusLogs: [
+        {
+          status: MigrationStatus.IN_PROGRESS,
+          date: new Date().toISOString(),
+        },
+      ],
     },
   };
 }
