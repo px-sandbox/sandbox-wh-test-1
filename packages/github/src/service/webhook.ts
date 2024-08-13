@@ -220,7 +220,7 @@ async function processWebhookEvent(
     case Github.Enums.Event.Installation:
       if (data.action === 'deleted') {
         await deleteInstallation(data, requestId);
-      } else if (data.action !== 'created') {
+      } else if (data.action == 'created') {
         await installationEvent(data, requestId);
       }
       break;
