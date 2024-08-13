@@ -20,6 +20,7 @@ async function getUserList(
   >,
   organizationName: string,
   requestId: string,
+  orgId?: string | undefined,
   page = 1,
   counter = 0
 ): Promise<number> {
@@ -39,7 +40,7 @@ async function getUserList(
 
     await Promise.all(
       membersPerPage.map(async (member) =>
-        sqsClient.sendMessage(member, Queue.qGhUsersFormat.queueUrl, { requestId })
+        sqsClient.sendMessage({ ...member, orgId }, Queue.qGhUsersFormat.queueUrl, { requestId })
       )
     );
 
@@ -47,7 +48,7 @@ async function getUserList(
       logger.info({ message: 'getUserList.successful', requestId });
       return newCounter;
     }
-    return getUserList(octokit, organizationName, requestId, page + 1, newCounter);
+    return getUserList(octokit, organizationName, requestId, orgId, page + 1, newCounter);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     logger.error({
@@ -72,7 +73,14 @@ async function getUserList(
         },
       });
       const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokitObj);
-      return getUserList(octokitRequestWithTimeout, organizationName, requestId, page, counter);
+      return getUserList(
+        octokitRequestWithTimeout,
+        organizationName,
+        requestId,
+        orgId,
+        page,
+        counter
+      );
     }
     throw error;
   }
@@ -86,12 +94,14 @@ export async function getUsers(
       };
     }
   >,
+  orgId: string | undefined,
   organizationName: string,
   requestId: string
 ): Promise<number> {
   let userCount: number;
+  let noPrefixOrgId = orgId?.replace('gh_org_', '');
   try {
-    userCount = await getUserList(octokit, organizationName, requestId);
+    userCount = await getUserList(octokit, organizationName, requestId, noPrefixOrgId);
     return userCount;
   } catch (error: unknown) {
     logger.error({ message: 'getUsers.list.error', error, requestId });

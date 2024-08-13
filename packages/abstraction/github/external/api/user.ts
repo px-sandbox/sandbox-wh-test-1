@@ -20,4 +20,5 @@ export type User = {
   site_admin: boolean;
   created_at?: string;
   deleted_at?: string;
+  orgId: string;
 };

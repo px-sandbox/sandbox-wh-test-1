@@ -8,5 +8,6 @@ export type BranchList = [
       url: string;
     };
     protected: boolean;
+    orgId?: string;
   }
 ];
