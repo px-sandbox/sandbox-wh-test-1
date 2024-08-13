@@ -13,7 +13,7 @@ export async function getOauthToken(): Promise<APIGatewayProxyResult> {
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (error: unknown) {
-    logger.error({ message: 'getOauthToken.error', error });
+    logger.error({ message: 'getOauthToken.error', error: `${error}` });
     throw error;
   }
 }

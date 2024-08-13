@@ -43,7 +43,12 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     });
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPrFormat.queueUrl, error as Error);
-    logger.error({ message: 'pRFormattedDataReceiver.error', error, requestId, resourceId });
+    logger.error({
+      message: 'pRFormattedDataReceiver.error',
+      error: `${error}`,
+      requestId,
+      resourceId,
+    });
   }
 }
 export const handler = async function pRFormattedDataReceiver(event: SQSEvent): Promise<void> {
@@ -60,7 +65,7 @@ export const handler = async function pRFormattedDataReceiver(event: SQSEvent): 
             },
             (error) => {
               if (error) {
-                logger.error({ message: 'pRFormattedDataReceiver.error', error });
+                logger.error({ message: 'pRFormattedDataReceiver.error', error: `${error}` });
               }
               resolve('Done');
             }

@@ -70,6 +70,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
       index,
       id,
       body,
+      refresh: true,
     });
   }
 
