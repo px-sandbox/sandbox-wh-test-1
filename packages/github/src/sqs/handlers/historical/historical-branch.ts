@@ -40,7 +40,7 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
       const octokitRespData = getOctokitResp(githubBranches);
       const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/; // eslint-disable-line no-useless-escape
       branches = octokitRespData
-        // .filter((branchName: { name: string }) => branchNameRegx.test(branchName.name))
+        .filter((branchName: { name: string }) => branchNameRegx.test(branchName.name))
         .map((branch: { name: string }) => branch.name);
     }
     logger.info({ message: 'Processing data for repo', data: branches });

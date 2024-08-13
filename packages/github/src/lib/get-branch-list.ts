@@ -19,6 +19,7 @@ async function getBranchList(
   repoId: string,
   repoName: string,
   repoOwner: string,
+  orgId: string,
   reqCtx: Other.Type.RequestCtx,
   page = 1,
   counter = 0
@@ -26,7 +27,7 @@ async function getBranchList(
   try {
     logger.info({
       message: 'getBranchList.invoked',
-      data: { repoName, repoOwner, page },
+      data: { repoName, repoOwner, page, orgId },
       ...reqCtx,
     });
     const perPage = 100;
@@ -36,13 +37,13 @@ async function getBranchList(
     );
 
     const branchesPerPage = responseData.data as Github.ExternalType.Api.BranchList;
-
     const newCounter = counter + branchesPerPage.length;
     await Promise.all([
       branchesPerPage.map(async (branch) => {
         const branchInfo = { ...branch };
         branchInfo.id = Buffer.from(`${repoId}_${branchInfo.name}`, 'binary').toString('base64');
         branchInfo.repo_id = repoId;
+        branchInfo.orgId = orgId.replace('gh_org_', '');
         return sqsClient.sendMessage(branchInfo, Queue.qGhBranchFormat.queueUrl, { ...reqCtx });
       }),
     ]);
@@ -51,7 +52,7 @@ async function getBranchList(
       logger.info({ message: 'getBranchList.successful', ...reqCtx });
       return newCounter;
     }
-    return getBranchList(octokit, repoId, repoName, repoOwner, reqCtx, page + 1, newCounter);
+    return getBranchList(octokit, repoId, repoName, repoOwner, orgId, reqCtx, page + 1, newCounter);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     logger.error({
@@ -62,7 +63,7 @@ async function getBranchList(
     });
 
     if (error.status === 401) {
-      return getBranchList(octokit, repoId, repoName, repoOwner, reqCtx, page, counter);
+      return getBranchList(octokit, repoId, repoName, repoOwner, orgId, reqCtx, page, counter);
     }
     throw error;
   }
@@ -72,6 +73,7 @@ export async function getBranches(
   repoId: string,
   repoName: string,
   repoOwner: string,
+  orgId: string,
   reqCtx: Other.Type.RequestCtx
 ): Promise<number> {
   let branchCount: number;
@@ -88,6 +90,7 @@ export async function getBranches(
       repoId,
       repoName,
       repoOwner,
+      orgId,
       reqCtx
     );
     return branchCount;
