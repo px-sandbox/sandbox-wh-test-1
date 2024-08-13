@@ -4,6 +4,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, responseParser } from 'core';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
+import _ from 'lodash';
 
 const esClient = ElasticSearchClient.getInstance();
 
@@ -18,9 +19,10 @@ const getMigrationStatus = async function getStatus(
       .toJSON();
     const data = await esClient.search(Github.Enums.IndexName.GitMigrationStatus, matchQry);
     const [statusData] = await searchedDataFormator(data);
+    const latestStatus = _.orderBy(statusData.statusLogs, ['date'], 'desc')[0];
     return responseParser
-      .setBody(statusData)
-      .setMessage('Migration Status updated successfully')
+      .setBody(latestStatus)
+      .setMessage('Migration Status fetched successfully')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')
       .send();
