@@ -15,7 +15,7 @@ const collectData = async (orgName: string, reqCtx: Other.Type.RequestCtx): Prom
       },
     });
     await Promise.all([
-      getUsers(octokit, orgName, requestId),
+      getUsers(octokit, resourceId, orgName, requestId),
       getRepos(octokit, orgName, requestId),
     ]);
   } catch (error) {

@@ -10,6 +10,7 @@ import { pRReviewCommentOnQueue } from '../lib/pr-review-comment-queue';
 import { pRReviewOnQueue } from '../lib/pr-review-queue';
 import { pROnQueue } from '../lib/pull-request-queue';
 import { orgInstallation } from 'src/lib/create-installation';
+import { deleteInstallation } from 'src/lib/delete-installation';
 
 const sqsClient = SQSClient.getInstance();
 interface ReviewCommentProcessType {
@@ -218,11 +219,10 @@ async function processWebhookEvent(
       break;
     case Github.Enums.Event.Installation:
       if (data.action === 'deleted') {
-        data.installation.deleted_at = new Date(eventTime);
+        await deleteInstallation(data, requestId);
       } else if (data.action !== 'created') {
-        return; // Exit the function if the action is neither 'deleted' nor 'created'
+        await installationEvent(data, requestId);
       }
-      await installationEvent(data, requestId);
       break;
     default:
       logger.info({

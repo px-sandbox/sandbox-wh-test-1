@@ -49,6 +49,7 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
           comment: comments,
           pullId: messageBody.id,
           repoId: messageBody.head.repo.id,
+          orgId: messageBody.head.repo.owner.id,
         },
         Queue.qGhPrReviewCommentFormat.queueUrl,
         { requestId, resourceId }
@@ -82,7 +83,7 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
 export const handler = async function collectPRCommentsData(event: SQSEvent): Promise<undefined> {
   await Promise.all(
     event.Records.filter((record) => {
-      const body = JSON.parse(record.body);
+      const { message: body } = JSON.parse(record.body);
       if (body.head?.repo) {
         logger.info({
           message: `PR with repo: ${body}
