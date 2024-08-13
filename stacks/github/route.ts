@@ -192,11 +192,18 @@ export function initializeRoutes(
       authorizer: 'universal',
     },
 
-    'GET /github/migration/status': {
+    'POST /github/migration/status': {
       function: {
-        handler: 'packages/github/src/service/migration-status.handler',
+        handler: 'packages/github/src/service/update-migration-status.handler',
       },
       authorizer: 'admin',
+    },
+
+    'GET /github/migration/status/{orgId}': {
+      function: {
+        handler: 'packages/github/src/service/get-migration-status.handler',
+      },
+      authorizer: 'none',
     },
   };
 }
