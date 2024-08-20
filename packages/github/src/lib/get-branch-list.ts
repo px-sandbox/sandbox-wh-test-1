@@ -38,15 +38,15 @@ async function getBranchList(
 
     const branchesPerPage = responseData.data as Github.ExternalType.Api.BranchList;
     const newCounter = counter + branchesPerPage.length;
-    await Promise.all([
+    await Promise.all(
       branchesPerPage.map(async (branch) => {
         const branchInfo = { ...branch };
         branchInfo.id = Buffer.from(`${repoId}_${branchInfo.name}`, 'binary').toString('base64');
         branchInfo.repo_id = repoId;
         branchInfo.orgId = orgId.replace('gh_org_', '');
         return sqsClient.sendMessage(branchInfo, Queue.qGhBranchFormat.queueUrl, { ...reqCtx });
-      }),
-    ]);
+      })
+    );
 
     if (branchesPerPage.length < perPage) {
       logger.info({ message: 'getBranchList.successful', ...reqCtx });
