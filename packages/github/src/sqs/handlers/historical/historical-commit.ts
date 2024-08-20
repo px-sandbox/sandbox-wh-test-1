@@ -33,7 +33,7 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
     const octokitRespData = getOctokitResp(commitDataOnPr);
     let queueProcessed = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    queueProcessed = octokitRespData.map((commitData: any) => {
+    queueProcessed = octokitRespData.map((commitData: any) =>
       sqsClient.sendFifoMessage(
         {
           commitId: commitData.sha,
@@ -52,8 +52,8 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
         { requestId, resourceId },
         commitData.sha,
         uuid()
-      );
-    });
+      )
+    );
     await Promise.all(queueProcessed);
 
     logger.info({
