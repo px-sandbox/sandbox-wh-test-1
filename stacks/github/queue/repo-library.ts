@@ -1,4 +1,4 @@
-import { Stack } from 'aws-cdk-lib';
+import { Duration, Stack } from 'aws-cdk-lib';
 import { Bucket, Function, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../../type/tables';
 import { commonConfig } from '../../common/config';
@@ -43,6 +43,7 @@ export function initializeRepoLibraryQueue(
     cdk: {
       queue: {
         deadLetterQueue: getDeadLetterQ(stack, 'qRepoLibS3'),
+        visibilityTimeout: Duration.seconds(65),
       },
     },
   });
@@ -51,10 +52,11 @@ export function initializeRepoLibraryQueue(
       handler: 'packages/github/src/sqs/handlers/repo-library/from-s3-repo-library.handler',
       bind: [repoLibS3Queue],
       runtime: NODE_VERSION,
+      timeout: '60 seconds',
     }),
     cdk: {
       eventSource: {
-        batchSize: 5,
+        batchSize: 1,
       },
     },
   });
