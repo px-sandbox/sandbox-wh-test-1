@@ -1,3 +1,11 @@
+export interface IOrganisation {
+  _id: string;
+  id: string;
+  githubOrganizationId: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
 export interface IformatUserDataResponse {
   _id: number;
   id: number;
@@ -70,4 +78,12 @@ export const formatRepoDataResponse = (
     name: repo.name,
     topics: repo.topics,
     organizationId: repo.organizationId,
+  }));
+
+export const formatOrgDataResponse = (
+  data: Array<IOrganisation>
+): Array<{id: string, name: string}> =>
+  data.map((org: IOrganisation) => ({
+    id: org.id,
+    name: org.name
   }));

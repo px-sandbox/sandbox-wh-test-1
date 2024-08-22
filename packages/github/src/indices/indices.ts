@@ -53,16 +53,8 @@ const indices = [
           properties: {
             id: { type: 'keyword' },
             githubOrganizationId: { type: 'keyword' },
+            installationId: { type: 'keyword' },
             name: { type: 'text' },
-            description: { type: 'text' },
-            company: { type: 'text' },
-            location: { type: 'text' },
-            email: { type: 'text' },
-            isVerified: { type: 'boolean' },
-            hasOrganizationProjects: { type: 'boolean' },
-            hasRepositoryProjects: { type: 'boolean' },
-            publicRepos: { type: 'integer' },
-            totalPrivateRepos: { type: 'integer' },
             createdAt: { type: 'date', format: 'strict_date_optional_time' },
             updatedAt: { type: 'date', format: 'strict_date_optional_time' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time' },
@@ -473,6 +465,27 @@ const indices = [
             date: { type: 'date', format: 'strict_date_optional_time' },
             branch: { type: 'keyword' },
             count: { type: 'integer' },
+          },
+        },
+      },
+    },
+  },
+  {
+    name: Github.Enums.IndexName.GitMigrationStatus,
+    _id: { type: 'keyword' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            organizationId: { type: 'keyword' },
+            statusLogs: {
+              type: 'nested',
+              properties: {
+                status: { type: 'keyword' },
+                date: { type: 'date', format: 'strict_date_optional_time' },
+              },
+            },
           },
         },
       },

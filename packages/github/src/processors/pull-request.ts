@@ -176,7 +176,7 @@ export class PRProcessor extends DataProcessor<
       const pullObj = await this.setPullObj(parentId, reqReviewersData, labelsData, action);
       return pullObj;
     } catch (error) {
-      logger.error({ message: 'PRProcessor.processor.error', error });
+      logger.error({ message: 'PRProcessor.processor.error', error: `${error}` });
       throw error;
     }
   }

@@ -1,10 +1,13 @@
-import { APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 
-export async function getGithubAccessToken(): Promise<APIGatewayProxyResult> {
+export async function getGithubAccessToken(
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> {
   try {
-    const installationAccessToken = await getInstallationAccessToken();
+    const orgName = event?.queryStringParameters?.orgName || '';
+    const installationAccessToken = await getInstallationAccessToken(orgName);
 
     logger.info({ message: 'Get installation access token' });
     return responseParser

@@ -12,7 +12,7 @@ async function getReposList(
   octokit: RequestInterface<
     object & {
       headers: {
-        authorization: string | undefined;
+        Authorization: string | undefined;
       };
     }
   >,
@@ -36,13 +36,15 @@ async function getReposList(
     const newCounter = counter + reposPerPage.length;
 
     await Promise.all(
-      reposPerPage.map(async (repo) =>
-        sqsClient.sendMessage(repo, Queue.qGhRepoFormat.queueUrl, { requestId })
-      )
+      reposPerPage.map(async (repo) => {
+        sqsClient.sendMessage(repo, Queue.qGhRepoFormat.queueUrl, { requestId });
+        sqsClient.sendMessage(repo, Queue.qGhHistoricalBranch.queueUrl, { requestId });
+        sqsClient.sendMessage(repo, Queue.qGhHistoricalPr.queueUrl, { requestId });
+      })
     );
 
-    if (reposPerPage.length < perPage) {
-      logger.info({ message: 'getReposList.successfull' });
+    if (reposPerPage.length <= 0) {
+      logger.info({ message: 'getReposList.successful' });
       return newCounter;
     }
     return getReposList(octokit, organizationName, requestId, page + 1, newCounter);
@@ -62,7 +64,7 @@ async function getReposList(
     if (error.status === 401) {
       const {
         body: { token },
-      } = await getInstallationAccessToken();
+      } = await getInstallationAccessToken(organizationName);
 
       const octokitObj = ghRequest.request.defaults({
         headers: {
@@ -80,7 +82,7 @@ export async function getRepos(
   octokit: RequestInterface<
     object & {
       headers: {
-        authorization: string | undefined;
+        Authorization: string | undefined;
       };
     }
   >,

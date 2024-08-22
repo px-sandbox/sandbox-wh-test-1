@@ -11,20 +11,21 @@ import { processPRComments } from '../../../util/process-pr-comments';
 import { PRProcessor } from '../../../processors/pull-request';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
-const installationAccessToken = await getInstallationAccessToken();
-const octokit = ghRequest.request.defaults({
-  headers: {
-    Authorization: `Bearer ${installationAccessToken.body.token}`,
-  },
-});
-const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
-
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   const {
     reqCtx: { requestId, resourceId },
     message: messageBody,
   } = JSON.parse(record.body);
   try {
+    const installationAccessToken = await getInstallationAccessToken(
+      messageBody.head.repo.owner.login
+    );
+    const octokit = ghRequest.request.defaults({
+      headers: {
+        Authorization: `Bearer ${installationAccessToken.body.token}`,
+      },
+    });
+    const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
     logger.info({ message: 'PULL_SQS_RECEIVER_HANDLER', data: messageBody, requestId, resourceId });
     const pullProcessor = new PRProcessor(messageBody, requestId, resourceId);
     const data = await pullProcessor.processor();
@@ -42,7 +43,12 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     });
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPrFormat.queueUrl, error as Error);
-    logger.error({ message: 'pRFormattedDataReceiver.error', error, requestId, resourceId });
+    logger.error({
+      message: 'pRFormattedDataReceiver.error',
+      error: `${error}`,
+      requestId,
+      resourceId,
+    });
   }
 }
 export const handler = async function pRFormattedDataReceiver(event: SQSEvent): Promise<void> {
@@ -59,7 +65,7 @@ export const handler = async function pRFormattedDataReceiver(event: SQSEvent): 
             },
             (error) => {
               if (error) {
-                logger.error({ message: 'pRFormattedDataReceiver.error', error });
+                logger.error({ message: 'pRFormattedDataReceiver.error', error: `${error}` });
               }
               resolve('Done');
             }

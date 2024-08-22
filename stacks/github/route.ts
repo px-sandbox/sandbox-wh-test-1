@@ -1,5 +1,6 @@
-import { ApiRouteProps, Queue } from 'sst/constructs';
+import { ApiRouteProps, Queue, use } from 'sst/constructs';
 import { GithubTables } from '../type/tables';
+import { commonConfig } from '../common/config';
 
 // eslint-disable-next-line max-lines-per-function
 export function initializeRoutes(
@@ -19,16 +20,13 @@ export function initializeRoutes(
     prReviewFormatDataQueue,
     collectPRData,
     historicalBranch,
-    depRegistryQueue,
-    currentDepRegistryQueue,
-    latestDepRegistry,
     repoSastErrors,
     scansSaveQueue,
     repoLibS3Queue,
     updateMergeCommit,
     prReviewCommentMigrationQueue,
   } = queues;
-
+  const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID } = use(commonConfig);
   /* We aso extract and bind the tables
    * from the githubDDb object to their respective functions/handlers called within routes */
   const { githubMappingTable, libMasterTable } = githubDDb;
@@ -70,6 +68,11 @@ export function initializeRoutes(
           prFormatDataQueue,
           prReviewCommentFormatDataQueue,
           prReviewFormatDataQueue,
+          githubMappingTable,
+          GITHUB_APP_PRIVATE_KEY_PEM,
+          GITHUB_APP_ID,
+          historicalBranch,
+          collectPRData,
         ],
       },
       authorizer: 'none',
@@ -187,6 +190,20 @@ export function initializeRoutes(
         timeout: '5 minutes',
       },
       authorizer: 'universal',
+    },
+
+    'POST /github/migration/status': {
+      function: {
+        handler: 'packages/github/src/service/update-migration-status.handler',
+      },
+      authorizer: 'admin',
+    },
+
+    'GET /github/migration/status': {
+      function: {
+        handler: 'packages/github/src/service/get-migration-status.handler',
+      },
+      authorizer: 'none',
     },
   };
 }

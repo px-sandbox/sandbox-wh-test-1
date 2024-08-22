@@ -9,14 +9,6 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
-const sqsClient = SQSClient.getInstance();
-const installationAccessToken = await getInstallationAccessToken();
-const octokit = ghRequest.request.defaults({
-  headers: {
-    Authorization: `Bearer ${installationAccessToken.body.token}`,
-  },
-});
-const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
   const {
     reqCtx: { requestId, resourceId },
@@ -30,13 +22,23 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
     page = 1,
     number,
     head: {
-      repo: { owner, name },
+      repo: {
+        owner: { login },
+        name,
+      },
     },
   } = messageBody;
-
+  const sqsClient = SQSClient.getInstance();
+  const installationAccessToken = await getInstallationAccessToken(login);
+  const octokit = ghRequest.request.defaults({
+    headers: {
+      Authorization: `Bearer ${installationAccessToken.body.token}`,
+    },
+  });
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
     const commentsDataOnPr = (await octokitRequestWithTimeout(
-      `GET /repos/${owner.login}/${name}/pulls/${number}/comments?per_page=100&page=${page}`
+      `GET /repos/${login}/${name}/pulls/${number}/comments?per_page=100&page=${page}`
     )) as OctokitResponse<any>;
     const octokitRespData = getOctokitResp(commentsDataOnPr);
     let queueProcessed = [];
@@ -47,6 +49,7 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
           comment: comments,
           pullId: messageBody.id,
           repoId: messageBody.head.repo.id,
+          orgId: messageBody.head.repo.owner.id,
         },
         Queue.qGhPrReviewCommentFormat.queueUrl,
         { requestId, resourceId }
@@ -80,7 +83,7 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
 export const handler = async function collectPRCommentsData(event: SQSEvent): Promise<undefined> {
   await Promise.all(
     event.Records.filter((record) => {
-      const body = JSON.parse(record.body);
+      const { message: body } = JSON.parse(record.body);
       if (body.head?.repo) {
         logger.info({
           message: `PR with repo: ${body}

@@ -19,3 +19,7 @@ const getOrganizationData = async (key: string, value: string): Promise<HitBody>
 export async function getOrganizationById(orgId: string): Promise<HitBody> {
   return getOrganizationData('id', orgId);
 }
+
+export async function getOrganizationByName(orgName: string): Promise<HitBody> {
+  return getOrganizationData('name', orgName);
+}

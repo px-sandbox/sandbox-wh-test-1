@@ -9,28 +9,33 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
-const installationAccessToken = await getInstallationAccessToken();
-const sqsClient = SQSClient.getInstance();
-
-const octokit = ghRequest.request.defaults({
-  headers: {
-    Authorization: `Bearer ${installationAccessToken.body.token}`,
-  },
-});
-const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 async function getRepoBranches(record: SQSRecord | { body: string }): Promise<boolean | undefined> {
   const {
     reqCtx: { requestId, resourceId },
     message: messageBody,
   } = JSON.parse(record.body);
-  const { owner, name, page = 1, githubRepoId } = messageBody;
+  const {
+    owner: { login, id: orgId },
+    name,
+    page = 1,
+    id,
+  } = messageBody;
+  const installationAccessToken = await getInstallationAccessToken(login);
+  const sqsClient = SQSClient.getInstance();
+
+  const octokit = ghRequest.request.defaults({
+    headers: {
+      Authorization: `Bearer ${installationAccessToken.body.token}`,
+    },
+  });
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
     let branches = [];
     if (messageBody.reqBranch) {
       branches.push(messageBody.reqBranch);
     } else {
       const githubBranches = (await octokitRequestWithTimeout(
-        `GET /repos/${owner}/${name}/branches?per_page=100&page=${page}`
+        `GET /repos/${login}/${name}/branches?per_page=100&page=${page}`
       )) as OctokitResponse<any>;
       const octokitRespData = getOctokitResp(githubBranches);
       const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/; // eslint-disable-line no-useless-escape
@@ -43,10 +48,11 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
       sqsClient.sendMessage(
         {
           branchName: branch,
-          owner,
+          owner: login,
           name,
-          githubRepoId,
+          id,
           page: 1,
+          orgId,
         },
         Queue.qGhHistoricalCommits.queueUrl,
         { requestId, resourceId }
@@ -77,10 +83,11 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
 export const handler = async function collectBranchData(event: SQSEvent): Promise<void> {
   await Promise.all(
     event.Records.filter((record: SQSRecord) => {
-      const body = JSON.parse(record.body);
+      const { message: body } = JSON.parse(record.body);
       if (body.owner && body.name) {
         return true;
       }
+
       return false;
     }).map(async (record) => {
       try {
