@@ -4,13 +4,20 @@ import { commonConfig } from '../../common/config';
 import { getDeadLetterQ } from '../../common/dead-letter-queue';
 
 export function initializeCopilotQueue(stack: Stack, indexerQueue: Queue): Queue {
-  const { GIT_ORGANIZATION_ID } = use(commonConfig);
+  const { GIT_ORGANIZATION_ID, OPENSEARCH_NODE, OPENSEARCH_PASSWORD, OPENSEARCH_USERNAME } =
+    use(commonConfig);
 
   const ghCopilotFormatDataQueue = new Queue(stack, 'qGhCopilotFormat', {
     consumer: {
       function: {
         handler: 'packages/github/src/sqs/handlers/formatter/gh-copilot.handler',
-        bind: [GIT_ORGANIZATION_ID, indexerQueue],
+        bind: [
+          GIT_ORGANIZATION_ID,
+          OPENSEARCH_NODE,
+          OPENSEARCH_PASSWORD,
+          OPENSEARCH_USERNAME,
+          indexerQueue,
+        ],
       },
       cdk: {
         eventSource: {
