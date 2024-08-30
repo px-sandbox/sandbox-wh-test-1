@@ -13,17 +13,26 @@ export class RetryTableMapping {
     };
   }
 
-  public prepareScanParams(): ScanCommandInput {
+  public prepareScanParams(processIdArr?: string[]): ScanCommandInput {
+    let filterExpression = 'attribute_not_exists(#retry) OR #retry <= :maxRetry';
+    let expressionAttributeValues: { ':maxRetry': number; ':processId'?: string[] } = {
+      ':maxRetry': 3,
+    };
+    let expressionAttributeNames: { '#retry': string; '#processId'?: string } = {
+      '#retry': 'retry',
+    };
+    if (processIdArr && processIdArr.length > 0) {
+      filterExpression += ' AND #processId IN (:processId)';
+      expressionAttributeValues[':processId'] = processIdArr;
+      expressionAttributeNames['#processId'] = 'processId';
+    }
+
     return {
       TableName: this.tableName,
       Limit: 200,
-      FilterExpression: 'attribute_not_exists(#retry) OR #retry <= :maxRetry',
-      ExpressionAttributeNames: {
-        '#retry': 'retry',
-      },
-      ExpressionAttributeValues: {
-        ':maxRetry': 3,
-      },
+      FilterExpression: filterExpression,
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
     };
   }
 

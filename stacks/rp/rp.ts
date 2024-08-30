@@ -47,7 +47,7 @@ export function rp({ stack }: StackContext): {
       },
     },
     routes: {
-      'GET /process/retry': {
+      'POST /process/retry': {
         function: retryProcess,
         authorizer: 'admin',
       },
