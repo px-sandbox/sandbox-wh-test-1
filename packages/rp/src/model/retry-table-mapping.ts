@@ -1,4 +1,9 @@
-import { PutCommandInput, ScanCommandInput, DeleteCommandInput } from '@aws-sdk/lib-dynamodb';
+import {
+  PutCommandInput,
+  ScanCommandInput,
+  DeleteCommandInput,
+  QueryCommandInput,
+} from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
 
 export class RetryTableMapping {
@@ -13,26 +18,17 @@ export class RetryTableMapping {
     };
   }
 
-  public prepareScanParams(processIdArr?: string[]): ScanCommandInput {
-    let filterExpression = 'attribute_not_exists(#retry) OR #retry <= :maxRetry';
-    let expressionAttributeValues: { ':maxRetry': number; ':processId'?: string[] } = {
-      ':maxRetry': 3,
-    };
-    let expressionAttributeNames: { '#retry': string; '#processId'?: string } = {
-      '#retry': 'retry',
-    };
-    if (processIdArr && processIdArr.length > 0) {
-      filterExpression += ' AND #processId IN (:processId)';
-      expressionAttributeValues[':processId'] = processIdArr;
-      expressionAttributeNames['#processId'] = 'processId';
-    }
-
+  public prepareScanParams(): ScanCommandInput {
     return {
       TableName: this.tableName,
       Limit: 200,
-      FilterExpression: filterExpression,
-      ExpressionAttributeNames: expressionAttributeNames,
-      ExpressionAttributeValues: expressionAttributeValues,
+      FilterExpression: 'attribute_not_exists(#retry) OR #retry <= :maxRetry',
+      ExpressionAttributeNames: {
+        '#retry': 'retry',
+      },
+      ExpressionAttributeValues: {
+        ':maxRetry': 3,
+      },
     };
   }
 

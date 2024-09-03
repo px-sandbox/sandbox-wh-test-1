@@ -4,10 +4,13 @@ import { APIGatewayProxyEvent } from 'aws-lambda';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import { RetryTableMapping } from '../model/retry-table-mapping';
+import { Table } from 'sst/node/table';
+import { BatchGetCommandInput, ScanCommandOutput } from '@aws-sdk/lib-dynamodb';
 
 const sqsClient = SQSClient.getInstance();
 const dynamodbClient = DynamoDbDocClient.getInstance();
-
+const tableName = Table.processRetry.tableName;
+const PrimaryKey = 'processId';
 async function processIt(record: Github.Type.QueueMessage, requestId: string): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId, MessageGroupId } = record;
   const isFifoQueue = queue.includes('.fifo');
@@ -46,30 +49,57 @@ async function processIt(record: Github.Type.QueueMessage, requestId: string): P
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
   const requestId = event?.requestContext?.requestId;
   const { processIds } = event?.body ? JSON.parse(event.body) : [];
-
   logger.info({
     requestId,
     message: `RetryProcessHandler invoked at: ${new Date().toISOString()}`,
   });
   logger.info({ message: `RetryProcessHandler processIds are:`, data: processIds });
-  const params = new RetryTableMapping().prepareScanParams(processIds);
-  logger.info({ message: 'dynamoDB_scan_query_params', data: JSON.stringify(params) });
-  const processes = await dynamodbClient.scan(params);
+  if (processIds && processIds.length > 0) {
+    //create chunks of processIds
+    const params = {
+      RequestItems: {
+        [tableName]: {
+          Keys: processIds.map((processId: string) => ({ processId })),
+        },
+      },
+    };
+    logger.info({ message: 'dynamoDB_batch_query_params', data: JSON.stringify(params) });
+    const data = await dynamodbClient.batchGet<Record<string, Github.Type.QueueMessage[]>>(params);
+    if (data && data[tableName]) {
+      if (data[tableName].length === 0) {
+        logger.info({
+          requestId,
+          data: processIds,
+          message: `RetryProcessHandler no processes found at: ${new Date().toISOString()}`,
+        });
+        return;
+      }
+      await Promise.all(
+        data[tableName].map((record: unknown) =>
+          processIt(record as Github.Type.QueueMessage, requestId)
+        )
+      );
+    }
+  } else {
+    const params = new RetryTableMapping().prepareScanParams();
+    logger.info({ message: 'dynamoDB_scan_query_params', data: JSON.stringify(params) });
+    const processes = await dynamodbClient.scan(params);
+    if (processes.Count === 0) {
+      logger.info({
+        requestId,
+        message: `RetryProcessHandler no processes found at: ${new Date().toISOString()}`,
+      });
+      return;
+    }
 
-  if (processes.Count === 0) {
+    const items = processes.Items as Github.Type.QueueMessage[];
     logger.info({
       requestId,
-      message: `RetryProcessHandler no processes found at: ${new Date().toISOString()}`,
+      message: `RetryProcessHandler_items_to_process`,
+      data: items?.length,
     });
-    return;
+    await Promise.all(
+      items.map((record: unknown) => processIt(record as Github.Type.QueueMessage, requestId))
+    );
   }
-  const items = processes.Items as Github.Type.QueueMessage[];
-  logger.info({
-    requestId,
-    message: `RetryProcessHandler_items_to_process`,
-    data: items.length,
-  });
-  await Promise.all(
-    items.map((record: unknown) => processIt(record as Github.Type.QueueMessage, requestId))
-  );
 }
