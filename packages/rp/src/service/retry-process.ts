@@ -49,6 +49,7 @@ async function processIt(record: Github.Type.QueueMessage, requestId: string): P
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
   const requestId = event?.requestContext?.requestId;
   const { processIds } = event?.body ? JSON.parse(event.body) : [];
+  let items: Github.Type.QueueMessage[] = [];
   logger.info({
     requestId,
     message: `RetryProcessHandler invoked at: ${new Date().toISOString()}`,
@@ -74,11 +75,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
         });
         return;
       }
-      await Promise.all(
-        data[tableName].map((record: unknown) =>
-          processIt(record as Github.Type.QueueMessage, requestId)
-        )
-      );
+      items = data[tableName];
     }
   } else {
     const params = new RetryTableMapping().prepareScanParams();
@@ -92,14 +89,21 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
       return;
     }
 
-    const items = processes.Items as Github.Type.QueueMessage[];
+    items = processes.Items as Github.Type.QueueMessage[];
     logger.info({
       requestId,
       message: `RetryProcessHandler_items_to_process`,
       data: items?.length,
     });
-    await Promise.all(
-      items.map((record: unknown) => processIt(record as Github.Type.QueueMessage, requestId))
-    );
   }
+  if (items.length === 0) {
+    logger.info({
+      requestId,
+      message: `RetryProcessHandler no items found at: ${new Date().toISOString()}`,
+    });
+    return;
+  }
+  await Promise.all(
+    items.map((record: unknown) => processIt(record as Github.Type.QueueMessage, requestId))
+  );
 }
