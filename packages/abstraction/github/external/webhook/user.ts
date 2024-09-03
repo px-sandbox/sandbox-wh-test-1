@@ -11,7 +11,9 @@ export type User = {
       site_admin: boolean;
     };
   };
-  organization: object;
+  organization: {
+    id: number;
+  };
   sender: object;
   installation: object;
 };
