@@ -1,4 +1,9 @@
-import { PutCommandInput, ScanCommandInput, DeleteCommandInput } from '@aws-sdk/lib-dynamodb';
+import {
+  PutCommandInput,
+  ScanCommandInput,
+  DeleteCommandInput,
+  QueryCommandInput,
+} from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
 
 export class RetryTableMapping {
