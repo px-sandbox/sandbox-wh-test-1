@@ -108,12 +108,14 @@ async function processOrgEvent(
     case Github.Enums.Organization.MemberAdded:
       obj = {
         ...data.membership.user,
+        orgId: data.organization.id,
         action: data.action,
       };
       break;
     case Github.Enums.Organization.MemberRemoved:
       obj = {
         ...data.membership.user,
+        orgId: data.organization.id,
         action: data.action,
         deleted_at: new Date(eventTime),
       };
