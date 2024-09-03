@@ -66,17 +66,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     };
     logger.info({ message: 'dynamoDB_batch_query_params', data: JSON.stringify(params) });
     const data = await dynamodbClient.batchGet<Record<string, Github.Type.QueueMessage[]>>(params);
-    if (data && data[tableName]) {
-      if (data[tableName].length === 0) {
-        logger.info({
-          requestId,
-          data: processIds,
-          message: `RetryProcessHandler no processes found at: ${new Date().toISOString()}`,
-        });
-        return;
-      }
-      items = data[tableName];
-    }
+    items = data && data[tableName] ? data[tableName] : [];
   } else {
     const params = new RetryTableMapping().prepareScanParams();
     logger.info({ message: 'dynamoDB_scan_query_params', data: JSON.stringify(params) });
@@ -88,7 +78,6 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
       });
       return;
     }
-
     items = processes.Items as Github.Type.QueueMessage[];
     logger.info({
       requestId,
