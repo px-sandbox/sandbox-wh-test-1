@@ -33,6 +33,9 @@ export function initializeFunctions(
       GITHUB_APP_ID,
       GITHUB_SG_INSTALLATION_ID,
       REQUEST_TIMEOUT,
+      OPENSEARCH_NODE,
+      OPENSEARCH_PASSWORD,
+      OPENSEARCH_USERNAME,
     ],
     runtime: NODE_VERSION,
   });
