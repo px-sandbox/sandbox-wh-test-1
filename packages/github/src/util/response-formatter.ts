@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 export interface IOrganisation {
   _id: string;
   id: string;
@@ -82,8 +83,12 @@ export const formatRepoDataResponse = (
 
 export const formatOrgDataResponse = (
   data: Array<IOrganisation>
-): Array<{id: string, name: string}> =>
+): Array<{ id: string; name: string }> =>
   data.map((org: IOrganisation) => ({
     id: org.id,
-    name: org.name
+    name: org.name,
   }));
+
+export const generateUuid = (): string => {
+  return uuid();
+};

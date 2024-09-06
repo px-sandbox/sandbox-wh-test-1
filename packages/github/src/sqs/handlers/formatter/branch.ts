@@ -1,7 +1,8 @@
-import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { BranchProcessor } from '../../../processors/branch';
+import { logProcessToRetry } from 'rp';
+import { Queue } from 'sst/node/queue';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   const {
@@ -15,15 +16,20 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId,
     });
-    const branchProcessor = new BranchProcessor(messageBody, requestId, resourceId);
-    const data = await branchProcessor.processor();
-    await branchProcessor.save({
-      data,
-      eventType: Github.Enums.Event.Branch,
-      processId: messageBody?.processId,
-    });
+    const { action, processId, ...eventData } = messageBody;
+    const branchProcessor = new BranchProcessor(
+      action,
+      eventData,
+      processId,
+      requestId,
+      resourceId
+    );
+    await branchProcessor.process();
+    await branchProcessor.save();
   } catch (error) {
     logger.error({ message: 'branchFormattedDataReceiver.error', error, requestId, resourceId });
+    await logProcessToRetry(record, Queue.qGhBranchFormat.queueUrl, error as Error);
+    throw new Error(`branchFormattedDataReceiver.error:${JSON.stringify(error)}`);
   }
 }
 export const handler = async function branchFormattedDataReceiver(event: SQSEvent): Promise<void> {

@@ -11,8 +11,8 @@ export enum Repo {
 }
 
 export enum Branch {
-  Created = 'created',
-  Deleted = 'deleted',
+  Created = 'create',
+  Deleted = 'delete',
 }
 
 export enum Organization {

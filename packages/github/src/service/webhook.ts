@@ -71,30 +71,18 @@ async function processBranchEvent(
       owner: { id: orgId },
     },
   } = data;
-  let obj = {};
+
   let resourceId = '';
-  if (event.headers['x-github-event'] === 'create') {
-    obj = {
-      name,
-      id: Buffer.from(`${repoId}_${name}`, 'binary').toString('base64'),
-      action: Github.Enums.Branch.Created,
-      repo_id: repoId,
-      created_at: eventAt,
-      orgId,
-    };
-    resourceId = name;
-  }
-  if (event.headers['x-github-event'] === 'delete') {
-    obj = {
-      name,
-      id: Buffer.from(`${repoId}_${name}`, 'binary').toString('base64'),
-      action: Github.Enums.Branch.Deleted,
-      repo_id: repoId,
-      deleted_at: eventAt,
-      orgId,
-    };
-    resourceId = name;
-  }
+  const obj = {
+    name,
+    id: Buffer.from(`${repoId}_${name}`, 'binary').toString('base64'),
+    repo_id: repoId,
+    created_at: eventAt,
+    orgId,
+    action: event.headers['x-github-event'],
+  };
+  resourceId = name;
+
   logger.info({ message: '------- Branch event--------', data: obj, requestId, resourceId });
   await sqsClient.sendMessage(obj, Queue.qGhBranchFormat.queueUrl, { requestId, resourceId });
 }
