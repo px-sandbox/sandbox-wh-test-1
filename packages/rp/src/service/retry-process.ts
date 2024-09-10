@@ -48,7 +48,7 @@ async function processIt(record: Github.Type.QueueMessage, requestId: string): P
 
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
   const requestId = event?.requestContext?.requestId;
-  const { processIds } = event?.body ? JSON.parse(event.body) : [];
+  const { processIds, queue } = event?.body ? JSON.parse(event.body) : [];
   let items: Github.Type.QueueMessage[] = [];
   logger.info({
     requestId,
@@ -68,7 +68,13 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     const data = await dynamodbClient.batchGet<Record<string, Github.Type.QueueMessage[]>>(params);
     items = data && data[tableName] ? data[tableName] : [];
   } else {
-    const params = new RetryTableMapping().prepareScanParams();
+    let params;
+    if (queue) {
+      logger.info({ message: 'RetryProcessHandler with queue is called:', data: queue });
+      params = new RetryTableMapping().prepareScanParams(queue, 1000);
+    } else {
+      params = new RetryTableMapping().prepareScanParams();
+    }
     logger.info({ message: 'dynamoDB_scan_query_params', data: JSON.stringify(params) });
     const processes = await dynamodbClient.scan(params);
     if (processes.Count === 0) {
