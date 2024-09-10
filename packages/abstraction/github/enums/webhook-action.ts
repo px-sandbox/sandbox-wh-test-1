@@ -51,3 +51,8 @@ export enum PullRequest {
   Unlabeled = 'unlabeled',
   Unlocked = 'unlocked',
 }
+
+export enum OrgInstallation {
+  Created = 'created',
+  Deleted = 'deleted',
+}

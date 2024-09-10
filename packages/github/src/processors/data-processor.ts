@@ -16,7 +16,7 @@ export abstract class DataProcessor<T, S> {
     public requestId: string,
     public resourceId: string,
     protected eventType: string | null,
-    protected retryProcessId: string | null
+    protected retryProcessId?: string | null
   ) {
     this.SQSClient = SQSClient.getInstance();
     this.DynamoDbDocClient = DynamoDbDocClient.getInstance();

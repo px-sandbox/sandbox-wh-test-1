@@ -91,35 +91,16 @@ async function processOrgEvent(
   eventTime: number,
   requestId: string
 ): Promise<void | boolean> {
-  let obj = {};
-  switch (data.action?.toLowerCase()) {
-    case Github.Enums.Organization.MemberAdded:
-      obj = {
-        ...data.membership.user,
-        orgId: data.organization.id,
-        action: data.action,
-      };
-      break;
-    case Github.Enums.Organization.MemberRemoved:
-      obj = {
-        ...data.membership.user,
-        orgId: data.organization.id,
-        action: data.action,
-        deleted_at: new Date(eventTime),
-      };
-      break;
-    default:
-      // handle default case here
-      logger.info({
-        message: `processOrgEvent.info: No case found for ${data.action} in organization event`,
-      });
-      break;
-  }
-  if (Object.keys(obj).length === 0) return false;
   const resourceId = data.membership.user.login;
+  const obj = {
+    ...data.membership.user,
+    orgId: data.organization.id,
+    action: data.action,
+    eventTime,
+  };
   logger.info({
     message: 'processOrgEvent.info: -------User event --------',
-    data: obj,
+    data: JSON.stringify(obj),
     requestId,
     resourceId,
   });
@@ -167,13 +148,6 @@ async function processPRReviewEvent(data: ReviewProcessType, requestId: string):
   );
 }
 
-async function installationEvent(
-  data: Github.ExternalType.Webhook.Installation,
-  requestId: string
-): Promise<void> {
-  await orgInstallation(data, requestId);
-}
-
 async function processWebhookEvent(
   eventType: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -208,11 +182,7 @@ async function processWebhookEvent(
       await processPRReviewEvent(data, requestId);
       break;
     case Github.Enums.Event.Installation:
-      if (data.action === 'deleted') {
-        await deleteInstallation(data, requestId);
-      } else if (data.action == 'created') {
-        await installationEvent(data, requestId);
-      }
+      await orgInstallation(data, requestId);
       break;
     default:
       logger.info({

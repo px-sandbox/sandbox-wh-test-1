@@ -8,7 +8,7 @@ export interface Organization {
     appId: number;
     createdAt: string;
     updatedAt: string;
-    deletedAt: string;
+    deletedAt: string | null;
     isDeleted: boolean;
   };
 }
