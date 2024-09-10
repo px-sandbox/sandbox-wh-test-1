@@ -50,7 +50,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
   const requestId = event?.requestContext?.requestId;
   const { processIds, queue } = event?.body
     ? JSON.parse(event.body)
-    : { processIds: [], queue: '' };
+    : { processIds: [], queue: undefined };
   let items: Github.Type.QueueMessage[] = [];
   logger.info({
     requestId,
