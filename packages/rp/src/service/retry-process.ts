@@ -71,7 +71,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     let params;
     if (queue) {
       logger.info({ message: 'RetryProcessHandler with queue is called:', data: queue });
-      params = new RetryTableMapping().prepareScanParams(queue, 1000);
+      params = new RetryTableMapping().prepareScanParams(queue, 500);
     } else {
       params = new RetryTableMapping().prepareScanParams();
     }
