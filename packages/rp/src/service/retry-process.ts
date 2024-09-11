@@ -10,7 +10,6 @@ import { BatchGetCommandInput, ScanCommandOutput } from '@aws-sdk/lib-dynamodb';
 const sqsClient = SQSClient.getInstance();
 const dynamodbClient = DynamoDbDocClient.getInstance();
 const tableName = Table.processRetry.tableName;
-const PrimaryKey = 'processId';
 async function processIt(record: Github.Type.QueueMessage, requestId: string): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId, MessageGroupId } = record;
   const isFifoQueue = queue.includes('.fifo');
@@ -73,9 +72,9 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
     let params;
     if (queue) {
       logger.info({ message: 'RetryProcessHandler with queue is called:', data: queue });
-      params = new RetryTableMapping().prepareScanParams(queue, 500);
+      params = new RetryTableMapping().prepareScanParams(false, queue);
     } else {
-      params = new RetryTableMapping().prepareScanParams();
+      params = new RetryTableMapping().prepareScanParams(true);
     }
     logger.info({ message: 'dynamoDB_scan_query_params', data: JSON.stringify(params) });
     const processes = await dynamodbClient.scan(params);

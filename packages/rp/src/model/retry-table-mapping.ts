@@ -18,7 +18,7 @@ export class RetryTableMapping {
     };
   }
 
-  public prepareScanParams(queue?: string, limit?: number): ScanCommandInput {
+  public prepareScanParams(limit?: boolean, queue?: string): ScanCommandInput {
     let FilterExpression = 'attribute_not_exists(#retry) OR #retry <= :maxRetry';
     let ExpressionAttributeNames: any = { '#retry': 'retry' };
     let ExpressionAttributeValues: any = { ':maxRetry': 3 };
@@ -30,7 +30,7 @@ export class RetryTableMapping {
     }
     return {
       TableName: this.tableName,
-      Limit: limit ?? 200,
+      Limit: limit ? 200 : undefined,
       FilterExpression,
       ExpressionAttributeNames,
       ExpressionAttributeValues,
