@@ -42,7 +42,7 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
         createdAt: this.ghApiData.created_at ?? new Date().toISOString(),
         action: [
           {
-            action: this.ghApiData.action ?? 'initialized',
+            action: this.action ?? 'initialized',
             actionTime: new Date().toISOString(),
             actionDay: moment().format('dddd'),
           },

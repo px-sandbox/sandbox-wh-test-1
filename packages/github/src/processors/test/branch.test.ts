@@ -17,10 +17,6 @@ const mockData: any = {
     protected: false,
     repo_id: 842332619,
   },
-  level: 'info',
-  message: 'processAndStoreSQSRecord.info: BRANCH_SQS_RECEIVER_HANDLER',
-  requestId: 'dRCdqi4fjoEEPWA=',
-  timestamp: '2024-08-29T10:17:38.638Z',
 };
 const mockGetParentId = vi.fn().mockResolvedValue('94cc22e3-824b-48d5-8df7-12a9c613596b');
 vi.setSystemTime(new Date('2024-09-04T00:00:00Z').toISOString());
