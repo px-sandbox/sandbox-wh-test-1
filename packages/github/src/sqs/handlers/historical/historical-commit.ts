@@ -18,15 +18,15 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
 
   const { owner, name, page = 1, id, branchName, orgId: ownerId } = messageBody;
 
-  const installationAccessToken = await getInstallationAccessToken(owner);
-  const sqsClient = SQSClient.getInstance();
-  const octokit = ghRequest.request.defaults({
-    headers: {
-      Authorization: `Bearer ${installationAccessToken.body.token}`,
-    },
-  });
-  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
+    const installationAccessToken = await getInstallationAccessToken(owner);
+    const sqsClient = SQSClient.getInstance();
+    const octokit = ghRequest.request.defaults({
+      headers: {
+        Authorization: `Bearer ${installationAccessToken.body.token}`,
+      },
+    });
+    const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
     const commitDataOnPr = (await octokitRequestWithTimeout(
       `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=100&page=${page}`
     )) as OctokitResponse<any>;

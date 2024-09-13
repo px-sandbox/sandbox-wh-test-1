@@ -14,29 +14,35 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
     reqCtx: { requestId, resourceId },
     message: messageBody,
   } = JSON.parse(record.body);
-  if (!messageBody && !messageBody.head) {
-    logger.info({ message: 'HISTORY_MESSGE_BODY_EMPTY', data: messageBody, requestId, resourceId });
-    return false;
-  }
-  const {
-    page = 1,
-    number,
-    head: {
-      repo: {
-        owner: { login },
-        name,
-      },
-    },
-  } = messageBody;
-  const sqsClient = SQSClient.getInstance();
-  const installationAccessToken = await getInstallationAccessToken(login);
-  const octokit = ghRequest.request.defaults({
-    headers: {
-      Authorization: `Bearer ${installationAccessToken.body.token}`,
-    },
-  });
-  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
+    if (!messageBody && !messageBody.head) {
+      logger.info({
+        message: 'HISTORY_MESSGE_BODY_EMPTY',
+        data: messageBody,
+        requestId,
+        resourceId,
+      });
+      return false;
+    }
+    const {
+      page = 1,
+      number,
+      head: {
+        repo: {
+          owner: { login },
+          name,
+        },
+      },
+    } = messageBody;
+    const sqsClient = SQSClient.getInstance();
+    const installationAccessToken = await getInstallationAccessToken(login);
+    const octokit = ghRequest.request.defaults({
+      headers: {
+        Authorization: `Bearer ${installationAccessToken.body.token}`,
+      },
+    });
+    const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+
     const commentsDataOnPr = (await octokitRequestWithTimeout(
       `GET /repos/${login}/${name}/pulls/${number}/comments?per_page=100&page=${page}`
     )) as OctokitResponse<any>;
