@@ -8,6 +8,7 @@ import {
   Comments,
   PullRequest,
   OrgInstallation,
+  PRReviewComment,
 } from './webhook-action';
 import { SearchKey } from './search-keys';
 import { ReviewState } from './review-state';
@@ -30,4 +31,5 @@ export {
   SortOrder,
   PrDetailsSortKey,
   OrgInstallation,
+  PRReviewComment,
 };

@@ -27,10 +27,19 @@ export class PRReviewCommentProcessor extends DataProcessor<
   }
 
   public async process(): Promise<void> {
-    await this.format();
+    switch (this.action.toLowerCase()) {
+      case Github.Enums.PRReviewComment.Created:
+        await this.format(false);
+        break;
+      case Github.Enums.PRReviewComment.Deleted:
+        await this.format(true);
+        break;
+      default:
+        throw new Error(`Invalid action type ${this.action}`);
+    }
   }
 
-  public async format(): Promise<void> {
+  public async format(isDeleted: boolean): Promise<void> {
     this.formattedData = {
       id: await this.getParentId(`${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`),
       body: {
@@ -68,7 +77,7 @@ export class PRReviewCommentProcessor extends DataProcessor<
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
         githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
-        isDeleted: this.action === 'deleted',
+        isDeleted,
       },
     };
   }
