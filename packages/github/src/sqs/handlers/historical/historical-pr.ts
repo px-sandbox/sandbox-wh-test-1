@@ -38,14 +38,14 @@ async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
     name,
   } = messageBody;
 
-  const installationAccessToken = await getInstallationAccessToken(login);
-  const octokit = ghRequest.request.defaults({
-    headers: {
-      Authorization: `Bearer ${installationAccessToken.body.token}`,
-    },
-  });
-  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
+    const installationAccessToken = await getInstallationAccessToken(login);
+    const octokit = ghRequest.request.defaults({
+      headers: {
+        Authorization: `Bearer ${installationAccessToken.body.token}`,
+      },
+    });
+    const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
     const responseData = (await octokitRequestWithTimeout(
       `GET /repos/${login}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
     )) as OctokitResponse<any>;
