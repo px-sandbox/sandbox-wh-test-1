@@ -1,6 +1,5 @@
 import { Github } from 'abstraction';
 import moment from 'moment';
-import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
 
@@ -20,28 +19,19 @@ export class PRReviewProcessor extends DataProcessor<
     requestId: string,
     resourceId: string
   ) {
-    super(data, requestId, resourceId);
+    super(data, requestId, resourceId, Github.Enums.Event.PRReview);
     this.pullId = pullId;
     this.repoId = repoId;
     this.action = action;
   }
-  public async processor(): Promise<Github.Type.PRReview> {
-    const githubId = `${mappingPrefixes.pRReview}_${this.ghApiData.id}`;
-    let parentId: string = await this.getParentId(githubId);
-    if (!parentId) {
-      parentId = uuid();
-      await this.putDataToDynamoDB(parentId, githubId);
-    }
-    const action = [
-      {
-        action: this.action ?? 'initialized',
-        actionTime: new Date().toISOString(),
-        actionDay: moment().format('dddd'),
-      },
-    ];
 
-    const pRReviewObj = {
-      id: parentId,
+  public async process(): Promise<void> {
+    await this.format();
+  }
+
+  public async format(): Promise<void> {
+    this.formattedData = {
+      id: await this.parentId(`${mappingPrefixes.pRReview}_${this.ghApiData.id}`),
       body: {
         id: `${mappingPrefixes.pRReview}_${this.ghApiData.id}`,
         githubPRReviewId: this.ghApiData.id,
@@ -53,12 +43,17 @@ export class PRReviewProcessor extends DataProcessor<
         pullId: `${mappingPrefixes.pull}_${this.pullId}`,
         repoId: `${mappingPrefixes.repo}_${this.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${this.orgId}`,
-        action,
+        action: [
+          {
+            action: this.action ?? 'initialized',
+            actionTime: new Date().toISOString(),
+            actionDay: moment().format('dddd'),
+          },
+        ],
         createdAtDay: moment(this.ghApiData.submitted_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.submitted_at),
         githubDate: moment(this.ghApiData.submitted_at).format('YYYY-MM-DD'),
       },
     };
-    return pRReviewObj;
   }
 }

@@ -27,12 +27,8 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId
     );
-    const data = await prReviewProcessor.processor();
-    await prReviewProcessor.save({
-      data,
-      eventType: Github.Enums.Event.PRReview,
-      processId: messageBody?.processId,
-    });
+    await prReviewProcessor.process();
+    await prReviewProcessor.save();
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPrReviewFormat.queueUrl, error as Error);
     logger.error({ message: 'pRReviewFormattedDataReceiver.error', error, requestId, resourceId });

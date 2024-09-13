@@ -9,28 +9,18 @@ export class PushProcessor extends DataProcessor<
   Github.Type.Push
 > {
   constructor(data: Github.ExternalType.Webhook.Push, requestId: string, resourceId: string) {
-    super(data, requestId, resourceId);
+    super(data, requestId, resourceId, Github.Enums.Event.Commit_Push);
   }
-  public async processor(): Promise<Github.Type.Push> {
-    const githubId = `${mappingPrefixes.push}_${this.ghApiData.id}`;
-    let parentId = await this.getParentId(githubId);
-    if (!parentId) {
-      parentId = uuid();
-      await this.putDataToDynamoDB(parentId, githubId);
-    }
+
+  public async process(): Promise<void> {
+    await this.format();
+  }
+  public async format(): Promise<void> {
     const commitsArr: Array<string> = this.ghApiData.commits.map(
       (data: { id: string }) => `${mappingPrefixes.commit}_${data.id}`
     );
-    const action = [
-      {
-        action: this.ghApiData.action ?? 'initialized',
-        actionTime: new Date().toISOString(),
-        actionDay: moment().format('dddd'),
-      },
-    ];
-    const createdAt = new Date().toISOString();
-    const orgObj = {
-      id: parentId,
+    this.formattedData = {
+      id: await this.parentId(`${mappingPrefixes.push}_${this.ghApiData.id}`),
       body: {
         id: `${mappingPrefixes.push}_${this.ghApiData.id}`,
         githubPushId: `${this.ghApiData.id}`,
@@ -39,13 +29,18 @@ export class PushProcessor extends DataProcessor<
         commits: commitsArr,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${this.ghApiData.orgId}`,
-        action,
-        createdAt,
-        createdAtDay: moment(createdAt).format('dddd'),
-        computationalDate: await this.calculateComputationalDate(createdAt),
-        githubDate: moment(createdAt).format('YYYY-MM-DD'),
+        action: [
+          {
+            action: this.ghApiData.action ?? 'initialized',
+            actionTime: new Date().toISOString(),
+            actionDay: moment().format('dddd'),
+          },
+        ],
+        createdAt: new Date().toISOString(),
+        createdAtDay: moment().format('dddd'),
+        computationalDate: await this.calculateComputationalDate(new Date().toISOString()),
+        githubDate: moment().format('YYYY-MM-DD'),
       },
     };
-    return orgObj;
   }
 }

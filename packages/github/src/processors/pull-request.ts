@@ -3,9 +3,9 @@ import { logger } from 'core';
 import moment from 'moment';
 import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
-import { DataProcessor } from './data-processor';
+import { DataProcessorOld } from './data-processor-old';
 
-export class PRProcessor extends DataProcessor<
+export class PRProcessor extends DataProcessorOld<
   Github.ExternalType.Webhook.PullRequest,
   Github.Type.PullRequest
 > {

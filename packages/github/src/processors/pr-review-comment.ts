@@ -20,27 +20,19 @@ export class PRReviewCommentProcessor extends DataProcessor<
     requestId: string,
     resourceId: string
   ) {
-    super(data, requestId, resourceId);
+    super(data, requestId, resourceId, Github.Enums.Event.PRReviewComment);
     this.pullId = pullId;
     this.repoId = repoId;
     this.action = action;
   }
-  public async processor(): Promise<Github.Type.PRReviewComment> {
-    const githubId = `${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`;
-    let parentId: string = await this.getParentId(githubId);
-    if (!parentId) {
-      parentId = uuid();
-      await this.putDataToDynamoDB(parentId, githubId);
-    }
-    const action = [
-      {
-        action: this.action ?? 'initialized',
-        actionTime: new Date().toISOString(),
-        actionDay: moment().format('dddd'),
-      },
-    ];
-    const pRReviewCommentObj = {
-      id: parentId,
+
+  public async process(): Promise<void> {
+    await this.format();
+  }
+
+  public async format(): Promise<void> {
+    this.formattedData = {
+      id: await this.getParentId(`${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`),
       body: {
         id: `${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`,
         githubPRReviewCommentId: this.ghApiData.id,
@@ -66,13 +58,18 @@ export class PRReviewCommentProcessor extends DataProcessor<
         pullId: `${mappingPrefixes.pull}_${this.pullId}`,
         repoId: `${mappingPrefixes.repo}_${this.repoId}`,
         organizationId: `${mappingPrefixes.organization}_${this.orgId}`,
-        action,
+        action: [
+          {
+            action: this.action ?? 'initialized',
+            actionTime: new Date().toISOString(),
+            actionDay: moment().format('dddd'),
+          },
+        ],
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
         githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
         isDeleted: this.action === 'deleted',
       },
     };
-    return pRReviewCommentObj;
   }
 }

@@ -8,19 +8,20 @@ export class CommitProcessor extends DataProcessor<
   Github.ExternalType.Api.Commit,
   Github.Type.Commits
 > {
-  constructor(data: Github.ExternalType.Api.Commit, requestId: string, resource: string) {
-    super(data, requestId, resource);
+  constructor(
+    data: Github.ExternalType.Api.Commit,
+    requestId: string,
+    resource: string,
+    processId?: string
+  ) {
+    super(data, requestId, resource, Github.Enums.Event.Commit, processId);
   }
-  public async processor(): Promise<Github.Type.Commits> {
-    let parentId = await this.getParentId(`${mappingPrefixes.commit}_${this.ghApiData.commits.id}`);
-    if (!parentId) {
-      parentId = uuid();
-      await this.putDataToDynamoDB(
-        parentId,
-        `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`
-      );
-    }
 
+  public async process(): Promise<void> {
+    this.format();
+  }
+
+  public async format(): Promise<void> {
     const filesArr: Array<Github.Type.CommitedFiles> = this.ghApiData.files.map(
       (data: Github.Type.CommitedFiles) => ({
         filename: data.filename,
@@ -30,8 +31,8 @@ export class CommitProcessor extends DataProcessor<
         status: data.status,
       })
     );
-    const orgObj = {
-      id: parentId,
+    this.formattedData = {
+      id: await this.getParentId(`${mappingPrefixes.commit}_${this.ghApiData.commits.id}`),
       body: {
         id: `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`,
         githubCommitId: this.ghApiData.commits.id,
@@ -55,6 +56,5 @@ export class CommitProcessor extends DataProcessor<
         githubDate: moment(this.ghApiData.commit.committer.date).format('YYYY-MM-DD'),
       },
     };
-    return orgObj;
   }
 }
