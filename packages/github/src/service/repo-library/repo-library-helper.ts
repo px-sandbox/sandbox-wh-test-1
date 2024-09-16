@@ -78,7 +78,7 @@ export async function repoLibHelper(
     const ddbPutDataChunks = chunk(ddbPutData, 25);
 
     const batchWritePromises = ddbPutDataChunks.map((chunk) =>
-      dynamodbClient.batchWrite(new LibParamsMapping().preparePutParams(chunk))
+      dynamodbClient.batchWrite(new LibParamsMapping().preparePutParamsBulk(chunk))
     );
     await Promise.all([
       ...batchWritePromises,
