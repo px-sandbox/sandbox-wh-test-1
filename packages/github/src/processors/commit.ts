@@ -18,7 +18,7 @@ export class CommitProcessor extends DataProcessor<
   }
 
   public async process(): Promise<void> {
-    this.format();
+    await this.format();
   }
 
   public async format(): Promise<void> {
