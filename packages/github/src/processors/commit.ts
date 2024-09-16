@@ -32,7 +32,7 @@ export class CommitProcessor extends DataProcessor<
       })
     );
     this.formattedData = {
-      id: await this.getParentId(`${mappingPrefixes.commit}_${this.ghApiData.commits.id}`),
+      id: await this.parentId(`${mappingPrefixes.commit}_${this.ghApiData.commits.id}`),
       body: {
         id: `${mappingPrefixes.commit}_${this.ghApiData.commits.id}`,
         githubCommitId: this.ghApiData.commits.id,
