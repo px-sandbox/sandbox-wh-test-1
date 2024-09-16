@@ -29,16 +29,13 @@ export const handler = async function masterLibrary(event: SQSEvent): Promise<vo
           logger.info({
             message: `UpdateLatestDepHandler: ${depName} updated to ${latest.version}`,
           });
-          const ddbPutData = [
-            {
-              libName,
-              version: {
-                version: latest.version,
-                releaseDate: latest.releaseDate,
-              },
-            },
-          ];
-          await dynamodbClient.batchWrite(new LibParamsMapping().preparePutParams(ddbPutData));
+          const ddbPutData = {
+            libName,
+            version: latest.version,
+            releaseDate: latest.releaseDate,
+          };
+
+          await dynamodbClient.put(new LibParamsMapping().preparePutParams(ddbPutData));
           await deleteProcessfromDdb(processId, { requestId, resourceId });
         }
       } catch (error) {
