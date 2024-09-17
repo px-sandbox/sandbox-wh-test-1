@@ -18,17 +18,22 @@ export class RetryTableMapping {
     };
   }
 
-  public prepareScanParams(): ScanCommandInput {
+  public prepareScanParams(limit?: boolean, queue?: string): ScanCommandInput {
+    let FilterExpression = 'attribute_not_exists(#retry) OR #retry <= :maxRetry';
+    let ExpressionAttributeNames: any = { '#retry': 'retry' };
+    let ExpressionAttributeValues: any = { ':maxRetry': 3 };
+
+    if (queue) {
+      FilterExpression += ' AND #queue = :queue';
+      ExpressionAttributeNames['#queue'] = 'queue';
+      ExpressionAttributeValues[':queue'] = queue;
+    }
     return {
       TableName: this.tableName,
-      Limit: 200,
-      FilterExpression: 'attribute_not_exists(#retry) OR #retry <= :maxRetry',
-      ExpressionAttributeNames: {
-        '#retry': 'retry',
-      },
-      ExpressionAttributeValues: {
-        ':maxRetry': 3,
-      },
+      Limit: limit ? 200 : undefined,
+      FilterExpression,
+      ExpressionAttributeNames,
+      ExpressionAttributeValues,
     };
   }
 
