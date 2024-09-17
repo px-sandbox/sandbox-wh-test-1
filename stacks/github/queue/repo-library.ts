@@ -18,7 +18,7 @@ export function initializeRepoLibraryQueue(
     OPENSEARCH_USERNAME,
     NODE_VERSION,
   } = use(commonConfig);
-  const { retryProcessTable, libMasterTable } = githubDDb;
+  const { retryProcessTable, libMasterTable, githubMappingTable } = githubDDb;
   const masterLibraryQueue = new Queue(stack, 'qMasterLibInfo', {
     cdk: {
       queue: {
@@ -77,6 +77,8 @@ export function initializeRepoLibraryQueue(
     REQUEST_TIMEOUT,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
+    githubMappingTable,
+    libMasterTable,
   ]);
 
   return [masterLibraryQueue, repoLibS3Queue];
