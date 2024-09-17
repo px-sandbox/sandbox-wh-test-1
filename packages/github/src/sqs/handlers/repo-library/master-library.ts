@@ -46,7 +46,12 @@ export const handler = async function masterLibrary(event: SQSEvent): Promise<vo
           }
         }
         await logProcessToRetry(record, Queue.qMasterLibInfo.queueUrl, error as Error);
-        logger.error({ message: 'masterLibrary.error', error: `${error}`, requestId, resourceId });
+        logger.error({
+          message: 'masterLibrary.error',
+          error: `hello ${error}`,
+          requestId,
+          resourceId,
+        });
       }
     })
   );
