@@ -41,7 +41,7 @@ export class PRReviewCommentProcessor extends DataProcessor<
 
   public async format(isDeleted: boolean): Promise<void> {
     this.formattedData = {
-      id: await this.getParentId(`${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`),
+      id: await this.parentId(`${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`),
       body: {
         id: `${mappingPrefixes.pRReviewComment}_${this.ghApiData.id}`,
         githubPRReviewCommentId: this.ghApiData.id,
