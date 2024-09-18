@@ -9,6 +9,7 @@ import { mappingPrefixes } from '../../constant/config';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { LibParamsMapping } from '../../model/lib-master-mapping';
 import { deleteProcessfromDdb } from 'rp';
+import { chunk } from 'lodash';
 
 const esClientObj = ElasticSearchClient.getInstance();
 const dynamodbClient = DynamoDbDocClient.getInstance();
@@ -74,9 +75,13 @@ export async function repoLibHelper(
         };
       })
     );
+    const ddbPutDataChunks = chunk(ddbPutData, 25);
 
+    const batchWritePromises = ddbPutDataChunks.map((chunk) =>
+      dynamodbClient.batchWrite(new LibParamsMapping().preparePutParamsBulk(chunk))
+    );
     await Promise.all([
-      dynamodbClient.batchWrite(new LibParamsMapping().preparePutParams(ddbPutData)),
+      ...batchWritePromises,
       esClientObj.bulkInsert(Github.Enums.IndexName.GitRepoLibrary, repoLibFormattedData),
       deleteProcessfromDdb(processId, reqCtx),
     ]);
