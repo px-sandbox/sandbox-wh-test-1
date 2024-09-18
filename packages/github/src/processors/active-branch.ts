@@ -14,6 +14,7 @@ export class ActiveBranchProcessor extends DataProcessor<
     processId: string
   ) {
     super(data, requestId, resourceId, Github.Enums.Event.ActiveBranches, processId);
+    this.validate();
   }
 
   public async process(): Promise<void> {

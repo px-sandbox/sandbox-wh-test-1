@@ -12,15 +12,15 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   try {
     logger.info({ message: 'REPO_SQS_RECEIVER_HANDLER', data: messageBody, requestId, resourceId });
 
-    const repoProcessor = new RepositoryProcessor(
+    const processor = new RepositoryProcessor(
       messageBody.action,
       messageBody,
       requestId,
       resourceId,
       messageBody.processId
     );
-    await repoProcessor.process();
-    await repoProcessor.save();
+    await processor.process();
+    await processor.save();
   } catch (error) {
     logger.error({ message: 'repoFormattedDataReceiver.error', requestId, resourceId, error });
     await logProcessToRetry(record, Queue.qGhRepoFormat.queueUrl, error as Error);

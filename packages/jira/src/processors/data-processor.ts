@@ -9,7 +9,7 @@ import { ParamsMapping } from '../model/params-mapping';
  * @template T - Type of Jira API data.
  * @template S - Type of processed data.
  */
-export abstract class DataProcessor<T, S> {
+export abstract class  DataProcessor<T, S> {
   protected DynamoDbDocClient: DynamoDbDocClient;
   protected SQSClient: SQSClient;
   /**

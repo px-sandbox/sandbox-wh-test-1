@@ -15,6 +15,7 @@ export class RepositoryProcessor extends DataProcessor<
     processId: string
   ) {
     super(data, requestId, resourceId, Github.Enums.Event.Repo, processId);
+    this.validate();
   }
 
   public async process(): Promise<void> {

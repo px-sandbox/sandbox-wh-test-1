@@ -8,7 +8,7 @@ export class ParamsMapping {
   private indexName = Other.Type.ddbGlobalIndex.GitHubIdIndex;
 
   // Can be generic and move to @pulse/dynamodb package
-  public prepareGetParams(id: string): QueryCommandInput {
+    public prepareGetParams(id: string): QueryCommandInput {
     return {
       TableName: this.tableName,
       IndexName: this.indexName,
