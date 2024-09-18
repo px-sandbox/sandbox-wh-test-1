@@ -27,8 +27,8 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     });
     const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
     logger.info({ message: 'PULL_SQS_RECEIVER_HANDLER', data: messageBody, requestId, resourceId });
-    const pullProcessor = new PRProcessor(messageBody, requestId, resourceId);
-    const data = await pullProcessor.processor();
+    const processor = new PRProcessor(messageBody, requestId, resourceId);
+    const data = await processor.processor();
     const reviewCommentCount = await processPRComments(
       messageBody.head.repo.owner.login,
       messageBody.head.repo.name,
@@ -36,7 +36,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       octokitRequestWithTimeout
     );
     data.body.reviewComments = reviewCommentCount;
-    await pullProcessor.save({
+    await processor.save({
       data,
       eventType: Github.Enums.Event.PullRequest,
       processId: messageBody?.processId,

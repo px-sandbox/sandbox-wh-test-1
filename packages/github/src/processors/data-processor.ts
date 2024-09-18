@@ -59,7 +59,15 @@ export abstract class DataProcessor<T, S> {
 
   public async save(): Promise<void> {
     if (Object.keys(this.formattedData as Record<string, any>).length === 0) {
-      logger.error({ message: 'DataProcessor.save.error: EMPTY_FORMATTED_DATA' });
+      logger.error({
+        message: 'DataProcessor.save.error: EMPTY_FORMATTED_DATA',
+        data: {
+          requestId: this.requestId,
+          resourceId: this.resourceId,
+          eventType: this.eventType,
+          retryProcessId: this.retryProcessId,
+        },
+      });
       throw new Error('DataProcessor.save.error: EMPTY_FORMATTED_DATA');
     }
     await this.SQSClient.sendMessage(

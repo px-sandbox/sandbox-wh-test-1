@@ -78,7 +78,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId,
     });
-    const commitProcessor = new CommitProcessor(
+    const processor = new CommitProcessor(
       {
         ...getOctokitResp(responseData),
         commits: {
@@ -95,8 +95,8 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       resourceId,
       processId
     );
-    await commitProcessor.process();
-    await commitProcessor.save();
+    await processor.process();
+    await processor.save();
   } catch (error) {
     logger.error({ message: `commitFormattedDataReceiver.error, ${error}`, requestId, resourceId });
     await logProcessToRetry(record, Queue.qGhCommitFormat.queueUrl, error as Error);
