@@ -95,7 +95,7 @@ async function getGHCopilotReports(
 
 export async function handler(event: APIGatewayProxyEvent): Promise<void> {
   const requestId = uuid();
-  const orgName = event?.queryStringParameters?.orgName || '';
+  const orgName = event?.queryStringParameters?.orgName || 'studiographene';
   try {
     const octokit = await initializeOctokit(orgName);
     await getGHCopilotReports(octokit, requestId, orgName);
