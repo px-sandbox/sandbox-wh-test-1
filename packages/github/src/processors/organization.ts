@@ -6,8 +6,7 @@ import { DataProcessor } from './data-processor';
 export class Organization extends DataProcessor<
   Github.ExternalType.Webhook.Installation,
   Github.Type.Organization
->
- {
+> {
   constructor(
     private action: string,
     data: Github.ExternalType.Webhook.Installation,
@@ -15,6 +14,7 @@ export class Organization extends DataProcessor<
     resourceId: string
   ) {
     super(data, requestId, resourceId, Github.Enums.Event.Organization);
+    this.validate();
   }
 
   public async process(): Promise<void> {

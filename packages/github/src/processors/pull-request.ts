@@ -15,6 +15,7 @@ export class PRProcessor extends DataProcessorOld<
     resourceId: string
   ) {
     super(data, requestId, resourceId);
+    this.validate();
   }
 
   private setAction(): Github.Type.actions {

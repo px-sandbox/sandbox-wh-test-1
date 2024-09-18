@@ -23,6 +23,7 @@ export class PRReviewProcessor extends DataProcessor<
     this.pullId = pullId;
     this.repoId = repoId;
     this.action = action;
+    this.validate();
   }
 
   public async process(): Promise<void> {

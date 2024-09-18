@@ -15,6 +15,7 @@ export class CommitProcessor extends DataProcessor<
     processId?: string
   ) {
     super(data, requestId, resource, Github.Enums.Event.Commit, processId);
+    this.validate();
   }
 
   public async process(): Promise<void> {
