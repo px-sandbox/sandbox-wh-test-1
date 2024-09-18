@@ -1,8 +1,8 @@
 import { describe, it, vi, expect } from 'vitest';
-import { mappingPrefixes } from '../../constant/config';
-import { PRReviewCommentProcessor } from '../pr-review-comment';
 import { PRReviewComment } from 'abstraction/github/external/webhook';
 import moment from 'moment';
+import { mappingPrefixes } from '../../constant/config';
+import { PRReviewCommentProcessor } from '../pr-review-comment';
 
 export function generateuniqIds() {
   return '94cc22e3-824b-48d5-8df7-12a9c613596b';
@@ -42,7 +42,7 @@ const mockPRReviewComment: PRReviewComment = {
 
 describe('preReviewCommentProcessor', async () => {
   it('should process the PR data correctly', async () => {
-    let PRComment = new PRReviewCommentProcessor(
+    const PRComment = new PRReviewCommentProcessor(
       mockPRReviewComment,
       5678,
       1234,
@@ -97,7 +97,7 @@ describe('preReviewCommentProcessor', async () => {
   });
 
   it('should process the data correctly when no parent Id is found', async () => {
-    let PRComment = new PRReviewCommentProcessor(
+    const PRComment = new PRReviewCommentProcessor(
       mockPRReviewComment,
       5678,
       1234,
@@ -107,7 +107,6 @@ describe('preReviewCommentProcessor', async () => {
       'ekjrnijnjk_ejknorei_jnfjj23'
     );
 
-    console.log(PRComment);
     PRComment.getParentId = vi.fn().mockResolvedValue(null);
     vi.mock('uuid', () => ({
       v4: vi.fn(() => generateuniqIds()),
@@ -159,7 +158,7 @@ describe('preReviewCommentProcessor', async () => {
     });
   });
 
-  //Deleted test cases
+  // Deleted test cases
   const DeleteMockPRReviewComment: PRReviewComment = {
     pull_request_review_id: 12345,
     id: 14556,
@@ -189,8 +188,8 @@ describe('preReviewCommentProcessor', async () => {
     orgId: 556677,
   };
 
-  it('should process the deleted PR data correctly', async () => {
-    let PRComment = new PRReviewCommentProcessor(
+  it('should process the deleted PR review comment data correctly', async () => {
+    const PRComment = new PRReviewCommentProcessor(
       DeleteMockPRReviewComment,
       5678,
       1234,
@@ -244,8 +243,8 @@ describe('preReviewCommentProcessor', async () => {
     });
   });
 
-  it('should process the data correctly when no parent Id is found', async () => {
-    let PRComment = new PRReviewCommentProcessor(
+  it('should process the PR review comment data correctly when no parent Id is found', async () => {
+    const PRComment = new PRReviewCommentProcessor(
       mockPRReviewComment,
       5678,
       1234,
@@ -255,7 +254,6 @@ describe('preReviewCommentProcessor', async () => {
       'ekjrnijnjk_ejknorei_jnfjj23'
     );
 
-    console.log(PRComment);
     PRComment.getParentId = vi.fn().mockResolvedValue(null);
     vi.mock('uuid', () => ({
       v4: vi.fn(() => generateuniqIds()),
