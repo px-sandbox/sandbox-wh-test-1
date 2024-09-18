@@ -1,6 +1,6 @@
 import { SprintState } from 'abstraction/jira/enums';
 import { Other } from 'abstraction';
-
+import { v4 as uuid } from 'uuid';
 export interface IformatUserDataResponse {
   _id: number;
   id: number;
@@ -131,3 +131,7 @@ export const formatBoardResponse = (
       endDate: sprint.endDate,
     })),
   }));
+
+export const generateUuid = (): string => {
+  return uuid();
+};

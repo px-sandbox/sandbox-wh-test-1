@@ -86,6 +86,7 @@ async function processWebhookEvent(
             changelog: body.changelog,
             organization,
             eventName,
+            timestamp: eventTime.toISOString(),
           },
           requestId
         );
@@ -97,6 +98,7 @@ async function processWebhookEvent(
             changelog: body.changelog,
             organization,
             eventName,
+            timestamp: eventTime.toISOString(),
           },
           requestId
         );
@@ -175,25 +177,15 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
       });
       return;
     }
-
+    const eventTime = moment(body.timestamp);
+    const eventName = body.webhookEvent as Jira.Enums.Event;
+    await processWebhookEvent(eventName, eventTime, body, organization, requestId, resourceId);
     logger.info({
       requestId,
       message: 'webhook.handler.received',
-      data: { organization, body },
+      data: { organization, body, eventName, eventTime },
       resourceId,
     });
-
-    const eventTime = moment(body.timestamp);
-
-    logger.info({
-      requestId,
-      message: 'webhook.handler.processing',
-      data: { eventTime },
-      resourceId,
-    });
-
-    const eventName = body.webhookEvent as Jira.Enums.Event;
-    await processWebhookEvent(eventName, eventTime, body, organization, requestId, resourceId);
   } catch (error) {
     logger.error({
       requestId,

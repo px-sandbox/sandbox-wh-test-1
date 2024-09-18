@@ -22,15 +22,15 @@ export const handler = async function boardFormattedDataReciever(event: SQSEvent
           data: { messageBody },
         });
 
-        const boardProcessor = new BoardProcessor(messageBody, requestId, resourceId);
+        const processor = new BoardProcessor(
+          messageBody,
+          requestId,
+          resourceId,
+          messageBody.processId
+        );
 
-        const data = await boardProcessor.processor();
-        data.processId = messageBody.processId;
-        await boardProcessor.save({
-          data,
-          index: Jira.Enums.IndexName.Board,
-          processId: messageBody?.processId,
-        });
+        await processor.process();
+        await processor.save();
       } catch (error) {
         await logProcessToRetry(record, Queue.qBoardFormat.queueUrl, error as Error);
         logger.error({ requestId, resourceId, message: 'boardFormattedDataReciever.error', error });
