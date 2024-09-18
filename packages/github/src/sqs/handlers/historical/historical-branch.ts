@@ -20,16 +20,17 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
     page = 1,
     id,
   } = messageBody;
-  const installationAccessToken = await getInstallationAccessToken(login);
-  const sqsClient = SQSClient.getInstance();
 
-  const octokit = ghRequest.request.defaults({
-    headers: {
-      Authorization: `Bearer ${installationAccessToken.body.token}`,
-    },
-  });
-  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
   try {
+    const installationAccessToken = await getInstallationAccessToken(login);
+    const sqsClient = SQSClient.getInstance();
+
+    const octokit = ghRequest.request.defaults({
+      headers: {
+        Authorization: `Bearer ${installationAccessToken.body.token}`,
+      },
+    });
+    const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
     let branches = [];
     if (messageBody.reqBranch) {
       branches.push(messageBody.reqBranch);

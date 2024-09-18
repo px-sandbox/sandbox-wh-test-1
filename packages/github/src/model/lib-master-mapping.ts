@@ -10,7 +10,7 @@ import { Table } from 'sst/node/table';
 export class LibParamsMapping {
   private tableName = Table.libMaster.tableName;
 
-  public preparePutParams<T>(
+  public preparePutParamsBulk<T>(
     items: Array<{ libName: string; version: T }>
   ): BatchWriteCommandInput {
     const putRequests = items.map((item) => ({
@@ -22,6 +22,21 @@ export class LibParamsMapping {
     return {
       RequestItems: {
         [this.tableName]: putRequests,
+      },
+    };
+  }
+
+  public preparePutParams(items: {
+    libName: string;
+    version: string;
+    releaseDate: string;
+  }): PutCommandInput {
+    return {
+      TableName: this.tableName,
+      Item: {
+        libName: items.libName,
+        version: items.version,
+        releaseDate: items.releaseDate,
       },
     };
   }
