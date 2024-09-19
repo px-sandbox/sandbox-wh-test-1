@@ -17,14 +17,16 @@ export const handler = async function repoLibS3(event: SQSEvent): Promise<void> 
       try {
         const { s3ObjKey } = messageBody;
         const bucketName = `${process.env.SST_STAGE}-version-upgrades`;
-
         const data: Github.ExternalType.RepoLibrary = await fetchDataFromS3(s3ObjKey, bucketName, {
           requestId,
           resourceId,
         });
 
         if (data) {
-          await repoLibHelper(data, { requestId, resourceId });
+          await repoLibHelper(
+            { ...data, processId: messageBody.processId },
+            { requestId, resourceId }
+          );
         } else {
           logger.error({
             message: 'repoLibS3DataReceiver.nodata',
