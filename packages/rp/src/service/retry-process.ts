@@ -10,6 +10,8 @@ import { BatchGetCommandInput, ScanCommandOutput } from '@aws-sdk/lib-dynamodb';
 const sqsClient = SQSClient.getInstance();
 const dynamodbClient = DynamoDbDocClient.getInstance();
 const tableName = Table.processRetry.tableName;
+
+
 async function processIt(record: Github.Type.QueueMessage, requestId: string): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId, MessageGroupId } = record;
   const isFifoQueue = queue.includes('.fifo');
