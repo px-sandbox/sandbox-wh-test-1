@@ -115,7 +115,7 @@ async function processCommitEvent(
 }
 async function processPREvent(
   pr: Github.ExternalType.Webhook.PullRequest,
-  action: string,
+  action: Github.Enums.PullRequest,
   requestId: string
 ): Promise<void> {
   await pROnQueue(pr, action, requestId);

@@ -1,41 +1,87 @@
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import moment from 'moment';
-import { v4 as uuid } from 'uuid';
+import { getPullRequestById } from 'src/lib/get-pull-request';
+import { getTimezoneOfUser } from 'src/lib/get-user-timezone';
+import { getWorkingTime } from 'src/util/timezone-calculation';
 import { mappingPrefixes } from '../constant/config';
-import { DataProcessorOld } from './data-processor-old';
+import { DataProcessor } from './data-processor';
 
-export class PRProcessor extends DataProcessorOld<
+export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
   Github.Type.PullRequest
 > {
   constructor(
     data: Github.ExternalType.Webhook.PullRequest,
     requestId: string,
-    resourceId: string
+    resourceId: string,
+    processId: string
   ) {
-    super(data, requestId, resourceId);
+    super(data, requestId, resourceId, Github.Enums.Event.PullRequest, processId);
     this.validate();
   }
 
-  private setAction(): Github.Type.actions {
-    return [
-      {
-        action: this.ghApiData.action ?? 'initialized',
-        actionTime: new Date().toISOString(),
-        actionDay: moment().format('dddd'),
-      },
-    ];
+  private async getPrData(): Promise<Github.Type.PullRequestBody | false> {
+    const pull = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
+    logger.info({
+      message: 'PRProcessor.setPullObj.info: PULL REQUEST ID : ',
+      data: this.ghApiData.id,
+    });
+    if (pull) {
+      const [pullData] = await getPullRequestById(this.ghApiData.id);
+      return pullData;
+    }
+    return false;
   }
 
-  private async setPullObj(
-    parentId: string,
-    reqReviewersData: Array<Github.Type.RequestedReviewers>,
-    labelsData: Array<Github.Type.Labels>,
-    action: Github.Type.actions
-  ): Promise<Github.Type.PullRequest> {
-    const pullObj = {
-      id: parentId,
+  private updateGhApiData(pullData: Github.Type.PullRequestBody): void {
+    if (pullData.reviewedAt) {
+      this.ghApiData.reviewed_at = pullData.reviewedAt;
+      this.ghApiData.review_seconds = pullData.reviewSeconds;
+    }
+    if (pullData.approvedAt) {
+      this.ghApiData.approved_at = pullData.approvedAt;
+    }
+  }
+
+  private async setClosed(): Promise<void> {
+    const pullData = (await this.getPrData()) as Github.Type.PullRequestBody;
+    if (pullData.merged === true && pullData.reviewedAt === null) {
+      if (this.ghApiData.user.id !== this.ghApiData.merged_by?.id) {
+        pullData.reviewedAt = this.ghApiData.merged_at;
+        const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
+        pullData.reviewSeconds = getWorkingTime(
+          moment(this.ghApiData.created_at),
+          moment(this.ghApiData.merged_at),
+          createdTimezone
+        );
+      }
+    }
+    await this.format();
+  }
+
+  private async setReviewRequested(): Promise<void> {
+    const prExists = await this.getPrData();
+    if (prExists) {
+      await this.format();
+    }
+    logger.info({
+      message: 'PRProcessor.setReviewRequested.info: PR_NOT_FOUND',
+      data: { pr_number: this.ghApiData.number, repo_id: this.ghApiData.head.repo.id },
+    });
+    return;
+  }
+
+  private async format(): Promise<void> {
+    const reqReviewersData = this.ghApiData.requested_reviewers.map((reqReviewer) => ({
+      userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
+    }));
+    const labelsData = this.ghApiData.labels.map((label) => ({
+      name: label.name,
+    }));
+
+    this.formattedData = {
+      id: await this.parentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`),
       body: {
         id: `${mappingPrefixes.pull}_${this.ghApiData.id}`,
         githubPullId: this.ghApiData.id,
@@ -76,106 +122,50 @@ export class PRProcessor extends DataProcessorOld<
         changedFiles: this.ghApiData.changed_files,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.head.repo.id}`,
         organizationId: `${mappingPrefixes.organization}_${this.ghApiData.head.repo.owner.id}`,
-        action,
+        action: [
+          {
+            action: this.ghApiData.action ?? 'initialized',
+            actionTime: new Date().toISOString(),
+            actionDay: moment().format('dddd'),
+          },
+        ],
         createdAtDay: moment(this.ghApiData.created_at).format('dddd'),
         computationalDate: await this.calculateComputationalDate(this.ghApiData.created_at),
         githubDate: moment(this.ghApiData.created_at).format('YYYY-MM-DD'),
       },
     };
-    return pullObj;
-  }
-  private async isPRExist(): Promise<boolean> {
-    const pull = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
-    logger.info({
-      message: 'PRProcessor.setPullObj.info: PULL REQUEST ID : ',
-      data: this.ghApiData.id,
-    });
-    if (pull) {
-      return true;
-    }
-    return false;
   }
 
-  // eslint-disable-next-line complexity
-  private async processPRAction(): Promise<void> {
-    switch (this.ghApiData.action) {
-      case Github.Enums.PullRequest.ReviewRequested:
-      case Github.Enums.PullRequest.ReviewRequestRemoved:
-      case Github.Enums.PullRequest.Edited:
-      case Github.Enums.PullRequest.Reopened:
-      case Github.Enums.PullRequest.Assigned:
-      case Github.Enums.PullRequest.Unassigned:
-      case Github.Enums.PullRequest.Labeled:
-      case Github.Enums.PullRequest.Unlabeled:
-      case Github.Enums.PullRequest.Locked:
-      case Github.Enums.PullRequest.Unlocked:
-      case Github.Enums.PullRequest.ReadyForReview:
-      case Github.Enums.PullRequest.Demilestoned:
-      case Github.Enums.PullRequest.Milestoned:
-      case Github.Enums.PullRequest.ConvertedToDraft:
-      case Github.Enums.PullRequest.AutoMergeEnabled:
-      case Github.Enums.PullRequest.AutoMergeDisabled:
-      case Github.Enums.PullRequest.Synchronize:
-      case Github.Enums.PullRequest.Dequeued:
-      case Github.Enums.PullRequest.Enqueued:
-      case Github.Enums.PullRequest.Closed:
-        {
-          const pr = await this.isPRExist();
-          if (!pr) {
-            logger.error({
-              message: 'PRProcessor.processPRAction.error PR_NOT_FOUND',
-              data: this.ghApiData.id,
-            });
-            throw new Error('PR_NOT_FOUND');
-          }
-        }
-        break;
-      default:
-        logger.info({
-          message: 'PRProcessor.processPRAction.info: PROCESS_NEW_PR',
-          data: this.ghApiData.id,
-        });
-        break;
-    }
-  }
-
-  /**
-   * ----------------------------------------------------------
-   * PULL REQUEST PROCESSOR
-   * ----------------------------------------------------------
-   * On PR closed check if the PR is merged or not.
-   * If merged then check merged commit id exists or not.
-   * If not exists then hold for few seconds and check again.
-   * If not found commit id till 6th attempt then throw error.
-   * If commit id exists then update commit and proceed with PR.
-   */
-  public async processor(): Promise<Github.Type.PullRequest> {
+  public async process(): Promise<void> {
     try {
-      await this.processPRAction();
-      const githubId = `${mappingPrefixes.pull}_${this.ghApiData.id}`;
-      let parentId = await this.getParentId(githubId);
-      if (!parentId && this.ghApiData.action !== Github.Enums.PullRequest.Opened) {
-        throw new Error(
-          `PRProcessor.pr_not_found_for_event.error: id:${this.ghApiData.id}, 
-          repoId:${this.ghApiData.head.repo.id}, 
-          action:${this.ghApiData.action}`
-        );
+      switch (this.ghApiData.action) {
+        case Github.Enums.PullRequest.ReviewRequested:
+          await this.setReviewRequested();
+          break;
+        case Github.Enums.PullRequest.Closed:
+          await this.setClosed();
+          break;
+        case Github.Enums.PullRequest.ReviewRequestRemoved:
+        case Github.Enums.PullRequest.Edited:
+        case Github.Enums.PullRequest.Reopened:
+        case Github.Enums.PullRequest.Assigned:
+        case Github.Enums.PullRequest.Unassigned:
+        case Github.Enums.PullRequest.Labeled:
+        case Github.Enums.PullRequest.Unlabeled:
+        case Github.Enums.PullRequest.ReadyForReview:
+        case Github.Enums.PullRequest.Opened:
+        case Github.Enums.PullRequest.ConvertedToDraft:
+          const pullData = (await this.getPrData()) as Github.Type.PullRequestBody;
+          await this.updateGhApiData(pullData);
+          await this.format();
+          break;
+        default:
+          logger.info({
+            message: 'PRProcessor.processor.info: no_pr_action_received',
+            data: { pr_number: this.ghApiData.number },
+          });
+          break;
       }
-      if (!parentId) {
-        parentId = uuid();
-        await this.putDataToDynamoDB(parentId, githubId);
-      }
-      const reqReviewersData: Array<Github.Type.RequestedReviewers> =
-        this.ghApiData.requested_reviewers.map((reqReviewer) => ({
-          userId: `${mappingPrefixes.user}_${reqReviewer.id}`,
-        }));
-
-      const labelsData: Array<Github.Type.Labels> = this.ghApiData.labels.map((label) => ({
-        name: label.name,
-      }));
-      const action = this.setAction();
-      const pullObj = await this.setPullObj(parentId, reqReviewersData, labelsData, action);
-      return pullObj;
     } catch (error) {
       logger.error({ message: 'PRProcessor.processor.error', error: `${error}` });
       throw error;
