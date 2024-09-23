@@ -14,6 +14,7 @@ export class UsersProcessor extends DataProcessor<Github.ExternalType.Api.User, 
     processId: string
   ) {
     super(data, requestId, resourceId, Github.Enums.Event.Organization, processId);
+    this.validate();
   }
 
   public async process(): Promise<void> {

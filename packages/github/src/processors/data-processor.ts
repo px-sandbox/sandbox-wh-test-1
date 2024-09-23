@@ -23,12 +23,30 @@ export abstract class DataProcessor<T, S> {
     this.formattedData = {} as S;
   }
 
-  public validate(): DataProcessor<T, S> | false {
-    if (this.ghApiData !== undefined) {
-      return this;
+  public validate(): void {
+    try {
+      // Check if the input is an object and not null or an array
+      if (
+        this.ghApiData === null ||
+        typeof this.ghApiData !== 'object' ||
+        Array.isArray(this.ghApiData)
+      ) {
+        throw new Error('DataProcessor.type.validate.error');
+      }
+
+      // Check if all entries in the object have string keys and valid values
+      const check = Object.entries(this.ghApiData).every(
+        ([key, value]) =>
+          typeof key === 'string' &&
+          (typeof value === 'string' || typeof value === 'number' || Array.isArray(value))
+      );
+      if (!check) {
+        throw new Error('DataProcessor.entries.validate.error');
+      }
+    } catch (error) {
+      logger.error({ message: 'DataProcessor.validate.error', error });
+      throw error;
     }
-    logger.error({ message: 'DataProcessor.validate.error: EMPTY_DATA', data: this.ghApiData });
-    return false;
   }
 
   public abstract process(id: string): Promise<void>;
@@ -41,7 +59,15 @@ export abstract class DataProcessor<T, S> {
 
   public async save(): Promise<void> {
     if (Object.keys(this.formattedData as Record<string, any>).length === 0) {
-      logger.error({ message: 'DataProcessor.save.error: EMPTY_FORMATTED_DATA' });
+      logger.error({
+        message: 'DataProcessor.save.error: EMPTY_FORMATTED_DATA',
+        data: {
+          requestId: this.requestId,
+          resourceId: this.resourceId,
+          eventType: this.eventType,
+          retryProcessId: this.retryProcessId,
+        },
+      });
       throw new Error('DataProcessor.save.error: EMPTY_FORMATTED_DATA');
     }
     await this.SQSClient.sendMessage(

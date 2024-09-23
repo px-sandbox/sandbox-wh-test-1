@@ -77,14 +77,15 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
       },
     },
   } = messageBody;
-  const installationAccessToken = await getInstallationAccessToken(login);
-  const octokit = ghRequest.request.defaults({
-    headers: {
-      Authorization: `Bearer ${installationAccessToken.body.token}`,
-    },
-  });
-  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+
   try {
+    const installationAccessToken = await getInstallationAccessToken(login);
+    const octokit = ghRequest.request.defaults({
+      headers: {
+        Authorization: `Bearer ${installationAccessToken.body.token}`,
+      },
+    });
+    const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
     const prReviews = (await octokitRequestWithTimeout(
       `GET /repos/${login}/${name}/pulls/${number}/reviews?per_page=100&page=${page}`
     )) as OctokitResponse<Github.Type.CommentState[]>;

@@ -18,7 +18,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       resourceId,
     });
     const { comment, pullId, repoId, action, orgId } = messageBody;
-    const prReviewCommentProcessor = new PRReviewCommentProcessor(
+    const processor = new PRReviewCommentProcessor(
       comment,
       pullId,
       repoId,
@@ -27,8 +27,8 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId
     );
-    await prReviewCommentProcessor.process();
-    await prReviewCommentProcessor.save();
+    await processor.process();
+    await processor.save();
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPrReviewCommentFormat.queueUrl, error as Error);
     logger.error({

@@ -14,6 +14,7 @@ export class GHCopilotProcessor extends DataProcessor<
     resourceId: string
   ) {
     super(data, requestId, resourceId, Github.Enums.Event.Copilot);
+    this.validate();
   }
 
   public async process(): Promise<void> {

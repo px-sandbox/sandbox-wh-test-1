@@ -10,6 +10,7 @@ export class PushProcessor extends DataProcessor<
 > {
   constructor(data: Github.ExternalType.Webhook.Push, requestId: string, resourceId: string) {
     super(data, requestId, resourceId, Github.Enums.Event.Commit_Push);
+    this.validate();
   }
 
   public async process(): Promise<void> {
