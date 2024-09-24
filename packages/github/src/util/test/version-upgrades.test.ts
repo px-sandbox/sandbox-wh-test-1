@@ -82,46 +82,47 @@ describe('sortData',()=>{
     })
 })
 
-// describe('paginate',()=>{
-//     it('should return the paginated data accordingly',async ()=>{
-//         const mockData =   [
-//             { id: 1, name: 'Item 1' },
-//             { id: 2, name: 'Item 2' },
-//             { id: 3, name: 'Item 3' },
-//             { id: 4, name: 'Item 4' },
-//             { id: 5, name: 'Item 5' },
-//             { id: 6, name: 'Item 6' },
-//             { id: 7, name: 'Item 7' },
-//             { id: 8, name: 'Item 8' },
-//             { id: 9, name: 'Item 9' },
-//             { id: 10, name: 'Item 10' },
-//           ];
-//         it('should return the correct items for the first page', async () => {
-//             const page = 1000;
-//             const limit = 9;
-//             const result = await paginate(mockData, page, limit);
-//             expect(result).toEqual([
-//                 { id: 1, name: 'Item 1' },
-//                 { id: 2, name: 'Item 2' },
-        //         { id: 3, name: 'Item 3' },
-        //     ]);
-        //   });
-        // it('should return whole data if the limit is greater than the data available',async ()=>{
-        //     const page = 1;
-        //     const limit = 20;
-        //     const result = await paginate(mockData, page, limit);
-        //     expect(result).toEqual([
-        //         { id: 1, name: 'Item 1' },
-        //         { id: 2, name: 'Item 2' },
-        //         { id: 3, name: 'Item 3' },
-        //         { id: 4, name: 'Item 4' },
-        //         { id: 5, name: 'Item 5' },
-        //         { id: 6, name: 'Item 6' },
-        //         { id: 7, name: 'Item 7' },
-        //         { id: 8, name: 'Item 8' },
-        //         { id: 9, name: 'Item 9' },
-        //         { id: 10, name: 'Item 10' },
-        //     ]);
-        // })
-//     })
-// })
+describe('paginate',()=>{
+    const mockData =   [
+        { id: 1, name: 'Item 1' },
+        { id: 2, name: 'Item 2' },
+        { id: 3, name: 'Item 3' },
+        { id: 4, name: 'Item 4' },
+        { id: 5, name: 'Item 5' },
+        { id: 6, name: 'Item 6' },
+        { id: 7, name: 'Item 7' },
+        { id: 8, name: 'Item 8' },
+        { id: 9, name: 'Item 9' },
+        { id: 10, name: 'Item 10' },
+      ];
+
+    it('should return the correct items for the first page', async () => {
+        const page = 1;
+        const limit = 4;
+        const result = await paginate(mockData, page, limit);
+        expect(result).toEqual([
+            { id: 1, name: 'Item 1' },
+            { id: 2, name: 'Item 2' },
+            { id: 3, name: 'Item 3' },
+        ]);
+        // 
+        expect([1,2,3,4]).toEqual([1,2,3])
+      });
+    it('should return whole data if the limit is greater than the data available',async ()=>{
+        const page = 1;
+        const limit = 20;
+        const result = await paginate(mockData, page, limit);
+        expect(result).toEqual([
+            { id: 1, name: 'Item 1' },
+            { id: 2, name: 'Item 2' },
+            { id: 3, name: 'Item 3' },
+            { id: 4, name: 'Item 4' },
+            { id: 5, name: 'Item 5' },
+            { id: 6, name: 'Item 6' },
+            { id: 7, name: 'Item 7' },
+            { id: 8, name: 'Item 8' },
+            { id: 9, name: 'Item 9' },
+            { id: 10, name: 'Item 10' },
+        ]);
+    })
+})
