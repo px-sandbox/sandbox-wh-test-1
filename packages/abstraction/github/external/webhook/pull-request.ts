@@ -58,4 +58,12 @@ export type PullRequest = {
   changed_files: number;
   action: string;
   review_seconds: number;
+  review?: {
+    user: {
+      id: number;
+      type: string;
+    };
+    submitted_at: string;
+    state: string;
+  };
 };

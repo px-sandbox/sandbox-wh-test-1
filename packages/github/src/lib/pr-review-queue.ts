@@ -42,29 +42,6 @@ async function getPullRequestDetails<T>(
   return octokitRespData;
 }
 
-async function setReviewTime(
-  pullData: {
-    _id: string;
-  } & Github.Type.PullRequestBody,
-  prReview: Github.ExternalType.Webhook.PRReview
-): Promise<{ approved_at: string | null; reviewed_at: string | null; review_seconds: number }> {
-  let { approvedAt, reviewedAt, reviewSeconds } = pullData;
-  if (
-    !reviewedAt &&
-    pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReview.user.id}` &&
-    prReview.user.type !== Github.Enums.UserType.BOT
-  ) {
-    reviewedAt = prReview.submitted_at;
-    const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
-    reviewSeconds = getWorkingTime(moment(pullData.createdAt), moment(reviewedAt), createdTimezone);
-  }
-
-  if (!approvedAt && prReview.state === Github.Enums.ReviewState.APPROVED) {
-    approvedAt = prReview.submitted_at;
-  }
-  return { approved_at: approvedAt, reviewed_at: reviewedAt, review_seconds: reviewSeconds };
-}
-
 export async function pRReviewOnQueue(
   prReview: Github.ExternalType.Webhook.PRReview,
   pullId: number,
@@ -98,11 +75,6 @@ export async function pRReviewOnQueue(
     }
 
     const octokitRespData = await getPullRequestDetails(repo, owner, pullNumber);
-    const {
-      approved_at: approvedAt,
-      reviewed_at: reviewedAt,
-      review_seconds: reviewSeconds,
-    } = await setReviewTime(pullData, prReview);
 
     await Promise.all([
       sqsClient.sendMessage(
@@ -113,10 +85,12 @@ export async function pRReviewOnQueue(
       sqsClient.sendFifoMessage(
         {
           ...octokitRespData,
-          reviewed_at: reviewedAt,
-          approved_at: approvedAt,
-          review_seconds: reviewSeconds,
-          action: Github.Enums.Comments.REVIEW_COMMENTED,
+          review: {
+            user: prReview.user,
+            submitted_at: prReview.submitted_at,
+            state: prReview.state,
+          },
+          action: Github.Enums.PullRequest.ReviewSubmitted,
         },
         Queue.qGhPrFormat.queueUrl,
         {

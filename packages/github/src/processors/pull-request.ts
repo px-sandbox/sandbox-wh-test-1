@@ -24,7 +24,7 @@ export class PRProcessor extends DataProcessor<
   private async getPrData(): Promise<Github.Type.PullRequestBody | false> {
     const pull = await this.getParentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`);
     logger.info({
-      message: 'PRProcessor.setPullObj.info: PULL REQUEST ID : ',
+      message: 'PRProcessor.setPullObj.info: PULL REQUEST ID',
       data: this.ghApiData.id,
     });
     if (pull) {
@@ -44,6 +44,32 @@ export class PRProcessor extends DataProcessor<
     }
   }
 
+  private async setReviewTimeOnReviewSubmitted(
+    pullData: Github.Type.PullRequestBody,
+    prReviewuser: { id: number; type: string },
+    prReviewSubmittedAt: string,
+    state: string
+  ): Promise<{ approved_at: string | null; reviewed_at: string | null; review_seconds: number }> {
+    let { approvedAt, reviewedAt, reviewSeconds } = pullData;
+    if (
+      !reviewedAt &&
+      pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReviewuser.id}` &&
+      prReviewuser.type !== Github.Enums.UserType.BOT
+    ) {
+      reviewedAt = prReviewSubmittedAt;
+      const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
+      reviewSeconds = getWorkingTime(
+        moment(pullData.createdAt),
+        moment(reviewedAt),
+        createdTimezone
+      );
+    }
+
+    if (!approvedAt && state === Github.Enums.ReviewState.APPROVED) {
+      approvedAt = prReviewSubmittedAt;
+    }
+    return { approved_at: approvedAt, reviewed_at: reviewedAt, review_seconds: reviewSeconds };
+  }
   private async setClosed(): Promise<void> {
     const pullData = (await this.getPrData()) as Github.Type.PullRequestBody;
     if (pullData.merged === true && pullData.reviewedAt === null) {
@@ -70,6 +96,24 @@ export class PRProcessor extends DataProcessor<
       data: { pr_number: this.ghApiData.number, repo_id: this.ghApiData.head.repo.id },
     });
     return;
+  }
+
+  private async reviewSubmitted(
+    prReviewUser: { id: number; type: string },
+    prReviewSubmittedAt: string,
+    state: string
+  ): Promise<void> {
+    const pullData = (await this.getPrData()) as Github.Type.PullRequestBody;
+    const { approved_at, reviewed_at, review_seconds } = await this.setReviewTimeOnReviewSubmitted(
+      pullData,
+      prReviewUser,
+      prReviewSubmittedAt,
+      state
+    );
+    pullData.approvedAt = approved_at;
+    pullData.reviewedAt = reviewed_at;
+    pullData.reviewSeconds = review_seconds;
+    await this.format();
   }
 
   private async format(): Promise<void> {
@@ -144,6 +188,20 @@ export class PRProcessor extends DataProcessor<
           break;
         case Github.Enums.PullRequest.Closed:
           await this.setClosed();
+          break;
+        case Github.Enums.PullRequest.ReviewSubmitted:
+          if (this.ghApiData.review) {
+            await this.reviewSubmitted(
+              this.ghApiData.review.user,
+              this.ghApiData.review.submitted_at,
+              this.ghApiData.review.state
+            );
+          } else {
+            logger.info({
+              message: 'PRProcessor.process.info: no_review_submitted_data',
+              data: { pr_number: this.ghApiData.number, reviewData: this.ghApiData.review },
+            });
+          }
           break;
         case Github.Enums.PullRequest.ReviewRequestRemoved:
         case Github.Enums.PullRequest.Edited:
