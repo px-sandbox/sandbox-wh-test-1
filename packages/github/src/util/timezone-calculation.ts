@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { logger } from 'core';
+import { logger } from "core";
 import { getWeekenedCount } from './weekend-calculations';
 
 type Offset = {
@@ -8,10 +8,10 @@ type Offset = {
   minutes: number;
 };
 
-function getOffsetTime(offset: string): Offset {
+export function getOffsetTime(offset: string): Offset {
   const radical = offset.at(0) as '+' | '-';
-  const hours = parseInt(offset.substr(1, 2), 10);
-  const minutes = parseInt(offset.substr(4, 2), 10);
+  const hours = parseInt(offset.substring(1, 3), 10);
+  const minutes = parseInt(offset.substring(4, 6), 10);
 
   return {
     radical,
@@ -20,7 +20,7 @@ function getOffsetTime(offset: string): Offset {
   };
 }
 
-function getTimeWithOffset(date: moment.Moment, offset: Offset): moment.Moment {
+export function getTimeWithOffset(date: moment.Moment, offset: Offset): moment.Moment {
   switch (offset.radical) {
     case '-':
       date.subtract(offset.hours, 'hours').subtract(offset.minutes, 'minutes');
@@ -39,7 +39,7 @@ function getTimeWithOffset(date: moment.Moment, offset: Offset): moment.Moment {
   return date;
 }
 
-function regulariseDate(date: moment.Moment): moment.Moment {
+export function regulariseDate(date: moment.Moment): moment.Moment {
   if (date.day() === 6) {
     // Saturday
     return moment(date).add(2, 'd').hour(9).minute(30).second(0).millisecond(0);
@@ -59,7 +59,7 @@ function regulariseDate(date: moment.Moment): moment.Moment {
   return maxBoundary;
 }
 
-function getDays(startDate: moment.Moment, endDate: moment.Moment): number {
+export function getDays(startDate: moment.Moment, endDate: moment.Moment): number {
   return moment(endDate.format('YYYY-MM-DD'), 'YYYY-MM-DD').diff(
     moment(startDate.format('YYYY-MM-DD'), 'YYYY-MM-DD'),
     'd'
