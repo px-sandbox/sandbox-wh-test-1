@@ -31,6 +31,7 @@ export type PullRequest = {
       name: string;
       owner: {
         id: string;
+        login: string;
       };
     };
   };

@@ -6,7 +6,16 @@ import { getTimezoneOfUser } from 'src/lib/get-user-timezone';
 import { getWorkingTime } from 'src/util/timezone-calculation';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
+import { OctokitResponse } from '@octokit/types';
+import { ghRequest } from 'src/lib/request-default';
+import { getOctokitTimeoutReqFn } from 'src/util/octokit-timeout-fn';
+import { getOctokitResp } from 'src/util/octokit-response';
+import { getInstallationAccessToken } from 'src/util/installation-access-token';
 
+async function getGithubApiToken(orgName: string): Promise<string> {
+  const installationAccessToken = await getInstallationAccessToken(orgName);
+  return `Bearer ${installationAccessToken.body.token}`;
+}
 export class PRProcessor extends DataProcessor<
   Github.ExternalType.Webhook.PullRequest,
   Github.Type.PullRequest
@@ -44,18 +53,33 @@ export class PRProcessor extends DataProcessor<
     }
   }
 
+  private async updateReviewCommentCount(): Promise<void> {
+    const repo = this.ghApiData.head.repo.name;
+    const owner = this.ghApiData.head.repo.owner.login;
+    const pullNumber = this.ghApiData.number;
+    const octokit = ghRequest.request.defaults({
+      headers: {
+        Authorization: await getGithubApiToken(owner),
+      },
+    });
+    const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+    const responseData = (await octokitRequestWithTimeout(
+      `GET /repos/${owner}/${repo}/pulls/${pullNumber}`
+    )) as OctokitResponse<any>;
+    const octokitRespData = getOctokitResp(responseData);
+    if (octokitRespData.review_comments) {
+      this.ghApiData.review_comments = octokitRespData.review_comments;
+    }
+  }
+
   private async setReviewTimeOnReviewSubmitted(
     pullData: Github.Type.PullRequestBody,
-    prReviewuser: { id: number; type: string },
+    prReviewUser: { id: number; type: string },
     prReviewSubmittedAt: string,
     state: string
   ): Promise<{ approved_at: string | null; reviewed_at: string | null; review_seconds: number }> {
     let { approvedAt, reviewedAt, reviewSeconds } = pullData;
-    if (
-      !reviewedAt &&
-      pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReviewuser.id}` &&
-      prReviewuser.type !== Github.Enums.UserType.BOT
-    ) {
+    if (!reviewedAt && prReviewUser.type !== Github.Enums.UserType.BOT) {
       reviewedAt = prReviewSubmittedAt;
       const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
       reviewSeconds = getWorkingTime(
@@ -70,6 +94,7 @@ export class PRProcessor extends DataProcessor<
     }
     return { approved_at: approvedAt, reviewed_at: reviewedAt, review_seconds: reviewSeconds };
   }
+
   private async setClosed(): Promise<void> {
     const pullData = (await this.getPrData()) as Github.Type.PullRequestBody;
     if (pullData.merged === true && pullData.reviewedAt === null) {
@@ -110,9 +135,9 @@ export class PRProcessor extends DataProcessor<
       prReviewSubmittedAt,
       state
     );
-    pullData.approvedAt = approved_at;
-    pullData.reviewedAt = reviewed_at;
-    pullData.reviewSeconds = review_seconds;
+    this.ghApiData.approved_at = approved_at;
+    this.ghApiData.reviewed_at = reviewed_at;
+    this.ghApiData.review_seconds = review_seconds;
     await this.format();
   }
 
@@ -123,7 +148,8 @@ export class PRProcessor extends DataProcessor<
     const labelsData = this.ghApiData.labels.map((label) => ({
       name: label.name,
     }));
-
+    const pullData = (await this.getPrData()) as Github.Type.PullRequestBody;
+    this.updateGhApiData(pullData);
     this.formattedData = {
       id: await this.parentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`),
       body: {
@@ -137,9 +163,9 @@ export class PRProcessor extends DataProcessor<
         createdAt: this.ghApiData.created_at,
         updatedAt: this.ghApiData.updated_at,
         closedAt: this.ghApiData.closed_at,
-        mergedAt: this.ghApiData.merged_at,
-        reviewedAt: this.ghApiData.reviewed_at,
-        approvedAt: this.ghApiData.approved_at,
+        mergedAt: this.ghApiData.merged_at ?? null,
+        reviewedAt: this.ghApiData.reviewed_at ?? null,
+        approvedAt: this.ghApiData.approved_at ?? null,
         reviewSeconds: this.ghApiData.review_seconds ? this.ghApiData.review_seconds : 0,
         requestedReviewers: reqReviewersData,
         labels: labelsData,
@@ -191,6 +217,7 @@ export class PRProcessor extends DataProcessor<
           break;
         case Github.Enums.PullRequest.ReviewSubmitted:
           if (this.ghApiData.review) {
+            await this.updateReviewCommentCount();
             await this.reviewSubmitted(
               this.ghApiData.review.user,
               this.ghApiData.review.submitted_at,
@@ -203,6 +230,10 @@ export class PRProcessor extends DataProcessor<
             });
           }
           break;
+        case Github.Enums.PullRequest.ReviewCommentedDelete:
+          await this.updateReviewCommentCount();
+          await this.format();
+          break;
         case Github.Enums.PullRequest.ReviewRequestRemoved:
         case Github.Enums.PullRequest.Edited:
         case Github.Enums.PullRequest.Reopened:
@@ -213,8 +244,6 @@ export class PRProcessor extends DataProcessor<
         case Github.Enums.PullRequest.ReadyForReview:
         case Github.Enums.PullRequest.Opened:
         case Github.Enums.PullRequest.ConvertedToDraft:
-          const pullData = (await this.getPrData()) as Github.Type.PullRequestBody;
-          await this.updateGhApiData(pullData);
           await this.format();
           break;
         default:
