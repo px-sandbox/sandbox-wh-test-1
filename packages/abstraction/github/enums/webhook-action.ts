@@ -50,6 +50,8 @@ export enum PullRequest {
   Unassigned = 'unassigned',
   Unlabeled = 'unlabeled',
   Unlocked = 'unlocked',
+  ReviewSubmitted = 'review_submitted',
+  ReviewCommentedDelete = 'review_commented_delete',
 }
 
 export enum OrgInstallation {

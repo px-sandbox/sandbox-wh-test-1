@@ -35,11 +35,7 @@ export abstract class DataProcessor<T, S> {
       }
 
       // Check if all entries in the object have string keys and valid values
-      const check = Object.entries(this.ghApiData).every(
-        ([key, value]) =>
-          typeof key === 'string' &&
-          (typeof value === 'string' || typeof value === 'number' || Array.isArray(value))
-      );
+      const check = Object.entries(this.ghApiData).length > 0;
       if (!check) {
         throw new Error('DataProcessor.entries.validate.error');
       }

@@ -1,16 +1,15 @@
-import crypto from 'crypto';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { logger } from 'core';
+import crypto from 'crypto';
+import { orgInstallation } from 'src/lib/create-installation';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { getCommits } from '../lib/git-commit-list';
 import { pRReviewCommentOnQueue } from '../lib/pr-review-comment-queue';
 import { pRReviewOnQueue } from '../lib/pr-review-queue';
 import { pROnQueue } from '../lib/pull-request-queue';
-import { orgInstallation } from 'src/lib/create-installation';
-import { deleteInstallation } from 'src/lib/delete-installation';
 
 const sqsClient = SQSClient.getInstance();
 interface ReviewCommentProcessType {
@@ -115,7 +114,7 @@ async function processCommitEvent(
 }
 async function processPREvent(
   pr: Github.ExternalType.Webhook.PullRequest,
-  action: string,
+  action: Github.Enums.PullRequest,
   requestId: string
 ): Promise<void> {
   await pROnQueue(pr, action, requestId);
@@ -136,13 +135,11 @@ async function processPRReviewCommentEvent(
 }
 async function processPRReviewEvent(data: ReviewProcessType, requestId: string): Promise<void> {
   await pRReviewOnQueue(
+    data.pull_request as Github.ExternalType.Webhook.PullRequest,
     data.review,
     data.pull_request.id,
     data.repository.id,
-    data.repository.name,
-    data.repository.owner.login,
     data.repository.owner.id,
-    data.pull_request.number,
     data.action,
     requestId
   );
