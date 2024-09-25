@@ -19,6 +19,6 @@ export type User = {
   type: string;
   site_admin: boolean;
   created_at?: string;
-  deleted_at?: string;
+  deleted_at?: string | null;
   orgId: string;
 };

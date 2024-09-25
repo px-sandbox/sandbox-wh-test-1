@@ -64,22 +64,21 @@ export async function orgInstallation(
 
     const orgId = `${mappingPrefixes.organization}_${data.installation.account.id}`;
     const records = await dynamodbClient.find(new ParamsMapping().prepareGetParams(orgId));
-    const result = new Organization({ ...data, installationData }, requestId, orgId).validate();
-    if (result) {
-      const formattedData = await result.processor(records?.parentId as string);
-      if (records === undefined) {
-        await dynamodbClient.put(
-          new ParamsMapping().preparePutParams(formattedData.id, formattedData.body.id)
-        );
-      }
-      // create entry in elasticsearch for organization
-      await esClientObj.putDocument(Github.Enums.IndexName.GitOrganization, formattedData);
-      // create entry in elasticsearch for migration status
-      const migrationStatus = formatMigrationStatus(formattedData.body.githubOrganizationId);
-      await esClientObj.putDocument(Github.Enums.IndexName.GitMigrationStatus, migrationStatus);
-      //trigger migration
-      await collectData(formattedData.body.name, { requestId, resourceId: formattedData.body.id });
+    const result = new Organization(data.action, { ...data, installationData }, requestId, orgId);
+    await result.process();
+    const formattedData = result.formattedData;
+    if (records === undefined) {
+      await dynamodbClient.put(
+        new ParamsMapping().preparePutParams(formattedData.id, formattedData.body.id)
+      );
     }
+    // create entry in elasticsearch for organization
+    await esClientObj.putDocument(Github.Enums.IndexName.GitOrganization, formattedData);
+    // create entry in elasticsearch for migration status
+    const migrationStatus = formatMigrationStatus(formattedData.body.githubOrganizationId);
+    await esClientObj.putDocument(Github.Enums.IndexName.GitMigrationStatus, migrationStatus);
+    //trigger migration
+    await collectData(formattedData.body.name, { requestId, resourceId: formattedData.body.id });
   } catch (error: unknown) {
     logger.error({ message: 'create.installation.error', error, requestId });
     throw error;

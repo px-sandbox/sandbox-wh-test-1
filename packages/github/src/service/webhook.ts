@@ -1,16 +1,15 @@
-import crypto from 'crypto';
 import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { logger } from 'core';
+import crypto from 'crypto';
+import { orgInstallation } from 'src/lib/create-installation';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { getCommits } from '../lib/git-commit-list';
 import { pRReviewCommentOnQueue } from '../lib/pr-review-comment-queue';
 import { pRReviewOnQueue } from '../lib/pr-review-queue';
 import { pROnQueue } from '../lib/pull-request-queue';
-import { orgInstallation } from 'src/lib/create-installation';
-import { deleteInstallation } from 'src/lib/delete-installation';
 
 const sqsClient = SQSClient.getInstance();
 interface ReviewCommentProcessType {
@@ -71,30 +70,18 @@ async function processBranchEvent(
       owner: { id: orgId },
     },
   } = data;
-  let obj = {};
+
   let resourceId = '';
-  if (event.headers['x-github-event'] === 'create') {
-    obj = {
-      name,
-      id: Buffer.from(`${repoId}_${name}`, 'binary').toString('base64'),
-      action: Github.Enums.Branch.Created,
-      repo_id: repoId,
-      created_at: eventAt,
-      orgId,
-    };
-    resourceId = name;
-  }
-  if (event.headers['x-github-event'] === 'delete') {
-    obj = {
-      name,
-      id: Buffer.from(`${repoId}_${name}`, 'binary').toString('base64'),
-      action: Github.Enums.Branch.Deleted,
-      repo_id: repoId,
-      deleted_at: eventAt,
-      orgId,
-    };
-    resourceId = name;
-  }
+  const obj = {
+    name,
+    id: Buffer.from(`${repoId}_${name}`, 'binary').toString('base64'),
+    repo_id: repoId,
+    created_at: eventAt,
+    orgId,
+    action: event.headers['x-github-event'],
+  };
+  resourceId = name;
+
   logger.info({ message: '------- Branch event--------', data: obj, requestId, resourceId });
   await sqsClient.sendMessage(obj, Queue.qGhBranchFormat.queueUrl, { requestId, resourceId });
 }
@@ -103,35 +90,16 @@ async function processOrgEvent(
   eventTime: number,
   requestId: string
 ): Promise<void | boolean> {
-  let obj = {};
-  switch (data.action?.toLowerCase()) {
-    case Github.Enums.Organization.MemberAdded:
-      obj = {
-        ...data.membership.user,
-        orgId: data.organization.id,
-        action: data.action,
-      };
-      break;
-    case Github.Enums.Organization.MemberRemoved:
-      obj = {
-        ...data.membership.user,
-        orgId: data.organization.id,
-        action: data.action,
-        deleted_at: new Date(eventTime),
-      };
-      break;
-    default:
-      // handle default case here
-      logger.info({
-        message: `processOrgEvent.info: No case found for ${data.action} in organization event`,
-      });
-      break;
-  }
-  if (Object.keys(obj).length === 0) return false;
   const resourceId = data.membership.user.login;
+  const obj = {
+    ...data.membership.user,
+    orgId: data.organization.id,
+    action: data.action,
+    eventTime,
+  };
   logger.info({
     message: 'processOrgEvent.info: -------User event --------',
-    data: obj,
+    data: JSON.stringify(obj),
     requestId,
     resourceId,
   });
@@ -146,7 +114,7 @@ async function processCommitEvent(
 }
 async function processPREvent(
   pr: Github.ExternalType.Webhook.PullRequest,
-  action: string,
+  action: Github.Enums.PullRequest,
   requestId: string
 ): Promise<void> {
   await pROnQueue(pr, action, requestId);
@@ -167,23 +135,14 @@ async function processPRReviewCommentEvent(
 }
 async function processPRReviewEvent(data: ReviewProcessType, requestId: string): Promise<void> {
   await pRReviewOnQueue(
+    data.pull_request as Github.ExternalType.Webhook.PullRequest,
     data.review,
     data.pull_request.id,
     data.repository.id,
-    data.repository.name,
-    data.repository.owner.login,
     data.repository.owner.id,
-    data.pull_request.number,
     data.action,
     requestId
   );
-}
-
-async function installationEvent(
-  data: Github.ExternalType.Webhook.Installation,
-  requestId: string
-): Promise<void> {
-  await orgInstallation(data, requestId);
 }
 
 async function processWebhookEvent(
@@ -220,11 +179,7 @@ async function processWebhookEvent(
       await processPRReviewEvent(data, requestId);
       break;
     case Github.Enums.Event.Installation:
-      if (data.action === 'deleted') {
-        await deleteInstallation(data, requestId);
-      } else if (data.action == 'created') {
-        await installationEvent(data, requestId);
-      }
+      await orgInstallation(data, requestId);
       break;
     default:
       logger.info({

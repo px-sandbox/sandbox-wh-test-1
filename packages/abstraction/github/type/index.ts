@@ -49,6 +49,7 @@ import {
 } from './aggregations/pr-details';
 
 import { CommentsDetailResponse, PRCommentsDetail, RepoNamesResponse } from './pr-comments-detail';
+import { IOrganisation, IformatUserDataResponse, IRepo, Hit } from './github-utils';
 
 export {
   Branch,
@@ -111,4 +112,8 @@ export {
   CommentsDetailResponse,
   RepoNamesResponse,
   RepoSastErrorCount,
+  IOrganisation,
+  IformatUserDataResponse,
+  Hit,
+  IRepo,
 };

@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid';
 import { getPullRequestById } from './get-pull-request';
 
 const sqsClient = SQSClient.getInstance();
+
 export async function pRReviewCommentOnQueue(
   prReviewComment: Github.ExternalType.Webhook.PRReviewComment,
   pullId: number,
@@ -36,25 +37,24 @@ export async function pRReviewCommentOnQueue(
       });
       return;
     }
-    await Promise.all([
-      sqsClient.sendMessage(
-        { comment: prReviewComment, pullId, repoId, action, orgId },
-        Queue.qGhPrReviewCommentFormat.queueUrl,
-        { requestId, resourceId: String(pullId) }
-      ),
-      sqsClient.sendFifoMessage(
+    await sqsClient.sendMessage(
+      { comment: prReviewComment, pullId, repoId, action, orgId },
+      Queue.qGhPrReviewCommentFormat.queueUrl,
+      { requestId, resourceId: String(pullId) }
+    );
+
+    if (action === Github.Enums.PRReviewComment.Deleted) {
+      await sqsClient.sendFifoMessage(
         {
           ...pullRequestData,
-          reviewed_at: pullData.reviewedAt,
-          approved_at: pullData.approvedAt,
-          review_seconds: pullData.reviewSeconds,
+          action: Github.Enums.PullRequest.ReviewCommentedDelete,
         },
         Queue.qGhPrFormat.queueUrl,
         { requestId, resourceId: String(pullId) },
         String(pullId),
         uuid()
-      ),
-    ]);
+      );
+    }
   } catch (error: unknown) {
     logger.error({
       message: 'pRReviewCommentOnQueue.Error',

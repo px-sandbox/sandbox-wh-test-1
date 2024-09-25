@@ -11,8 +11,8 @@ export enum Repo {
 }
 
 export enum Branch {
-  Created = 'created',
-  Deleted = 'deleted',
+  Created = 'create',
+  Deleted = 'delete',
 }
 
 export enum Organization {
@@ -50,4 +50,16 @@ export enum PullRequest {
   Unassigned = 'unassigned',
   Unlabeled = 'unlabeled',
   Unlocked = 'unlocked',
+  ReviewSubmitted = 'review_submitted',
+  ReviewCommentedDelete = 'review_commented_delete',
+}
+
+export enum OrgInstallation {
+  Created = 'created',
+  Deleted = 'deleted',
+}
+
+export enum PRReviewComment {
+  Created = 'created',
+  Deleted = 'deleted',
 }

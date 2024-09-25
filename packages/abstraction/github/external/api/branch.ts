@@ -1,4 +1,4 @@
-export type Branch = {
+ export type Branch = {
   id: string;
   action?: string;
   name: string;

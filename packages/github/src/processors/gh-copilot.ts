@@ -13,12 +13,19 @@ export class GHCopilotProcessor extends DataProcessor<
     requestId: string,
     resourceId: string
   ) {
-    super(data, requestId, resourceId);
+    super(data, requestId, resourceId, Github.Enums.Event.Copilot);
+    this.validate();
   }
-  public async processor(): Promise<Github.Type.GHCopilotReport> {
+
+  public async process(): Promise<void> {
+    // active branches is a cron to update the branch count, no cases for switch statement
+    await this.format();
+  }
+
+  public async format(): Promise<void> {
     const lastActivityAt = this.ghApiData.last_activity_at;
     const lastActivityEditor = this.ghApiData.last_activity_editor?.split('/') || [];
-    const ghCopilotObj = {
+    this.formattedData = {
       id: uuid(),
       body: {
         dataTimestamp: new Date().toISOString(),
@@ -33,7 +40,5 @@ export class GHCopilotProcessor extends DataProcessor<
         userId: `${mappingPrefixes.user}_${this.ghApiData.assignee.id}`,
       },
     };
-
-    return ghCopilotObj;
   }
 }
