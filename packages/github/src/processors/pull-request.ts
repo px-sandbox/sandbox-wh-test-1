@@ -79,7 +79,11 @@ export class PRProcessor extends DataProcessor<
     state: string
   ): Promise<{ approved_at: string | null; reviewed_at: string | null; review_seconds: number }> {
     let { approvedAt, reviewedAt, reviewSeconds } = pullData;
-    if (!reviewedAt && prReviewUser.type !== Github.Enums.UserType.BOT) {
+    if (
+      !reviewedAt &&
+      pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReviewUser.id}` &&
+      prReviewUser.type !== Github.Enums.UserType.BOT
+    ) {
       reviewedAt = prReviewSubmittedAt;
       const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
       reviewSeconds = getWorkingTime(
