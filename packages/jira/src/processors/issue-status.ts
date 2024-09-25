@@ -1,5 +1,4 @@
 import { Jira } from 'abstraction';
-import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
 import { mappingPrefixes } from '../constant/config';
 import { getOrganization } from '../repository/organization/get-organization';
@@ -20,11 +19,7 @@ export class IssueStatusProcessor extends DataProcessor<
 
   // eslint-disable-next-line complexity
   public async process(): Promise<void> {
-    switch (this.eventType) {
-      case Jira.Enums.Event.IssueCreated:
-        await this.format();
-        break;
-    }
+    await this.format();
   }
 
   public async format(): Promise<void> {
