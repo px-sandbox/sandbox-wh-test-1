@@ -10,8 +10,8 @@ type Offset = {
 
 export function getOffsetTime(offset: string): Offset {
   const radical = offset.at(0) as '+' | '-';
-  const hours = parseInt(offset.substring(1, 3), 10);
-  const minutes = parseInt(offset.substring(4, 6), 10);
+  const hours = parseInt(offset.substr(1, 2), 10);
+  const minutes = parseInt(offset.substr(4, 2), 10);
 
   return {
     radical,
