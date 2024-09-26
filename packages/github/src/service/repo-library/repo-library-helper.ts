@@ -59,6 +59,7 @@ export async function repoLibHelper(
           libName: `npm_${dep.dependencyName}`,
           version: latest.version,
           releaseDate: latest.releaseDate,
+          isDeprecated: latest.deprecated,
         });
         return {
           _id: uuid(),
@@ -71,6 +72,7 @@ export async function repoLibHelper(
             releaseDate: current.releaseDate,
             isDeleted: false,
             isCore: dep.isCore,
+            isDeprecated: current.deprecated,
           },
         };
       })

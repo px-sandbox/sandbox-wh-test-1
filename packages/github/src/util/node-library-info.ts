@@ -16,16 +16,19 @@ export async function getNodeLibInfo(libName: string, currentVersion: string): P
       const filteredDataTime = _.omit(data.time, ['modified', 'created']);
       [latestVersion] = _.sortBy(Object.keys(filteredDataTime)).reverse();
     }
-
+    const deprecatesLatest = data.versions[latestVersion]?.deprecated;
+    const deprecatesCurrent = data.versions[currentVersion]?.deprecated;
     return {
       name: data.name,
       latest: {
         version: latestVersion,
         releaseDate: data.time[latestVersion],
+        deprecated: deprecatesLatest ? true : false,
       },
       current: {
         version: currentVersion,
         releaseDate: data.time[currentVersion],
+        deprecated: deprecatesCurrent ? true : false,
       },
     };
   } catch (error) {
