@@ -24,6 +24,15 @@ export function gh({ stack }: StackContext): {
   /**
    * Initialize Bucket
    */
+  const testCoverageReportsBucket=new Bucket(stack,'testCoverageReportsBucket',{
+    name: `${process.env.SST_STAGE}-test-coverage-report`,
+    cors: [
+      {
+        allowedMethods: [HttpMethods.GET, HttpMethods.POST],
+        allowedOrigins: ['*'],
+      },
+    ],
+  });
   const sastErrorsBucket = new Bucket(stack, 'sastErrorBucket', {
     name: `${process.env.SST_STAGE}-sast-errors`,
     cors: [
