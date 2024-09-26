@@ -414,7 +414,7 @@ const indices = [
             releaseDate: { type: 'date', format: 'strict_date_optional_time' },
             isDeleted: { type: 'boolean' },
             isCore: { type: 'boolean' },
-            isDepricated: { type: 'boolean' },
+            isDeprecated: { type: 'boolean' },
           },
         },
       },

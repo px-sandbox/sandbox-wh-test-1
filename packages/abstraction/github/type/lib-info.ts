@@ -1,7 +1,7 @@
 type LibVersion = {
   version: string;
   releaseDate: string;
-  deprecated: boolean;
+  isDeprecated: boolean;
 };
 export type LibInfo = {
   name: string;
