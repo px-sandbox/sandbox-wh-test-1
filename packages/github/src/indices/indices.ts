@@ -491,6 +491,83 @@ const indices = [
       },
     },
   },
+  {
+    name : Github.Enums.IndexName.GitTestCoverage,
+    _id :{type:'Keyword'},
+      mappings: {
+        properties: {
+          body: {
+            type: 'object',
+            properties: {
+              organizationId: {
+                type: "keyword"
+              },
+              repoId: {
+                type: "keyword"
+              },
+              createdAt: {
+                type: "date"
+              },
+              forDate: {
+                type: "date",
+                format: "yyyy-MM-dd"
+              },
+              statements: {
+                type: "object",
+                properties: {
+                  covered: {
+                    type: "integer"
+                  },
+                  skipped:{
+                    type:"integer"
+                  },
+                  total: {
+                    type: "integer"
+                  },
+                  percent: {
+                    type: "float"
+                  }
+                }
+              },
+              functions: {
+                type: "object",
+                properties: {
+                  covered: {
+                    type: "integer"
+                  },
+                  skipped:{
+                    type:"integer"
+                  },
+                  total: {
+                    type: "integer"
+                  },
+                  percent: {
+                    type: "float"
+                  }
+                }
+              },
+              branches: {
+                type: "object",
+                properties: {
+                  covered: {
+                    type: "integer"
+                  },
+                  skipped:{
+                    type:"integer"
+                  },
+                  total: {
+                    type: "integer"
+                  },
+                  percent: {
+                    type: "float"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
 ];
 
 async function createMapping(name: string, mappings: Github.Type.IndexMapping): Promise<void> {
