@@ -11,9 +11,14 @@ const getS3File = async (key : string) => {
       Bucket: `${process.env.SST_STAGE}-test-coverage-report`, 
       Key: key
     };
-  
+    console.log(key);
     const s3Object = await s3.getObject(params).promise();
-    return JSON.parse(s3Object.Body.toString('utf-8'));
+    
+    if (s3Object.Body) {
+      return JSON.parse(s3Object.Body.toString('utf-8'));
+    } else {
+      throw new Error("S3 object body is undefined or empty");
+    }
 }
 
 
@@ -39,11 +44,6 @@ export async function handler(event: SQSEvent): Promise<void> {
              message: 'gh_test_coverage.handler.error',
              error: `${error}`,
            });
-           await logProcessToRetry(
-             record,
-             Queue.qGhTestCoverage.queueUrl,
-             error as Error
-           );
        }
       }
     )
