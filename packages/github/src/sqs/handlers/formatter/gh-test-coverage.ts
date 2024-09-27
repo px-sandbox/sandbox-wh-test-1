@@ -23,7 +23,6 @@ const getS3File = async (key : string) => {
 
 
 export async function handler(event: SQSEvent): Promise<void> {
-     console.log("HELLO ...")
      await Promise.all(
      event.Records.map(async (record: SQSRecord) => {
       try{
@@ -31,6 +30,7 @@ export async function handler(event: SQSEvent): Promise<void> {
       
             console.log(`Received payload:`, { organisationId, repoId, createdAt, key });
             const s3Data = await getS3File(key);
+
             
             console.log('S3 Data:', s3Data);
             return {
