@@ -144,8 +144,12 @@ async function getGraphData(
  */
 export async function getHeadlineStat(repoIds: string[], branch: string): Promise<number> {
   const data = await getHeadline(repoIds, branch);
-  const [formattedData] = await searchedDataFormator(data);
-  return formattedData.count;
+  const formattedData = await searchedDataFormator(data);
+  let currentErrCount = 0;
+  for (let i = 0; i < formattedData.length; i++) {
+    currentErrCount += formattedData[i].count;
+  }
+  return currentErrCount;
 }
 
 /**
