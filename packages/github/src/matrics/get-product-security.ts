@@ -52,7 +52,7 @@ const getHeadline = async (repoIds: string[], branch: string): Promise<HitBody> 
     );
 
   const data: HitBody = await esClientObj.search(
-    Github.Enums.IndexName.GitRepoSastErrors,
+    Github.Enums.IndexName.GitRepoSastErrorCount,
     query.toJSON()
   );
   return data;
