@@ -44,7 +44,6 @@ const getHeadline = async (repoIds: string[], branch: string): Promise<HitBody> 
       esb
         .boolQuery()
         .must([
-          esb.termQuery('body.isDeleted', false),
           esb.termsQuery('body.repoId', repoIds),
           esb.termQuery('body.branch', branch),
           esb.termQuery('body.date', moment().format('YYYY-MM-DD')),
