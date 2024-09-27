@@ -498,9 +498,10 @@ const indices = [
       mappings: {
         properties: {
           body: {
-            id:{type:'keyword'},
+
             type: 'object',
             properties: {
+              id:{type:'keyword'},
               organizationId: {
                 type: "keyword"
               },
