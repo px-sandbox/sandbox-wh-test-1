@@ -70,6 +70,7 @@ export function initializeApi(
           OPENSEARCH_USERNAME,
           buckets.sastErrorsBucket,
           buckets.versionUpgradeBucket,
+          buckets.testCoverageReportsBucket
         ],
         runtime: NODE_VERSION,
       },
