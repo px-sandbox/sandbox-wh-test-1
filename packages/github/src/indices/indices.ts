@@ -494,10 +494,11 @@ const indices = [
   },
   {
     name : Github.Enums.IndexName.GitTestCoverage,
-    _id :{type:'Keyword'},
+    _id :{type:'uuid'},
       mappings: {
         properties: {
           body: {
+            id:{type:'keyword'},
             type: 'object',
             properties: {
               organizationId: {
@@ -507,11 +508,11 @@ const indices = [
                 type: "keyword"
               },
               createdAt: {
-                type: "date"
+                type: "keyword"
               },
               forDate: {
                 type: "date",
-                format: "yyyy-MM-dd"
+                format: "strict_date_optional_time"
               },
               statements: {
                 type: "object",
