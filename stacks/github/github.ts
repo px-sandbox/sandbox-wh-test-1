@@ -57,7 +57,7 @@ export function gh({ stack }: StackContext): {
   const restQueues = initializeQueue(
     stack,
     { githubMappingTable, retryProcessTable, libMasterTable },
-    { sastErrorsBucket, versionUpgradeBucket }
+    { sastErrorsBucket, versionUpgradeBucket, testCoverageReportsBucket }
   );
   /**
    * Initialize Functions
