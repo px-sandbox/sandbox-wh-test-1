@@ -9,15 +9,17 @@ export async function handler(event: SQSEvent): Promise<void> {
      await Promise.all(
      event.Records.map(async (record: SQSRecord) => {
       try{
-        logger.info(
-          {
-            message:JSON.parse(record.body)
-          }
-        );
             const { 
               reqCtx: { requestId, resourceId },
               message:{organisationId, repoId, createdAt, s3ObjKey }} = JSON.parse(record.body);
-
+              
+              logger.info(
+                {
+                  message: 'testCoverage.received',
+                  data: JSON.parse(record.body),
+                  requestId
+                }
+              );  
             const bucketName= `${process.env.SST_STAGE}-test-coverage-report`
              
             const data = await fetchDataFromS3(s3ObjKey, bucketName, {

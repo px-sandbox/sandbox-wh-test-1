@@ -34,7 +34,6 @@ export const handler = async function testcoverage(
       ContentType: 'application/json',
     };
     const s3Obj = await s3.upload(params).promise();
-    // console.log(s3Obj);
     await sqsClient.sendMessage(
       {
         organisationId:data.organisationId,
