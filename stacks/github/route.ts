@@ -205,5 +205,12 @@ export function initializeRoutes(
       },
       authorizer: 'none',
     },
+
+    'POST /github/test-coverage':{
+      function:{
+        handler:'packages/github/src/service/testcoverage/test-coverage.handler'
+      },
+      authorizer:'universal'
+    }
   };
 }
