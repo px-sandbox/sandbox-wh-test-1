@@ -15,12 +15,13 @@ import { initializeRepoLibraryQueue } from './repo-library';
 import { initializeRepoSastErrorQueue } from './repo-sast-errors';
 import { initializeSecurityScanQueue } from './update-security-scan';
 import { initializeIndexerQueue } from './indexer';
+import { createGhTestCoverageQueue } from "./test-coverage";
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeQueue(
   stack: Stack,
   githubDDb: GithubTables,
-  buckets: { sastErrorsBucket: Bucket; versionUpgradeBucket: Bucket }
+  buckets: { sastErrorsBucket: Bucket; versionUpgradeBucket: Bucket, testCoverageReportsBucket: Bucket }
 ): { [key: string]: Queue } {
   const indexerQueue = initializeIndexerQueue(stack, githubDDb);
   const [commitFormatDataQueue, commitFileChanges, updateMergeCommit] = initializeCommitQueue(
@@ -65,6 +66,7 @@ export function initializeQueue(
 
   const repoSastErrors = initializeRepoSastErrorQueue(stack, buckets.sastErrorsBucket, githubDDb);
   const [scansSaveQueue] = initializeSecurityScanQueue(stack, githubDDb);
+  const [testCoverageQueue] = createGhTestCoverageQueue(stack, buckets.testCoverageReportsBucket)
 
   // Bindings for indexerQueue
   indexerQueue.bind([afterRepoSaveQueue]);
@@ -96,5 +98,6 @@ export function initializeQueue(
     updateMergeCommit,
     prReviewCommentMigrationQueue,
     indexerQueue,
+    testCoverageQueue,
   };
 }
