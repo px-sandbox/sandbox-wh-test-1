@@ -16,7 +16,7 @@ export const handler = async function testcoverage(
   try {
     logger.info({
       message: 'testCoverage.handler.received',
-      data: { errorData: event.body },
+      data:  event.body ,
       requestId,
     });
     const data: Github.ExternalType.Api.RepoCoverageData = JSON.parse(event.body ?? '{}');
@@ -26,16 +26,24 @@ export const handler = async function testcoverage(
     const timestamp = data.createdAt;
     const datePart = timestamp.split('T')[0];
     const formattedDate = datePart.replace(/-/g, '_');
-    console.log(formattedDate); 
 
     const params = {
       Bucket: `${process.env.SST_STAGE}-test-coverage-report`,
-
       Key:` org_${data.organisationId}/repo_${data.repoId}/${formattedDate}/test_coverage_${timestamp}.json`,
       Body: JSON.stringify(data),
       ContentType: 'application/json',
     };
     const s3Obj = await s3.upload(params).promise();
+    await sqsClient.sendMessage(
+      {
+        organisationId:data.organisationId,
+        repoId:data.repoId,
+        createdAt:data.createdAt,
+        s3ObjKey: s3Obj.Key,
+      },
+      Queue.qGhTestCoverage.queueUrl,
+      { requestId, resourceId:String(data.repoId) }
+    );
     return responseParser
       .setBody({})
       .setMessage('Test coverage data received successfully')
@@ -43,7 +51,6 @@ export const handler = async function testcoverage(
       .setResponseBodyCode('SUCCESS')
       .send();
   } catch (err) {
-    logger.error({ message: 'testCoverage.handler.error', error: err, requestId });
     return responseParser
       .setMessage(`Failed to get test coverage: ${err}`)
       .setStatusCode(HttpStatusCode['500'])
