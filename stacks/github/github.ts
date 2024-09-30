@@ -77,7 +77,7 @@ export function gh({ stack }: StackContext): {
     stack,
     restQueues,
     { githubMappingTable, retryProcessTable, libMasterTable },
-    { sastErrorsBucket, versionUpgradeBucket }
+    { sastErrorsBucket, versionUpgradeBucket,testCoverageReportsBucket }
   );
 
   stack.addOutputs({
