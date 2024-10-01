@@ -205,5 +205,12 @@ export function initializeRoutes(
       },
       authorizer: 'none',
     },
+
+    'GET /github/test-coverage/tabular': {
+      function: {
+        handler: 'packages/github/src/service/get-test-coverage.handler',
+      },
+      authorizer: 'none',
+    },
   };
 }
