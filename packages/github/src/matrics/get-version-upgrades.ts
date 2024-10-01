@@ -80,23 +80,29 @@ const repoLibsQuery = async (
   searchString: string,
   counter: number
 ): Promise<any> => {
-
   const query = esb.boolQuery();
 
   if (searchString) {
-      query.must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`));
+    query.must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`));
   }
 
   const repoLibQuery = esb
     .requestBodySearch()
-    .size(100)
-    .from(100 * (counter - 1))
     .query(
       query
         .must(esb.termQuery('body.isDeleted', false))
         .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
         .minimumShouldMatch(1)
-    );
+    )
+    .aggs([
+      esb
+        .compositeAggregation('by_libName')
+        .sources(
+          esb.CompositeAggregation.termsValuesSource('libName', 'body.libName'),
+          esb.CompositeAggregation.termsValuesSource('version', 'body.version')
+        )
+        .agg(esb.topHitsAggregation('top_lib_hits').source(true).size(repoIds.length)),
+    ]);
 
   const finalRepoLibQuery = repoLibQuery.toJSON();
 
