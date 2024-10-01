@@ -50,7 +50,7 @@ import {
 
 import { CommentsDetailResponse, PRCommentsDetail, RepoNamesResponse } from './pr-comments-detail';
 import { IOrganisation, IformatUserDataResponse, IRepo, Hit } from './github-utils';
-import { TestCoverage } from './test-coverage';
+import { TestCoverage, TestCoverageData } from './test-coverage';
 export {
   Branch,
   Organization,
@@ -117,4 +117,5 @@ export {
   Hit,
   IRepo,
   TestCoverage,
+  TestCoverageData,
 };
