@@ -2,7 +2,7 @@ import { APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import { getData } from 'src/matrics/get-test-coverage';
 
-const demoData = async function getTestData(): Promise<APIGatewayProxyResult> {
+export const handler = async function getTestData(): Promise<APIGatewayProxyResult> {
   try {
     const repoIds = ['123456', '1236345'];
     const startDate = '2024-01-01';
@@ -26,4 +26,3 @@ const demoData = async function getTestData(): Promise<APIGatewayProxyResult> {
       .send();
   }
 };
-export const handler = demoData;
