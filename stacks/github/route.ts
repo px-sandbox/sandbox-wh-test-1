@@ -210,7 +210,7 @@ export function initializeRoutes(
       function: {
         handler: 'packages/github/src/service/get-test-coverage.handler',
       },
-      authorizer: 'none',
+      authorizer: 'universal',
     },
   };
 }
