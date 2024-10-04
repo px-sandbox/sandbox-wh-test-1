@@ -212,7 +212,7 @@ export function initializeRoutes(
         handler: 'packages/github/src/service/testcoverage/test-coverage.handler',
         bind: [testCoverageQueue],
       },
-      authorizer: 'universal',
+      authorizer: 'none',
     },
   };
 }

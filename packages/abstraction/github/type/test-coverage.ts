@@ -1,34 +1,19 @@
+export type Coverage = {
+  total: number;
+  covered: number;
+  skipped: number;
+  pct: number;
+};
 export type TestCoverage = {
   coverage: {
     total: {
-      lines: {
-        total: number;
-        covered: number;
-        skipped: number;
-        pct: number;
-      };
-      statements: {
-        total: number;
-        covered: number;
-        skipped: number;
-        pct: number;
-      };
-      functions: {
-        total: number;
-        covered: number;
-        skipped: number;
-        pct: number;
-      };
-      branches: {
-        total: number;
-        covered: number;
-        skipped: number;
-        pct: number;
-      };
+      lines: Coverage;
+      statements: Coverage;
+      functions: Coverage;
+      branches: Coverage;
     };
   };
 };
-
 export type TestCoverageData = {
   id: string;
   body: {
@@ -37,9 +22,9 @@ export type TestCoverageData = {
     repoId: string;
     createdAt: string;
     forDate: string;
-    statements: TestCoverage['coverage']['total']['statements'];
-    branches: TestCoverage['coverage']['total']['branches'];
-    functions: TestCoverage['coverage']['total']['functions'];
-    lines: TestCoverage['coverage']['total']['lines'];
+    statements: Coverage;
+    branches: Coverage;
+    functions: Coverage;
+    lines: Coverage;
   };
 };
