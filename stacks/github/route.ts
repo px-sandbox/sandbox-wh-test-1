@@ -206,13 +206,18 @@ export function initializeRoutes(
       },
       authorizer: 'none',
     },
-
     'POST /github/test-coverage': {
       function: {
         handler: 'packages/github/src/service/testcoverage/test-coverage.handler',
         bind: [testCoverageQueue],
       },
       authorizer: 'none',
+    },
+    'GET /github/test-coverage/graph': {
+      function:{
+        handler:'packages/github/src/service/get-test-coverage-graph.handler',
+      },
+      authorizer:'universal',
     },
   };
 }
