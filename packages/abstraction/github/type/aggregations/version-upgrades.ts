@@ -18,7 +18,7 @@ export type VersionUpgradeSortType = {
 };
 
 export type RepoLibType = BaseRepoType & {
-  repoName?: string[];
+  repoNames?: string[];
   currVerDate?: string;
   currVer?: string;
   latestVer?: string;
