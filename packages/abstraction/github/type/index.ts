@@ -28,6 +28,8 @@ import {
   VerUpgFinalRes,
   VerUpgradeRes,
   VersionUpgradeSortType,
+  VersionUpgradeAggregation,
+  CoreLib,
 } from './aggregations/version-upgrades';
 import { ErrorsOverTimeBuckets, ProdSecurityAgg } from './aggregations/product-security';
 import { ProdSecurityGraphData, ProductSecurity } from './product-security';
@@ -116,4 +118,6 @@ export {
   IformatUserDataResponse,
   Hit,
   IRepo,
+  VersionUpgradeAggregation,
+  CoreLib,
 };

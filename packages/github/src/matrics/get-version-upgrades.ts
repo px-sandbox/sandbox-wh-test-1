@@ -8,11 +8,44 @@ import esb from 'elastic-builder';
 import moment from 'moment';
 import { Table } from 'sst/node/table';
 import { searchedDataFormator } from '../util/response-formatter';
-import { paginate, sortData } from '../util/version-upgrades';
+import { sortData } from '../util/version-upgrades';
 
 // initializing elastic search client
 const esClientObj = ElasticSearchClient.getInstance();
+async function getCoreDependencies(
+  repoIds: string[],
+  searchString: string
+): Promise<Github.Type.CoreLib> {
+  const query = esb.boolQuery();
+  if (searchString) {
+    query.must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`));
+  }
+  const coreLibQuery = esb
+    .requestBodySearch()
+    .size(1000)
+    .query(query.must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.isCore', true)]))
+    .sort(esb.sort('body.isCore', 'asc'));
 
+  const data = await esClientObj.search(
+    Github.Enums.IndexName.GitRepoLibrary,
+    coreLibQuery.toJSON()
+  );
+  const coreDep = await searchedDataFormator(data);
+  const combinedData = coreDep.reduce((acc: any, item: any) => {
+    const key = `${item.libName}-${item.version}`;
+    if (!acc[key]) {
+      // If the key does not exist in the accumulator, create a new object with all properties of the item except for repoId, which is an array containing item.repoId
+      acc[key] = { ...item, repoId: [item.repoId] };
+    } else {
+      // If the key already exists in the accumulator, just push the new repoId into the existing repoId array
+      acc[key].repoId.push(item.repoId);
+    }
+    return acc;
+  }, {});
+  const libs: Github.Type.RepoLibType[] = Object.values(combinedData);
+  const libNames = libs.map((lib: Github.Type.RepoLibType) => lib.libName);
+  return { libs, libNames };
+}
 /**
  * Fetches library records from DynamoDB based on the provided library names.
  * @param libNames - An array of library names.
@@ -78,38 +111,55 @@ async function fetchDDRecords(
 const repoLibsQuery = async (
   repoIds: string[],
   searchString: string,
-  counter: number
+  afterKey: string
 ): Promise<any> => {
   const query = esb.boolQuery();
-
   if (searchString) {
     query.must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`));
   }
+  const compositeAgg = esb
+    .compositeAggregation('by_libName')
+    .sources(
+      esb.CompositeAggregation.termsValuesSource('libName', 'body.libName'),
+      esb.CompositeAggregation.termsValuesSource('version', 'body.version')
+    );
 
+  if (afterKey) {
+    compositeAgg.after(JSON.parse(afterKey));
+  }
   const repoLibQuery = esb
     .requestBodySearch()
+    .size(0)
     .query(
       query
-        .must(esb.termQuery('body.isDeleted', false))
+        .must([esb.termQuery('body.isDeleted', false), esb.termQuery('body.isCore', false)])
         .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
         .minimumShouldMatch(1)
     )
     .aggs([
-      esb
-        .compositeAggregation('by_libName')
-        .sources(
-          esb.CompositeAggregation.termsValuesSource('libName', 'body.libName'),
-          esb.CompositeAggregation.termsValuesSource('version', 'body.version')
-        )
-        .agg(esb.topHitsAggregation('top_lib_hits').source(true).size(repoIds.length)),
+      compositeAgg.agg(esb.topHitsAggregation('top_lib_hits').source(true).size(repoIds.length)),
     ]);
 
   const finalRepoLibQuery = repoLibQuery.toJSON();
 
-  const data = await esClientObj.search(Github.Enums.IndexName.GitRepoLibrary, finalRepoLibQuery);
+  const data = (await esClientObj.search(
+    Github.Enums.IndexName.GitRepoLibrary,
+    finalRepoLibQuery
+  )) as Github.Type.VersionUpgradeAggregation;
 
-  const repoLibs = await searchedDataFormator(data);
-  return repoLibs;
+  const afterKeyObj = data.aggregations.by_libName.after_key;
+  const repoLibData = data.aggregations.by_libName.buckets.map((bucket: any) => {
+    const hits = bucket.top_lib_hits.hits.hits;
+    return {
+      ...hits[0]._source.body,
+      libName: bucket.key.libName,
+      version: bucket.key.version,
+      repoId: hits.map((hit: any) => hit._source.body.repoId),
+      releaseDate: hits[0]._source.body.releaseDate,
+    };
+  });
+
+  return { repoLibData, afterKeyObj };
 };
 
 const getRepoName = async (
@@ -138,31 +188,20 @@ const getRepoName = async (
  */
 async function getESVersionUpgradeData(
   repoIds: string[],
+  afterKey: string,
   searchString: string
 ): Promise<Github.Type.ESVersionUpgradeType> {
-  const repoLibData = [];
-  let counter = 1;
-  let repoLibs;
-
-  do {
-    repoLibs = await repoLibsQuery(repoIds, searchString, counter);
-    if (repoLibs?.length) {
-      repoLibData.push(...repoLibs);
-      counter += 1;
-    }
-  } while (repoLibs?.length);
-
+  const { repoLibData, afterKeyObj } = await repoLibsQuery(repoIds, afterKey, searchString);
   const repoNamesArr: Github.Type.RepoNameType[] = [];
-  let counter2 = 1;
+  let counter = 1;
   let repoNames;
   do {
-    repoNames = await getRepoName(repoIds, counter2);
+    repoNames = await getRepoName(repoIds, counter);
     if (repoNames?.length) {
       repoNamesArr.push(...repoNames);
-      counter2 += 1;
+      counter += 1;
     }
   } while (repoNames?.length);
-
   // making a dictionary with repoId as key and repoName as value for easy access
   const repoNamesObj: { [key: string]: string } = {};
   repoNamesArr.forEach((names) => {
@@ -175,13 +214,14 @@ async function getESVersionUpgradeData(
     libNames.push(lib.libName);
     return {
       ...lib,
-      repoName: repoNamesObj[lib.repoId] ?? '',
+      repoName: lib.repoId.map((id: string) => {
+        return repoNamesObj[id] ?? '';
+      }),
       currVerDate: lib.releaseDate,
       currVer: lib.version,
     };
   });
-
-  return { updatedRepoLibs, libNames };
+  return { updatedRepoLibs, libNames, afterKeyObj };
 }
 
 /**
@@ -196,24 +236,34 @@ async function getESVersionUpgradeData(
  */
 export async function getVersionUpgrades(
   search: string,
-  page: number,
-  limit: number,
   repoIds: string[],
   requestId: string,
+  afterKey: string,
   sort?: Github.Type.VersionUpgradeSortType
 ): Promise<Github.Type.VerUpgFinalRes> {
   try {
-    // fetching repo-library data from elastic search
-    const { updatedRepoLibs, libNames } = await getESVersionUpgradeData(repoIds, search);
-
-    if (!updatedRepoLibs?.length) {
-      return { versionData: [], page, totalPages: 0 };
+    let updatedRepoLibs: Github.Type.RepoLibType[] = [];
+    let libNames: string[] = [];
+    let afterKeyObj: string | undefined;
+    let libs: Github.Type.RepoLibType[] = [];
+    if (!afterKey) {
+      ({ libs, libNames } = await getCoreDependencies(repoIds, search));
     }
 
-    // fetching records from dynamo db for latest version and release date
-    const ddRecords = await fetchDDRecords([...new Set(libNames)], requestId);
+    ({ updatedRepoLibs, libNames, afterKeyObj } = await getESVersionUpgradeData(
+      repoIds,
+      search,
+      afterKey
+    ));
 
-    // adding latest version and release date to repo-library data
+    if (!updatedRepoLibs?.length) {
+      return { versionData: [], afterKey: afterKeyObj ?? '' };
+    }
+    const ddRecords = await fetchDDRecords([...new Set(libNames)], requestId);
+    if (libs?.length) {
+      updatedRepoLibs.push(...libs);
+    }
+    logger.info({ message: 'getVersionUpgrades.info', requestId, data: updatedRepoLibs });
     const finalData = updatedRepoLibs?.map((lib: Github.Type.RepoLibType) => {
       const latestVerData = ddRecords[lib?.libName];
       const current = moment(lib?.currVerDate);
@@ -226,18 +276,13 @@ export async function getVersionUpgrades(
         dateDiff: diffMonth ?? undefined,
       };
     });
-    // If no final data then we return empty response
     if (!finalData?.length) {
-      return { versionData: [], page, totalPages: 0 };
+      return { versionData: [], afterKey: afterKeyObj ?? '' };
     }
-    const totalPages = Math.ceil(finalData.length / limit);
 
-    // sorting data
     const sortedData = await sortData(finalData, sort);
 
-    // paginating data
-    const paginatedData = await paginate(sortedData, page, limit);
-    return { versionData: paginatedData, totalPages, page };
+    return { versionData: sortedData, afterKey: afterKeyObj };
   } catch (e) {
     logger.error({
       message: 'getVersionUpgrades.error: Error while fetching version upgrades',
