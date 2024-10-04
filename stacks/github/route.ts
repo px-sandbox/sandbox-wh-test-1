@@ -25,6 +25,7 @@ export function initializeRoutes(
     repoLibS3Queue,
     updateMergeCommit,
     prReviewCommentMigrationQueue,
+    testCoverageQueue,
   } = queues;
   const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID } = use(commonConfig);
   /* We aso extract and bind the tables
@@ -205,7 +206,13 @@ export function initializeRoutes(
       },
       authorizer: 'none',
     },
-
+    'POST /github/test-coverage': {
+      function: {
+        handler: 'packages/github/src/service/testcoverage/test-coverage.handler',
+        bind: [testCoverageQueue],
+      },
+      authorizer: 'none',
+    },
     'GET /github/test-coverage/graph': {
       function:{
         handler:'packages/github/src/service/get-test-coverage-graph.handler',
