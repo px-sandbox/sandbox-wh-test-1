@@ -2,7 +2,7 @@ import { SortKey, SortOrder } from '../../enums';
 
 type BaseRepoType = {
   _id: string;
-  repoId: string;
+  repoId: string[];
   organizationId: string;
   version: string;
   name: string;
@@ -18,7 +18,7 @@ export type VersionUpgradeSortType = {
 };
 
 export type RepoLibType = BaseRepoType & {
-  repoName?: string;
+  repoNames?: string[];
   currVerDate?: string;
   currVer?: string;
   latestVer?: string;
@@ -29,6 +29,7 @@ export type RepoLibType = BaseRepoType & {
 export type ESVersionUpgradeType = {
   updatedRepoLibs: RepoLibType[];
   libNames: string[];
+  afterKeyObj: string;
 };
 
 export type VerUpgradeRes = RepoLibType & {
@@ -37,8 +38,7 @@ export type VerUpgradeRes = RepoLibType & {
 
 export type VerUpgFinalRes = {
   versionData: VerUpgradeRes[];
-  totalPages?: number;
-  page?: number;
+  afterKey: string;
 };
 
 export type RepoNameType = {
@@ -75,4 +75,13 @@ export type LibraryRecord = {
   releaseDate: string;
   libName: string;
   isDeprecated: boolean;
+};
+
+export type VersionUpgradeAggregation = {
+  aggregations: { by_libName: { buckets: []; after_key: object } };
+};
+
+export type CoreLib = {
+  libs: RepoLibType[];
+  libNames: string[];
 };
