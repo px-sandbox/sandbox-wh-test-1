@@ -410,7 +410,7 @@ const indices = [
             organizationId: { type: 'keyword' },
             name: { type: 'keyword' },
             libName: { type: 'keyword' },
-            version: { type: 'text' },
+            version: { type: 'keyword' },
             releaseDate: { type: 'date', format: 'strict_date_optional_time' },
             isDeleted: { type: 'boolean' },
             isCore: { type: 'boolean' },
