@@ -1,30 +1,37 @@
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { Github } from 'abstraction';
+import { IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { logger } from 'core';
-const mockData = [
-  { repoId: 123456, value: 1, date: '2024-09-01' },
-  { repoId: 1236345, value: 11, date: '2024-09-02' },
-  { repoId: 123456, value: 21, date: '2024-09-03' },
-  { repoId: 1236345, value: 31, date: '2024-09-04' },
-  { repoId: 123456, value: 14, date: '2024-09-05' },
-  { repoId: 12345226, value: 51, date: '2024-09-06' },
-  { repoId: 1234556, value: 19, date: '2024-09-07' },
-];
-
+import esb from 'elastic-builder';
+import { processGraphInterval } from 'src/util/process-graph-intervals';
+const esClientObj = ElasticSearchClient.getInstance();
 export const getData = async (
   repoIds: string[],
   startDate: string,
   endDate: string,
-  page: number,
-  limit: number
-): Promise<{ data: {value: number; date: string }[] }> => {
+  interval: string
+): Promise<{ date: string; value: object }[]> => {
   try {
-    const filteredData = mockData.filter(
-      (item) =>
-        repoIds.includes(item.repoId.toString()) && item.date >= startDate && item.date <= endDate
+    const testCoverageGraph = esb.requestBodySearch().size(0);
+    testCoverageGraph.query(esb.boolQuery().must([esb.termsQuery('body.repoId', repoIds)]));
+    const graphIntervals = processGraphInterval(interval, startDate, endDate);
+    testCoverageGraph.agg(
+      graphIntervals.agg(
+        esb
+          .termsAggregation('by_repo', 'body.repoId')
+          .agg(esb.avgAggregation('total_lines', 'body.lines.pct'))
+      )
     );
-    const startIndex = (page - 1) * limit;
-    const paginatedData = filteredData.slice(startIndex, startIndex + limit);
-    const responseData = paginatedData.map(({ value, date }) => ({ value, date }));
-    return { data: responseData };
+    console.log(JSON.stringify(testCoverageGraph.toJSON()));
+    const data = await esClientObj.queryAggs<IPrCommentAggregationResponse>(
+      Github.Enums.IndexName.GitTestCoverage,
+      testCoverageGraph.toJSON()
+    );
+
+    return data.commentsPerDay.buckets.map((bucket: any) => ({
+      date: bucket.key_as_string,
+      value: bucket.by_repo.buckets,
+    }));
   } catch (e) {
     logger.error({ message: 'getData.error', error: `${e}` });
     throw e;
