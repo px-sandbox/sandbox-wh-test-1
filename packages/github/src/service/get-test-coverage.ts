@@ -1,18 +1,22 @@
-import { APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import { getData } from 'src/matrics/get-test-coverage';
 
-export const handler = async function getTestData(): Promise<APIGatewayProxyResult> {
+export const handler = async function getTestData(
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> {
   try {
-    const repoIds = ['123456', '1236345'];
-    const startDate = '2024-01-01';
-    const endDate = '2024-01-31';
-    const page = 1;
-    const limit = 2;
-    const metrics = await getData(repoIds, startDate, endDate, page, limit);
-    console.log(metrics.data);
+    const { requestId } = event.requestContext;
+    const startDate: string = event.queryStringParameters?.startDate || '';
+    const endDate: string = event.queryStringParameters?.endDate || '';
+    const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
+    const page: string = event.queryStringParameters?.page ?? '1';
+    const limit: string = event.queryStringParameters?.limit ?? '10';
+
+    const metrics = await getData(repoIds, startDate, endDate, page, limit, requestId);
+
     return responseParser
-      .setBody(metrics.data)
+      .setBody(metrics)
       .setMessage('getData.retrieved')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')
