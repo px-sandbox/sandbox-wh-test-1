@@ -53,7 +53,7 @@ const indices = [
           properties: {
             id: { type: 'keyword' },
             githubOrganizationId: { type: 'keyword' },
-            installationId: { type: 'keyword' },
+            installationId: { type: 'long' },
             name: { type: 'text' },
             createdAt: { type: 'date', format: 'strict_date_optional_time' },
             updatedAt: { type: 'date', format: 'strict_date_optional_time' },
@@ -493,84 +493,83 @@ const indices = [
     },
   },
   {
-    name : Github.Enums.IndexName.GitTestCoverage,
-    _id :{type:'uuid'},
-      mappings: {
-        properties: {
-          body: {
-
-            type: 'object',
-            properties: {
-              id:{type:'keyword'},
-              organizationId: {
-                type: "keyword"
+    name: Github.Enums.IndexName.GitTestCoverage,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'keyword' },
+            organizationId: {
+              type: 'keyword',
+            },
+            repoId: {
+              type: 'keyword',
+            },
+            createdAt: {
+              type: 'keyword',
+            },
+            forDate: {
+              type: 'date',
+              format: 'strict_date_optional_time',
+            },
+            statements: {
+              type: 'object',
+              properties: {
+                covered: {
+                  type: 'integer',
+                },
+                skipped: {
+                  type: 'integer',
+                },
+                total: {
+                  type: 'integer',
+                },
+                percent: {
+                  type: 'float',
+                },
               },
-              repoId: {
-                type: "keyword"
+            },
+            functions: {
+              type: 'object',
+              properties: {
+                covered: {
+                  type: 'integer',
+                },
+                skipped: {
+                  type: 'integer',
+                },
+                total: {
+                  type: 'integer',
+                },
+                percent: {
+                  type: 'float',
+                },
               },
-              createdAt: {
-                type: "keyword"
+            },
+            branches: {
+              type: 'object',
+              properties: {
+                covered: {
+                  type: 'integer',
+                },
+                skipped: {
+                  type: 'integer',
+                },
+                total: {
+                  type: 'integer',
+                },
+                percent: {
+                  type: 'float',
+                },
               },
-              forDate: {
-                type: "date",
-                format: "strict_date_optional_time"
-              },
-              statements: {
-                type: "object",
-                properties: {
-                  covered: {
-                    type: "integer"
-                  },
-                  skipped:{
-                    type:"integer"
-                  },
-                  total: {
-                    type: "integer"
-                  },
-                  percent: {
-                    type: "float"
-                  }
-                }
-              },
-              functions: {
-                type: "object",
-                properties: {
-                  covered: {
-                    type: "integer"
-                  },
-                  skipped:{
-                    type:"integer"
-                  },
-                  total: {
-                    type: "integer"
-                  },
-                  percent: {
-                    type: "float"
-                  }
-                }
-              },
-              branches: {
-                type: "object",
-                properties: {
-                  covered: {
-                    type: "integer"
-                  },
-                  skipped:{
-                    type:"integer"
-                  },
-                  total: {
-                    type: "integer"
-                  },
-                  percent: {
-                    type: "float"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+            },
+          },
+        },
+      },
+    },
+  },
 ];
 
 async function createMapping(name: string, mappings: Github.Type.IndexMapping): Promise<void> {
