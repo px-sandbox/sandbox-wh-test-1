@@ -111,7 +111,7 @@ async function fetchDDRecords(
 const repoLibsQuery = async (
   repoIds: string[],
   searchString: string,
-  afterKey: string
+  afterKey: object
 ): Promise<any> => {
   const query = esb.boolQuery();
   if (searchString) {
@@ -125,7 +125,7 @@ const repoLibsQuery = async (
     );
 
   if (afterKey) {
-    compositeAgg.after(JSON.parse(afterKey));
+    compositeAgg.after(afterKey);
   }
   const repoLibQuery = esb
     .requestBodySearch()
@@ -188,10 +188,19 @@ const getRepoName = async (
  */
 async function getESVersionUpgradeData(
   repoIds: string[],
-  afterKey: string,
+  afterKey: object,
   searchString: string
 ): Promise<Github.Type.ESVersionUpgradeType> {
-  const { repoLibData, afterKeyObj } = await repoLibsQuery(repoIds, afterKey, searchString);
+  let updatedRepoLibs: Github.Type.RepoLibType[] = [];
+  let libNames: string[] = [];
+  let libs: Github.Type.RepoLibType[] = [];
+  if (!afterKey) {
+    ({ libs, libNames } = await getCoreDependencies(repoIds, searchString));
+  }
+  const { repoLibData, afterKeyObj } = await repoLibsQuery(repoIds, searchString, afterKey);
+  if (libs?.length) {
+    repoLibData.push(...libs);
+  }
   const repoNamesArr: Github.Type.RepoNameType[] = [];
   let counter = 1;
   let repoNames;
@@ -208,9 +217,8 @@ async function getESVersionUpgradeData(
     repoNamesObj[names.id] = names.name;
   });
 
-  const libNames: string[] = []; // array to store libNames data. Will be used in getVersionUpgrades()
   /* ADDING REPONAME TO REPOLIBDATA */
-  const updatedRepoLibs = repoLibData.map((lib: Github.Type.RepoLibType) => {
+  updatedRepoLibs = repoLibData.map((lib: Github.Type.RepoLibType) => {
     libNames.push(lib.libName);
     return {
       ...lib,
@@ -238,31 +246,21 @@ export async function getVersionUpgrades(
   search: string,
   repoIds: string[],
   requestId: string,
-  afterKey: string,
+  afterKey: object,
   sort?: Github.Type.VersionUpgradeSortType
 ): Promise<Github.Type.VerUpgFinalRes> {
   try {
-    let updatedRepoLibs: Github.Type.RepoLibType[] = [];
-    let libNames: string[] = [];
-    let afterKeyObj: string | undefined;
-    let libs: Github.Type.RepoLibType[] = [];
-    if (!afterKey) {
-      ({ libs, libNames } = await getCoreDependencies(repoIds, search));
-    }
-
-    ({ updatedRepoLibs, libNames, afterKeyObj } = await getESVersionUpgradeData(
+    const { updatedRepoLibs, libNames, afterKeyObj } = await getESVersionUpgradeData(
       repoIds,
-      search,
-      afterKey
-    ));
+      afterKey,
+      search
+    );
 
     if (!updatedRepoLibs?.length) {
       return { versionData: [], afterKey: afterKeyObj ?? '' };
     }
     const ddRecords = await fetchDDRecords([...new Set(libNames)], requestId);
-    if (libs?.length) {
-      updatedRepoLibs.push(...libs);
-    }
+
     logger.info({ message: 'getVersionUpgrades.info', requestId, data: updatedRepoLibs });
     const finalData = updatedRepoLibs?.map((lib: Github.Type.RepoLibType) => {
       const latestVerData = ddRecords[lib?.libName];
@@ -281,8 +279,12 @@ export async function getVersionUpgrades(
     }
 
     const sortedData = await sortData(finalData, sort);
-
-    return { versionData: sortedData, afterKey: afterKeyObj };
+    return {
+      versionData: sortedData,
+      afterKey: afterKeyObj
+        ? Buffer.from(JSON.stringify(afterKeyObj), 'utf-8').toString('base64')
+        : '',
+    };
   } catch (e) {
     logger.error({
       message: 'getVersionUpgrades.error: Error while fetching version upgrades',
