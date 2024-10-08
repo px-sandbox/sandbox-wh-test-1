@@ -60,13 +60,11 @@ export const getTestCoverageHeadlineData = async (
         data: averagePct,
       });
       return {
-        data: {
-          value: averagePct,
-        },
+        value: averagePct,
       };
     } else {
       logger.error({ message: 'getData.error', error: 'No data found' });
-      return { data: { value: 0 } };
+      return { value: 0 };
     }
   } catch (e) {
     logger.error({ message: 'getData.error', error: `${e}` });
