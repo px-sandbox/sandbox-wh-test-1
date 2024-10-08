@@ -47,19 +47,17 @@ export const getTestCoverageHeadlineData = async (
 
     if (testCoverageResponse.length) {
       let totalPct = 0;
-      let count = 0;
 
       testCoverageResponse.forEach((cov: { statements: { pct: number } }) => {
         if (cov.statements && cov.statements) {
           totalPct += cov.statements.pct;
-          count++;
         }
       });
 
-      const averagePct = totalPct / count;
+      const averagePct = Number((totalPct / testCoverageResponse.length).toFixed(2));
       logger.info({
         message: 'getTestCoverageHeadlineData.info: Average-Statement-Coverage-Percentage',
-        data: JSON.stringify(averagePct),
+        data: averagePct,
       });
       return {
         data: {

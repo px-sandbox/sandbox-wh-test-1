@@ -231,7 +231,7 @@ export function initializeRoutes(
       function: {
         handler: 'packages/github/src/service/get-test-coverage-headline.handler',
       },
-      authorizer: 'none',
+      authorizer: 'universal',
     },
   };
 }
