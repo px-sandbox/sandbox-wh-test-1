@@ -50,7 +50,5 @@ export type TestCoverageHeadlineResponseDTO = {
 };
 
 export type TestCoverageHeadlineResponse = {
-  data: {
-    value: number;
-  };
+  value: number;
 };
