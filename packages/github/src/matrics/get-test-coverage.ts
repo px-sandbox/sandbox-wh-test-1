@@ -29,35 +29,49 @@ export const getData = async (
   repoIds: string[],
   startDate: string,
   endDate: string,
-  page: string,
-  limit: string,
+  page: number,
+  limit: number,
   requestId: string
-): Promise<{ repoId: number; repoName: string; value: number; date: string }[]> => {
+): Promise<{
+  data: { repoId: number; repoName: string; value: number; date: string }[];
+  page: number;
+  totalPages: number;
+}> => {
   try {
     let counter = 1;
+    let counter2 = 1;
     let repoNamesArr: Github.Type.RepoNameType[] = [];
     let repoNames;
-    const query = esb
-      .requestBodySearch()
-      .query(
-        esb
-          .boolQuery()
-          .must([
-            esb.termsQuery('body.repoId', repoIds),
-            esb.rangeQuery('body.forDate').gte(startDate).lte(endDate),
-          ])
+    let response = [];
+    do {
+      const query = esb
+        .requestBodySearch()
+        .from(100 * (counter2 - 1))
+        .size(100)
+        .query(
+          esb
+            .boolQuery()
+            .must([
+              esb.termsQuery('body.repoId', repoIds),
+              esb.rangeQuery('body.forDate').gte(startDate).lte(endDate),
+            ])
+        );
+      const esResponse = await esClientObj.search(
+        Github.Enums.IndexName.GitTestCoverage,
+        query.toJSON()
       );
+      const res = await searchedDataFormator(esResponse);
 
+      if (res?.length > 0) {
+        response.push(...res);
+        counter2 += 1;
+      }
+    } while (response?.length == 0);
     logger.info({
       message: 'testCoverage.tabular.getData.query',
-      data: JSON.stringify(query.toJSON()),
+      data: JSON.stringify(response.length),
       requestId,
     });
-    const esResponse = await esClientObj.search(
-      Github.Enums.IndexName.GitTestCoverage,
-      query.toJSON()
-    );
-
     do {
       repoNames = await getRepoName(repoIds, counter);
       if (repoNames?.length) {
@@ -70,19 +84,21 @@ export const getData = async (
     repoNamesArr.forEach((names) => {
       repoNamesObj[names.id] = names.name;
     });
-    const response = await searchedDataFormator(esResponse);
+
     const data = await paginate<{
       repoId: number;
       lines: { pct: number };
       forDate: string;
     }>(response, Number(page), Number(limit));
 
-    return data.map((item) => ({
+    const res = data.map((item) => ({
       repoId: item.repoId,
       value: item.lines.pct,
       date: item.forDate,
       repoName: repoNamesObj[item.repoId],
     }));
+    const totalPages = Math.ceil(response.length / limit);
+    return { data: res, page, totalPages };
   } catch (e) {
     logger.error({ message: 'getData.error', error: `${e}` });
     throw e;
