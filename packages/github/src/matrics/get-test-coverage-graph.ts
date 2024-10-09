@@ -1,30 +1,59 @@
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { Github } from 'abstraction';
+import { IPrCommentAggregationResponse } from 'abstraction/github/type';
 import { logger } from 'core';
-const mockData = [
-  { repoId: 123456, value: 1, date: '2024-09-01' },
-  { repoId: 1236345, value: 11, date: '2024-09-02' },
-  { repoId: 123456, value: 21, date: '2024-09-03' },
-  { repoId: 1236345, value: 31, date: '2024-09-04' },
-  { repoId: 123456, value: 14, date: '2024-09-05' },
-  { repoId: 12345226, value: 51, date: '2024-09-06' },
-  { repoId: 1234556, value: 19, date: '2024-09-07' },
-];
+import esb from 'elastic-builder';
+import { processGraphInterval } from 'src/util/process-graph-intervals';
+import { searchedDataFormator } from 'src/util/response-formatter';
 
+const esClientObj = ElasticSearchClient.getInstance();
+const getRepoName = async (repoIds: string[]): Promise<Github.Type.RepoNameType[]> => {
+  const repoNamesQuery = esb
+    .requestBodySearch()
+    .size(repoIds.length)
+    .query(esb.boolQuery().must(esb.termsQuery('body.id', repoIds)))
+    .toJSON();
+  const repoNamesData = await esClientObj.search(Github.Enums.IndexName.GitRepo, repoNamesQuery);
+  const repoNames = await searchedDataFormator(repoNamesData);
+  return repoNames;
+};
 export const getData = async (
   repoIds: string[],
   startDate: string,
   endDate: string,
-  page: number,
-  limit: number
-): Promise<{ data: {value: number; date: string }[] }> => {
+  interval: string
+): Promise<{ date: string; values: object }[]> => {
   try {
-    const filteredData = mockData.filter(
-      (item) =>
-        repoIds.includes(item.repoId.toString()) && item.date >= startDate && item.date <= endDate
+    const testCoverageGraph = esb.requestBodySearch().size(0);
+    testCoverageGraph.query(esb.boolQuery().must([esb.termsQuery('body.repoId', repoIds)]));
+    const graphIntervals = processGraphInterval(interval, startDate, endDate);
+    testCoverageGraph.agg(
+      graphIntervals.agg(
+        esb
+          .termsAggregation('by_repo', 'body.repoId')
+          .agg(esb.avgAggregation('total_lines', 'body.lines.pct'))
+      )
     );
-    const startIndex = (page - 1) * limit;
-    const paginatedData = filteredData.slice(startIndex, startIndex + limit);
-    const responseData = paginatedData.map(({ value, date }) => ({ value, date }));
-    return { data: responseData };
+    const repoNames = await getRepoName(repoIds);
+
+    const data = await esClientObj.queryAggs<IPrCommentAggregationResponse>(
+      Github.Enums.IndexName.GitTestCoverage,
+      testCoverageGraph.toJSON()
+    );
+
+    return data.commentsPerDay.buckets.map((bucket: any) => {
+      return {
+        date: bucket.key_as_string,
+        values: bucket.by_repo.buckets.map((repo: any) => {
+          const repoName = repoNames.find((repoName) => repoName.id === repo.key);
+          return {
+            repoId: repo.key,
+            repoName: repoName?.name,
+            value: parseInt(repo.total_lines.value).toFixed(2),
+          };
+        }),
+      };
+    });
   } catch (e) {
     logger.error({ message: 'getData.error', error: `${e}` });
     throw e;
