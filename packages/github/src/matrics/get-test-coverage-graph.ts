@@ -7,20 +7,11 @@ import { processGraphInterval } from 'src/util/process-graph-intervals';
 import { searchedDataFormator } from 'src/util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
-const getRepoName = async (
-  repoIds: string[],
-  counter2: number
-): Promise<Github.Type.RepoNameType[]> => {
+const getRepoName = async (repoIds: string[]): Promise<Github.Type.RepoNameType[]> => {
   const repoNamesQuery = esb
     .requestBodySearch()
-    .from(100 * (counter2 - 1))
-    .size(100)
-    .query(
-      esb
-        .boolQuery()
-        .should([esb.termsQuery('body.repoId', repoIds), esb.termsQuery('body.id', repoIds)])
-        .minimumShouldMatch(1)
-    )
+    .size(repoIds.length)
+    .query(esb.boolQuery().must(esb.termsQuery('body.id', repoIds)))
     .toJSON();
   const repoNamesData = await esClientObj.search(Github.Enums.IndexName.GitRepo, repoNamesQuery);
   const repoNames = await searchedDataFormator(repoNamesData);
@@ -31,11 +22,8 @@ export const getData = async (
   startDate: string,
   endDate: string,
   interval: string
-): Promise<{ date: string; value: object }[]> => {
+): Promise<{ date: string; values: object }[]> => {
   try {
-    let repoNamesArr: Github.Type.RepoNameType[] = [];
-    let repoNames: Github.Type.RepoNameType[] = [];
-    let counter = 1;
     const testCoverageGraph = esb.requestBodySearch().size(0);
     testCoverageGraph.query(esb.boolQuery().must([esb.termsQuery('body.repoId', repoIds)]));
     const graphIntervals = processGraphInterval(interval, startDate, endDate);
@@ -46,13 +34,8 @@ export const getData = async (
           .agg(esb.avgAggregation('total_lines', 'body.lines.pct'))
       )
     );
-    do {
-      repoNames = await getRepoName(repoIds, counter);
-      if (repoNames?.length) {
-        repoNamesArr.push(...repoNames);
-        counter += 1;
-      }
-    } while (repoNames?.length);
+    const repoNames = await getRepoName(repoIds);
+
     const data = await esClientObj.queryAggs<IPrCommentAggregationResponse>(
       Github.Enums.IndexName.GitTestCoverage,
       testCoverageGraph.toJSON()
@@ -61,8 +44,8 @@ export const getData = async (
     return data.commentsPerDay.buckets.map((bucket: any) => {
       return {
         date: bucket.key_as_string,
-        value: bucket.by_repo.buckets.map((repo: any) => {
-          const repoName = repoNamesArr.find((repoName) => repoName.id === repo.key);
+        values: bucket.by_repo.buckets.map((repo: any) => {
+          const repoName = repoNames.find((repoName) => repoName.id === repo.key);
           return {
             repoId: repo.key,
             repoName: repoName?.name,

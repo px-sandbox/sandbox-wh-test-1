@@ -10,7 +10,7 @@ const getRepoName = async (repoIds: string[]): Promise<Github.Type.RepoNameType[
   const repoNamesQuery = esb
     .requestBodySearch()
     .size(repoIds.length)
-    .query(esb.boolQuery().should(esb.termsQuery('body.id', repoIds)))
+    .query(esb.boolQuery().must(esb.termsQuery('body.id', repoIds)))
     .toJSON();
   const repoNamesData = await esClientObj.search(Github.Enums.IndexName.GitRepo, repoNamesQuery);
   const repoNames = await searchedDataFormator(repoNamesData);
