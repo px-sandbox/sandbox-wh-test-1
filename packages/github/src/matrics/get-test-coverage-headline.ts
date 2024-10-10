@@ -48,9 +48,9 @@ export const getTestCoverageHeadlineData = async (
     if (testCoverageResponse.length) {
       let totalPct = 0;
 
-      testCoverageResponse.forEach((cov: { statements: { pct: number } }) => {
-        if (cov.statements && cov.statements) {
-          totalPct += cov.statements.pct;
+      testCoverageResponse.forEach((cov: { lines: { pct: number } }) => {
+        if (cov.lines && cov.lines) {
+          totalPct += cov.lines.pct;
         }
       });
 
