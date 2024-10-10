@@ -69,12 +69,14 @@ export const getData = async (
     const res = response.map(
       (item: { repoId: number; repoName: string; lines: { pct: number }; forDate: string }) => ({
         repoId: item.repoId,
-        value: item.lines.pct,
+        value: item.lines.pct.toFixed(2),
         date: item.forDate,
         repoName: repoNamesObj[item.repoId],
       })
     );
-    return { data: res, page, totalPages: esResponse.hits.total.value };
+
+    const totalPages = Math.ceil(esResponse.hits.total.value / limit);
+    return { data: res, page, totalPages };
   } catch (e) {
     logger.error({ message: 'getData.error', error: `${e}` });
     throw e;
