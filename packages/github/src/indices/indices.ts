@@ -508,7 +508,8 @@ const indices = [
               type: 'keyword',
             },
             createdAt: {
-              type: 'keyword',
+              type: 'date',
+              format: 'strict_date_optional_time',
             },
             forDate: {
               type: 'date',

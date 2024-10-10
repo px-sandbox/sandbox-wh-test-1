@@ -26,7 +26,7 @@ export const getData = async (
   try {
     const testCoverageGraph = esb.requestBodySearch().size(0);
     testCoverageGraph.query(esb.boolQuery().must([esb.termsQuery('body.repoId', repoIds)]));
-    const graphIntervals = processGraphInterval(interval, startDate, endDate);
+    const graphIntervals = processGraphInterval(interval, startDate, endDate, 'body.forDate');
     testCoverageGraph.agg(
       graphIntervals.agg(
         esb
