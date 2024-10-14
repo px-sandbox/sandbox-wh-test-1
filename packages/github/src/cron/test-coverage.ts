@@ -1,5 +1,5 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import moment from 'moment';
@@ -11,36 +11,77 @@ const esClient = ElasticSearchClient.getInstance();
 const getCoverageRecords = async (
   RepoIds: string[]
 ): Promise<Github.Type.TestCoverageResponse[]> => {
-  if (RepoIds.length === 0) {
-    throw new Error('RepoIds must be provided.');
-  }
   const yesterDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
+  try{
   const query = esb
     .requestBodySearch()
     .size(RepoIds.length)
-    .query(esb.termQuery('body.forDate', yesterDate))
+    .query(
+      esb
+        .boolQuery()
+        .must([esb.termQuery('body.forDate', yesterDate), esb.termsQuery('body.repoId', RepoIds)])
+    )
     .toJSON();
 
   const data = await esClient.search(Github.Enums.IndexName.GitTestCoverage, query);
   const records = await searchedDataFormator(data);
   return records;
+  }catch (error) {
+    logger.error({
+      message: `getCoverageRecords.error: Failed to get coverage records for RepoIds: ${RepoIds}`,
+      error: `${error}`
+    });
+    throw error;
+  }
+};
+
+const getRepoIdForCurrentDateCoverage = async (RepoIds: string[]): Promise<Github.Type.TestCoverageResponse[]> => {
+  const currentDate = moment().format('YYYY-MM-DD');
+  
+  let coverage:Github.Type.TestCoverageResponse[] = [];
+  try{
+  const query = esb
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
+        .must([esb.termQuery('body.forDate', currentDate), esb.termsQuery('body.repoId', RepoIds)])
+    )
+    .toJSON();
+  const data = await esClient.search(Github.Enums.IndexName.GitTestCoverage, query);
+  const formatted = await searchedDataFormator(data);
+  const matchedRepoIds = formatted.map((hit: any) => hit.repoId);
+  const filteredRepoIds = RepoIds.filter((repo) => !matchedRepoIds.includes(repo));
+  if (filteredRepoIds.length >0) {
+    coverage  = await getCoverageRecords(filteredRepoIds);
+  }
+  return coverage;
+}catch (error) {
+  logger.error({
+    message: `getRepoIdForCurrentDateCoverage.error: Failed to get coverage for current date for RepoIds: ${RepoIds}`,
+    error: `${error}`,
+  });
+  throw error;
+}
 };
 
 export const fetchSaveTestCoverage = async (RepoIds: string[]): Promise<void> => {
-  const dataCoverage = await getCoverageRecords(RepoIds);
+  try{
+  const dataCoverage = await getRepoIdForCurrentDateCoverage(RepoIds);
   if (!dataCoverage?.length) {
     logger.info({
       message: `fetchSaveTestCoverage.info: GET_GITHUB_BRANCH_DETAILS: No record found for repoIds: ${RepoIds}`,
     });
     return;
   }
-  const uniqueID = uuid();
+ 
   const currentDate = moment().format('YYYY-MM-DD');
+
   const updatedDataCoverage = dataCoverage.map(({ _id, ...hit }) => {
     const organizationId = hit.organizationId;
     const repoId = hit.repoId;
     return {
-      _id: uniqueID,
+      _id: uuid(),
       body: {
         ...hit,
         id: `${organizationId}_${repoId}_${currentDate}`,
@@ -49,4 +90,10 @@ export const fetchSaveTestCoverage = async (RepoIds: string[]): Promise<void> =>
     };
   });
   await esClient.bulkInsert(Github.Enums.IndexName.GitTestCoverage, updatedDataCoverage);
+  }catch (error) {
+    logger.error({
+      message: `fetchSaveTestCoverage.error: Failed to fetch and save test coverage for repoIds: ${RepoIds}`,
+      error: `${error}`
+    });
+  }
 };
