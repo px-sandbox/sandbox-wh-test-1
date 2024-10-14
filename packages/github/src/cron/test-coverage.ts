@@ -35,8 +35,7 @@ const getCoverageRecords = async (
   }
 };
 
-const getRepoIdForCurrentDateCoverage = async (RepoIds: string[]): Promise<Github.Type.TestCoverageResponse[]> => {
-  const currentDate = moment().format('YYYY-MM-DD');
+const getRepoIdForCurrentDateCoverage = async (RepoIds: string[],currentDate:string): Promise<Github.Type.TestCoverageResponse[]> => {
   
   let coverage:Github.Type.TestCoverageResponse[] = [];
   try{
@@ -65,9 +64,9 @@ const getRepoIdForCurrentDateCoverage = async (RepoIds: string[]): Promise<Githu
 }
 };
 
-export const fetchSaveTestCoverage = async (RepoIds: string[]): Promise<void> => {
+export const fetchSaveTestCoverage = async (RepoIds: string[],currentDate:string): Promise<void> => {
   try{
-  const dataCoverage = await getRepoIdForCurrentDateCoverage(RepoIds);
+  const dataCoverage = await getRepoIdForCurrentDateCoverage(RepoIds,currentDate);
   if (!dataCoverage?.length) {
     logger.info({
       message: `fetchSaveTestCoverage.info: GET_GITHUB_BRANCH_DETAILS: No record found for repoIds: ${RepoIds}`,
@@ -75,8 +74,6 @@ export const fetchSaveTestCoverage = async (RepoIds: string[]): Promise<void> =>
     return;
   }
  
-  const currentDate = moment().format('YYYY-MM-DD');
-
   const updatedDataCoverage = dataCoverage.map(({ _id, ...hit }) => {
     const organizationId = hit.organizationId;
     const repoId = hit.repoId;
