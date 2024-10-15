@@ -101,7 +101,7 @@ const updateSecurityScans = async (event: APIGatewayProxyEvent): Promise<APIGate
     await Promise.all(
       repoIds.map(async (repoId) => fetchBranchesData(repoId, currDate, requestId))
     );
-    await fetchSaveTestCoverage(repoIds);
+    await fetchSaveTestCoverage(repoIds,currDate);
     return responseParser
       .setMessage('successfully updating scans for today')
       .setResponseBodyCode('SUCCESS')
