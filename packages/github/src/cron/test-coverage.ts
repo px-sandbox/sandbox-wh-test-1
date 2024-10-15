@@ -8,7 +8,7 @@ import { v4 as uuid } from 'uuid';
 
 const esClient = ElasticSearchClient.getInstance();
 
-const getCoverageRecords = async (
+const getYesterdayCoverageData = async (
   RepoIds: string[]
 ): Promise<Github.Type.TestCoverageResponse[]> => {
   const yesterDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
@@ -28,14 +28,14 @@ const getCoverageRecords = async (
   return records;
   }catch (error) {
     logger.error({
-      message: `getCoverageRecords.error: Failed to get coverage records for RepoIds: ${RepoIds}`,
+      message: `getYesterdayCoverageRecords.error: Failed to get coverage records for RepoIds: ${RepoIds}`,
       error: `${error}`
     });
     throw error;
   }
 };
 
-const getRepoIdForCurrentDateCoverage = async (RepoIds: string[],currentDate:string): Promise<Github.Type.TestCoverageResponse[]> => {
+const getCoverageData = async (RepoIds: string[],currentDate:string): Promise<Github.Type.TestCoverageResponse[]> => {
   
   let coverage:Github.Type.TestCoverageResponse[] = [];
   try{
@@ -52,12 +52,12 @@ const getRepoIdForCurrentDateCoverage = async (RepoIds: string[],currentDate:str
   const matchedRepoIds = formatted.map((hit: any) => hit.repoId);
   const filteredRepoIds = RepoIds.filter((repo) => !matchedRepoIds.includes(repo));
   if (filteredRepoIds.length >0) {
-    coverage  = await getCoverageRecords(filteredRepoIds);
+    coverage  = await getYesterdayCoverageData(filteredRepoIds);
   }
   return coverage;
 }catch (error) {
   logger.error({
-    message: `getRepoIdForCurrentDateCoverage.error: Failed to get coverage for current date for RepoIds: ${RepoIds}`,
+    message: `getCoverageData.error: Failed to get coverage for current date for RepoIds: ${RepoIds}`,
     error: `${error}`,
   });
   throw error;
@@ -66,7 +66,7 @@ const getRepoIdForCurrentDateCoverage = async (RepoIds: string[],currentDate:str
 
 export const fetchSaveTestCoverage = async (RepoIds: string[],currentDate:string): Promise<void> => {
   try{
-  const dataCoverage = await getRepoIdForCurrentDateCoverage(RepoIds,currentDate);
+  const dataCoverage = await getCoverageData(RepoIds,currentDate);
   if (!dataCoverage?.length) {
     logger.info({
       message: `fetchSaveTestCoverage.info: GET_GITHUB_BRANCH_DETAILS: No record found for repoIds: ${RepoIds}`,
