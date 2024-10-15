@@ -25,8 +25,15 @@ export const getData = async (
 ): Promise<{ date: string; values: object }[]> => {
   try {
     const testCoverageGraph = esb.requestBodySearch().size(0);
-    testCoverageGraph.query(esb.boolQuery().must([esb.termsQuery('body.repoId', repoIds)]));
-    const graphIntervals = processGraphInterval(interval, startDate, endDate);
+    testCoverageGraph.query(
+      esb
+        .boolQuery()
+        .must([
+          esb.rangeQuery('body.forDate').gte(startDate).lte(endDate),
+          esb.termsQuery('body.repoId', repoIds),
+        ])
+    );
+    const graphIntervals = processGraphInterval(interval, startDate, endDate, 'body.forDate');
     testCoverageGraph.agg(
       graphIntervals.agg(
         esb
@@ -35,6 +42,11 @@ export const getData = async (
       )
     );
     const repoNames = await getRepoName(repoIds);
+
+    logger.info({
+      message: 'getData.testCoverage.graph.info',
+      data: JSON.stringify(testCoverageGraph.toJSON()),
+    });
 
     const data = await esClientObj.queryAggs<IPrCommentAggregationResponse>(
       Github.Enums.IndexName.GitTestCoverage,

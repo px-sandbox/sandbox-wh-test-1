@@ -4,7 +4,8 @@ import { esbDateHistogramInterval } from '../constant/config';
 export function processGraphInterval(
   intervals: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  field: string = 'body.createdAt'
 ): esb.DateHistogramAggregation {
   // By default graph interval is day
   let graphIntervals: esb.DateHistogramAggregation;
@@ -14,7 +15,7 @@ export function processGraphInterval(
     case esbDateHistogramInterval.year:
       graphIntervals = esb
         .dateHistogramAggregation('commentsPerDay')
-        .field('body.createdAt')
+        .field(field)
         .format('yyyy-MM-dd')
         .calendarInterval(intervals)
         .extendedBounds(startDate, endDate)
@@ -24,7 +25,7 @@ export function processGraphInterval(
     case esbDateHistogramInterval['3d']:
       graphIntervals = esb
         .dateHistogramAggregation('commentsPerDay')
-        .field('body.createdAt')
+        .field(field)
         .format('yyyy-MM-dd')
         .fixedInterval(intervals)
         .extendedBounds(startDate, endDate)
@@ -33,7 +34,7 @@ export function processGraphInterval(
     default:
       graphIntervals = esb
         .dateHistogramAggregation('commentsPerDay')
-        .field('body.createdAt')
+        .field(field)
         .format('yyyy-MM-dd')
         .calendarInterval(esbDateHistogramInterval.month)
         .extendedBounds(startDate, endDate)
