@@ -28,6 +28,18 @@ export type TestCoverageData = {
     lines: Coverage;
   };
 };
+export type TestCoverageResponse = { 
+    _id:string;
+    id: string;
+    organizationId: string;
+    repoId: string;
+    createdAt: string;
+    forDate: string;
+    statements: Coverage;
+    branches: Coverage;
+    functions: Coverage;
+    lines: Coverage;
+};
 
 export type CoverageHeadline = {
   total: number;
