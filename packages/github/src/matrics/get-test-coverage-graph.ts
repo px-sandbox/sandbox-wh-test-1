@@ -54,16 +54,19 @@ export const getData = async (
     );
 
     return data.commentsPerDay.buckets.map((bucket: any) => {
+      const values = repoNames.map((repoName) => {
+        const repo = bucket.by_repo.buckets.find(
+          (bucketRepo: any) => bucketRepo.key == repoName.id
+        );
+        return {
+          repoId: repoName.id,
+          repoName: repoName.name,
+          value: repo ? parseInt(repo.total_lines.value).toFixed(2) : '0.00',
+        };
+      });
       return {
         date: bucket.key_as_string,
-        values: bucket.by_repo.buckets.map((repo: any) => {
-          const repoName = repoNames.find((repoName) => repoName.id === repo.key);
-          return {
-            repoId: repo.key,
-            repoName: repoName?.name,
-            value: parseInt(repo.total_lines.value).toFixed(2),
-          };
-        }),
+        values,
       };
     });
   } catch (e) {
