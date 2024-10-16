@@ -47,26 +47,32 @@ export const getData = async (
       message: 'getData.testCoverage.graph.info',
       data: JSON.stringify(testCoverageGraph.toJSON()),
     });
-
     const data = await esClientObj.queryAggs<IPrCommentAggregationResponse>(
       Github.Enums.IndexName.GitTestCoverage,
       testCoverageGraph.toJSON()
     );
 
-    return data.commentsPerDay.buckets.map((bucket: any) => {
-      const values = repoNames.map((repoName) => {
-        const repo = bucket.by_repo.buckets.find(
-          (bucketRepo: any) => bucketRepo.key == repoName.id
-        );
-        return {
-          repoId: repoName.id,
-          repoName: repoName.name,
-          value: repo ? parseInt(repo.total_lines.value).toFixed(2) : '0.00',
-        };
-      });
+    const mapping: { [key: string]: string } = {};
+    const defaultObj = repoNames.reduce((acc: { [x: string]: number }, item) => {
+      acc[item.name] = 0;
+      mapping[item.id] = item.name;
+      return acc;
+    }, {});
+
+    return data.commentsPerDay.buckets.map((bucket) => {
       return {
         date: bucket.key_as_string,
-        values,
+        ...defaultObj,
+        ...bucket.by_repo.buckets.reduce(
+          (
+            acc: { [x: string]: string },
+            item: { key: string | number; total_lines: { value: string } }
+          ) => {
+            acc[mapping[item.key]] = parseInt(item.total_lines.value).toFixed(2);
+            return acc;
+          },
+          {}
+        ),
       };
     });
   } catch (e) {
