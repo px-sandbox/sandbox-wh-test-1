@@ -455,7 +455,7 @@ const indices = [
   },
   {
     name:Github.Enums.IndexName.GitDeploymentFrequency,
-    _id:{type: 'keyword'},
+    _id:{type: 'uuid'},
     mappings:{
       properties:{
         body:{
@@ -466,12 +466,6 @@ const indices = [
             createdAt: {  type: 'date',  format: 'strict_date_optional_time'},
             repoId: { type: 'keyword' },
             orgId: { type: 'keyword' },
-            otherInfo: {
-              type:'object',
-              properties:{
-                pr: {type:'keyword'}
-              }
-            }
           }
         }
       }
