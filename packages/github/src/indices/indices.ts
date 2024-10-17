@@ -454,6 +454,30 @@ const indices = [
     },
   },
   {
+    name:Github.Enums.IndexName.GitDeploymentFrequency,
+    _id:{type: 'keyword'},
+    mappings:{
+      properties:{
+        body:{
+          type:'object',
+          properties:{
+            source: { type: 'keyword' },
+            destination: { type: 'keyword' },
+            createdAt: {  type: 'date',  format: 'strict_date_optional_time'},
+            repoId: { type: 'keyword' },
+            orgId: { type: 'keyword' },
+            otherInfo: {
+              type:'object',
+              properties:{
+                pr: {type:'keyword'}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
     name: Github.Enums.IndexName.GitRepoSastErrorCount,
     _id: { type: 'keyword' },
     mappings: {
