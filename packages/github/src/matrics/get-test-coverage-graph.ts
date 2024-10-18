@@ -65,10 +65,10 @@ export const getData = async (
         ...defaultObj,
         ...bucket.by_repo.buckets.reduce(
           (
-            acc: { [x: string]: string },
-            item: { key: string | number; total_lines: { value: string } }
+            acc: { [x: string]: number },
+            item: { key: number | number; total_lines: { value: number } }
           ) => {
-            acc[mapping[item.key]] = parseInt(item.total_lines.value).toFixed(2);
+            acc[mapping[item.key]] = parseFloat(item.total_lines.value.toFixed(2));
             return acc;
           },
           {}
