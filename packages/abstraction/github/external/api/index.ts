@@ -8,4 +8,5 @@ import { Commit } from './commit';
 import { GHCopilotReport } from './gh-copilot';
 import { RepoSastErrors } from './repo-sast-errors';
 import { RepoCoverageData } from './test-coverage-report';
-export { Organization, Branch, BranchList, Repository, User, PullRequest, Commit, GHCopilotReport, RepoSastErrors,RepoCoverageData};
+import { githubDeploymentData } from './github-deployment';
+export { Organization, Branch, BranchList, Repository, User, PullRequest, Commit, GHCopilotReport, RepoSastErrors,RepoCoverageData,githubDeploymentData};
