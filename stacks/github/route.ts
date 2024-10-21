@@ -88,25 +88,11 @@ export function initializeRoutes(
       authorizer: 'none',
     },
 
-    // GET Github Branches data
-    'GET /github/branches': {
-      function: 'packages/github/src/service/get-branches.handler',
-      authorizer: 'universal',
-    },
-
     // GET Technical Success Criteria metrics
     'GET /github/graph/version-upgrades': {
       function: {
         handler: 'packages/github/src/service/version-upgrades.handler',
         bind: [libMasterTable],
-      },
-      authorizer: 'universal',
-    },
-
-    // GET Technical Success Criteria metrics
-    'GET /github/graph/product-security': {
-      function: {
-        handler: 'packages/github/src/service/product-security.handler',
       },
       authorizer: 'universal',
     },
@@ -161,12 +147,6 @@ export function initializeRoutes(
       },
       authorizer: 'admin',
     },
-    'GET /github/graph/product-security/detail': {
-      function: {
-        handler: 'packages/github/src/service/repo-sast-errors-details.handler',
-      },
-      authorizer: 'universal',
-    },
 
     'GET /github/update-merge-commits': {
       function: {
@@ -183,14 +163,6 @@ export function initializeRoutes(
         bind: [prReviewCommentMigrationQueue],
       },
       authorizer: 'admin',
-    },
-
-    'GET /github/tech-audit': {
-      function: {
-        handler: 'packages/github/src/service/tech-audit.handler',
-        timeout: '5 minutes',
-      },
-      authorizer: 'universal',
     },
 
     'POST /github/migration/status': {
@@ -212,26 +184,6 @@ export function initializeRoutes(
         bind: [testCoverageQueue],
       },
       authorizer: 'none',
-    },
-    'GET /github/test-coverage/graph': {
-      function: {
-        handler: 'packages/github/src/service/get-test-coverage-graph.handler',
-      },
-      authorizer: 'universal',
-    },
-
-    'GET /github/test-coverage/tabular': {
-      function: {
-        handler: 'packages/github/src/service/get-test-coverage.handler',
-      },
-      authorizer: 'universal',
-    },
-
-    'GET /github/test-coverage-headline': {
-      function: {
-        handler: 'packages/github/src/service/get-test-coverage-headline.handler',
-      },
-      authorizer: 'universal',
     },
   };
 }
