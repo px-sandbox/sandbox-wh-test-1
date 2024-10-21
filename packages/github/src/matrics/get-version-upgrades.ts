@@ -281,9 +281,10 @@ export async function getVersionUpgrades(
     const sortedData = await sortData(finalData, sort);
     return {
       versionData: sortedData,
-      afterKey: afterKeyObj
-        ? Buffer.from(JSON.stringify(afterKeyObj), 'utf-8').toString('base64')
-        : '',
+      afterKey:
+        afterKeyObj && sortedData.length >= 10
+          ? Buffer.from(JSON.stringify(afterKeyObj), 'utf-8').toString('base64')
+          : '',
     };
   } catch (e) {
     logger.error({
