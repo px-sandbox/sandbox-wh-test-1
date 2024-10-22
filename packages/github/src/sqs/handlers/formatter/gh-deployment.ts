@@ -8,12 +8,16 @@ const esClient = ElasticSearchClient.getInstance();
 export const handler = async function randomdd(event: { Records: any }) {
   try {
     const recordToInsert = event.Records.map((record: { body: any }) => {
+      const parser=JSON.parse(record.body)
       return {
-        body: JSON.parse(record.body).message,
+        source: parser.message.source, 
+        destination: parser.message.destination,
+        createAt: parser.message.createAt,
+        repoId: parser.message.repoId,
+        orgId: parser.message.orgId
       };
     });
-
-    await esClient.putDocument(Github.Enums.IndexName.GitDeploymentFrequency, recordToInsert);
+        await esClient.putDocument(Github.Enums.IndexName.GitDeploymentFrequency, recordToInsert);
   } catch (error) {
     logger.error({
       message: `handler.error`,

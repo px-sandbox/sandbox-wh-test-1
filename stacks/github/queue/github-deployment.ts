@@ -12,7 +12,7 @@ export function createGhDeploymentQueue(
     NODE_VERSION,
     REQUEST_TIMEOUT,
   } = use(commonConfig);
-  const githubDeploymentQueue = new Queue(stack, 'qGhDeployment');
+  const githubDeploymentQueue = new Queue(stack, 'qGhDeploymentFrequency');
 
   githubDeploymentQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhDeployment', {
@@ -29,7 +29,7 @@ export function createGhDeploymentQueue(
 
     cdk: {
       eventSource: {
-        batchSize: 1,
+        batchSize: 5,
       },
     },
   });
