@@ -26,7 +26,7 @@ export function initializeRoutes(
     updateMergeCommit,
     prReviewCommentMigrationQueue,
     testCoverageQueue,
-    githubDeploymentQueue
+    githubDeploymentFrequencyQueue
   } = queues;
   const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID } = use(commonConfig);
   /* We aso extract and bind the tables
@@ -238,7 +238,7 @@ export function initializeRoutes(
     'POST /github/deployment':{
       function:{
         handler:'packages/github/src/service/github-deployment.handler',
-        bind:[githubDeploymentQueue]
+        bind:[githubDeploymentFrequencyQueue]
       },
       authorizer:'none',
     }

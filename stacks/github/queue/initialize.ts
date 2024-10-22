@@ -68,7 +68,7 @@ export function initializeQueue(
   const repoSastErrors = initializeRepoSastErrorQueue(stack, buckets.sastErrorsBucket, githubDDb);
   const [scansSaveQueue] = initializeSecurityScanQueue(stack, githubDDb);
   const [testCoverageQueue] = createGhTestCoverageQueue(stack, buckets.testCoverageReportsBucket);
-  const [githubDeploymentQueue]=createGhDeploymentQueue(stack);
+  const [githubDeploymentFrequencyQueue]=createGhDeploymentQueue(stack);
   // Bindings for indexerQueue
   indexerQueue.bind([afterRepoSaveQueue]);
 
@@ -100,6 +100,6 @@ export function initializeQueue(
     prReviewCommentMigrationQueue,
     indexerQueue,
     testCoverageQueue,
-    githubDeploymentQueue
+    githubDeploymentFrequencyQueue
   };
 }

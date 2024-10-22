@@ -12,9 +12,9 @@ export function createGhDeploymentQueue(
     NODE_VERSION,
     REQUEST_TIMEOUT,
   } = use(commonConfig);
-  const githubDeploymentQueue = new Queue(stack, 'qGhDeploymentFrequency');
+  const githubDeploymentFrequencyQueue = new Queue(stack, 'qGhDeploymentFrequency');
 
-  githubDeploymentQueue.addConsumer(stack, {
+  githubDeploymentFrequencyQueue.addConsumer(stack, {
     function: new Function(stack, 'fnGhDeployment', {
       handler: 'packages/github/src/sqs/handlers/formatter/gh-deployment.handler',
       runtime: NODE_VERSION,
@@ -23,7 +23,7 @@ export function createGhDeploymentQueue(
         OPENSEARCH_PASSWORD,
         OPENSEARCH_USERNAME,
         REQUEST_TIMEOUT,
-        githubDeploymentQueue
+        githubDeploymentFrequencyQueue
       ],
     }),
 
@@ -34,5 +34,5 @@ export function createGhDeploymentQueue(
     },
   });
 
-  return [githubDeploymentQueue];
+  return [githubDeploymentFrequencyQueue];
 }

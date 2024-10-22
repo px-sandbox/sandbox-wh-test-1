@@ -1,4 +1,4 @@
-export type githubDeploymentData = {
+export type githubDeploymentFrequencyData = {
     source: string;
     destination: string, 
     createAt: string, 
