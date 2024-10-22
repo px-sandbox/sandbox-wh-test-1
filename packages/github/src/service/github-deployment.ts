@@ -17,7 +17,6 @@ export const handler = async function githubDeploymentFrequency(
       requestId,
     });
     const data: Github.ExternalType.Api.githubDeploymentData = JSON.parse(event.body ?? '{}');
-    console.log("🚀 ~ data:", data)
     
     await sqsClient.sendMessage(
         data,

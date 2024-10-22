@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 
 const esClient = ElasticSearchClient.getInstance();
 
-export const handler = async function randomdd(event: { Records: any }) {
+export const handler = async function dataInsertionToIndice(event: { Records: any }) {
   try {
     const recordToInsert = event.Records.map((record: { body: any }) => {
       const parser=JSON.parse(record.body)
