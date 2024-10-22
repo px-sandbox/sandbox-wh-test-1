@@ -52,7 +52,8 @@ import {
 
 import { CommentsDetailResponse, PRCommentsDetail, RepoNamesResponse } from './pr-comments-detail';
 import { IOrganisation, IformatUserDataResponse, IRepo, Hit } from './github-utils';
-import { TestCoverage, TestCoverageData,TestCoverageResponse } from './test-coverage';
+import { TestCoverage, TestCoverageData, TestCoverageResponse } from './test-coverage';
+import { DeploymentFrequencyGraph } from './aggregations/deployment-frequencies-graph';
 export {
   Branch,
   Organization,
@@ -122,5 +123,6 @@ export {
   CoreLib,
   TestCoverage,
   TestCoverageData,
-  TestCoverageResponse
+  TestCoverageResponse,
+  DeploymentFrequencyGraph,
 };
