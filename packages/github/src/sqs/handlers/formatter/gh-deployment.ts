@@ -1,28 +1,36 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import { v4 as uuid } from 'uuid';
+import { generateUuid } from 'src/util/response-formatter';
+import { mappingPrefixes } from 'src/constant/config';
 
 const esClient = ElasticSearchClient.getInstance();
 
 export const handler = async function insertDeploymentFrequencyData(event: { Records: any }) {
-  try {
-    const recordToInsert = event.Records.map((record: { body: any }) => {
-      const parser=JSON.parse(record.body)
-      return {
-        source: parser.message.source, 
-        destination: parser.message.destination,
-        createAt: parser.message.createAt,
-        repoId: parser.message.repoId,
-        orgId: parser.message.orgId
-      };
-    });
-        await esClient.putDocument(Github.Enums.IndexName.GitDeploymentFrequency, recordToInsert);
-  } catch (error) {
-    logger.error({
-      message: `handler.error`,
-      error: `${error}`,
-    });
-    throw error;
-  }
+  await Promise.all(
+    event.Records.map(async (record: { body: any }) => {
+      try {
+        const parser = JSON.parse(record.body);
+        const records = {
+          id: generateUuid(),
+          body: {
+            id: `${mappingPrefixes.gh_Deployment}_${parser.message.destination}_${parser.message.createAt}`,
+            source: parser.message.source,
+            destination: parser.message.destination,
+            repoId: parser.message.repoId,
+            orgId: parser.message.orgId,
+            createdAt: parser.message.createAt,
+            env: parser.message.env,
+          },
+        };
+       await esClient.putDocument(Github.Enums.IndexName.GitDeploymentFrequency, records);
+      } catch (error) {
+        logger.error({
+          message: `insertDeploymentFrequencyData.handler.error`,
+          error: `${error}`,
+        });
+        throw error;
+      }
+    })
+  );
 };
