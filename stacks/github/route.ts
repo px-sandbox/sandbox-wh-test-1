@@ -198,7 +198,7 @@ export function initializeRoutes(
       function: {
         handler:'packages/github/src/service/get-deployment-frequency-table.handler'
       },
-      authorizer: 'none',
+      authorizer: 'universal',
     },
   };
 }
