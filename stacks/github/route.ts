@@ -26,6 +26,7 @@ export function initializeRoutes(
     updateMergeCommit,
     prReviewCommentMigrationQueue,
     testCoverageQueue,
+    githubDeploymentFrequencyQueue
   } = queues;
   const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID } = use(commonConfig);
   /* We aso extract and bind the tables
@@ -185,25 +186,13 @@ export function initializeRoutes(
       },
       authorizer: 'none',
     },
-    'GET /github/test-coverage/graph': {
-      function: {
-        handler: 'packages/github/src/service/get-test-coverage-graph.handler',
-      },
-      authorizer: 'universal',
-    },
 
-    'GET /github/test-coverage/tabular': {
-      function: {
-        handler: 'packages/github/src/service/get-test-coverage.handler',
+    'POST /github/deployment':{
+      function:{
+        handler:'packages/github/src/service/github-deployment.handler',
+        bind:[githubDeploymentFrequencyQueue]
       },
-      authorizer: 'universal',
-    },
-
-    'GET /github/test-coverage-headline': {
-      function: {
-        handler: 'packages/github/src/service/get-test-coverage-headline.handler',
-      },
-      authorizer: 'universal',
+      authorizer:'none',
     },
     'GET /github/deployment-frequency/table':{
       function: {
