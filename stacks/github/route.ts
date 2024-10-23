@@ -185,5 +185,31 @@ export function initializeRoutes(
       },
       authorizer: 'none',
     },
+    'GET /github/test-coverage/graph': {
+      function: {
+        handler: 'packages/github/src/service/get-test-coverage-graph.handler',
+      },
+      authorizer: 'universal',
+    },
+
+    'GET /github/test-coverage/tabular': {
+      function: {
+        handler: 'packages/github/src/service/get-test-coverage.handler',
+      },
+      authorizer: 'universal',
+    },
+
+    'GET /github/test-coverage-headline': {
+      function: {
+        handler: 'packages/github/src/service/get-test-coverage-headline.handler',
+      },
+      authorizer: 'universal',
+    },
+    'GET /github/deployment-frequency/table':{
+      function: {
+        handler:'packages/github/src/service/get-deployment-frequency-table.handler'
+      },
+      authorizer: 'none',
+    },
   };
 }
