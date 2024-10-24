@@ -26,7 +26,7 @@ export const handler = async function (
             esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
           ])
       )
-      .agg(esb.termsAggregation('destination_counts', 'body.destination.keyword'));
+      .agg(esb.termsAggregation('destination_counts', 'body.destination'));
 
     const response: AggregationResponse = await esClient.queryAggs(
       Github.Enums.IndexName.GitDeploymentFrequency,
