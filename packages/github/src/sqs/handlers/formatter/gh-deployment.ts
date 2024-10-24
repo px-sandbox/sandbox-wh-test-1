@@ -14,7 +14,7 @@ export const handler = async function insertDeploymentFrequencyData(event: { Rec
         const records = {
           id: generateUuid(),
           body: {
-            id: `${mappingPrefixes.gh_deployment}_${parser.message.destination}_${parser.message.createAt}`,
+            id: `${mappingPrefixes.gh_deployment}_${parser.message.orgId}_${parser.message.repoId}_${parser.message.destination}_${parser.message.createAt}`,
             source: parser.message.source,
             destination: parser.message.destination,
             repoId: parser.message.repoId,
