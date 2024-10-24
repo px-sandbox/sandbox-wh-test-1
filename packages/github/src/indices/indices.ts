@@ -466,7 +466,8 @@ const indices = [
             createdAt: {  type: 'date',  format: 'strict_date_optional_time'},
             repoId: { type: 'keyword' },
             orgId: { type: 'keyword' },
-            env: { type: 'keyword' }
+            env: { type: 'keyword' },
+            date: { type: 'date', format: 'yyyy-MM-dd' },
           }
         }
       }

@@ -14,13 +14,14 @@ export const handler = async function insertDeploymentFrequencyData(event: { Rec
         const records = {
           id: generateUuid(),
           body: {
-            id: `${mappingPrefixes.gh_deployment}_${parser.message.orgId}_${parser.message.repoId}_${parser.message.destination}_${parser.message.createAt}`,
+            id: `${mappingPrefixes.gh_deployment}_${parser.message.orgId}_${parser.message.repoId}_${parser.message.destination}_${parser.message.date}`,
             source: parser.message.source,
             destination: parser.message.destination,
             repoId: parser.message.repoId,
             orgId: parser.message.orgId,
             createdAt: parser.message.createAt,
             env: parser.message.env,
+            date : parser.message.date
           },
         };
        await esClient.putDocument(Github.Enums.IndexName.GitDeploymentFrequency, records);
