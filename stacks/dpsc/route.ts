@@ -151,5 +151,12 @@ export function initializeRoutes(): Record<string, ApiRouteProps<'universal'>> {
       },
       authorizer: 'universal',
     },
+    
+    'GET /github/deployment-frequency/table':{
+      function: {
+        handler:'packages/github/src/service/get-deployment-frequency-table.handler'
+      },
+      authorizer: 'universal',
+    },
   };
 }
