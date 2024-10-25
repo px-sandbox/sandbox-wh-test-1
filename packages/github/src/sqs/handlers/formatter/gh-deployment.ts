@@ -3,16 +3,17 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import { generateUuid } from 'src/util/response-formatter';
 import { mappingPrefixes } from 'src/constant/config';
-
+import { SQSEvent } from 'aws-lambda';
 const esClient = ElasticSearchClient.getInstance();
 
-export const handler = async function insertDeploymentFrequencyData(event: { Records: any }) {
-  await Promise.all(
-    event.Records.map(async (record: { body: any }) => {
-      try {
+export const handler = async function insertDeploymentFrequencyData(event: SQSEvent) {
+  try {
+    const bulkOperations:Github.Type.DeploymentFreq[] = [];
+    await Promise.all(
+      event.Records.map(async (record) => {
         const parser = JSON.parse(record.body);
-        const records = {
-          id: generateUuid(),
+        bulkOperations.push({
+          _id: generateUuid(),
           body: {
             id: `${mappingPrefixes.gh_deployment}_${parser.message.orgId}_${parser.message.repoId}_${parser.message.destination}_${parser.message.date}`,
             source: parser.message.source,
@@ -21,17 +22,17 @@ export const handler = async function insertDeploymentFrequencyData(event: { Rec
             orgId: parser.message.orgId,
             createdAt: parser.message.createAt,
             env: parser.message.env,
-            date : parser.message.date
+            date: parser.message.date
           },
-        };
-       await esClient.putDocument(Github.Enums.IndexName.GitDeploymentFrequency, records);
-      } catch (error) {
-        logger.error({
-          message: `insertDeploymentFrequencyData.handler.error`,
-          error: `${error}`,
         });
-        throw error;
-      }
-    })
-  );
-};
+      }));
+    await esClient.bulkInsert(Github.Enums.IndexName.GitDeploymentFrequency, bulkOperations);
+  }
+  catch (error) {
+    logger.error({
+      message: `insertDeploymentFrequencyData.handler.error`,
+      error: `${error}`,
+    });
+    throw error;
+  }
+}
