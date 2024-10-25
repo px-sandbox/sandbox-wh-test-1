@@ -9,6 +9,7 @@ import { Push, CommitIds } from './push';
 import { PRReviewComment } from './pr-review-comment';
 import { PRReview } from './pr-review';
 import { IPrCommentAggregationResponse, GraphAvgCal } from './aggregations/pr-comments';
+import { AggregationResponse } from './aggregations/deployment-frequency-response';
 import { GraphResponse } from './aggregations/graph-response';
 import { actions } from './actions';
 import { QueueMessage } from './retry-process';
@@ -125,4 +126,5 @@ export {
   TestCoverageData,
   TestCoverageResponse,
   DeploymentFrequencyGraph,
+  AggregationResponse
 };

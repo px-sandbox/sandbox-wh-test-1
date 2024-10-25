@@ -14,7 +14,8 @@ export const handler = async function insertDeploymentFrequencyData(event: { Rec
         destination: parser.message.destination,
         createAt: parser.message.createAt,
         repoId: parser.message.repoId,
-        orgId: parser.message.orgId
+        orgId: parser.message.orgId,
+        date: parser.message.date
       };
     });
         await esClient.putDocument(Github.Enums.IndexName.GitDeploymentFrequency, recordToInsert);
