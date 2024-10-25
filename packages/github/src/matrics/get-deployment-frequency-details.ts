@@ -45,7 +45,7 @@ export async function getDeploymentFrequencyDetails(
         .must([
           esb.termsQuery('body.repoId', repoIds),
           esb.termQuery('body.env', env),
-          esb.rangeQuery('body.createAt').gte(startDate).lte(endDate),
+          esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
         ])
     );
 

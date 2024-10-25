@@ -15,7 +15,7 @@ export async function getDeploymentFrequencyGraphData(
   const query = esb.requestBodySearch().size(0);
 
   const mustQueries = [
-    esb.rangeQuery('body.createAt').gte(startDate).lte(endDate),
+    esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
     esb.termsQuery('body.repoId', repoIds),
   ];
 
@@ -24,7 +24,7 @@ export async function getDeploymentFrequencyGraphData(
   }
 
   const deploymentFrequencyQuery = query.query(esb.boolQuery().must(mustQueries));
-  const graphIntervals = processGraphInterval(interval, startDate, endDate, 'body.createAt');
+  const graphIntervals = processGraphInterval(interval, startDate, endDate, 'body.createdAt');
   deploymentFrequencyQuery.agg(
     graphIntervals.agg(esb.termsAggregation('by_dest', 'body.destination'))
   );
