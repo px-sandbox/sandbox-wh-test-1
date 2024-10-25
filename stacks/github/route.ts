@@ -193,6 +193,12 @@ export function initializeRoutes(
         bind:[githubDeploymentFrequencyQueue]
       },
       authorizer:'none',
-    }
+    },
+    'GET /github/deployment-frequency/table':{
+      function: {
+        handler:'packages/github/src/service/get-deployment-frequency-table.handler'
+      },
+      authorizer: 'universal',
+    },
   };
 }
