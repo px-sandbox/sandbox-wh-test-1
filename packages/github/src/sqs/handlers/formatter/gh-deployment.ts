@@ -12,17 +12,19 @@ export const handler = async function insertDeploymentFrequencyData(event: SQSEv
     await Promise.all(
       event.Records.map(async (record) => {
         const parser = JSON.parse(record.body);
+        const createdAt=parser.message.createdAt;
+        const date=createdAt.split('T')[0]
         bulkOperations.push({
           _id: generateUuid(),
           body: {
-            id: `${mappingPrefixes.gh_deployment}_${parser.message.orgId}_${parser.message.repoId}_${parser.message.destination}_${parser.message.date}`,
+            id: `${mappingPrefixes.gh_deployment}_${parser.message.orgId}_${parser.message.repoId}_${parser.message.destination}_${date}`,
             source: parser.message.source,
             destination: parser.message.destination,
             repoId: parser.message.repoId,
             orgId: parser.message.orgId,
-            createdAt: parser.message.createAt,
+            createdAt: createdAt,
             env: parser.message.env,
-            date: parser.message.date
+            date:date
           },
         });
       }));
