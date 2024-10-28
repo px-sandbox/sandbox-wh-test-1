@@ -71,6 +71,7 @@ export async function getDeploymentFrequencyDetails(
       },
     };
   });
+
   const totalPages = Math.ceil(data.hits.total.value / limit);
-  return { result, totalPages };
+  return { data: result, page, totalPages };
 }

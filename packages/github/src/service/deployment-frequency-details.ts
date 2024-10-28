@@ -13,7 +13,7 @@ export const handler = async function deploymentFrequencyDetails(
     const page = event.queryStringParameters?.page || '1';
     const limit = event.queryStringParameters?.limit || '10';
 
-    const { result, totalPages } = await getDeploymentFrequencyDetails(
+    const data = await getDeploymentFrequencyDetails(
       repoIds,
       env,
       startDate,
@@ -23,7 +23,7 @@ export const handler = async function deploymentFrequencyDetails(
     );
 
     return responseParser
-      .setBody({ result, totalPages })
+      .setBody(data)
       .setMessage('Deployment frequency details data retrieved successfully')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')
