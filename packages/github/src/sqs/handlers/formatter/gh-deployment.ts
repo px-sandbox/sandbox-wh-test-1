@@ -8,26 +8,28 @@ const esClient = ElasticSearchClient.getInstance();
 
 export const handler = async function insertDeploymentFrequencyData(event: SQSEvent) {
   try {
-    const bulkOperations:Github.Type.DeploymentFreq[] = [];
-    await Promise.all(
+    const bulkOperations = await Promise.all(
       event.Records.map(async (record) => {
-        const parser = JSON.parse(record.body);
-        const createdAt=parser.message.createdAt;
-        const date=createdAt.split('T')[0]
-        bulkOperations.push({
+        const { message: parser } = JSON.parse(record.body);
+
+        return {
           _id: generateUuid(),
           body: {
-            id: `${mappingPrefixes.gh_deployment}_${parser.message.orgId}_${parser.message.repoId}_${parser.message.destination}_${date}`,
-            source: parser.message.source,
-            destination: parser.message.destination,
-            repoId: parser.message.repoId,
-            orgId: parser.message.orgId,
-            createdAt: createdAt,
-            env: parser.message.env,
-            date:date
+            id: `${mappingPrefixes.gh_deployment}_${parser.orgId}_${parser.repoId}_${
+              parser.destination
+            }_${parser.createdAt.split('T')[0]}`,
+            source: parser.source,
+            destination: parser.destination,
+            repoId: parser.repoId,
+            orgId: parser.orgId,
+            createdAt: parser.createdAt,
+            env: parser.env,
+            date: parser.createdAt.split('T')[0],
           },
-        });
-      }));
+        };
+      })
+    );
+    logger.info({ message: 'bulkOperations', data: bulkOperations });
       logger.info({"message":"bulkOperations","data":bulkOperations});
     await esClient.bulkInsert(Github.Enums.IndexName.GitDeploymentFrequency, bulkOperations);
   }
