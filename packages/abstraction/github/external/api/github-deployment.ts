@@ -4,4 +4,5 @@ export type githubDeploymentFrequencyData = {
     createdAt: string, 
     repoId: string,
     orgId: string,
+    env:string,
   };
