@@ -64,7 +64,7 @@ export async function getDeploymentFrequencyDetails(
   const result = formattedData.map((doc: any) => {
     return {
       date: doc.createdAt,
-      source: doc.destination,
+      source: doc.source,
       destination: doc.destination,
       env: doc.env,
       repo: {
