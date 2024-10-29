@@ -29,15 +29,13 @@ export const handler = async function insertDeploymentFrequencyData(event: SQSEv
         };
       })
     );
-    logger.info({ message: 'bulkOperations', data: bulkOperations });
-      logger.info({"message":"bulkOperations","data":bulkOperations});
+    logger.info({ message: '<<<<<<<<>>>>>>>> bulkOperations', data: bulkOperations.length });
     await esClient.bulkInsert(Github.Enums.IndexName.GitDeploymentFrequency, bulkOperations);
-  }
-  catch (error) {
+  } catch (error) {
     logger.error({
       message: `insertDeploymentFrequencyData.handler.error`,
       error: `${error}`,
     });
     throw error;
   }
-}
+};
