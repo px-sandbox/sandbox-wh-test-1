@@ -65,12 +65,15 @@ export async function getDeploymentFrequencyDetails(
     return {
       date: doc.createdAt,
       source: doc.destination,
+      destination: doc.destination,
+      env: doc.env,
       repo: {
         id: doc.repoId,
         name: doc.repoId in repoNamesObj ? repoNamesObj[doc.repoId] : '',
       },
     };
   });
+
   const totalPages = Math.ceil(data.hits.total.value / limit);
-  return { result, totalPages };
+  return { data: result, page, totalPages };
 }

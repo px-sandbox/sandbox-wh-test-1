@@ -41,7 +41,7 @@ export async function getDeploymentFrequencyGraphData(
 
   const result = data.commentsPerDay.buckets.map((bucket) => {
     return {
-      data: bucket.key_as_string,
+      date: bucket.key_as_string,
       ...bucket.by_dest.buckets.reduce(
         (acc: { [key: string]: number }, item: { key: string; doc_count: number }) => {
           acc[item.key] = item.doc_count;
