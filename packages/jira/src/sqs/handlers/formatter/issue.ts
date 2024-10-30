@@ -26,16 +26,14 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
       data: messageBody,
     });
 
-    const issueProcessor = new IssueProcessor(messageBody, requestId, resourceId);
-    const validProject = issueProcessor.validateIssueForProjects();
-    if (validProject) {
-      const data = await issueProcessor.processor();
-      await issueProcessor.save({
-        data,
-        index: Jira.Enums.IndexName.Issue,
-        processId: messageBody?.processId,
-      });
-    }
+    const issueProcessor = new IssueProcessor(
+      messageBody,
+      requestId,
+      resourceId,
+      messageBody.processId
+    );
+    await issueProcessor.process();
+    await issueProcessor.save();
   } catch (error) {
     await logProcessToRetry(record, Queue.qIssueFormat.queueUrl, error as Error);
     logger.error({

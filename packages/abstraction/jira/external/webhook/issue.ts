@@ -78,6 +78,7 @@ export type Issue = {
         id: string;
         key: string;
         name: string;
+        projectTypeKey: string;
       };
       created: string;
       priority: {

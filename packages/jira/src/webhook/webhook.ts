@@ -10,6 +10,8 @@ import * as sprint from './sprints';
 import * as board from './boards';
 import * as issue from './issues';
 import { removeReopenRate } from './issues/delete-reopen-rate';
+import { IssuesTypes } from 'abstraction/jira/enums';
+import { ALLOWED_ISSUE_TYPES } from 'src/constant/config';
 
 /**
  * Processes the webhook event based on the event name and performs the corresponding action.
@@ -80,19 +82,8 @@ async function processWebhookEvent(
         await board.delete(body.board.id, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.IssueCreated:
-        await issue.create(
-          {
-            issue: body.issue,
-            changelog: body.changelog,
-            organization,
-            eventName,
-            timestamp: eventTime.toISOString(),
-          },
-          requestId
-        );
-        break;
       case Jira.Enums.Event.IssueUpdated:
-        await issue.update(
+        await issue.issueHandler(
           {
             issue: body.issue,
             changelog: body.changelog,
@@ -104,13 +95,13 @@ async function processWebhookEvent(
         );
         break;
       case Jira.Enums.Event.IssueDeleted:
-        await issue.remove(
-          body.issue.id,
-          eventTime,
-          organization,
-          requestId,
-          body.issue.fields?.parent?.id
-        );
+        // await issue.remove(
+        //   body.issue.id,
+        //   eventTime,
+        //   organization,
+        //   requestId,
+        //   body.issue.fields?.parent?.id
+        // );
         await removeReopenRate(
           {
             issue: body.issue,
