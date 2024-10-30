@@ -12,7 +12,7 @@ export type Branch = retryProcess & {
     createdAt: string;
     updatedAt: string;
     pushedAt: string;
-    deletedAt: string;
+    deletedAt: string | null;
     action: actions;
     createdAtDay: string;
     computationalDate: string;
@@ -20,4 +20,4 @@ export type Branch = retryProcess & {
     protected: boolean;
     isDeleted: boolean;
   };
-}
+};

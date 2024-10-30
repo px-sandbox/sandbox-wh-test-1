@@ -1,37 +1,5 @@
-export interface IOrganisation {
-  _id: string;
-  id: string;
-  githubOrganizationId: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
-export interface IformatUserDataResponse {
-  _id: number;
-  id: number;
-  githubId: number;
-  userName: string;
-  avatarUrl: string;
-  organizationId: string;
-}
-export interface IRepo {
-  id: number;
-  _id: number;
-  githubId: string;
-  name: string;
-  topics: string;
-  organizationId: string;
-}
-export type Hit = {
-  _id: string;
-  _source: {
-    body: {
-      isDeleted?: boolean;
-      [key: string]: unknown;
-    };
-    [key: string]: unknown;
-  };
-};
+import { Hit, IOrganisation, IRepo, IformatUserDataResponse } from 'abstraction/github/type';
+import { v4 as uuid } from 'uuid';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const searchedDataFormator = async (data: any): Promise<any> => {
@@ -82,8 +50,12 @@ export const formatRepoDataResponse = (
 
 export const formatOrgDataResponse = (
   data: Array<IOrganisation>
-): Array<{id: string, name: string}> =>
+): Array<{ id: string; name: string }> =>
   data.map((org: IOrganisation) => ({
     id: org.id,
-    name: org.name
+    name: org.name,
   }));
+
+export const generateUuid = (): string => {
+  return uuid();
+};

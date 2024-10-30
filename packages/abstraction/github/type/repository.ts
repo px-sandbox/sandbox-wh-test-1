@@ -17,9 +17,7 @@ export type Repository = {
   updatedAt: Date;
   pushedAt: Date;
   deletedAt: Date;
-}
-
-
+};
 
 export type RepoFormatter = retryProcess & {
   id: string;
@@ -31,6 +29,7 @@ export type RepoFormatter = retryProcess & {
     isPrivate: boolean;
     visibility: string;
     owner: string;
+    topics: string[];
     openIssuesCount: number;
     organizationId: string;
     createdAt: string;
@@ -40,5 +39,6 @@ export type RepoFormatter = retryProcess & {
     createdAtDay: string;
     computationalDate: string;
     githubDate: string | Date;
+    isDeleted: boolean;
   };
-}
+};

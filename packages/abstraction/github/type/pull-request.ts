@@ -24,8 +24,8 @@ export type PullRequestBody = {
   reviewedAt: string | null;
   approvedAt: string | null;
   reviewSeconds: number;
-  requestedReviewers: RequestedReviewers[];
-  labels: Labels[];
+  requestedReviewers?: RequestedReviewers[];
+  labels?: Labels[];
   head: {
     label: string;
     ref: string;
@@ -47,9 +47,11 @@ export type PullRequestBody = {
   organizationId: string;
   action: actions;
   githubDate: string;
+  createdAtDay: string;
+  computationalDate: string;
 };
 
 export type PullRequest = retryProcess & {
   id: string;
   body: PullRequestBody;
-}
+};

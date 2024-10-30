@@ -33,6 +33,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       pushedBranch,
       repository: { id: repoId, name: repoName, owner: repoOwner, ownerId: orgId },
       timestamp,
+      processId,
     } = messageBody;
     let { isMergedCommit } = messageBody;
     /**
@@ -77,7 +78,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId,
     });
-    const commitProcessor = new CommitProcessor(
+    const processor = new CommitProcessor(
       {
         ...getOctokitResp(responseData),
         commits: {
@@ -91,14 +92,11 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
         repoId,
       },
       requestId,
-      resourceId
+      resourceId,
+      processId
     );
-    const data = await commitProcessor.processor();
-    await commitProcessor.save({
-      data,
-      eventType: Github.Enums.Event.Commit,
-      processId: messageBody?.processId,
-    });
+    await processor.process();
+    await processor.save();
   } catch (error) {
     logger.error({ message: `commitFormattedDataReceiver.error, ${error}`, requestId, resourceId });
     await logProcessToRetry(record, Queue.qGhCommitFormat.queueUrl, error as Error);

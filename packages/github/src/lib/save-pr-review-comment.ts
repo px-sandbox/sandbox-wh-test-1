@@ -19,8 +19,8 @@ export async function savePRReviewComment(
       .requestBodySearch()
       .query(esb.matchQuery('body.id', data.body.id))
       .toJSON();
-    const userData = await esClientObj.search(Github.Enums.IndexName.GitPRReviewComment, matchQry);
-    const [formattedData] = await searchedDataFormator(userData);
+    const prcomment = await esClientObj.search(Github.Enums.IndexName.GitPRReviewComment, matchQry);
+    const [formattedData] = await searchedDataFormator(prcomment);
     if (formattedData) {
       logger.info({
         message: 'savePRReviewComment.info LAST_ACTIONS_PERFORMED',

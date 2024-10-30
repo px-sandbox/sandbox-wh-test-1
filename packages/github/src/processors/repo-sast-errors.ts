@@ -10,6 +10,7 @@ import { formatRepoSastData } from 'src/util/response-formatter';
 import moment from 'moment';
 
 const esClientObj = ElasticSearchClient.getInstance();
+
 export async function repoSastErrorsFormatter(
   data: Github.ExternalType.Api.RepoSastErrors
 ): Promise<Github.Type.RepoSastErrors[]> {
@@ -83,6 +84,7 @@ export async function storeSastErrorReportToES(
     throw error;
   }
 }
+
 export async function fetchDataFromS3<T>(
   key: string,
   bucketName: string,

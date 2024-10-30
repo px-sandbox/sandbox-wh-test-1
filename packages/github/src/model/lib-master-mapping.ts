@@ -32,9 +32,11 @@ export class LibParamsMapping {
     releaseDate: string;
   }): PutCommandInput {
     return {
-      TableName: Table.GithubMapping.tableName,
+      TableName: this.tableName,
       Item: {
-        items,
+        libName: items.libName,
+        version: items.version,
+        releaseDate: items.releaseDate,
       },
     };
   }
