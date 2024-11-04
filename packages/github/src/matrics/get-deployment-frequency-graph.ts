@@ -10,7 +10,7 @@ export async function getDeploymentFrequencyGraphData(
   endDate: string,
   repoIds: string[],
   interval: string,
-  env: string
+  env: string[]
 ) {
   const query = esb.requestBodySearch().size(0);
 
