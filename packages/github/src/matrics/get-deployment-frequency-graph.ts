@@ -3,8 +3,23 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { processGraphInterval } from 'src/util/process-graph-intervals';
+import { searchedDataFormator } from 'src/util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
+
+async function getBranchesByRepoId(repoId: string[]): Promise<Github.Type.BranchRep[]> {
+  const query = esb
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
+        .must([esb.termsQuery('body.repoId', repoId), esb.termQuery('body.protected', false)])
+    );
+  const data = await esClientObj.search(Github.Enums.IndexName.GitBranch, query.toJSON());
+  const formattedData = await searchedDataFormator(data);
+  return formattedData;
+}
+
 export async function getDeploymentFrequencyGraphData(
   startDate: string,
   endDate: string,
@@ -14,12 +29,17 @@ export async function getDeploymentFrequencyGraphData(
 ) {
   const query = esb.requestBodySearch().size(0);
 
+  const allBranchObj = env.reduce((acc: { [x: string]: number }, branch) => {
+    acc[branch] = 0;
+    return acc;
+  }, {});
+
   const mustQueries = [
     esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
     esb.termsQuery('body.repoId', repoIds),
   ];
 
-  if (env) {
+  if (env.length > 0) {
     mustQueries.push(esb.termsQuery('body.env', env));
   }
 
@@ -42,6 +62,7 @@ export async function getDeploymentFrequencyGraphData(
   const result = data.commentsPerDay.buckets.map((bucket) => {
     return {
       date: bucket.key_as_string,
+      ...allBranchObj,
       ...bucket.by_dest.buckets.reduce(
         (acc: { [key: string]: number }, item: { key: string; doc_count: number }) => {
           acc[item.key] = item.doc_count;

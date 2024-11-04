@@ -1,4 +1,4 @@
-import { Branch } from './branch';
+import { Branch, BranchRep } from './branch';
 import { Organization } from './organization';
 import { Repository, RepoFormatter } from './repository';
 import { User, UserBody } from './user';
@@ -128,5 +128,6 @@ export {
   TestCoverageResponse,
   DeploymentFrequencyGraph,
   AggregationResponse,
-  DeploymentFreq
+  DeploymentFreq,
+  BranchRep,
 };
