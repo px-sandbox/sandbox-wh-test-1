@@ -29,12 +29,8 @@ export const handler = async (event: SQSEvent): Promise<void> => {
 
         const projectProcessor = new ProjectProcessor(messageBody, requestId, resourceId);
 
-        const data = await projectProcessor.processor();
-        return projectProcessor.save({
-          data,
-          index: Jira.Enums.IndexName.Project,
-          processId: messageBody?.processId,
-        });
+        await projectProcessor.process();
+        await projectProcessor.save();
       } catch (error) {
         await logProcessToRetry(record, Queue.qProjectFormat.queueUrl, error as Error);
         logger.error({
