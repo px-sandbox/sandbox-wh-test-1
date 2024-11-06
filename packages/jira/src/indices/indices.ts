@@ -413,6 +413,29 @@ const indices = [
       },
     },
   },
+  {
+    name: Jira.Enums.IndexName.rca,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'keyword' },
+            sprintId:{ type: 'keyword' },
+            projectId:{ type: 'keyword' },
+            issueId: { type: 'keyword' },
+            issueKey:{ type: 'keyword' },
+            rcaName: { type: 'keyword' },
+            rcaType: { type: 'keyword' },
+            priority:{ type: 'keyword' },
+            createdAt:{ type: 'date', format: 'strict_date_optional_time' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time' },            
+          },
+        },
+      },
+    },
+  }
 ];
 /**
  * Creates a mapping for an index in Elasticsearch.
