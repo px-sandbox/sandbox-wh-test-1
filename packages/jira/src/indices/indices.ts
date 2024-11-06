@@ -414,7 +414,7 @@ const indices = [
     },
   },
   {
-    name: Jira.Enums.IndexName.rca,
+    name: Jira.Enums.IndexName.RCA,
     _id: { type: 'uuid' },
     mappings: {
       properties: {
