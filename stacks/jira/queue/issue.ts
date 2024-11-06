@@ -139,6 +139,7 @@ export function initializeIssueQueue(
     REQUEST_TIMEOUT,
     cycleTimeQueue,
     reOpenRateDataQueue,
+    reOpenRateDeleteQueue,
   ]);
 
   reOpenRateDataQueue.bind([

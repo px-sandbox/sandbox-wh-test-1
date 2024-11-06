@@ -44,6 +44,6 @@ export async function removeReopenRate(
       resourceId,
     });
   } catch (error) {
-    logger.error({ requestId, resourceId, message: 'removeReopenRate.error', error });
+    logger.error({ requestId, resourceId, message: 'removeReopenRate.error', error: `${error}` });
   }
 }
