@@ -83,6 +83,7 @@ async function processWebhookEvent(
         break;
       case Jira.Enums.Event.IssueCreated:
       case Jira.Enums.Event.IssueUpdated:
+      case Jira.Enums.Event.IssueDeleted:
         await issue.issueHandler(
           {
             issue: body.issue,
@@ -94,24 +95,24 @@ async function processWebhookEvent(
           requestId
         );
         break;
-      case Jira.Enums.Event.IssueDeleted:
-        // await issue.remove(
-        //   body.issue.id,
-        //   eventTime,
-        //   organization,
-        //   requestId,
-        //   body.issue.fields?.parent?.id
-        // );
-        await removeReopenRate(
-          {
-            issue: body.issue,
-            changelog: body.changelog,
-            organization,
-          } as Jira.Mapped.ReopenRateIssue,
-          eventTime,
-          requestId
-        );
-        break;
+      // case Jira.Enums.Event.IssueDeleted:
+      //   // await issue.remove(
+      //   //   body.issue.id,
+      //   //   eventTime,
+      //   //   organization,
+      //   //   requestId,
+      //   //   body.issue.fields?.parent?.id
+      //   // );
+      //   await removeReopenRate(
+      //     {
+      //       issue: body.issue,
+      //       changelog: body.changelog,
+      //       organization,
+      //     } as Jira.Mapped.ReopenRateIssue,
+      //     eventTime,
+      //     requestId
+      //   );
+      //   break;
       case Jira.Enums.Event.WorklogCreated:
       case Jira.Enums.Event.WorklogUpdated:
       case Jira.Enums.Event.WorklogDeleted:
