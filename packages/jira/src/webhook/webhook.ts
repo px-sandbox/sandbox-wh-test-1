@@ -1,24 +1,21 @@
 /* eslint-disable complexity */
-import { APIGatewayProxyEvent } from 'aws-lambda';
-import moment from 'moment';
-import { logger } from 'core';
 import { Jira } from 'abstraction';
+import { APIGatewayProxyEvent } from 'aws-lambda';
+import { logger } from 'core';
+import moment from 'moment';
 
-import * as user from './users';
-import * as project from './projects';
-import * as sprint from './sprints';
 import * as board from './boards';
 import * as issue from './issues';
-import { removeReopenRate } from './issues/delete-reopen-rate';
-import { IssuesTypes } from 'abstraction/jira/enums';
-import { ALLOWED_ISSUE_TYPES } from 'src/constant/config';
+import * as project from './projects';
+import * as sprint from './sprints';
+import * as user from './users';
 
 /**
  * Processes the webhook event based on the event name and performs the corresponding action.
  * @param eventName - The name of the event.
  * @param eventTime - The time when the event occurred.
  * @param body - The webhook payload.
- * @param organization - The name of the organization.
+ * @param organization - The name of the organization
  * @returns A Promise that resolves when the event is processed.
  */
 // eslint-disable-next-line max-lines-per-function
@@ -95,24 +92,6 @@ async function processWebhookEvent(
           requestId
         );
         break;
-      // case Jira.Enums.Event.IssueDeleted:
-      //   // await issue.remove(
-      //   //   body.issue.id,
-      //   //   eventTime,
-      //   //   organization,
-      //   //   requestId,
-      //   //   body.issue.fields?.parent?.id
-      //   // );
-      //   await removeReopenRate(
-      //     {
-      //       issue: body.issue,
-      //       changelog: body.changelog,
-      //       organization,
-      //     } as Jira.Mapped.ReopenRateIssue,
-      //     eventTime,
-      //     requestId
-      //   );
-      //   break;
       case Jira.Enums.Event.WorklogCreated:
       case Jira.Enums.Event.WorklogUpdated:
       case Jira.Enums.Event.WorklogDeleted:
