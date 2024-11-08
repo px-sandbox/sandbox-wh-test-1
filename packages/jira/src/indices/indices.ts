@@ -155,8 +155,10 @@ const indices = [
             containsDevRca:{type:'keyword'},
             containsQARca:{type:'keyword'},
             rcaData:{
-              devRca:{type:'keyword'},
-              qaRca:{type:'keyword'}
+              properties:{
+                devRca:{type:'keyword'},
+                qaRca:{type:'keyword'}
+              }
             },
             projectKey: { type: 'keyword' },
             isFTP: { type: 'boolean' },

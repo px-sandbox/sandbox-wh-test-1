@@ -19,7 +19,9 @@ export enum ChangelogStatus {
   DEV_COMPLETE = 'Dev_Complete',
   CODE_REVIEW = 'Code_Review',
   DEV_RCA ="Dev RCA",
-  QA_RCA="QA RCA"
+  QA_RCA="QA RCA",
+  DEV_RCA_MESSAGE='Incomplete story development',
+  QA_RCA_MESSAGE='Inadequate QA testing'
 }
 export enum ChangelogField {
   SPRINT = 'Sprint',
