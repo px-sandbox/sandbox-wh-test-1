@@ -1,6 +1,6 @@
 /* eslint-disable max-lines-per-function */
 import { Jira } from 'abstraction';
-import { ChangelogField } from 'abstraction/jira/enums';
+import { ChangelogField, ChangelogStatus } from 'abstraction/jira/enums';
 import { logger } from 'core';
 import { getIssueById, updateIssueWithSubtask } from 'src/repository/issue/get-issue';
 import { getSprintForTo } from 'src/util/prepare-reopen-rate';
@@ -136,6 +136,29 @@ export class IssueProcessor extends DataProcessor<
         });
       }
     }
+    let containingQARca = false;
+    let devRca = null;
+    let QARca = null;
+    let containingDevRca = false;
+
+    const fnRca = () => {
+      const filteredItems = this.apiData.changelog.items.filter(
+        (item) =>
+          (item.field === ChangelogStatus.DEV_RCA || item.field === ChangelogStatus.QA_RCA) &&
+          (item.fieldId === 'customfield_11226' || item.fieldId === 'customfield_11225')
+      );
+      filteredItems.map((item) => {
+        if (item.field == ChangelogStatus.DEV_RCA) {
+          containingDevRca = true;
+          devRca = 'Incomplete story development';
+        }
+        if (item.field == ChangelogStatus.QA_RCA) {
+          containingQARca = true;
+          QARca = 'Inadequate QA testing';
+        }
+      });
+    };
+    fnRca();
     const issueObj = {
       id: parentId ?? uuid(),
       body: {
@@ -148,6 +171,12 @@ export class IssueProcessor extends DataProcessor<
         isFTF: issueDataFromApi.fields.labels?.includes('FTF') ?? false,
         issueType: this.apiData.issue.fields.issuetype.name,
         isPrimary: true,
+        containsDevRca: containingDevRca,
+        containsQARca: containingQARca,
+        rcaData: {
+          devRca: devRca,
+          qaRca: QARca,
+        },
         priority: this.apiData.issue.fields.priority.name,
         label: issueDataFromApi.fields.labels,
         summary: issueDataFromApi?.fields?.summary ?? '',

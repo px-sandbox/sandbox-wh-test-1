@@ -152,6 +152,12 @@ const indices = [
             id: { type: 'keyword' },
             issueId: { type: 'keyword' },
             issueKey: { type: 'keyword' },
+            containsDevRca:{type:'keyword'},
+            containsQARca:{type:'keyword'},
+            rcaData:{
+              devRca:{type:'keyword'},
+              qaRca:{type:'keyword'}
+            },
             projectKey: { type: 'keyword' },
             isFTP: { type: 'boolean' },
             isFTF: { type: 'boolean' },
