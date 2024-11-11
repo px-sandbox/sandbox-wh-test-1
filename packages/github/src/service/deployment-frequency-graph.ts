@@ -14,14 +14,14 @@ export const handler = async function deploymentFrequencyGraph(
     const endDate: string = event.queryStringParameters?.endDate || '';
     const interval: string = event.queryStringParameters?.interval || '';
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [''];
-    const env: string[] = event.queryStringParameters?.env?.split(',') || [''];
+    const destination: string[] = event.queryStringParameters?.env?.split(',') || [''];
 
     const graphData = await getDeploymentFrequencyGraphData(
       startDate,
       endDate,
       repoIds,
       interval,
-      env
+      destination
     );
 
     return responseParser

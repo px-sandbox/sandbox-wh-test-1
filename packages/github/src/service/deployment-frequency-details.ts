@@ -7,7 +7,7 @@ export const handler = async function deploymentFrequencyDetails(
 ): Promise<APIGatewayProxyResult> {
   try {
     const repoIds = event.queryStringParameters?.repoIds?.split(',') || [];
-    const env = event.queryStringParameters?.env || '';
+    const destination = event.queryStringParameters?.env || '';
     const startDate = event.queryStringParameters?.startDate || '';
     const endDate = event.queryStringParameters?.endDate || '';
     const page = event.queryStringParameters?.page || '1';
@@ -15,7 +15,7 @@ export const handler = async function deploymentFrequencyDetails(
 
     const data = await getDeploymentFrequencyDetails(
       repoIds,
-      env,
+      destination,
       startDate,
       endDate,
       parseInt(page),
