@@ -24,7 +24,7 @@ const getRepoName = async (repoIds: string[]): Promise<Github.Type.RepoNameType[
 
 export async function getDeploymentFrequencyDetails(
   repoIds: string[],
-  env: string,
+  destination: string,
   startDate: string,
   endDate: string,
   page: number,
@@ -44,7 +44,7 @@ export async function getDeploymentFrequencyDetails(
         .boolQuery()
         .must([
           esb.termsQuery('body.repoId', repoIds),
-          esb.termQuery('body.env', env),
+          esb.termQuery('body.destination', destination),
           esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
         ])
     );
