@@ -25,11 +25,11 @@ export async function getDeploymentFrequencyGraphData(
   endDate: string,
   repoIds: string[],
   interval: string,
-  env: string[]
+  destination: string[]
 ) {
   const query = esb.requestBodySearch().size(0);
 
-  const allBranchObj = env.reduce((acc: { [x: string]: number }, branch) => {
+  const allBranchObj = destination.reduce((acc: { [x: string]: number }, branch) => {
     acc[branch] = 0;
     return acc;
   }, {});
@@ -39,8 +39,8 @@ export async function getDeploymentFrequencyGraphData(
     esb.termsQuery('body.repoId', repoIds),
   ];
 
-  if (env.length > 0) {
-    mustQueries.push(esb.termsQuery('body.env', env));
+  if (destination.length > 0) {
+    mustQueries.push(esb.termsQuery('body.destination',destination));
   }
 
   const deploymentFrequencyQuery = query.query(esb.boolQuery().must(mustQueries));
