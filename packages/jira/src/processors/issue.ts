@@ -151,11 +151,11 @@ export class IssueProcessor extends DataProcessor<
       filteredItems.map((item) => {
         if (item.field == ChangelogStatus.DEV_RCA) {
           containingDevRca = true;
-          devRca = ChangelogStatus.DEV_RCA_MESSAGE;
+          devRca = item.toString;
         }
         if (item.field == ChangelogStatus.QA_RCA) {
           containingQARca = true;
-          QARca = ChangelogStatus.QA_RCA_MESSAGE;
+          QARca = item.toString;
         }
       });
         return {
