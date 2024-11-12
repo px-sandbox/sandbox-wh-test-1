@@ -15,13 +15,13 @@ export const handler = async function insertDeploymentFrequencyData(event: SQSEv
         return {
           _id: generateUuid(),
           body: {
-            id: `${mappingPrefixes.gh_deployment}_${parser.orgId}_${parser.repoId}_${
+            id: `${mappingPrefixes.gh_deployment}_${mappingPrefixes.organization}_${parser.orgId}_${mappingPrefixes.repo}_${parser.repoId}_${
               parser.destination
             }_${parser.createdAt.split('T')[0]}`,
             source: parser.source,
             destination: parser.destination,
-            repoId: parser.repoId,
-            orgId: parser.orgId,
+            repoId: `${mappingPrefixes.repo}_${parser.repoId}`,
+            orgId: `${mappingPrefixes.organization}_${parser.orgId}`,
             createdAt: parser.createdAt,
             env: parser.env,
             date: parser.createdAt.split('T')[0],
@@ -29,7 +29,6 @@ export const handler = async function insertDeploymentFrequencyData(event: SQSEv
         };
       })
     );
-    logger.info({ message: '<<<<<<<<>>>>>>>> bulkOperations', data: bulkOperations.length });
     await esClient.bulkInsert(Github.Enums.IndexName.GitDeploymentFrequency, bulkOperations);
   } catch (error) {
     logger.error({
