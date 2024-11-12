@@ -195,7 +195,7 @@ export class JiraClient {
       `/rest/agile/1.0/sprint/${sprintId}/issue`,
       {
         fields: `issuetype,priority,changelog,project,labels,
-        assignee,reporter,creator,status,subtask,created,updated,lastViewed,sprint,closedSprints,timetracking,subtasks,customfield_10007`,
+        assignee,reporter,creator,status,subtask,created,updated,lastViewed,sprint,closedSprints,timetracking,subtasks,customfield_10007,summary`,
       }
     );
 
