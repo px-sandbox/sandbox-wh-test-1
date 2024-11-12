@@ -8,9 +8,8 @@ export const getTestCoverage = async function getTestData(
   try {
     const { requestId } = event.requestContext;
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
-    const todaysDate: string = new Date().toISOString().split('T')[0];
 
-    const response = await getTestCoverageHeadlineData(repoIds, todaysDate);
+    const response = await getTestCoverageHeadlineData(repoIds);
     return responseParser
       .setBody(response)
       .setMessage('getTestCoverageHeadline.retrieved')
