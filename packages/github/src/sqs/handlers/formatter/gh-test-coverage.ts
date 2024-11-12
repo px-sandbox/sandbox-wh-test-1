@@ -74,6 +74,7 @@ export async function handler(event: SQSEvent): Promise<void> {
               branches: { ...data.coverage.total.branches },
               functions: { ...data.coverage.total.functions },
               lines: { ...data.coverage.total.lines },
+              cron: false
             },
           };
           await saveCoverageData(coverageObj);
