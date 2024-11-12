@@ -83,6 +83,7 @@ export const fetchSaveTestCoverage = async (RepoIds: string[],currentDate:string
         ...hit,
         id: `${organizationId}_${repoId}_${currentDate}`,
         forDate: currentDate,
+        cron:true,
       },
     };
   });
