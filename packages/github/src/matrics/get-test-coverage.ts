@@ -9,9 +9,7 @@ const getRepoName = async (repoIds: string[]): Promise<Github.Type.RepoNameType[
   const repoNamesQuery = esb
     .requestBodySearch()
     .size(repoIds.length)
-    .query(
-      esb.boolQuery().must([esb.termsQuery('body.id', repoIds), esb.termQuery('body.cron', false)])
-    )
+    .query(esb.boolQuery().must([esb.termsQuery('body.id', repoIds)]))
     .toJSON();
   const repoNamesData = await esClientObj.search(Github.Enums.IndexName.GitRepo, repoNamesQuery);
   const repoNames = await searchedDataFormator(repoNamesData);
@@ -40,6 +38,7 @@ export const getData = async (
           .must([
             esb.termsQuery('body.repoId', repoIds),
             esb.rangeQuery('body.forDate').gte(startDate).lte(endDate),
+            esb.termQuery('body.cron', false),
           ])
       )
       .sort(sort('body.forDate', 'desc'));
