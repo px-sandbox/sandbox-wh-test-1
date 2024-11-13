@@ -3,14 +3,15 @@ import { Github, Other } from 'abstraction';
 import { logger } from 'core';
 import esb, { sort } from 'elastic-builder';
 import { searchedDataFormator } from 'src/util/response-formatter';
-import { paginate } from 'src/util/version-upgrades';
 
 const esClientObj = ElasticSearchClient.getInstance();
 const getRepoName = async (repoIds: string[]): Promise<Github.Type.RepoNameType[]> => {
   const repoNamesQuery = esb
     .requestBodySearch()
     .size(repoIds.length)
-    .query(esb.boolQuery().must(esb.termsQuery('body.id', repoIds)))
+    .query(
+      esb.boolQuery().must([esb.termsQuery('body.id', repoIds), esb.termQuery('body.core', false)])
+    )
     .toJSON();
   const repoNamesData = await esClientObj.search(Github.Enums.IndexName.GitRepo, repoNamesQuery);
   const repoNames = await searchedDataFormator(repoNamesData);
