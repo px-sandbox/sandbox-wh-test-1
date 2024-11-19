@@ -16,13 +16,14 @@ export const handler = async function githubDeploymentFrequency(
       data: JSON.stringify(event.body),
       requestId,
     });
-    const data: Github.ExternalType.Api.githubDeploymentFrequencyData = JSON.parse(event.body ?? '{}');
-    
-    await sqsClient.sendMessage(
-        data,
-      Queue.qGhDeploymentFrequency.queueUrl,
-      { requestId, resourceId: String(data.repoId) }
+    const data: Github.ExternalType.Api.githubDeploymentFrequencyData = JSON.parse(
+      event.body ?? '{}'
     );
+
+    await sqsClient.sendMessage(data, Queue.qGhDeploymentFrequency.queueUrl, {
+      requestId,
+      resourceId: String(data.repository),
+    });
     return responseParser
       .setBody({})
       .setMessage('Data sent successfully')
