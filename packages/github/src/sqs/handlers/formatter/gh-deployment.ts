@@ -38,8 +38,8 @@ export const handler = async function insertDeploymentFrequencyData(event: SQSEv
           _id: generateUuid(),
           body: {
             id: coverageId,
-            source: prData.base.ref,
-            destination: prData.head.ref,
+            source: prData.head.ref,
+            destination: prData.base.ref,
             repoId: prData.repoId,
             orgId: prData.organizationId,
             createdAt: parser.eventTime,
