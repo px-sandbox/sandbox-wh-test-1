@@ -228,8 +228,11 @@ export class IssueProcessor extends DataProcessor<
         });
       }
     }
-    const issueObj = {
-      id: parentId ?? uuid(),
+
+    this.formattedData = {
+      id: await this.parentId(
+        `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`
+      ),
       body: {
         id: `${mappingPrefixes.issue}_${this.apiData.issue.id}`,
         issueId: this.apiData.issue.id,
