@@ -12,7 +12,7 @@ export type Branch = retryProcess & {
     createdAt: string;
     updatedAt: string;
     pushedAt: string;
-    deletedAt: string;
+    deletedAt: string | null;
     action: actions;
     createdAtDay: string;
     computationalDate: string;
@@ -20,4 +20,23 @@ export type Branch = retryProcess & {
     protected: boolean;
     isDeleted: boolean;
   };
-}
+};
+
+export type BranchRep = retryProcess & {
+  _id: string;
+  id: string;
+  githubBranchId: string;
+  name: string;
+  repoId: string;
+  organizationId: string;
+  createdAt: string;
+  updatedAt: string;
+  pushedAt: string;
+  deletedAt: string | null;
+  action: actions;
+  createdAtDay: string;
+  computationalDate: string;
+  githubDate: string | Date;
+  protected: boolean;
+  isDeleted: boolean;
+};

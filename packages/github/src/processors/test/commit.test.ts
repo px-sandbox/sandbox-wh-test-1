@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Github } from 'abstraction';
 import { CommitProcessor } from '../commit';
+import { mappingPrefixes } from '../../constant/config';
 
 const mockData = {
   repoId: 'my-repo-id',
@@ -15,8 +16,8 @@ const mockData = {
     isMergedCommit: false,
     mergedBranch: 'test',
     pushedBranch: 'tse',
+    orgId: 'my-commits-org-id',
   },
-
   timestamp: '2023-08-29T00:00:00Z',
   author: {
     login: 'my-author-login',
@@ -68,132 +69,142 @@ describe('CommitProcessor', () => {
   it('should process commit data with parent id', async () => {
     vi.setSystemTime(new Date('2023-08-29T00:00:00Z').toISOString());
     // Create a new instance of the CommitProcessor class with the mock data
-    const commit = new CommitProcessor(mockData);
+    const commit = new CommitProcessor(mockData, mockData.commits.id, '');
     commit.getParentId = mockGetParentId;
 
     // Call the processor method and check that it returns the correct result
-    const result = await commit.processor();
-    expect(result.id).toEqual('cec133a0-5fe7-42cd-ad7b-4a794dcb38a7');
-    expect(result.body.id).toEqual('undefined_my-commit-id');
-    expect(result.body.githubCommitId).toEqual('my-commit-id');
-    expect(result.body.isMergedCommit).toEqual(false);
-    expect(result.body.pushedBranch).toEqual('tse');
-    expect(result.body.mergedBranch).toEqual('test');
-    expect(result.body.message).toEqual('my commit message');
-    expect(result.body.authorId).toEqual('undefined_my-author-id');
-    expect(result.body.committedAt).toEqual('2023-08-29T00:00:00Z');
-    expect(result.body.changes).toEqual([
-      {
-        filename: 'my-file.txt',
-        additions: '1',
-        deletions: '1',
-        changes: '2',
-        status: 'modified',
+    await commit.process();
+    expect(commit.formattedData).toEqual({
+      id: 'cec133a0-5fe7-42cd-ad7b-4a794dcb38a7',
+      body: {
+        id: `${mappingPrefixes.commit}_my-commit-id`,
+        githubCommitId: 'my-commit-id',
+        isMergedCommit: false,
+        pushedBranch: 'tse',
+        mergedBranch: 'test',
+        message: 'my commit message',
+        authorId: `${mappingPrefixes.user}_my-author-id`,
+        committedAt: '2023-08-29T00:00:00Z',
+        changes: [
+          {
+            filename: 'my-file.txt',
+            additions: '1',
+            deletions: '1',
+            changes: '2',
+            status: 'modified',
+          },
+        ],
+        organizationId: `${mappingPrefixes.organization}_my-commits-org-id`,
+        totalChanges: '3',
+        repoId: `${mappingPrefixes.repo}_my-repo-id`,
+        createdAt: '2023-08-29T00:00:00Z',
+        createdAtDay: 'Tuesday',
+        computationalDate: '2023-08-29',
+        githubDate: '2023-08-29',
       },
-    ]);
-    expect(result.body.totalChanges).toEqual('3');
-    expect(result.body.repoId).toEqual('undefined_my-repo-id');
-    expect(result.body.createdAt).toEqual('2023-08-29T00:00:00Z');
-    expect(result.body.createdAtDay).toEqual('Tuesday');
-    expect(result.body.computationalDate).toEqual('2023-08-29');
-    expect(result.body.githubDate).toEqual('2023-08-29');
+    });
   });
 
-  it('should process commit data without parent id', async () => {
-    // Create a new instance of the CommitProcessor class with the mock data
-    const commit = new CommitProcessor(mockData);
-    commit.getParentId = mockNoParentId;
-
-    // Call the processor method and check that it returns the correct result
-    const result = await commit.processor();
-    expect(result.body.id).toEqual('undefined_my-commit-id');
-    expect(result.body.githubCommitId).toEqual('my-commit-id');
-    expect(result.body.isMergedCommit).toEqual(false);
-    expect(result.body.pushedBranch).toEqual('tse');
-    expect(result.body.mergedBranch).toEqual('test');
-    expect(result.body.message).toEqual('my commit message');
-    expect(result.body.authorId).toEqual('undefined_my-author-id');
-    expect(result.body.committedAt).toEqual('2023-08-29T00:00:00Z');
-    expect(result.body.changes).toEqual([
-      {
-        filename: 'my-file.txt',
-        additions: '1',
-        deletions: '1',
-        changes: '2',
-        status: 'modified',
-      },
-    ]);
-    expect(result.body.totalChanges).toEqual('3');
-    expect(result.body.repoId).toEqual('undefined_my-repo-id');
-    expect(result.body.createdAt).toEqual('2023-08-29T00:00:00Z');
-    expect(result.body.createdAtDay).toEqual('Tuesday');
-    expect(result.body.computationalDate).toEqual('2023-08-29');
-    expect(result.body.githubDate).toEqual('2023-08-29');
-  });
-
-  it('should process commit data with empty author id', async () => {
+  it('should process commit data with updated author id', async () => {
     const mockDataWithEmptyAuthor = {
       ...mockData,
       author: null,
     } as unknown as Github.ExternalType.Api.Commit;
     // Create a new instance of the CommitProcessor class with the mock data
-    const commit = new CommitProcessor(mockDataWithEmptyAuthor);
+    mockDataWithEmptyAuthor.author = {
+      login: 'my-author-login',
+      id: '1234',
+    };
+    const commit = new CommitProcessor(
+      mockDataWithEmptyAuthor,
+      mockDataWithEmptyAuthor.commits.id,
+      ''
+    );
     commit.getParentId = mockGetParentId;
 
     // Call the processor method and check that it returns the correct result
-    const result = await commit.processor();
-    expect(result.id).toEqual('cec133a0-5fe7-42cd-ad7b-4a794dcb38a7');
-    expect(result.body.id).toEqual('undefined_my-commit-id');
-    expect(result.body.githubCommitId).toEqual('my-commit-id');
-    expect(result.body.isMergedCommit).toEqual(false);
-    expect(result.body.pushedBranch).toEqual('tse');
-    expect(result.body.mergedBranch).toEqual('test');
-    expect(result.body.message).toEqual('my commit message');
-    expect(result.body.authorId).toEqual(null);
-    expect(result.body.committedAt).toEqual('2023-08-29T00:00:00Z');
-    expect(result.body.changes).toEqual([
-      {
-        filename: 'my-file.txt',
-        additions: '1',
-        deletions: '1',
-        changes: '2',
-        status: 'modified',
+    await commit.process();
+    expect(commit.formattedData).toEqual({
+      id: 'cec133a0-5fe7-42cd-ad7b-4a794dcb38a7',
+      body: {
+        id: `${mappingPrefixes.commit}_my-commit-id`,
+        githubCommitId: 'my-commit-id',
+        isMergedCommit: false,
+        pushedBranch: 'tse',
+        mergedBranch: 'test',
+        message: 'my commit message',
+        authorId: `${mappingPrefixes.user}_1234`,
+        committedAt: '2023-08-29T00:00:00Z',
+        changes: [
+          {
+            filename: 'my-file.txt',
+            additions: '1',
+            deletions: '1',
+            changes: '2',
+            status: 'modified',
+          },
+        ],
+        organizationId: `${mappingPrefixes.organization}_my-commits-org-id`,
+        totalChanges: '3',
+        repoId: `${mappingPrefixes.repo}_my-repo-id`,
+        createdAt: '2023-08-29T00:00:00Z',
+        createdAtDay: 'Tuesday',
+        computationalDate: '2023-08-29',
+        githubDate: '2023-08-29',
       },
-    ]);
-    expect(result.body.totalChanges).toEqual('3');
-    expect(result.body.repoId).toEqual('undefined_my-repo-id');
-    expect(result.body.createdAt).toEqual('2023-08-29T00:00:00Z');
-    expect(result.body.createdAtDay).toEqual('Tuesday');
-    expect(result.body.computationalDate).toEqual('2023-08-29');
-    expect(result.body.githubDate).toEqual('2023-08-29');
+    });
   });
-
-  it('should process commit data with empty files', async () => {
+  it('should process commit data with files data', async () => {
     const mockDataWithEmptyFiles = {
       ...mockData,
-      files: [],
+      files: [
+        {
+          filename: 'src/test.ts',
+          additions: '',
+          deletions: '',
+          changes: '',
+          status: '',
+        },
+      ],
     } as unknown as Github.ExternalType.Api.Commit;
     // Create a new instance of the CommitProcessor class with the mock data
-    const commit = new CommitProcessor(mockDataWithEmptyFiles);
+    const commit = new CommitProcessor(
+      mockDataWithEmptyFiles,
+      mockDataWithEmptyFiles.commits.id,
+      ''
+    );
     commit.getParentId = mockGetParentId;
 
     // Call the processor method and check that it returns the correct result
-    const result = await commit.processor();
-    expect(result.id).toEqual('cec133a0-5fe7-42cd-ad7b-4a794dcb38a7');
-    expect(result.body.id).toEqual('undefined_my-commit-id');
-    expect(result.body.githubCommitId).toEqual('my-commit-id');
-    expect(result.body.isMergedCommit).toEqual(false);
-    expect(result.body.pushedBranch).toEqual('tse');
-    expect(result.body.mergedBranch).toEqual('test');
-    expect(result.body.message).toEqual('my commit message');
-    expect(result.body.authorId).toEqual('undefined_my-author-id');
-    expect(result.body.committedAt).toEqual('2023-08-29T00:00:00Z');
-    expect(result.body.changes).toEqual([]);
-    expect(result.body.totalChanges).toEqual('3');
-    expect(result.body.repoId).toEqual('undefined_my-repo-id');
-    expect(result.body.createdAt).toEqual('2023-08-29T00:00:00Z');
-    expect(result.body.createdAtDay).toEqual('Tuesday');
-    expect(result.body.computationalDate).toEqual('2023-08-29');
-    expect(result.body.githubDate).toEqual('2023-08-29');
+    await commit.process();
+    expect(commit.formattedData).toEqual({
+      id: 'cec133a0-5fe7-42cd-ad7b-4a794dcb38a7',
+      body: {
+        id: `${mappingPrefixes.commit}_my-commit-id`,
+        githubCommitId: 'my-commit-id',
+        isMergedCommit: false,
+        pushedBranch: 'tse',
+        mergedBranch: 'test',
+        message: 'my commit message',
+        authorId: `${mappingPrefixes.user}_my-author-id`,
+        committedAt: '2023-08-29T00:00:00Z',
+        changes: [
+          {
+            filename: 'src/test.ts',
+            additions: '',
+            deletions: '',
+            changes: '',
+            status: '',
+          },
+        ],
+        totalChanges: '3',
+        repoId: `${mappingPrefixes.repo}_my-repo-id`,
+        organizationId: `${mappingPrefixes.organization}_my-commits-org-id`,
+        createdAt: '2023-08-29T00:00:00Z',
+        createdAtDay: 'Tuesday',
+        computationalDate: '2023-08-29',
+        githubDate: '2023-08-29',
+      },
+    });
   });
 });

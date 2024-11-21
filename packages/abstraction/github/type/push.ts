@@ -6,11 +6,13 @@ export type Push = retryProcess & {
   body: {
     id: string;
     githubPushId: string;
+    repoId: string;
     ref: string;
     pusherId: string;
     commits: string[];
     organizationId: string;
     action: actions;
+    createdAt: string;
     createdAtDay: string;
     computationalDate: string;
     githubDate: string | Date;

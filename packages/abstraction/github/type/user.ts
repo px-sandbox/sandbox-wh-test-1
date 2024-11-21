@@ -13,9 +13,10 @@ export type UserBody = {
   computationalDate: string;
   githubDate: string | Date;
   timezone?: string;
+  isDeleted: boolean;
 };
 export interface User {
   id: string;
   body: UserBody;
-  processId?: string; 
+  processId?: string;
 }

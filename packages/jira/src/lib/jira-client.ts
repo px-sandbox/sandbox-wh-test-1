@@ -20,7 +20,7 @@ export class JiraClient {
     private cloudId: string,
     private accessToken: string,
     private refreshToken: string
-  ) {
+   ) {
     this.axiosInstance = axios.create({
       headers: {
         Authorization: `Bearer ${this.accessToken}`,

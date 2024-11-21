@@ -24,6 +24,15 @@ export function gh({ stack }: StackContext): {
   /**
    * Initialize Bucket
    */
+  const testCoverageReportsBucket=new Bucket(stack,'testCoverageReportsBucket',{
+    name: `${process.env.SST_STAGE}-test-coverage-report`,
+    cors: [
+      {
+        allowedMethods: [HttpMethods.GET, HttpMethods.POST],
+        allowedOrigins: ['*'],
+      },
+    ],
+  });
   const sastErrorsBucket = new Bucket(stack, 'sastErrorBucket', {
     name: `${process.env.SST_STAGE}-sast-errors`,
     cors: [
@@ -48,7 +57,7 @@ export function gh({ stack }: StackContext): {
   const restQueues = initializeQueue(
     stack,
     { githubMappingTable, retryProcessTable, libMasterTable },
-    { sastErrorsBucket, versionUpgradeBucket }
+    { sastErrorsBucket, versionUpgradeBucket, testCoverageReportsBucket }
   );
   /**
    * Initialize Functions
@@ -68,7 +77,7 @@ export function gh({ stack }: StackContext): {
     stack,
     restQueues,
     { githubMappingTable, retryProcessTable, libMasterTable },
-    { sastErrorsBucket, versionUpgradeBucket }
+    { sastErrorsBucket, versionUpgradeBucket,testCoverageReportsBucket }
   );
 
   stack.addOutputs({

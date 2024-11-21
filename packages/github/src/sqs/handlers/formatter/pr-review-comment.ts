@@ -1,8 +1,7 @@
-import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { Queue } from 'sst/node/queue';
 import { logProcessToRetry } from 'rp';
+import { Queue } from 'sst/node/queue';
 import { PRReviewCommentProcessor } from '../../../processors/pr-review-comment';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
@@ -18,7 +17,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       resourceId,
     });
     const { comment, pullId, repoId, action, orgId } = messageBody;
-    const prReviewCommentProcessor = new PRReviewCommentProcessor(
+    const processor = new PRReviewCommentProcessor(
       comment,
       pullId,
       repoId,
@@ -27,12 +26,8 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId
     );
-    const data = await prReviewCommentProcessor.processor();
-    await prReviewCommentProcessor.save({
-      data,
-      eventType: Github.Enums.Event.PRReviewComment,
-      processId: messageBody?.processId,
-    });
+    await processor.process();
+    await processor.save();
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPrReviewCommentFormat.queueUrl, error as Error);
     logger.error({

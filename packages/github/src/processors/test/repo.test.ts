@@ -1,6 +1,5 @@
 import { Github } from 'abstraction';
 import moment from 'moment';
-import { Config } from 'sst/node/config';
 import { describe, expect, it, vi } from 'vitest';
 import { RepositoryProcessor } from '../repo';
 
@@ -11,56 +10,29 @@ const mockData = {
   private: false,
   owner: {
     login: 'my-user',
+    id: '123',
   },
   visibility: 'public',
   open_issues_count: 0,
   topics: ['test'],
-  created_at: '2022-01-01T00:00:00Z',
-  pushed_at: '2022-01-01T00:00:00Z',
-  updated_at: '2022-01-01T00:00:00Z',
-  action: 'initialized',
-} as Github.ExternalType.Api.Repository;
-const mockDataWithoutActions = {
-  id: '123',
-  name: 'my-repo',
-  description: 'My test repo',
-  private: false,
-  owner: {
-    login: 'my-user',
-  },
-  visibility: 'public',
-  open_issues_count: 0,
-  topics: ['test'],
-  created_at: '2022-01-01T00:00:00Z',
-  pushed_at: '2022-01-01T00:00:00Z',
-  updated_at: '2022-01-01T00:00:00Z',
+  created_at: '2024-09-04T00:00:00Z',
+  pushed_at: '2024-09-04T00:00:00Z',
+  updated_at: '2024-09-04T00:00:00Z',
   action: 'initialized',
 } as Github.ExternalType.Api.Repository;
 
 const mockGetParentId = vi.fn().mockResolvedValue('93f855b4-15ca-4d81-bfb3-c8ee38abfdfd');
-vi.mock('src/constant/config', () => ({
-  mappingPrefixes: 'gh_repo',
-}));
-vi.mock('src/model/params-mapping', (mockParamsMapping) => ({
-  ParamsMapping: mockParamsMapping,
-}));
-// eslint-disable-next-line max-lines-per-function
+vi.setSystemTime(new Date('2024-09-04T00:00:00Z').toISOString());
 describe('Repository', () => {
-  // Test case 1: Test the processor method with valid data
-  it('should process the repository data correctly', async () => {
-    vi.setSystemTime(new Date('2023-08-29T00:00:00Z').toISOString());
-    // Create a new instance of the RepositoryProcessor class with the mock data
-    const processor = new RepositoryProcessor(mockData);
+  it('should process with existing parentId', async () => {
+    const processor = new RepositoryProcessor('created', mockData, mockData.id, mockData.name, '');
     processor.getParentId = mockGetParentId;
-    // Set the mock methods and properties
-    Config.GIT_ORGANIZATION_ID = 'my-organization-id';
-
-    // Call the processor method and check that it returns the correct output object
-    const result = await processor.processor();
+    await processor.process();
+    const result = processor.formattedData;
     expect(result).toEqual({
       id: result.id,
       body: {
-        id: 'undefined_123',
+        id: 'gh_repo_123',
         githubRepoId: '123',
         name: 'my-repo',
         description: 'My test repo',
@@ -69,10 +41,10 @@ describe('Repository', () => {
         visibility: 'public',
         openIssuesCount: 0,
         topics: ['test'],
-        createdAt: '2022-01-01T00:00:00Z',
-        pushedAt: '2022-01-01T00:00:00Z',
-        updatedAt: '2022-01-01T00:00:00Z',
-        organizationId: 'undefined_my-organization-id',
+        createdAt: '2024-09-04T00:00:00Z',
+        pushedAt: '2024-09-04T00:00:00Z',
+        updatedAt: '2024-09-04T00:00:00Z',
+        organizationId: 'gh_org_123',
         action: [
           {
             action: 'initialized',
@@ -80,32 +52,26 @@ describe('Repository', () => {
             actionDay: moment().format('dddd'),
           },
         ],
-        createdAtDay: moment('2022-01-01T00:00:00Z').format('dddd'),
-        computationalDate: moment('2022-01-03T00:00:00Z').format('YYYY-MM-DD'),
-        githubDate: moment('2022-01-01T00:00:00Z').format('YYYY-MM-DD'),
+        createdAtDay: moment('2024-09-04T00:00:00Z').format('dddd'),
+        computationalDate: moment('2024-09-04T00:00:00Z').format('YYYY-MM-DD'),
+        githubDate: moment('2024-09-04T00:00:00Z').format('YYYY-MM-DD'),
         isDeleted: false,
       },
     });
-
-    // Check that the getParentId method was called with the correct arguments
   });
-
-  // Test case 2: Test the processor method with missing getParentId method
-  it('should failed for repository action missing', async () => {
-    // Test case 4: Test the processor method with invalid data
-    // Create a new instance of the RepositoryProcessor class with invalid data
-    vi.setSystemTime(new Date('2023-08-29T00:00:00Z').toISOString());
-    // Create a new instance of the RepositoryProcessor class with the mock data
-    const processor = new RepositoryProcessor(mockDataWithoutActions);
-    processor.getParentId = mockGetParentId;
-    // Set the mock methods and properties
-
-    // Call the processor method and check that it returns the correct output object
-    const result = await processor.processor();
+  it('should process without existing parentId', async () => {
+    const processor = new RepositoryProcessor('created', mockData, mockData.id, mockData.name, '');
+    processor.getParentId = vi.fn().mockResolvedValue(null);
+    vi.mock('uuid', () => ({
+      v4: vi.fn(() => '1f45c1c7-ce85-49cb-a044-e304d5202d12'),
+    }));
+    processor.putDataToDynamoDB = vi.fn().mockResolvedValue('1f45c1c7-ce85-49cb-a044-e304d5202d12');
+    await processor.process();
+    const result = processor.formattedData;
     expect(result).toEqual({
       id: result.id,
       body: {
-        id: 'undefined_123',
+        id: 'gh_repo_123',
         githubRepoId: '123',
         name: 'my-repo',
         description: 'My test repo',
@@ -114,44 +80,96 @@ describe('Repository', () => {
         visibility: 'public',
         openIssuesCount: 0,
         topics: ['test'],
-        createdAt: '2022-01-01T00:00:00Z',
-        pushedAt: '2022-01-01T00:00:00Z',
-        updatedAt: '2022-01-01T00:00:00Z',
-        organizationId: 'undefined_my-organization-id',
-        createdAtDay: moment('2022-01-01T00:00:00Z').format('dddd'),
-        computationalDate: moment('2022-01-03T00:00:00Z').format('YYYY-MM-DD'),
-        githubDate: moment('2022-01-01T00:00:00Z').format('YYYY-MM-DD'),
+        createdAt: '2024-09-04T00:00:00Z',
+        pushedAt: '2024-09-04T00:00:00Z',
+        updatedAt: '2024-09-04T00:00:00Z',
+        organizationId: 'gh_org_123',
+        action: [
+          {
+            action: 'initialized',
+            actionTime: new Date().toISOString(),
+            actionDay: moment().format('dddd'),
+          },
+        ],
+        createdAtDay: moment('2024-09-04T00:00:00Z').format('dddd'),
+        computationalDate: moment('2024-09-04T00:00:00Z').format('YYYY-MM-DD'),
+        githubDate: moment('2024-09-04T00:00:00Z').format('YYYY-MM-DD'),
         isDeleted: false,
       },
     });
-
-    // Check that the getParentId method was called with the correct arguments
   });
-  // Test case 3: Test the processor method with an error in the getParentId method
-
-  it('is instance of the RepositoryProcessor class with invalid data', async () => {
-    // Test case 4: Test the processor method with invalid data
-    // Create a new instance of the RepositoryProcessor class with invalid data
-    const processor = new RepositoryProcessor({
-      id: 'invalid',
-      name: 'my-repo',
-      description: 'My test repo',
-      private: false,
-      owner: {
-        login: 'my-user',
+  it('Create event', async () => {
+    const processor = new RepositoryProcessor('created', mockData, mockData.id, mockData.name, '');
+    processor.getParentId = vi.fn().mockResolvedValue(null);
+    vi.mock('uuid', () => ({
+      v4: vi.fn(() => 'ebbbe179-773d-4ea5-ae7c-bb603bfe867a'),
+    }));
+    processor.putDataToDynamoDB = vi.fn().mockResolvedValue('ebbbe179-773d-4ea5-ae7c-bb603bfe867a');
+    await processor.process();
+    const result = processor.formattedData;
+    expect(result).toEqual({
+      id: result.id,
+      body: {
+        id: 'gh_repo_123',
+        githubRepoId: '123',
+        name: 'my-repo',
+        description: 'My test repo',
+        isPrivate: false,
+        owner: 'my-user',
+        visibility: 'public',
+        openIssuesCount: 0,
+        topics: ['test'],
+        createdAt: '2024-09-04T00:00:00Z',
+        pushedAt: '2024-09-04T00:00:00Z',
+        updatedAt: '2024-09-04T00:00:00Z',
+        organizationId: 'gh_org_123',
+        action: [
+          {
+            action: 'initialized',
+            actionTime: new Date().toISOString(),
+            actionDay: moment().format('dddd'),
+          },
+        ],
+        createdAtDay: moment('2024-09-04T00:00:00Z').format('dddd'),
+        computationalDate: moment('2024-09-04T00:00:00Z').format('YYYY-MM-DD'),
+        githubDate: moment('2024-09-04T00:00:00Z').format('YYYY-MM-DD'),
+        isDeleted: false,
       },
-      visibility: 'public',
-      open_issues_count: 0,
-      topics: ['test'],
-      created_at: '2022-01-01T00:00:00Z',
-      pushed_at: '2022-01-01T00:00:00Z',
-      updated_at: '2022-01-01T00:00:00Z',
-      action: 'initialized',
-    } as Github.ExternalType.Api.Repository);
+    });
+  });
+  it('Delete event', async () => {
+    const processor = new RepositoryProcessor('deleted', mockData, mockData.id, mockData.name, '');
     processor.getParentId = mockGetParentId;
-    // Call the processor method and check that it throws an error
-    await expect(processor.processor()).toBeFalsy();
-
-    // Check that the getParentId method was called with the correct arguments
+    await processor.process();
+    const result = processor.formattedData;
+    expect(result).toEqual({
+      id: result.id,
+      body: {
+        id: 'gh_repo_123',
+        githubRepoId: '123',
+        name: 'my-repo',
+        description: 'My test repo',
+        isPrivate: false,
+        owner: 'my-user',
+        visibility: 'public',
+        openIssuesCount: 0,
+        topics: ['test'],
+        createdAt: '2024-09-04T00:00:00Z',
+        pushedAt: '2024-09-04T00:00:00Z',
+        updatedAt: '2024-09-04T00:00:00Z',
+        organizationId: 'gh_org_123',
+        action: [
+          {
+            action: 'initialized',
+            actionTime: new Date().toISOString(),
+            actionDay: moment().format('dddd'),
+          },
+        ],
+        createdAtDay: moment('2024-09-04T00:00:00Z').format('dddd'),
+        computationalDate: moment('2024-09-04T00:00:00Z').format('YYYY-MM-DD'),
+        githubDate: moment('2024-09-04T00:00:00Z').format('YYYY-MM-DD'),
+        isDeleted: true,
+      },
+    });
   });
 });

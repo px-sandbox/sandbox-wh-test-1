@@ -14,4 +14,6 @@ export enum IndexName {
   GitRepoSastErrors = 'git_repo_sast_errors',
   GitRepoSastErrorCount = 'git_repo_sast_errors_count',
   GitMigrationStatus = 'git_migration_status',
+  GitTestCoverage = "git_test_coverage",
+  GitDeploymentFrequency="git_deployment_frequency"
 }

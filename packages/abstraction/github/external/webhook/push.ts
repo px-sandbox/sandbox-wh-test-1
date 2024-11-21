@@ -7,8 +7,7 @@ export type Push = {
   ref: string;
   pusherId: string;
   commits: CommitIds[];
-  organizationId: string;
   repoId: string;
-  action: string;
+  action?: string;
   orgId: string;
 };

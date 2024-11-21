@@ -25,6 +25,8 @@ export function initializeRoutes(
     repoLibS3Queue,
     updateMergeCommit,
     prReviewCommentMigrationQueue,
+    testCoverageQueue,
+    githubDeploymentFrequencyQueue
   } = queues;
   const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID } = use(commonConfig);
   /* We aso extract and bind the tables
@@ -87,25 +89,11 @@ export function initializeRoutes(
       authorizer: 'none',
     },
 
-    // GET Github Branches data
-    'GET /github/branches': {
-      function: 'packages/github/src/service/get-branches.handler',
-      authorizer: 'universal',
-    },
-
     // GET Technical Success Criteria metrics
     'GET /github/graph/version-upgrades': {
       function: {
         handler: 'packages/github/src/service/version-upgrades.handler',
         bind: [libMasterTable],
-      },
-      authorizer: 'universal',
-    },
-
-    // GET Technical Success Criteria metrics
-    'GET /github/graph/product-security': {
-      function: {
-        handler: 'packages/github/src/service/product-security.handler',
       },
       authorizer: 'universal',
     },
@@ -160,12 +148,6 @@ export function initializeRoutes(
       },
       authorizer: 'admin',
     },
-    'GET /github/graph/product-security/detail': {
-      function: {
-        handler: 'packages/github/src/service/repo-sast-errors-details.handler',
-      },
-      authorizer: 'universal',
-    },
 
     'GET /github/update-merge-commits': {
       function: {
@@ -184,14 +166,6 @@ export function initializeRoutes(
       authorizer: 'admin',
     },
 
-    'GET /github/tech-audit': {
-      function: {
-        handler: 'packages/github/src/service/tech-audit.handler',
-        timeout: '5 minutes',
-      },
-      authorizer: 'universal',
-    },
-
     'POST /github/migration/status': {
       function: {
         handler: 'packages/github/src/service/update-migration-status.handler',
@@ -205,5 +179,20 @@ export function initializeRoutes(
       },
       authorizer: 'none',
     },
+    'POST /github/test-coverage': {
+      function: {
+        handler: 'packages/github/src/service/testcoverage/test-coverage.handler',
+        bind: [testCoverageQueue],
+      },
+      authorizer: 'none',
+    },
+
+    'POST /github/deployment':{
+      function:{
+        handler:'packages/github/src/service/github-deployment.handler',
+        bind:[githubDeploymentFrequencyQueue]
+      },
+      authorizer:'none',
+    }
   };
 }

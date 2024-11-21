@@ -10,6 +10,11 @@ describe('BoardProcessor', () => {
     let boardProcessor: BoardProcessor;
     let jiraClient: JiraClient;
     let apiData: Jira.Mapper.Board;
+    // let getOrganization: any;
+
+    //adding requestId and
+    let requestId :string;
+    let resourceId :string;
 
     vi.mock('../../repository/organization/get-organization');
     beforeEach(() => {
@@ -26,13 +31,19 @@ describe('BoardProcessor', () => {
             isDeleted: false,
             deletedAt: null,
         };
-        boardProcessor = new BoardProcessor(apiData);
+
+        requestId = "this_is_requestId1";
+
+        resourceId = "this is responseId1";
+        boardProcessor = new BoardProcessor(apiData, requestId, resourceId);
+
+
         jiraClient = {
             getBoard: vi.fn(),
         } as unknown as JiraClient;
         JiraClient.getClient = vi.fn().mockResolvedValue(jiraClient);
         const mockOrgData = { orgId: 'org123', id: 'jira_org_org123' };
-        getOrganization = vi.fn().mockResolvedValue(mockOrgData);
+        getOrganization.mockResolvedValue(mockOrgData);
         // getOrganization = vi.fn().mockResolvedValue([{ orgId: 'org123', id: 'jira_org_org123' }]);
         boardProcessor.getParentId = vi.fn().mockResolvedValue('f2fd8d13-8bde-4ec0-bf87-4376fc2c8672');
     });
@@ -43,7 +54,7 @@ describe('BoardProcessor', () => {
 
     describe('constructor', () => {
         it('should create a new instance of Board with the given properties', () => {
-            const constructBoardProcessor = new BoardProcessor(apiData);
+            const constructBoardProcessor = new BoardProcessor(apiData, requestId, resourceId);
             expect(constructBoardProcessor).toEqual({ apiData });
         });
     });
