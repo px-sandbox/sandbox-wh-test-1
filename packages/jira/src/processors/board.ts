@@ -7,10 +7,26 @@ import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
 
 export class BoardProcessor extends DataProcessor<Jira.Mapper.Board, Jira.Type.Board> {
-  constructor(data: Jira.Mapper.Board, requestId: string, resourceId: string) {
-    super(data, requestId, resourceId);
+  constructor(
+    data: Jira.Mapper.Board,
+    requestId: string,
+    resourceId: string,
+    retryProcessId?: string
+  ) {
+    super(data, requestId, resourceId, Jira.Enums.IndexName.Board, retryProcessId);
   }
-  public async processor(): Promise<Jira.Type.Board> {
+
+  public async process(): Promise<void> {
+    //Check for all board cases
+    switch (this.eventType) {
+      case Jira.Enums.Event.BoardCreated:
+        await this.format();
+        break;
+    }
+  }
+
+  public async format(): Promise<void> {
+    //can be moved to parent class
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
       logger.error({
@@ -20,27 +36,21 @@ export class BoardProcessor extends DataProcessor<Jira.Mapper.Board, Jira.Type.B
       });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    const jiraId = `${mappingPrefixes.board}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`;
-    let parentId = await this.getParentId(jiraId);
 
-    // if parent id is not present in dynamoDB then create a new parent id
-    if (!parentId) {
-      parentId = uuid();
-      await this.putDataToDynamoDB(parentId, jiraId);
-    }
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const apiBoardData = await jiraClient.getBoard(this.apiData.id);
-    const { projectId, projectKey } = apiBoardData.location;
-    const boardObj = {
-      id: parentId || uuid(),
+    this.formattedData = {
+      id: await this.getParentId(
+        `${mappingPrefixes.board}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`
+      ),
       body: {
         id: `${mappingPrefixes.board}_${this.apiData?.id}`,
         boardId: this.apiData?.id,
         self: this.apiData.self,
         name: this.apiData.name,
         type: apiBoardData.type,
-        projectId: `${mappingPrefixes.project}_${projectId}`,
-        projectKey,
+        projectId: `${mappingPrefixes.project}_${apiBoardData.location.projectId}`,
+        projectKey: apiBoardData.location.projectKey,
         filter: this.apiData?.filter ?? null,
         columnConfig: this.apiData?.columnConfig ?? null,
         ranking: this.apiData?.ranking ?? null,
@@ -50,6 +60,5 @@ export class BoardProcessor extends DataProcessor<Jira.Mapper.Board, Jira.Type.B
         organizationId: orgData.id ?? null,
       },
     };
-    return boardObj;
   }
 }

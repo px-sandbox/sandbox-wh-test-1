@@ -1,41 +1,34 @@
 /* eslint-disable max-lines-per-function */
 import { Jira } from 'abstraction';
-import { ChangelogField, ChangelogStatus } from 'abstraction/jira/enums';
+import { ChangelogField, ChangelogStatus, IssuesTypes } from 'abstraction/jira/enums';
 import { logger } from 'core';
 import { getIssueById, updateIssueWithSubtask } from 'src/repository/issue/get-issue';
 import { getSprintForTo } from 'src/util/prepare-reopen-rate';
-import { Config } from 'sst/node/config';
-import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { JiraClient } from '../lib/jira-client';
 import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
+import { getIssueStatusForReopenRate } from 'src/util/issue-status';
+import { Queue } from 'sst/node/queue';
+import { SQSClient } from '@pulse/event-handler';
+import { softDeleteCycleTimeDocument } from 'src/repository/cycle-time/update';
+import { saveIssueDetails } from 'src/repository/issue/save-issue';
+import moment from 'moment';
+import { removeReopenRate } from 'src/webhook/issues/delete-reopen-rate';
 
 export class IssueProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Issue,
   Jira.Type.Issue
 > {
-  constructor(data: Jira.ExternalType.Webhook.Issue, requestId: string, resourceId: string) {
-    super(data, requestId, resourceId);
-  }
-
-  public validateIssueForProjects(): boolean {
-    const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
-    logger.info({
-      requestId: this.requestId,
-      resourceId: this.resourceId,
-      message: 'inside validate of processor',
-    });
-    if (this.apiData !== undefined && projectKeys.includes(this.apiData.issue.fields.project.key)) {
-      return true;
-    }
-    logger.info({
-      requestId: this.requestId,
-      resourceId: this.resourceId,
-      message: 'ProjectKey not in available keys for this issue',
-      data: { ProjectKey: this.apiData.issue.fields.project.key, issueKey: this.apiData.issue.key },
-    });
-    return false;
+  private sqsClient: SQSClient;
+  constructor(
+    data: Jira.ExternalType.Webhook.Issue,
+    requestId: string,
+    resourceId: string,
+    retryProcessId: string
+  ) {
+    super(data, requestId, resourceId, Jira.Enums.IndexName.Issue, retryProcessId);
+    this.sqsClient = SQSClient.getInstance();
   }
 
   private async getSprintAndBoardId(data: Jira.ExternalType.Webhook.Issue): Promise<{
@@ -80,9 +73,120 @@ export class IssueProcessor extends DataProcessor<
     };
   }
 
-  // eslint-disable-next-line complexity
-  public async processor(): Promise<Jira.Type.Issue> {
+  private async delete(): Promise<void> {
+    const issueData = await getIssueById(this.apiData.issue.id, this.apiData.organization, {
+      requestId: this.requestId,
+      resourceId: this.apiData.issue.id,
+    });
+    if (!issueData) {
+      logger.info({
+        requestId: this.requestId,
+        resourceId: this.apiData.issue.id,
+        message: 'issueDeletedEvent: Issue not found',
+      });
+      return;
+    }
+    const { _id, ...processIssue } = issueData;
+    processIssue.isDeleted = true;
+    processIssue.deletedAt = moment(this.apiData.timestamp).toISOString();
+
+    logger.info({
+      requestId: this.requestId,
+      resourceId: this.apiData.issue.id,
+      message: `issueDeletedEvent: Delete Issue id ${_id}`,
+    });
+    await saveIssueDetails({ id: _id, body: processIssue } as Jira.Type.Issue, {
+      requestId: this.requestId,
+      resourceId: this.apiData.issue.id,
+    });
+
+    // soft delete cycle time document
+    await softDeleteCycleTimeDocument(
+      this.apiData.issue.id,
+      issueData.issueType,
+      this.apiData.organization,
+      this.apiData.issue.fields.parent.id
+    );
+    // remove reopen rate
+    await removeReopenRate(
+      {
+        issue: this.apiData.issue,
+        changelog: this.apiData.changelog,
+        organization: this.apiData.organization,
+      } as Jira.Mapped.ReopenRateIssue,
+      this.apiData.timestamp,
+      this.requestId
+    );
+  }
+
+  public async process(): Promise<void> {
+    try {
+      switch (this.apiData.eventName) {
+        case Jira.Enums.Event.IssueCreated:
+          await this.format();
+          break;
+        case Jira.Enums.Event.IssueUpdated:
+          await this.updateReopenRate();
+          await this.format();
+          break;
+        case Jira.Enums.Event.IssueDeleted:
+          await this.delete();
+          break;
+      }
+    } catch (error) {
+      logger.error({
+        requestId: this.requestId,
+        resourceId: this.resourceId,
+        message: 'issueFormattedDataReceiver.error',
+        error: `${error}`,
+      });
+    }
+  }
+
+  private async updateReopenRate(): Promise<void> {
+    if (this.apiData.issue.fields.issuetype.name !== IssuesTypes.BUG) {
+      return;
+    }
     const orgData = await getOrganization(this.apiData.organization);
+    const issueState = this.apiData.changelog.items[0];
+    if (orgData) {
+      const issueStatus = await getIssueStatusForReopenRate(orgData.id, {
+        requestId: this.requestId,
+        resourceId: this.resourceId,
+      });
+      if (
+        [
+          issueStatus[ChangelogStatus.READY_FOR_QA],
+          issueStatus[ChangelogStatus.QA_FAILED],
+        ].includes(issueState.to)
+      ) {
+        logger.info({
+          requestId: this.requestId,
+          resourceId: this.resourceId,
+          message: 'issue_info_ready_for_QA_update_event: Send message to SQS',
+        });
+        const typeOfChangelog =
+          issueStatus[ChangelogStatus.READY_FOR_QA] === issueState.to
+            ? ChangelogStatus.READY_FOR_QA
+            : ChangelogStatus.QA_FAILED;
+
+        await this.sqsClient.sendMessage(
+          { ...this.apiData, typeOfChangelog },
+          Queue.qReOpenRate.queueUrl,
+          {
+            requestId: this.requestId,
+            resourceId: this.resourceId,
+          }
+        );
+      }
+    }
+  }
+  // eslint-disable-next-line complexity
+  public async format(): Promise<void> {
+    const orgData = await getOrganization(this.apiData.organization);
+    const jiraClient = await JiraClient.getClient(this.apiData.organization);
+    const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
+
     if (!orgData) {
       logger.error({
         requestId: this.requestId,
@@ -91,20 +195,8 @@ export class IssueProcessor extends DataProcessor<
       });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    const jiraId = `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`;
-    let parentId: string | undefined = await this.getParentId(jiraId);
 
-    if (!parentId && this.apiData.eventName === Jira.Enums.Event.IssueUpdated) {
-      throw new Error(`issue_not_found_for_update_event: id:${jiraId}`);
-    }
-    // if parent id is not present in dynamoDB then create a new parent id
-    if (!parentId) {
-      parentId = uuid();
-      await this.putDataToDynamoDB(parentId, jiraId);
-    }
-    const jiraClient = await JiraClient.getClient(this.apiData.organization);
-    const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
-    // sending parent issue to issue format queue so that it gets updated along with it's subtask
+    // sending parent issue to issue format queue so that it gets updated along with it's subtasks
     if (this.apiData.issue.fields?.parent) {
       /**
        * update in elasticsearch for parent issue for subtask data
@@ -136,39 +228,6 @@ export class IssueProcessor extends DataProcessor<
         });
       }
     }
-    
-
-    const fnRca = () => {
-      let containingQARca = false;
-      let devRca = null;
-      let QARca = null;
-      let containingDevRca = false;
-      const filteredItems = this.apiData.changelog.items.filter(
-        (item) =>
-          (item.field === ChangelogStatus.DEV_RCA || item.field === ChangelogStatus.QA_RCA) &&
-          (item.fieldId === 'customfield_11226' || item.fieldId === 'customfield_11225')
-      );
-      filteredItems.map((item) => {
-        if (item.field == ChangelogStatus.DEV_RCA) {
-          containingDevRca = true;
-          devRca = item.toString;
-        }
-        if (item.field == ChangelogStatus.QA_RCA) {
-          containingQARca = true;
-          QARca = item.toString;
-        }
-      });
-        return {
-          containsDevRca:containingDevRca,
-          containsQARca:containingQARca,
-          rcaData:{
-            devRca,
-            qaRca:QARca
-          }
-        }
-
-    };
-    
     const issueObj = {
       id: parentId ?? uuid(),
       body: {
@@ -210,6 +269,5 @@ export class IssueProcessor extends DataProcessor<
         },
       },
     };
-    return issueObj;
   }
 }

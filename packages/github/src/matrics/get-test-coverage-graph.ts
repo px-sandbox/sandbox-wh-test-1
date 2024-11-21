@@ -1,6 +1,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
-import { IPrCommentAggregationResponse } from 'abstraction/github/type';
+import { TestCoverageGraphAgg, TestCoverageLatestDoc } from 'abstraction/github/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { processGraphInterval } from 'src/util/process-graph-intervals';
@@ -22,7 +22,7 @@ export const getData = async (
   startDate: string,
   endDate: string,
   interval: string
-): Promise<{ date: string; values: object }[]> => {
+): Promise<{ date: string; [key: string]: number | string }[]> => {
   try {
     const testCoverageGraph = esb.requestBodySearch().size(0);
     testCoverageGraph.query(
@@ -38,7 +38,13 @@ export const getData = async (
       graphIntervals.agg(
         esb
           .termsAggregation('by_repo', 'body.repoId')
-          .agg(esb.avgAggregation('total_lines', 'body.lines.pct'))
+          .agg(
+            esb
+              .topHitsAggregation('latest_document')
+              .source(['body.lines.pct'])
+              .size(1)
+              .sort(esb.sort('body.createdAt', 'desc'))
+          )
       )
     );
     const repoNames = await getRepoName(repoIds);
@@ -47,11 +53,10 @@ export const getData = async (
       message: 'getData.testCoverage.graph.info',
       data: JSON.stringify(testCoverageGraph.toJSON()),
     });
-    const data = await esClientObj.queryAggs<IPrCommentAggregationResponse>(
+    const data = await esClientObj.queryAggs<TestCoverageGraphAgg>(
       Github.Enums.IndexName.GitTestCoverage,
       testCoverageGraph.toJSON()
     );
-
     const mapping: { [key: string]: string } = {};
     const defaultObj = repoNames.reduce((acc: { [x: string]: number }, item) => {
       acc[item.name] = 0;
@@ -64,11 +69,10 @@ export const getData = async (
         date: bucket.key_as_string,
         ...defaultObj,
         ...bucket.by_repo.buckets.reduce(
-          (
-            acc: { [x: string]: number },
-            item: { key: number | number; total_lines: { value: number } }
-          ) => {
-            acc[mapping[item.key]] = parseFloat(item.total_lines.value.toFixed(2));
+          (acc: { [x: string]: number }, item: TestCoverageLatestDoc) => {
+            acc[mapping[item.key]] = parseFloat(
+              item.latest_document.hits.hits[0]._source.body.lines.pct
+            );
             return acc;
           },
           {}

@@ -1,66 +1,64 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import {
+  TestCoverageHeadline,
   TestCoverageHeadlineResponse,
   TestCoverageHeadlineResponseDTO,
 } from 'abstraction/github/type/test-coverage';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from 'src/util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-const getTestCoverage = async (
-  repoIds: string[],
-  todaysDate: string
-): Promise<TestCoverageHeadlineResponseDTO[]> => {
+const getTestCoverage = async (repoIds: string[]): Promise<TestCoverageHeadline> => {
   const getTestCoverageQuery = esb
     .requestBodySearch()
+    .size(0)
     .query(
       esb
         .boolQuery()
-        .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.forDate', todaysDate)])
+        .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.cron', false)])
+    )
+    .agg(
+      esb
+        .termsAggregation('by_repoId', 'body.repoId')
+        .agg(
+          esb
+            .topHitsAggregation('latest_createdAt')
+            .size(1)
+            .sort(esb.sort('body.createdAt', 'desc'))
+        )
     )
     .toJSON();
 
-  const getTestCoverageData = await esClientObj.search(
+  const getTestCoverageData = (await esClientObj.queryAggs(
     Github.Enums.IndexName.GitTestCoverage,
     getTestCoverageQuery
-  );
-  const testCoverageData = await searchedDataFormator(getTestCoverageData);
-  return testCoverageData;
+  )) as TestCoverageHeadline;
+  return getTestCoverageData;
 };
 
 export const getTestCoverageHeadlineData = async (
-  repoIds: string[],
-  todaysDate: string
+  repoIds: string[]
 ): Promise<TestCoverageHeadlineResponse> => {
+  let totalPct = 0;
   try {
-    const testCoverageResponse: TestCoverageHeadlineResponseDTO[] = await getTestCoverage(
-      repoIds,
-      todaysDate
-    );
+    const testCoverageResponse: TestCoverageHeadline = await getTestCoverage(repoIds);
     logger.info({
       message: 'getTestCoverageHeadlineData.info: Test-Coverage-Headline',
-      data: JSON.stringify(testCoverageResponse),
+      data: testCoverageResponse,
     });
 
-    if (testCoverageResponse.length) {
-      let totalPct = 0;
-
-      testCoverageResponse.forEach((cov: { lines: { pct: number } }) => {
-        if (cov.lines && cov.lines) {
-          totalPct += cov.lines.pct;
-        }
+    if (testCoverageResponse.by_repoId.buckets.length > 0) {
+      testCoverageResponse.by_repoId.buckets.forEach((bucket) => {
+        totalPct += bucket.latest_createdAt.hits.hits[0]._source.body.lines.pct;
       });
 
-      const averagePct = Number((totalPct / testCoverageResponse.length).toFixed(2));
-      logger.info({
-        message: 'getTestCoverageHeadlineData.info: Average-Statement-Coverage-Percentage',
-        data: averagePct,
-      });
+      const testCoverageData = Number(
+        (totalPct / testCoverageResponse.by_repoId.buckets.length).toFixed(2)
+      );
       return {
-        value: averagePct,
+        value: testCoverageData,
       };
     } else {
       logger.error({ message: 'getData.error', error: 'No data found' });

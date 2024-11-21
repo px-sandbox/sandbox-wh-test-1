@@ -7,10 +7,25 @@ import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
 
 export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.User> {
-  constructor(data: Jira.Mapper.User, requestId: string, resourceId: string) {
-    super(data, requestId, resourceId);
+  constructor(
+    data: Jira.Mapper.User,
+    requestId: string,
+    resourceId: string,
+    retryProcessId?: string
+  ) {
+    super(data, requestId, resourceId, Jira.Enums.IndexName.Users, retryProcessId);
   }
-  public async processor(): Promise<Jira.Type.User> {
+
+  public async process(): Promise<void> {
+    switch (this.eventType) {
+      case Jira.Enums.Event.UserCreated:
+        await this.format();
+        break;
+    }
+  }
+
+  public async format(): Promise<void> {
+    //can be moved to parent class
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
       logger.error({
@@ -20,19 +35,14 @@ export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.Use
       });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    const jiraId = `${mappingPrefixes.user}_${this.apiData.accountId}_${mappingPrefixes.org}_${orgData.orgId}`;
-    let parentId = await this.getParentId(jiraId);
-
-    // if parent id is not present in dynamoDB then create a new parent id
-    if (!parentId) {
-      parentId = uuid();
-      await this.putDataToDynamoDB(parentId, jiraId);
-    }
 
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const apiUserData = await jiraClient.getUser(this.apiData.accountId);
-    const userObj = {
-      id: parentId || uuid(),
+
+    this.formattedData = {
+      id: await this.getParentId(
+        `${mappingPrefixes.user}_${this.apiData.accountId}_${mappingPrefixes.org}_${orgData.orgId}`
+      ),
       body: {
         id: `${mappingPrefixes.user}_${this.apiData?.accountId}`,
         userId: this.apiData?.accountId,
@@ -56,6 +66,5 @@ export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.Use
         organizationId: orgData.id ?? null,
       },
     };
-    return userObj;
   }
 }
