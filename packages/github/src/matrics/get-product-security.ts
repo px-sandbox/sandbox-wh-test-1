@@ -31,7 +31,7 @@ const getAggrigatedProductSecurityData = async (
     .agg(graphInterval.agg(esb.sumAggregation('totalErrorCount', 'body.count')));
 
   const data = await esClientObj.queryAggs<Github.Type.ProdSecurityAgg>(
-    Github.Enums.IndexName.GitRepoSastErrorsCount,
+    Github.Enums.IndexName.GitRepoSastErrorCount,
     query.toJSON()
   );
   return data;
