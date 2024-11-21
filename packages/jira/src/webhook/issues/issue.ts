@@ -15,53 +15,43 @@ const sqsClient = SQSClient.getInstance();
  * @param issue - The Jira issue to create.
  * @returns A Promise that resolves when the message is sent to SQS.
  */
-export async function create(
+export async function issueHandler(
   issue: Jira.ExternalType.Webhook.Issue,
   requestId: string
 ): Promise<void> {
-  if (issue.issue.fields.issuetype.name === IssuesTypes.TEST) {
-    return;
-  }
   const resourceId = issue.issue.id;
+  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const project = issue.issue.fields.project;
+
   logger.info({
     requestId,
     resourceId,
     message: 'issue_event.Send_message_to_SQS',
   });
 
-  // checking if issue type is allowed
-
+  if (issue.issue.fields.issuetype.name === IssuesTypes.TEST) {
+    logger.info({ message: 'processIssueCreatedEvent: Issue type TEST is not allowed' });
+    return;
+  }
   if (!ALLOWED_ISSUE_TYPES.includes(issue.issue.fields.issuetype.name)) {
-    logger.info({message: 'processIssueCreatedEvent: Issue type not allowed'});
+    logger.info({ message: 'processIssueCreatedEvent: Issue type not allowed' });
     return;
   }
 
   // checking is project key is available in our system
-  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
-  const projectKey = issue.issue.fields.project.key;
-  if (!projectKeys.includes(projectKey)) {
-    logger.info({message: 'processIssueCreatedEvent: Project not available in our system'});
+  if (!projectKeys.includes(project.key)) {
+    logger.info({ message: 'processIssueCreatedEvent: Project not available in our system' });
     return;
   }
 
-  const jiraClient = await JiraClient.getClient(issue.organization);
-
-  const issueData = await jiraClient.getIssue(issue.issue.id);
-
-  logger.info({
-    requestId,
-    resourceId,
-    message: 'issue_event.Getting_project_data',
-  });
-  const projectData = await jiraClient.getProject(issueData.fields.project.id);
-
-  // checking is project type is software. We dont wanna save maintainence projects
+  // checking is project type is software.
   logger.info({
     requestId,
     resourceId,
     message: 'issue_event.Checking_project_type',
   });
-  if (projectData.projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE) {
+
+  if (project.projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE) {
     await sqsClient.sendFifoMessage(
       { ...issue },
       Queue.qIssueFormat.queueUrl,

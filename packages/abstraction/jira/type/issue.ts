@@ -20,6 +20,7 @@ export type Issue = retryProcess & {
     reporterId: string | null;
     creatorId: string | null;
     status: string;
+    summary: string;
     subtasks: Array<{
       id: string;
       key: string;

@@ -1,22 +1,21 @@
 /* eslint-disable complexity */
-import { APIGatewayProxyEvent } from 'aws-lambda';
-import moment from 'moment';
-import { logger } from 'core';
 import { Jira } from 'abstraction';
+import { APIGatewayProxyEvent } from 'aws-lambda';
+import { logger } from 'core';
+import moment from 'moment';
 
-import * as user from './users';
-import * as project from './projects';
-import * as sprint from './sprints';
 import * as board from './boards';
 import * as issue from './issues';
-import { removeReopenRate } from './issues/delete-reopen-rate';
+import * as project from './projects';
+import * as sprint from './sprints';
+import * as user from './users';
 
 /**
  * Processes the webhook event based on the event name and performs the corresponding action.
  * @param eventName - The name of the event.
  * @param eventTime - The time when the event occurred.
  * @param body - The webhook payload.
- * @param organization - The name of the organization.
+ * @param organization - The name of the organization
  * @returns A Promise that resolves when the event is processed.
  */
 // eslint-disable-next-line max-lines-per-function
@@ -80,42 +79,16 @@ async function processWebhookEvent(
         await board.delete(body.board.id, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.IssueCreated:
-        await issue.create(
-          {
-            issue: body.issue,
-            changelog: body.changelog,
-            organization,
-            eventName,
-          },
-          requestId
-        );
-        break;
       case Jira.Enums.Event.IssueUpdated:
-        await issue.update(
+      case Jira.Enums.Event.IssueDeleted:
+        await issue.issueHandler(
           {
             issue: body.issue,
             changelog: body.changelog,
             organization,
             eventName,
+            timestamp: eventTime.toISOString(),
           },
-          requestId
-        );
-        break;
-      case Jira.Enums.Event.IssueDeleted:
-        await issue.remove(
-          body.issue.id,
-          eventTime,
-          organization,
-          requestId,
-          body.issue.fields?.parent?.id
-        );
-        await removeReopenRate(
-          {
-            issue: body.issue,
-            changelog: body.changelog,
-            organization,
-          } as Jira.Mapped.ReopenRateIssue,
-          eventTime,
           requestId
         );
         break;
@@ -175,25 +148,15 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
       });
       return;
     }
-
+    const eventTime = moment(body.timestamp);
+    const eventName = body.webhookEvent as Jira.Enums.Event;
+    await processWebhookEvent(eventName, eventTime, body, organization, requestId, resourceId);
     logger.info({
       requestId,
       message: 'webhook.handler.received',
-      data: { organization, body },
+      data: { organization, body, eventName, eventTime },
       resourceId,
     });
-
-    const eventTime = moment(body.timestamp);
-
-    logger.info({
-      requestId,
-      message: 'webhook.handler.processing',
-      data: { eventTime },
-      resourceId,
-    });
-
-    const eventName = body.webhookEvent as Jira.Enums.Event;
-    await processWebhookEvent(eventName, eventTime, body, organization, requestId, resourceId);
   } catch (error) {
     logger.error({
       requestId,

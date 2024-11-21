@@ -1,5 +1,4 @@
 import { Jira } from 'abstraction';
-import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
 import { mappingPrefixes } from '../constant/config';
 import { getOrganization } from '../repository/organization/get-organization';
@@ -9,12 +8,22 @@ export class IssueStatusProcessor extends DataProcessor<
   Jira.ExternalType.Api.IssueStatus,
   Jira.Type.IssueStatus
 > {
-  constructor(data: Jira.ExternalType.Api.IssueStatus, requestId: string, resourceId: string) {
-    super(data, requestId, resourceId);
+  constructor(
+    data: Jira.ExternalType.Api.IssueStatus,
+    requestId: string,
+    resourceId: string,
+    retryProcessId?: string
+  ) {
+    super(data, requestId, resourceId, Jira.Enums.IndexName.IssueStatus, retryProcessId);
   }
 
   // eslint-disable-next-line complexity
-  public async processor(): Promise<Jira.Type.IssueStatus> {
+  public async process(): Promise<void> {
+    await this.format();
+  }
+
+  public async format(): Promise<void> {
+    //can be moved to parent class
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
       logger.error({
@@ -24,16 +33,11 @@ export class IssueStatusProcessor extends DataProcessor<
       });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    const jiraId = `${mappingPrefixes.issueStatus}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`;
-    let parentId: string | undefined = await this.getParentId(jiraId);
-    // if parent id is not present in dynamoDB then create a new parent id
-    if (!parentId) {
-      parentId = uuid();
-      await this.putDataToDynamoDB(parentId, jiraId);
-    }
 
-    const issueStatusObj = {
-      id: parentId || uuid(),
+    this.formattedData = {
+      id: await this.getParentId(
+        `${mappingPrefixes.issueStatus}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`
+      ),
       body: {
         id: `${mappingPrefixes.issueStatus}_${this.apiData.id}`,
         issueStatusId: this.apiData.id,
@@ -43,6 +47,5 @@ export class IssueStatusProcessor extends DataProcessor<
         pxStatus: null,
       },
     };
-    return issueStatusObj;
   }
 }

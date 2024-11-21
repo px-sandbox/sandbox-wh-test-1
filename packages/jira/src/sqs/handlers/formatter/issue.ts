@@ -1,10 +1,9 @@
+import async from 'async';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { Queue } from 'sst/node/queue';
 import _ from 'lodash';
-import async from 'async';
-import { Jira } from 'abstraction';
 import { logProcessToRetry } from 'rp';
+import { Queue } from 'sst/node/queue';
 import { IssueProcessor } from '../../../processors/issue';
 
 /**
@@ -26,16 +25,14 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
       data: messageBody,
     });
 
-    const issueProcessor = new IssueProcessor(messageBody, requestId, resourceId);
-    const validProject = issueProcessor.validateIssueForProjects();
-    if (validProject) {
-      const data = await issueProcessor.processor();
-      await issueProcessor.save({
-        data,
-        index: Jira.Enums.IndexName.Issue,
-        processId: messageBody?.processId,
-      });
-    }
+    const issueProcessor = new IssueProcessor(
+      messageBody,
+      requestId,
+      resourceId,
+      messageBody.processId
+    );
+    await issueProcessor.process();
+    await issueProcessor.save();
   } catch (error) {
     await logProcessToRetry(record, Queue.qIssueFormat.queueUrl, error as Error);
     logger.error({

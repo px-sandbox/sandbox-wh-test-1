@@ -1,27 +1,33 @@
 import { Jira } from 'abstraction';
-import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
 import { mappingPrefixes } from '../constant/config';
 import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
 
-/**
- * Data processor for Jira project data.
- */
 export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Type.Project> {
-  /**
-   * Constructor for ProjectProcessor.
-   * @param data - The Jira project data to be processed.
-   */
-  constructor(data: Jira.Mapped.Project, requestId: string, resourceId: string) {
-    super(data, requestId, resourceId);
+  constructor(
+    data: Jira.Mapped.Project,
+    requestId: string,
+    resourceId: string,
+    retryProcessId?: string
+  ) {
+    super(data, requestId, resourceId, Jira.Enums.IndexName.Project, retryProcessId);
   }
 
   /**
    * Processes the Jira project data and returns the processed data.
    * @returns The processed Jira project data.
    */
-  public async processor(): Promise<Jira.Type.Project> {
+  public async process(): Promise<void> {
+    switch (this.eventType) {
+      case Jira.Enums.Event.ProjectCreated:
+        await this.format();
+        break;
+    }
+  }
+
+  public async format(): Promise<void> {
+    //can be moved to parent class    const orgData = await getOrganization(this.apiData.organization);
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
       logger.error({
@@ -31,17 +37,10 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
       });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    const jiraId = `${mappingPrefixes.project}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`;
-    let parentId = await this.getParentId(jiraId);
-
-    // if parent id is not present in dynamoDB then create a new parent id
-    if (!parentId) {
-      parentId = uuid();
-      await this.putDataToDynamoDB(parentId, jiraId);
-    }
-
-    const projectObj = {
-      id: parentId ?? uuid(),
+    this.formattedData = {
+      id: await this.getParentId(
+        `${mappingPrefixes.project}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`
+      ),
       body: {
         id: `${mappingPrefixes.project}_${this.apiData?.id}`,
         projectId: this.apiData?.id.toString(),
@@ -78,7 +77,5 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
         createdAt: this.apiData?.createdAt ?? null,
       },
     };
-
-    return projectObj;
   }
 }
