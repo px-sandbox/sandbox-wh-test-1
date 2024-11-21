@@ -228,7 +228,39 @@ export class IssueProcessor extends DataProcessor<
         });
       }
     }
+  
 
+    const fnRca = () => {
+      let containingQARca = false;
+      let devRca = null;
+      let QARca = null;
+      let containingDevRca = false;
+      const filteredItems = this.apiData.changelog.items.filter(
+        (item) =>
+          (item.field === ChangelogStatus.DEV_RCA || item.field === ChangelogStatus.QA_RCA) &&
+          (item.fieldId === 'customfield_11226' || item.fieldId === 'customfield_11225')
+      );
+      filteredItems.map((item) => {
+        if (item.field == ChangelogStatus.DEV_RCA) {
+          containingDevRca = true;
+          devRca = item.toString;
+        }
+        if (item.field == ChangelogStatus.QA_RCA) {
+          containingQARca = true;
+          QARca = item.toString;
+        }
+      });
+        return {
+          containsDevRca:containingDevRca,
+          containsQARca:containingQARca,
+          rcaData:{
+            devRca,
+            qaRca:QARca
+          }
+        }
+
+    };
+    
     this.formattedData = {
       id: await this.parentId(
         `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`
