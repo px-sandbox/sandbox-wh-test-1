@@ -3,7 +3,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { ParamsMapping } from '../model/params-mapping';
-import { generateUuid } from 'src/util/response-formatter';
+import { generateUuid } from '../util/response-formatter';
 
 /**
  * Abstract class for processing Jira API data.
