@@ -1,10 +1,9 @@
+import async from 'async';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { Queue } from 'sst/node/queue';
 import _ from 'lodash';
-import async from 'async';
-import { Jira } from 'abstraction';
 import { logProcessToRetry } from 'rp';
+import { Queue } from 'sst/node/queue';
 import { IssueProcessor } from '../../../processors/issue';
 
 /**

@@ -28,17 +28,17 @@ export type TestCoverageData = {
     lines: Coverage;
   };
 };
-export type TestCoverageResponse = { 
-    _id:string;
-    id: string;
-    organizationId: string;
-    repoId: string;
-    createdAt: string;
-    forDate: string;
-    statements: Coverage;
-    branches: Coverage;
-    functions: Coverage;
-    lines: Coverage;
+export type TestCoverageResponse = {
+  _id: string;
+  id: string;
+  organizationId: string;
+  repoId: string;
+  createdAt: string;
+  forDate: string;
+  statements: Coverage;
+  branches: Coverage;
+  functions: Coverage;
+  lines: Coverage;
 };
 
 export type CoverageHeadline = {
@@ -63,4 +63,19 @@ export type TestCoverageHeadlineResponseDTO = {
 
 export type TestCoverageHeadlineResponse = {
   value: number;
+};
+
+export type TestCoverageHeadline = {
+  by_repoId: {
+    buckets: {
+      key: string;
+      latest_createdAt: {
+        hits: {
+          hits: {
+            _source: TestCoverageData;
+          }[];
+        };
+      };
+    }[];
+  };
 };

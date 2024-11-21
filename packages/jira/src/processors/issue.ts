@@ -14,6 +14,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { softDeleteCycleTimeDocument } from 'src/repository/cycle-time/update';
 import { saveIssueDetails } from 'src/repository/issue/save-issue';
 import moment from 'moment';
+import { removeReopenRate } from 'src/webhook/issues/delete-reopen-rate';
 
 export class IssueProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Issue,
@@ -105,6 +106,16 @@ export class IssueProcessor extends DataProcessor<
       issueData.issueType,
       this.apiData.organization,
       this.apiData.issue.fields.parent.id
+    );
+    // remove reopen rate
+    await removeReopenRate(
+      {
+        issue: this.apiData.issue,
+        changelog: this.apiData.changelog,
+        organization: this.apiData.organization,
+      } as Jira.Mapped.ReopenRateIssue,
+      this.apiData.timestamp,
+      this.requestId
     );
   }
 
