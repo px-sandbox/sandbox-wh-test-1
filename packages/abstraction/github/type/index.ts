@@ -1,4 +1,4 @@
-import { Branch } from './branch';
+import { Branch, BranchRep } from './branch';
 import { Organization } from './organization';
 import { Repository, RepoFormatter } from './repository';
 import { User, UserBody } from './user';
@@ -53,9 +53,15 @@ import {
 
 import { CommentsDetailResponse, PRCommentsDetail, RepoNamesResponse } from './pr-comments-detail';
 import { IOrganisation, IformatUserDataResponse, IRepo, Hit } from './github-utils';
-import { TestCoverage, TestCoverageData, TestCoverageResponse } from './test-coverage';
+import {
+  TestCoverage,
+  TestCoverageData,
+  TestCoverageResponse,
+  TestCoverageHeadline,
+} from './test-coverage';
 import { DeploymentFrequencyGraph } from './aggregations/deployment-frequencies-graph';
 import { DeploymentFreq } from './deployment-frequency';
+import { TestCoverageGraphAgg, TestCoverageLatestDoc } from './aggregations/test-coverage-graph';
 export {
   Branch,
   Organization,
@@ -128,5 +134,9 @@ export {
   TestCoverageResponse,
   DeploymentFrequencyGraph,
   AggregationResponse,
-  DeploymentFreq
+  DeploymentFreq,
+  BranchRep,
+  TestCoverageHeadline,
+  TestCoverageGraphAgg,
+  TestCoverageLatestDoc,
 };
