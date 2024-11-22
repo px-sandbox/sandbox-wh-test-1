@@ -22,13 +22,8 @@ export const handler = async function sprintFormattedDataReciever(event: SQSEven
           data: { messageBody },
         });
         const sprintProcessor = new SprintProcessor(messageBody, requestId, resourceId);
-
-        const data = await sprintProcessor.processor();
-        await sprintProcessor.save({
-          data,
-          index: Jira.Enums.IndexName.Sprint,
-          processId: messageBody?.processId,
-        });
+        await sprintProcessor.process();
+        await sprintProcessor.save();
       } catch (error) {
         await logProcessToRetry(record, Queue.qSprintFormat.queueUrl, error as Error);
         logger.error({

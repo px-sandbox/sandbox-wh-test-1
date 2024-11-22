@@ -10,22 +10,20 @@ export class ReopenRateProcessor extends DataProcessor<
   Jira.Mapped.ReopenRateIssue,
   Jira.Type.ReopenRate
 > {
-  constructor(data: Jira.Mapped.ReopenRateIssue, requestId: string, resourceId: string) {
-    super(data, requestId, resourceId);
-  }
-  public validate(): false | this {
-    const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
-    if (this.apiData !== undefined && projectKeys.includes(this.apiData.issue.fields.project.key)) {
-      return this;
-    }
-    logger.info({
-      message: 'EMPTY_DATA or projectKey not in available keys for this issue',
-      data: this.apiData,
-    });
-    return false;
+  constructor(
+    data: Jira.Mapped.ReopenRateIssue,
+    requestId: string,
+    resourceId: string,
+    retryProcessId: string
+  ) {
+    super(data, requestId, resourceId, Jira.Enums.IndexName.ReopenRate, retryProcessId);
   }
 
-  public async processor(): Promise<Jira.Type.ReopenRate> {
+  public async process(): Promise<void> {
+    await this.format();
+  }
+
+  public async format(): Promise<void> {
     const orgData = await getOrganization(this.apiData.organization);
 
     if (!orgData) {
@@ -36,17 +34,11 @@ export class ReopenRateProcessor extends DataProcessor<
       });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    // eslint-disable-next-line max-len
-    const jiraId = `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}_${mappingPrefixes.org}_${orgData.orgId}`;
-    let parentId: string | undefined = await this.getParentId(jiraId);
 
-    // if parent id is not present in dynamoDB then create a new parent id
-    if (!parentId) {
-      parentId = uuid();
-      await this.putDataToDynamoDB(parentId, jiraId);
-    }
-    const repoRateObj = {
-      id: parentId || uuid(),
+    this.formattedData = {
+      id: await this.parentId(
+        `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}_${mappingPrefixes.org}_${orgData.orgId}`
+      ),
       body: {
         // eslint-disable-next-line max-len
         id: `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}`,
@@ -62,6 +54,5 @@ export class ReopenRateProcessor extends DataProcessor<
         deletedAt: null,
       },
     };
-    return repoRateObj;
   }
 }

@@ -1,4 +1,4 @@
-import { Branch } from './branch';
+import { Branch, BranchRep } from './branch';
 import { Organization } from './organization';
 import { Repository, RepoFormatter } from './repository';
 import { User, UserBody } from './user';
@@ -9,6 +9,7 @@ import { Push, CommitIds } from './push';
 import { PRReviewComment } from './pr-review-comment';
 import { PRReview } from './pr-review';
 import { IPrCommentAggregationResponse, GraphAvgCal } from './aggregations/pr-comments';
+import { AggregationResponse } from './aggregations/deployment-frequency-response';
 import { GraphResponse } from './aggregations/graph-response';
 import { actions } from './actions';
 import { QueueMessage } from './retry-process';
@@ -28,6 +29,8 @@ import {
   VerUpgFinalRes,
   VerUpgradeRes,
   VersionUpgradeSortType,
+  VersionUpgradeAggregation,
+  CoreLib,
 } from './aggregations/version-upgrades';
 import { ErrorsOverTimeBuckets, ProdSecurityAgg } from './aggregations/product-security';
 import { ProdSecurityGraphData, ProductSecurity } from './product-security';
@@ -49,7 +52,16 @@ import {
 } from './aggregations/pr-details';
 
 import { CommentsDetailResponse, PRCommentsDetail, RepoNamesResponse } from './pr-comments-detail';
-
+import { IOrganisation, IformatUserDataResponse, IRepo, Hit } from './github-utils';
+import {
+  TestCoverage,
+  TestCoverageData,
+  TestCoverageResponse,
+  TestCoverageHeadline,
+} from './test-coverage';
+import { DeploymentFrequencyGraph } from './aggregations/deployment-frequencies-graph';
+import { DeploymentFreq } from './deployment-frequency';
+import { TestCoverageGraphAgg, TestCoverageLatestDoc } from './aggregations/test-coverage-graph';
 export {
   Branch,
   Organization,
@@ -111,4 +123,20 @@ export {
   CommentsDetailResponse,
   RepoNamesResponse,
   RepoSastErrorCount,
+  IOrganisation,
+  IformatUserDataResponse,
+  Hit,
+  IRepo,
+  VersionUpgradeAggregation,
+  CoreLib,
+  TestCoverage,
+  TestCoverageData,
+  TestCoverageResponse,
+  DeploymentFrequencyGraph,
+  AggregationResponse,
+  DeploymentFreq,
+  BranchRep,
+  TestCoverageHeadline,
+  TestCoverageGraphAgg,
+  TestCoverageLatestDoc,
 };

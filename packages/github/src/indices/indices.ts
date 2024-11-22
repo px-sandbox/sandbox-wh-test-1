@@ -53,7 +53,7 @@ const indices = [
           properties: {
             id: { type: 'keyword' },
             githubOrganizationId: { type: 'keyword' },
-            installationId: { type: 'keyword' },
+            installationId: { type: 'long' },
             name: { type: 'text' },
             createdAt: { type: 'date', format: 'strict_date_optional_time' },
             updatedAt: { type: 'date', format: 'strict_date_optional_time' },
@@ -410,10 +410,11 @@ const indices = [
             organizationId: { type: 'keyword' },
             name: { type: 'keyword' },
             libName: { type: 'keyword' },
-            version: { type: 'text' },
+            version: { type: 'keyword' },
             releaseDate: { type: 'date', format: 'strict_date_optional_time' },
             isDeleted: { type: 'boolean' },
             isCore: { type: 'boolean' },
+            isDeprecated: { type: 'boolean' },
           },
         },
       },
@@ -453,6 +454,26 @@ const indices = [
     },
   },
   {
+    name: Github.Enums.IndexName.GitDeploymentFrequency,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            source: { type: 'keyword' },
+            destination: { type: 'keyword' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            repoId: { type: 'keyword' },
+            orgId: { type: 'keyword' },
+            env: { type: 'keyword' },
+            date: { type: 'date', format: 'yyyy-MM-dd' },
+          },
+        },
+      },
+    },
+  },
+  {
     name: Github.Enums.IndexName.GitRepoSastErrorCount,
     _id: { type: 'keyword' },
     mappings: {
@@ -486,6 +507,86 @@ const indices = [
                 date: { type: 'date', format: 'strict_date_optional_time' },
               },
             },
+          },
+        },
+      },
+    },
+  },
+  {
+    name: Github.Enums.IndexName.GitTestCoverage,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'keyword' },
+            organizationId: {
+              type: 'keyword',
+            },
+            repoId: {
+              type: 'keyword',
+            },
+            createdAt: {
+              type: 'date',
+              format: 'strict_date_optional_time',
+            },
+            forDate: {
+              type: 'date',
+              format: 'strict_date_optional_time',
+            },
+            statements: {
+              type: 'object',
+              properties: {
+                covered: {
+                  type: 'integer',
+                },
+                skipped: {
+                  type: 'integer',
+                },
+                total: {
+                  type: 'integer',
+                },
+                percent: {
+                  type: 'float',
+                },
+              },
+            },
+            functions: {
+              type: 'object',
+              properties: {
+                covered: {
+                  type: 'integer',
+                },
+                skipped: {
+                  type: 'integer',
+                },
+                total: {
+                  type: 'integer',
+                },
+                percent: {
+                  type: 'float',
+                },
+              },
+            },
+            branches: {
+              type: 'object',
+              properties: {
+                covered: {
+                  type: 'integer',
+                },
+                skipped: {
+                  type: 'integer',
+                },
+                total: {
+                  type: 'integer',
+                },
+                percent: {
+                  type: 'float',
+                },
+              },
+            },
+            cron: { type: 'boolean' },
           },
         },
       },

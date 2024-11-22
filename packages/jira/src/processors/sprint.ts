@@ -10,11 +10,26 @@ export class SprintProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Sprint,
   Jira.Type.Sprint
 > {
-  constructor(data: Jira.ExternalType.Webhook.Sprint, requestId: string, resourceId: string) {
-    super(data, requestId, resourceId);
+  constructor(
+    data: Jira.ExternalType.Webhook.Sprint,
+    requestId: string,
+    resourceId: string,
+    retryProcessId?: string
+  ) {
+    super(data, requestId, resourceId, Jira.Enums.IndexName.Sprint, retryProcessId);
   }
 
-  public async processor(): Promise<Jira.Type.Sprint> {
+  public async process(): Promise<void> {
+    //Check for all board cases
+    switch (this.eventType) {
+      case Jira.Enums.Event.SprintCreated:
+        await this.format();
+        break;
+    }
+  }
+
+  public async format(): Promise<void> {
+    //can be moved to parent class
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
       logger.error({
@@ -24,20 +39,14 @@ export class SprintProcessor extends DataProcessor<
       });
       throw new Error(`Organization ${this.apiData.organization} not found`);
     }
-    const jiraId = `${mappingPrefixes.sprint}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`;
-    let parentId: string | undefined = await this.getParentId(jiraId);
-
-    // if parent id is not present in dynamoDB then create a new parent id
-    if (!parentId) {
-      parentId = uuid();
-      await this.putDataToDynamoDB(parentId, jiraId);
-    }
 
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const board = await jiraClient.getBoard(this.apiData.originBoardId);
 
-    const sprintObj = {
-      id: parentId || uuid(),
+    this.formattedData = {
+      id: await this.getParentId(
+        `${mappingPrefixes.sprint}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`
+      ),
       body: {
         id: `${mappingPrefixes.sprint}_${this.apiData.id}`,
         sprintId: `${this.apiData.id}`,
@@ -55,6 +64,5 @@ export class SprintProcessor extends DataProcessor<
         organizationId: orgData.id ?? null,
       },
     };
-    return sprintObj;
   }
 }

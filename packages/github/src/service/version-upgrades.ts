@@ -6,9 +6,7 @@ import { getVersionUpgrades } from '../matrics/get-version-upgrades';
 const versionUpgrades = async function versionUpgrades(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  let search: string | undefined = event.queryStringParameters?.search;
-  const page: string = event.queryStringParameters?.page ?? '1';
-  const limit: string = event.queryStringParameters?.limit ?? '10';
+  let search: string | undefined = event.queryStringParameters?.search ?? '';
   const sortKey: Github.Enums.SortKey =
     (event.queryStringParameters?.sortKey as Github.Enums.SortKey) ?? Github.Enums.SortKey.DATEDIFF;
   const sortOrder: Github.Enums.SortOrder =
@@ -16,26 +14,19 @@ const versionUpgrades = async function versionUpgrades(
     Github.Enums.SortOrder.DESC;
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
   const { requestId } = event.requestContext;
-
+  const afterKey = event.queryStringParameters?.afterKey ?? '';
   try {
+    const afterKeyObj =
+      afterKey.length > 0
+        ? JSON.parse(Buffer.from(afterKey, 'base64').toString('utf-8'))
+        : undefined;
+
     const sort = {
       key: sortKey,
       order: sortOrder,
     };
 
-    // we will throw error if search query is less than 3 characters to ensure FE doesn't send invalid data
-    if (!search) {
-      search = '';
-    }
-
-    const verUpgrades = await getVersionUpgrades(
-      search,
-      parseInt(page, 10),
-      parseInt(limit, 10),
-      repoIds,
-      requestId,
-      sort
-    );
+    const verUpgrades = await getVersionUpgrades(search, repoIds, requestId, afterKeyObj, sort);
 
     return responseParser
       .setBody(verUpgrades)

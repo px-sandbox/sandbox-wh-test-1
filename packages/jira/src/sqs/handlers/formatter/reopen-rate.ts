@@ -30,25 +30,21 @@ async function repoInfoQueueFunc(record: SQSRecord): Promise<void> {
       resourceId,
     });
     if (inputData) {
-      const reOpenRateProcessor = new ReopenRateProcessor(inputData, requestId, resourceId);
-
-      const data = await reOpenRateProcessor.processor();
-      if (!data) {
-        logger.error({
-          requestId,
-          resourceId,
-          message: 'reopenRateInfoQueueDATA.error',
-          error: 'processor failed',
-        });
-        return;
-      }
-      await reOpenRateProcessor.save({
-        data,
-        index: Jira.Enums.IndexName.ReopenRate,
-        processId: messageBody?.processId,
-      });
+      const reOpenRateProcessor = new ReopenRateProcessor(
+        inputData,
+        requestId,
+        resourceId,
+        messageBody.processId
+      );
+      await reOpenRateProcessor.process();
+      await reOpenRateProcessor.save();
+      logger.info({ requestId, resourceId, message: 'reopenRateInfoQueue.success' });
     }
-    logger.info({ requestId, resourceId, message: 'reopenRateInfoQueue.success' });
+    logger.info({
+      requestId,
+      resourceId,
+      message: 'reopenRateInfoQueue.data: NO_DATA_PREPARED_FOR_REOPEN',
+    });
   } catch (error) {
     logger.error({ requestId, resourceId, message: `reopenRateInfoQueue.error ${error}` });
     await logProcessToRetry(record, Queue.qReOpenRate.queueUrl, error as Error);

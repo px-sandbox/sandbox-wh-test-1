@@ -32,5 +32,6 @@ export type PRReviewComment = retryProcess & {
     createdAtDay: string;
     computationalDate: string;
     githubDate: string | Date;
+    isDeleted: boolean;
   };
-}
+};

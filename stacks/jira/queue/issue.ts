@@ -138,6 +138,8 @@ export function initializeIssueQueue(
     AVAILABLE_PROJECT_KEYS,
     REQUEST_TIMEOUT,
     cycleTimeQueue,
+    reOpenRateDataQueue,
+    reOpenRateDeleteQueue,
   ]);
 
   reOpenRateDataQueue.bind([
