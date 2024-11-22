@@ -113,6 +113,7 @@ const repoLibsQuery = async (
   searchString: string,
   afterKey: object
 ): Promise<any> => {
+
   const query = esb.boolQuery();
   if (searchString) {
     query.must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`));
