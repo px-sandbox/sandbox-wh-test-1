@@ -20,7 +20,7 @@ export async function issueHandler(
   requestId: string
 ): Promise<void> {
   const resourceId = issue.issue.id;
-  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
   const project = issue.issue.fields.project;
 
   logger.info({
@@ -39,7 +39,7 @@ export async function issueHandler(
   }
 
   // checking is project key is available in our system
-  if (!projectKeys.includes(project.key)) {
+  if (projectKeys.includes(project.key)) {
     logger.info({ message: 'processIssueCreatedEvent: Project not available in our system' });
     return;
   }
