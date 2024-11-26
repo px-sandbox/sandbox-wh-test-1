@@ -44,7 +44,6 @@ const getHeadline = async (repoIds: string[], branch: string): Promise<HitBody> 
       esb
         .boolQuery()
         .must([
-          esb.termQuery('body.isDeleted', false),
           esb.termsQuery('body.repoId', repoIds),
           esb.termQuery('body.branch', branch),
           esb.termQuery('body.date', moment().format('YYYY-MM-DD')),
@@ -52,7 +51,7 @@ const getHeadline = async (repoIds: string[], branch: string): Promise<HitBody> 
     );
 
   const data: HitBody = await esClientObj.search(
-    Github.Enums.IndexName.GitRepoSastErrors,
+    Github.Enums.IndexName.GitRepoSastErrorCount,
     query.toJSON()
   );
   return data;
@@ -145,7 +144,12 @@ async function getGraphData(
  */
 export async function getHeadlineStat(repoIds: string[], branch: string): Promise<number> {
   const data = await getHeadline(repoIds, branch);
-  return data?.hits?.total?.value;
+  const formattedData = await searchedDataFormator(data);
+  let currentErrCount = 0;
+  for (let i = 0; i < formattedData.length; i++) {
+    currentErrCount += formattedData[i].count;
+  }
+  return currentErrCount;
 }
 
 /**
