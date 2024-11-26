@@ -31,7 +31,13 @@ async function getParentId(issueId: string): Promise<string> {
 }
 
 async function getSprint(issue: Issue, jira: JiraClient) {
-  if (issue.fields.customfield_10007 && issue.fields.customfield_10007.length === 1) {
+  if(issue.fields.sprint){
+    return {
+      sprintId: issue.fields.sprint.id,
+      boardId: issue.fields.sprint.originBoardId,
+    };
+  }
+  else if (issue.fields.customfield_10007 && issue.fields.customfield_10007.length === 1) {
     return {
       sprintId: issue.fields.customfield_10007[0].id,
       boardId: issue.fields.customfield_10007[0].boardId,
