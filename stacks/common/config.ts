@@ -17,7 +17,7 @@ export const commonConfig = ({
   GITHUB_SG_INSTALLATION_ID: Config.Secret;
   GITHUB_WEBHOOK_SECRET: Config.Secret;
   GITHUB_SG_ACCESS_TOKEN: Config.Secret;
-  AVAILABLE_PROJECT_KEYS: Config.Secret;
+  IGNORED_PROJECT_KEYS: Config.Secret;
 
   PROJECT_DELETION_AGE: Config.Secret;
   NODE_VERSION: Runtime;
@@ -30,7 +30,7 @@ export const commonConfig = ({
   JIRA_CLIENT_SECRET: new Config.Secret(stack, 'JIRA_CLIENT_SECRET'),
   JIRA_REDIRECT_URI: new Config.Secret(stack, 'JIRA_REDIRECT_URI'),
   AUTH_PUBLIC_KEY: new Config.Secret(stack, 'AUTH_PUBLIC_KEY'),
-  AVAILABLE_PROJECT_KEYS: new Config.Secret(stack, 'AVAILABLE_PROJECT_KEYS'),
+  IGNORED_PROJECT_KEYS: new Config.Secret(stack, 'IGNORED_PROJECT_KEYS'),
   PROJECT_DELETION_AGE: new Config.Secret(stack, 'PROJECT_DELETION_AGE'),
 
   /** GITHUB SECRETS */

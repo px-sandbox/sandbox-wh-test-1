@@ -21,7 +21,7 @@ export async function restoreDeleted(
   requestId: string
 ): Promise<void | false> {
   const resourceId = projectId.toString();
-  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
   const jiraClient = await JiraClient.getClient(organization);
   const data = await jiraClient.getProject(projectId.toString());
 
@@ -35,7 +35,7 @@ export async function restoreDeleted(
     },
   });
 
-  if (!projectKeys.includes(data.key)) {
+  if (projectKeys.includes(data.key)) {
     logger.info({
       requestId,
       resourceId,
