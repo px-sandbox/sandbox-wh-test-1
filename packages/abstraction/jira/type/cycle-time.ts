@@ -209,3 +209,46 @@ export type CycleTimeSummaryResponse = {
   overall: number;
   overallWithoutDeployment: number;
 };
+export type rcaDetailType={
+  data:{
+      name:string,
+      highest:number, 
+      high:number,
+      medium:number,
+      low:number,
+      lowest:number,
+      total: number
+  }[]
+};
+
+export type rcaDetailRespnose={
+  by_rca:{
+    after_key:{
+      rca_name:string,
+      priority:string
+    }
+    buckets:{
+      key:
+      {
+      rca_name:string,
+      priority:string
+      },
+      doc_count:number,
+      priority_count:{
+        value:number
+      }
+    }[]
+}
+}
+
+export type currType={
+  key:
+      {
+      rca_name:string,
+      priority:string
+      },
+      doc_count:number,
+      priority_count:{
+        value:number
+      }
+}
