@@ -140,6 +140,12 @@ export function initializeRoutes(
       },
       authorizer: 'universal',
     },
+    'GET /jira/rca/table':{
+      function:{
+        handler:'packages/jira/src/service/rca.handler'
+      },
+      authorizer:'universal',
+    }
   };
 
   return routesObj;
