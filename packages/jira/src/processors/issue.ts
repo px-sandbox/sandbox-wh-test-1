@@ -243,11 +243,11 @@ export class IssueProcessor extends DataProcessor<
       filteredItems.map((item) => {
         if (item.field == ChangelogStatus.DEV_RCA) {
           containingDevRca = true;
-          devRca = item.toString;
+          devRca = item.to;
         }
         if (item.field == ChangelogStatus.QA_RCA) {
           containingQARca = true;
-          QARca = item.toString;
+          QARca = item.to;
         }
       });
         return {
