@@ -29,9 +29,9 @@ export async function removeReopenRate(
   }
 
   // checking is project key is available in our system
-  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
   const projectKey = issue?.issue?.fields?.project?.key;
-  if (!projectKeys.includes(projectKey)) {
+  if (projectKeys.includes(projectKey)) {
     logger.info({ message: 'processDeleteReopenRateEvent: Project not available in our system' });
     return;
   }
