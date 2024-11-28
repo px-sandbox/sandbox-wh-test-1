@@ -307,6 +307,23 @@ const indices = [
   },
 
   {
+    name:Jira.Enums.IndexName.Rca,
+    _id: {type:'uuid'},
+    mappings:{
+      properties:{
+        body:{
+          type:'object',
+          properties:{
+            id:{type:'keyword'},
+            name:{type:'keyword'},
+            type:{type:'keyword'},
+          }
+        }
+      }
+    }
+  },
+
+  {
     name: Jira.Enums.IndexName.ReopenRate,
     _id: { type: 'uuid' },
     mappings: {
