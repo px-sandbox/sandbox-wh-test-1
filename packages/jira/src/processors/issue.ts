@@ -123,6 +123,8 @@ export class IssueProcessor extends DataProcessor<
     try {
       switch (this.apiData.eventName) {
         case Jira.Enums.Event.IssueCreated:
+        case Jira.Enums.Event.WorklogCreated:
+        case Jira.Enums.Event.WorklogUpdated:
           await this.format();
           break;
         case Jira.Enums.Event.IssueUpdated:
@@ -132,6 +134,12 @@ export class IssueProcessor extends DataProcessor<
         case Jira.Enums.Event.IssueDeleted:
           await this.delete();
           break;
+        default:
+          logger.error({
+            requestId: this.requestId,
+            resourceId: this.resourceId,
+            message: 'issueFormattedDataReceiver.no_case_found',
+          });
       }
     } catch (error) {
       logger.error({

@@ -53,6 +53,7 @@ async function fetchJiraIssues(
 
 export async function worklog(
   issueId: string,
+  eventName: string,
   organization: string,
   requestId: string
 ): Promise<void> {
@@ -69,15 +70,15 @@ export async function worklog(
     // checking if issue type is allowed
 
     if (!ALLOWED_ISSUE_TYPES.includes(issueData?.issueType)) {
-      logger.info({message: 'processWorklogEvent: Issue type not allowed'});
+      logger.info({ message: 'processWorklogEvent: Issue type not allowed' });
       return;
     }
 
     // checking is project key is available in our system
-    const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+    const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
     const projectKey = issueData?.projectKey;
-    if (!projectKeys.includes(projectKey)) {
-      logger.info({message: 'processWorklogEvent: Project not available in our system'});
+    if (projectKeys.includes(projectKey)) {
+      logger.info({ message: 'processWorklogEvent: Project not available in our system' });
       return;
     }
 
@@ -90,6 +91,7 @@ export async function worklog(
         boardId: issueData.boardId,
         sprintId: issueData.sprintId,
         issue,
+        eventName,
       },
       Queue.qIssueFormat.queueUrl,
       { requestId, resourceId: issueId },

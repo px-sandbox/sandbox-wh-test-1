@@ -19,7 +19,7 @@ export async function close(
 ): Promise<void> {
   const resourceId = sprint.id;
   try {
-    const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+    const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
     const jiraClient = await JiraClient.getClient(organization);
     const data = await jiraClient.getBoard(sprint.originBoardId);
 
@@ -33,7 +33,7 @@ export async function close(
       },
     });
 
-    if (!projectKeys.includes(data.location.projectKey)) {
+    if (projectKeys.includes(data.location.projectKey)) {
       logger.info({
         requestId,
         resourceId,

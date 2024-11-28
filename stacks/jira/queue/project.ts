@@ -23,7 +23,7 @@ export function initializeProjectQueue(
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS,
+    IGNORED_PROJECT_KEYS,
     NODE_VERSION,
     REQUEST_TIMEOUT,
   } = use(commonConfig);
@@ -59,7 +59,7 @@ export function initializeProjectQueue(
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS,
+    IGNORED_PROJECT_KEYS,
     REQUEST_TIMEOUT,
   ]);
 
