@@ -22,8 +22,11 @@ export async function rcaQaTableDetailed(
   .agg(
     esb.termsAggregation('rcaQaCount')
       .field('body.rcaData.qaRca')
-      .size(1000)
-  );
+    ]).
+    filter(
+      esb.termQuery(containsField, true)
+    )
+  )
 
 const esbQuery = query.toJSON();
 const response:any = await esClient.search(Jira.Enums.IndexName.Issue, esbQuery);
