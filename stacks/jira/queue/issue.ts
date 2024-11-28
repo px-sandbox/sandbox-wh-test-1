@@ -18,7 +18,7 @@ export function initializeIssueQueue(
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS,
+    IGNORED_PROJECT_KEYS,
     NODE_VERSION,
     REQUEST_TIMEOUT,
   } = use(commonConfig);
@@ -135,7 +135,7 @@ export function initializeIssueQueue(
     JIRA_CLIENT_ID,
     JIRA_CLIENT_SECRET,
     JIRA_REDIRECT_URI,
-    AVAILABLE_PROJECT_KEYS,
+    IGNORED_PROJECT_KEYS,
     REQUEST_TIMEOUT,
     cycleTimeQueue,
     reOpenRateDataQueue,
@@ -150,7 +150,7 @@ export function initializeIssueQueue(
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     jiraIndexDataQueue,
-    AVAILABLE_PROJECT_KEYS,
+    IGNORED_PROJECT_KEYS,
     REQUEST_TIMEOUT,
   ]);
 

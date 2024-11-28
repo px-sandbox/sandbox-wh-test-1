@@ -23,7 +23,7 @@ export function initializeApi(
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
-    AVAILABLE_PROJECT_KEYS,
+    IGNORED_PROJECT_KEYS,
 
     PROJECT_DELETION_AGE,
     NODE_VERSION,
@@ -86,7 +86,7 @@ export function initializeApi(
           jiraMappingTable,
           jiraCredsTable,
           retryProcessTable,
-          AVAILABLE_PROJECT_KEYS,
+          IGNORED_PROJECT_KEYS,
           PROJECT_DELETION_AGE,
           REQUEST_TIMEOUT,
         ],
