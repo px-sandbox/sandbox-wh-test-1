@@ -7,12 +7,9 @@ import { head, max } from "lodash";
 
 const esClient = ElasticSearchClient.getInstance();
 
-export async function rcaTableDetailed(
+export async function rcaQaTableDetailed(
     sprintIds: string[],
-    type: string
   ): Promise<rcaTableView> {
-  const aggField = type == 'dev' ? 'devRca' : 'qaRca';
-  const containsField = type === 'dev' ? 'body.containsDevRca' : 'body.containsQARca'; 
   const query = esb
   .requestBodySearch()
   .size(0)
@@ -20,14 +17,11 @@ export async function rcaTableDetailed(
     esb.boolQuery().must([
       esb.termsQuery('body.sprintId', sprintIds),
       esb.termQuery('body.issueType',IssuesTypes.BUG)
-    ]).
-    filter(
-      esb.termQuery(containsField, true)
-    )
+    ])
   )
   .agg(
-    esb.termsAggregation('rcaCount')
-      .field(`body.rcaData.${aggField}`)
+    esb.termsAggregation('rcaQaCount')
+      .field('body.rcaData.qaRca')
       .size(1000)
   );
 
