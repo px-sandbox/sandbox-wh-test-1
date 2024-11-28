@@ -23,7 +23,7 @@ export async function update(
   organization: string,
   requestId: string
 ): Promise<void | false> {
-  const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+  const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
   const resourceId = project.id.toString();
 
   logger.info({
@@ -36,7 +36,7 @@ export async function update(
     resourceId,
   });
 
-  if (!projectKeys.includes(project.key)) {
+  if (projectKeys.includes(project.key)) {
     logger.info({
       requestId,
       message: 'processProjectUpdatedEvent: Project not available in our system',

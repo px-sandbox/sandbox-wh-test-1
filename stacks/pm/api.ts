@@ -16,7 +16,7 @@ export function initializeApi(stack: Stack): Api<{
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     REQUEST_TIMEOUT,
-    AVAILABLE_PROJECT_KEYS,
+    IGNORED_PROJECT_KEYS,
     PROJECT_DELETION_AGE,
     NODE_VERSION,
   } = use(commonConfig);
@@ -44,7 +44,7 @@ export function initializeApi(stack: Stack): Api<{
           JIRA_CLIENT_ID,
           JIRA_CLIENT_SECRET,
           JIRA_REDIRECT_URI,
-          AVAILABLE_PROJECT_KEYS,
+          IGNORED_PROJECT_KEYS,
           PROJECT_DELETION_AGE,
         ],
         runtime: NODE_VERSION,
