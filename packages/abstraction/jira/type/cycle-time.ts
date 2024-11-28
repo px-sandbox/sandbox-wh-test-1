@@ -174,6 +174,22 @@ export type CycleTimeOverallSummary = {
   };
 };
 
+export type rcaTableView ={
+  headline:string;
+  data :{
+    name:string;
+    count:number;
+  }[];
+}
+
+export type rcaTableRespnose={
+    rcaCount:{
+      buckets:{
+        key:string,
+        doc_count:number
+      }[]
+  }
+}
 export type CycleTimeDetailedType = {
   id: string;
   issueKey: string;
