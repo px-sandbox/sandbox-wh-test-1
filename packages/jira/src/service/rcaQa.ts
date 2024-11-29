@@ -1,7 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { APIHandler, HttpStatusCode, logger, responseParser } from "core";
 import { rcaQaTableDetailed } from "src/matrics/get-rca-tabular-view";
-import { rcaTableDetailed } from "src/matrics/get-rca-tabular-view";
 
 const rcaTabularView = async function getRcaTabularView(
     event: APIGatewayProxyEvent
@@ -12,7 +11,7 @@ const rcaTabularView = async function getRcaTabularView(
       );
       return responseParser
         .setBody(response)
-        .setMessage('rca table data')
+        .setMessage('rca table data QA')
         .setStatusCode(HttpStatusCode['200'])
         .setResponseBodyCode('SUCCESS')
         .send();

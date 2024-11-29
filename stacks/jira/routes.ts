@@ -140,15 +140,27 @@ export function initializeRoutes(
       },
       authorizer: 'universal',
     },
-    'GET /jira/rca/details':{
+    'GET /jira/rca/dev/table':{
       function:{
-        handler:'packages/jira/src/service/rcaDetails.handler',
+        handler:'packages/jira/src/service/rcaDev.handler'
       },
-      authorizer:'universal'
+      authorizer:'universal',
     },
-     'GET /jira/rca/qa/table':{
+    'GET /jira/rca/qa/table':{
       function:{
-        handler:'packages/jira/src/service/rca.handler'
+        handler:'packages/jira/src/service/rcaQa.handler'
+      },
+      authorizer:'universal',
+    },
+    'GET /jira/rca/dev/details':{
+      function:{
+        handler:'packages/jira/src/service/rcaDevDetails.handler'
+      },
+      authorizer:'universal',
+    },
+    'GET /jira/rca/qa/details':{
+      function:{
+        handler:'packages/jira/src/service/rcaQaDetails.handler'
       },
       authorizer:'universal',
     }
