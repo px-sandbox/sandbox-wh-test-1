@@ -21,7 +21,7 @@ export async function updateConfig(
 ): Promise<void | false> {
   const resourceId = config.id.toString();
   try {
-    const projectKeys = Config.AVAILABLE_PROJECT_KEYS?.split(',') || [];
+    const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
     const jiraClient = await JiraClient.getClient(organization);
     const data = await jiraClient.getBoard(config.id);
 
@@ -35,7 +35,7 @@ export async function updateConfig(
       },
     });
 
-    if (!projectKeys.includes(data.location.projectKey)) {
+    if (projectKeys.includes(data.location.projectKey)) {
       logger.info({
         requestId,
         resourceId,
