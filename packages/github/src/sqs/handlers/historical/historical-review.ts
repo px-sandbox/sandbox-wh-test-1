@@ -97,6 +97,7 @@ async function getPrReviews(record: SQSRecord): Promise<boolean | undefined> {
           review: reviews,
           pullId: messageBody.id,
           repoId: messageBody.head.repo.id,
+          orgId: messageBody.head.repo.owner.id,
         },
         Queue.qGhPrReviewFormat.queueUrl,
         { requestId, resourceId }

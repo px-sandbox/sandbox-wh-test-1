@@ -25,7 +25,12 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     await processor.process();
     await processor.save();
   } catch (error) {
-    logger.error({ message: 'userFormattedDataReceiver.error', error, requestId, resourceId });
+    logger.error({
+      message: 'userFormattedDataReceiver.error',
+      error: `${error}`,
+      requestId,
+      resourceId,
+    });
   }
 }
 

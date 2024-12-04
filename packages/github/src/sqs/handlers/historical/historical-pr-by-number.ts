@@ -13,6 +13,7 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 import { getWorkingTime } from '../../../util/timezone-calculation';
+import { Github } from 'abstraction';
 
 const sqsClient = SQSClient.getInstance();
 
@@ -65,7 +66,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
             reviewed_at: messageBody.submittedAt,
             approved_at: messageBody.approvedAt,
             review_seconds: reviewSeconds,
-            action: 'opened',
+            action: Github.Enums.PullRequest.Opened,
           },
           Queue.qGhPrFormat.queueUrl,
           { requestId, resourceId },
@@ -74,7 +75,12 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         );
       } catch (error) {
         await logProcessToRetry(record, Queue.qGhHistoricalPrByNumber.queueUrl, error as Error);
-        logger.error({ message: 'historical.pr.number.error', error, requestId, resourceId });
+        logger.error({
+          message: 'historical.pr.number.error',
+          error: `${error}`,
+          requestId,
+          resourceId,
+        });
       }
     })
   );
