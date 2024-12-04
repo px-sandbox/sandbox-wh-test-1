@@ -21,7 +21,12 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     await processor.process();
     await processor.save();
   } catch (error) {
-    logger.error({ message: 'branchFormattedDataReceiver.error', error, requestId, resourceId });
+    logger.error({
+      message: 'branchFormattedDataReceiver.error',
+      error: `${error}`,
+      requestId,
+      resourceId,
+    });
     await logProcessToRetry(record, Queue.qGhBranchFormat.queueUrl, error as Error);
     throw new Error(`branchFormattedDataReceiver.error:${JSON.stringify(error)}`);
   }

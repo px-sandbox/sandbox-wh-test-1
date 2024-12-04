@@ -153,7 +153,9 @@ export class PRProcessor extends DataProcessor<
       name: label.name,
     }));
     const pullData = (await this.getPrData()) as Github.Type.PullRequestBody;
-    this.updateGhApiData(pullData);
+    if (pullData) {
+      this.updateGhApiData(pullData);
+    }
     this.formattedData = {
       id: await this.parentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`),
       body: {
