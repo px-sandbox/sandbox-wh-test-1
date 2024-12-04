@@ -43,7 +43,7 @@ async function getReposList(
           Queue.qGhRepoFormat.queueUrl,
           { requestId }
         );
-        sqsClient.sendMessage({ ...repo }, Queue.qGhHistoricalBranch.queueUrl, { requestId });
+        sqsClient.sendMessage(repo, Queue.qGhHistoricalBranch.queueUrl, { requestId });
         sqsClient.sendMessage(repo, Queue.qGhHistoricalPr.queueUrl, { requestId });
       })
     );
