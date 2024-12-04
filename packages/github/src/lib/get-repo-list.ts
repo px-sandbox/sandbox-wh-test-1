@@ -6,6 +6,7 @@ import { Queue } from 'sst/node/queue';
 import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 import { ghRequest } from './request-default';
+import { Github } from 'abstraction';
 
 const sqsClient = SQSClient.getInstance();
 async function getReposList(
@@ -37,8 +38,16 @@ async function getReposList(
 
     await Promise.all(
       reposPerPage.map(async (repo) => {
-        sqsClient.sendMessage(repo, Queue.qGhRepoFormat.queueUrl, { requestId });
-        sqsClient.sendMessage(repo, Queue.qGhHistoricalBranch.queueUrl, { requestId });
+        sqsClient.sendMessage(
+          { ...repo, action: Github.Enums.Repo.Created },
+          Queue.qGhRepoFormat.queueUrl,
+          { requestId }
+        );
+        sqsClient.sendMessage(
+          { ...repo, action: Github.Enums.Branch.Created },
+          Queue.qGhHistoricalBranch.queueUrl,
+          { requestId }
+        );
         sqsClient.sendMessage(repo, Queue.qGhHistoricalPr.queueUrl, { requestId });
       })
     );
