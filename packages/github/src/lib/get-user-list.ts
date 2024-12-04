@@ -40,7 +40,11 @@ async function getUserList(
 
     await Promise.all(
       membersPerPage.map(async (member) =>
-        sqsClient.sendMessage({ ...member, orgId }, Queue.qGhUsersFormat.queueUrl, { requestId })
+        sqsClient.sendMessage(
+          { ...member, orgId, action: Github.Enums.Organization.MemberAdded },
+          Queue.qGhUsersFormat.queueUrl,
+          { requestId }
+        )
       )
     );
 
