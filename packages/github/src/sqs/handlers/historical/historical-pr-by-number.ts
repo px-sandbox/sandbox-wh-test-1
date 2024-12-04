@@ -74,7 +74,12 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         );
       } catch (error) {
         await logProcessToRetry(record, Queue.qGhHistoricalPrByNumber.queueUrl, error as Error);
-        logger.error({ message: 'historical.pr.number.error', error, requestId, resourceId });
+        logger.error({
+          message: 'historical.pr.number.error',
+          error: `${error}`,
+          requestId,
+          resourceId,
+        });
       }
     })
   );

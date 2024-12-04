@@ -31,7 +31,12 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     await processor.save();
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPrReviewFormat.queueUrl, error as Error);
-    logger.error({ message: 'pRReviewFormattedDataReceiver.error', error, requestId, resourceId });
+    logger.error({
+      message: 'pRReviewFormattedDataReceiver.error',
+      error: `${error}`,
+      requestId,
+      resourceId,
+    });
   }
 }
 export const handler = async function pRReviewFormattedDataReceiver(
