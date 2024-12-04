@@ -126,7 +126,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
         }
         const projectKey = messageBody.issue.fields.project.key;
         logger.info({ message: 'projectKey', data: projectKey, requestId, resourceId });
-        if (['PT', 'PX', 'FUZE', 'YT100'].includes(projectKey)) {
+
           const issueType = messageBody.issue.fields.issuetype.name;
           let issueId = messageBody.issue.id;
           if (issueType === IssuesTypes.SUBTASK) {
@@ -188,14 +188,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
             requestId,
             resourceId,
           });
-        } else {
-          logger.info({
-            message: 'Project key not allowed',
-            data: { projectKey },
-            requestId,
-            resourceId,
-          });
-        }
+        
       } catch (error) {
         await logProcessToRetry(record, Queue.qCycleTimeFormat.queueUrl, error as Error);
         logger.error({
