@@ -23,9 +23,13 @@ export class RepositoryProcessor extends DataProcessor<
       case Github.Enums.Repo.Created:
       case Github.Enums.Repo.Edited:
       case Github.Enums.Repo.Renamed:
+      case Github.Enums.Repo.Transferred:
+      case Github.Enums.Repo.Privatized:
+      case Github.Enums.Repo.Unarchived:
         await this.format(false);
         break;
       case Github.Enums.Repo.Deleted:
+      case Github.Enums.Repo.Archived:
         await this.format(true);
         break;
       default:
