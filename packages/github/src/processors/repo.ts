@@ -21,6 +21,8 @@ export class RepositoryProcessor extends DataProcessor<
   public async process(): Promise<void> {
     switch (this.action.toLowerCase()) {
       case Github.Enums.Repo.Created:
+      case Github.Enums.Repo.Edited:
+      case Github.Enums.Repo.Renamed:
         await this.format(false);
         break;
       case Github.Enums.Repo.Deleted:
