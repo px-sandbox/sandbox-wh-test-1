@@ -1,6 +1,5 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github, Jira } from 'abstraction';
-import { IssuesTypes } from 'abstraction/jira/enums';
+import { Jira } from 'abstraction';
 import { currType, rcaDetailResponse, rcaDetailType } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
 

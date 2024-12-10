@@ -31,7 +31,7 @@ async function getHeadline(type: string) {
     Jira.Enums.IndexName.Issue,
     query.toJSON()
   );
-  return { value: result.max_rca_count.value, names: result.max_rca_count.keys };
+  return { value: result.max_rca_count.value ?? 0, names: result.max_rca_count.keys };
 }
 
 export async function rcaQaTableDetailed(sprintIds: string[]): Promise<rcaTableView> {
