@@ -1,7 +1,7 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github, Jira } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
-import { currType, rcaDetailRespnose, rcaDetailType } from 'abstraction/jira/type';
+import { currType, rcaDetailResponse, rcaDetailType } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
 
 const esClient = ElasticSearchClient.getInstance();
@@ -10,6 +10,7 @@ export async function rcaDevDetail(sprintIds: string[]): Promise<rcaDetailType> 
   const query = esb
     .requestBodySearch()
     .size(0)
+    .query(esb.boolQuery().must([esb.termsQuery('body.sprintId', sprintIds)]))
     .agg(
       esb
         .compositeAggregation('by_rca')
@@ -21,7 +22,7 @@ export async function rcaDevDetail(sprintIds: string[]): Promise<rcaDetailType> 
     );
 
   const esbQuery = query.toJSON();
-  const response: rcaDetailRespnose = await esClient.queryAggs(
+  const response: rcaDetailResponse = await esClient.queryAggs(
     Jira.Enums.IndexName.Issue,
     esbQuery
   );
@@ -44,11 +45,11 @@ export async function rcaDevDetail(sprintIds: string[]): Promise<rcaDetailType> 
   return { data: result };
 }
 
-
 export async function rcaQaDetail(sprintIds: string[]): Promise<rcaDetailType> {
   const query = esb
     .requestBodySearch()
     .size(0)
+    .query(esb.boolQuery().must([esb.termsQuery('body.sprintId', sprintIds)]))
     .agg(
       esb
         .compositeAggregation('by_rca')
@@ -60,7 +61,7 @@ export async function rcaQaDetail(sprintIds: string[]): Promise<rcaDetailType> {
     );
 
   const esbQuery = query.toJSON();
-  const response: rcaDetailRespnose = await esClient.queryAggs(
+  const response: rcaDetailResponse = await esClient.queryAggs(
     Jira.Enums.IndexName.Issue,
     esbQuery
   );

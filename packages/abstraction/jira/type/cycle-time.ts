@@ -173,23 +173,31 @@ export type CycleTimeOverallSummary = {
     total: number;
   };
 };
-
-export type rcaTableView ={
-  headline:string;
-  data :{
-    name:string;
-    count:number;
+export type rcaTableHeadline = {
+  max_rca_count: {
+    value: number;
+    keys: string[];
+  };
+};
+export type rcaTableView = {
+  headline: {
+    value: number;
+    names: string[];
+  };
+  tableData: {
+    name: string;
+    count: number;
   }[];
-}
+};
 
-export type rcaTableRespnose={
-    rcaCount:{
-      buckets:{
-        key:string,
-        doc_count:number
-      }[]
-  }
-}
+export type rcaTableRespnose = {
+  rcaCount: {
+    buckets: {
+      key: string;
+      doc_count: number;
+    }[];
+  };
+};
 export type CycleTimeDetailedType = {
   id: string;
   issueKey: string;
@@ -225,46 +233,44 @@ export type CycleTimeSummaryResponse = {
   overall: number;
   overallWithoutDeployment: number;
 };
-export type rcaDetailType={
-  data:{
-      name:string,
-      highest:number, 
-      high:number,
-      medium:number,
-      low:number,
-      lowest:number,
-      total: number
-  }[]
+export type rcaDetailType = {
+  data: {
+    name: string;
+    highest: number;
+    high: number;
+    medium: number;
+    low: number;
+    lowest: number;
+    total: number;
+  }[];
 };
 
-export type rcaDetailRespnose={
-  by_rca:{
-    after_key:{
-      rca_name:string,
-      priority:string
-    }
-    buckets:{
-      key:
-      {
-      rca_name:string,
-      priority:string
-      },
-      doc_count:number,
-      priority_count:{
-        value:number
-      }
-    }[]
-}
-}
+export type rcaDetailResponse = {
+  by_rca: {
+    after_key: {
+      rca_name: string;
+      priority: string;
+    };
+    buckets: {
+      key: {
+        rca_name: string;
+        priority: string;
+      };
+      doc_count: number;
+      priority_count: {
+        value: number;
+      };
+    }[];
+  };
+};
 
-export type currType={
-  key:
-      {
-      rca_name:string,
-      priority:string
-      },
-      doc_count:number,
-      priority_count:{
-        value:number
-      }
-}
+export type currType = {
+  key: {
+    rca_name: string;
+    priority: string;
+  };
+  doc_count: number;
+  priority_count: {
+    value: number;
+  };
+};

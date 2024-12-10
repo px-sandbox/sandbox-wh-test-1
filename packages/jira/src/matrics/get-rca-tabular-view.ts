@@ -1,12 +1,38 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github, Jira } from 'abstraction';
+import { Jira } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
-import { rcaTableRespnose, rcaTableView } from 'abstraction/jira/type';
+import { rcaTableHeadline, rcaTableView } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
-import { head, max } from 'lodash';
-import { updateRefreshToken } from 'src/cron/refresh-token';
 
 const esClient = ElasticSearchClient.getInstance();
+
+async function getHeadline(type: string) {
+  const query = esb
+    .requestBodySearch()
+    .size(0)
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.existsQuery('body.rcaData'),
+          esb.termQuery('body.issueType', IssuesTypes.BUG),
+          esb.termsQuery('body.priority', ['Highest', 'High', 'Medium', 'Low', 'Lowest']),
+          esb.termQuery(`body.contains${type}`, true),
+        ])
+    )
+    .agg(
+      esb
+        .termsAggregation('rca_count')
+        .field(`body.rcaData.${type}`)
+        .agg(esb.valueCountAggregation('rca_value_count').field(`body.rcaData.${type}`))
+    )
+    .agg(esb.maxBucketAggregation('max_rca_count').bucketsPath('rca_count>rca_value_count'));
+  const result: rcaTableHeadline = await esClient.queryAggs(
+    Jira.Enums.IndexName.Issue,
+    query.toJSON()
+  );
+  return { value: result.max_rca_count.value, names: result.max_rca_count.keys };
+}
 
 export async function rcaQaTableDetailed(sprintIds: string[]): Promise<rcaTableView> {
   const query = esb
@@ -37,33 +63,21 @@ export async function rcaQaTableDetailed(sprintIds: string[]): Promise<rcaTableV
   const updatedQaRcaBuckets = mapRcaBucketsWithFullNames(QaRcaBuckets, response1);
 
   return {
-    headline: getHeadline(response, QaRcaBuckets),
-    data: updatedQaRcaBuckets,
+    headline: await getHeadline('qaRca'),
+    tableData: updatedQaRcaBuckets,
   };
 }
-function getHeadline(response: any, buckets: any) {
-  let max = 0,
-    name = '';
-  for (let i = 0; i < buckets.length; i++) {
-    if (buckets[i].count > max) {
-      max = buckets[i].count;
-      name = buckets[i].name;
-    }
-  }
 
-  const headline = `${name} = ${(max / response.hits.total.value) * 100}`;
-  return headline;
-}
-function mapRcaBucketsWithFullNames(rcaBuckets:any, response1:any) {
-  const idToNameMap = response1.hits.hits.reduce((acc:any, hit:any) => {
+function mapRcaBucketsWithFullNames(rcaBuckets: any, response1: any) {
+  const idToNameMap = response1.hits.hits.reduce((acc: any, hit: any) => {
     const id = hit._source.body.id;
     const name = hit._source.body.name;
     acc[id] = name;
     return acc;
   }, {});
-  return rcaBuckets.map((bucket: { name: string | number; count: number; }) => {
-    const fullName = idToNameMap[bucket.name]; 
-    return { name: fullName ,count: bucket.count}; 
+  return rcaBuckets.map((bucket: { name: string | number; count: number }) => {
+    const fullName = idToNameMap[bucket.name];
+    return { name: fullName, count: bucket.count };
   });
 }
 
@@ -95,7 +109,7 @@ export async function rcaDevTableDetailed(sprintIds: string[]): Promise<rcaTable
 
   const updatedDevRcaBuckets = mapRcaBucketsWithFullNames(devRcaBuckets, response1);
   return {
-    headline: getHeadline(response, devRcaBuckets),
-    data: updatedDevRcaBuckets,
+    headline: await getHeadline('devRca'),
+    tableData: updatedDevRcaBuckets,
   };
 }
