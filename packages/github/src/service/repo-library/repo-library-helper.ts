@@ -28,7 +28,7 @@ export async function repoLibHelper(
   reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   logger.info({ message: 'repoLibrary.handler', data, ...reqCtx });
-
+  const excludedLibraries = ["@studiographene/nodejs-telemetry"];
   if (data) {
     const {
       coreDependencies,
@@ -53,7 +53,7 @@ export async function repoLibHelper(
 
     const ddbPutData: Array<Github.Type.LibraryRecord> = [];
     const repoLibFormattedData: Array<Github.Type.RepoLibrary> = await Promise.all(
-      combinedDeps.map(async (dep) => {
+      combinedDeps.filter(dep => !(excludedLibraries.includes(dep.dependencyName))).map(async (dep) => {
         const { current, latest } = await getNodeLibInfo(dep.dependencyName, dep.currentVersion);
         ddbPutData.push({
           libName: `npm_${dep.dependencyName}`,
