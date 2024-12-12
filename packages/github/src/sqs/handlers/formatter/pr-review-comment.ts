@@ -32,7 +32,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     await logProcessToRetry(record, Queue.qGhPrReviewCommentFormat.queueUrl, error as Error);
     logger.error({
       message: 'pRReviewCommentFormattedDataReceiver.error',
-      error,
+      error: `${error}`,
       requestId,
       resourceId,
     });

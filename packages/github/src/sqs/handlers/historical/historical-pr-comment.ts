@@ -8,6 +8,7 @@ import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
+import { Github } from 'abstraction';
 
 async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
   const {
@@ -56,6 +57,7 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
           pullId: messageBody.id,
           repoId: messageBody.head.repo.id,
           orgId: messageBody.head.repo.owner.id,
+          action: Github.Enums.PRReviewComment.Created,
         },
         Queue.qGhPrReviewCommentFormat.queueUrl,
         { requestId, resourceId }
