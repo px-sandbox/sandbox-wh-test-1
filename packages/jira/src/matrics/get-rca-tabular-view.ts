@@ -1,8 +1,9 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
-import { rcaTableHeadline, rcaTableView } from 'abstraction/jira/type';
+import { rcaTableHeadline, rcaTableResponse, rcaTableView } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
+import { searchedDataFormator } from 'src/util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
 
@@ -17,7 +18,6 @@ async function getHeadline(type: string) {
           esb.existsQuery('body.rcaData'),
           esb.termQuery('body.issueType', IssuesTypes.BUG),
           esb.termsQuery('body.priority', ['Highest', 'High', 'Medium', 'Low', 'Lowest']),
-          esb.termQuery(`body.contains${type}`, true),
         ])
     )
     .agg(
@@ -31,7 +31,7 @@ async function getHeadline(type: string) {
     Jira.Enums.IndexName.Issue,
     query.toJSON()
   );
-  return { value: result.max_rca_count.value ?? 0, names: result.max_rca_count.keys };
+  return result;
 }
 
 export async function rcaQaTableDetailed(sprintIds: string[]): Promise<rcaTableView> {
@@ -47,38 +47,38 @@ export async function rcaQaTableDetailed(sprintIds: string[]): Promise<rcaTableV
         ])
         .filter(esb.termQuery('body.containsQARca', true))
     )
-    .agg(esb.termsAggregation('rcaQaCount').field('body.rcaData.qaRca').size(1000));
+    .agg(esb.termsAggregation('rcaCount').field('body.rcaData.qaRca').size(1000))
+    .toJSON();
 
-  const esbQuery = query.toJSON();
-  const response: any = await esClient.search(Jira.Enums.IndexName.Issue, esbQuery);
-  const QaRcaBuckets = response.aggregations.rcaQaCount?.buckets.map((bucket: any) => ({
+  const response: rcaTableResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
+  const QaRcaBuckets = response.rcaCount?.buckets.map((bucket: any) => ({
     name: bucket.key,
     count: bucket.doc_count,
   }));
-
-  const query1 = esb.requestBodySearch().query(esb.termQuery('body.type', 'qa'));
-  const esbQuery1 = query1.toJSON();
-  const response1: any = await esClient.search(Jira.Enums.IndexName.Rca, esbQuery1);
-
-  const updatedQaRcaBuckets = mapRcaBucketsWithFullNames(QaRcaBuckets, response1);
-
+  const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames('qa');
+  const headlineRCA = await getHeadline('qaRca');
+  const data = QaRcaBuckets.map((bucket: { name: string | number; count: number }) => {
+    const fullName = updatedQaRcaBuckets[bucket.name];
+    return { name: fullName, count: bucket.count };
+  });
+  const headlineRCANames = headlineRCA.max_rca_count.keys.map((name) => updatedQaRcaBuckets[name]);
   return {
-    headline: await getHeadline('qaRca'),
-    tableData: updatedQaRcaBuckets,
+    headline: { value: headlineRCA.max_rca_count.value, names: headlineRCANames },
+    tableData: data,
   };
 }
 
-function mapRcaBucketsWithFullNames(rcaBuckets: any, response1: any) {
-  const idToNameMap = response1.hits.hits.reduce((acc: any, hit: any) => {
-    const id = hit._source.body.id;
-    const name = hit._source.body.name;
+export async function mapRcaBucketsWithFullNames(type: string) {
+  const rcaNameQuery = esb.requestBodySearch().query(esb.termQuery('body.type', type)).toJSON();
+  const rcaRes: any = await esClient.search(Jira.Enums.IndexName.Rca, rcaNameQuery);
+  const resData = await searchedDataFormator(rcaRes);
+  const idToNameMap = resData.reduce((acc: any, hit: any) => {
+    const id = `jira_rca_${hit.id}`;
+    const name = hit.name;
     acc[id] = name;
     return acc;
   }, {});
-  return rcaBuckets.map((bucket: { name: string | number; count: number }) => {
-    const fullName = idToNameMap[bucket.name];
-    return { name: fullName, count: bucket.count };
-  });
+  return idToNameMap;
 }
 
 export async function rcaDevTableDetailed(sprintIds: string[]): Promise<rcaTableView> {
@@ -94,22 +94,25 @@ export async function rcaDevTableDetailed(sprintIds: string[]): Promise<rcaTable
         ])
         .filter(esb.termQuery('body.containsDevRca', true))
     )
-    .agg(esb.termsAggregation('rcaDevCount').field(`body.rcaData.devRca`).size(1000));
+    .agg(esb.termsAggregation('rcaCount').field(`body.rcaData.devRca`).size(10))
+    .toJSON();
 
-  const esbQuery = query.toJSON();
-  const response: any = await esClient.search(Jira.Enums.IndexName.Issue, esbQuery);
-  const devRcaBuckets = response.aggregations.rcaDevCount?.buckets.map((bucket: any) => ({
+  const response: rcaTableResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
+
+  const devRcaBuckets = response.rcaCount?.buckets.map((bucket: any) => ({
     name: bucket.key,
     count: bucket.doc_count,
   }));
 
-  const query1 = esb.requestBodySearch().query(esb.termQuery('body.type', 'dev'));
-  const esbQuery1 = query1.toJSON();
-  const response1: any = await esClient.search(Jira.Enums.IndexName.Rca, esbQuery1);
-
-  const updatedDevRcaBuckets = mapRcaBucketsWithFullNames(devRcaBuckets, response1);
+  const updatedDevRcaBuckets = await mapRcaBucketsWithFullNames('dev');
+  const headlineRCA = await getHeadline('devRca');
+  const data = devRcaBuckets.map((bucket: { name: string | number; count: number }) => {
+    const fullName = updatedDevRcaBuckets[bucket.name];
+    return { name: fullName, count: bucket.count };
+  });
+  const headlineRCANames = headlineRCA.max_rca_count.keys.map((name) => updatedDevRcaBuckets[name]);
   return {
-    headline: await getHeadline('devRca'),
-    tableData: updatedDevRcaBuckets,
+    headline: { value: headlineRCA.max_rca_count.value, names: headlineRCANames },
+    tableData: data,
   };
 }

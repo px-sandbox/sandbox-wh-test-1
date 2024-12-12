@@ -190,7 +190,7 @@ export type rcaTableView = {
   }[];
 };
 
-export type rcaTableRespnose = {
+export type rcaTableResponse = {
   rcaCount: {
     buckets: {
       key: string;
@@ -234,33 +234,38 @@ export type CycleTimeSummaryResponse = {
   overallWithoutDeployment: number;
 };
 export type rcaDetailType = {
-  data: {
-    name: string;
-    highest: number;
-    high: number;
-    medium: number;
-    low: number;
-    lowest: number;
-    total: number;
-  }[];
+  name: string;
+  highest: number;
+  high: number;
+  medium: number;
+  low: number;
+  lowest: number;
+  total: number;
 };
 
 export type rcaDetailResponse = {
   by_rca: {
-    after_key: {
-      rca_name: string;
-      priority: string;
-    };
-    buckets: {
-      key: {
-        rca_name: string;
-        priority: string;
-      };
-      doc_count: number;
-      priority_count: {
-        value: number;
-      };
-    }[];
+    buckets: [
+      {
+        key: string;
+        doc_count: number;
+        highest_count: {
+          doc_count: number;
+        };
+        high_count: {
+          doc_count: number;
+        };
+        medium_count: {
+          doc_count: number;
+        };
+        low_count: {
+          doc_count: number;
+        };
+        lowest_count: {
+          doc_count: number;
+        };
+      }
+    ];
   };
 };
 
