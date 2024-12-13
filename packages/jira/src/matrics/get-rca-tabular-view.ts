@@ -15,9 +15,9 @@ async function getHeadline(type: string) {
       esb
         .boolQuery()
         .must([
-          esb.existsQuery('body.rcaData'),
+          esb.existsQuery(`body.rcaData.${type}`),
           esb.termQuery('body.issueType', IssuesTypes.BUG),
-          esb.termsQuery('body.priority', ['Highest', 'High', 'Medium', 'Low', 'Lowest']),
+          esb.termsQuery('body.priority', ['Highest', 'High', 'Medium']),
         ])
     )
     .agg(
@@ -26,7 +26,24 @@ async function getHeadline(type: string) {
         .field(`body.rcaData.${type}`)
         .agg(esb.valueCountAggregation('rca_value_count').field(`body.rcaData.${type}`))
     )
-    .agg(esb.maxBucketAggregation('max_rca_count').bucketsPath('rca_count>rca_value_count'));
+    .agg(esb.maxBucketAggregation('max_rca_count').bucketsPath('rca_count>rca_value_count'))
+    .agg(
+      esb
+        .globalAggregation('global_agg')
+        .aggs([
+          esb
+            .filterAggregation('total_bug_count')
+            .filter(
+              esb
+                .boolQuery()
+                .must([
+                  esb.termQuery('body.issueType', IssuesTypes.BUG),
+                  esb.existsQuery(`body.rcaData.${type}`),
+                ])
+            ),
+        ])
+    );
+
   const result: rcaTableHeadline = await esClient.queryAggs(
     Jira.Enums.IndexName.Issue,
     query.toJSON()
@@ -63,7 +80,15 @@ export async function rcaQaTableDetailed(sprintIds: string[]): Promise<rcaTableV
   });
   const headlineRCANames = headlineRCA.max_rca_count.keys.map((name) => updatedQaRcaBuckets[name]);
   return {
-    headline: { value: headlineRCA.max_rca_count.value, names: headlineRCANames },
+    headline: {
+      value: parseFloat(
+        (
+          (headlineRCA.max_rca_count.value / headlineRCA.global_agg.total_bug_count.doc_count) *
+          100
+        ).toFixed(2)
+      ),
+      names: headlineRCANames,
+    },
     tableData: data,
   };
 }
@@ -112,7 +137,15 @@ export async function rcaDevTableDetailed(sprintIds: string[]): Promise<rcaTable
   });
   const headlineRCANames = headlineRCA.max_rca_count.keys.map((name) => updatedDevRcaBuckets[name]);
   return {
-    headline: { value: headlineRCA.max_rca_count.value, names: headlineRCANames },
+    headline: {
+      value: parseFloat(
+        (
+          (headlineRCA.max_rca_count.value / headlineRCA.global_agg.total_bug_count.doc_count) *
+          100
+        ).toFixed(2)
+      ),
+      names: headlineRCANames,
+    },
     tableData: data,
   };
 }

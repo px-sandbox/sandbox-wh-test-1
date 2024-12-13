@@ -82,7 +82,7 @@ export async function rcaQaDetail(sprintIds: string[]): Promise<rcaDetailType[]>
     .toJSON();
 
   const response: rcaDetailResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
-  const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames('dev');
+  const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames('qa');
 
   return response.by_rca.buckets.map((item) => {
     const rcaName = updatedQaRcaBuckets[item.key];

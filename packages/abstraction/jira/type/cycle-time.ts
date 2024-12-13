@@ -178,7 +178,13 @@ export type rcaTableHeadline = {
     value: number;
     keys: string[];
   };
+  global_agg: {
+    total_bug_count: {
+      doc_count: number;
+    };
+  };
 };
+
 export type rcaTableView = {
   headline: {
     value: number;
@@ -240,7 +246,7 @@ export type rcaDetailType = {
   medium: number;
   low: number;
   lowest: number;
-  total: number;
+  total?: number;
 };
 
 export type rcaDetailResponse = {
@@ -278,4 +284,17 @@ export type currType = {
   priority_count: {
     value: number;
   };
+};
+
+export type rcaTrendsResponse = {
+  headline: {
+    value: number;
+    names: string;
+  };
+  sprintName: string;
+  highest: number;
+  high: number;
+  medium: number;
+  low: number;
+  lowest: number;
 };
