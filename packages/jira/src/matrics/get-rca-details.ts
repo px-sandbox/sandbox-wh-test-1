@@ -1,6 +1,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
-import { currType, rcaDetailResponse, rcaDetailType } from 'abstraction/jira/type';
+import { rcaDetailResponse, rcaDetailType } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
 import { mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
 
@@ -17,6 +17,7 @@ export async function rcaDetailedView(sprintIds: string[], type: string): Promis
           esb.termsQuery('body.sprintId', sprintIds),
           esb.termQuery('body.issueType', 'Bug'),
           esb.existsQuery(`body.rcaData.${type}`),
+          esb.termQuery('body.isDeleted', false),
         ])
     )
     .agg(

@@ -10,7 +10,7 @@ import { searchedDataFormator } from 'src/util/response-formatter';
 const esClient = ElasticSearchClient.getInstance();
 export async function mapRcaBucketsWithFullNames() {
   const rcaNameQuery = esb.requestBodySearch().query(esb.matchAllQuery()).toJSON();
-  const rcaRes: any = await esClient.search(Jira.Enums.IndexName.Rca, rcaNameQuery);
+  const rcaRes = await esClient.search(Jira.Enums.IndexName.Rca, rcaNameQuery);
   const resData = await searchedDataFormator(rcaRes);
   const idToNameMap = resData.reduce((acc: any, hit: any) => {
     const id = `${mappingPrefixes.rca}_${hit.id}`;
@@ -32,6 +32,7 @@ async function getHeadline(type: string) {
           esb.existsQuery(`body.rcaData.${type}`),
           esb.termQuery('body.issueType', IssuesTypes.BUG),
           esb.termsQuery('body.priority', ['Highest', 'High', 'Medium']),
+          esb.termQuery('body.isDeleted', false),
         ])
     )
     .agg(
@@ -76,6 +77,7 @@ export async function rcaGraphView(sprintIds: string[], type: string): Promise<r
           esb.termsQuery('body.sprintId', sprintIds),
           esb.termQuery('body.issueType', IssuesTypes.BUG),
           esb.existsQuery(`body.rcaData.${type}`),
+          esb.termQuery('body.isDeleted', false),
         ])
     )
     .agg(esb.termsAggregation('rcaCount').field(`body.rcaData.${type}`).size(1000))
@@ -99,7 +101,7 @@ export async function rcaGraphView(sprintIds: string[], type: string): Promise<r
 
   const response: rcaGraphResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
   const totalBugCount = response.global_agg.total_bug_count.doc_count;
-  const QaRcaBuckets = response.rcaCount?.buckets.map((bucket: any) => ({
+  const QaRcaBuckets = response.rcaCount?.buckets.map((bucket) => ({
     name: bucket.key,
     percentage: parseFloat(((bucket.doc_count / totalBugCount) * 100).toFixed(2)),
   }));

@@ -236,12 +236,11 @@ export class IssueProcessor extends DataProcessor<
         });
       }
     }
-  
 
     const fnRca = () => {
       let containingQARca = false;
       let devRca = null;
-      let QARca = null;
+      let qaRca = null;
       let containingDevRca = false;
       const filteredItems = this.apiData.changelog.items.filter(
         (item) =>
@@ -249,26 +248,27 @@ export class IssueProcessor extends DataProcessor<
           (item.fieldId === 'customfield_11226' || item.fieldId === 'customfield_11225')
       );
       filteredItems.map((item) => {
-        if (item.field == ChangelogStatus.DEV_RCA) {
-          containingDevRca = true;
-          devRca = `jira_rca_${item.to}`;
-        }
-        if (item.field == ChangelogStatus.QA_RCA) {
-          containingQARca = true;
-          QARca = `jira_rca_${item.to}`;
+        switch (item.field) {
+          case ChangelogStatus.DEV_RCA:
+            containingDevRca = true;
+            devRca = `${mappingPrefixes.rca}_${item.to}`;
+            break;
+          case ChangelogStatus.QA_RCA:
+            containingQARca = true;
+            qaRca = `${mappingPrefixes.rca}_${item.to}`;
+            break;
         }
       });
-        return {
-          containsDevRca:containingDevRca,
-          containsQARca:containingQARca,
-          rcaData:{
-            devRca,
-            qaRca:QARca
-          }
-        }
-
+      return {
+        containsDevRca: containingDevRca,
+        containsQARca: containingQARca,
+        rcaData: {
+          devRca,
+          qaRca,
+        },
+      };
     };
-    
+
     this.formattedData = {
       id: await this.parentId(
         `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`

@@ -35,7 +35,8 @@ async function getHeadline(type: string, rcaId: string) {
           esb.existsQuery('body.rcaData'),
           esb.termQuery('body.issueType', IssuesTypes.BUG),
           esb.termsQuery('body.priority', ['Highest', 'High', 'Medium']),
-          esb.termQuery(`body.rcaData.${type}`, `jira_rca_${rcaId}`),
+          esb.termQuery(`body.rcaData.${type}`, `${mappingPrefixes.rca}_${rcaId}`),
+          esb.termQuery('body.isDeleted', false),
         ])
     )
     .agg(
@@ -97,6 +98,7 @@ export async function getRcaTrends(
           esb.termsQuery('body.sprintId', sprintIds),
           esb.termQuery('body.issueType', 'Bug'),
           esb.termQuery(`body.rcaData.${type}`, `${mappingPrefixes.rca}_${rcaData[0].id}`),
+          esb.termQuery('body.isDeleted', false),
         ])
     )
     .agg(
