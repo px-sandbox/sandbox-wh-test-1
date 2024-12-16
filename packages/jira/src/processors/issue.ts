@@ -194,7 +194,6 @@ export class IssueProcessor extends DataProcessor<
     const orgData = await getOrganization(this.apiData.organization);
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
-
     if (!orgData) {
       logger.error({
         requestId: this.requestId,
@@ -238,33 +237,16 @@ export class IssueProcessor extends DataProcessor<
     }
 
     const fnRca = () => {
-      let containingQARca = false;
-      let devRca = null;
-      let qaRca = null;
-      let containingDevRca = false;
-      const filteredItems = this.apiData.changelog.items.filter(
-        (item) =>
-          (item.field === ChangelogStatus.DEV_RCA || item.field === ChangelogStatus.QA_RCA) &&
-          (item.fieldId === 'customfield_11226' || item.fieldId === 'customfield_11225')
-      );
-      filteredItems.map((item) => {
-        switch (item.field) {
-          case ChangelogStatus.DEV_RCA:
-            containingDevRca = true;
-            devRca = `${mappingPrefixes.rca}_${item.to}`;
-            break;
-          case ChangelogStatus.QA_RCA:
-            containingQARca = true;
-            qaRca = `${mappingPrefixes.rca}_${item.to}`;
-            break;
-        }
-      });
+      const containingQARca = issueDataFromApi.fields.customfield_11226;
+      const containingDevRca = issueDataFromApi.fields.customfield_11225;
+      const devRca = issueDataFromApi.fields.customfield_11225?.id;
+      const qaRca = issueDataFromApi.fields.customfield_11226?.id;
       return {
-        containsDevRca: containingDevRca,
-        containsQARca: containingQARca,
+        containsDevRca: containingDevRca ? true : false,
+        containsQARca: containingQARca ? true : false,
         rcaData: {
-          devRca,
-          qaRca,
+          devRca: devRca ? `${mappingPrefixes.rca}_${devRca}` : null,
+          qaRca: qaRca ? `${mappingPrefixes.rca}_${qaRca}` : null,
         },
       };
     };
