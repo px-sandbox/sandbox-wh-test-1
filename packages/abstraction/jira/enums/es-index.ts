@@ -8,5 +8,5 @@ export enum IndexName {
   Organization = 'jira_organization',
   ReopenRate = 'jira_reopen_rate',
   CycleTime = 'jira_cycle_time',
-  Rca='jira_rca',
+  Rca = 'jira_rca',
 }

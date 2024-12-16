@@ -140,41 +140,27 @@ export function initializeRoutes(
       },
       authorizer: 'universal',
     },
-    'GET /jira/rca/dev/table': {
+    'GET /jira/rca/table': {
       function: {
-        handler: 'packages/jira/src/service/rcaDev.handler',
+        handler: 'packages/jira/src/service/rca-table.handler',
       },
       authorizer: 'universal',
     },
-    'GET /jira/rca/qa/table': {
+    'GET /jira/rca/details': {
       function: {
-        handler: 'packages/jira/src/service/rcaQa.handler',
+        handler: 'packages/jira/src/service/rca-details.handler',
       },
       authorizer: 'universal',
     },
-    'GET /jira/rca/dev/details': {
+    'GET /jira/rca/trends': {
       function: {
-        handler: 'packages/jira/src/service/rcaDevDetails.handler',
+        handler: 'packages/jira/src/service/rca-trends.handler',
       },
       authorizer: 'universal',
     },
-    'GET /jira/rca/qa/details': {
+    'GET /jira/rca/graph': {
       function: {
-        handler: 'packages/jira/src/service/rcaQaDetails.handler',
-      },
-      authorizer: 'universal',
-    },
-
-    'GET /jira/rca/dev/trends': {
-      function: {
-        handler: 'packages/jira/src/service/rca-dev-trends.handler',
-      },
-      authorizer: 'universal',
-    },
-
-    'GET /jira/rca/qa/trends': {
-      function: {
-        handler: 'packages/jira/src/service/rca-qa-trends.handler',
+        handler: 'packages/jira/src/service/rca-graph.handler',
       },
       authorizer: 'universal',
     },

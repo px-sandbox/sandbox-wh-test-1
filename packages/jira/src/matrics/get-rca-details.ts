@@ -42,7 +42,7 @@ export async function rcaDetailedView(sprintIds: string[], type: string): Promis
     const rcaName = updatedQaRcaBuckets[item.key];
     const count = item.doc_count;
     return {
-      name: rcaName,
+      name: rcaName ?? '',
       highest: item.highest_count.doc_count,
       high: item.high_count.doc_count,
       medium: item.medium_count.doc_count,

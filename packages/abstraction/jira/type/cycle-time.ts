@@ -291,10 +291,26 @@ export type rcaTrendsResponse = {
     value: number;
     names: string;
   };
-  sprintName: string;
-  highest: number;
-  high: number;
-  medium: number;
-  low: number;
-  lowest: number;
+  trendsData: {
+    sprintName: string;
+    highest: number;
+    high: number;
+    medium: number;
+    low: number;
+    lowest: number;
+  }[];
+};
+
+export type rcaGraphResponse = {
+  global_agg: {
+    total_bug_count: {
+      doc_count: number;
+    };
+  };
+  rcaCount: {
+    buckets: {
+      key: string;
+      doc_count: number;
+    }[];
+  };
 };

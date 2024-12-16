@@ -1,18 +1,20 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, responseParser } from 'core';
-import { rcaTableView } from 'src/matrics/get-rca-tabular-view';
+import { getRcaTrends } from 'src/matrics/get-rca-trends';
 
-const rcaTabularView = async function getRcaTabularView(
+const rcaTrendsView = async function getRcaTrendsView(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [''];
-  const response = await rcaTableView(sprintIds, 'qaRca');
+  const rca: string = event.queryStringParameters?.rca || '';
+  const type: string = event.queryStringParameters?.type || 'qaRca';
+  const response = await getRcaTrends(sprintIds, rca, type);
   return responseParser
     .setBody(response)
-    .setMessage('rca table data QA')
+    .setMessage('rca table data DEV')
     .setStatusCode(HttpStatusCode['200'])
     .setResponseBodyCode('SUCCESS')
     .send();
 };
-const handler = APIHandler(rcaTabularView);
-export { handler, rcaTabularView };
+const handler = APIHandler(rcaTrendsView);
+export { handler, rcaTrendsView };
