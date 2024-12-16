@@ -1,7 +1,7 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
-import { rcaGraphResponse, rcaTableHeadline, rcaTableView } from 'abstraction/jira/type';
+import { rcaGraphResponse, rcaGraphView, rcaTableHeadline } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { mappingPrefixes } from 'src/constant/config';
@@ -66,7 +66,27 @@ async function getHeadline(type: string) {
   return result;
 }
 
-export async function rcaGraphView(sprintIds: string[], type: string): Promise<rcaTableView> {
+function sliceDataWithTotal(
+  data: { name: string; count: number }[]
+): { name: string; count: number }[] {
+  // Slice the first 4 elements
+  const slicedData = data.slice(0, 4);
+
+  // Calculate the total count for the remaining elements
+  const totalCount = parseFloat(
+    data
+      .slice(4)
+      .reduce((acc, item) => acc + item.count, 0)
+      .toFixed(2)
+  );
+
+  // Create the 5th element with the total count
+  const totalElement = { name: 'Others', count: totalCount };
+
+  // Combine the first 4 elements with the 5th element
+  return [...slicedData, totalElement];
+}
+export async function rcaGraphView(sprintIds: string[], type: string): Promise<rcaGraphView> {
   const query = esb
     .requestBodySearch()
     .size(0)
@@ -105,6 +125,7 @@ export async function rcaGraphView(sprintIds: string[], type: string): Promise<r
     name: bucket.key,
     percentage: parseFloat(((bucket.doc_count / totalBugCount) * 100).toFixed(2)),
   }));
+
   const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames();
   const headlineRCA = await getHeadline(type);
   const data = QaRcaBuckets.map((bucket: { name: string | number; percentage: number }) => {
@@ -115,6 +136,7 @@ export async function rcaGraphView(sprintIds: string[], type: string): Promise<r
   const headlineRCANames: string[] = headlineRCA.max_rca_count.keys.map(
     (name) => updatedQaRcaBuckets[name]
   );
+  const graphData = sliceDataWithTotal(data);
   return {
     headline: {
       value: parseFloat(
@@ -125,6 +147,7 @@ export async function rcaGraphView(sprintIds: string[], type: string): Promise<r
       ),
       names: headlineRCANames.length !== 0 ? headlineRCANames : [],
     },
-    tableData: data,
+    graphData,
+    maximized: data,
   };
 }

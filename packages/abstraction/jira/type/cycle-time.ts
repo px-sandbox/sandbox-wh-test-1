@@ -314,3 +314,18 @@ export type rcaGraphResponse = {
     }[];
   };
 };
+
+export type rcaGraphView = {
+  headline: {
+    value: number;
+    names: string[];
+  };
+  graphData: {
+    name: string;
+    count: number;
+  }[];
+  maximized: {
+    name: string;
+    count: number;
+  }[];
+};
