@@ -140,6 +140,30 @@ export function initializeRoutes(
       },
       authorizer: 'universal',
     },
+    'GET /jira/rca/table': {
+      function: {
+        handler: 'packages/jira/src/service/rca-table.handler',
+      },
+      authorizer: 'universal',
+    },
+    'GET /jira/rca/details': {
+      function: {
+        handler: 'packages/jira/src/service/rca-details.handler',
+      },
+      authorizer: 'universal',
+    },
+    'GET /jira/rca/trends': {
+      function: {
+        handler: 'packages/jira/src/service/rca-trends.handler',
+      },
+      authorizer: 'universal',
+    },
+    'GET /jira/rca/graph': {
+      function: {
+        handler: 'packages/jira/src/service/rca-graph.handler',
+      },
+      authorizer: 'universal',
+    },
   };
 
   return routesObj;

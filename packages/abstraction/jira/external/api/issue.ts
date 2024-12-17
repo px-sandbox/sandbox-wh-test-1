@@ -39,15 +39,14 @@ export type Issue = {
       remainingEstimateSeconds: number;
       timeSpentSeconds: number;
     };
-    customfield_10007: 
-      {
-        id: string;
-        self: string;
-        state: string;
-        name: string;
-        boardId: string;
-        goal: string;
-      }[];
+    customfield_10007: {
+      id: string;
+      self: string;
+      state: string;
+      name: string;
+      boardId: string;
+      goal: string;
+    }[];
     summary: string;
     parent: {
       id: string;
@@ -110,6 +109,16 @@ export type Issue = {
     created: string;
     updated: string;
     lastViewed: string | null;
+    customfield_11225: {
+      self: string;
+      value: string;
+      id: string;
+    };
+    customfield_11226: {
+      self: string;
+      value: string;
+      id: string;
+    };
   };
   eventName: string;
 };
