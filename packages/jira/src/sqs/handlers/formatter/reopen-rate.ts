@@ -5,7 +5,10 @@ import { Jira } from 'abstraction';
 import { logProcessToRetry } from 'rp';
 import { ReopenRateProcessor } from '../../../processors/reopen-rate';
 import { prepareReopenRate } from '../../../util/prepare-reopen-rate';
+import { getOrganization } from 'src/repository/organization/get-organization';
+import { SQSClient } from '@pulse/event-handler';
 
+const sqsClient = SQSClient.getInstance();
 /**
  * Processes the record from an SQS queue and performs operations related to reopening rate.
  * @param record - The SQS record to process.
@@ -45,6 +48,17 @@ async function repoInfoQueueFunc(record: SQSRecord): Promise<void> {
       resourceId,
       message: 'reopenRateInfoQueue.data: NO_DATA_PREPARED_FOR_REOPEN',
     });
+
+    // if issue not exists in reopen rate index, run the migration for reopen-rate
+    logger.info({
+      message: `Reopen Rate Not fount running migration for reopen rate for issue: ${messageBody.issue.key}`,
+    });
+    const org = await getOrganization(messageBody.organization);
+    await sqsClient.sendMessage(
+      { ...messageBody, orgId: org?.id },
+      Queue.qReOpenRateMigrator.queueUrl,
+      { requestId, resourceId }
+    );
   } catch (error) {
     logger.error({ requestId, resourceId, message: `reopenRateInfoQueue.error ${error}` });
     await logProcessToRetry(record, Queue.qReOpenRate.queueUrl, error as Error);

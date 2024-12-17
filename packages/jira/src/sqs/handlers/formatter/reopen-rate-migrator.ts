@@ -43,7 +43,8 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
 
         const organizationId = messageBody?.orgId;
         const organizationName = messageBody?.organization;
-        const boardId = messageBody?.boardId;
+        const boardId =
+          messageBody?.boardId ?? messageBody?.issue?.fields?.customfield_10007[0]?.boardId;
         const issueKey = messageBody?.issue?.key;
         const projectId = messageBody?.issue?.fields?.project?.id;
         const projectKey = messageBody?.issue?.fields?.project?.key;
@@ -110,7 +111,12 @@ export const handler = async function reopenMigratorInfoQueue(event: SQSEvent): 
         );
         logger.info({ requestId, resourceId, message: 'reopenRateInfoQueue.success' });
       } catch (error) {
-        logger.error({ requestId, resourceId, message: 'reopenRateInfoQueue.error', error });
+        logger.error({
+          requestId,
+          resourceId,
+          message: 'reopenRateInfoQueue.error',
+          error: `${error}`,
+        });
         await logProcessToRetry(record, Queue.qReOpenRateMigrator.queueUrl, error as Error);
       }
     })
