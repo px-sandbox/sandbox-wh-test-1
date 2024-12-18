@@ -106,9 +106,10 @@ export async function prepareReopenRate(
           message: `issue_not_exists_in_reopen_rate_index', issueId: ${messageBody.issue.id},
                     typeOfChangelog: ${typeOfChangelog} `,
         });
-        throw new Error(`issue_not_exists_in_reopen_rate_index_key: ${messageBody.issue.key}`);
+        return false;
       }
       returnObj = await prepareData(messageBody, reOpenRateData.reOpenCount + 1);
+
       break;
     default:
       return false;
