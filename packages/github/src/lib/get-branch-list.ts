@@ -40,7 +40,7 @@ async function getBranchList(
     const newCounter = counter + branchesPerPage.length;
     await Promise.all(
       branchesPerPage.map(async (branch) => {
-        const branchInfo = { ...branch };
+        const branchInfo = { ...branch, action: Github.Enums.Branch.Created };
         branchInfo.id = Buffer.from(`${repoId}_${branchInfo.name}`, 'binary').toString('base64');
         branchInfo.repo_id = repoId;
         branchInfo.orgId = orgId.replace('gh_org_', '');
