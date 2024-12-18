@@ -1,5 +1,5 @@
 import { SSTConfig } from 'sst';
-import { Tags } from "aws-cdk-lib";
+import { Tags } from 'aws-cdk-lib';
 import { gh } from './stacks/github/github';
 import { devops } from './stacks/devops';
 import { jira } from './stacks/jira/jira';
@@ -8,6 +8,8 @@ import { AppConfig, Stage } from './stacks/type/stack-config';
 import { dpscStack } from './stacks/dpsc/dpsc';
 import { pmStack } from './stacks/pm/pm';
 import { rp } from './stacks/rp/rp';
+import { tpscStack } from './stacks/tpsc/tpsc';
+import { qascStack } from './stacks/qasc/qasc';
 
 export default {
   config(): { name: string; region: string } {
@@ -18,9 +20,8 @@ export default {
   },
 
   async stacks(app): void | Promise<void> {
-
-    Tags.of(app).add("Project_name", "pulse");
-    Tags.of(app).add("Environment", app.stage);
+    Tags.of(app).add('Project_name', 'pulse');
+    Tags.of(app).add('Environment', app.stage);
 
     app.stack(commonConfig);
     app.stack(rp);
@@ -29,10 +30,11 @@ export default {
     app.stack(devops);
     app.stack(dpscStack);
     app.stack(pmStack);
+    app.stack(tpscStack);
+    app.stack(qascStack);
 
     if (app.stage !== Stage.LIVE) {
       app.setDefaultRemovalPolicy('destroy');
     }
-
   },
 } satisfies SSTConfig;
