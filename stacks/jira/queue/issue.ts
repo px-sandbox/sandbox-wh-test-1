@@ -152,6 +152,7 @@ export function initializeIssueQueue(
     jiraIndexDataQueue,
     IGNORED_PROJECT_KEYS,
     REQUEST_TIMEOUT,
+    reOpenRateMigratorQueue,
   ]);
 
   reOpenRateMigratorQueue.bind([
