@@ -42,6 +42,8 @@ async function repoInfoQueueFunc(record: SQSRecord): Promise<void> {
       await reOpenRateProcessor.process();
       await reOpenRateProcessor.save();
       logger.info({ requestId, resourceId, message: 'reopenRateInfoQueue.success' });
+
+      return;
     }
     logger.info({
       requestId,
