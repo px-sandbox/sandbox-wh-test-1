@@ -10,6 +10,7 @@ import { pmStack } from './stacks/pm/pm';
 import { rp } from './stacks/rp/rp';
 import { tpscStack } from './stacks/tpsc/tpsc';
 import { qascStack } from './stacks/qasc/qasc';
+import { cycleTimeStack } from './stacks/cycleTime/cycletime';
 
 export default {
   config(): { name: string; region: string } {
@@ -19,7 +20,7 @@ export default {
     };
   },
 
-  async stacks(app): void | Promise<void> {
+  async stacks(app): Promise<void> {
     Tags.of(app).add('Project_name', 'pulse');
     Tags.of(app).add('Environment', app.stage);
 
@@ -32,6 +33,7 @@ export default {
     app.stack(pmStack);
     app.stack(tpscStack);
     app.stack(qascStack);
+    app.stack(cycleTimeStack);
 
     if (app.stage !== Stage.LIVE) {
       app.setDefaultRemovalPolicy('destroy');
