@@ -19,11 +19,14 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
    * @returns The processed Jira project data.
    */
   public async process(): Promise<void> {
-    switch (this.eventType) {
-      case Jira.Enums.Event.ProjectCreated:
-        await this.format();
-        break;
-    }
+    // TODO: Implement the switch cases.
+    // switch (this.eventType) {
+    //   case Jira.Enums.Event.ProjectCreated:
+    //
+    //     break;
+    // }
+
+    await this.format();
   }
 
   public async format(): Promise<void> {

@@ -20,12 +20,14 @@ export class SprintProcessor extends DataProcessor<
   }
 
   public async process(): Promise<void> {
-    //Check for all board cases
-    switch (this.eventType) {
-      case Jira.Enums.Event.SprintCreated:
-        await this.format();
-        break;
-    }
+    // TODO: Implement the switch cases.
+    // switch (this.eventType) {
+    //   case Jira.Enums.Event.SprintCreated:
+    //     await this.format();
+    //     break;
+    // }
+
+    await this.format();
   }
 
   public async format(): Promise<void> {
