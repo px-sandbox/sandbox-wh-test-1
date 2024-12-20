@@ -46,7 +46,7 @@ export class SprintProcessor extends DataProcessor<
     const board = await jiraClient.getBoard(this.apiData.originBoardId);
 
     this.formattedData = {
-      id: await this.getParentId(
+      id: await this.parentId(
         `${mappingPrefixes.sprint}_${this.apiData.id}_${mappingPrefixes.org}_${orgData.orgId}`
       ),
       body: {
