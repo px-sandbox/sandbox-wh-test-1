@@ -45,6 +45,7 @@ export function initializeSprintQueue(
     jiraDDB.jiraCredsTable,
     jiraDDB.jiraMappingTable,
     jiraIndexDataQueue,
+    jiraDDB.retryProcessTable,
     OPENSEARCH_NODE,
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,

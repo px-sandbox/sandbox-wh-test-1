@@ -17,12 +17,14 @@ export class BoardProcessor extends DataProcessor<Jira.Mapper.Board, Jira.Type.B
   }
 
   public async process(): Promise<void> {
-    //Check for all board cases
-    switch (this.eventType) {
-      case Jira.Enums.Event.BoardCreated:
-        await this.format();
-        break;
-    }
+    // TODO: Implement the switch cases.
+    // switch (this.eventType) {
+    //   case Jira.Enums.Event.BoardCreated:
+    //     await this.format();
+    //     break;
+    // }
+
+    await this.format();
   }
 
   public async format(): Promise<void> {
