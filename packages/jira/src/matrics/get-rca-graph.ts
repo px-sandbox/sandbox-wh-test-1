@@ -21,7 +21,7 @@ export async function mapRcaBucketsWithFullNames() {
   return idToNameMap;
 }
 
-async function getHeadline(type: string) {
+async function getHeadline(type: string, sprintIds: string[]): Promise<rcaTableHeadline> {
   const query = esb
     .requestBodySearch()
     .size(0)
@@ -33,6 +33,7 @@ async function getHeadline(type: string) {
           esb.termQuery('body.issueType', IssuesTypes.BUG),
           esb.termsQuery('body.priority', ['Highest', 'High', 'Medium']),
           esb.termQuery('body.isDeleted', false),
+          esb.termsQuery('body.sprintId', sprintIds),
         ])
     )
     .agg(
@@ -127,7 +128,7 @@ export async function rcaGraphView(sprintIds: string[], type: string): Promise<r
   }));
 
   const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames();
-  const headlineRCA = await getHeadline(type);
+  const headlineRCA = await getHeadline(type, sprintIds);
   const data = QaRcaBuckets.map((bucket: { name: string | number; percentage: number }) => {
     const fullName = updatedQaRcaBuckets[bucket.name];
     return { name: fullName ?? '', percentage: bucket.percentage };
