@@ -67,8 +67,8 @@ async function getHeadline(type: string) {
 }
 
 function sliceDataWithTotal(
-  data: { name: string; count: number }[]
-): { name: string; count: number }[] {
+  data: { name: string; percentage: number }[]
+): { name: string; percentage: number }[] {
   // Slice the first 4 elements
   const slicedData = data.slice(0, 4);
 
@@ -76,12 +76,12 @@ function sliceDataWithTotal(
   const totalCount = parseFloat(
     data
       .slice(4)
-      .reduce((acc, item) => acc + item.count, 0)
+      .reduce((acc, item) => acc + item.percentage, 0)
       .toFixed(2)
   );
 
   // Create the 5th element with the total count
-  const totalElement = { name: 'Others', count: totalCount };
+  const totalElement = { name: 'Others', percentage: totalCount };
 
   // Combine the first 4 elements with the 5th element
   return [...slicedData, totalElement];
@@ -130,7 +130,7 @@ export async function rcaGraphView(sprintIds: string[], type: string): Promise<r
   const headlineRCA = await getHeadline(type);
   const data = QaRcaBuckets.map((bucket: { name: string | number; percentage: number }) => {
     const fullName = updatedQaRcaBuckets[bucket.name];
-    return { name: fullName ?? '', count: bucket.percentage };
+    return { name: fullName ?? '', percentage: bucket.percentage };
   });
   logger.info({ message: 'rca.graph', data: { data, headlineRCA } });
   const headlineRCANames: string[] = headlineRCA.max_rca_count.keys.map(

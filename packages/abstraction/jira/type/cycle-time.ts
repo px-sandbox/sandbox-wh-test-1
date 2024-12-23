@@ -322,10 +322,10 @@ export type rcaGraphView = {
   };
   graphData: {
     name: string;
-    count: number;
+    percentage: number;
   }[];
   maximized: {
     name: string;
-    count: number;
+    percentage: number;
   }[];
 };
