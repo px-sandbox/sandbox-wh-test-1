@@ -21,7 +21,7 @@ export async function mapRcaBucketsWithFullNames() {
   return idToNameMap;
 }
 
-async function getHeadline(type: string) {
+async function getHeadline(type: string, sprintIds: string[]): Promise<rcaTableHeadline> {
   const query = esb
     .requestBodySearch()
     .size(0)
@@ -33,6 +33,7 @@ async function getHeadline(type: string) {
           esb.termQuery('body.issueType', IssuesTypes.BUG),
           esb.termsQuery('body.priority', ['Highest', 'High', 'Medium']),
           esb.termQuery('body.isDeleted', false),
+          esb.termsQuery('body.sprintId', sprintIds),
         ])
     )
     .agg(
@@ -67,8 +68,8 @@ async function getHeadline(type: string) {
 }
 
 function sliceDataWithTotal(
-  data: { name: string; count: number }[]
-): { name: string; count: number }[] {
+  data: { name: string; percentage: number }[]
+): { name: string; percentage: number }[] {
   // Slice the first 4 elements
   const slicedData = data.slice(0, 4);
 
@@ -76,12 +77,12 @@ function sliceDataWithTotal(
   const totalCount = parseFloat(
     data
       .slice(4)
-      .reduce((acc, item) => acc + item.count, 0)
+      .reduce((acc, item) => acc + item.percentage, 0)
       .toFixed(2)
   );
 
   // Create the 5th element with the total count
-  const totalElement = { name: 'Others', count: totalCount };
+  const totalElement = { name: 'Others', percentage: totalCount };
 
   // Combine the first 4 elements with the 5th element
   return [...slicedData, totalElement];
@@ -127,10 +128,10 @@ export async function rcaGraphView(sprintIds: string[], type: string): Promise<r
   }));
 
   const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames();
-  const headlineRCA = await getHeadline(type);
+  const headlineRCA = await getHeadline(type, sprintIds);
   const data = QaRcaBuckets.map((bucket: { name: string | number; percentage: number }) => {
     const fullName = updatedQaRcaBuckets[bucket.name];
-    return { name: fullName ?? '', count: bucket.percentage };
+    return { name: fullName ?? '', percentage: bucket.percentage };
   });
   logger.info({ message: 'rca.graph', data: { data, headlineRCA } });
   const headlineRCANames: string[] = headlineRCA.max_rca_count.keys.map(

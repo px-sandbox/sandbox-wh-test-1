@@ -24,7 +24,11 @@ async function getRCAName(rca: string, type: string): Promise<HitBody> {
   return rcaData;
 }
 
-async function getHeadline(type: string, rcaId: string) {
+async function getHeadline(
+  type: string,
+  rcaId: string,
+  sprintIds: string[]
+): Promise<rcaTableHeadline> {
   const query = esb
     .requestBodySearch()
     .size(0)
@@ -37,6 +41,7 @@ async function getHeadline(type: string, rcaId: string) {
           esb.termsQuery('body.priority', ['Highest', 'High', 'Medium']),
           esb.termQuery(`body.rcaData.${type}`, `${mappingPrefixes.rca}_${rcaId}`),
           esb.termQuery('body.isDeleted', false),
+          esb.termsQuery('body.sprintId', sprintIds),
         ])
     )
     .agg(
@@ -87,7 +92,7 @@ export async function getRcaTrends(
       trendsData: [],
     };
   }
-  const headline = await getHeadline(type, rcaData[0].id);
+  const headline = await getHeadline(type, rcaData[0].id, sprintIds);
   const query = esb
     .requestBodySearch()
     .size(0)
