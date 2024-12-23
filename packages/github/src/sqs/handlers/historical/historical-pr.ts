@@ -98,7 +98,7 @@ async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
   } catch (error) {
     logger.error({
       message: 'historical.PR.error',
-      data: JSON.stringify(error),
+      data: `${error}`,
       requestId,
       resourceId,
     });

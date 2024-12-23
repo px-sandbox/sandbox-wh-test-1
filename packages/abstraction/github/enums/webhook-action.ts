@@ -52,6 +52,7 @@ export enum PullRequest {
   Unlocked = 'unlocked',
   ReviewSubmitted = 'review_submitted',
   ReviewCommentedDelete = 'review_commented_delete',
+  ReviewCommented = 'review_commented',
 }
 
 export enum OrgInstallation {
