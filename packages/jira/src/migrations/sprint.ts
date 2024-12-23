@@ -30,15 +30,14 @@ async function checkAndSave(
         reqCtx
       )
     ),
-    // TODO: uncomment this code after migration of sprint format
-    // ...sprints.map(async (sprint, i) =>
-    //   sqsClient.sendMessage(
-    //     { organization, projectId, originBoardId, sprintId: sprint.id },
-    //     Queue.qIssueMigrate.queueUrl,
-    //     reqCtx,
-    //     12 * i
-    //   )
-    // ),
+    ...sprints.map(async (sprint, i) =>
+      sqsClient.sendMessage(
+        { organization, projectId, originBoardId, sprintId: sprint.id },
+        Queue.qIssueMigrate.queueUrl,
+        reqCtx,
+        12 * i
+      )
+    ),
   ]);
 }
 
