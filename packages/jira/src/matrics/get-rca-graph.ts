@@ -61,19 +61,22 @@ function sliceDataWithTotal(
   // Slice the first 4 elements
   const slicedData = data.slice(0, 4);
 
-  // Calculate the total count for the remaining elements
-  const totalCount = parseFloat(
-    data
-      .slice(4)
-      .reduce((acc, item) => acc + item.percentage, 0)
-      .toFixed(2)
-  );
+  if (data.length > 4) {
+    // Calculate the total count for the remaining elements
+    const totalCount = parseFloat(
+      data
+        .slice(4)
+        .reduce((acc, item) => acc + item.percentage, 0)
+        .toFixed(2)
+    );
 
-  // Create the 5th element with the total count
-  const totalElement = { name: 'Others', percentage: totalCount };
+    // Create the 5th element with the total count
+    const totalElement = { name: 'Others', percentage: totalCount };
 
-  // Combine the first 4 elements with the 5th element
-  return [...slicedData, totalElement];
+    // Combine the first 4 elements with the 5th element
+    return [...slicedData, totalElement];
+  }
+  return slicedData;
 }
 export async function rcaGraphView(sprintIds: string[], type: string): Promise<rcaGraphView> {
   const query = esb
