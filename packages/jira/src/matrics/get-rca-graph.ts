@@ -6,21 +6,9 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import { mappingPrefixes } from 'src/constant/config';
 import { searchedDataFormator } from 'src/util/response-formatter';
+import { mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
 
 const esClient = ElasticSearchClient.getInstance();
-export async function mapRcaBucketsWithFullNames() {
-  const rcaNameQuery = esb.requestBodySearch().query(esb.matchAllQuery()).toJSON();
-  const rcaRes = await esClient.search(Jira.Enums.IndexName.Rca, rcaNameQuery);
-  const resData = await searchedDataFormator(rcaRes);
-  const idToNameMap = resData.reduce((acc: any, hit: any) => {
-    const id = `${mappingPrefixes.rca}_${hit.id}`;
-    const name = hit.name;
-    acc[id] = name;
-    return acc;
-  }, {});
-  return idToNameMap;
-}
-
 async function getHeadline(type: string, sprintIds: string[]): Promise<rcaTableHeadline> {
   const query = esb
     .requestBodySearch()

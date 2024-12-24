@@ -8,7 +8,7 @@ import { searchedDataFormator } from 'src/util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
 export async function mapRcaBucketsWithFullNames() {
-  const rcaNameQuery = esb.requestBodySearch().query(esb.matchAllQuery()).toJSON();
+  const rcaNameQuery = esb.requestBodySearch().query(esb.matchAllQuery()).size(100).toJSON();
   const rcaRes = await esClient.search(Jira.Enums.IndexName.Rca, rcaNameQuery);
   const resData = await searchedDataFormator(rcaRes);
   const idToNameMap = resData.reduce((acc: any, hit: any) => {
