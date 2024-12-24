@@ -63,7 +63,7 @@ function sliceDataWithTotal(
 
   if (data.length > 5) {
     // Calculate the total count for the remaining elements
-    const slicedDataMoreThanFiveEle = data.slice(0, 4);
+    const slicedDataMoreThanFourEle = data.slice(0, 4);
     const totalCount = parseFloat(
       data
         .slice(4)
@@ -75,7 +75,7 @@ function sliceDataWithTotal(
     const totalElement = { name: 'Others', percentage: totalCount };
 
     // Combine the first 4 elements with the 5th element
-    return [...slicedDataMoreThanFiveEle, totalElement];
+    return [...slicedDataMoreThanFourEle, totalElement];
   }
   return slicedDataForFirstFiveEle;
 }
