@@ -59,10 +59,11 @@ function sliceDataWithTotal(
   data: { name: string; percentage: number }[]
 ): { name: string; percentage: number }[] {
   // Slice the first 4 elements
-  const slicedData = data.slice(0, 4);
+  const slicedDataForFirstFiveEle = data.slice(0, 5);
 
-  if (data.length > 4) {
+  if (data.length > 5) {
     // Calculate the total count for the remaining elements
+    const slicedDataMoreThanFiveEle = data.slice(0, 4);
     const totalCount = parseFloat(
       data
         .slice(4)
@@ -74,9 +75,9 @@ function sliceDataWithTotal(
     const totalElement = { name: 'Others', percentage: totalCount };
 
     // Combine the first 4 elements with the 5th element
-    return [...slicedData, totalElement];
+    return [...slicedDataMoreThanFiveEle, totalElement];
   }
-  return slicedData;
+  return slicedDataForFirstFiveEle;
 }
 export async function rcaGraphView(sprintIds: string[], type: string): Promise<rcaGraphView> {
   const query = esb
