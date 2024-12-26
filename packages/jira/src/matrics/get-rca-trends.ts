@@ -1,12 +1,12 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
-import { IssuesTypes } from 'abstraction/jira/enums';
+import { IssuesTypes, SprintState } from 'abstraction/jira/enums';
+import { Sprint } from 'abstraction/jira/external/api';
 import { rcaDetailResponse, rcaTableHeadline, rcaTrendsResponse } from 'abstraction/jira/type';
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { mappingPrefixes } from 'src/constant/config';
-import { getSprints } from 'src/lib/get-sprints';
 import { searchedDataFormator } from 'src/util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
@@ -23,7 +23,26 @@ async function getRCAName(rca: string, type: string): Promise<HitBody> {
   const rcaData = await searchedDataFormator(response);
   return rcaData;
 }
+async function getSprints(sprintIds: string[]): Promise<Sprint[]> {
+  const query = esb
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
+        .must(esb.termsQuery('body.id', sprintIds))
+        .should([
+          esb.termQuery('body.state', SprintState.ACTIVE),
+          esb.termQuery('body.state', SprintState.CLOSED),
+        ])
+        .minimumShouldMatch(1)
+    )
+    .sort(esb.sort('body.startDate', 'desc'))
+    .toJSON();
 
+  const body = await esClient.search(Jira.Enums.IndexName.Sprint, query);
+  const sprint = (await searchedDataFormator(body)) as Sprint[];
+  return sprint;
+}
 async function getHeadline(
   type: string,
   rcaId: string,
@@ -120,20 +139,32 @@ export async function getRcaTrends(
         ])
     )
     .toJSON();
-
   const response: rcaDetailResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
 
+  const sprintData = await getSprints(sprintIds);
   const rcaGraphData = await Promise.all(
-    response.by_rca.buckets.map(async (item) => {
-      const sprintData = await getSprints(item.key);
-      return {
-        sprintName: sprintData?.name ?? '',
-        highest: item.highest_count.doc_count,
-        high: item.high_count.doc_count,
-        medium: item.medium_count.doc_count,
-        low: item.low_count.doc_count,
-        lowest: item.lowest_count.doc_count,
-      };
+    sprintIds.map(async (sprintId) => {
+      const findInReponse = response.by_rca.buckets.find((item) => item.key === sprintId);
+      const SprintName = sprintData.find((sprint) => String(sprint.id) == sprintId);
+      if (!findInReponse) {
+        return {
+          sprintName: SprintName?.name ?? '',
+          high: 0,
+          highest: 0,
+          medium: 0,
+          low: 0,
+          lowest: 0,
+        };
+      } else {
+        return {
+          sprintName: SprintName?.name ?? '',
+          high: findInReponse.high_count.doc_count,
+          highest: findInReponse.highest_count.doc_count,
+          medium: findInReponse.medium_count.doc_count,
+          low: findInReponse.low_count.doc_count,
+          lowest: findInReponse.lowest_count.doc_count,
+        };
+      }
     })
   );
 
