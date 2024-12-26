@@ -99,12 +99,16 @@ export async function rcaTableView(sprintIds: string[], type: string): Promise<r
   const headlineRCANames = headlineRCA.max_rca_count.keys.map((name) => updatedQaRcaBuckets[name]);
   return {
     headline: {
-      value: parseFloat(
-        (
-          (headlineRCA.max_rca_count.value / headlineRCA.global_agg.total_bug_count.doc_count) *
-          100
-        ).toFixed(2)
-      ),
+      value:
+        headlineRCA.global_agg.total_bug_count.doc_count == 0
+          ? 0
+          : parseFloat(
+              (
+                (headlineRCA.max_rca_count.value /
+                  headlineRCA.global_agg.total_bug_count.doc_count) *
+                100
+              ).toFixed(2)
+            ),
       names: headlineRCANames,
     },
     tableData: data,

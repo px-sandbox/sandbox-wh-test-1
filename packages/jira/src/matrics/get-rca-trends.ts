@@ -172,12 +172,15 @@ export async function getRcaTrends(
 
   return {
     headline: {
-      value: parseFloat(
-        (
-          (headline.max_rca_count.value / headline.global_agg.total_bug_count.doc_count) *
-          100
-        ).toFixed(2)
-      ),
+      value:
+        headline.global_agg.total_bug_count.doc_count == 0
+          ? 0
+          : parseFloat(
+              (
+                (headline.max_rca_count.value / headline.global_agg.total_bug_count.doc_count) *
+                100
+              ).toFixed(2)
+            ),
       names: rca,
     },
     trendsData: rcaGraphData,

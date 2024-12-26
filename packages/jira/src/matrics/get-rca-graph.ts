@@ -4,8 +4,6 @@ import { IssuesTypes } from 'abstraction/jira/enums';
 import { rcaGraphResponse, rcaGraphView, rcaTableHeadline } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { mappingPrefixes } from 'src/constant/config';
-import { searchedDataFormator } from 'src/util/response-formatter';
 import { mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
 
 const esClient = ElasticSearchClient.getInstance();
@@ -134,12 +132,16 @@ export async function rcaGraphView(sprintIds: string[], type: string): Promise<r
   const graphData = sliceDataWithTotal(data);
   return {
     headline: {
-      value: parseFloat(
-        (
-          (headlineRCA.max_rca_count.value / headlineRCA.global_agg.total_bug_count.doc_count) *
-          100
-        ).toFixed(2)
-      ),
+      value:
+        headlineRCA.global_agg.total_bug_count.doc_count == 0
+          ? 0
+          : parseFloat(
+              (
+                (headlineRCA.max_rca_count.value /
+                  headlineRCA.global_agg.total_bug_count.doc_count) *
+                100
+              ).toFixed(2)
+            ),
       names: headlineRCANames.length !== 0 ? headlineRCANames : [],
     },
     graphData,
