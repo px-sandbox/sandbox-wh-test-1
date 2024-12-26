@@ -82,6 +82,8 @@ async function getHeadline(
                 .must([
                   esb.termQuery('body.issueType', IssuesTypes.BUG),
                   esb.existsQuery(`body.rcaData.${type}`),
+                  esb.termQuery('body.isDeleted', false),
+                  esb.termsQuery('body.sprintId', sprintIds),
                 ])
             ),
         ])

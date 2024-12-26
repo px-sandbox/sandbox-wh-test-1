@@ -52,8 +52,10 @@ async function getHeadline(type: string, sprintIds: string[]): Promise<rcaTableH
               esb
                 .boolQuery()
                 .must([
-                  esb.termQuery('body.issueType', IssuesTypes.BUG),
                   esb.existsQuery(`body.rcaData.${type}`),
+                  esb.termQuery('body.issueType', IssuesTypes.BUG),
+                  esb.termQuery('body.isDeleted', false),
+                  esb.termsQuery('body.sprintId', sprintIds),
                 ])
             ),
         ])
