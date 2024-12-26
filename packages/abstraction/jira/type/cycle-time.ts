@@ -302,16 +302,18 @@ export type rcaTrendsResponse = {
 };
 
 export type rcaGraphResponse = {
-  global_agg: {
-    total_bug_count: {
-      doc_count: number;
+  hits: {
+    total: {
+      value: number;
     };
   };
-  rcaCount: {
-    buckets: {
-      key: string;
-      doc_count: number;
-    }[];
+  aggregations: {
+    rcaCount: {
+      buckets: {
+        key: string;
+        doc_count: number;
+      }[];
+    };
   };
 };
 

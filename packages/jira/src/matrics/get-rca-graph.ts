@@ -1,7 +1,12 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
-import { rcaGraphResponse, rcaGraphView, rcaTableHeadline } from 'abstraction/jira/type';
+import {
+  rcaGraphResponse,
+  rcaGraphView,
+  rcaTableHeadline,
+  rcaTableResponse,
+} from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
@@ -94,29 +99,15 @@ export async function rcaGraphView(sprintIds: string[], type: string): Promise<r
         ])
     )
     .agg(esb.termsAggregation('rcaCount').field(`body.rcaData.${type}`).size(1000))
-    .agg(
-      esb
-        .globalAggregation('global_agg')
-        .aggs([
-          esb
-            .filterAggregation('total_bug_count')
-            .filter(
-              esb
-                .boolQuery()
-                .must([
-                  esb.termQuery('body.issueType', IssuesTypes.BUG),
-                  esb.existsQuery(`body.rcaData.${type}`),
-                ])
-            ),
-        ])
-    )
     .toJSON();
 
-  const response: rcaGraphResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
-  const totalBugCount = response.global_agg.total_bug_count.doc_count;
-  const QaRcaBuckets = response.rcaCount?.buckets.map((bucket) => ({
+  const response: rcaGraphResponse = (await esClient.search(
+    Jira.Enums.IndexName.Issue,
+    query
+  )) as rcaGraphResponse;
+  const QaRcaBuckets = response.aggregations.rcaCount?.buckets.map((bucket) => ({
     name: bucket.key,
-    percentage: parseFloat(((bucket.doc_count / totalBugCount) * 100).toFixed(2)),
+    percentage: parseFloat(((bucket.doc_count / response.hits.total.value) * 100).toFixed(2)),
   }));
 
   const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames();
