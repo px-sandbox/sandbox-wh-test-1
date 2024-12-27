@@ -30,6 +30,7 @@ export class PRReviewCommentProcessor extends DataProcessor<
   public async process(): Promise<void> {
     switch (this.action.toLowerCase()) {
       case Github.Enums.PRReviewComment.Created:
+      case Github.Enums.PRReviewComment.Edited:
         await this.format(false);
         break;
       case Github.Enums.PRReviewComment.Deleted:
