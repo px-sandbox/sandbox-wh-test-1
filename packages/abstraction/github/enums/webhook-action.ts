@@ -62,4 +62,5 @@ export enum OrgInstallation {
 export enum PRReviewComment {
   Created = 'created',
   Deleted = 'deleted',
+  Edited = 'edited',
 }

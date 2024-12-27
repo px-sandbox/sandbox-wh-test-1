@@ -17,9 +17,10 @@ export class PRReviewProcessor extends DataProcessor<
     action: string,
     private orgId: number,
     requestId: string,
-    resourceId: string
+    resourceId: string,
+    processId?: string
   ) {
-    super(data, requestId, resourceId, Github.Enums.Event.PRReview);
+    super(data, requestId, resourceId, Github.Enums.Event.PRReview, processId);
     this.pullId = pullId;
     this.repoId = repoId;
     this.action = action;
