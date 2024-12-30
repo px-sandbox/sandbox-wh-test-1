@@ -104,15 +104,6 @@ export async function getRcaTrends(
   logger.info({ message: 'rca.trends', data: { sprintIds, rca } });
   const rcaNameType = type === 'qaRca' ? 'qa' : 'dev';
   const rcaData = await getRCAName(rca, rcaNameType);
-  if (rcaData.length === 0) {
-    return {
-      headline: {
-        value: 0,
-        names: '',
-      },
-      trendsData: [],
-    };
-  }
   const headline = await getHeadline(type, rcaData[0].id, sprintIds);
   const query = esb
     .requestBodySearch()
