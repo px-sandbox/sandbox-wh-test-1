@@ -100,11 +100,11 @@ export async function getRcaTrends(
   sprintIds: string[],
   rca: string,
   type: string
-): Promise<rcaTrendsResponse | []> {
+): Promise<rcaTrendsResponse | [] | false> {
   logger.info({ message: 'rca.trends', data: { sprintIds, rca } });
   const rcaNameType = type === 'qaRca' ? 'qa' : 'dev';
   const rcaData = await getRCAName(rca, rcaNameType);
-  const headline = await getHeadline(type, rcaData[0].id, sprintIds);
+  const headline = await getHeadline(type, rcaData[0]?.id, sprintIds);
   const query = esb
     .requestBodySearch()
     .size(0)
@@ -114,7 +114,7 @@ export async function getRcaTrends(
         .must([
           esb.termsQuery('body.sprintId', sprintIds),
           esb.termQuery('body.issueType', 'Bug'),
-          esb.termQuery(`body.rcaData.${type}`, `${mappingPrefixes.rca}_${rcaData[0].id}`),
+          esb.termQuery(`body.rcaData.${type}`, `${mappingPrefixes.rca}_${rcaData[0]?.id}`),
           esb.termQuery('body.isDeleted', false),
         ])
     )
