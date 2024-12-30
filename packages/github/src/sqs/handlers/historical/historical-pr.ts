@@ -94,11 +94,14 @@ async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
       requestId,
       resourceId,
     });
-    await getPrList({ body: JSON.stringify(messageBody) } as SQSRecord);
+    await getPrList({
+      ...record,
+      body: JSON.stringify({ reqCtx: { requestId, resourceId }, message: messageBody }),
+    });
   } catch (error) {
     logger.error({
       message: 'historical.PR.error',
-      data: JSON.stringify(error),
+      data: `${error}`,
       requestId,
       resourceId,
     });

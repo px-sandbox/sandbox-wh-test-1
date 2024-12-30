@@ -250,6 +250,7 @@ export class PRProcessor extends DataProcessor<
         case Github.Enums.PullRequest.ReadyForReview:
         case Github.Enums.PullRequest.Opened:
         case Github.Enums.PullRequest.ConvertedToDraft:
+        case Github.Enums.PullRequest.ReviewCommented:
           await this.format();
           break;
         default:
