@@ -100,10 +100,11 @@ export async function getRcaTrends(
   sprintIds: string[],
   rca: string,
   type: string
-): Promise<rcaTrendsResponse | [] | false> {
+): Promise<rcaTrendsResponse | []> {
   logger.info({ message: 'rca.trends', data: { sprintIds, rca } });
   const rcaNameType = type === 'qaRca' ? 'qa' : 'dev';
   const rcaData = await getRCAName(rca, rcaNameType);
+  logger.info({ message: 'rca.trends_category_data', data: { rcaData } });
   const headline = await getHeadline(type, rcaData[0]?.id, sprintIds);
   const query = esb
     .requestBodySearch()
