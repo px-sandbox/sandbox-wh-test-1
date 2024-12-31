@@ -17,16 +17,9 @@ export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.Use
   }
 
   public async process(): Promise<void> {
-    switch (this.eventType) {
-      case Jira.Enums.Event.UserCreated:
-        await this.format();
-        break;
-      default:
-        // for now sending every other event which is not handled in any cases
-        logger.info({ message: 'No event type found for:', data: this.eventType });
-        await this.format();
-        break;
-    }
+    // TODO: for now sending every event, can be optimized with switch case statement
+    logger.info({ message: 'No event type found for:', data: this.eventType });
+    await this.format();
   }
 
   public async format(): Promise<void> {
