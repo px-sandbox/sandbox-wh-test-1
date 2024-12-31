@@ -8,7 +8,7 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import { mappingPrefixes } from 'src/constant/config';
 import { searchedDataFormator } from 'src/util/response-formatter';
-
+import _ from 'lodash';
 const esClient = ElasticSearchClient.getInstance();
 
 async function getRCAName(rca: string, type: string): Promise<HitBody> {
@@ -100,7 +100,7 @@ export async function getRcaTrends(
   sprintIds: string[],
   rca: string,
   type: string
-): Promise<rcaTrendsResponse | []> {
+): Promise<rcaTrendsResponse> {
   logger.info({ message: 'rca.trends', data: { sprintIds, rca } });
   const rcaNameType = type === 'qaRca' ? 'qa' : 'dev';
   const rcaData = await getRCAName(rca, rcaNameType);
@@ -138,30 +138,23 @@ export async function getRcaTrends(
   const sprintData = await getSprints(sprintIds);
   const rcaGraphData = await Promise.all(
     sprintIds.map(async (sprintId) => {
-      const findInReponse = response.by_rca.buckets.find((item) => item.key === sprintId);
+      const findInResponse = response.by_rca.buckets.find((item) => item.key === sprintId);
       const SprintName = sprintData.find((sprint) => String(sprint.id) == sprintId);
-      if (!findInReponse) {
-        return {
-          sprintName: SprintName?.name ?? '',
-          high: 0,
-          highest: 0,
-          medium: 0,
-          low: 0,
-          lowest: 0,
-        };
-      } else {
-        return {
-          sprintName: SprintName?.name ?? '',
-          high: findInReponse.high_count.doc_count,
-          highest: findInReponse.highest_count.doc_count,
-          medium: findInReponse.medium_count.doc_count,
-          low: findInReponse.low_count.doc_count,
-          lowest: findInReponse.lowest_count.doc_count,
-        };
-      }
+      const sprintName = SprintName?.name ?? '';
+      const sprintCreated = SprintName?.startDate ?? '';
+      return {
+        sprintName,
+        high: findInResponse?.high_count.doc_count ?? 0,
+        highest: findInResponse?.highest_count.doc_count ?? 0,
+        medium: findInResponse?.medium_count.doc_count ?? 0,
+        low: findInResponse?.low_count.doc_count ?? 0,
+        lowest: findInResponse?.lowest_count.doc_count ?? 0,
+        sprintCreated,
+      };
     })
   );
-
+  const rcaGraphDataSorted = _.orderBy(rcaGraphData, ['sprintCreated'], ['asc']);
+  const rcaGraphDataFiltered = rcaGraphDataSorted.map(({ sprintCreated, ...rest }) => rest);
   return {
     headline: {
       value:
@@ -175,6 +168,6 @@ export async function getRcaTrends(
             ),
       names: rca,
     },
-    trendsData: rcaGraphData,
+    trendsData: rcaGraphDataFiltered,
   };
 }
