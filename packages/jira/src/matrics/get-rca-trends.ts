@@ -140,27 +140,17 @@ export async function getRcaTrends(
     sprintIds.map(async (sprintId) => {
       const findInResponse = response.by_rca.buckets.find((item) => item.key === sprintId);
       const SprintName = sprintData.find((sprint) => String(sprint.id) == sprintId);
-      if (!findInResponse) {
-        return {
-          sprintName: SprintName?.name ?? '',
-          high: 0,
-          highest: 0,
-          medium: 0,
-          low: 0,
-          lowest: 0,
-          sprintCreated: SprintName?.startDate ?? '',
-        };
-      } else {
-        return {
-          sprintName: SprintName?.name ?? '',
-          high: findInResponse.high_count.doc_count,
-          highest: findInResponse.highest_count.doc_count,
-          medium: findInResponse.medium_count.doc_count,
-          low: findInResponse.low_count.doc_count,
-          lowest: findInResponse.lowest_count.doc_count,
-          sprintCreated: SprintName?.startDate ?? '',
-        };
-      }
+      const sprintName = SprintName?.name ?? '';
+      const sprintCreated = SprintName?.startDate ?? '';
+      return {
+        sprintName,
+        high: findInResponse?.high_count.doc_count ?? 0,
+        highest: findInResponse?.highest_count.doc_count ?? 0,
+        medium: findInResponse?.medium_count.doc_count ?? 0,
+        low: findInResponse?.low_count.doc_count ?? 0,
+        lowest: findInResponse?.lowest_count.doc_count ?? 0,
+        sprintCreated,
+      };
     })
   );
   const rcaGraphDataSorted = _.orderBy(rcaGraphData, ['sprintCreated'], ['asc']);
