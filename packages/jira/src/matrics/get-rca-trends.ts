@@ -26,6 +26,7 @@ async function getRCAName(rca: string, type: string): Promise<HitBody> {
 async function getSprints(sprintIds: string[]): Promise<Sprint[]> {
   const query = esb
     .requestBodySearch()
+    .size(sprintIds.length)
     .query(
       esb
         .boolQuery()
@@ -122,7 +123,7 @@ export async function getRcaTrends(
     .agg(
       esb
         .termsAggregation('by_rca')
-        .size(100)
+        .size(sprintIds.length)
         .field('body.sprintId')
         .aggs([
           esb.filterAggregation('high_count', esb.termQuery('body.priority', 'High')),
