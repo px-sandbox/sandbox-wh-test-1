@@ -1,9 +1,9 @@
 import { Other } from 'abstraction';
 import { logger } from 'core';
+import { getOrganizationByName } from '../lib/get-organization';
 import { ghRequest } from '../lib/request-default';
 import { getOauthCode } from './jwt-token';
 import { getOctokitTimeoutReqFn } from './octokit-timeout-fn';
-import { getOrganizationByName } from 'src/lib/get-organization';
 
 export async function getInstallationAccessToken(
   orgName: string

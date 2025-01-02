@@ -5,9 +5,9 @@ import { GetObjectRequest } from 'aws-sdk/clients/s3';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { v4 as uuid } from 'uuid';
-import { mappingPrefixes } from '../constant/config';
-import { formatRepoSastData } from 'src/util/response-formatter';
 import moment from 'moment';
+import { formatRepoSastData } from '../util/response-formatter';
+import { mappingPrefixes } from '../constant/config';
 
 const esClientObj = ElasticSearchClient.getInstance();
 

@@ -1,6 +1,9 @@
 /* eslint-enable */
 
-export function getIssueCreate(timestamp: any) {
+import { Jira } from 'abstraction';
+import { Issue } from 'abstraction/jira/type';
+
+export function getIssueCreate(timestamp: string): object {
   return {
     changelog: {
       id: '1670930',
@@ -306,7 +309,7 @@ export function getIssueCreate(timestamp: any) {
       self: 'https://studiographene.atlassian.net/rest/api/2/118738',
     },
     issue_event_type_name: 'issue_created',
-    timestamp: timestamp,
+    timestamp,
     user: {
       accountId: '5e93fd859a3bf20c2d94bd3b',
       accountType: 'atlassian',
@@ -328,8 +331,14 @@ export function getIssueCreate(timestamp: any) {
     webhookEvent: 'jira:issue_created',
   };
 }
-// @ts-ignore
-export function getChangelog(from, to, timestamp, issueId?, issuetype = 'Task') {
+
+export function getChangelog(
+  from: string,
+  to: string,
+  timestamp: string,
+  issueId?: string,
+  issuetype = 'Task'
+) {
   return {
     changelog: {
       id: '1670936',
@@ -338,15 +347,15 @@ export function getChangelog(from, to, timestamp, issueId?, issuetype = 'Task') 
           field: 'status',
           fieldId: 'status',
           fieldtype: 'jira',
-          from: from,
+          from,
           fromString: 'ToDo',
-          to: to,
+          to,
           toString: 'In Progress',
         },
       ],
       issuetype,
       issueId: issueId ?? '',
-      timestamp: timestamp,
+      timestamp,
     },
     issue: {
       fields: {
@@ -609,7 +618,7 @@ export function getChangelog(from, to, timestamp, issueId?, issuetype = 'Task') 
       self: 'https://studiographene.atlassian.net/rest/api/2/118738',
     },
     issue_event_type_name: 'issue_generic',
-    timestamp: timestamp,
+    timestamp,
     user: {
       accountId: '5e93fd859a3bf20c2d94bd3b',
       accountType: 'atlassian',
@@ -631,8 +640,8 @@ export function getChangelog(from, to, timestamp, issueId?, issuetype = 'Task') 
     webhookEvent: 'jira:issue_updated',
   };
 }
-// @ts-ignore
-export function getAssigneeAdded(to, toString) {
+
+export function getAssigneeAdded(to: string, toString: string) {
   return {
     body: {
       changelog: {
@@ -973,44 +982,7 @@ export const Status: Record<string, number> = {
   Rejected: 11,
   Blocked: 12,
 };
-
-// @ts-ignore
-export function format(data) {
-  const { issue } = data;
-  const isSubtask = issue.fields.issuetype.subtask;
-  // console.log(isSubtask);
-  const dataFromEsb = getDatafromEsb(issue.fields.parent?.id);
-  // if (isSubtask) {
-  //   const newSubtask = formatSubtask(issue, {
-  //     ...data.changelog,
-  //     timestamp: data.timestamp,
-  //   });
-  //   dataFromEsb?.subtasks.push(newSubtask as never);
-  // }
-
-  return {
-    issueId: dataFromEsb?.issueId ?? issue.id,
-    sprintId: dataFromEsb?.sprintId ?? issue.fields.customfield_10007[0].id,
-    subtasks: dataFromEsb?.subtasks ?? issue.fields.subtasks,
-    organizationId: dataFromEsb?.organizationId ?? '12345',
-    issueType: dataFromEsb?.issueType ?? issue.fields.issuetype.name,
-    projectId: dataFromEsb?.projectId ?? issue.fields.project.id,
-    projectKey: dataFromEsb?.projectKey ?? issue.fields.project.key,
-    assignee: dataFromEsb?.assignees ?? issue.fields.assignee,
-    title: dataFromEsb?.title ?? issue.fields.summary,
-    issueKey: dataFromEsb?.issueKey ?? issue.key,
-    changelog: {
-      ...data.changelog,
-      timestamp: data.timestamp,
-      issuetype: issue.fields.issuetype.name,
-    },
-    isDeleted: data.isDeleted,
-    deletedAt: data.deletedAt,
-  };
-}
-
-// @ts-ignore
-function getDatafromEsb(id) {
+function getDatafromEsb(id: string): Jira.ExternalType.Api.CycleTime {
   const data = {
     development: {
       coding: 0,
@@ -1038,15 +1010,52 @@ function getDatafromEsb(id) {
     subtasks: [],
     title: 'Parent Task [No subtasks]',
     issueType: 'Task',
+    orgId: '12345',
   };
   if (data.issueId == id) {
     return data;
   }
-  return;
+  return data;
 }
 
-// @ts-ignore
-export function formatSubtask(issue, changelog) {
+export function format(data: Jira.ExternalType.Api.Issue): object {
+  const { fields } = data;
+  // const isSubtask = issue.fields.issuetype.subtask;
+  // console.log(isSubtask);
+  const dataFromEsb = getDatafromEsb(fields.parent?.id);
+  // if (isSubtask) {
+  //   const newSubtask = formatSubtask(issue, {
+  //     ...data.changelog,
+  //     timestamp: data.timestamp,
+  //   });
+  //   dataFromEsb?.subtasks.push(newSubtask as never);
+  // }
+
+  return {
+    issueId: dataFromEsb.issueId ?? issue.id,
+    sprintId: dataFromEsb?.sprintId ?? issue.fields.customfield_10007[0].id,
+    subtasks: dataFromEsb?.subtasks ?? issue.fields.subtasks,
+    organizationId: dataFromEsb?.organizationId ?? '12345',
+    issueType: dataFromEsb?.issueType ?? issue.fields.issuetype.name,
+    projectId: dataFromEsb?.projectId ?? issue.fields.project.id,
+    projectKey: dataFromEsb?.projectKey ?? issue.fields.project.key,
+    assignee: dataFromEsb?.assignees ?? issue.fields.assignee,
+    title: dataFromEsb?.title ?? issue.fields.summary,
+    issueKey: dataFromEsb?.issueKey ?? issue.key,
+    changelog: {
+      ...data.changelog,
+      timestamp: data.timestamp,
+      issuetype: issue.fields.issuetype.name,
+    },
+    isDeleted: data.isDeleted,
+    deletedAt: data.deletedAt,
+  };
+}
+
+export function formatSubtask(
+  issue: { id: string; assignee: string; issueKey: string; title: string },
+  changelog: object
+): object {
   return {
     issueId: issue.id,
     assignees: issue.assignee,
@@ -1056,8 +1065,11 @@ export function formatSubtask(issue, changelog) {
   };
 }
 
-// @ts-ignore
-export function createIssueWithSubtask(timestamp, subtaskId, subtaskKey) {
+export function createIssueWithSubtask(
+  timestamp: string,
+  subtaskId: string,
+  subtaskKey: string
+): object {
   return {
     changelog: {
       id: '1670930',
@@ -1252,8 +1264,8 @@ export function createIssueWithSubtask(timestamp, subtaskId, subtaskKey) {
                   avatarId: 10318,
                   description: 'A small, distinct piece of work.',
                   hierarchyLevel: 0,
-                  iconUrl:
-                    'https://studiographene.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium',
+                  iconUrl: `https://studiographene.atlassian.net/rest/api/2/universal_avatar/
+                  view/type/issuetype/avatar/10318?size=medium`,
                   id: '3',
                   name: 'Task',
                   self: 'https://studiographene.atlassian.net/rest/api/2/issuetype/3',
@@ -1304,8 +1316,8 @@ export function createIssueWithSubtask(timestamp, subtaskId, subtaskKey) {
           avatarId: 10316,
           description: 'The sub-task of the issue',
           hierarchyLevel: -1,
-          iconUrl:
-            'https://studiographene.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10316?size=medium',
+          iconUrl: `https://studiographene.atlassian.net/rest/api/2/universal_avatar/view/
+          type/issuetype/avatar/10316?size=medium`,
           id: '5',
           name: 'Sub-task',
           self: 'https://studiographene.atlassian.net/rest/api/2/issuetype/5',
@@ -1320,8 +1332,8 @@ export function createIssueWithSubtask(timestamp, subtaskId, subtaskKey) {
               description:
                 'Created by Jira Agile - do not edit or delete. Issue type for a user story.',
               hierarchyLevel: 0,
-              iconUrl:
-                'https://studiographene.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium',
+              iconUrl: `https://studiographene.atlassian.net/rest/api/2/universal_avatar/view/
+                type/issuetype/avatar/10315?size=medium`,
               id: '10001',
               name: 'Story',
               self: 'https://studiographene.atlassian.net/rest/api/2/issuetype/10001',
@@ -1423,7 +1435,7 @@ export function createIssueWithSubtask(timestamp, subtaskId, subtaskKey) {
       self: `https://studiographene.atlassian.net/rest/api/2/${subtaskId}`,
     },
     issue_event_type_name: 'issue_generic',
-    timestamp: timestamp,
+    timestamp,
     user: {
       accountId: '630c805f6a8bb4eda6768bef',
       accountType: 'atlassian',

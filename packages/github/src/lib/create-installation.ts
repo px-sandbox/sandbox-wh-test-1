@@ -2,18 +2,28 @@ import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import { MigrationStatus, mappingPrefixes } from 'src/constant/config';
-import { ParamsMapping } from 'src/model/params-mapping';
-import { Organization } from 'src/processors/organization';
-import { getOauthCode } from 'src/util/jwt-token';
-import { ghRequest } from './request-default';
-import { getOctokitTimeoutReqFn } from 'src/util/octokit-timeout-fn';
-import { collectData } from 'src/service/history-data';
 import { v4 as uuid } from 'uuid';
+import { MigrationStatus, mappingPrefixes } from '../constant/config';
+import { ParamsMapping } from '../model/params-mapping';
+import { Organization } from '../processors/organization';
+import { getOauthCode } from '../util/jwt-token';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
+import { collectData } from '../service/history-data';
+import { ghRequest } from './request-default';
+
 const esClientObj = ElasticSearchClient.getInstance();
 const dynamodbClient = DynamoDbDocClient.getInstance();
 
-function formatMigrationStatus(orgId: number) {
+function formatMigrationStatus(orgId: number): {
+  id: string;
+  body: {
+    organizationId: string;
+    statusLogs: {
+      status: MigrationStatus;
+      date: string;
+    }[];
+  };
+} {
   return {
     id: uuid(),
     body: {
@@ -66,7 +76,7 @@ export async function orgInstallation(
     const records = await dynamodbClient.find(new ParamsMapping().prepareGetParams(orgId));
     const result = new Organization(data.action, { ...data, installationData }, requestId, orgId);
     await result.process();
-    const formattedData = result.formattedData;
+    const { formattedData } = result;
     if (records === undefined) {
       await dynamodbClient.put(
         new ParamsMapping().preparePutParams(formattedData.id, formattedData.body.id)
@@ -77,7 +87,7 @@ export async function orgInstallation(
     // create entry in elasticsearch for migration status
     const migrationStatus = formatMigrationStatus(formattedData.body.githubOrganizationId);
     await esClientObj.putDocument(Github.Enums.IndexName.GitMigrationStatus, migrationStatus);
-    //trigger migration
+    // trigger migration
     await collectData(formattedData.body.name, { requestId, resourceId: formattedData.body.id });
   } catch (error: unknown) {
     logger.error({ message: 'create.installation.error', error, requestId });

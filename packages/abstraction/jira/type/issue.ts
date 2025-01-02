@@ -1,4 +1,3 @@
-import { ChangelogItem } from '../external/webhook';
 import { retryProcess } from './retry-process';
 
 export type Issue = retryProcess & {

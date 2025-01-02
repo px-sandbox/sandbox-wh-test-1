@@ -1,11 +1,12 @@
 import { Jira } from 'abstraction';
 import { logger } from 'core';
+import { v4 as uuid } from 'uuid';
+import { JiraClient } from '../lib/jira-client';
 import { getOrganization } from '../repository/organization/get-organization';
 import { mappingPrefixes } from '../constant/config';
 import { DataProcessor } from './data-processor';
-import { v4 as uuid } from 'uuid';
-import { JiraClient } from 'src/lib/jira-client';
 
+// we dont use this class
 export class CycleTimeProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Issue,
   Jira.Type.CycleTime

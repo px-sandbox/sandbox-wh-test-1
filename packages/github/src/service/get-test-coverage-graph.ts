@@ -1,12 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, logger, responseParser } from 'core';
-import { getData } from 'src/matrics/get-test-coverage-graph';
+import { HttpStatusCode, responseParser } from 'core';
+import { getData } from '../matrics/get-test-coverage-graph';
 
 export const handler = async function getTestData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   try {
-    const { requestId } = event.requestContext;
     const startDate: string = event.queryStringParameters?.startDate || '';
     const endDate: string = event.queryStringParameters?.endDate || '';
     const interval: string = event.queryStringParameters?.interval || '';

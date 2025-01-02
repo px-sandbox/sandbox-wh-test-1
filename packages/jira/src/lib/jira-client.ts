@@ -20,7 +20,7 @@ export class JiraClient {
     private cloudId: string,
     private accessToken: string,
     private refreshToken: string
-   ) {
+  ) {
     this.axiosInstance = axios.create({
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
@@ -195,7 +195,9 @@ export class JiraClient {
       `/rest/agile/1.0/sprint/${sprintId}/issue`,
       {
         fields: `issuetype,priority,changelog,project,labels,
-        assignee,reporter,creator,status,subtask,created,updated,lastViewed,sprint,closedSprints,timetracking,subtasks,customfield_10007,summary`,
+        assignee,reporter,creator,status,subtask,created,
+        updated,lastViewed,sprint,closedSprints,timetracking,subtasks,
+        customfield_10007,summary`,
       }
     );
 

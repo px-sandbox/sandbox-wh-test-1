@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { getDeploymentFrequencyDetails } from 'src/matrics/get-deployment-frequency-details';
+import { getDeploymentFrequencyDetails } from '../matrics/get-deployment-frequency-details';
 
 export const handler = async function deploymentFrequencyDetails(
   event: APIGatewayProxyEvent
@@ -18,8 +18,8 @@ export const handler = async function deploymentFrequencyDetails(
       destination,
       startDate,
       endDate,
-      parseInt(page),
-      parseInt(limit)
+      parseInt(page, 10),
+      parseInt(limit, 10)
     );
 
     return responseParser

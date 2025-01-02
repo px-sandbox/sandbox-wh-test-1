@@ -1,12 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, responseParser } from 'core';
-import { getTestCoverageHeadlineData } from 'src/matrics/get-test-coverage-headline';
+import { getTestCoverageHeadlineData } from '../matrics/get-test-coverage-headline';
 
 export const getTestCoverage = async function getTestData(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   try {
-    const { requestId } = event.requestContext;
     const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
 
     const response = await getTestCoverageHeadlineData(repoIds);

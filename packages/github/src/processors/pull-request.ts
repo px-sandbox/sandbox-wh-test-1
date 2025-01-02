@@ -1,16 +1,16 @@
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import moment from 'moment';
-import { getPullRequestById } from 'src/lib/get-pull-request';
-import { getTimezoneOfUser } from 'src/lib/get-user-timezone';
-import { getWorkingTime } from 'src/util/timezone-calculation';
-import { mappingPrefixes } from '../constant/config';
-import { DataProcessor } from './data-processor';
 import { OctokitResponse } from '@octokit/types';
-import { ghRequest } from 'src/lib/request-default';
-import { getOctokitTimeoutReqFn } from 'src/util/octokit-timeout-fn';
-import { getOctokitResp } from 'src/util/octokit-response';
-import { getInstallationAccessToken } from 'src/util/installation-access-token';
+import { getPullRequestById } from '../lib/get-pull-request';
+import { getTimezoneOfUser } from '../lib/get-user-timezone';
+import { getWorkingTime } from '../util/timezone-calculation';
+import { ghRequest } from '../lib/request-default';
+import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
+import { getOctokitResp } from '../util/octokit-response';
+import { getInstallationAccessToken } from '../util/installation-access-token';
+import { DataProcessor } from './data-processor';
+import { mappingPrefixes } from '../constant/config';
 
 async function getGithubApiToken(orgName: string): Promise<string> {
   const installationAccessToken = await getInstallationAccessToken(orgName);
@@ -77,7 +77,7 @@ export class PRProcessor extends DataProcessor<
     prReviewUser: { id: number; type: string },
     prReviewSubmittedAt: string,
     state: string
-  ): Promise<{ approved_at: string | null; reviewed_at: string | null; review_seconds: number }> {
+  ): Promise<{ approvedAt: string | null; reviewedAt: string | null; reviewSeconds: number }> {
     let { approvedAt, reviewedAt, reviewSeconds } = pullData;
     if (
       !reviewedAt &&
@@ -96,7 +96,7 @@ export class PRProcessor extends DataProcessor<
     if (!approvedAt && state === Github.Enums.ReviewState.APPROVED) {
       approvedAt = prReviewSubmittedAt;
     }
-    return { approved_at: approvedAt, reviewed_at: reviewedAt, review_seconds: reviewSeconds };
+    return { approvedAt, reviewedAt, reviewSeconds };
   }
 
   private async setClosed(): Promise<void> {
@@ -124,7 +124,6 @@ export class PRProcessor extends DataProcessor<
       message: 'PRProcessor.setReviewRequested.info: PR_NOT_FOUND',
       data: { pr_number: this.ghApiData.number, repo_id: this.ghApiData.head.repo.id },
     });
-    return;
   }
 
   private async reviewSubmitted(
@@ -133,15 +132,15 @@ export class PRProcessor extends DataProcessor<
     state: string
   ): Promise<void> {
     const pullData = (await this.getPrData()) as Github.Type.PullRequestBody;
-    const { approved_at, reviewed_at, review_seconds } = await this.setReviewTimeOnReviewSubmitted(
+    const { approvedAt, reviewedAt, reviewSeconds } = await this.setReviewTimeOnReviewSubmitted(
       pullData,
       prReviewUser,
       prReviewSubmittedAt,
       state
     );
-    this.ghApiData.approved_at = approved_at;
-    this.ghApiData.reviewed_at = reviewed_at;
-    this.ghApiData.review_seconds = review_seconds;
+    this.ghApiData.approved_at = approvedAt;
+    this.ghApiData.reviewed_at = reviewedAt;
+    this.ghApiData.review_seconds = reviewSeconds;
     await this.format();
   }
 

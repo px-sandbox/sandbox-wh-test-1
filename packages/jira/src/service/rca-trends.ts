@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, responseParser } from 'core';
-import { getRcaTrends } from 'src/matrics/get-rca-trends';
+import { getRcaTrends } from '../matrics/get-rca-trends';
 
 const rcaTrendsView = async function getRcaTrendsView(
   event: APIGatewayProxyEvent

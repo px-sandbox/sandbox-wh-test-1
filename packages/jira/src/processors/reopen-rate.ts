@@ -1,7 +1,5 @@
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
-import { v4 as uuid } from 'uuid';
 import { mappingPrefixes } from '../constant/config';
 import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
@@ -37,7 +35,8 @@ export class ReopenRateProcessor extends DataProcessor<
 
     this.formattedData = {
       id: await this.parentId(
-        `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}_${mappingPrefixes.org}_${orgData.orgId}`
+        `${mappingPrefixes.reopen_rate}_${this.apiData.issue.id}_${mappingPrefixes.sprint}_${this.apiData.sprintId}
+        _${mappingPrefixes.org}_${orgData.orgId}`
       ),
       body: {
         // eslint-disable-next-line max-len

@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
-import { rcaTableView } from 'src/matrics/get-rca-tabular-view';
+import { APIHandler, HttpStatusCode, responseParser } from 'core';
+import { rcaTableView } from '../matrics/get-rca-tabular-view';
 
 const rcaTabularView = async function getRcaTabularView(
   event: APIGatewayProxyEvent
@@ -16,4 +16,4 @@ const rcaTabularView = async function getRcaTabularView(
     .send();
 };
 const handler = APIHandler(rcaTabularView);
-export { rcaTabularView, handler };
+export { handler, rcaTabularView };

@@ -1,8 +1,7 @@
 import { Jira } from 'abstraction';
-import { v4 as uuid } from 'uuid';
 import { logger } from 'core';
-import { JiraClient } from '../lib/jira-client';
 import { mappingPrefixes } from '../constant/config';
+import { JiraClient } from '../lib/jira-client';
 import { getOrganization } from '../repository/organization/get-organization';
 import { DataProcessor } from './data-processor';
 
@@ -23,7 +22,7 @@ export class UserProcessor extends DataProcessor<Jira.Mapper.User, Jira.Type.Use
   }
 
   public async format(): Promise<void> {
-    //can be moved to parent class
+    // can be moved to parent class
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
       logger.error({

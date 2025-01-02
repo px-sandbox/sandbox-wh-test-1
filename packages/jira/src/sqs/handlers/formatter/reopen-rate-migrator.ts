@@ -8,13 +8,13 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
 import { logProcessToRetry } from 'rp';
+import { Jira } from 'abstraction';
 import { mappingPrefixes as mp } from '../../../constant/config';
 import { getIssueChangelogs } from '../../../lib/get-issue-changelogs';
 import { JiraClient } from '../../../lib/jira-client';
 import { ParamsMapping } from '../../../model/params-mapping';
 import { getIssueStatusForReopenRate } from '../../../util/issue-status';
 import { reopenChangelogCals } from '../../../util/reopen-body-formatter';
-import { Jira } from 'abstraction';
 
 const ddbClient = DynamoDbDocClient.getInstance();
 const sqsClient = SQSClient.getInstance();

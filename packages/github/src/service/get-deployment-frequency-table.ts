@@ -1,15 +1,15 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, logger, responseParser } from 'core';
-import esb from 'elastic-builder';
 import { AggregationResponse } from 'abstraction/github/type';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { HttpStatusCode, responseParser } from 'core';
+import esb from 'elastic-builder';
+
 const esClient = ElasticSearchClient.getInstance();
 
 export const handler = async function (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  const { requestId } = event.requestContext;
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [''];

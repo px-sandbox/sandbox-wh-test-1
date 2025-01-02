@@ -9,4 +9,17 @@ import { GHCopilotReport } from './gh-copilot';
 import { RepoSastErrors } from './repo-sast-errors';
 import { RepoCoverageData } from './test-coverage-report';
 import { githubDeploymentFrequencyData } from './github-deployment';
-export { Organization, Branch, BranchList, Repository, User, PullRequest, Commit, GHCopilotReport, RepoSastErrors,RepoCoverageData,githubDeploymentFrequencyData};
+
+export {
+  Organization,
+  Branch,
+  BranchList,
+  Repository,
+  User,
+  PullRequest,
+  Commit,
+  GHCopilotReport,
+  RepoSastErrors,
+  RepoCoverageData,
+  githubDeploymentFrequencyData,
+};

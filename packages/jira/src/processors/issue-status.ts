@@ -23,7 +23,7 @@ export class IssueStatusProcessor extends DataProcessor<
   }
 
   public async format(): Promise<void> {
-    //can be moved to parent class
+    // can be moved to parent class
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
       logger.error({

@@ -13,7 +13,7 @@ export function getSprintForTo(to: string, from: string): string | null {
   if (toElements.length === 0) {
     result[0] = null;
   } else if (toElements.length === 1) {
-    result[0] = toElements[0];
+    result = toElements;
   } else {
     result = toElements.filter((item) => !fromElements.includes(item));
   }
@@ -68,20 +68,21 @@ export async function prepareReopenRate(
   reqCtx: Other.Type.RequestCtx
 ): Promise<Jira.Mapped.ReopenRateIssue | false> {
   const { requestId, resourceId } = reqCtx;
-  const sprintId = await getSprintId(messageBody, reqCtx);
+  const updatedMessageBody = messageBody as Jira.Mapped.ReopenRateIssue;
+  const sprintId = await getSprintId(updatedMessageBody, reqCtx);
   if (!sprintId || sprintId === 'null') {
     logger.info({
       requestId,
       resourceId,
-      message: `No sprint found for issueId: ${messageBody.issue.id}`,
+      message: `No sprint found for issueId: ${updatedMessageBody.issue.id}`,
     });
     return false;
   }
-  messageBody.sprintId = sprintId;
+  updatedMessageBody.sprintId = sprintId;
   const reOpenRateData = await getReopenRateDataById(
-    messageBody.issue.id,
+    updatedMessageBody.issue.id,
     sprintId,
-    messageBody.organization,
+    updatedMessageBody.organization,
     { requestId, resourceId }
   );
   let returnObj = {};
@@ -91,24 +92,24 @@ export async function prepareReopenRate(
         logger.info({
           requestId,
           resourceId,
-          message: `issue_already_exists_in_reopen_rate_index',issueId: ${messageBody.issue.id},
+          message: `issue_already_exists_in_reopen_rate_index',issueId: ${updatedMessageBody.issue.id},
                     typeOfChangelog: ${typeOfChangelog}  `,
         });
         return false;
       }
-      returnObj = await prepareData(messageBody);
+      returnObj = await prepareData(updatedMessageBody);
       break;
     case ChangelogStatus.QA_FAILED:
       if (!reOpenRateData) {
         logger.info({
           requestId,
           resourceId,
-          message: `issue_not_exists_in_reopen_rate_index', issueId: ${messageBody.issue.id},
+          message: `issue_not_exists_in_reopen_rate_index', issueId: ${updatedMessageBody.issue.id},
                     typeOfChangelog: ${typeOfChangelog} `,
         });
         return false;
       }
-      returnObj = await prepareData(messageBody, reOpenRateData.reOpenCount + 1);
+      returnObj = await prepareData(updatedMessageBody, reOpenRateData.reOpenCount + 1);
 
       break;
     default:

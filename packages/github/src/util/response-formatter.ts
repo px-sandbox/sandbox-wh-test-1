@@ -56,6 +56,4 @@ export const formatOrgDataResponse = (
     name: org.name,
   }));
 
-export const generateUuid = (): string => {
-  return uuid();
-};
+export const generateUuid = (): string => uuid();

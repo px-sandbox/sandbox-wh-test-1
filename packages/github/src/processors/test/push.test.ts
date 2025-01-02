@@ -1,8 +1,8 @@
+import { describe } from 'node:test';
 import { beforeAll, expect, it, test, vi } from 'vitest';
 import moment from 'moment';
 import { PushProcessor } from '../push';
 import { mappingPrefixes } from '../../constant/config';
-import { describe } from 'node:test';
 
 export function generateuniqIds() {
   return '94cc22e3-824b-48d5-8df7-12a9c613596b';

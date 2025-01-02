@@ -30,7 +30,7 @@ export class ProjectProcessor extends DataProcessor<Jira.Mapped.Project, Jira.Ty
   }
 
   public async format(): Promise<void> {
-    //can be moved to parent class    const orgData = await getOrganization(this.apiData.organization);
+    // can be moved to parent class    const orgData = await getOrganization(this.apiData.organization);
     const orgData = await getOrganization(this.apiData.organization);
     if (!orgData) {
       logger.error({

@@ -1,10 +1,11 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
-import { generateUuid, searchedDataFormator } from 'src/util/response-formatter';
-import { mappingPrefixes } from 'src/constant/config';
 import { SQSEvent } from 'aws-lambda';
 import esb from 'elastic-builder';
+import { generateUuid, searchedDataFormator } from '../../../util/response-formatter';
+import { mappingPrefixes } from '../../../constant/config';
+
 const esClient = ElasticSearchClient.getInstance();
 
 const getPrData = async (commitId: string): Promise<Github.Type.PullRequestBody[]> => {
@@ -21,7 +22,9 @@ const getPrData = async (commitId: string): Promise<Github.Type.PullRequestBody[
   return formattedData;
 };
 
-export const handler = async function insertDeploymentFrequencyData(event: SQSEvent) {
+export const handler = async function insertDeploymentFrequencyData(
+  event: SQSEvent
+): Promise<void> {
   try {
     const bulkOperations = await Promise.all(
       event.Records.map(async (record) => {

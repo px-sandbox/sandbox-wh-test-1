@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { sortData,paginate } from "../version-upgrades";
 import { Github } from "abstraction";
 import { VersionUpgradeSortType, VerUpgradeRes } from "abstraction/github/type/aggregations/version-upgrades";
 import { SortKey, SortOrder } from "abstraction/github/enums";
+import { sortData,paginate } from "../version-upgrades";
 
 const sorting:VersionUpgradeSortType={
     "key":SortKey.DATEDIFF,

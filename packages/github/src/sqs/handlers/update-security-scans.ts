@@ -7,8 +7,8 @@ import esb from 'elastic-builder';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 import { deleteProcessfromDdb, logProcessToRetry } from 'rp';
+import { mappingPrefixes } from '../../constant/config';
 import { searchedDataFormator } from '../../util/response-formatter';
-import { mappingPrefixes } from 'src/constant/config';
 
 const esClient = ElasticSearchClient.getInstance();
 

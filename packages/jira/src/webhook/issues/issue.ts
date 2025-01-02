@@ -1,12 +1,11 @@
-import { logger } from 'core';
-import { Jira } from 'abstraction';
 import { SQSClient } from '@pulse/event-handler';
-import { v4 as uuid } from 'uuid';
-import { Queue } from 'sst/node/queue';
-import { ProjectTypeKey } from 'abstraction/jira/enums/project';
-import { Config } from 'sst/node/config';
+import { Jira } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
-import { JiraClient } from '../../lib/jira-client';
+import { ProjectTypeKey } from 'abstraction/jira/enums/project';
+import { logger } from 'core';
+import { Config } from 'sst/node/config';
+import { Queue } from 'sst/node/queue';
+import { v4 as uuid } from 'uuid';
 import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 
 const sqsClient = SQSClient.getInstance();
@@ -21,7 +20,7 @@ export async function issueHandler(
 ): Promise<void> {
   const resourceId = issue.issue.id;
   const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
-  const project = issue.issue.fields.project;
+  const { project } = issue.issue.fields;
 
   logger.info({
     requestId,

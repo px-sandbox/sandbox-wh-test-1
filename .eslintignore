@@ -1,0 +1,7 @@
+packages/github/src/processors/test/*.test.ts
+packages/github/src/util/test/*.test.ts
+packages/jira/test/parent_no_subtasks/*.test.ts
+packages/jira/test/parent_with_subtasks/*.test.ts
+packages/jira/test/**/*.test.ts
+packages/jira/test/*
+packages/jira/src/util/test/*.test.ts

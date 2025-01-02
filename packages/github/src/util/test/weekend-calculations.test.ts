@@ -1,6 +1,6 @@
 import moment from 'moment';
-import { getWeekendsFromRemainingDays,getWeekenedCount,getWeekDaysCount } from '../weekend-calculations';
 import { describe, expect, it } from 'vitest';
+import { getWeekendsFromRemainingDays,getWeekenedCount,getWeekDaysCount } from '../weekend-calculations';
 
 describe('getWeekendFromRemainingDays',()=>{
     it('should return 0 , if remaining days is 0',()=>{
