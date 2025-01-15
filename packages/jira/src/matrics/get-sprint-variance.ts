@@ -129,18 +129,14 @@ function sprintEstimateResponse(
       buckets: Jira.Type.BucketItem[];
     };
   },
-  bugTimeActual: {
-    sprint_aggregation: {
-      buckets: Jira.Type.BucketItem[];
-    };
-  }
+  bugTimeActual: [{ sprintId: string; bugTime: number }]
 ): SprintVariance[] {
   return sprintData.map((sprintDetails) => {
     const item = estimateActualGraph.sprint_aggregation.buckets.find(
       (bucketItem: BucketItem) => bucketItem.key === sprintDetails.id
     );
-    const bugTime = bugTimeActual.sprint_aggregation.buckets.find(
-      (bucketItem: BucketItem) => bucketItem.key === sprintDetails.id
+    const bugTime = bugTimeActual.find(
+      (bugData: { sprintId: string; bugTime: number }) => bugData.sprintId === sprintDetails.id
     );
 
     if (item) {
@@ -156,7 +152,7 @@ function sprintEstimateResponse(
             : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
           ).toFixed(2)
         ),
-        bugTime: bugTime?.actual.value ?? 0,
+        bugTime: bugTime?.bugTime ?? 0,
       };
     }
     return {
@@ -193,7 +189,7 @@ export function getDateRangeQueries(startDate: string, endDate: string): esb.Ran
   return dateRangeQueries;
 }
 
-function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string | undefined {
+function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string {
   // Iterate through the issueLinks array
   for (const link of issueLinks) {
     const issueType = link.inwardIssue?.fields?.issuetype?.name;
@@ -201,14 +197,14 @@ function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string | unde
       return link.inwardIssue?.key; // Return the key if the issue type is "Bug"
     }
   }
-  return; // Return null if no Bug type issue is found
+  return ''; // Return null if no Bug type issue is found
 }
 
 async function getBugTimeForSprint(
   sprintId: string,
   reqCtx: Other.Type.RequestCtx
 ): Promise<{
-  sprint_aggregation: { buckets: BucketItem[] };
+  actual: { value: number };
 }> {
   const query = esb
     .requestBodySearch()
@@ -217,7 +213,7 @@ async function getBugTimeForSprint(
       esb
         .boolQuery()
         .must([
-          esb.termsQuery('body.sprintId', sprintId),
+          esb.termQuery('body.sprintId', sprintId),
           esb.termQuery('body.isDeleted', false),
           esb.existsQuery('body.issueLinks'),
         ])
@@ -233,26 +229,18 @@ async function getBugTimeForSprint(
   const res = await esClientObj.search(Jira.Enums.IndexName.Issue, query);
   const issueData = await searchedDataFormator(res);
   // find issueKeys from issuelinks of the issue data
-  const issueKeys: (string | undefined)[] = issueData.map((items) =>
+  const issueKeys: string[] | undefined = issueData.map((items) =>
     getBugIssueLinksKeys(items.issueLinks)
   );
   //sum aggregate the time spent on bugs for the given issueKeys
   const bugQuery = esb
     .requestBodySearch()
     .size(0)
-    .agg(
-      esb
-        .termsAggregation('sprint_aggregation', 'body.sprintId')
-        .size(10)
-        .aggs([esb.sumAggregation('actual', 'body.timeTracker.actual')])
-    )
+    .agg(esb.sumAggregation('actual', 'body.timeTracker.actual'))
     .query(
       esb
         .boolQuery()
-        .must([
-          esb.termsQuery('body.issueKey', ...issueKeys),
-          esb.termQuery('body.isDeleted', false),
-        ])
+        .must([esb.termsQuery('body.issueKey', issueKeys), esb.termQuery('body.isDeleted', false)])
         .should([esb.termQuery('body.issueType', IssuesTypes.BUG)])
         .minimumShouldMatch(1)
     )
@@ -318,7 +306,14 @@ export async function sprintVarianceGraph(
       sprintIds,
       reqCtx
     );
-    const bugTime = await getBugTimeForSprint(sprintIds, reqCtx);
+
+    const bugTime: [{ sprintId: string; bugTime: number }] = (await Promise.all(
+      sprintIds.map(async (sprintId: string) => {
+        const bugTimeForSprint = await getBugTimeForSprint(sprintId, reqCtx);
+        return { sprintId, bugTime: bugTimeForSprint.actual.value };
+      })
+    )) as [{ sprintId: string; bugTime: number }];
+
     const sprintEstimate = sprintEstimateResponse(sprintData, estimateActualGraph, bugTime);
     return {
       data: sprintEstimate,
