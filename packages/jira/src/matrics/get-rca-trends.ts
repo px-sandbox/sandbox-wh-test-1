@@ -141,9 +141,9 @@ export async function getRcaTrends(
   const rcaGraphData = await Promise.all(
     sprintIds.map(async (sprintId) => {
       const findInResponse = response.by_rca.buckets.find((item) => item.key === sprintId);
-      const SprintName = sprintData.find((sprint) => String(sprint.id) === sprintId);
-      const sprintName = SprintName?.name ?? '';
-      const sprintCreated = SprintName?.startDate ?? '';
+      const sprint = sprintData.find((sprint) => String(sprint.id) === sprintId);
+      const sprintName = sprint?.name ?? '';
+      const sprintCreated = sprint?.startDate ?? '';
       return {
         sprintName,
         high: findInResponse?.high_count.doc_count ?? 0,

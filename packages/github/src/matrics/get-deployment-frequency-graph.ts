@@ -6,19 +6,6 @@ import { processGraphInterval } from '../util/process-graph-intervals';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-// async function getBranchesByRepoId(repoId: string[]): Promise<Github.Type.BranchRep[]> {
-//   const query = esb
-//     .requestBodySearch()
-//     .query(
-//       esb
-//         .boolQuery()
-//         .must([esb.termsQuery('body.repoId', repoId), esb.termQuery('body.protected', false)])
-//     );
-//   const data = await esClientObj.search(Github.Enums.IndexName.GitBranch, query.toJSON());
-//   const formattedData = await searchedDataFormator(data);
-//   return formattedData;
-// }
-
 export async function getDeploymentFrequencyGraphData(
   startDate: string,
   endDate: string,

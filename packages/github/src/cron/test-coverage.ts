@@ -84,8 +84,7 @@ export const fetchSaveTestCoverage = async (
     }
 
     const updatedDataCoverage = dataCoverage.map((hit) => {
-      const { organizationId } = hit;
-      const { repoId } = hit;
+      const { organizationId, repoId } = hit;
       const hitData = _.omit(hit, ['_id']);
       return {
         _id: uuid(),
