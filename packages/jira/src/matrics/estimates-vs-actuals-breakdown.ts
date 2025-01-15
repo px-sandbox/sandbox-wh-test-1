@@ -5,6 +5,11 @@ import { Jira, Other } from 'abstraction';
 import esb, { RequestBodySearch } from 'elastic-builder';
 import _ from 'lodash';
 import { searchedDataFormator } from '../util/response-formatter';
+import { IssuesTypes } from 'abstraction/jira/enums';
+import { getBugIssueLinksKeys } from './get-sprint-variance';
+import { logger } from 'core';
+import { Hit } from 'abstraction/github/type';
+import { HitBody } from 'abstraction/other/type';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -33,10 +38,26 @@ function createIssueSearchQuery(
           esb.termsQuery('body.issueType', ['Story', 'Bug', 'Task']),
         ])
         .must(esb.existsQuery('body.timeTracker'))
+        .mustNot(
+          esb
+            .boolQuery()
+            .must([
+              esb.termQuery('body.issueType', IssuesTypes.BUG),
+              esb.existsQuery('body.issueLinks'),
+            ])
+        )
     )
     .sort(esb.sort('_id'))
     .size(100)
-    .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.subtasks', 'body.summary']);
+    .source([
+      'body.id',
+      'body.issueKey',
+      'body.timeTracker',
+      'body.subtasks',
+      'body.summary',
+      'body.issueType',
+      'body.issueLinks',
+    ]);
 }
 
 /**
@@ -67,7 +88,29 @@ function createSubtaskSearchQuery(
     )
     .sort(esb.sort('_id'))
     .size(100)
-    .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.summary']);
+    .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.summary', 'body.issueType']);
+}
+
+async function getBugTimeForIssues(
+  formattedIssues: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody
+): Promise<[] | (Pick<Hit, '_id'> & HitBody)[]> {
+  const issueKeys = getBugIssueLinksKeys(formattedIssues.issueLinks);
+
+  //sum aggregate the time spent on bugs for the given issueKeys
+  const bugQuery = esb
+    .requestBodySearch()
+    .size(issueKeys.length)
+    .query(
+      esb
+        .boolQuery()
+        .must([esb.termsQuery('body.issueKey', issueKeys), esb.termQuery('body.isDeleted', false)])
+        .should([esb.termQuery('body.issueType', IssuesTypes.BUG)])
+        .minimumShouldMatch(1)
+    )
+    .source(['body.id', 'body.issueKey', 'body.timeTracker'])
+    .toJSON();
+  const result = await esClientObj.search(Jira.Enums.IndexName.Issue, bugQuery);
+  return await searchedDataFormator(result);
 }
 /**
  * Fetches issue data from Jira based on the provided parameters.
@@ -103,6 +146,17 @@ const fetchIssueData = async (
     formattedIssues = await searchedDataFormator(unformattedIssues);
     issues.push(...formattedIssues);
   }
+
+  await Promise.all(
+    issues.map(async (ele, i) => {
+      const bugTime = await getBugTimeForIssues(ele);
+      issues[i] = {
+        ...ele,
+        bugTime: bugTime.reduce((acc, curr) => acc + curr.timeTracker.actual, 0),
+      };
+    })
+  );
+
   const subtaskQuery = createSubtaskSearchQuery(projectId, sprintId, orgId);
 
   let unformattedSubtasks: Other.Type.HitBody = await esClientObj.search(
@@ -163,6 +217,7 @@ export const estimatesVsActualsBreakdown = async (
           actual: number;
           variance: number;
           link: string;
+          issueType: string;
         }[] = [];
 
         const keys = issue.subtasks?.map((ele: { key: string }) => ele?.key);
@@ -180,6 +235,7 @@ export const estimatesVsActualsBreakdown = async (
               title: subtask?.summary,
               estimate: subEstimate,
               actual: subActual,
+              issueType: subtask?.issueType,
               variance: parseFloat((((subActual - subEstimate) / subEstimate) * 100).toFixed(2)),
               link: `https://${orgname}.atlassian.net/browse/${subtask?.issueKey}`,
             });
@@ -192,12 +248,14 @@ export const estimatesVsActualsBreakdown = async (
           title: issue?.summary,
           estimate,
           actual,
+          issueType: issue?.issueType,
           variance: parseFloat((((actual - estimate) / estimate) * 100).toFixed(2)),
           overallEstimate,
           overallActual,
           overallVariance: parseFloat(
             (((overallActual - overallEstimate) / overallEstimate) * 100).toFixed(2)
           ),
+          bugTime: issue?.bugTime,
           hasSubtasks: subtasksArr?.length > 0,
           link: `https://${orgname}.atlassian.net/browse/${issue?.issueKey}`,
           subtasks: subtasksArr,

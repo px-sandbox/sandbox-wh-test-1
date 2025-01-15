@@ -189,7 +189,7 @@ export function getDateRangeQueries(startDate: string, endDate: string): esb.Ran
   return dateRangeQueries;
 }
 
-function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string {
+export function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string {
   // Iterate through the issueLinks array
   for (const link of issueLinks) {
     const issueType = link.inwardIssue?.fields?.issuetype?.name;
