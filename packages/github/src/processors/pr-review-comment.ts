@@ -18,9 +18,10 @@ export class PRReviewCommentProcessor extends DataProcessor<
     action: string,
     private orgId: number,
     requestId: string,
-    resourceId: string
+    resourceId: string,
+    processId?: string
   ) {
-    super(data, requestId, resourceId, Github.Enums.Event.PRReviewComment);
+    super(data, requestId, resourceId, Github.Enums.Event.PRReviewComment, processId);
     this.pullId = pullId;
     this.repoId = repoId;
     this.action = action;
@@ -30,6 +31,7 @@ export class PRReviewCommentProcessor extends DataProcessor<
   public async process(): Promise<void> {
     switch (this.action.toLowerCase()) {
       case Github.Enums.PRReviewComment.Created:
+      case Github.Enums.PRReviewComment.Edited:
         await this.format(false);
         break;
       case Github.Enums.PRReviewComment.Deleted:

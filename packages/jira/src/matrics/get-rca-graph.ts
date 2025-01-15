@@ -1,0 +1,141 @@
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { Jira } from 'abstraction';
+import { IssuesTypes } from 'abstraction/jira/enums';
+import {
+  rcaGraphResponse,
+  rcaGraphView,
+  rcaTableHeadline,
+  rcaTableResponse,
+} from 'abstraction/jira/type';
+import { logger } from 'core';
+import esb from 'elastic-builder';
+import { mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
+
+const esClient = ElasticSearchClient.getInstance();
+async function getHeadline(type: string, sprintIds: string[]): Promise<rcaTableHeadline> {
+  const query = esb
+    .requestBodySearch()
+    .size(0)
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.existsQuery(`body.rcaData.${type}`),
+          esb.termQuery('body.issueType', IssuesTypes.BUG),
+          esb.termsQuery('body.priority', ['Highest', 'High', 'Medium']),
+          esb.termQuery('body.isDeleted', false),
+          esb.termsQuery('body.sprintId', sprintIds),
+        ])
+    )
+    .agg(
+      esb
+        .termsAggregation('rca_count')
+        .field(`body.rcaData.${type}`)
+        .agg(esb.valueCountAggregation('rca_value_count').field(`body.rcaData.${type}`))
+    )
+    .agg(esb.maxBucketAggregation('max_rca_count').bucketsPath('rca_count>rca_value_count'))
+    .agg(
+      esb
+        .globalAggregation('global_agg')
+        .aggs([
+          esb
+            .filterAggregation('total_bug_count')
+            .filter(
+              esb
+                .boolQuery()
+                .must([
+                  esb.existsQuery(`body.rcaData.${type}`),
+                  esb.termQuery('body.issueType', IssuesTypes.BUG),
+                  esb.termQuery('body.isDeleted', false),
+                  esb.termsQuery('body.sprintId', sprintIds),
+                ])
+            ),
+        ])
+    );
+
+  const result: rcaTableHeadline = await esClient.queryAggs(
+    Jira.Enums.IndexName.Issue,
+    query.toJSON()
+  );
+  return result;
+}
+
+function sliceDataWithTotal(
+  data: { name: string; percentage: number }[]
+): { name: string; percentage: number }[] {
+  // Slice the first 4 elements
+  const slicedDataForFirstFiveEle = data.slice(0, 5);
+
+  if (data.length > 5) {
+    // Calculate the total count for the remaining elements
+    const slicedDataMoreThanFourEle = data.slice(0, 4);
+    const totalCount = parseFloat(
+      data
+        .slice(4)
+        .reduce((acc, item) => acc + item.percentage, 0)
+        .toFixed(2)
+    );
+
+    // Create the 5th element with the total count
+    const totalElement = { name: 'Others', percentage: totalCount };
+
+    // Combine the first 4 elements with the 5th element
+    return [...slicedDataMoreThanFourEle, totalElement];
+  }
+  return slicedDataForFirstFiveEle;
+}
+export async function rcaGraphView(sprintIds: string[], type: string): Promise<rcaGraphView> {
+  const query = esb
+    .requestBodySearch()
+    .size(0)
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termsQuery('body.sprintId', sprintIds),
+          esb.termQuery('body.issueType', IssuesTypes.BUG),
+          esb.existsQuery(`body.rcaData.${type}`),
+          esb.termQuery('body.isDeleted', false),
+        ])
+    )
+    .agg(esb.termsAggregation('rcaCount').field(`body.rcaData.${type}`).size(1000))
+    .toJSON();
+
+  const response: rcaGraphResponse = (await esClient.search(
+    Jira.Enums.IndexName.Issue,
+    query
+  )) as rcaGraphResponse;
+  const QaRcaBuckets = response.aggregations.rcaCount?.buckets.map((bucket) => ({
+    name: bucket.key,
+    percentage: parseFloat(((bucket.doc_count / response.hits.total.value) * 100).toFixed(2)),
+  }));
+
+  const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames();
+  const headlineRCA = await getHeadline(type, sprintIds);
+  const data = QaRcaBuckets.map((bucket: { name: string | number; percentage: number }) => {
+    const fullName = updatedQaRcaBuckets[bucket.name];
+    return { name: fullName ?? '', percentage: bucket.percentage };
+  });
+  logger.info({ message: 'rca.graph', data: { data, headlineRCA } });
+  const headlineRCANames: string[] = headlineRCA.max_rca_count.keys.map(
+    (name) => updatedQaRcaBuckets[name]
+  );
+  const graphData = sliceDataWithTotal(data);
+  return {
+    headline: {
+      value:
+        headlineRCA.global_agg.total_bug_count.doc_count == 0
+          ? 0
+          : parseFloat(
+              (
+                (headlineRCA.max_rca_count.value /
+                  headlineRCA.global_agg.total_bug_count.doc_count) *
+                100
+              ).toFixed(2)
+            ),
+      names: headlineRCANames.length !== 0 ? headlineRCANames : [],
+    },
+    graphData,
+    maximized: data,
+  };
+}

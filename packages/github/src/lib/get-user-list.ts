@@ -98,9 +98,9 @@ export async function getUsers(
       };
     }
   >,
-  orgId: string | undefined,
   organizationName: string,
-  requestId: string
+  requestId: string,
+  orgId: string | undefined
 ): Promise<number> {
   let userCount: number;
   let noPrefixOrgId = orgId?.replace('gh_org_', '');

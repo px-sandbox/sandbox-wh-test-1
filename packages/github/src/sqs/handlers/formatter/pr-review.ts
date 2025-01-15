@@ -17,7 +17,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId,
     });
-    const { review, pullId, repoId, action, orgId } = messageBody;
+    const { review, pullId, repoId, action, orgId, processId } = messageBody;
     const processor = new PRReviewProcessor(
       review,
       pullId,
@@ -25,7 +25,8 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       action,
       orgId,
       requestId,
-      resourceId
+      resourceId,
+      processId
     );
     await processor.process();
     await processor.save();

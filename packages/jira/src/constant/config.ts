@@ -9,6 +9,7 @@ export const mappingPrefixes = {
   org: 'org',
   reopen_rate: 'jira_reopen_rate',
   cycleTime: 'jira_cycle_time',
+  rca: 'jira_rca',
 };
 
 export const ALLOWED_ISSUE_TYPES = ['Epic', 'Story', 'Task', 'Bug', 'Sub-task'];

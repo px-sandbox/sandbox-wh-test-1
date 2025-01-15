@@ -152,6 +152,14 @@ const indices = [
             id: { type: 'keyword' },
             issueId: { type: 'keyword' },
             issueKey: { type: 'keyword' },
+            containsDevRca:{type:'keyword'},
+            containsQARca:{type:'keyword'},
+            rcaData:{
+              properties:{
+                devRca:{type:'keyword'},
+                qaRca:{type:'keyword'}
+              }
+            },
             projectKey: { type: 'keyword' },
             isFTP: { type: 'boolean' },
             isFTF: { type: 'boolean' },
@@ -296,6 +304,23 @@ const indices = [
         },
       },
     },
+  },
+
+  {
+    name:Jira.Enums.IndexName.Rca,
+    _id: {type:'uuid'},
+    mappings:{
+      properties:{
+        body:{
+          type:'object',
+          properties:{
+            id:{type:'keyword'},
+            name:{type:'keyword'},
+            type:{type:'keyword'},
+          }
+        }
+      }
+    }
   },
 
   {
