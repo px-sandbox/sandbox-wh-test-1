@@ -109,7 +109,7 @@ async function getBugTimeForIssues(
     )
     .source(['body.id', 'body.issueKey', 'body.timeTracker'])
     .toJSON();
-  console.log(JSON.stringify(bugQuery));
+
   const result = await esClientObj.search(Jira.Enums.IndexName.Issue, bugQuery);
   return await searchedDataFormator(result);
 }
