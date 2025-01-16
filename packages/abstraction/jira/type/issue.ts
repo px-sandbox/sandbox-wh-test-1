@@ -1,4 +1,3 @@
-import { ChangelogItem } from '../external/webhook';
 import { retryProcess } from './retry-process';
 
 export type Issue = retryProcess & {
@@ -15,7 +14,7 @@ export type Issue = retryProcess & {
     isPrimary: boolean;
     priority: string;
     label: Array<string>;
-    issueLinks: Array<string>;
+    issueLinks: Array<IssueLinks>;
     assigneeId: string | null;
     reporterId: string | null;
     creatorId: string | null;
