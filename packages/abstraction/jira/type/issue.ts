@@ -59,3 +59,33 @@ export type EstimatesVsActualsBreakdownResponse = SubtaskArray & {
   hasSubtasks: boolean;
   subtasks: SubtaskArray[];
 };
+export type IssueLinks = {
+  id: string;
+  type: {
+    id: string;
+    name: string;
+    inward: string;
+    outward: string;
+  };
+  inwardIssue: {
+    id: string;
+    key: string;
+    self: string;
+    fields: {
+      summary: string;
+      status: {
+        name: string;
+        id: string;
+      };
+      issuetype: {
+        name: string;
+        id: string;
+        subtask: boolean;
+      };
+      priority: {
+        name: string;
+        id: string;
+      };
+    };
+  };
+};

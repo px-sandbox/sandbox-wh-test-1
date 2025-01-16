@@ -98,7 +98,10 @@ async function estimateActualGraphResponse(
           esb.termQuery('body.issueType', IssuesTypes.STORY),
           esb.termQuery('body.issueType', IssuesTypes.TASK),
           esb.termQuery('body.issueType', IssuesTypes.SUBTASK),
-          esb.termQuery('body.issueType', IssuesTypes.BUG),
+          esb
+            .boolQuery()
+            .must(esb.termQuery('body.issueType', IssuesTypes.BUG))
+            .mustNot(esb.existsQuery('body.issueLinks')),
         ])
         .minimumShouldMatch(1)
     )
@@ -120,12 +123,17 @@ function sprintEstimateResponse(
     sprint_aggregation: {
       buckets: Jira.Type.BucketItem[];
     };
-  }
+  },
+  bugTimeActual: [{ sprintId: string; bugTime: number }]
 ): SprintVariance[] {
   return sprintData.map((sprintDetails) => {
     const item = estimateActualGraph.sprint_aggregation.buckets.find(
       (bucketItem: BucketItem) => bucketItem.key === sprintDetails.id
     );
+    const bugTime = bugTimeActual.find(
+      (bugData: { sprintId: string; bugTime: number }) => bugData.sprintId === sprintDetails.id
+    );
+
     if (item) {
       return {
         sprint: sprintDetails,
@@ -139,6 +147,7 @@ function sprintEstimateResponse(
             : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
           ).toFixed(2)
         ),
+        bugTime: bugTime?.bugTime ?? 0,
       };
     }
     return {
@@ -148,6 +157,7 @@ function sprintEstimateResponse(
         actual: 0,
       },
       variance: 0,
+      bugTime: 0,
     };
   });
 }
@@ -172,6 +182,68 @@ export function getDateRangeQueries(startDate: string, endDate: string): esb.Ran
     ];
   }
   return dateRangeQueries;
+}
+
+function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string {
+  // Iterate through the issueLinks array
+  for (const link of issueLinks) {
+    const issueType = link.inwardIssue?.fields?.issuetype?.name;
+    if (issueType === Jira.Enums.IssuesTypes.BUG) {
+      return link.inwardIssue?.key; // Return the key if the issue type is "Bug"
+    }
+  }
+  return ''; // Return null if no Bug type issue is found
+}
+
+async function getBugTimeForSprint(
+  sprintId: string,
+  reqCtx: Other.Type.RequestCtx
+): Promise<{
+  actual: { value: number };
+}> {
+  const query = esb
+    .requestBodySearch()
+    .size(1000)
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termQuery('body.sprintId', sprintId),
+          esb.termQuery('body.isDeleted', false),
+          esb.existsQuery('body.issueLinks'),
+        ])
+        .should([
+          esb.termQuery('body.issueType', IssuesTypes.STORY),
+          esb.termQuery('body.issueType', IssuesTypes.TASK),
+        ])
+        .minimumShouldMatch(1)
+    )
+    .toJSON();
+  logger.info({ ...reqCtx, message: 'bug_time_for_sprint_query', data: { query } });
+
+  const res = await esClientObj.search(Jira.Enums.IndexName.Issue, query);
+  const issueData = await searchedDataFormator(res);
+  // find issueKeys from issuelinks of the issue data
+  const issueKeys: string[] | undefined = issueData.map((items) =>
+    getBugIssueLinksKeys(items.issueLinks)
+  );
+  //sum aggregate the time spent on bugs for the given issueKeys
+  const bugQuery = esb
+    .requestBodySearch()
+    .size(0)
+    .agg(esb.sumAggregation('actual', 'body.timeTracker.actual'))
+    .query(
+      esb
+        .boolQuery()
+        .must([esb.termsQuery('body.issueKey', issueKeys), esb.termQuery('body.isDeleted', false)])
+        .should([esb.termQuery('body.issueType', IssuesTypes.BUG)])
+        .minimumShouldMatch(1)
+    )
+    .toJSON();
+
+  logger.info({ ...reqCtx, message: 'bug_time_for_sprint_query', data: { bugQuery } });
+
+  return await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, bugQuery);
 }
 /**
  * Retrieves the sprint variance graph data for a given project within a specified date range.
@@ -229,15 +301,22 @@ export async function sprintVarianceGraph(
       sprintIds,
       reqCtx
     );
-    const sprintEstimate = sprintEstimateResponse(sprintData, estimateActualGraph);
 
+    const bugTime: [{ sprintId: string; bugTime: number }] = (await Promise.all(
+      sprintIds.map(async (sprintId: string) => {
+        const bugTimeForSprint = await getBugTimeForSprint(sprintId, reqCtx);
+        return { sprintId, bugTime: bugTimeForSprint.actual.value };
+      })
+    )) as [{ sprintId: string; bugTime: number }];
+
+    const sprintEstimate = sprintEstimateResponse(sprintData, estimateActualGraph, bugTime);
     return {
       data: sprintEstimate,
       totalPages,
       page,
     };
   } catch (e) {
-    throw new Error(`error_occured_sprint_variance: ${e}`);
+    throw new Error(`error_occurred_sprint_variance: ${e}`);
   }
 }
 
