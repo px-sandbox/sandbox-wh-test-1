@@ -195,7 +195,6 @@ export class IssueProcessor extends DataProcessor<
     const orgData = await getOrganization(this.apiData.organization);
     const jiraClient = await JiraClient.getClient(this.apiData.organization);
     const issueDataFromApi = await jiraClient.getIssue(this.apiData.issue.id);
-
     if (!orgData) {
       logger.error({
         requestId: this.requestId,
@@ -238,6 +237,21 @@ export class IssueProcessor extends DataProcessor<
       }
     }
 
+    const fnRca = () => {
+      const containingQARca = issueDataFromApi.fields.customfield_11226;
+      const containingDevRca = issueDataFromApi.fields.customfield_11225;
+      const devRca = issueDataFromApi.fields.customfield_11225?.id;
+      const qaRca = issueDataFromApi.fields.customfield_11226?.id;
+      return {
+        containsDevRca: containingDevRca ? true : false,
+        containsQARca: containingQARca ? true : false,
+        rcaData: {
+          devRca: devRca ? `${mappingPrefixes.rca}_${devRca}` : null,
+          qaRca: qaRca ? `${mappingPrefixes.rca}_${qaRca}` : null,
+        },
+      };
+    };
+
     this.formattedData = {
       id: await this.parentId(
         `${mappingPrefixes.issue}_${this.apiData.issue.id}_${mappingPrefixes.org}_${orgData.orgId}`
@@ -252,6 +266,7 @@ export class IssueProcessor extends DataProcessor<
         isFTF: issueDataFromApi.fields.labels?.includes('FTF') ?? false,
         issueType: this.apiData.issue.fields.issuetype.name,
         isPrimary: true,
+        ...fnRca(),
         priority: this.apiData.issue.fields.priority.name,
         label: issueDataFromApi.fields.labels,
         summary: issueDataFromApi?.fields?.summary ?? '',

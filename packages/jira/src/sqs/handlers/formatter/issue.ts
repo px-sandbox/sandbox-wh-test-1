@@ -5,6 +5,7 @@ import _ from 'lodash';
 import { logProcessToRetry } from 'rp';
 import { Queue } from 'sst/node/queue';
 import { IssueProcessor } from '../../../processors/issue';
+import { Jira } from 'abstraction';
 
 /**
  * Formats the issue data received from an SQS record.
@@ -32,7 +33,9 @@ async function issueFormatterFunc(record: SQSRecord): Promise<void> {
       messageBody.processId
     );
     await issueProcessor.process();
-    await issueProcessor.save();
+    if (messageBody.eventName !== Jira.Enums.Event.IssueDeleted) {
+      await issueProcessor.save();
+    }
   } catch (error) {
     await logProcessToRetry(record, Queue.qIssueFormat.queueUrl, error as Error);
     logger.error({

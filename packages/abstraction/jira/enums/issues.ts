@@ -18,6 +18,8 @@ export enum ChangelogStatus {
   IN_PROGRESS = 'In_Progress',
   DEV_COMPLETE = 'Dev_Complete',
   CODE_REVIEW = 'Code_Review',
+  DEV_RCA ="Dev RCA",
+  QA_RCA="QA RCA",
 }
 export enum ChangelogField {
   SPRINT = 'Sprint',

@@ -173,7 +173,37 @@ export type CycleTimeOverallSummary = {
     total: number;
   };
 };
+export type rcaTableHeadline = {
+  max_rca_count: {
+    value: number;
+    keys: string[];
+  };
+  global_agg: {
+    total_bug_count: {
+      doc_count: number;
+    };
+  };
+};
 
+export type rcaTableView = {
+  headline: {
+    value: number;
+    names: string[];
+  };
+  tableData: {
+    name: string;
+    count: number;
+  }[];
+};
+
+export type rcaTableResponse = {
+  rcaCount: {
+    buckets: {
+      key: string;
+      doc_count: number;
+    }[];
+  };
+};
 export type CycleTimeDetailedType = {
   id: string;
   issueKey: string;
@@ -208,4 +238,96 @@ export type CycleTimeSummaryResponse = {
   };
   overall: number;
   overallWithoutDeployment: number;
+};
+export type rcaDetailType = {
+  name: string;
+  highest: number;
+  high: number;
+  medium: number;
+  low: number;
+  lowest: number;
+  total?: number;
+};
+
+export type rcaDetailResponse = {
+  by_rca: {
+    buckets: [
+      {
+        key: string;
+        doc_count: number;
+        highest_count: {
+          doc_count: number;
+        };
+        high_count: {
+          doc_count: number;
+        };
+        medium_count: {
+          doc_count: number;
+        };
+        low_count: {
+          doc_count: number;
+        };
+        lowest_count: {
+          doc_count: number;
+        };
+      }
+    ];
+  };
+};
+
+export type currType = {
+  key: {
+    rca_name: string;
+    priority: string;
+  };
+  doc_count: number;
+  priority_count: {
+    value: number;
+  };
+};
+
+export type rcaTrendsResponse = {
+  headline: {
+    value: number;
+    names: string;
+  };
+  trendsData: {
+    sprintName: string;
+    highest: number;
+    high: number;
+    medium: number;
+    low: number;
+    lowest: number;
+  }[];
+};
+
+export type rcaGraphResponse = {
+  hits: {
+    total: {
+      value: number;
+    };
+  };
+  aggregations: {
+    rcaCount: {
+      buckets: {
+        key: string;
+        doc_count: number;
+      }[];
+    };
+  };
+};
+
+export type rcaGraphView = {
+  headline: {
+    value: number;
+    names: string[];
+  };
+  graphData: {
+    name: string;
+    percentage: number;
+  }[];
+  maximized: {
+    name: string;
+    percentage: number;
+  }[];
 };

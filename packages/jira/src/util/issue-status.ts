@@ -24,7 +24,7 @@ export async function getFailedStatusDetails(orgId: string): Promise<Other.Type.
     const [issueStatusData] = await searchedDataFormator(data);
     return issueStatusData;
   } catch (error) {
-    logger.error({ message: 'getIssueStatusData.error', error });
+    logger.error({ message: 'getIssueStatusData.error', error: `${error}` });
     throw error;
   }
 }
