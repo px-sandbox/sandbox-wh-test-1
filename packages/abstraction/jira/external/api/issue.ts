@@ -1,3 +1,5 @@
+import { IssueLinks } from '../../type';
+
 // issue api type (required fields only)
 export type Issue = {
   id: string;
@@ -87,7 +89,7 @@ export type Issue = {
       };
     };
     labels: Array<string>;
-    issuelinks: Array<string>;
+    issuelinks: Array<IssueLinks>;
     issuetype: {
       name: string;
     };
