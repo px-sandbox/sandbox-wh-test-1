@@ -216,6 +216,7 @@ export const estimatesVsActualsBreakdown = async (
           variance: number;
           link: string;
           issueType: string;
+          totalTime: number;
         }[] = [];
 
         const keys = issue.subtasks?.map((ele: { key: string }) => ele?.key);
@@ -236,6 +237,7 @@ export const estimatesVsActualsBreakdown = async (
               issueType: subtask?.issueType,
               variance: parseFloat((((subActual - subEstimate) / subEstimate) * 100).toFixed(2)),
               link: `https://${orgname}.atlassian.net/browse/${subtask?.issueKey}`,
+              totalTime: subActual ?? 0,
             });
           }
         });
@@ -257,6 +259,7 @@ export const estimatesVsActualsBreakdown = async (
           hasSubtasks: subtasksArr?.length > 0,
           link: `https://${orgname}.atlassian.net/browse/${issue?.issueKey}`,
           subtasks: subtasksArr,
+          totalTime: actual + bugTimeForIssueActual,
         };
       })
     );
