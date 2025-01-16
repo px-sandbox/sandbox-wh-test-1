@@ -148,15 +148,26 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
       });
       return;
     }
+    
     const eventTime = moment(body.timestamp);
     const eventName = body.webhookEvent as Jira.Enums.Event;
-    await processWebhookEvent(eventName, eventTime, body, organization, requestId, resourceId);
+    
     logger.info({
       requestId,
-      message: 'webhook.handler.received',
+      message: 'webhook.handler.processing',
       data: { organization, body, eventName, eventTime },
       resourceId,
     });
+
+    await processWebhookEvent(eventName, eventTime, body, organization, requestId, resourceId);
+
+    logger.info({
+      requestId,
+      message: 'webhook.handler.completed',
+      data: { organization, body, eventName, eventTime },
+      resourceId,
+    });
+
   } catch (error) {
     logger.error({
       requestId,

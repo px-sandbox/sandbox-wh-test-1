@@ -125,6 +125,7 @@ export class IssueProcessor extends DataProcessor<
         case Jira.Enums.Event.IssueCreated:
         case Jira.Enums.Event.WorklogCreated:
         case Jira.Enums.Event.WorklogUpdated:
+        case Jira.Enums.Event.WorklogDeleted:
           await this.format();
           break;
         case Jira.Enums.Event.IssueUpdated:
