@@ -35,9 +35,9 @@ function createIssueSearchQuery(
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.sprintId', sprintId),
           esb.termQuery('body.organizationId.keyword', orgId),
-          esb.termsQuery('body.issueType', ['Story', 'Bug', 'Task']),
+          esb.termsQuery('body.issueType', [IssuesTypes.STORY, IssuesTypes.TASK, IssuesTypes.BUG]),
+          esb.existsQuery('body.timeTracker'),
         ])
-        .must(esb.existsQuery('body.timeTracker'))
         .mustNot(
           esb
             .boolQuery()
@@ -92,9 +92,9 @@ function createSubtaskSearchQuery(
 }
 
 async function getBugTimeForIssues(
-  formattedIssues: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody
+  issueKeys: string[]
 ): Promise<[] | (Pick<Hit, '_id'> & HitBody)[]> {
-  const issueKeys = getBugIssueLinksKeys(formattedIssues.issueLinks);
+  // const issueKeys = getBugIssueLinksKeys(formattedIssues.issueLinks);
 
   //sum aggregate the time spent on bugs for the given issueKeys
   const bugQuery = esb
@@ -109,6 +109,7 @@ async function getBugTimeForIssues(
     )
     .source(['body.id', 'body.issueKey', 'body.timeTracker'])
     .toJSON();
+  console.log(JSON.stringify(bugQuery));
   const result = await esClientObj.search(Jira.Enums.IndexName.Issue, bugQuery);
   return await searchedDataFormator(result);
 }
@@ -146,17 +147,6 @@ const fetchIssueData = async (
     formattedIssues = await searchedDataFormator(unformattedIssues);
     issues.push(...formattedIssues);
   }
-
-  await Promise.all(
-    issues.map(async (ele, i) => {
-      const bugTime = await getBugTimeForIssues(ele);
-      issues[i] = {
-        ...ele,
-        bugTime: bugTime.reduce((acc, curr) => acc + curr.timeTracker.actual, 0),
-      };
-    })
-  );
-
   const subtaskQuery = createSubtaskSearchQuery(projectId, sprintId, orgId);
 
   let unformattedSubtasks: Other.Type.HitBody = await esClientObj.search(
@@ -201,14 +191,22 @@ export const estimatesVsActualsBreakdown = async (
 ): Promise<Jira.Type.EstimatesVsActualsBreakdownResponse[]> => {
   try {
     const { issues, subtasks } = await fetchIssueData(projectId, sprintId, orgId);
-
+    const parentBugMapping = issues.reduce((acc: Record<string, string[]>, ele) => {
+      acc[ele.issueKey] = getBugIssueLinksKeys(ele.issueLinks);
+      return acc;
+    }, {});
+    logger.info({ message: 'parentBugMapping', data: parentBugMapping });
+    const bugTime = await getBugTimeForIssues(Object.values(parentBugMapping).join(',').split(','));
     const response = await Promise.all(
       issues?.map(async (issue) => {
         const estimate = issue?.timeTracker?.estimate ?? 0;
         const actual = issue?.timeTracker?.actual ?? 0;
         let overallEstimate = estimate;
         let overallActual = estimate ? actual : 0;
-
+        const bugTimeForIssue = parentBugMapping[issue.issueKey];
+        const bugTimeForIssueActual = bugTime
+          .filter((ele) => bugTimeForIssue.includes(ele.issueKey))
+          .reduce((acc, curr) => acc + curr.timeTracker.actual, 0);
         const subtasksArr: {
           id: string;
           issueKey: string;
@@ -255,7 +253,7 @@ export const estimatesVsActualsBreakdown = async (
           overallVariance: parseFloat(
             (((overallActual - overallEstimate) / overallEstimate) * 100).toFixed(2)
           ),
-          bugTime: issue?.bugTime,
+          bugTime: bugTimeForIssueActual,
           hasSubtasks: subtasksArr?.length > 0,
           link: `https://${orgname}.atlassian.net/browse/${issue?.issueKey}`,
           subtasks: subtasksArr,
