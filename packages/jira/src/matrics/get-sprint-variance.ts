@@ -133,7 +133,6 @@ function sprintEstimateResponse(
     const bugTime = bugTimeActual.find(
       (bugData: { sprintId: string; bugTime: number }) => bugData.sprintId === sprintDetails.id
     );
-
     if (item) {
       return {
         sprint: sprintDetails,
@@ -148,6 +147,7 @@ function sprintEstimateResponse(
           ).toFixed(2)
         ),
         bugTime: bugTime?.bugTime ?? 0,
+        totalTime: bugTime?.bugTime ?? 0 + item.actual.value ?? 0,
       };
     }
     return {
@@ -158,6 +158,7 @@ function sprintEstimateResponse(
       },
       variance: 0,
       bugTime: 0,
+      totalTime: 0,
     };
   });
 }
@@ -184,15 +185,16 @@ export function getDateRangeQueries(startDate: string, endDate: string): esb.Ran
   return dateRangeQueries;
 }
 
-function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string {
+export function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string[] | [] {
   // Iterate through the issueLinks array
+  const bugKeys = [];
   for (const link of issueLinks) {
     const issueType = link.inwardIssue?.fields?.issuetype?.name;
     if (issueType === Jira.Enums.IssuesTypes.BUG) {
-      return link.inwardIssue?.key; // Return the key if the issue type is "Bug"
+      bugKeys.push(link.inwardIssue?.key); // Return the key if the issue type is "Bug"
     }
   }
-  return ''; // Return null if no Bug type issue is found
+  return bugKeys; // Return null if no Bug type issue is found
 }
 
 async function getBugTimeForSprint(
@@ -224,9 +226,7 @@ async function getBugTimeForSprint(
   const res = await esClientObj.search(Jira.Enums.IndexName.Issue, query);
   const issueData = await searchedDataFormator(res);
   // find issueKeys from issuelinks of the issue data
-  const issueKeys: string[] | undefined = issueData.map((items) =>
-    getBugIssueLinksKeys(items.issueLinks)
-  );
+  const issueKeys = issueData.map((items) => getBugIssueLinksKeys(items.issueLinks)).flat();
   //sum aggregate the time spent on bugs for the given issueKeys
   const bugQuery = esb
     .requestBodySearch()
