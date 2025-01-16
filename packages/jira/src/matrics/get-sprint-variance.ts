@@ -98,16 +98,11 @@ async function estimateActualGraphResponse(
           esb.termQuery('body.issueType', IssuesTypes.STORY),
           esb.termQuery('body.issueType', IssuesTypes.TASK),
           esb.termQuery('body.issueType', IssuesTypes.SUBTASK),
-          esb.termQuery('body.issueType', IssuesTypes.BUG),
-        ])
-        .mustNot(
           esb
             .boolQuery()
-            .must([
-              esb.termQuery('body.issueType', IssuesTypes.BUG),
-              esb.existsQuery('body.issueLinks'),
-            ])
-        )
+            .must(esb.termQuery('body.issueType', IssuesTypes.BUG))
+            .mustNot(esb.existsQuery('body.issueLinks')),
+        ])
         .minimumShouldMatch(1)
     )
     .toJSON() as { query: object };
