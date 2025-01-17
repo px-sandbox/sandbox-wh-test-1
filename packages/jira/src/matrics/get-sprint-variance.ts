@@ -147,6 +147,7 @@ function sprintEstimateResponse(
           ).toFixed(2)
         ),
         bugTime: bugTime?.bugTime ?? 0,
+        totalTime: (bugTime?.bugTime ?? 0) + (item.actual.value ?? 0),
       };
     }
     return {
@@ -157,6 +158,7 @@ function sprintEstimateResponse(
       },
       variance: 0,
       bugTime: 0,
+      totalTime: 0,
     };
   });
 }
