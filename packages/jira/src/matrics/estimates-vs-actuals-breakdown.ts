@@ -192,7 +192,9 @@ export const estimatesVsActualsBreakdown = async (
   try {
     const { issues, subtasks } = await fetchIssueData(projectId, sprintId, orgId);
     const parentBugMapping = issues.reduce((acc: Record<string, string[]>, ele) => {
-      acc[ele.issueKey] = getBugIssueLinksKeys(ele.issueLinks);
+      if (ele.issueLinks) {
+        acc[ele.issueKey] = getBugIssueLinksKeys(ele.issueLinks);
+      }
       return acc;
     }, {});
     logger.info({ message: 'parentBugMapping', data: parentBugMapping });
