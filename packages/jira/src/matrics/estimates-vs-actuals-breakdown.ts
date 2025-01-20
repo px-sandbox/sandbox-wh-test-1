@@ -4,12 +4,12 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import esb, { RequestBodySearch } from 'elastic-builder';
 import _ from 'lodash';
-import { searchedDataFormator } from '../util/response-formatter';
 import { IssuesTypes } from 'abstraction/jira/enums';
-import { getBugIssueLinksKeys } from './get-sprint-variance';
 import { logger } from 'core';
 import { Hit } from 'abstraction/github/type';
 import { HitBody } from 'abstraction/other/type';
+import { getBugIssueLinksKeys } from './get-sprint-variance';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -96,7 +96,7 @@ async function getBugTimeForIssues(
 ): Promise<[] | (Pick<Hit, '_id'> & HitBody)[]> {
   // const issueKeys = getBugIssueLinksKeys(formattedIssues.issueLinks);
 
-  //sum aggregate the time spent on bugs for the given issueKeys
+  // sum aggregate the time spent on bugs for the given issueKeys
   const bugQuery = esb
     .requestBodySearch()
     .size(issueKeys.length)
@@ -111,7 +111,7 @@ async function getBugTimeForIssues(
     .toJSON();
 
   const result = await esClientObj.search(Jira.Enums.IndexName.Issue, bugQuery);
-  return await searchedDataFormator(result);
+  return searchedDataFormator(result);
 }
 /**
  * Fetches issue data from Jira based on the provided parameters.
