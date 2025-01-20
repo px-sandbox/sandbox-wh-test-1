@@ -20,6 +20,7 @@ const sprintVariance = async function sprintVariance(
   const limit: number = parseInt(event.queryStringParameters?.limit || '10', 10);
   const sprintState: Jira.Enums.SprintState | undefined = event.queryStringParameters
     ?.sprintState as Jira.Enums.SprintState;
+  const orgId: string = event.queryStringParameters?.organizationId || '';
 
   try {
     const [graphData, headline] = await Promise.all([
@@ -35,6 +36,7 @@ const sprintVariance = async function sprintVariance(
           requestId,
           resourceId: projectId,
         },
+        orgId,
         sprintState
       ),
       await sprintVarianceGraphAvg(

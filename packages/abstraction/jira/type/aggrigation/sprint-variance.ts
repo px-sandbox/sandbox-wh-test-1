@@ -7,6 +7,7 @@ type sprint = {
 };
 export type BucketItem = {
   key: string;
+  doc_count: number;
   estimate: {
     value: number;
   };

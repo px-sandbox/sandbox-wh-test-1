@@ -1,4 +1,3 @@
-import { ChangelogItem } from '../external/webhook';
 import { retryProcess } from './retry-process';
 
 export type Issue = retryProcess & {
@@ -15,7 +14,7 @@ export type Issue = retryProcess & {
     isPrimary: boolean;
     priority: string;
     label: Array<string>;
-    issueLinks: Array<string>;
+    issueLinks: Array<IssueLinks>;
     assigneeId: string | null;
     reporterId: string | null;
     creatorId: string | null;
@@ -58,4 +57,34 @@ export type EstimatesVsActualsBreakdownResponse = SubtaskArray & {
   overallVariance: number;
   hasSubtasks: boolean;
   subtasks: SubtaskArray[];
+};
+export type IssueLinks = {
+  id: string;
+  type: {
+    id: string;
+    name: string;
+    inward: string;
+    outward: string;
+  };
+  inwardIssue: {
+    id: string;
+    key: string;
+    self: string;
+    fields: {
+      summary: string;
+      status: {
+        name: string;
+        id: string;
+      };
+      issuetype: {
+        name: string;
+        id: string;
+        subtask: boolean;
+      };
+      priority: {
+        name: string;
+        id: string;
+      };
+    };
+  };
 };
