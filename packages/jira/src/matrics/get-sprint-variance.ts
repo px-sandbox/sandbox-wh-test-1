@@ -184,8 +184,8 @@ function sprintEstimateResponse(
   orgName: string,
   projectKey: string
 ): SprintVariance[] {
-  let estimateMissingFlagCtr = false;
   return sprintData.map((sprintDetails) => {
+    let estimateMissingFlagCtr = true;
     const item = estimateActualGraph.sprint_aggregation.buckets.find(
       (bucketItem: BucketItem) => bucketItem.key === sprintDetails.id
     );
@@ -197,7 +197,7 @@ function sprintEstimateResponse(
     );
     if (item) {
       if (estimateCount && estimateCount.doc_count > 4) {
-        estimateMissingFlagCtr = true;
+        estimateMissingFlagCtr = false;
       }
       return {
         sprint: sprintDetails,
@@ -207,7 +207,7 @@ function sprintEstimateResponse(
         },
         isAllEstimated: estimateMissingFlagCtr,
         jiraInfo: {
-          estimateIssueLink: estimateMissingFlagCtr
+          estimateIssueLink: !estimateMissingFlagCtr
             ? getJiraLink(orgName, projectKey, sprintDetails.sprintId, true)
             : '',
           loggedIssueLink: getJiraLink(orgName, projectKey, sprintDetails.sprintId),
@@ -227,6 +227,11 @@ function sprintEstimateResponse(
       time: {
         estimate: 0,
         actual: 0,
+      },
+      isAllEstimated: estimateMissingFlagCtr,
+      jiraInfo: {
+        estimateIssueLink: '',
+        loggedIssueLink: getJiraLink(orgName, projectKey, sprintDetails.sprintId),
       },
       variance: 0,
       bugTime: 0,
