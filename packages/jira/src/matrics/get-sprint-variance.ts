@@ -195,7 +195,7 @@ function sprintEstimateResponse(
       (bucketItem: BucketItem) => bucketItem.key === sprintDetails.id
     );
     if (item) {
-      if (estimateCount && estimateCount.doc_count > 40) {
+      if (estimateCount && estimateCount.doc_count > 4) {
         estimateMissingFlagCtr = true;
       }
       return {
