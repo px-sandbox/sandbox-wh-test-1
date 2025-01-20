@@ -261,7 +261,7 @@ export const estimatesVsActualsBreakdown = async (
           hasSubtasks: subtasksArr?.length > 0,
           link: `https://${orgname}.atlassian.net/browse/${issue?.issueKey}`,
           subtasks: subtasksArr,
-          totalTime: actual + bugTimeForIssueActual,
+          totalTime: overallActual + bugTimeForIssueActual,
         };
       })
     );
