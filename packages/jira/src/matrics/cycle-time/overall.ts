@@ -3,7 +3,6 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import esb from 'elastic-builder';
 import { searchedDataFormator } from '../../util/response-formatter';
-import { getDateRangeQueries } from '../get-sprint-variance';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -143,14 +142,14 @@ export async function calculateCycleTime(
   );
 
   let overallTime = 0;
-  let sprintCount = 0;
+  // let sprintCount = 0;
 
   if (result?.sprints?.buckets) {
     for (const bucket of result.sprints.buckets) {
       const totalTime =
         bucket.total_development.value + bucket.total_qa.value + bucket.total_deployment.value;
       overallTime += totalTime / bucket.doc_count;
-      sprintCount += 1;
+      // sprintCount += 1;
     }
   }
 

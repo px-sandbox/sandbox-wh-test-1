@@ -5,7 +5,7 @@ export function processGraphInterval(
   intervals: string,
   startDate: string,
   endDate: string,
-  field: string = 'body.createdAt'
+  field = 'body.createdAt'
 ): esb.DateHistogramAggregation {
   // By default graph interval is day
   let graphIntervals: esb.DateHistogramAggregation;

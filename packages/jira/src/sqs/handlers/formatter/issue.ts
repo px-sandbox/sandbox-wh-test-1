@@ -4,8 +4,8 @@ import { logger } from 'core';
 import _ from 'lodash';
 import { logProcessToRetry } from 'rp';
 import { Queue } from 'sst/node/queue';
-import { IssueProcessor } from '../../../processors/issue';
 import { Jira } from 'abstraction';
+import { IssueProcessor } from '../../../processors/issue';
 
 /**
  * Formats the issue data received from an SQS record.

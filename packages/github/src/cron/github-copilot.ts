@@ -4,10 +4,10 @@ import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent } from 'aws-lambda';
+import { v4 as uuid } from 'uuid';
 import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
 import { ghRequest } from '../lib/request-default';
 import { getInstallationAccessToken } from '../util/installation-access-token';
-import { v4 as uuid } from 'uuid';
 
 const sqsClient = SQSClient.getInstance();
 export async function initializeOctokit(orgName: string): Promise<

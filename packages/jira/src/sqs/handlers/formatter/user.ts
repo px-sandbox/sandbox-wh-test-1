@@ -1,8 +1,7 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { Queue } from 'sst/node/queue';
-import { Jira } from 'abstraction';
 import { logProcessToRetry } from 'rp';
+import { Queue } from 'sst/node/queue';
 import { UserProcessor } from '../../../processors/user';
 
 export const handler = async function userFormattedDataReciever(event: SQSEvent): Promise<void> {

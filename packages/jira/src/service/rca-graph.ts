@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, responseParser } from 'core';
-import { rcaGraphView } from 'src/matrics/get-rca-graph';
+import { rcaGraphView } from '../matrics/get-rca-graph';
 
 const rcaGrapViews = async function getRcaTabularView(
   event: APIGatewayProxyEvent

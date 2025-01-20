@@ -1,16 +1,14 @@
-import { beforeEach, afterEach, expect, it, describe, vi } from 'vitest';
-import { SprintProcessor } from '../sprint';  // Adjust the path to the actual file
-import { getOrganization } from '../../repository/organization/get-organization';  // Adjust the path
-import { JiraClient } from '../../lib/jira-client';  // Adjust the path
-import { logger } from 'core';
-import { mappingPrefixes } from '../../constant/config'; // Adjust the path
 import { Jira } from 'abstraction';
+import { logger } from 'core';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getOrganization } from '../../repository/organization/get-organization'; // Adjust the path
+import { SprintProcessor } from '../sprint'; // Adjust the path to the actual file
 
 // Mocking external dependencies
-vi.mock('../../repository/organization/get-organization');  // Mocking getOrganization
-vi.mock('../lib/jira-client');  // Mocking JiraClient
+vi.mock('../../repository/organization/get-organization'); // Mocking getOrganization
+vi.mock('../lib/jira-client'); // Mocking JiraClient
 vi.mock('core', () => ({
-  logger: { error: vi.fn() },  // Mock logger's error function
+  logger: { error: vi.fn() }, // Mock logger's error function
 }));
 
 describe('SprintProcessor', () => {
@@ -46,10 +44,7 @@ describe('SprintProcessor', () => {
     vi.resetAllMocks();
   });
 
-
-
   describe('format', () => {
-
     it('should throw an error if organization is not found', async () => {
       // Mock organization data to return undefined
       vi.mocked(getOrganization).mockResolvedValueOnce(undefined);
@@ -69,6 +64,5 @@ describe('SprintProcessor', () => {
         message: `Organization ${apiData.organization} not found`,
       });
     });
-
   });
 });

@@ -3,8 +3,8 @@ import { Github } from 'abstraction';
 import { TestCoverageGraphAgg, TestCoverageLatestDoc } from 'abstraction/github/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { processGraphInterval } from 'src/util/process-graph-intervals';
-import { searchedDataFormator } from 'src/util/response-formatter';
+import { processGraphInterval } from '../util/process-graph-intervals';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 const getRepoName = async (repoIds: string[]): Promise<Github.Type.RepoNameType[]> => {
@@ -64,21 +64,19 @@ export const getData = async (
       return acc;
     }, {});
 
-    return data.commentsPerDay.buckets.map((bucket) => {
-      return {
-        date: bucket.key_as_string,
-        ...defaultObj,
-        ...bucket.by_repo.buckets.reduce(
-          (acc: { [x: string]: number }, item: TestCoverageLatestDoc) => {
-            acc[mapping[item.key]] = parseFloat(
-              item.latest_document.hits.hits[0]._source.body.lines.pct
-            );
-            return acc;
-          },
-          {}
-        ),
-      };
-    });
+    return data.commentsPerDay.buckets.map((bucket) => ({
+      date: bucket.key_as_string,
+      ...defaultObj,
+      ...bucket.by_repo.buckets.reduce(
+        (acc: { [x: string]: number }, item: TestCoverageLatestDoc) => {
+          acc[mapping[item.key]] = parseFloat(
+            item.latest_document.hits.hits[0]._source.body.lines.pct
+          );
+          return acc;
+        },
+        {}
+      ),
+    }));
   } catch (e) {
     logger.error({ message: 'getData.error', error: `${e}` });
     throw e;

@@ -2,19 +2,19 @@
 import { Jira } from 'abstraction';
 import { ChangelogField, ChangelogStatus, IssuesTypes } from 'abstraction/jira/enums';
 import { logger } from 'core';
-import { getIssueById, updateIssueWithSubtask } from 'src/repository/issue/get-issue';
-import { getSprintForTo } from 'src/util/prepare-reopen-rate';
-import { mappingPrefixes } from '../constant/config';
-import { JiraClient } from '../lib/jira-client';
-import { getOrganization } from '../repository/organization/get-organization';
-import { DataProcessor } from './data-processor';
-import { getIssueStatusForReopenRate } from 'src/util/issue-status';
 import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
-import { softDeleteCycleTimeDocument } from 'src/repository/cycle-time/update';
-import { saveIssueDetails } from 'src/repository/issue/save-issue';
 import moment from 'moment';
-import { removeReopenRate } from 'src/webhook/issues/delete-reopen-rate';
+import { getSprintForTo } from '../util/prepare-reopen-rate';
+import { getIssueById, updateIssueWithSubtask } from '../repository/issue/get-issue';
+import { getIssueStatusForReopenRate } from '../util/issue-status';
+import { softDeleteCycleTimeDocument } from '../repository/cycle-time/update';
+import { saveIssueDetails } from '../repository/issue/save-issue';
+import { removeReopenRate } from '../webhook/issues/delete-reopen-rate';
+import { DataProcessor } from './data-processor';
+import { getOrganization } from '../repository/organization/get-organization';
+import { JiraClient } from '../lib/jira-client';
+import { mappingPrefixes } from '../constant/config';
 
 export class IssueProcessor extends DataProcessor<
   Jira.ExternalType.Webhook.Issue,
@@ -36,7 +36,7 @@ export class IssueProcessor extends DataProcessor<
     boardId: string | null;
   }> {
     let sprintId: number | null | string;
-    let boardId: number | null;
+    let boardId: number | null | string;
     const esbIssueData = await getIssueById(data.issue.id, data.organization, {
       requestId: this.requestId,
     });
@@ -44,18 +44,24 @@ export class IssueProcessor extends DataProcessor<
       ? []
       : data.changelog.items.filter((item) => item.fieldId === ChangelogField.SPRINT);
 
-    sprintId = sprintChangelog
-      ? getSprintForTo(sprintChangelog.to, sprintChangelog.from)
-      : esbIssueData?.body?.sprintId
-      ? esbIssueData.body.sprintId
-      : data.issue.fields.customfield_10007?.[0]?.id ?? null;
+    if (sprintChangelog) {
+      sprintId = getSprintForTo(sprintChangelog.to, sprintChangelog.from);
+    } else if (esbIssueData?.body?.sprintId) {
+      sprintId = esbIssueData.body.sprintId;
+    } else {
+      sprintId = data.issue.fields.customfield_10007?.[0]?.id ?? null;
+    }
 
-    boardId = data.issue.fields.customfield_10007
-      ? data.issue.fields.customfield_10007.find((item) => item.id == Number(sprintId))?.boardId
-      : esbIssueData?.body?.boardId
-      ? esbIssueData.body.boardId
-      : null;
-
+    if (data.issue.fields.customfield_10007) {
+      const item = data.issue.fields.customfield_10007.find(
+        (items) => items.id === Number(sprintId)
+      );
+      boardId = item ? item.boardId : null;
+    } else if (esbIssueData?.body?.boardId) {
+      boardId = esbIssueData.body.boardId;
+    } else {
+      boardId = null;
+    }
     if (boardId === null) {
       logger.info({
         message: 'sprint_board_data_for_issue',
@@ -210,7 +216,7 @@ export class IssueProcessor extends DataProcessor<
        * update in elasticsearch for parent issue for subtask data
        * if no document for parent then log error
        * update subtask array in parent document
-       **/
+       * */
       const parent = this.apiData.issue.fields?.parent;
       try {
         const parentIssueData = await jiraClient.getIssue(parent.key);
@@ -237,14 +243,18 @@ export class IssueProcessor extends DataProcessor<
       }
     }
 
-    const fnRca = () => {
+    const fnRca = (): {
+      containsQARca: boolean;
+      containsDevRca: boolean;
+      rcaData: { devRca: string | null; qaRca: string | null };
+    } => {
       const containingQARca = issueDataFromApi.fields.customfield_11226;
       const containingDevRca = issueDataFromApi.fields.customfield_11225;
       const devRca = issueDataFromApi.fields.customfield_11225?.id;
       const qaRca = issueDataFromApi.fields.customfield_11226?.id;
       return {
-        containsDevRca: containingDevRca ? true : false,
-        containsQARca: containingQARca ? true : false,
+        containsDevRca: !!containingDevRca,
+        containsQARca: !!containingQARca,
         rcaData: {
           devRca: devRca ? `${mappingPrefixes.rca}_${devRca}` : null,
           qaRca: qaRca ? `${mappingPrefixes.rca}_${qaRca}` : null,

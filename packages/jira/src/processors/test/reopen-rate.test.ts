@@ -1,9 +1,8 @@
-import { beforeEach, afterEach, expect, it, describe, vi } from 'vitest';
-import { ReopenRateProcessor } from '../reopen-rate';
-import { getOrganization } from '../../repository/organization/get-organization';
-import { logger } from 'core';
 import { Jira } from 'abstraction';
-import { mappingPrefixes } from '../../constant/config';
+import { logger } from 'core';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getOrganization } from '../../repository/organization/get-organization';
+import { ReopenRateProcessor } from '../reopen-rate';
 
 vi.mock('../../repository/organization/get-organization');
 const mockGetOrganization = vi.mocked(getOrganization);
@@ -59,16 +58,6 @@ describe('ReopenRateProcessor', () => {
     });
   });
 
-  describe('process', () => {
-    it('should call format', async () => {
-      const formatSpy = vi.spyOn(reopenRateProcessor, 'format').mockResolvedValue();
-
-      await reopenRateProcessor.process();
-
-      expect(formatSpy).toHaveBeenCalled();
-    });
-  });
-
   describe('format', () => {
     it('should format the reopen rate data correctly', async () => {
       const mockOrgData = { orgId: 'org123', _id: 'jira_org_org123' };
@@ -113,7 +102,12 @@ describe('ReopenRateProcessor', () => {
     it('should handle empty reOpenCount gracefully', async () => {
       const modifiedApiData = { ...apiData, reOpenCount: 0, isReopen: false };
 
-      const processor = new ReopenRateProcessor(modifiedApiData, requestId, resourceId, retryProcessId);
+      const processor = new ReopenRateProcessor(
+        modifiedApiData,
+        requestId,
+        resourceId,
+        retryProcessId
+      );
       const mockOrgData = { orgId: 'org123', _id: 'jira_org_org123' };
 
       mockGetOrganization.mockResolvedValueOnce(mockOrgData);

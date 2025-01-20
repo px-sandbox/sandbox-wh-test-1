@@ -1,4 +1,4 @@
-import { IssueLinks } from '../../type';
+import { IssueLinks } from '../../type/issue';
 
 // issue api type (required fields only)
 export type Issue = {

@@ -8,7 +8,7 @@ import _ from 'lodash';
 import { getSprints } from '../lib/get-sprints';
 import { getBoardByOrgId } from '../repository/board/get-board';
 import { getOrganizationById } from '../repository/organization/get-organization';
-import { IssueReponse, searchedDataFormator } from '../util/response-formatter';
+import { IssueResponse, searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -75,7 +75,7 @@ export async function ftpRateGraph(
   projectId: string,
   sprintIds: string[],
   reqCtx: Other.Type.RequestCtx
-): Promise<IssueReponse[]> {
+): Promise<IssueResponse[]> {
   try {
     let orgName = '';
     let projectKey = '';
@@ -100,7 +100,7 @@ export async function ftpRateGraph(
     projectKey = projectData[0].key;
 
     const ftpRateGraphResponse: IFtpRateResponse = await ftpGraphRateResponse(sprintIds, reqCtx);
-    let response: IssueReponse[] = await Promise.all(
+    let response: IssueResponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
         logger.info({ ...reqCtx, message: 'sprintData', data: { sprintData } });
@@ -132,7 +132,7 @@ export async function ftpRateGraph(
       })
     );
     response = _.sortBy(response, [
-      (item: IssueReponse): Date => new Date(item.startDate),
+      (item: IssueResponse): Date => new Date(item.startDate),
     ]).reverse();
     return response.filter((obj) => obj.sprintName !== undefined);
   } catch (e) {

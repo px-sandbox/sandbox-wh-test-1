@@ -2,8 +2,8 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from '../../util/response-formatter';
 import { logger } from 'core';
+import { searchedDataFormator } from '../../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 function getCycleTimeDetailQuery(
@@ -65,14 +65,14 @@ export async function fetchCycleTimeDetailed(
 ): Promise<Jira.Type.CycleTimeDetailedType[]> {
   const cycleTimeDetailQuery = getCycleTimeDetailQuery(sprintId, orgId, sortKey, sortOrder);
   const orgnameQuery = getOrgNameQuery(orgId);
-
+  let formattedData: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[] = [];
   logger.info({
     ...reqCtx,
     message: `fetchCycleTimeDetailed.query:`,
     data: JSON.stringify(cycleTimeDetailQuery.toJSON()),
   });
 
-  let [orgname, formattedData] = await Promise.all([
+  const [orgname, formattedCycleTimeData] = await Promise.all([
     searchedDataFormator(
       await esClientObj.search(Jira.Enums.IndexName.Organization, orgnameQuery.toJSON())
     ) as Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]>,
@@ -81,7 +81,7 @@ export async function fetchCycleTimeDetailed(
     ) as Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]>,
   ]);
 
-  formattedData = formattedData.map((fd) => ({
+  formattedData = formattedCycleTimeData.map((fd) => ({
     ...fd,
     subtasks: fd?.subtasks?.length
       ? fd.subtasks.filter((sub: { isDeleted: boolean }) => sub.isDeleted === false)

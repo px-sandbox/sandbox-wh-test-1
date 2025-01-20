@@ -1,5 +1,35 @@
 import { retryProcess } from './retry-process';
 
+export type IssueLinks = {
+  id: string;
+  type: {
+    id: string;
+    name: string;
+    inward: string;
+    outward: string;
+  };
+  inwardIssue: {
+    id: string;
+    key: string;
+    self: string;
+    fields: {
+      summary: string;
+      status: {
+        name: string;
+        id: string;
+      };
+      issuetype: {
+        name: string;
+        id: string;
+        subtask: boolean;
+      };
+      priority: {
+        name: string;
+        id: string;
+      };
+    };
+  };
+};
 export type Issue = retryProcess & {
   id: string;
   body: {
@@ -57,34 +87,4 @@ export type EstimatesVsActualsBreakdownResponse = SubtaskArray & {
   overallVariance: number;
   hasSubtasks: boolean;
   subtasks: SubtaskArray[];
-};
-export type IssueLinks = {
-  id: string;
-  type: {
-    id: string;
-    name: string;
-    inward: string;
-    outward: string;
-  };
-  inwardIssue: {
-    id: string;
-    key: string;
-    self: string;
-    fields: {
-      summary: string;
-      status: {
-        name: string;
-        id: string;
-      };
-      issuetype: {
-        name: string;
-        id: string;
-        subtask: boolean;
-      };
-      priority: {
-        name: string;
-        id: string;
-      };
-    };
-  };
 };

@@ -52,10 +52,13 @@ export async function getIssueStatusForReopenRate(
     });
     const data = await esClientObj.search(Jira.Enums.IndexName.IssueStatus, issueStatusquery);
     const issueStatusDataArr = await searchedDataFormator(data);
-    const issueStatusData = issueStatusDataArr.reduce((acc: Record<string, any>, issueStatus) => {
-      acc[issueStatus.pxStatus] = issueStatus.issueStatusId;
-      return acc;
-    }, {});
+    const issueStatusData = issueStatusDataArr.reduce(
+      (acc: Record<string, string>, issueStatus) => {
+        acc[issueStatus.pxStatus] = issueStatus.issueStatusId;
+        return acc;
+      },
+      {}
+    );
     return issueStatusData;
   } catch (error) {
     logger.error({ requestId, resourceId, message: 'getIssueStatusData.error', error });

@@ -3,8 +3,8 @@ import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, responseParser } from 'core';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from '../util/response-formatter';
 import _ from 'lodash';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
 

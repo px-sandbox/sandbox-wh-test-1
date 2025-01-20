@@ -5,7 +5,7 @@ import { IssuesTypes } from 'abstraction/jira/enums';
 import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb, { RequestBodySearch } from 'elastic-builder';
-import { getOrganizationById } from 'src/repository/organization/get-organization';
+import { getOrganizationById } from '../repository/organization/get-organization';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
@@ -14,9 +14,10 @@ function getJiraLink(
   orgName: string,
   projectKey: string,
   sprintId: number,
-  isOgEstimate: boolean = false
+  isOgEstimate = false
 ): string {
-  const baseUrl = `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=project = "${projectKey}" and sprint = ${sprintId}`;
+  const baseUrl = `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=
+  project = "${projectKey}" and sprint = ${sprintId}`;
   const query = isOgEstimate ? 'AND OriginalEstimate IS EMPTY' : 'AND TimeSpent IS EMPTY';
   const orderBy = 'ORDER BY created DESC';
   return encodeURI(`${baseUrl} ${query} ${orderBy}`);
@@ -298,7 +299,7 @@ async function getBugTimeForSprint(
   const issueData = await searchedDataFormator(res);
   // find issueKeys from issuelinks of the issue data
   const issueKeys = issueData.map((items) => getBugIssueLinksKeys(items.issueLinks)).flat();
-  //sum aggregate the time spent on bugs for the given issueKeys
+  // sum aggregate the time spent on bugs for the given issueKeys
   const bugQuery = esb
     .requestBodySearch()
     .size(0)
@@ -314,7 +315,7 @@ async function getBugTimeForSprint(
 
   logger.info({ ...reqCtx, message: 'bug_time_for_sprint_query', data: { bugQuery } });
 
-  return await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, bugQuery);
+  return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, bugQuery);
 }
 /**
  * Retrieves the sprint variance graph data for a given project within a specified date range.

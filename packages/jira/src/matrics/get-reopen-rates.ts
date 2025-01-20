@@ -7,7 +7,7 @@ import esb, { RequestBodySearch } from 'elastic-builder';
 import _ from 'lodash';
 import { getSprints } from '../lib/get-sprints';
 import { getBoardByOrgId } from '../repository/board/get-board';
-import { IssueReponse } from '../util/response-formatter';
+import { IssueResponse } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -77,11 +77,11 @@ async function reopenRateQueryResponse(
 export async function reopenRateGraph(
   sprintIds: string[],
   reqCtx: Other.Type.RequestCtx
-): Promise<IssueReponse[]> {
+): Promise<IssueResponse[]> {
   try {
     const reopenRateGraphResponse = await reopenRateQueryRes(sprintIds, reqCtx);
 
-    let response: IssueReponse[] = await Promise.all(
+    let response: IssueResponse[] = await Promise.all(
       sprintIds.map(async (sprintId) => {
         const sprintData = await getSprints(sprintId);
         const boardName = await getBoardByOrgId(
@@ -110,7 +110,7 @@ export async function reopenRateGraph(
       })
     );
     response = _.sortBy(response, [
-      (item: IssueReponse): Date => new Date(item.startDate),
+      (item: IssueResponse): Date => new Date(item.startDate),
     ]).reverse();
     return response.filter((obj) => obj.sprintName !== undefined);
   } catch (e) {

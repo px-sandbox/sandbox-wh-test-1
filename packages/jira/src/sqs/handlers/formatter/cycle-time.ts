@@ -6,14 +6,14 @@ import { Hit, HitBody } from 'abstraction/other/type';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
+import { Queue } from 'sst/node/queue';
+import { logProcessToRetry } from 'rp';
 import { mappingPrefixes } from '../../../constant/config';
 import { MainTicket } from '../../../lib/issue/main-ticket';
 import { getOrganization } from '../../../repository/organization/get-organization';
 import { initializeMapping } from '../../../util/cycle-time';
 import { searchedDataFormator } from '../../../util/response-formatter';
 import { saveCycleTime } from '../../../repository/cycle-time/save-cycle-time';
-import { Queue } from 'sst/node/queue';
-import { logProcessToRetry } from 'rp';
 
 const esClientObj = ElasticSearchClient.getInstance();
 

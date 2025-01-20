@@ -1,12 +1,11 @@
-import { SQSClient } from '@pulse/event-handler';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import axios from 'axios';
 import { logger } from 'core';
-import { Queue } from 'sst/node/queue';
 import { deleteProcessfromDdb, logProcessToRetry } from 'rp';
+import { Queue } from 'sst/node/queue';
+import { LibParamsMapping } from '../../../model/lib-master-mapping';
 import { getNodeLibInfo } from '../../../util/node-library-info';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { LibParamsMapping } from 'src/model/lib-master-mapping';
 
 const dynamodbClient = DynamoDbDocClient.getInstance();
 
@@ -53,7 +52,6 @@ export const handler = async function masterLibrary(event: SQSEvent): Promise<vo
           requestId,
           resourceId,
         });
-
       }
     })
   );

@@ -1,12 +1,7 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
-import {
-  rcaGraphResponse,
-  rcaGraphView,
-  rcaTableHeadline,
-  rcaTableResponse,
-} from 'abstraction/jira/type';
+import { rcaGraphResponse, rcaGraphView, rcaTableHeadline } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
@@ -124,7 +119,7 @@ export async function rcaGraphView(sprintIds: string[], type: string): Promise<r
   return {
     headline: {
       value:
-        headlineRCA.global_agg.total_bug_count.doc_count == 0
+        headlineRCA.global_agg.total_bug_count.doc_count === 0
           ? 0
           : parseFloat(
               (

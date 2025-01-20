@@ -42,7 +42,7 @@ async function fetchPRComments(
         })
       );
       from += size;
-    } while (prFormattedData.length == size);
+    } while (prFormattedData.length === size);
   } catch (error) {
     logger.error({
       message: 'fetchPRComments.error: error_fetching_PR_comments',

@@ -6,8 +6,8 @@ import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
+import { fetchSaveTestCoverage } from '../cron/test-coverage';
 import { searchedDataFormator } from '../util/response-formatter';
-import { fetchSaveTestCoverage } from 'src/cron/test-coverage';
 
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
@@ -101,7 +101,7 @@ const updateSecurityScans = async (event: APIGatewayProxyEvent): Promise<APIGate
     await Promise.all(
       repoIds.map(async (repoId) => fetchBranchesData(repoId, currDate, requestId))
     );
-    await fetchSaveTestCoverage(repoIds,currDate);
+    await fetchSaveTestCoverage(repoIds, currDate);
     return responseParser
       .setMessage('successfully updating scans for today')
       .setResponseBodyCode('SUCCESS')

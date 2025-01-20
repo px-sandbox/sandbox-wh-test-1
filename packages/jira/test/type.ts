@@ -71,8 +71,7 @@ export const Status = {
   Blocked: '12',
 };
 
-// @ts-ignore
-export const StatusMapping: Record<string, { label: string; id: number }> = {
+export const StatusMapping = {
   [Status.To_Do]: { label: 'To_Do', id: Status.To_Do },
   [Status.In_Progress]: { label: 'In_Progress', id: Status.In_Progress },
   [Status.Ready_For_Review]: {

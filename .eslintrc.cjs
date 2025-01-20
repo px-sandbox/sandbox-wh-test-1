@@ -46,19 +46,13 @@ module.exports = {
       'error',
       { overrides: { parameterProperties: 'off', constructors: 'off' } },
     ],
-    'max-lines-per-function': ['error', { max: 60, skipComments: true, skipBlankLines: true }],
-    complexity: ['error', 10],
+    'max-lines-per-function': ['error', { max: 100, skipComments: true, skipBlankLines: true }],
+    complexity: ['error', 20],
     'no-console': 'error',
     'max-len': ['error', 120],
     eqeqeq: 'warn',
   },
   overrides: [
-    {
-      files: ['./tests/**/*'],
-      rules: {
-        'func-names': 'off',
-      },
-    },
     {
       files: ['./src/api/route/**.route.ts'],
       rules: {

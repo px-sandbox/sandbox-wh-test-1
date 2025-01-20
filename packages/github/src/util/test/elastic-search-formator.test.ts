@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { ElasticSearchFormator } from '../elastic-search-formator'
 import { Other } from 'abstraction';
+import { ElasticSearchFormator } from '../elastic-search-formator'
 
 describe('ElasticSearchFormator',()=>{
     let formator:ElasticSearchFormator;

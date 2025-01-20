@@ -2,7 +2,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from 'src/util/response-formatter';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -29,7 +29,11 @@ export async function getDeploymentFrequencyDetails(
   endDate: string,
   page: number,
   limit: number
-) {
+): Promise<{
+  data: any;
+  page: number;
+  totalPages: number;
+}> {
   const repoNames = await getRepoName(repoIds);
   const repoNamesObj: { [key: string]: string } = {};
   repoNames.forEach((names) => {
@@ -61,18 +65,16 @@ export async function getDeploymentFrequencyDetails(
 
   const formattedData = await searchedDataFormator(data);
 
-  const result = formattedData.map((doc: any) => {
-    return {
-      date: doc.createdAt,
-      source: doc.source,
-      destination: doc.destination,
-      env: doc.env,
-      repo: {
-        id: doc.repoId,
-        name: doc.repoId in repoNamesObj ? repoNamesObj[doc.repoId] : '',
-      },
-    };
-  });
+  const result = formattedData.map((doc: any) => ({
+    date: doc.createdAt,
+    source: doc.source,
+    destination: doc.destination,
+    env: doc.env,
+    repo: {
+      id: doc.repoId,
+      name: doc.repoId in repoNamesObj ? repoNamesObj[doc.repoId] : '',
+    },
+  }));
 
   const totalPages = Math.ceil(data.hits.total.value / limit);
   return { data: result, page, totalPages };

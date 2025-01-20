@@ -34,10 +34,13 @@ async function getCoreDependencies(
   const combinedData = coreDep.reduce((acc: any, item: any) => {
     const key = `${item.libName}-${item.version}`;
     if (!acc[key]) {
-      // If the key does not exist in the accumulator, create a new object with all properties of the item except for repoId, which is an array containing item.repoId
+      // If the key does not exist in the accumulator,
+      // create a new object with all properties of the item except for repoId,
+      // which is an array containing item.repoId
       acc[key] = { ...item, repoId: [item.repoId] };
     } else {
-      // If the key already exists in the accumulator, just push the new repoId into the existing repoId array
+      // If the key already exists in the accumulator,
+      // just push the new repoId into the existing repoId array
       acc[key].repoId.push(item.repoId);
     }
     return acc;
@@ -113,7 +116,6 @@ const repoLibsQuery = async (
   searchString: string,
   afterKey: object
 ): Promise<any> => {
-
   const query = esb.boolQuery();
   if (searchString) {
     query.must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`));
@@ -150,7 +152,7 @@ const repoLibsQuery = async (
 
   const afterKeyObj = data.aggregations.by_libName.after_key;
   const repoLibData = data.aggregations.by_libName.buckets.map((bucket: any) => {
-    const hits = bucket.top_lib_hits.hits.hits;
+    const { hits } = bucket.top_lib_hits.hits;
     return {
       ...hits[0]._source.body,
       libName: bucket.key.libName,
@@ -223,9 +225,7 @@ async function getESVersionUpgradeData(
     libNames.push(lib.libName);
     return {
       ...lib,
-      repoName: lib.repoId.map((id: string) => {
-        return repoNamesObj[id] ?? '';
-      }),
+      repoName: lib.repoId.map((id: string) => repoNamesObj[id] ?? ''),
       currVerDate: lib.releaseDate,
       currVer: lib.version,
     };
