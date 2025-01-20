@@ -5,10 +5,22 @@ import { IssuesTypes } from 'abstraction/jira/enums';
 import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb, { RequestBodySearch } from 'elastic-builder';
+import { getOrganizationById } from 'src/repository/organization/get-organization';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
+function getJiraLink(
+  orgName: string,
+  projectKey: string,
+  sprintId: number,
+  isOgEstimate: boolean = false
+): string {
+  const baseUrl = `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=project = "${projectKey}" and sprint = ${sprintId}`;
+  const query = isOgEstimate ? 'AND OriginalEstimate IS EMPTY' : 'AND TimeSpent IS EMPTY';
+  const orderBy = 'ORDER BY created DESC';
+  return encodeURI(`${baseUrl} ${query} ${orderBy}`);
+}
 /**
  * Retrieves sprint hits based on the provided parameters.
  * @param limit - The maximum number of hits to retrieve.
@@ -111,6 +123,44 @@ async function estimateActualGraphResponse(
   return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
 }
 
+async function countIssuesWithZeroEstimates(
+  sprintIds: string[],
+  reqCtx: Other.Type.RequestCtx
+): Promise<{
+  sprint_aggregation: {
+    buckets: Jira.Type.BucketItem[];
+  };
+}> {
+  const query = esb
+    .requestBodySearch()
+    .size(0)
+    .agg(esb.termsAggregation('sprint_aggregation', 'body.sprintId'))
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termsQuery('body.sprintId', sprintIds),
+          esb.termQuery('body.isDeleted', false),
+          esb.termQuery('body.timeTracker.estimate', 0),
+        ])
+        .should([
+          esb.termQuery('body.issueType', IssuesTypes.STORY),
+          esb.termQuery('body.issueType', IssuesTypes.TASK),
+          esb.termQuery('body.issueType', IssuesTypes.SUBTASK),
+          esb
+            .boolQuery()
+            .must(esb.termQuery('body.issueType', IssuesTypes.BUG))
+            .mustNot(esb.existsQuery('body.issueLinks')),
+        ])
+        .minimumShouldMatch(1)
+    )
+    .toJSON() as { query: object };
+
+  logger.info({ ...reqCtx, message: 'issue_sprint_query', data: { query } });
+
+  return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
+}
+
 /**
  * Calculates the sprint variance for each sprint in the given sprint data.
  * @param sprintData An array of sprint data.
@@ -124,8 +174,16 @@ function sprintEstimateResponse(
       buckets: Jira.Type.BucketItem[];
     };
   },
-  bugTimeActual: [{ sprintId: string; bugTime: number }]
+  bugTimeActual: [{ sprintId: string; bugTime: number }],
+  issueWithZeroEstimate: {
+    sprint_aggregation: {
+      buckets: Jira.Type.BucketItem[];
+    };
+  },
+  orgName: string,
+  projectKey: string
 ): SprintVariance[] {
+  let estimateMissingFlagCtr = false;
   return sprintData.map((sprintDetails) => {
     const item = estimateActualGraph.sprint_aggregation.buckets.find(
       (bucketItem: BucketItem) => bucketItem.key === sprintDetails.id
@@ -133,12 +191,25 @@ function sprintEstimateResponse(
     const bugTime = bugTimeActual.find(
       (bugData: { sprintId: string; bugTime: number }) => bugData.sprintId === sprintDetails.id
     );
+    const estimateCount = issueWithZeroEstimate.sprint_aggregation.buckets.find(
+      (bucketItem: BucketItem) => bucketItem.key === sprintDetails.id
+    );
     if (item) {
+      if (estimateCount && estimateCount.doc_count > 40) {
+        estimateMissingFlagCtr = true;
+      }
       return {
         sprint: sprintDetails,
         time: {
           estimate: item.estimate.value,
           actual: item.actual.value,
+        },
+        isAllEstimated: estimateMissingFlagCtr,
+        jiraInfo: {
+          estimateIssueLink: estimateMissingFlagCtr
+            ? getJiraLink(orgName, projectKey, sprintDetails.sprintId, true)
+            : '',
+          loggedIssueLink: getJiraLink(orgName, projectKey, sprintDetails.sprintId),
         },
         variance: parseFloat(
           (item.estimate.value === 0
@@ -266,9 +337,22 @@ export async function sprintVarianceGraph(
   sortKey: Jira.Enums.IssueTimeTracker,
   sortOrder: 'asc' | 'desc',
   reqCtx: Other.Type.RequestCtx,
+  organizationId: string,
   sprintState?: string
 ): Promise<SprintVarianceData> {
   try {
+    let orgName = '';
+    let projectKey = '';
+
+    const query = esb.requestBodySearch().query(esb.termQuery('body.id', projectId)).toJSON();
+    const [orgData, projects] = await Promise.all([
+      getOrganizationById(organizationId),
+      esClientObj.search(Jira.Enums.IndexName.Project, query),
+    ]);
+    const projectData = await searchedDataFormator(projects);
+    orgName = orgData[0].name;
+    projectKey = projectData[0].key;
+
     const dateRangeQueries = getDateRangeQueries(startDate, endDate);
 
     const { sprintHits, totalPages } = await sprintHitsResponse(
@@ -286,6 +370,7 @@ export async function sprintVarianceGraph(
       sprintHits.map(async (item: Other.Type.HitBody) => {
         sprintData.push({
           id: item.id,
+          sprintId: item.sprintId,
           name: item.name,
           status: item.state,
           startDate: item.startDate,
@@ -301,7 +386,7 @@ export async function sprintVarianceGraph(
       sprintIds,
       reqCtx
     );
-
+    const issueWithZeroEstimate = await countIssuesWithZeroEstimates(sprintIds, reqCtx);
     const bugTime: [{ sprintId: string; bugTime: number }] = (await Promise.all(
       sprintIds.map(async (sprintId: string) => {
         const bugTimeForSprint = await getBugTimeForSprint(sprintId, reqCtx);
@@ -309,7 +394,14 @@ export async function sprintVarianceGraph(
       })
     )) as [{ sprintId: string; bugTime: number }];
 
-    const sprintEstimate = sprintEstimateResponse(sprintData, estimateActualGraph, bugTime);
+    const sprintEstimate = sprintEstimateResponse(
+      sprintData,
+      estimateActualGraph,
+      bugTime,
+      issueWithZeroEstimate,
+      orgName,
+      projectKey
+    );
     return {
       data: sprintEstimate,
       totalPages,
