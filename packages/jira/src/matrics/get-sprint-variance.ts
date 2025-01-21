@@ -19,7 +19,7 @@ function getJiraLink(
   const baseUrl = `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=
   project = "${projectKey}" and sprint = ${sprintId}`;
   const query = isOgEstimate ? 'AND OriginalEstimate IS EMPTY' : 'AND TimeSpent IS EMPTY';
-  const orderBy = 'ORDER BY created DESC';
+  const orderBy = 'AND type != Test ORDER BY created DESC';
   return encodeURI(`${baseUrl} ${query} ${orderBy}`);
 }
 /**
