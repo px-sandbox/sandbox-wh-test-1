@@ -157,7 +157,7 @@ async function countIssuesWithZeroEstimates(
     )
     .toJSON() as { query: object };
 
-  logger.info({ ...reqCtx, message: 'issue_sprint_query', data: { query } });
+  logger.info({ ...reqCtx, message: 'issue_sprint_query_estimate_zero', data: { query } });
 
   return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
 }
@@ -195,10 +195,10 @@ function sprintEstimateResponse(
     const estimateCount = issueWithZeroEstimate.sprint_aggregation.buckets.find(
       (bucketItem: BucketItem) => bucketItem.key === sprintDetails.id
     );
+    if (estimateCount && estimateCount.doc_count > 4) {
+      estimateMissingFlagCtr = false;
+    }
     if (item) {
-      if (estimateCount && estimateCount.doc_count > 4) {
-        estimateMissingFlagCtr = false;
-      }
       return {
         sprint: sprintDetails,
         time: {
@@ -230,7 +230,9 @@ function sprintEstimateResponse(
       },
       isAllEstimated: estimateMissingFlagCtr,
       jiraInfo: {
-        estimateIssueLink: '',
+        estimateIssueLink: !estimateMissingFlagCtr
+          ? getJiraLink(orgName, projectKey, sprintDetails.sprintId, true)
+          : '',
         loggedIssueLink: getJiraLink(orgName, projectKey, sprintDetails.sprintId),
       },
       variance: 0,
@@ -536,6 +538,6 @@ export async function sprintVarianceGraphAvg(
       ).toFixed(2)
     );
   } catch (e) {
-    throw new Error(`error_occured_sprint_variance_avg: ${e}`);
+    throw new Error(`error_occurred_sprint_variance_avg: ${e}`);
   }
 }
