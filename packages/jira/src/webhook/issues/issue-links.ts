@@ -1,5 +1,4 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { SQSClient } from '@pulse/event-handler';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { JiraClient } from 'src/lib/jira-client';
@@ -24,18 +23,25 @@ export async function issueLinkHandler(
       requestId,
       resourceId,
     });
-
+    if (!issueData) {
+      logger.error({
+        message: 'issueLinkHandler.issueDataNotFound',
+        data: { issue, requestId, resourceId },
+      });
+      throw new Error('issueData not found');
+    }
     //Get the issue data from api
     const jiraClient = await JiraClient.getClient(organization);
     const issueDataFromApi = await jiraClient.getIssue(issue.destinationIssueId);
 
-    if (!issueDataFromApi || !issueData) {
+    if (!issueDataFromApi) {
       logger.error({
         message: 'issueLinkHandler.issueDataNotFound',
         data: { issue, requestId, resourceId },
       });
       return;
     }
+
     const issueDocId = issueData._id;
     const {
       fields: { issuelinks },
