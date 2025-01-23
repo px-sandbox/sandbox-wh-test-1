@@ -9,4 +9,5 @@ export enum IndexName {
   ReopenRate = 'jira_reopen_rate',
   CycleTime = 'jira_cycle_time',
   Rca = 'jira_rca',
+  Worklog = 'jira_worklogs',
 }

@@ -438,6 +438,28 @@ const indices = [
       },
     },
   },
+
+  {
+    name: Jira.Enums.IndexName.Worklog,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'text' },
+            projectKey: { type: 'keyword' },
+            issueKey: { type: 'keyword' },
+            timeLogged: { type: 'long' },
+            category: { type: 'keyword' },
+            date: { type: 'date' },
+            createdAt: { type: 'date', format: 'strict_date_optional_time' },
+            isDeleted: { type: 'boolean' },
+          },
+        },
+      },
+    },
+  },
 ];
 /**
  * Creates a mapping for an index in Elasticsearch.
