@@ -63,7 +63,6 @@ function prepareOutWardIssue(
  * destination issue id is inward
  * source issue id is outward
  */
-
 export async function issueLinkHandler(
   issueLink: Jira.ExternalType.Webhook.IssueLinks,
   organization: string,
@@ -81,7 +80,7 @@ export async function issueLinkHandler(
         resourceId,
       }
     );
-    console.log('issueData', issueData);
+
     if (!issueData) {
       logger.error({
         message: 'issueLinkHandler.issueDataNotFound',
