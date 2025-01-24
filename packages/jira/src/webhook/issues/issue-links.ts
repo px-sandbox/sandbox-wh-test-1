@@ -58,6 +58,15 @@ function prepareOutWardIssue(
     },
   };
 }
+
+function checkIfIssueLinkExists(
+  esbData: (Pick<Hit, '_id'> & HitBody) | undefined,
+  issueLink: Jira.ExternalType.Webhook.IssueLinks
+) {
+  const issueLinkData = esbData?.issueLinks;
+  const issueLinkExists = issueLinkData.find((ele: { id: string }) => ele.id === issueLink.id);
+  return issueLinkExists;
+}
 /**
  * Updating jira issue links.
  * destination issue id is inward
@@ -65,6 +74,7 @@ function prepareOutWardIssue(
  */
 export async function issueLinkHandler(
   issueLink: Jira.ExternalType.Webhook.IssueLinks,
+  eventName: string,
   organization: string,
   requestId: string
 ): Promise<void> {
@@ -88,7 +98,6 @@ export async function issueLinkHandler(
       });
       throw new Error('issueData not found');
     }
-
     const destinationIssueData = issueData.find(
       (ele) => ele.issueId == issueLink.destinationIssueId
     );
@@ -114,34 +123,95 @@ export async function issueLinkHandler(
         data: { issueLink, requestId, resourceId },
       });
     }
+    logger.info({ message: 'issue link event name', data: { eventName } });
+    switch (eventName) {
+      case Jira.Enums.Event.IssueLinkCreated:
+        if (destinationIssueData && sourceIssueIdData) {
+          // Process destinationIssueData
+          const destinationIssueDocId = destinationIssueData._id;
+          if (!checkIfIssueLinkExists(destinationIssueData, issueLink)) {
+            const inwardIssueData = prepareInwardIssue(issueLink, sourceIssueIdData);
+            destinationIssueData.issueLinks.push(inwardIssueData);
+            logger.info({
+              message: 'issueLinkHandler.issuelinks.length',
+              data: { length: destinationIssueData.issueLinks.length },
+            });
+            // Update the issue link data in the destination issue id
+            await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
+              body: { issueLinks: destinationIssueData.issueLinks },
+            });
+          } else {
+            logger.error({
+              message: 'issueLinkHandler.destinationIssue_source_issue_Link_already_exists',
+              data: { sourceId: issueLink.sourceIssueId, requestId, resourceId },
+            });
+          }
+          // Process sourceIssueIdData
+          const sourceIssueDocId = sourceIssueIdData._id;
+          if (!checkIfIssueLinkExists(destinationIssueData, issueLink)) {
+            const outwardIssueData = prepareOutWardIssue(issueLink, destinationIssueData);
+            sourceIssueIdData.issueLinks.push(outwardIssueData);
+            logger.info({
+              message: 'issueLinkHandler.issuelinks.length',
+              data: { length: sourceIssueIdData.issueLinks.length },
+            });
 
-    if (destinationIssueData && sourceIssueIdData) {
-      // Process destinationIssueData
-      const destinationIssueDocId = destinationIssueData._id;
-      const inwardIssueData = prepareInwardIssue(issueLink, sourceIssueIdData);
-      destinationIssueData.issueLinks.push(inwardIssueData);
-      logger.info({
-        message: 'issueLinkHandler.issuelinks.length',
-        data: { length: destinationIssueData.issueLinks.length },
-      });
-      // Process sourceIssueIdData
-      const sourceIssueDocId = sourceIssueIdData._id;
-      const outwardIssueData = prepareOutWardIssue(issueLink, destinationIssueData);
-      sourceIssueIdData.issueLinks.push(outwardIssueData);
-      logger.info({
-        message: 'issueLinkHandler.issuelinks.length',
-        data: { length: sourceIssueIdData.issueLinks.length },
-      });
-      await Promise.all([
-        // Update the issue link data in the destination issue id
-        await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
-          body: { issueLinks: destinationIssueData.issueLinks },
-        }),
-        // Update the issue link data in the source issue id
-        await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
-          body: { issueLinks: sourceIssueIdData.issueLinks },
-        }),
-      ]);
+            // Update the issue link data in the source issue id
+            await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
+              body: { issueLinks: sourceIssueIdData.issueLinks },
+            });
+          } else {
+            logger.error({
+              message: 'issueLinkHandler.destinationIssue_source_issue_Link_already_exists',
+              data: { sourceId: issueLink.sourceIssueId, requestId, resourceId },
+            });
+          }
+        }
+        break;
+      case Jira.Enums.Event.IssueLinkDeleted:
+        if (destinationIssueData && sourceIssueIdData) {
+          // Process destinationIssueData
+          const destinationIssueDocId = destinationIssueData._id;
+          const destIssueTypeDeleted = destinationIssueData.issueLinks.filter(
+            (ele: { id: string }) => {
+              return ele.id !== issueLink.id;
+            }
+          );
+          destinationIssueData.issueLinks = destIssueTypeDeleted;
+          logger.info({
+            message: 'issueLinkHandler.issuelinks.length',
+            data: { length: destinationIssueData.issueLinks.length },
+          });
+          // Update the issue link data in the destination issue id
+          await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
+            body: { issueLinks: destinationIssueData.issueLinks },
+          });
+
+          // Process sourceIssueIdData
+          const sourceIssueDocId = sourceIssueIdData._id;
+
+          const sourceIssueTypeDeleted = sourceIssueIdData.issueLinks.filter(
+            (ele: { id: string }) => {
+              return ele.id !== issueLink.id;
+            }
+          );
+          sourceIssueIdData.issueLinks = sourceIssueTypeDeleted;
+          logger.info({
+            message: 'issueLinkHandler.issuelinks.length',
+            data: { length: sourceIssueIdData.issueLinks.length },
+          });
+
+          // Update the issue link data in the source issue id
+          await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
+            body: { issueLinks: sourceIssueIdData.issueLinks },
+          });
+        }
+        break;
+      default:
+        logger.info({
+          message: `No case found in issueLink handler for ${eventName} in Jira webhook event`,
+          data: { eventName, resourceId },
+        });
     }
   } catch (error) {
     logger.error({

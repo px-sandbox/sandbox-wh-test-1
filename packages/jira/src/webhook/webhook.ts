@@ -100,7 +100,12 @@ async function processWebhookEvent(
         break;
       case Jira.Enums.Event.IssueLinkCreated:
       case Jira.Enums.Event.IssueLinkDeleted:
-        await issueLinkHandler(body.issueLink, organization, requestId);
+        logger.info({
+          message: 'issueLinkHandler.webhookEvent',
+          data: { eventName, organization, requestId },
+        });
+        await issueLinkHandler(body.issueLink, eventName, organization, requestId);
+        break;
       default:
         logger.info({
           requestId,
