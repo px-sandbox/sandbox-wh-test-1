@@ -35,30 +35,30 @@ export class IssueProcessor extends DataProcessor<
     sprintId: string | null;
     boardId: string | null;
   }> {
-    let sprintId: number | null | string;
-    let boardId: number | null | string;
+    let sprintId: string | null;
+    let boardId: string | null;
     const esbIssueData = await getIssueById(data.issue.id, data.organization, {
       requestId: this.requestId,
     });
     const [sprintChangelog] = !data.changelog
       ? []
       : data.changelog.items.filter((item) => item.fieldId === ChangelogField.SPRINT);
-
     if (sprintChangelog) {
-      sprintId = getSprintForTo(sprintChangelog.to, sprintChangelog.from);
-    } else if (esbIssueData?.body?.sprintId) {
-      sprintId = esbIssueData.body.sprintId;
+      const changelogSprintId = getSprintForTo(sprintChangelog.to, sprintChangelog.from);
+      sprintId = `${mappingPrefixes.sprint}_${changelogSprintId}`;
+    } else if (esbIssueData?.sprintId) {
+      sprintId = esbIssueData.sprintId;
     } else {
-      sprintId = data.issue.fields.customfield_10007?.[0]?.id ?? null;
+      sprintId = String(data.issue.fields.customfield_10007?.[0]?.id) ?? null;
     }
 
     if (data.issue.fields.customfield_10007) {
       const item = data.issue.fields.customfield_10007.find(
-        (items) => items.id === Number(sprintId)
+        (items) => `${mappingPrefixes.sprint}_${items.id}` === sprintId
       );
-      boardId = item ? item.boardId : null;
-    } else if (esbIssueData?.body?.boardId) {
-      boardId = esbIssueData.body.boardId;
+      boardId = item ? `${mappingPrefixes.board}_${item.boardId}` : null;
+    } else if (esbIssueData?.boardId) {
+      boardId = esbIssueData.boardId;
     } else {
       boardId = null;
     }
@@ -74,8 +74,8 @@ export class IssueProcessor extends DataProcessor<
       });
     }
     return {
-      sprintId: sprintId ? `${mappingPrefixes.sprint}_${sprintId}` : null,
-      boardId: boardId ? `${mappingPrefixes.board}_${boardId}` : null,
+      sprintId: sprintId ?? null,
+      boardId: boardId ?? null,
     };
   }
 
