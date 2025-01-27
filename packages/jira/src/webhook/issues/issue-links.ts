@@ -221,8 +221,9 @@ export async function issueLinkDeleteHandler(
     } else {
       // Process destinationIssueData
       const destinationIssueDocId = destinationIssueData._id;
+
       const destIssueTypeDeleted = destinationIssueData.issueLinks.filter((ele: { id: string }) => {
-        return ele.id !== issueLink.id;
+        return ele.id !== String(issueLink.id);
       });
       destinationIssueData.issueLinks = destIssueTypeDeleted;
       logger.info({
@@ -238,7 +239,7 @@ export async function issueLinkDeleteHandler(
       const sourceIssueDocId = sourceIssueIdData._id;
 
       const sourceIssueTypeDeleted = sourceIssueIdData.issueLinks.filter((ele: { id: string }) => {
-        return ele.id !== issueLink.id;
+        return ele.id !== String(issueLink.id);
       });
       sourceIssueIdData.issueLinks = sourceIssueTypeDeleted;
       logger.info({
