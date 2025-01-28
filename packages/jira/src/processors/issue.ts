@@ -49,7 +49,8 @@ export class IssueProcessor extends DataProcessor<
     } else if (esbIssueData?.sprintId) {
       sprintId = esbIssueData.sprintId;
     } else {
-      sprintId = String(data.issue.fields.customfield_10007?.[0]?.id) ?? null;
+      const customFieldSprintId = String(data.issue.fields.customfield_10007?.[0]?.id) ?? null;
+      sprintId = customFieldSprintId ? `${mappingPrefixes.sprint}_${customFieldSprintId}` : null;
     }
 
     if (data.issue.fields.customfield_10007) {
