@@ -22,4 +22,6 @@ export enum Event {
   WorklogCreated = 'worklog_created',
   WorklogUpdated = 'worklog_updated',
   WorklogDeleted = 'worklog_deleted',
+  IssueLinkCreated = 'issuelink_created',
+  IssueLinkDeleted = 'issuelink_deleted',
 }

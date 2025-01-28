@@ -9,6 +9,7 @@ import * as issue from './issues';
 import * as project from './projects';
 import * as sprint from './sprints';
 import * as user from './users';
+import { issueLinkCreateHandler, issueLinkDeleteHandler } from './issues/issue-links';
 
 /**
  * Processes the webhook event based on the event name and performs the corresponding action.
@@ -97,6 +98,20 @@ async function processWebhookEvent(
       case Jira.Enums.Event.WorklogDeleted:
         await issue.worklog(body.worklog.issueId, eventName, organization, requestId);
         break;
+      case Jira.Enums.Event.IssueLinkCreated:
+        logger.info({
+          message: 'issueLinkHandler.webhookEvent',
+          data: { eventName, organization, requestId },
+        });
+        await issueLinkCreateHandler(body.issueLink, organization, requestId);
+        break;
+      case Jira.Enums.Event.IssueLinkDeleted:
+        logger.info({
+          message: 'issueLinkHandler.webhookEvent',
+          data: { eventName, organization, requestId },
+        });
+        await issueLinkDeleteHandler(body.issueLink, organization, requestId);
+        break;
       default:
         logger.info({
           requestId,
@@ -148,10 +163,10 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
       });
       return;
     }
-    
+
     const eventTime = moment(body.timestamp);
     const eventName = body.webhookEvent as Jira.Enums.Event;
-    
+
     logger.info({
       requestId,
       message: 'webhook.handler.processing',
@@ -167,7 +182,6 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
       data: { organization, body, eventName, eventTime },
       resourceId,
     });
-
   } catch (error) {
     logger.error({
       requestId,
