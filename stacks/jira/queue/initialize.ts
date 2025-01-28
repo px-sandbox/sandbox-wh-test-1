@@ -9,6 +9,7 @@ import { initializeIssueStatusQueue } from './issue-status';
 import { initializeMigrateQueue } from './migrate';
 import { initializeIndexQueue } from './indexer';
 import { initializeCycleTimeQueue } from './cycle-time';
+import { initializeWorklogQueue } from './worklog';
 
 // eslint-disable-next-line max-lines-per-function
 export function initializeQueues(
@@ -28,6 +29,7 @@ export function initializeQueues(
   const userFormatter = initializeUserQueue(stack, jiraDDB, jiraIndexer);
   const boardFormatter = initializeBoardQueue(stack, jiraDDB, jiraIndexer);
   const cycleTimeFormatter = initializeCycleTimeQueue(stack, jiraDDB, jiraIndexer);
+  const worklogFormatter = initializeWorklogQueue(stack, jiraDDB, jiraIndexer);
   const [
     issueFormatter,
     reOpenRateDataQueue,
@@ -72,5 +74,6 @@ export function initializeQueues(
     issueTimeTrackingMigrationQueue,
     cycleTimeFormatter,
     jiraIndexer,
+    worklogFormatter
   };
 }
