@@ -24,7 +24,7 @@ function prepareInwardIssue(
         priority: {
           name: sourceIssueId.priority,
         },
-        issueType: {
+        issuetype: {
           name: sourceIssueId.issueType,
         },
       },
@@ -49,7 +49,7 @@ function prepareOutWardIssue(
         priority: {
           name: destIssueId.priority,
         },
-        issueType: {
+        issuetype: {
           name: destIssueId.issueType,
         },
       },
