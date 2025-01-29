@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { logProcessToRetry } from 'rp';
 import { Queue } from 'sst/node/queue';
 import { WorklogProcessor } from 'src/processors/worklog';
+import { saveWorklogDetails } from '../../../repository/worklog/save-worklog';
 
 export const handler = async function worklogFormattedDataReciever(event: SQSEvent): Promise<void> {
     logger.info({ message: `Records Length: ${event.Records.length}` });
@@ -23,7 +24,7 @@ export const handler = async function worklogFormattedDataReciever(event: SQSEve
           });
           const worklogProcessor = new WorklogProcessor(messageBody, requestId, resourceId);
           await worklogProcessor.process(); 
-          await worklogProcessor.save();
+          await saveWorklogDetails(messageBody, { requestId, resourceId }, messageBody.processId);
         } catch (error) {
           await logProcessToRetry(record, Queue.qWorklogFormat.queueUrl, error as Error);
           logger.error({

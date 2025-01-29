@@ -1,6 +1,5 @@
 export type Worklog = {
   id: string; // Corresponds to "id" (string type)
-  category?: string; // Corresponds to "category" (keyword type)
   createdAt: string; // Corresponds to "createdAt" (date type, ISO 8601 format)
   date: string; // Corresponds to "date" (date type, ISO 8601 format)
   isDeleted: boolean; // Corresponds to "isDeleted" (boolean type)

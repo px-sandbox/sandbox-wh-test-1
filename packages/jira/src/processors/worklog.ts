@@ -1,24 +1,26 @@
 /* eslint-disable max-lines-per-function */
 import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { SQSClient } from '@pulse/event-handler';
-import { DataProcessor } from './data-processor';
 import { getOrganization } from '../repository/organization/get-organization';
 import { mappingPrefixes } from '../constant/config';
 
-export class WorklogProcessor extends DataProcessor<
-  Jira.ExternalType.Webhook.Worklog,
-  Jira.Type.Worklog
-> {
-  private sqsClient: SQSClient;
+export class WorklogProcessor  {
+  data: Jira.ExternalType.Webhook.Worklog;
+  requestId: string;
+  resourceId!: string;
+  retryProcessId?: string
+  formattedData!: Jira.Type.Worklog
+
   constructor(
     data: Jira.ExternalType.Webhook.Worklog,
     requestId: string,
     resourceId: string,
     retryProcessId?: string
   ) {
-    super(data, requestId, resourceId, Jira.Enums.IndexName.Worklog, retryProcessId);
-    this.sqsClient = SQSClient.getInstance();
+    this.data = data;
+    this.requestId = requestId;
+    this.resourceId = resourceId;
+    this.retryProcessId = retryProcessId;
   }
 
   public async process(): Promise<void> {
@@ -26,28 +28,26 @@ export class WorklogProcessor extends DataProcessor<
   }
 
   public async format(): Promise<void> {
-    const orgData = await getOrganization(this.apiData.organization);
+    const orgData = await getOrganization(this.data.organization);
     if (!orgData) {
       logger.error({
         requestId: this.requestId,
         resourceId: this.resourceId,
-        message: `Organization ${this.apiData.organization} not found`,
+        message: `Organization ${this.data.organization} not found`,
       });
-      throw new Error(`Organization ${this.apiData.organization} not found`);
+      throw new Error(`Organization ${this.data.organization} not found`);
     }
     this.formattedData = {
-      id: await this.parentId(
-        `${mappingPrefixes.worklog}_${this.apiData?.id}_${mappingPrefixes.org}_${orgData.orgId}`
-      ),
+      id: `${mappingPrefixes.worklog}_${this.data?.id}`,
       body: {
-        id: `${mappingPrefixes.worklog}_${this.apiData?.id}`,
-        projectKey: this.apiData?.issueData.projectKey,
-        issueKey: this.apiData?.issueData.issueKey,
-        timeLogged: this.apiData?.timeSpentSeconds,
+        id: `${mappingPrefixes.worklog}_${this.data?.id}`,
+        projectKey: this.data?.issueData.projectKey,
+        issueKey: this.data?.issueData.issueKey,
+        timeLogged: this.data?.timeSpentSeconds,
         category: null,
-        date: this.apiData?.started,
-        createdAt: this.apiData?.createdDate,
-        isDeleted: this.apiData?.issueData?.isDeleted ?? false,
+        date: this.data?.started,
+        createdAt: this.data?.createdDate,
+        isDeleted: this.data?.issueData?.isDeleted ?? false,
         organizationId: orgData.id ?? null,
       },
     };
