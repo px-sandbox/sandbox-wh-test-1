@@ -447,7 +447,7 @@ const indices = [
         body: {
           type: 'object',
           properties: {
-            id: { type: 'text' },
+            id: { type: 'keyword' },
             projectKey: { type: 'keyword' },
             issueKey: { type: 'keyword' },
             timeLogged: { type: 'long' },
