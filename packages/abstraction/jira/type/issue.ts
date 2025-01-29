@@ -29,6 +29,27 @@ export type IssueLinks = {
       };
     };
   };
+  outwardIssue: {
+    id: string;
+    key: string;
+    self: string;
+    fields: {
+      summary: string;
+      status: {
+        name: string;
+        id: string;
+      };
+      issuetype: {
+        name: string;
+        id: string;
+        subtask: boolean;
+      };
+      priority: {
+        name: string;
+        id: string;
+      };
+    };
+  };
 };
 export type Issue = retryProcess & {
   id: string;
@@ -87,4 +108,43 @@ export type EstimatesVsActualsBreakdownResponse = SubtaskArray & {
   overallVariance: number;
   hasSubtasks: boolean;
   subtasks: SubtaskArray[];
+};
+
+export type EsIssueResponse = retryProcess & {
+  _id: string;
+  id: string;
+  issueId: string;
+  issueKey: string;
+  projectId: string;
+  projectKey: string;
+  isFTP: boolean;
+  isFTF: boolean;
+  issueType: string;
+  isPrimary: boolean;
+  priority: string;
+  label: Array<string>;
+  issueLinks: Array<IssueLinks>;
+  assigneeId: string | null;
+  reporterId: string | null;
+  creatorId: string | null;
+  status: string;
+  summary: string;
+  subtasks: Array<{
+    id: string;
+    key: string;
+    self: string;
+    fields: { summary: string; status: string; issuetype: string; priority: string };
+  }>;
+  createdDate: string;
+  lastViewed: string;
+  lastUpdated: string;
+  sprintId: string | null;
+  boardId: string | null;
+  isDeleted?: boolean | null;
+  deletedAt?: string | null;
+  organizationId: string;
+  timeTracker: {
+    estimate: number;
+    actual: number;
+  };
 };

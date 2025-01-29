@@ -124,3 +124,35 @@ export async function updateIssueWithSubtask(
     body: { subtasks },
   });
 }
+
+export async function getIssuesById(
+  issueId: string[],
+  organization: string,
+  reqCtx: Other.Type.RequestCtx
+): Promise<(Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[] | []> {
+  try {
+    const orgData = await getOrganization(organization);
+    if (!orgData) {
+      logger.error({ ...reqCtx, message: `Organization ${organization} not found` });
+      throw new Error(`Organization ${organization} not found`);
+    }
+    const matchQry = esb
+      .requestBodySearch()
+      .query(
+        esb.boolQuery().must([
+          esb.termsQuery(
+            'body.id',
+            issueId.map((id) => `${mappingPrefixes.issue}_${id}`)
+          ),
+          esb.termQuery('body.organizationId.keyword', orgData.id),
+        ])
+      )
+      .toJSON();
+    const issueData = await esClientObj.search(Jira.Enums.IndexName.Issue, matchQry);
+    const formattedIssueData = await searchedDataFormatorWithDeleted(issueData);
+    return formattedIssueData;
+  } catch (error: unknown) {
+    logger.error({ ...reqCtx, message: 'getIssueById.error', error });
+    throw error;
+  }
+}
