@@ -29,6 +29,27 @@ export type IssueLinks = {
       };
     };
   };
+  outwardIssue: {
+    id: string;
+    key: string;
+    self: string;
+    fields: {
+      summary: string;
+      status: {
+        name: string;
+        id: string;
+      };
+      issuetype: {
+        name: string;
+        id: string;
+        subtask: boolean;
+      };
+      priority: {
+        name: string;
+        id: string;
+      };
+    };
+  };
 };
 export type Issue = retryProcess & {
   id: string;
