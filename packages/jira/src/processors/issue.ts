@@ -42,14 +42,17 @@ export class IssueProcessor extends DataProcessor<
     });
     const [sprintChangelog] = !data.changelog
       ? []
-      : data.changelog.items.filter((item) => item.fieldId === ChangelogField.SPRINT);
+      : data.changelog.items.filter(
+          (item) =>
+            item.fieldId === ChangelogField.SPRINT || item.fieldId === ChangelogField.CUSTOM_FIELD
+        );
     if (sprintChangelog) {
       const changelogSprintId = getSprintForTo(sprintChangelog.to, sprintChangelog.from);
-      sprintId = `${mappingPrefixes.sprint}_${changelogSprintId}`;
+      sprintId = changelogSprintId ? `${mappingPrefixes.sprint}_${changelogSprintId}` : null;
     } else if (esbIssueData?.sprintId) {
       sprintId = esbIssueData.sprintId;
     } else {
-      const customFieldSprintId = String(data.issue.fields.customfield_10007?.[0]?.id) ?? null;
+      const customFieldSprintId = data.issue.fields.customfield_10007?.[0]?.id ?? null;
       sprintId = customFieldSprintId ? `${mappingPrefixes.sprint}_${customFieldSprintId}` : null;
     }
 
@@ -58,6 +61,8 @@ export class IssueProcessor extends DataProcessor<
         (items) => `${mappingPrefixes.sprint}_${items.id}` === sprintId
       );
       boardId = item ? `${mappingPrefixes.board}_${item.boardId}` : null;
+    } else if (sprintId === null) {
+      boardId = null;
     } else if (esbIssueData?.boardId) {
       boardId = esbIssueData.boardId;
     } else {
