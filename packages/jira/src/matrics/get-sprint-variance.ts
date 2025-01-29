@@ -270,8 +270,13 @@ export function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string
   for (const link of issueLinks) {
     const issueType =
       link.inwardIssue?.fields?.issuetype?.name || link.outwardIssue?.fields?.issuetype?.name;
-    if (issueType === Jira.Enums.IssuesTypes.BUG) {
-      bugKeys.push(link.inwardIssue?.key); // Return the key if the issue type is "Bug"
+
+    if (issueType === Jira.Enums.IssuesTypes.BUG && link.inwardIssue?.key) {
+      bugKeys.push(link.inwardIssue.key);
+    }
+
+    if (issueType === Jira.Enums.IssuesTypes.BUG && link.outwardIssue?.key) {
+      bugKeys.push(link.outwardIssue.key);
     }
   }
   return bugKeys; // Return null if no Bug type issue is found
