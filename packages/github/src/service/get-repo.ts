@@ -28,6 +28,7 @@ async function fetchReposData(
   if (repoIds.length > 0) {
     const repoNameQuery = esb
       .requestBodySearch()
+      .size(repoIds.length)
       .query(
         orgQuery
           .must([esb.termsQuery('body.id', repoIds), esb.termQuery('body.isDeleted', false)])
@@ -65,7 +66,7 @@ const gitRepos = async function getRepoData(
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
   const organisationId: string = event?.queryStringParameters?.organisationId ?? '';
   const page = Number(event?.queryStringParameters?.page ?? 1);
-  const size = event?.queryStringParameters?.size ? Number(event?.queryStringParameters?.size ?? 10) : repoIds.length;
+  const size = Number(event?.queryStringParameters?.size ?? 10);
   let response: IRepo[] = [];
   try {
     response = await fetchReposData(organisationId, repoIds, gitRepoName, requestId, page, size);
