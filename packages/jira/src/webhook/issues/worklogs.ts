@@ -15,23 +15,34 @@ const sqsClient = SQSClient.getInstance();
 
 export async function createWorklog(
   worklog: Jira.ExternalType.Webhook.Worklog,
+  eventName: string,
   eventTime: moment.Moment,
   organization: string,
   requestId: string
 ): Promise<void> {
   try {
+    // Ensure worklog.worklog is defined and contains issueId
+    if (!worklog || !worklog.issueId) {
+      logger.error({ message: 'worklog or worklog.worklog.issueId is undefined', data: worklog });
+      throw new Error('Missing issueId in worklog');
+    }
     const orgId = await getOrganization(organization);
     if (!orgId) {
       throw new Error(`worklog.organization ${organization} not found`);
     }
     const issueData = await fetchJiraIssues(worklog.issueId, orgId.id, requestId);
+    if (!issueData) {
+      logger.error({
+        requestId,
+        resourceId: worklog.id,
+        message: `worklog.no_issue_found: ${organization}, issueId: ${worklog.issueId}`
+      });
+      throw new Error(`worklog.no_issue_found: ${organization}, issueId: ${worklog.issueId}`);
+    }
     logger.info({
       message: "issueData",
       data: issueData // Log the issuesData as a separate property
     });
-    if (!issueData) {
-      throw new Error(`worklog.no_issue_found: ${organization}, issueId: ${worklog.issueId}`);
-    }
 
     // checking if issue type is allowed
 
@@ -48,9 +59,11 @@ export async function createWorklog(
       return;
     }
     const createdDate = moment(eventTime).toISOString();
+    logger.info({ requestId, resourceId: worklog.id, ...worklog, message: 'worklog.prepared_data' });
     await sqsClient.sendMessage(
       {
         ...worklog,
+        eventName,
         issueData: issueData,
         createdDate,
         organization,
