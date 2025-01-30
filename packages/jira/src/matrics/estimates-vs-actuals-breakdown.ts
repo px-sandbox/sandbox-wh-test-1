@@ -189,6 +189,7 @@ export const estimatesVsActualsBreakdown = async (
   orgId: string,
   orgname: string
 ): Promise<Jira.Type.EstimatesVsActualsBreakdownResponse[]> => {
+  let bugTimeForIssueActual = 0;
   try {
     const { issues, subtasks } = await fetchIssueData(projectId, sprintId, orgId);
     const parentBugMapping = issues.reduce((acc: Record<string, string[]>, ele) => {
@@ -205,10 +206,12 @@ export const estimatesVsActualsBreakdown = async (
         const actual = issue?.timeTracker?.actual ?? 0;
         let overallEstimate = estimate;
         let overallActual = estimate ? actual : 0;
-        const bugTimeForIssue = parentBugMapping[issue.issueKey];
-        const bugTimeForIssueActual = bugTime
-          .filter((ele) => bugTimeForIssue.includes(ele.issueKey))
-          .reduce((acc, curr) => acc + curr.timeTracker.actual, 0);
+        if (parentBugMapping[issue.issueKey]) {
+          const bugTimeForIssue = parentBugMapping[issue.issueKey];
+          bugTimeForIssueActual = bugTime
+            .filter((ele) => bugTimeForIssue.includes(ele.issueKey))
+            .reduce((acc, curr) => acc + curr.timeTracker.actual, 0);
+        }
         const subtasksArr: {
           id: string;
           issueKey: string;
