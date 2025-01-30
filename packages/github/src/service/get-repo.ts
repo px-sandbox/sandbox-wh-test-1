@@ -65,7 +65,7 @@ const gitRepos = async function getRepoData(
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') ?? [];
   const organisationId: string = event?.queryStringParameters?.organisationId ?? '';
   const page = Number(event?.queryStringParameters?.page ?? 1);
-  const size = Number(event?.queryStringParameters?.size ?? 10);
+  const size = event?.queryStringParameters?.size ? Number(event?.queryStringParameters?.size ?? 10) : repoIds.length;
   let response: IRepo[] = [];
   try {
     response = await fetchReposData(organisationId, repoIds, gitRepoName, requestId, page, size);
