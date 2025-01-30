@@ -6,7 +6,7 @@ import { getVersionUpgrades } from '../matrics/get-version-upgrades';
 const versionUpgrades = async function versionUpgrades(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
-  let search: string | undefined = event.queryStringParameters?.search ?? '';
+  const search: string | undefined = event.queryStringParameters?.search ?? '';
   const sortKey: Github.Enums.SortKey =
     (event.queryStringParameters?.sortKey as Github.Enums.SortKey) ?? Github.Enums.SortKey.DATEDIFF;
   const sortOrder: Github.Enums.SortOrder =

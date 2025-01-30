@@ -6,9 +6,10 @@ import { rcaDetailResponse, rcaTableHeadline, rcaTrendsResponse } from 'abstract
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { mappingPrefixes } from 'src/constant/config';
-import { searchedDataFormator } from 'src/util/response-formatter';
 import _ from 'lodash';
+import { mappingPrefixes } from '../constant/config';
+import { searchedDataFormator } from '../util/response-formatter';
+
 const esClient = ElasticSearchClient.getInstance();
 
 async function getRCAName(rca: string, type: string): Promise<HitBody> {
@@ -140,9 +141,9 @@ export async function getRcaTrends(
   const rcaGraphData = await Promise.all(
     sprintIds.map(async (sprintId) => {
       const findInResponse = response.by_rca.buckets.find((item) => item.key === sprintId);
-      const SprintName = sprintData.find((sprint) => String(sprint.id) == sprintId);
-      const sprintName = SprintName?.name ?? '';
-      const sprintCreated = SprintName?.startDate ?? '';
+      const sprint = sprintData.find((items) => String(items.id) === sprintId);
+      const sprintName = sprint?.name ?? '';
+      const sprintCreated = sprint?.startDate ?? '';
       return {
         sprintName,
         high: findInResponse?.high_count.doc_count ?? 0,
@@ -155,11 +156,12 @@ export async function getRcaTrends(
     })
   );
   const rcaGraphDataSorted = _.orderBy(rcaGraphData, ['sprintCreated'], ['asc']);
-  const rcaGraphDataFiltered = rcaGraphDataSorted.map(({ sprintCreated, ...rest }) => rest);
+
+  const rcaGraphDataFiltered = rcaGraphDataSorted.map((rest) => _.omit(rest, 'sprintCreated'));
   return {
     headline: {
       value:
-        headline.global_agg.total_bug_count.doc_count == 0
+        headline.global_agg.total_bug_count.doc_count === 0
           ? 0
           : parseFloat(
               (

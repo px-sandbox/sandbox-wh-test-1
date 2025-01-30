@@ -1,4 +1,3 @@
-import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { GHCopilotProcessor } from '../../../processors/gh-copilot';

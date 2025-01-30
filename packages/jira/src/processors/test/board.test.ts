@@ -12,7 +12,7 @@ describe('BoardProcessor', () => {
     let apiData: Jira.Mapper.Board;
     // let getOrganization: any;
 
-    //adding requestId and
+    // adding requestId and
     let requestId :string;
     let resourceId :string;
 

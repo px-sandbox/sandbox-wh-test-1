@@ -3,17 +3,17 @@ import { Jira } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
 import { rcaTableHeadline, rcaTableResponse, rcaTableView } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
-import { mappingPrefixes } from 'src/constant/config';
-import { searchedDataFormator } from 'src/util/response-formatter';
+import { mappingPrefixes } from '../constant/config';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
-export async function mapRcaBucketsWithFullNames() {
+export async function mapRcaBucketsWithFullNames(): Promise<{ [key: string]: string }> {
   const rcaNameQuery = esb.requestBodySearch().query(esb.matchAllQuery()).size(100).toJSON();
   const rcaRes = await esClient.search(Jira.Enums.IndexName.Rca, rcaNameQuery);
   const resData = await searchedDataFormator(rcaRes);
   const idToNameMap = resData.reduce((acc: any, hit: any) => {
     const id = `${mappingPrefixes.rca}_${hit.id}`;
-    const name = hit.name;
+    const { name } = hit;
     acc[id] = name;
     return acc;
   }, {});
@@ -100,7 +100,7 @@ export async function rcaTableView(sprintIds: string[], type: string): Promise<r
   return {
     headline: {
       value:
-        headlineRCA.global_agg.total_bug_count.doc_count == 0
+        headlineRCA.global_agg.total_bug_count.doc_count === 0
           ? 0
           : parseFloat(
               (

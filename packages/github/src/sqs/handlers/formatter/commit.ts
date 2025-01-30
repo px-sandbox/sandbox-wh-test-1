@@ -1,17 +1,16 @@
+import { OctokitResponse } from '@octokit/types';
+import async from 'async';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { Queue } from 'sst/node/queue';
 import _ from 'lodash';
-import { Github } from 'abstraction';
-import async from 'async';
-import { OctokitResponse } from '@octokit/types';
 import { logProcessToRetry } from 'rp';
+import { Queue } from 'sst/node/queue';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
-import { processFileChanges } from '../../../util/process-commit-changes';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
+import { processFileChanges } from '../../../util/process-commit-changes';
 
 // eslint-disable-next-line max-lines-per-function
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {

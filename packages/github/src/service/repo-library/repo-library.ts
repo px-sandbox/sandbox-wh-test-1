@@ -2,7 +2,7 @@ import { SQSClient } from '@pulse/event-handler';
 import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { S3 } from 'aws-sdk';
-import { HttpStatusCode, logger, responseParser } from 'core';
+import { logger } from 'core';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
 

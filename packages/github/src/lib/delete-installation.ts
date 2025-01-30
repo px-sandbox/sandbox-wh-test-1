@@ -2,7 +2,8 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { mappingPrefixes } from 'src/constant/config';
+import { mappingPrefixes } from '../constant/config';
+
 const esClientObj = ElasticSearchClient.getInstance();
 
 export async function deleteInstallation(

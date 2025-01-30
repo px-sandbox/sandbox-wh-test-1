@@ -4,11 +4,11 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { OctokitResponse } from '@octokit/types';
 import { logProcessToRetry } from 'rp';
+import { Github } from 'abstraction';
 import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
-import { Github } from 'abstraction';
 
 async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
   const {

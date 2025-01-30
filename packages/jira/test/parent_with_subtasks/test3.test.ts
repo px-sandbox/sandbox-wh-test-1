@@ -3376,11 +3376,11 @@ const operations = [
 ];
 
 describe('Case 4', () => {
-  for (let i = 0; i < operations.length; i++) {
+  for (let i = 0; i < operations.length; i += 1) {
     // for (let i = 0; i < 10; i++) {
     test(`Test ${i}: ${operations[i].name}`, () => {
       let s = {} as MainTicket;
-      for (let j = 0; j <= i; j++) {
+      for (let j = 0; j <= i; j += 1) {
         const operation = operations[j];
         switch (operation.operator) {
           case 'create_parent':
@@ -3392,6 +3392,8 @@ describe('Case 4', () => {
             break;
           case 'transition':
             s.changelog(operation.action);
+            break;
+          default:
             break;
         }
       }

@@ -1,10 +1,6 @@
-import {
-  APIGatewayAuthorizerResult,
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-} from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { getDeploymentFrequencyGraphData } from 'src/matrics/get-deployment-frequency-graph';
+import { getDeploymentFrequencyGraphData } from '../matrics/get-deployment-frequency-graph';
 
 export const handler = async function deploymentFrequencyGraph(
   event: APIGatewayProxyEvent

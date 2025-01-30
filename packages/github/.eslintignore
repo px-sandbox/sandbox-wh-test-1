@@ -1,0 +1,2 @@
+src/processors/test/*.test.ts
+src/util/test/*.test.ts

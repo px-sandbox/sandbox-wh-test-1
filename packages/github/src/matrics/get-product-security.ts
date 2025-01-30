@@ -146,7 +146,7 @@ export async function getHeadlineStat(repoIds: string[], branch: string): Promis
   const data = await getHeadline(repoIds, branch);
   const formattedData = await searchedDataFormator(data);
   let currentErrCount = 0;
-  for (let i = 0; i < formattedData.length; i++) {
+  for (let i = 0; i < formattedData.length; i += 1) {
     currentErrCount += formattedData[i].count;
   }
   return currentErrCount;

@@ -1,24 +1,24 @@
+import crypto from 'crypto';
 import { Github } from 'abstraction';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { logProcessToRetry } from 'rp';
+import { SastCompositeKeys } from 'abstraction/github/type/repo-sast-errors';
+import moment from 'moment';
+import { mappingPrefixes } from '../../../constant/config';
 import {
   fetchDataFromS3,
   getSastDataFromES,
   repoSastErrorsFormatter,
   storeSastErrorReportToES,
 } from '../../../processors/repo-sast-errors';
-import { SastCompositeKeys } from 'abstraction/github/type/repo-sast-errors';
-import moment from 'moment';
-import { mappingPrefixes } from 'src/constant/config';
-import crypto from 'crypto';
 
 const compareAndUpdateData = async (
   apiData: Github.Type.RepoSastErrors[],
   dbData: Github.Type.RepoSastErrors[],
   branch: string
-) => {
+): Promise<Github.Type.RepoSastErrors[]> => {
   const compositeKeys: SastCompositeKeys[] = [
     'errorMsg',
     'ruleId',
@@ -29,7 +29,10 @@ const compareAndUpdateData = async (
     'organizationId',
   ];
 
-  const createBase64Key = (item: Github.Type.RepoSastErrors, keys: Array<SastCompositeKeys>) => {
+  const createBase64Key = (
+    item: Github.Type.RepoSastErrors,
+    keys: Array<SastCompositeKeys>
+  ): string => {
     const compositeKey = keys.map((key: SastCompositeKeys) => item.body[key]).join('|');
     return crypto.createHash('sha256').update(compositeKey).digest('base64');
   };
@@ -62,7 +65,7 @@ const compareAndUpdateData = async (
   // Case 3: Mark items isResolved true, if they are in ES data but not in API data
   for (const [id, dbItem] of esDataMap.entries()) {
     if (!apiDataMap.has(id)) {
-      const branchObj = dbItem.body.metadata.find((item) => item.branch == branch);
+      const branchObj = dbItem.body.metadata.find((item) => item.branch === branch);
       if (branchObj) {
         branchObj.isResolved = true;
       }

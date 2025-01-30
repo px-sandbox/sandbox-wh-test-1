@@ -60,7 +60,7 @@ describe('Branch', async () => {
       },
     });
   });
-  //Test when processor method is called and no parent ID is found
+  // Test when processor method is called and no parent ID is found
   it('should process the branch data correctly when no parent ID is found', async () => {
     const processor = new BranchProcessor('create', mockData.data, '', mockData.id, mockData.name);
     processor.getParentId = vi.fn().mockResolvedValue(null);
@@ -98,7 +98,7 @@ describe('Branch', async () => {
     });
   });
 
-  //Test when branch is deleted
+  // Test when branch is deleted
   it('should process the branch data correctly when branch is deleted', async () => {
     const processor = new BranchProcessor(
       'delete',
@@ -138,7 +138,7 @@ describe('Branch', async () => {
     });
   });
 
-  //Test when branch is updated
+  // Test when branch is updated
   it('should process the branch data correctly when branch is deleted', async () => {
     mockData.data.name = 'charchitDev-patch-3';
     const processor = new BranchProcessor(

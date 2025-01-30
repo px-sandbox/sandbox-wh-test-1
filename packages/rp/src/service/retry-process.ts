@@ -1,16 +1,14 @@
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
-import { APIGatewayProxyEvent } from 'aws-lambda';
 import { Github } from 'abstraction';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 import { logger } from 'core';
-import { RetryTableMapping } from '../model/retry-table-mapping';
 import { Table } from 'sst/node/table';
-import { BatchGetCommandInput, ScanCommandOutput } from '@aws-sdk/lib-dynamodb';
+import { RetryTableMapping } from '../model/retry-table-mapping';
 
 const sqsClient = SQSClient.getInstance();
 const dynamodbClient = DynamoDbDocClient.getInstance();
-const tableName = Table.processRetry.tableName;
-
+const { tableName } = Table.processRetry;
 
 async function processIt(record: Github.Type.QueueMessage, requestId: string): Promise<void> {
   const { processId, messageBody, queue, MessageDeduplicationId, MessageGroupId } = record;
@@ -59,7 +57,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<void> {
   });
   logger.info({ message: `RetryProcessHandler processIds are:`, data: processIds });
   if (processIds && processIds.length > 0) {
-    //create chunks of processIds
+    // create chunks of processIds
     const params = {
       RequestItems: {
         [tableName]: {

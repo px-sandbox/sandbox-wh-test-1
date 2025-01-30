@@ -1,3 +1,4 @@
+import { describe, expect, test } from 'vitest';
 import { MainTicket } from '../../src/lib/issue/main-ticket';
 import {
   getAssigneeAdded,
@@ -8,7 +9,6 @@ import {
   format,
 } from '../template';
 import { StatusMapping } from '../type';
-import { describe, expect, test } from 'vitest';
 import { toMilliseconds } from '../milliseconds_converter';
 
 const operations = [

@@ -3,7 +3,6 @@ import { Github } from 'abstraction';
 import {
   TestCoverageHeadline,
   TestCoverageHeadlineResponse,
-  TestCoverageHeadlineResponseDTO,
 } from 'abstraction/github/type/test-coverage';
 import { logger } from 'core';
 import esb from 'elastic-builder';
@@ -60,10 +59,9 @@ export const getTestCoverageHeadlineData = async (
       return {
         value: testCoverageData,
       };
-    } else {
-      logger.error({ message: 'getData.error', error: 'No data found' });
-      return { value: 0 };
     }
+    logger.error({ message: 'getData.error', error: 'No data found' });
+    return { value: 0 };
   } catch (e) {
     logger.error({ message: 'getData.error', error: `${e}` });
     throw e;

@@ -1,7 +1,8 @@
-import { processFileChanges } from "../process-commit-changes";
 import { beforeEach, describe,expect, it, test } from "vitest";
 import { Other } from 'abstraction';
 import { RequestInterface, RequestParameters, OctokitResponse } from '@octokit/types';
+import { processFileChanges } from "../process-commit-changes";
+
 describe('processFileChanges', () => {
   const files = ["Hello", 2, "Well"];
   const filesLink = '<https://api.github.com/next?page=2>; rel="next"'; // Example link
@@ -40,7 +41,7 @@ describe('processFileChanges', () => {
     },
     {
       // Correctly typing the defaults method
-      defaults: function <O extends RequestParameters>(newDefaults: O): RequestInterface<object & { headers: { Authorization: string; }; }> {
+      defaults <O extends RequestParameters>(newDefaults: O): RequestInterface<object & { headers: { Authorization: string; }; }> {
         return mockOctokit; // Returning the same mock instance
       },
       endpoint: (options: any) => options, // A simple implementation for the endpoint method

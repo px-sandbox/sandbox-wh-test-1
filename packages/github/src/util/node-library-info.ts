@@ -23,12 +23,12 @@ export async function getNodeLibInfo(libName: string, currentVersion: string): P
       latest: {
         version: latestVersion,
         releaseDate: data.time[latestVersion],
-        isDeprecated: deprecatesLatest ? true : false,
+        isDeprecated: !!deprecatesLatest,
       },
       current: {
         version: currentVersion,
         releaseDate: data.time[currentVersion],
-        isDeprecated: deprecatesCurrent ? true : false,
+        isDeprecated: !!deprecatesCurrent,
       },
     };
   } catch (error) {

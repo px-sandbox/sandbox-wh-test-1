@@ -1,8 +1,8 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { BranchProcessor } from '../../../processors/branch';
 import { logProcessToRetry } from 'rp';
 import { Queue } from 'sst/node/queue';
+import { BranchProcessor } from '../../../processors/branch';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
   const {

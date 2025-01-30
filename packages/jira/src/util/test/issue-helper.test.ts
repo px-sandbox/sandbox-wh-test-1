@@ -1,5 +1,6 @@
-import { formatIssue } from "../issue-helper";
 import{describe,it,expect} from 'vitest'
+import { formatIssue } from "../issue-helper";
+
 describe('formatIssue', () => {
   it('should format the issue data correctly', () => {
     const issueData = {

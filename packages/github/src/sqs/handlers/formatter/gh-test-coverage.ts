@@ -1,11 +1,11 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { fetchDataFromS3 } from '../../../util/test-coverage';
 import { Github } from 'abstraction';
-import { generateUuid } from '../../../util/response-formatter';
-import { mappingPrefixes } from 'src/constant/config';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import esb from 'elastic-builder';
+import { mappingPrefixes } from '../../../constant/config';
+import { generateUuid } from '../../../util/response-formatter';
+import { fetchDataFromS3 } from '../../../util/test-coverage';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -60,7 +60,8 @@ export async function handler(event: SQSEvent): Promise<void> {
           });
         } else {
           const createdDate = createdAt.split('T')[0];
-          const coverageId = `${mappingPrefixes.organization}_${organisationId}_${mappingPrefixes.repo}_${repoId}_${createdDate}`;
+          const coverageId = `${mappingPrefixes.organization}_${organisationId}_
+          ${mappingPrefixes.repo}_${repoId}_${createdDate}`;
           await deleteCoverageData(coverageId);
           const coverageObj = {
             id: generateUuid(),
@@ -74,7 +75,7 @@ export async function handler(event: SQSEvent): Promise<void> {
               branches: { ...data.coverage.total.branches },
               functions: { ...data.coverage.total.functions },
               lines: { ...data.coverage.total.lines },
-              cron: false
+              cron: false,
             },
           };
           await saveCoverageData(coverageObj);

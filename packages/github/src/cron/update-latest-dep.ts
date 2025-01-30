@@ -3,9 +3,8 @@ import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { SQSClient } from '@pulse/event-handler';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
-import { APIGatewayProxyEvent } from 'aws-lambda';
-import { LibParamsMapping } from '../model/lib-master-mapping';
 import { v4 as uuid } from 'uuid';
+import { LibParamsMapping } from '../model/lib-master-mapping';
 
 const dynamodbClient = DynamoDbDocClient.getInstance();
 const sqsClient = SQSClient.getInstance();
@@ -38,7 +37,7 @@ async function sendAllDepsToQueue(
   }
 }
 
-export async function handler(event: APIGatewayProxyEvent): Promise<void> {
+export async function handler(): Promise<void> {
   const requestId = uuid();
   logger.info({
     message: 'UpdateLatestDepHandler invoked',
