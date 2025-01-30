@@ -5,7 +5,7 @@ import { IssuesTypes } from 'abstraction/jira/enums';
 import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb, { RequestBodySearch } from 'elastic-builder';
-import { getOrganizationById } from 'src/repository/organization/get-organization';
+import { getOrganizationById } from '../repository/organization/get-organization';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
@@ -14,11 +14,12 @@ function getJiraLink(
   orgName: string,
   projectKey: string,
   sprintId: number,
-  isOgEstimate: boolean = false
+  isOgEstimate = false
 ): string {
-  const baseUrl = `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=project = "${projectKey}" and sprint = ${sprintId}`;
+  const baseUrl = `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=
+  project = "${projectKey}" and sprint = ${sprintId}`;
   const query = isOgEstimate ? 'AND OriginalEstimate IS EMPTY' : 'AND TimeSpent IS EMPTY';
-  const orderBy = 'ORDER BY created DESC';
+  const orderBy = 'AND type != Test ORDER BY created DESC';
   return encodeURI(`${baseUrl} ${query} ${orderBy}`);
 }
 /**
@@ -156,7 +157,7 @@ async function countIssuesWithZeroEstimates(
     )
     .toJSON() as { query: object };
 
-  logger.info({ ...reqCtx, message: 'issue_sprint_query', data: { query } });
+  logger.info({ ...reqCtx, message: 'issue_sprint_query_estimate_zero', data: { query } });
 
   return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
 }
@@ -183,8 +184,8 @@ function sprintEstimateResponse(
   orgName: string,
   projectKey: string
 ): SprintVariance[] {
-  let estimateMissingFlagCtr = false;
   return sprintData.map((sprintDetails) => {
+    let estimateMissingFlagCtr = true;
     const item = estimateActualGraph.sprint_aggregation.buckets.find(
       (bucketItem: BucketItem) => bucketItem.key === sprintDetails.id
     );
@@ -194,10 +195,10 @@ function sprintEstimateResponse(
     const estimateCount = issueWithZeroEstimate.sprint_aggregation.buckets.find(
       (bucketItem: BucketItem) => bucketItem.key === sprintDetails.id
     );
+    if (estimateCount && estimateCount.doc_count > 4) {
+      estimateMissingFlagCtr = false;
+    }
     if (item) {
-      if (estimateCount && estimateCount.doc_count > 4) {
-        estimateMissingFlagCtr = true;
-      }
       return {
         sprint: sprintDetails,
         time: {
@@ -206,7 +207,7 @@ function sprintEstimateResponse(
         },
         isAllEstimated: estimateMissingFlagCtr,
         jiraInfo: {
-          estimateIssueLink: estimateMissingFlagCtr
+          estimateIssueLink: !estimateMissingFlagCtr
             ? getJiraLink(orgName, projectKey, sprintDetails.sprintId, true)
             : '',
           loggedIssueLink: getJiraLink(orgName, projectKey, sprintDetails.sprintId),
@@ -226,6 +227,13 @@ function sprintEstimateResponse(
       time: {
         estimate: 0,
         actual: 0,
+      },
+      isAllEstimated: estimateMissingFlagCtr,
+      jiraInfo: {
+        estimateIssueLink: !estimateMissingFlagCtr
+          ? getJiraLink(orgName, projectKey, sprintDetails.sprintId, true)
+          : '',
+        loggedIssueLink: getJiraLink(orgName, projectKey, sprintDetails.sprintId),
       },
       variance: 0,
       bugTime: 0,
@@ -260,9 +268,11 @@ export function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string
   // Iterate through the issueLinks array
   const bugKeys = [];
   for (const link of issueLinks) {
-    const issueType = link.inwardIssue?.fields?.issuetype?.name;
+    const issueType =
+      link.inwardIssue?.fields?.issuetype?.name || link.outwardIssue?.fields?.issuetype?.name;
+
     if (issueType === Jira.Enums.IssuesTypes.BUG) {
-      bugKeys.push(link.inwardIssue?.key); // Return the key if the issue type is "Bug"
+      bugKeys.push(link?.inwardIssue?.key ?? link?.outwardIssue?.key);
     }
   }
   return bugKeys; // Return null if no Bug type issue is found
@@ -298,7 +308,7 @@ async function getBugTimeForSprint(
   const issueData = await searchedDataFormator(res);
   // find issueKeys from issuelinks of the issue data
   const issueKeys = issueData.map((items) => getBugIssueLinksKeys(items.issueLinks)).flat();
-  //sum aggregate the time spent on bugs for the given issueKeys
+  // sum aggregate the time spent on bugs for the given issueKeys
   const bugQuery = esb
     .requestBodySearch()
     .size(0)
@@ -314,7 +324,7 @@ async function getBugTimeForSprint(
 
   logger.info({ ...reqCtx, message: 'bug_time_for_sprint_query', data: { bugQuery } });
 
-  return await esClientObj.queryAggs(Jira.Enums.IndexName.Issue, bugQuery);
+  return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, bugQuery);
 }
 /**
  * Retrieves the sprint variance graph data for a given project within a specified date range.
@@ -530,6 +540,6 @@ export async function sprintVarianceGraphAvg(
       ).toFixed(2)
     );
   } catch (e) {
-    throw new Error(`error_occured_sprint_variance_avg: ${e}`);
+    throw new Error(`error_occurred_sprint_variance_avg: ${e}`);
   }
 }

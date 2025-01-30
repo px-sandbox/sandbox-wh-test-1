@@ -2,14 +2,14 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { getNodeLibInfo } from 'src/util/node-library-info';
 import { Config } from 'sst/node/config';
 import { v4 as uuid } from 'uuid';
-import { mappingPrefixes } from '../../constant/config';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
-import { LibParamsMapping } from '../../model/lib-master-mapping';
 import { deleteProcessfromDdb } from 'rp';
 import { chunk } from 'lodash';
+import { getNodeLibInfo } from '../../util/node-library-info';
+import { LibParamsMapping } from '../../model/lib-master-mapping';
+import { mappingPrefixes } from '../../constant/config';
 
 const esClientObj = ElasticSearchClient.getInstance();
 const dynamodbClient = DynamoDbDocClient.getInstance();
@@ -28,7 +28,7 @@ export async function repoLibHelper(
   reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   logger.info({ message: 'repoLibrary.handler', data, ...reqCtx });
-  const excludedLibraries = ["@studiographene/nodejs-telemetry"];
+  const excludedLibraries = ['@studiographene/nodejs-telemetry'];
   if (data) {
     const {
       coreDependencies,
@@ -53,34 +53,36 @@ export async function repoLibHelper(
 
     const ddbPutData: Array<Github.Type.LibraryRecord> = [];
     const repoLibFormattedData: Array<Github.Type.RepoLibrary> = await Promise.all(
-      combinedDeps.filter(dep => !(excludedLibraries.includes(dep.dependencyName))).map(async (dep) => {
-        const { current, latest } = await getNodeLibInfo(dep.dependencyName, dep.currentVersion);
-        ddbPutData.push({
-          libName: `npm_${dep.dependencyName}`,
-          version: latest.version,
-          releaseDate: latest.releaseDate,
-          isDeprecated: latest.isDeprecated,
-        });
-        return {
-          _id: uuid(),
-          body: {
-            repoId: `${mappingPrefixes.repo}_${repoId}`,
-            organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
-            version: dep.currentVersion,
-            name: dep.dependencyName,
+      combinedDeps
+        .filter((dep) => !excludedLibraries.includes(dep.dependencyName))
+        .map(async (dep) => {
+          const { current, latest } = await getNodeLibInfo(dep.dependencyName, dep.currentVersion);
+          ddbPutData.push({
             libName: `npm_${dep.dependencyName}`,
-            releaseDate: current.releaseDate,
-            isDeleted: false,
-            isCore: dep.isCore,
-            isDeprecated: current.isDeprecated,
-          },
-        };
-      })
+            version: latest.version,
+            releaseDate: latest.releaseDate,
+            isDeprecated: latest.isDeprecated,
+          });
+          return {
+            _id: uuid(),
+            body: {
+              repoId: `${mappingPrefixes.repo}_${repoId}`,
+              organizationId: `${mappingPrefixes.organization}_${Config.GIT_ORGANIZATION_ID}`,
+              version: dep.currentVersion,
+              name: dep.dependencyName,
+              libName: `npm_${dep.dependencyName}`,
+              releaseDate: current.releaseDate,
+              isDeleted: false,
+              isCore: dep.isCore,
+              isDeprecated: current.isDeprecated,
+            },
+          };
+        })
     );
     const ddbPutDataChunks = chunk(ddbPutData, 25);
 
-    const batchWritePromises = ddbPutDataChunks.map((chunk) =>
-      dynamodbClient.batchWrite(new LibParamsMapping().preparePutParamsBulk(chunk))
+    const batchWritePromises = ddbPutDataChunks.map((chunks) =>
+      dynamodbClient.batchWrite(new LibParamsMapping().preparePutParamsBulk(chunks))
     );
     await Promise.all([
       ...batchWritePromises,

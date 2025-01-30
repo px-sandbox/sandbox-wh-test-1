@@ -4,7 +4,7 @@ import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, responseParser } from 'core';
 import esb from 'elastic-builder';
-import { MigrationStatus } from 'src/constant/config';
+import { MigrationStatus } from '../constant/config';
 import { migrationStatusSchema } from './validations';
 
 const esClient = ElasticSearchClient.getInstance();
@@ -28,7 +28,7 @@ const migration = async function setStatus(
       }
       ctx._source.body.statusLogs.add(params.newStatusLog);`
       )
-      .params({ newStatusLog: { status: status, time: time } });
+      .params({ newStatusLog: { status, time } });
 
     await esClient.updateByQuery(
       Github.Enums.IndexName.GitMigrationStatus,

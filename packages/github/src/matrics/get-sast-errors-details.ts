@@ -135,12 +135,12 @@ export async function getRepoSastErrors(
           errorName: data.body.errorMsg as string,
           ruleId: data.body.ruleId as string,
           filename: data.body.fileName as string,
-          branch: data.body.metadata.map((branch: { branch: string; firstReportedOn: string }) => {
-            return {
-              name: branch.branch as string,
-              firstOccurredAt: branch.firstReportedOn as string,
-            };
-          }),
+          branch: data.body.metadata.map(
+            (branches: { branch: string; firstReportedOn: string }) => ({
+              name: branches.branch as string,
+              firstOccurredAt: branches.firstReportedOn as string,
+            })
+          ),
         }));
       }
       logger.info({

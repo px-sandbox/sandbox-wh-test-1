@@ -103,7 +103,7 @@ export async function getUsers(
   orgId: string | undefined
 ): Promise<number> {
   let userCount: number;
-  let noPrefixOrgId = orgId?.replace('gh_org_', '');
+  const noPrefixOrgId = orgId?.replace('gh_org_', '');
   try {
     userCount = await getUserList(octokit, organizationName, requestId, noPrefixOrgId);
     return userCount;

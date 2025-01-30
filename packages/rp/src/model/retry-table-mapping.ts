@@ -1,9 +1,4 @@
-import {
-  PutCommandInput,
-  ScanCommandInput,
-  DeleteCommandInput,
-  QueryCommandInput,
-} from '@aws-sdk/lib-dynamodb';
+import { DeleteCommandInput, PutCommandInput, ScanCommandInput } from '@aws-sdk/lib-dynamodb';
 import { Table } from 'sst/node/table';
 
 export class RetryTableMapping {
@@ -20,8 +15,10 @@ export class RetryTableMapping {
 
   public prepareScanParams(limit?: boolean, queue?: string): ScanCommandInput {
     let FilterExpression = 'attribute_not_exists(#retry) OR #retry <= :maxRetry';
-    let ExpressionAttributeNames: any = { '#retry': 'retry' };
-    let ExpressionAttributeValues: any = { ':maxRetry': 3 };
+    const ExpressionAttributeNames = {
+      '#retry': 'retry',
+    };
+    const ExpressionAttributeValues = { ':maxRetry': 3 };
 
     if (queue) {
       FilterExpression += ' AND #queue = :queue';

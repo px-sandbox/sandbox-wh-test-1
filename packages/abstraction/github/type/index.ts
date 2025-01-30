@@ -62,6 +62,7 @@ import {
 import { DeploymentFrequencyGraph } from './aggregations/deployment-frequencies-graph';
 import { DeploymentFreq } from './deployment-frequency';
 import { TestCoverageGraphAgg, TestCoverageLatestDoc } from './aggregations/test-coverage-graph';
+
 export {
   Branch,
   Organization,

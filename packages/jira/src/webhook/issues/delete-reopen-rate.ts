@@ -2,7 +2,6 @@ import { SQSClient } from '@pulse/event-handler';
 import { Jira } from 'abstraction';
 import { Hit, HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
-import moment from 'moment';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { ALLOWED_ISSUE_TYPES } from '../../constant/config';

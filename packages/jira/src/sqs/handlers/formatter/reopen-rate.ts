@@ -1,12 +1,11 @@
+import { SQSClient } from '@pulse/event-handler';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import { Queue } from 'sst/node/queue';
-import { Jira } from 'abstraction';
 import { logProcessToRetry } from 'rp';
+import { Queue } from 'sst/node/queue';
+import { getOrganization } from '../../../repository/organization/get-organization';
 import { ReopenRateProcessor } from '../../../processors/reopen-rate';
 import { prepareReopenRate } from '../../../util/prepare-reopen-rate';
-import { getOrganization } from 'src/repository/organization/get-organization';
-import { SQSClient } from '@pulse/event-handler';
 
 const sqsClient = SQSClient.getInstance();
 /**

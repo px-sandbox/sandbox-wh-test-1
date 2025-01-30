@@ -2,8 +2,8 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import esb from 'elastic-builder';
 import moment from 'moment';
-import { mappingPrefixes } from '../../constant/config';
 import { logger } from 'core';
+import { mappingPrefixes } from '../../constant/config';
 import { getOrganization } from '../organization/get-organization';
 
 const esClientObj = ElasticSearchClient.getInstance();
@@ -21,7 +21,7 @@ export async function softDeleteCycleTimeDocument(
   */
 
   try {
-    let id, pId;
+    let id; let pId;
     const orgData = await getOrganization(organization);
     if (!orgData) {
       logger.error({

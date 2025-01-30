@@ -2,7 +2,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github, Other } from 'abstraction';
 import { logger } from 'core';
 import esb, { sort } from 'elastic-builder';
-import { searchedDataFormator } from 'src/util/response-formatter';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 const getRepoName = async (repoIds: string[]): Promise<Github.Type.RepoNameType[]> => {

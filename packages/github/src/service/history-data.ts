@@ -1,9 +1,9 @@
 import { Other } from 'abstraction';
 import { logger } from 'core';
-import { getRepos } from 'src/lib/get-repo-list';
-import { getUsers } from 'src/lib/get-user-list';
-import { ghRequest } from 'src/lib/request-default';
-import { getInstallationAccessToken } from 'src/util/installation-access-token';
+import { getRepos } from '../lib/get-repo-list';
+import { getUsers } from '../lib/get-user-list';
+import { ghRequest } from '../lib/request-default';
+import { getInstallationAccessToken } from '../util/installation-access-token';
 
 const collectData = async (orgName: string, reqCtx: Other.Type.RequestCtx): Promise<void> => {
   const { requestId, resourceId } = reqCtx;

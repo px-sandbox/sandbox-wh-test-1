@@ -6,6 +6,7 @@ import moment from 'moment';
 import { logProcessToRetry } from 'rp';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
+import { Github } from 'abstraction';
 import { mappingPrefixes } from '../../../constant/config';
 import { getTimezoneOfUser } from '../../../lib/get-user-timezone';
 import { ghRequest } from '../../../lib/request-default';
@@ -13,7 +14,6 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 import { getWorkingTime } from '../../../util/timezone-calculation';
-import { Github } from 'abstraction';
 
 const sqsClient = SQSClient.getInstance();
 

@@ -1,8 +1,8 @@
 import moment from 'moment';
-import { calculateGraphAvg } from '../graph-average';
-import { esbDateHistogramInterval } from '../../constant/config';
 import { describe,it,expect } from 'vitest';
 import { CalculateGraphAvgData } from 'abstraction/github/type';
+import { calculateGraphAvg } from '../graph-average';
+import { esbDateHistogramInterval } from '../../constant/config';
 
 
 describe('calculateGraphAvg', () => {

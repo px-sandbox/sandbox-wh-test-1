@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, logger, responseParser } from 'core';
-import { getData } from 'src/matrics/get-test-coverage';
+import { HttpStatusCode, responseParser } from 'core';
+import { getData } from '../matrics/get-test-coverage';
 
 export const handler = async function getTestData(
   event: APIGatewayProxyEvent

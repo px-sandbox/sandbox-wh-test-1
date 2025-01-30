@@ -6,8 +6,8 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
-import { searchedDataFormator } from '../util/response-formatter';
 import { v4 as uuid } from 'uuid';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();

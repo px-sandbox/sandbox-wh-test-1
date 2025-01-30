@@ -1,20 +1,19 @@
-import { SQSEvent, SQSRecord } from 'aws-lambda';
-import { logger } from 'core';
-import { v4 as uuid } from 'uuid';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
-import { Queue } from 'sst/node/queue';
-import { logProcessToRetry } from 'rp';
-import { Other } from 'abstraction';
-import { JiraClient } from '../lib/jira-client';
-import { getOrganization } from 'src/repository/organization/get-organization';
-import { Issue, Changelogs } from 'abstraction/jira/external/api';
-import { mappingPrefixes } from '../constant/config';
-import { ParamsMapping } from '../model/params-mapping';
+import { Jira, Other } from 'abstraction';
+import { Issue } from 'abstraction/jira/external/api';
 import { mapLimit } from 'async';
-import { Jira } from 'abstraction';
-import { getSprintForTo } from 'src/util/prepare-reopen-rate';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
+import { logger } from 'core';
+import { logProcessToRetry } from 'rp';
+import { Queue } from 'sst/node/queue';
+import { v4 as uuid } from 'uuid';
+import { getSprintForTo } from '../util/prepare-reopen-rate';
+import { getOrganization } from '../repository/organization/get-organization';
+import { mappingPrefixes } from '../constant/config';
+import { JiraClient } from '../lib/jira-client';
+import { ParamsMapping } from '../model/params-mapping';
 
 const dynamodbClient = DynamoDbDocClient.getInstance();
 const sqsClient = SQSClient.getInstance();
@@ -30,14 +29,17 @@ async function getParentId(issueId: string): Promise<string> {
   return parentId;
 }
 
-async function getSprint(issue: Issue, jira: JiraClient) {
-  if(issue.fields.sprint){
+async function getSprint(
+  issue: Issue,
+  jira: JiraClient
+): Promise<{ sprintId: string | null; boardId: string | null | number }> {
+  if (issue.fields.sprint) {
     return {
       sprintId: issue.fields.sprint.id,
       boardId: issue.fields.sprint.originBoardId,
     };
   }
-  else if (issue.fields.customfield_10007 && issue.fields.customfield_10007.length === 1) {
+  if (issue.fields.customfield_10007 && issue.fields.customfield_10007.length === 1) {
     return {
       sprintId: issue.fields.customfield_10007[0].id,
       boardId: issue.fields.customfield_10007[0].boardId,
@@ -57,7 +59,7 @@ async function getSprint(issue: Issue, jira: JiraClient) {
     const toSprint = sprint.to.split(', ');
 
     if (toSprint.length === 1) {
-      sprintId = toSprint[0];
+      [sprintId] = toSprint;
     } else {
       sprintId = getSprintForTo(sprint.to, sprint.from);
     }
@@ -70,7 +72,7 @@ async function getSprint(issue: Issue, jira: JiraClient) {
   return { sprintId: null, boardId: null };
 }
 
-async function formatIssue(issue: Issue, orgId: string, jira: JiraClient) {
+async function formatIssue(issue: Issue, orgId: string, jira: JiraClient): Promise<object> {
   try {
     const { sprintId, boardId } = await getSprint(issue, jira);
     const parentId = await getParentId(`${mappingPrefixes.issue}_${issue.id}`);
@@ -159,7 +161,7 @@ async function checkAndSave(
     await esClient.bulkInsert(Jira.Enums.IndexName.Issue, issuesToSave);
   }
 
-  const bugs = issues.filter((issue) => issue.fields.issuetype.name == Jira.Enums.IssuesTypes.BUG);
+  const bugs = issues.filter((issue) => issue.fields.issuetype.name === Jira.Enums.IssuesTypes.BUG);
 
   if (bugs.length > 0) {
     logger.info({
@@ -169,7 +171,7 @@ async function checkAndSave(
         boardId,
         projectId,
         organization,
-        bugs: bugs.map((issue) => `${issue.key} - ${issue.fields.issuetype.name}`).join(" | "),
+        bugs: bugs.map((issue) => `${issue.key} - ${issue.fields.issuetype.name}`).join(' | '),
       },
     });
 

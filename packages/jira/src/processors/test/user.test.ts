@@ -1,10 +1,9 @@
-import { beforeEach, afterEach, expect, it, describe, vi } from 'vitest';
 import { Jira } from 'abstraction';
-import { logger } from 'core';
-import { UserProcessor } from '../user';
-import { getOrganization } from '../../repository/organization/get-organization';
-import { JiraClient } from '../../lib/jira-client';
 import { UserType } from 'abstraction/jira/enums';
+import { logger } from 'core';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getOrganization } from '../../repository/organization/get-organization';
+import { UserProcessor } from '../user';
 
 vi.mock('../../repository/organization/get-organization');
 vi.mock('../../lib/jira-client');
