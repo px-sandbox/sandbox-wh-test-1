@@ -96,7 +96,7 @@ async function processWebhookEvent(
       case Jira.Enums.Event.WorklogCreated:
       case Jira.Enums.Event.WorklogUpdated:
       case Jira.Enums.Event.WorklogDeleted:
-        await issue.createWorklog(body.worklog, eventName, eventTime, organization, requestId);
+        await issue.worklogHandler(body.worklog, eventName, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.IssueLinkCreated:
         logger.info({

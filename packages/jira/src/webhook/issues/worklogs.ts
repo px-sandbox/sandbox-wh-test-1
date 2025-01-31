@@ -13,7 +13,7 @@ import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 
-export async function createWorklog(
+export async function worklogHandler(
   worklog: Jira.ExternalType.Webhook.Worklog,
   eventName: string,
   eventTime: moment.Moment,
