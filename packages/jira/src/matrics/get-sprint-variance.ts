@@ -18,10 +18,13 @@ function getJiraLink(
 ): string {
   const baseUrl = `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=
   project = "${projectKey}" and sprint = ${sprintId}`;
-  const query = isOgEstimate ? 'AND OriginalEstimate IS EMPTY' : 'AND TimeSpent IS EMPTY';
+  const query = isOgEstimate
+    ? 'AND OriginalEstimate IS EMPTY'
+    : 'AND TimeSpent IS EMPTY AND OriginalEstimate != EMPTY';
   const orderBy = 'AND type != Test ORDER BY created DESC';
   return encodeURI(`${baseUrl} ${query} ${orderBy}`);
 }
+
 /**
  * Retrieves sprint hits based on the provided parameters.
  * @param limit - The maximum number of hits to retrieve.
@@ -270,8 +273,9 @@ export function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string
   for (const link of issueLinks) {
     const issueType =
       link.inwardIssue?.fields?.issuetype?.name || link.outwardIssue?.fields?.issuetype?.name;
+
     if (issueType === Jira.Enums.IssuesTypes.BUG) {
-      bugKeys.push(link.inwardIssue?.key); // Return the key if the issue type is "Bug"
+      bugKeys.push(link?.inwardIssue?.key ?? link?.outwardIssue?.key);
     }
   }
   return bugKeys; // Return null if no Bug type issue is found
