@@ -69,7 +69,7 @@ function createIssueSearchQuery(
  */
 function createSubtaskSearchQuery(
   projectId: string,
-  sprintId: string,
+  subtaskIds: string[],
   orgId: string
 ): RequestBodySearch {
   return esb
@@ -79,7 +79,7 @@ function createSubtaskSearchQuery(
         .boolQuery()
         .must([
           esb.termQuery('body.projectId', projectId),
-          esb.termQuery('body.sprintId', sprintId),
+          esb.termsQuery('body.issueId', subtaskIds),
           esb.termQuery('body.organizationId.keyword', orgId),
           esb.termQuery('body.issueType', 'Sub-task'),
           esb.rangeQuery('body.timeTracker.estimate').gt(0),
@@ -87,16 +87,13 @@ function createSubtaskSearchQuery(
         .must(esb.existsQuery('body.timeTracker'))
     )
     .sort(esb.sort('_id'))
-    .size(100)
+    .size(subtaskIds.length)
     .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.summary', 'body.issueType']);
 }
 
 async function getBugTimeForIssues(
   issueKeys: string[]
 ): Promise<[] | (Pick<Hit, '_id'> & HitBody)[]> {
-  // const issueKeys = getBugIssueLinksKeys(formattedIssues.issueLinks);
-
-  // sum aggregate the time spent on bugs for the given issueKeys
   const bugQuery = esb
     .requestBodySearch()
     .size(issueKeys.length)
@@ -129,15 +126,14 @@ const fetchIssueData = async (
   issues: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
   subtasks: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
 }> => {
+  let issues = [];
   const issueQuery = createIssueSearchQuery(projectId, sprintId, orgId);
-
   let unformattedIssues: Other.Type.HitBody = await esClientObj.search(
     Jira.Enums.IndexName.Issue,
     issueQuery.toJSON()
   );
   let formattedIssues = await searchedDataFormator(unformattedIssues);
 
-  const issues = [];
   issues.push(...formattedIssues);
 
   while (formattedIssues?.length > 0) {
@@ -147,24 +143,21 @@ const fetchIssueData = async (
     formattedIssues = await searchedDataFormator(unformattedIssues);
     issues.push(...formattedIssues);
   }
-  const subtaskQuery = createSubtaskSearchQuery(projectId, sprintId, orgId);
+  const subtaskKeys = issues.reduce((acc: string[], ele) => {
+    if (ele.subtasks) {
+      acc.push(...ele.subtasks.map((subtask: { id: string }) => subtask.id));
+    }
+    return acc;
+  }, []);
+
+  const subtaskQuery = createSubtaskSearchQuery(projectId, subtaskKeys, orgId);
 
   let unformattedSubtasks: Other.Type.HitBody = await esClientObj.search(
     Jira.Enums.IndexName.Issue,
     subtaskQuery.toJSON()
   );
 
-  let formattedSubtasks = await searchedDataFormator(unformattedSubtasks);
-
-  const subtasks = [];
-  subtasks.push(...formattedSubtasks);
-  while (formattedSubtasks.length > 0) {
-    const lastHit = unformattedSubtasks.hits.hits[unformattedSubtasks.hits.hits.length - 1];
-    const query = subtaskQuery.searchAfter([lastHit.sort[0]]).toJSON();
-    unformattedSubtasks = await esClientObj.search(Jira.Enums.IndexName.Issue, query);
-    formattedSubtasks = await searchedDataFormator(unformattedSubtasks);
-    subtasks.push(...formattedSubtasks);
-  }
+  let subtasks = await searchedDataFormator(unformattedSubtasks);
 
   return { issues, subtasks };
 };
