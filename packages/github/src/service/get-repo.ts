@@ -28,6 +28,7 @@ async function fetchReposData(
   if (repoIds.length > 0) {
     const repoNameQuery = esb
       .requestBodySearch()
+      .size(repoIds.length)
       .query(
         orgQuery
           .must([esb.termsQuery('body.id', repoIds), esb.termQuery('body.isDeleted', false)])
