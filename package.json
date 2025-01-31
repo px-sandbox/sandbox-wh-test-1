@@ -1,6 +1,6 @@
 {
   "name": "pulse-dx",
-  "version": "0.0.0",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -39,7 +39,6 @@
     "validate-branch-name": "^1.3.0"
   },
   "dependencies": {
-    
     "aws-cdk-lib": "2.95.1",
     "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1444.0",
