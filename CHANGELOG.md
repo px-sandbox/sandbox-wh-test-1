@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.3](https://github.com/studiographene/pulse-data-integration/compare/v1.0.2...v1.0.3) (2025-01-31)
+
+
+### Bug Fixes
+
+* **PX-2275:** quick fix for the subtask not computing with the parent tickets ([13249b6](https://github.com/studiographene/pulse-data-integration/commit/13249b673e510e9ed86528ec6b84f7e477356ece))
+* **PX-2275:** quick fix for the subtask not computing with the parent… ([#981](https://github.com/studiographene/pulse-data-integration/issues/981)) ([cfb03bc](https://github.com/studiographene/pulse-data-integration/commit/cfb03bc65d7e3bf7784d98c52f697d937ef6451a))
+
 ## [1.0.2](https://github.com/studiographene/pulse-data-integration/compare/v1.0.1...v1.0.2) (2025-01-30)
 
 
