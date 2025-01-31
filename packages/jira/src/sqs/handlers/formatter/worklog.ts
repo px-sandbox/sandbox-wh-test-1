@@ -26,16 +26,19 @@ export const handler = async function worklogFormattedDataReciever(event: SQSEve
           message: 'WORKLOG_SQS_RECIEVER_HANDLER',
           data: { messageBody },
         });
+        let formattedData: Jira.Type.Worklog;
         switch (messageBody.eventName) {
           case Jira.Enums.Event.WorklogCreated:
             const processedData = await saveFormattedData(messageBody);
             await saveWorklogDetails(processedData, { requestId, resourceId }, messageBody.processId);
             break;
           case Jira.Enums.Event.WorklogUpdated:
-            const formattedData = await updateFormattedData(messageBody, requestId, resourceId);
+            formattedData = await updateFormattedData(messageBody, requestId, resourceId);
             await updateWorklogDetails(formattedData, { requestId, resourceId });
             break;
           case Jira.Enums.Event.WorklogDeleted:
+            formattedData = await deleteFormattedData(messageBody, requestId, resourceId);
+            await updateWorklogDetails(formattedData, { requestId, resourceId });
             break;
           default:
             logger.error({
@@ -75,7 +78,7 @@ async function saveFormattedData(data: Jira.ExternalType.Webhook.Worklog): Promi
       category: null,
       date: data?.started,
       createdAt: data?.created,
-      isDeleted: data?.isDeleted ?? false,
+      isDeleted: false,
       organizationId: orgData.id ?? null,
     },
   };
@@ -115,9 +118,47 @@ async function updateFormattedData(data: Jira.ExternalType.Webhook.Worklog, requ
       timeLogged: data?.timeSpentSeconds,
       date: data?.started,
       createdAt: data?.createdDate,
-      isDeleted: data?.issueData?.isDeleted ?? false,
+      isDeleted: false,
       organizationId: orgData.id ?? null,
     },
   };
   return formattedData;
 }
+
+async function deleteFormattedData(data: Jira.ExternalType.Webhook.Worklog, requestId: string, resourceId: string): Promise<Jira.Type.Worklog> {
+  const orgData = await getOrganization(data.organization);
+  if (!orgData) {
+    logger.error({
+      requestId: requestId,
+      resourceId: resourceId,
+      message: `Organization ${data.organization} not found`,
+    });
+    throw new Error(`Organization ${data.organization} not found`);
+  }
+  const reqCtx = { requestId: requestId, resourceId: resourceId };
+  const worklogData = await getWorklogById(data.id, data.organization, reqCtx);
+  if (!worklogData) {
+    logger.error({
+      requestId: requestId,
+      resourceId: resourceId,
+      message: `WorklogID ${data.id} not found`,
+    });
+    throw new Error(`WorklogID ${data.id} not found`);
+  }
+  logger.info({
+    requestId: requestId,
+    resourceId: resourceId,
+    message: 'GET_WORKLOG_DATA',
+    data: { worklogData },
+  });
+  const formattedData = {
+    id: `${mappingPrefixes.worklog}_${data?.id}`,
+    body: {
+      id: `${mappingPrefixes.worklog}_${data?.id}`,
+      isDeleted: true,
+      organizationId: orgData.id ?? null,
+    },
+  };
+  return formattedData;
+}
+

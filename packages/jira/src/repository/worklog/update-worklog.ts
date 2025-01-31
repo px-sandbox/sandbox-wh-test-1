@@ -47,14 +47,24 @@ export async function updateWorklogDetails(
         if (formattedData) {
             updatedData.id = formattedData._id;
         }
-        await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, formattedData._id, {
-            body: {
-                timeLogged: data.body.timeLogged,
-                date: data.body.date,
-                createdAt: data.body.createdAt,
-            },
-        });
-        logger.info({ requestId, resourceId, message: 'updateWorklogDetails.successful' });
+        if (data.body.isDeleted) {
+            await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, formattedData._id, {
+                body: {
+                    isDeleted: data.body.isDeleted,
+                },
+            });
+            logger.info({ requestId, resourceId, message: 'deleteWorklogDetails.successful' });
+        }
+        if (data.body.isDeleted === false) {
+            await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, formattedData._id, {
+                body: {
+                    timeLogged: data.body.timeLogged,
+                    date: data.body.date,
+                    createdAt: data.body.createdAt,
+                },
+            });
+            logger.info({ requestId, resourceId, message: 'updateWorklogDetails.successful' });
+        }
         await deleteProcessfromDdb(processId, reqCtx);
     } catch (error: unknown) {
         logger.error({
