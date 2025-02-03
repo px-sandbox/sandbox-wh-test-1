@@ -10,6 +10,7 @@ import { saveProjectDetails } from '../../repository/project/save-project';
 import { saveSprintDetails } from '../../repository/sprint/save-sprint';
 import { saveUserDetails } from '../../repository/user/save-user';
 import { saveReOpenRate } from '../../repository/issue/save-reopen-rate';
+import { saveWorklogDetails } from '../../repository/worklog/save-worklog';
 
 export const handler = async function jiraIndexDataReciever(event: SQSEvent): Promise<void> {
   logger.info({ message: `Records Length: ${event.Records.length}` });
@@ -50,6 +51,9 @@ export const handler = async function jiraIndexDataReciever(event: SQSEvent): Pr
             break;
           case Jira.Enums.IndexName.ReopenRate:
             await saveReOpenRate(messageBody, { requestId, resourceId }, processId);
+            break;
+          case Jira.Enums.IndexName.Worklog:
+            await saveWorklogDetails(messageBody, { requestId, resourceId }, processId);
             break;
           default:
             logger.error({

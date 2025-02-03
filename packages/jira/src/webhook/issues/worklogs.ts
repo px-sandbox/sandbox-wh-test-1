@@ -5,16 +5,17 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
-import { v4 as uuid } from 'uuid';
-import { formatIssue } from '../../util/issue-helper';
+import moment from 'moment';
 import { searchedDataFormator } from '../../util/response-formatter';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
+import { v4 as uuid } from 'uuid';
+import { formatIssue } from '../../util/issue-helper';
 
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 
-async function fetchJiraIssues(
+export async function fetchJiraIssues(
   issueId: string,
   orgId: string,
   requestId: string
@@ -52,8 +53,10 @@ async function fetchJiraIssues(
 }
 
 export async function worklog(
+  worklog: Jira.ExternalType.Webhook.Worklog,
   issueId: string,
   eventName: string,
+  eventTime: moment.Moment,
   organization: string,
   requestId: string
 ): Promise<void> {
@@ -64,6 +67,11 @@ export async function worklog(
     }
     const issueData = await fetchJiraIssues(issueId, orgId.id, requestId);
     if (!issueData) {
+      logger.error({
+        requestId,
+        resourceId: worklog.id,
+        message: `worklog.no_issue_found: ${organization}, issueId: ${worklog.issueId}`
+      });
       throw new Error(`worklog.no_issue_found: ${organization}, issueId: ${issueId}`);
     }
 
@@ -81,24 +89,39 @@ export async function worklog(
       logger.info({ message: 'processWorklogEvent: Project not available in our system' });
       return;
     }
+    const createdDate = moment(eventTime).toISOString();
+    logger.info({ requestId, resourceId: worklog.id, ...worklog, message: 'worklog.prepared_data' });
 
     const issue = formatIssue(issueData);
 
-    await sqsClient.sendFifoMessage(
-      {
-        organization,
-        projectId: issueData.projectId,
-        boardId: issueData.boardId,
-        sprintId: issueData.sprintId,
-        issue,
-        eventName,
-      },
-      Queue.qIssueFormat.queueUrl,
-      { requestId, resourceId: issueId },
-      issue.key,
-      uuid()
-    );
-    logger.info({ requestId, resourceId: issueId, message: 'worklog.success' });
+    await Promise.all([
+      sqsClient.sendFifoMessage(
+        {
+          organization,
+          projectId: issueData.projectId,
+          boardId: issueData.boardId,
+          sprintId: issueData.sprintId,
+          issue,
+          eventName,
+        },
+        Queue.qIssueFormat.queueUrl,
+        { requestId, resourceId: issueId },
+        issue.key,
+        uuid()
+      ),
+      sqsClient.sendMessage(
+        {
+          ...worklog,
+          eventName,
+          issueData: issueData,
+          createdDate,
+          organization,
+        },
+        Queue.qWorklogFormat.queueUrl,
+        { requestId, resourceId: worklog.id }
+      ),
+    ]);
+    logger.info({ requestId, resourceId: worklog.id, message: 'worklog.success' });
   } catch (error) {
     logger.error({ requestId, resourceId: issueId, message: 'worklog.error', error });
     throw error;
