@@ -152,12 +152,12 @@ const indices = [
             id: { type: 'keyword' },
             issueId: { type: 'keyword' },
             issueKey: { type: 'keyword' },
-            containsDevRca:{type:'keyword'},
-            containsQARca:{type:'keyword'},
-            rcaData:{
-              properties:{
-                devRca:{type:'keyword'},
-                qaRca:{type:'keyword'}
+            containsDevRca: { type: 'keyword' },
+            containsQARca: { type: 'keyword' },
+            rcaData: {
+              properties: {
+                devRca: { type: 'keyword' },
+                qaRca: { type: 'keyword' }
               }
             },
             projectKey: { type: 'keyword' },
@@ -307,16 +307,16 @@ const indices = [
   },
 
   {
-    name:Jira.Enums.IndexName.Rca,
-    _id: {type:'uuid'},
-    mappings:{
-      properties:{
-        body:{
-          type:'object',
-          properties:{
-            id:{type:'keyword'},
-            name:{type:'keyword'},
-            type:{type:'keyword'},
+    name: Jira.Enums.IndexName.Rca,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'keyword' },
+            name: { type: 'keyword' },
+            type: { type: 'keyword' },
           }
         }
       }
@@ -455,6 +455,9 @@ const indices = [
             date: { type: 'date' },
             createdAt: { type: 'date', format: 'strict_date_optional_time' },
             isDeleted: { type: 'boolean' },
+            sprintId: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
           },
         },
       },
