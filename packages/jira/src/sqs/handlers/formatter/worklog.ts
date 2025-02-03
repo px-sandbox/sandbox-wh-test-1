@@ -25,19 +25,23 @@ export const handler = async function worklogFormattedDataReciever(event: SQSEve
           message: 'WORKLOG_SQS_RECIEVER_HANDLER',
           data: { messageBody },
         });
-        let formattedData: Jira.Type.Worklog;
         switch (messageBody.eventName) {
           case Jira.Enums.Event.WorklogCreated:
             const processedData = await saveFormattedData(messageBody);
-            await saveWorklogDetails(processedData, { requestId, resourceId }, messageBody.processId);
+            await saveWorklogDetails(processedData);
             break;
           case Jira.Enums.Event.WorklogUpdated:
-            formattedData = await updateFormattedData(messageBody);
-            await updateWorklogDetails(formattedData, { requestId, resourceId });
-            break;
           case Jira.Enums.Event.WorklogDeleted:
-            formattedData = await deleteFormattedData(messageBody);
-            await updateWorklogDetails(formattedData, { requestId, resourceId });
+            const updatedData = {
+              id: `${mappingPrefixes.worklog}_${messageBody?.id}`,
+              body: {
+                timeLogged: messageBody?.timeSpentSeconds,
+                date: messageBody?.started,
+                isDeleted: messageBody.eventName === Jira.Enums.Event.WorklogDeleted,
+                deletedAt: messageBody.eventName === Jira.Enums.Event.WorklogDeleted ? new Date().toISOString() : undefined,
+              },
+            };
+            await updateWorklogDetails(updatedData);
             break;
           default:
             logger.error({
@@ -80,30 +84,8 @@ async function saveFormattedData(data: Jira.ExternalType.Webhook.Worklog): Promi
       createdAt: data?.created,
       isDeleted: false,
       organizationId: orgData.id ?? null,
+      sprintId: data?.issueData.sprintId,
     },
   };
   return formattedData;
 }
-
-async function updateFormattedData(data: Jira.ExternalType.Webhook.Worklog): Promise<Jira.Type.Worklog> {
-  const formattedData = {
-    id: `${mappingPrefixes.worklog}_${data?.id}`,
-    body: {
-      timeLogged: data?.timeSpentSeconds,
-      date: data?.started,
-    },
-  };
-  return formattedData;
-}
-
-async function deleteFormattedData(data: Jira.ExternalType.Webhook.Worklog): Promise<Jira.Type.Worklog> {
-  const formattedData = {
-    id: `${mappingPrefixes.worklog}_${data?.id}`,
-    body: {
-      isDeleted: true,
-      deletedAt: new Date().toISOString(),
-    },
-  };
-  return formattedData;
-}
-

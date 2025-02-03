@@ -1,9 +1,6 @@
-import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Jira, Other } from 'abstraction';
+import { Jira } from 'abstraction';
 import { logger } from 'core';
-import { deleteProcessfromDdb } from 'rp';
-import { searchedDataFormator } from '../../util/response-formatter';
 
 /**
  * Saves the details of a Jira worklog to DynamoDB and Elasticsearch.
@@ -16,34 +13,15 @@ const esClientObj = ElasticSearchClient.getInstance();
 
 export async function updateWorklogDetails(
     data: Jira.Type.Worklog,
-    reqCtx: Other.Type.RequestCtx,
-    processId?: string
 ): Promise<void> {
-    const { requestId, resourceId } = reqCtx;
     try {
         const worklogId = data.id;
-        if (data.body.isDeleted) {
-            await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, worklogId, {
-                body: {
-                    isDeleted: data.body.isDeleted,
-                    deletedAt: data.body.deletedAt,
-                },
-            });
-            logger.info({ requestId, resourceId, message: 'deleteWorklogDetails.successful' });
-        }
-        else {
-            await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, worklogId, {
-                body: {
-                    timeLogged: data.body.timeLogged,
-                    date: data.body.date,
-                },
-            });
-            logger.info({ requestId, resourceId, message: 'updateWorklogDetails.successful' });
-        }
+        await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, worklogId, {
+            body: data.body
+        });
+        logger.info({ data, message: 'updateWorklogDetails.successful' });
     } catch (error: unknown) {
         logger.error({
-            requestId,
-            resourceId,
             data,
             message: 'updateWorklogDetails.error',
             error,

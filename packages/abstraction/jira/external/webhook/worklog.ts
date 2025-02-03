@@ -23,5 +23,6 @@ export type Worklog = {
     issueKey: string,
     issueType: string,
     isDeleted: boolean,
+    sprintId: string,
   }
 };
