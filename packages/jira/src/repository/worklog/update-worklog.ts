@@ -21,51 +21,25 @@ export async function updateWorklogDetails(
 ): Promise<void> {
     const { requestId, resourceId } = reqCtx;
     try {
-        const updatedData = { ...data };
-        const worklogId = `${data.body.id}`;
-        const matchQry = esb
-            .requestBodySearch()
-            .query(
-                esb
-                    .boolQuery()
-                    .must([
-                        esb.termsQuery('body.id', worklogId),
-                        esb.termQuery('body.organizationId.keyword', data.body.organizationId),
-                    ])
-            )
-            .toJSON();
-        const worklogData = await esClientObj.search(Jira.Enums.IndexName.Worklog, matchQry);
-        const [formattedData] = await searchedDataFormator(worklogData);
-        if (!formattedData || !formattedData._id) {
-            logger.error({
-                requestId,
-                resourceId,
-                data,
-                message: 'updateWorklogDetails.error - No matching worklog found in Elasticsearch',
-            });
-        }
-        if (formattedData) {
-            updatedData.id = formattedData._id;
-        }
+        const worklogId = data.id;
         if (data.body.isDeleted) {
-            await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, formattedData._id, {
+            await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, worklogId, {
                 body: {
                     isDeleted: data.body.isDeleted,
+                    deletedAt: data.body.deletedAt,
                 },
             });
             logger.info({ requestId, resourceId, message: 'deleteWorklogDetails.successful' });
         }
-        if (data.body.isDeleted === false) {
-            await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, formattedData._id, {
+        else {
+            await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, worklogId, {
                 body: {
                     timeLogged: data.body.timeLogged,
                     date: data.body.date,
-                    createdAt: data.body.createdAt,
                 },
             });
             logger.info({ requestId, resourceId, message: 'updateWorklogDetails.successful' });
         }
-        await deleteProcessfromDdb(processId, reqCtx);
     } catch (error: unknown) {
         logger.error({
             requestId,
