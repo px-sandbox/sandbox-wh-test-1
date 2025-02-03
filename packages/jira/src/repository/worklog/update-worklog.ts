@@ -21,7 +21,7 @@ export async function updateWorklogDetails(
 ): Promise<void> {
     const { requestId, resourceId } = reqCtx;
     try {
-        const worklogId = `${data.body.id}`;
+        const worklogId = data.body.id;
         await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, worklogId, {
             body: {
                 timeLogged: data.body.timeLogged,
