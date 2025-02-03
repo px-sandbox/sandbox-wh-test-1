@@ -7,7 +7,7 @@ import { saveWorklogDetails } from '../../../repository/worklog/save-worklog';
 import { Jira } from 'abstraction';
 import { mappingPrefixes } from 'src/constant/config';
 import { getOrganization } from 'src/repository/organization/get-organization';
-import { updateWorklogDetails } from 'src/repository/worklog/update-worklog';
+import { deleteWorklogDetails, updateWorklogDetails } from 'src/repository/worklog/update-worklog';
 
 export const handler = async function worklogFormattedDataReciever(event: SQSEvent): Promise<void> {
   logger.info({ message: `Records Length: ${event.Records.length}` });
@@ -31,17 +31,10 @@ export const handler = async function worklogFormattedDataReciever(event: SQSEve
             await saveWorklogDetails(processedData);
             break;
           case Jira.Enums.Event.WorklogUpdated:
+            await updateWorklogDetails(`${mappingPrefixes.worklog}_${messageBody?.id}`, messageBody?.timeSpentSeconds, messageBody?.started);
+            break;
           case Jira.Enums.Event.WorklogDeleted:
-            const updatedData = {
-              id: `${mappingPrefixes.worklog}_${messageBody?.id}`,
-              body: {
-                timeLogged: messageBody?.timeSpentSeconds,
-                date: messageBody?.started,
-                isDeleted: messageBody.eventName === Jira.Enums.Event.WorklogDeleted,
-                deletedAt: messageBody.eventName === Jira.Enums.Event.WorklogDeleted ? new Date().toISOString() : undefined,
-              },
-            };
-            await updateWorklogDetails(updatedData);
+            await deleteWorklogDetails(`${mappingPrefixes.worklog}_${messageBody?.id}`);
             break;
           default:
             logger.error({
