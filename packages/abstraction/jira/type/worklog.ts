@@ -11,6 +11,7 @@ export interface Worklog {
     timeLogged?: number; // Time logged in milliseconds (long type)
     organizationId?: string; // Unique identifier for the organization
     deletedAt?: string; // Date and time when the worklog was deleted
+    sprintId?: string; // Unique identifier for the sprint
   };
 }  
 
