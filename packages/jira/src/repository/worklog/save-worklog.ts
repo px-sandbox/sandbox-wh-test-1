@@ -41,7 +41,6 @@ export async function saveWorklogDetails(
         }
         await esClientObj.putDocument(Jira.Enums.IndexName.Worklog, updatedData);
         logger.info({ requestId, resourceId, message: 'saveWorklogDetails.successful' });
-        await deleteProcessfromDdb(processId, reqCtx);
     } catch (error: unknown) {
         logger.error({ requestId, resourceId, message: 'saveWorklogDetails.error', error });
         throw error;

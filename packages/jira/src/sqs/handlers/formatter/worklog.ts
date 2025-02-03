@@ -1,13 +1,12 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import _ from 'lodash';
-import { logProcessToRetry } from 'rp';
+import { deleteProcessfromDdb, logProcessToRetry } from 'rp';
 import { Queue } from 'sst/node/queue';
 import { saveWorklogDetails } from '../../../repository/worklog/save-worklog';
 import { Jira } from 'abstraction';
 import { mappingPrefixes } from 'src/constant/config';
 import { getOrganization } from 'src/repository/organization/get-organization';
-import { getWorklogById } from 'src/repository/worklog/get-worklog';
 import { updateWorklogDetails } from 'src/repository/worklog/update-worklog';
 
 export const handler = async function worklogFormattedDataReciever(event: SQSEvent): Promise<void> {
@@ -26,16 +25,19 @@ export const handler = async function worklogFormattedDataReciever(event: SQSEve
           message: 'WORKLOG_SQS_RECIEVER_HANDLER',
           data: { messageBody },
         });
+        let formattedData: Jira.Type.Worklog;
         switch (messageBody.eventName) {
           case Jira.Enums.Event.WorklogCreated:
             const processedData = await saveFormattedData(messageBody);
             await saveWorklogDetails(processedData, { requestId, resourceId }, messageBody.processId);
             break;
           case Jira.Enums.Event.WorklogUpdated:
-            const formattedData = await updateFormattedData(messageBody);
+            formattedData = await updateFormattedData(messageBody);
             await updateWorklogDetails(formattedData, { requestId, resourceId });
             break;
           case Jira.Enums.Event.WorklogDeleted:
+            formattedData = await deleteFormattedData(messageBody);
+            await updateWorklogDetails(formattedData, { requestId, resourceId });
             break;
           default:
             logger.error({
@@ -44,6 +46,7 @@ export const handler = async function worklogFormattedDataReciever(event: SQSEve
               message: 'worklogFormattedDataReceiver.no_case_found',
             });
         }
+        await deleteProcessfromDdb(messageBody.processId, { requestId, resourceId });
       } catch (error) {
         await logProcessToRetry(record, Queue.qWorklogFormat.queueUrl, error as Error);
         logger.error({
@@ -75,7 +78,7 @@ async function saveFormattedData(data: Jira.ExternalType.Webhook.Worklog): Promi
       category: null,
       date: data?.started,
       createdAt: data?.created,
-      isDeleted: data?.isDeleted ?? false,
+      isDeleted: false,
       organizationId: orgData.id ?? null,
     },
   };
@@ -84,11 +87,23 @@ async function saveFormattedData(data: Jira.ExternalType.Webhook.Worklog): Promi
 
 async function updateFormattedData(data: Jira.ExternalType.Webhook.Worklog): Promise<Jira.Type.Worklog> {
   const formattedData = {
+    id: `${mappingPrefixes.worklog}_${data?.id}`,
     body: {
-      id: `${mappingPrefixes.worklog}_${data?.id}`,
       timeLogged: data?.timeSpentSeconds,
       date: data?.started,
     },
   };
   return formattedData;
 }
+
+async function deleteFormattedData(data: Jira.ExternalType.Webhook.Worklog): Promise<Jira.Type.Worklog> {
+  const formattedData = {
+    id: `${mappingPrefixes.worklog}_${data?.id}`,
+    body: {
+      isDeleted: true,
+      deletedAt: new Date().toISOString(),
+    },
+  };
+  return formattedData;
+}
+

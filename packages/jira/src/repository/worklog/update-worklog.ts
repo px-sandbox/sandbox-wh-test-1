@@ -21,15 +21,25 @@ export async function updateWorklogDetails(
 ): Promise<void> {
     const { requestId, resourceId } = reqCtx;
     try {
-        const worklogId = data.body.id;
-        await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, worklogId, {
-            body: {
-                timeLogged: data.body.timeLogged,
-                date: data.body.date,
-            },
-        });
-        logger.info({ requestId, resourceId, message: 'updateWorklogDetails.successful' });
-        await deleteProcessfromDdb(processId, reqCtx);
+        const worklogId = data.id;
+        if (data.body.isDeleted) {
+            await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, worklogId, {
+                body: {
+                    isDeleted: data.body.isDeleted,
+                    deletedAt: data.body.deletedAt,
+                },
+            });
+            logger.info({ requestId, resourceId, message: 'deleteWorklogDetails.successful' });
+        }
+        else {
+            await esClientObj.updateDocument(Jira.Enums.IndexName.Worklog, worklogId, {
+                body: {
+                    timeLogged: data.body.timeLogged,
+                    date: data.body.date,
+                },
+            });
+            logger.info({ requestId, resourceId, message: 'updateWorklogDetails.successful' });
+        }
     } catch (error: unknown) {
         logger.error({
             requestId,
