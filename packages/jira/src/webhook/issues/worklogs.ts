@@ -94,28 +94,33 @@ export async function worklog(
 
     const issue = formatIssue(issueData);
 
-    await sqsClient.sendFifoMessage(
-      {
-        organization,
-        projectId: issueData.projectId,
-        boardId: issueData.boardId,
-        sprintId: issueData.sprintId,
-        issue,
-        eventName,
-      },
-      Queue.qIssueFormat.queueUrl,
-      { requestId, resourceId: issueId },
-      issue.key,
-      uuid()
-    );
-    await sqsClient.sendMessage(
-      {
-        ...worklog,
-        eventName,
-        issueData: issueData,
-        createdDate,
-        organization,
-      }, Queue.qWorklogFormat.queueUrl, { requestId, resourceId: worklog.id });
+    await Promise.all([
+      sqsClient.sendFifoMessage(
+        {
+          organization,
+          projectId: issueData.projectId,
+          boardId: issueData.boardId,
+          sprintId: issueData.sprintId,
+          issue,
+          eventName,
+        },
+        Queue.qIssueFormat.queueUrl,
+        { requestId, resourceId: issueId },
+        issue.key,
+        uuid()
+      ),
+      sqsClient.sendMessage(
+        {
+          ...worklog,
+          eventName,
+          issueData: issueData,
+          createdDate,
+          organization,
+        },
+        Queue.qWorklogFormat.queueUrl,
+        { requestId, resourceId: worklog.id }
+      ),
+    ]);
     logger.info({ requestId, resourceId: worklog.id, message: 'worklog.success' });
   } catch (error) {
     logger.error({ requestId, resourceId: issueId, message: 'worklog.error', error });
