@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.0](https://github.com/studiographene/pulse-data-integration/compare/v1.0.3...v1.1.0) (2025-02-03)
+
+
+### Features
+
+* **feature/PX-2168:** sprintId added in worklogs ([cdd4aa2](https://github.com/studiographene/pulse-data-integration/commit/cdd4aa299389ab52c309c3d8cb0eaaa469fd51fe))
+* **feature/PX-2168:** suggested changes done ([b9164fc](https://github.com/studiographene/pulse-data-integration/commit/b9164fc61b145974b83107117523494ada8f71ab))
+* **feature/PX-2168:** suggested changes done ([4c3309f](https://github.com/studiographene/pulse-data-integration/commit/4c3309f62451bcd3c39105f54b2a858a5c8a9fa8))
+* **feature/PX-2168:** suggested changes done ([740cffa](https://github.com/studiographene/pulse-data-integration/commit/740cffaf283dadadb78b8a930c5583c8dbd0be23))
+* **feature/PX-2168:** suggested changes done ([15a4fca](https://github.com/studiographene/pulse-data-integration/commit/15a4fcae81b98feb91bd96a581d7247e00467b21))
+* **feature/PX-2168:** worklog handler name changed ([fe3b236](https://github.com/studiographene/pulse-data-integration/commit/fe3b2369c96fd6c2c8e58a5ee5bf60afa95d8cd0))
+* **feature/PX-2170:** conflicts resolved with updated changes ([b1eb424](https://github.com/studiographene/pulse-data-integration/commit/b1eb42482667a69d10567c9b0d1973352bce6adc))
+* **feature/PX-2170:** delete worklog webhook handled ([b97d74e](https://github.com/studiographene/pulse-data-integration/commit/b97d74e8091df2510781c279a7e9133a2f62def0))
+* **feature/PX-2170:** delete worklog webhook handled ([#983](https://github.com/studiographene/pulse-data-integration/issues/983)) ([5938592](https://github.com/studiographene/pulse-data-integration/commit/593859211cebade1186f4900c74a52a6fb802ad9))
+* **feature/PX-2170:** sprintId added in jira worklog type ([354d08d](https://github.com/studiographene/pulse-data-integration/commit/354d08d5c9903fb1be426b125dd0e222e40e654a))
+* **feature/PX-2283:** sprintId and other keys added in worklog index ([6719888](https://github.com/studiographene/pulse-data-integration/commit/671988808014490f249115c12e49cbd78872f396))
+* **feature/PX-2283:** sprintId and other keys added in worklog index ([#984](https://github.com/studiographene/pulse-data-integration/issues/984)) ([558d298](https://github.com/studiographene/pulse-data-integration/commit/558d298f2f131acaa81220d4ffd3d035e12275e9))
+
 ## [1.0.3](https://github.com/studiographene/pulse-data-integration/compare/v1.0.2...v1.0.3) (2025-01-31)
 
 
