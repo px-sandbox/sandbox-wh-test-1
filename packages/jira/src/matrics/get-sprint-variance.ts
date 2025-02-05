@@ -58,9 +58,9 @@ async function sprintHitsResponse(
           sprintState
             ? esb.termQuery('body.state', sprintState)
             : esb.termsQuery('body.state', [
-                Jira.Enums.SprintState.CLOSED,
-                Jira.Enums.SprintState.ACTIVE,
-              ]),
+              Jira.Enums.SprintState.CLOSED,
+              Jira.Enums.SprintState.ACTIVE,
+            ]),
         ])
     )
     .sort(esb.sort('body.startDate', 'desc'))
@@ -432,10 +432,10 @@ export async function sprintVarianceGraph(
  * @param dateRangeQueries - An array of date range queries.
  * @returns The search query for retrieving sprints.
  */
-function createSprintQuery(
+export function createSprintQuery(
   projectId: string,
   dateRangeQueries: esb.RangeQuery[],
-  sprintState: Jira.Enums.SprintState
+  sprintState?: Jira.Enums.SprintState
 ): RequestBodySearch {
   return esb
     .requestBodySearch()
@@ -452,9 +452,9 @@ function createSprintQuery(
               sprintState
                 ? esb.termQuery('body.state', sprintState)
                 : esb.termsQuery('body.state', [
-                    Jira.Enums.SprintState.CLOSED,
-                    Jira.Enums.SprintState.ACTIVE,
-                  ])
+                  Jira.Enums.SprintState.CLOSED,
+                  Jira.Enums.SprintState.ACTIVE,
+                ])
             ),
         ])
     )
@@ -539,7 +539,7 @@ export async function sprintVarianceGraphAvg(
       (ftpRateGraph.estimatedTime.value === 0
         ? 0
         : ((ftpRateGraph.actualTime.value - ftpRateGraph.estimatedTime.value) * 100) /
-          ftpRateGraph.estimatedTime.value
+        ftpRateGraph.estimatedTime.value
       ).toFixed(2)
     );
   } catch (e) {
