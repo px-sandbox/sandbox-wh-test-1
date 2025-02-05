@@ -21,7 +21,6 @@ const timeSpent = async function timeSpent(
                 resourceId: projectId,
             },
         );
-
         return responseParser
             .setBody({
                 totalTime,

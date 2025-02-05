@@ -20,7 +20,6 @@ async function totalTimeSpent(
         .query(esb.boolQuery().must([esb.termsQuery('body.sprintId', sprintIdsArr)]))
         .toJSON();
     logger.info({ ...reqCtx, message: 'totalTimeSpent for sprints', data: { query } });
-
     return esClientObj.queryAggs(Jira.Enums.IndexName.Worklog, query);
 }
 
@@ -34,7 +33,6 @@ export async function getTotalTimeSpent(
     try {
         const dateRangeQueries = getDateRangeQueries(startDate, endDate);
         const sprintQuery = createSprintQuery(projectId, dateRangeQueries);
-
         let sprintIds = [];
         let lastHit;
         do {
