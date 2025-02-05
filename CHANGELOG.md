@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.0](https://github.com/studiographene/pulse-data-integration/compare/v1.1.0...v1.2.0) (2025-02-05)
+
+
+### Features
+
+* **feature/PX-2174:** file name changed ([227a5bc](https://github.com/studiographene/pulse-data-integration/commit/227a5bc6864ef73fbef863784f4e8cb772d949c4))
+* **feature/PX-2174:** headline API created ([ef95eda](https://github.com/studiographene/pulse-data-integration/commit/ef95eda1541840dc81cf3f394256b027d3d43d1a))
+* **feature/PX-2174:** headline API created ([3dfb029](https://github.com/studiographene/pulse-data-integration/commit/3dfb02986f970d3c3cc241166fdff56d52c5c0a0))
+
 ## [1.1.0](https://github.com/studiographene/pulse-data-integration/compare/v1.0.3...v1.1.0) (2025-02-03)
 
 
