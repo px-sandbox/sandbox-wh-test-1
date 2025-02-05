@@ -16,5 +16,11 @@ export function initializeRoutes(): Record<string, ApiRouteProps<'universal'>> {
       },
       authorizer: 'universal',
     },
+
+    'GET /jira/time-spent/headlines': {
+      function: 'packages/jira/src/service/time-spent-headline.handler',
+      authorizer: 'universal',
+    },
+
   };
 }
