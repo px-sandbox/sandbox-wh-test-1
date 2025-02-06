@@ -22,5 +22,10 @@ export function initializeRoutes(): Record<string, ApiRouteProps<'universal'>> {
       authorizer: 'universal',
     },
 
+    'GET /jira/time-spent/table': { 
+      function: 'packages/jira/src/service/time-spent-table.handler',
+      authorizer: 'universal',
+    },
+
   };
 }
