@@ -3,7 +3,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import { getTimeSpentTabularData } from 'src/matrics/get-timespent-tabular-view';
 
-const timeSpent = async function timeSpent(
+const timeSpent = async function handler(
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
     const requestId = event?.requestContext?.requestId;
