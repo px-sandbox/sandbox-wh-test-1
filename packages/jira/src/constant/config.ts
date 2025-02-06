@@ -15,4 +15,4 @@ export const mappingPrefixes = {
 
 export const ALLOWED_ISSUE_TYPES = ['Epic', 'Story', 'Task', 'Bug', 'Sub-task'];
 
-export const ALLOWED_TIME_SPENT_CATEGORIES = ['Development', 'QA', 'Bugs', 'Meetings'];
+export const ALLOWED_TIME_SPENT_CATEGORIES = ['Development', 'QA', 'Bugs', 'Meetings', 'Others'];

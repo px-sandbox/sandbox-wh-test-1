@@ -43,26 +43,15 @@ async function processCategorizedTimeSpent(
     reqCtx: Other.Type.RequestCtx
 ) {
     const response = await categorizedTimeSpent(sprintIdsArr, reqCtx);
-    logger.info({ ...reqCtx, message: 'Raw response from categorizedTimeSpent', data: response });
     const sprintBuckets = response.sprint_aggregation.buckets;
-    return sprintBuckets.map((sprintBucket) => {
+    const formattedData = sprintBuckets.map((sprintBucket) => {
         const sprintId = sprintBucket.key;
         const categoryData = sprintBucket.category_names.buckets.reduce((acc: any, category: any) => {
-            const categoryKey = category.key.trim().toLowerCase();
-            if (ALLOWED_TIME_SPENT_CATEGORIES.map(cat => cat.toLowerCase()).includes(categoryKey)) {
-                acc[category.key] = category.total_time.value;
-            } else {
-                if (!acc.Others) {
-                    acc.Others = 0;
-                }
-                acc.Others += category.total_time.value;
-            }
+            const categoryKey = category.key.trim();
+            acc[categoryKey] = category.total_time.value || 0;
             return acc;
         }, {});
-        // Ensure "Others" is included with 0 if no time is logged
-        if (!categoryData.hasOwnProperty('Others')) {
-            categoryData.Others = 0;
-        }
+        // Ensure missing categories are set to 0
         ALLOWED_TIME_SPENT_CATEGORIES.forEach(category => {
             if (!categoryData.hasOwnProperty(category)) {
                 categoryData[category] = 0;
@@ -70,10 +59,10 @@ async function processCategorizedTimeSpent(
         });
         return {
             sprintId,
-            totalEntries: sprintBucket.doc_count,
             ...categoryData,
         };
     });
+    return formattedData;
 }
 
 
@@ -94,32 +83,27 @@ export async function getTimeSpentTabularData(
             dateRangeQueries,
             reqCtx,
         );
-        const sprintData = sprintHits.map(item => ({
-            id: item.id,
-            sprintId: item.sprintId,
-            name: item.name,
-            status: item.state,
-            startDate: item.startDate,
-            endDate: item.endDate,
-        }));
-
-        const sprintIds = sprintHits.map(item => item.id);
+        const sprintData: any = [];
+        const sprintIds: any = [];
+        // Collect sprint data and sprint IDs
+        sprintHits.forEach((item: Other.Type.HitBody) => {
+            sprintData.push({
+                id: item.id,
+                sprintId: item.sprintId,
+                name: item.name,
+                status: item.state,
+                startDate: item.startDate,
+                endDate: item.endDate,
+            });
+            sprintIds.push(item.id);
+        });
         const categorizedData = await processCategorizedTimeSpent(sprintIds, reqCtx);
-        const mergedData = sprintData.map(sprintItem => {
-            const categorized: Record<string, number> = categorizedData.find(item => item.sprintId === sprintItem.id) || {};
-            // Ensure "Others" is explicitly set
-            const result = {
+        const mergedData = sprintData.map((sprintItem: any) => {
+            const { sprintId, ...categorized } = categorizedData.find(item => item.sprintId === sprintItem.id) || {};
+            return {
                 sprintdata: sprintItem,
-                ...ALLOWED_TIME_SPENT_CATEGORIES.reduce((acc: any, category: any) => {
-                    acc[category] = categorized[category] || 0;
-                    return acc;
-                }, {}),
+                ...categorized,
             };
-            // Ensure "Others" is included
-            if (!result.hasOwnProperty('Others')) {
-                result.Others = categorized.Others || 0;
-            }
-            return result;
         });
         return {
             totalPages,
