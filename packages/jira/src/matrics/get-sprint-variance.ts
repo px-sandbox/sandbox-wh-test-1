@@ -33,7 +33,7 @@ function getJiraLink(
  * @param dateRangeQueries - An array of date range queries.
  * @returns A promise that resolves to an object containing the sprint hits and the total number of pages.
  */
-async function sprintHitsResponse(
+export async function sprintHitsResponse(
   limit: number,
   page: number,
   projectId: string,

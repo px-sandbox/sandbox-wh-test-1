@@ -1,20 +1,24 @@
 /* eslint-disable max-lines-per-function */
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { getTotalTimeSpent } from 'src/matrics/get-timespent-sprints';
+import { getTimeSpentTabularData } from 'src/matrics/get-timespent-tabular-view';
 
-const timeSpent = async function timeSpent(
+const timeSpent = async function handler(
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
     const requestId = event?.requestContext?.requestId;
     const projectId: string = event.queryStringParameters?.projectId || '';
     const startDate: string = event.queryStringParameters?.startDate || '';
     const endDate: string = event.queryStringParameters?.endDate || '';
+    const page: number = parseInt(event.queryStringParameters?.page || '1', 10);
+  const limit: number = parseInt(event.queryStringParameters?.limit || '10', 10);
     try {
-        const totalTime = await getTotalTimeSpent(
+        const timeSpentTabularData = await getTimeSpentTabularData(
             projectId,
             startDate,
             endDate,
+            page,
+            limit,
             {
                 requestId,
                 resourceId: projectId,
@@ -22,9 +26,9 @@ const timeSpent = async function timeSpent(
         );
         return responseParser
             .setBody({
-                totalTime,
+                timeSpentTabularData,
             })
-            .setMessage('time spent headline fetched successfully')
+            .setMessage('time spent tabular data fetched successfully')
             .setStatusCode(HttpStatusCode['200'])
             .setResponseBodyCode('SUCCESS')
             .send();
@@ -32,7 +36,7 @@ const timeSpent = async function timeSpent(
         logger.error({
             requestId,
             resourceId: projectId,
-            message: 'time spent headline fetch error',
+            message: 'time spent tabular data fetch error',
             error: `${e}`,
         });
         throw new Error(`Something went wrong: ${e}`);
