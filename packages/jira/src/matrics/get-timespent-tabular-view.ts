@@ -17,13 +17,43 @@ interface SprintData {
 
 interface TimeSpentEntry {
     sprintdata: SprintData;
-    Development: number;
-    QA: number;
-    Meetings: number;
-    Bugs: number;
-    Others: number;
+    Development?: number;
+    QA?: number;
+    Meetings?: number;
+    Bugs?: number;
+    Others?: number;
+}
+interface TimeAggregation {
+    value: number;
 }
 
+interface CategoryBucket {
+    key: string;
+    doc_count: number;
+    total_time: TimeAggregation;
+}
+
+interface CategoryAggregation {
+    doc_count_error_upper_bound: number;
+    sum_other_doc_count: number;
+    buckets: CategoryBucket[];
+}
+
+interface SprintBucket {
+    key: string;
+    doc_count: number;
+    category_names: CategoryAggregation;
+}
+
+interface SprintAggregation {
+    doc_count_error_upper_bound: number;
+    sum_other_doc_count: number;
+    buckets: SprintBucket[];
+}
+
+interface CategorizedTimeSpentResponse {
+    sprint_aggregation: SprintAggregation;
+}
 interface TimeSpentResponse {
     totalPages: number;
     tableData: TimeSpentEntry[];
@@ -31,9 +61,7 @@ interface TimeSpentResponse {
 async function categorizedTimeSpent(
     sprintIdsArr: string[],
     reqCtx: Other.Type.RequestCtx
-): Promise<{
-    sprint_aggregation: { doc_count_error_upper_bound: number, sum_other_doc_count: number, buckets: any[] };
-}> {
+): Promise<CategorizedTimeSpentResponse> {
     const query = esb
         .requestBodySearch()
         .size(0)
@@ -66,18 +94,19 @@ async function processCategorizedTimeSpent(
     const response = await categorizedTimeSpent(sprintIdsArr, reqCtx);
     const formattedData = response.sprint_aggregation.buckets.map((sprintData) => {
         const obj: Record<string, number> = {
-            sprintId: sprintData.key,
             Development: 0,
             QA: 0,
-            Meeting: 0,
+            Meetings: 0,
             Bugs: 0,
             Others: 0,
         };
         sprintData.category_names.buckets.forEach((category: { key: string; total_time: { value: number } }) => {
-            const name = category.key;
-            obj[name] = category.total_time.value || 0;
+            obj[category.key] = category.total_time.value || 0;
         });
-        return obj;
+        return {
+            sprintId: sprintData.key,
+            ...obj,
+        };
     });
     return formattedData;
 }
@@ -114,15 +143,11 @@ export async function getTimeSpentTabularData(
             sprintIds.push(item.id);
         });
         const categorizedData = await processCategorizedTimeSpent(sprintIds, reqCtx);
-        const mergedData: TimeSpentEntry[] = sprintData.map((sprintItem: SprintData) => {
-            const matchedCategorizedData: Partial<TimeSpentEntry> = categorizedData.find(item => String(item.sprintId) === sprintItem.id) || {};
+        const mergedData = sprintData.map((sprintItem: SprintData) => {
+            const { sprintId, ...categorized } = categorizedData.find(item => item.sprintId === sprintItem.id) || {};
             return {
                 sprintdata: sprintItem,
-                Development: matchedCategorizedData.Development ?? 0,
-                QA: matchedCategorizedData.QA ?? 0,
-                Meetings: matchedCategorizedData.Meetings ?? 0,
-                Bugs: matchedCategorizedData.Bugs ?? 0,
-                Others: matchedCategorizedData.Others ?? 0,
+                ...categorized,
             };
         });
         return {
