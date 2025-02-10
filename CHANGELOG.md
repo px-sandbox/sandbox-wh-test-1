@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.4.0](https://github.com/studiographene/pulse-data-integration/compare/v1.3.0...v1.4.0) (2025-02-10)
+
+
+### Features
+
+* **feature/PX-2291:** api created for pie chart ([aad92e1](https://github.com/studiographene/pulse-data-integration/commit/aad92e1e67dccdd193a84ec4e0d7ad7b4af61993))
+* **feature/PX-2291:** api created for pie chart ([#990](https://github.com/studiographene/pulse-data-integration/issues/990)) ([e75923c](https://github.com/studiographene/pulse-data-integration/commit/e75923c0d07f48dbb21d052c879294e74fac5bfb))
+
+## [1.3.0](https://github.com/studiographene/pulse-data-integration/compare/v1.2.0...v1.3.0) (2025-02-07)
+
+
+### Features
+
+* **feature/PX-2175:** api created for tabular time spent view ([8fec763](https://github.com/studiographene/pulse-data-integration/commit/8fec763c5439bf0c100589ca90f9f891b1385c96))
+* **feature/PX-2175:** api created for tabular time spent view ([#988](https://github.com/studiographene/pulse-data-integration/issues/988)) ([cd9cf92](https://github.com/studiographene/pulse-data-integration/commit/cd9cf929c388f8d79afb4b324f3910dba35094b4))
+* **feature/PX-2175:** suggested changes done ([868808d](https://github.com/studiographene/pulse-data-integration/commit/868808d040bbfcc1450ce55f08f8a6ff48ab5bca))
+* **feature/PX-2175:** suggested changes done ([18395ba](https://github.com/studiographene/pulse-data-integration/commit/18395ba5a74c6dd469cafe93195af02a01fac533))
+* **feature/PX-2175:** suggested changes done ([fa807cf](https://github.com/studiographene/pulse-data-integration/commit/fa807cfcfda4d9fcc38de994a42a62632a8c641b))
+* **feature/PX-2175:** suggested changes done ([2fce97e](https://github.com/studiographene/pulse-data-integration/commit/2fce97ea884d0b05b13a4ffef7d98d98c8e5ca73))
+
 ## [1.2.0](https://github.com/studiographene/pulse-data-integration/compare/v1.1.0...v1.2.0) (2025-02-05)
 
 
