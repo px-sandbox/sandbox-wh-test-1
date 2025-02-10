@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/studiographene/pulse-data-integration/compare/v1.3.0...v1.4.0) (2025-02-10)
+
+
+### Features
+
+* **feature/PX-2291:** api created for pie chart ([aad92e1](https://github.com/studiographene/pulse-data-integration/commit/aad92e1e67dccdd193a84ec4e0d7ad7b4af61993))
+* **feature/PX-2291:** api created for pie chart ([#990](https://github.com/studiographene/pulse-data-integration/issues/990)) ([e75923c](https://github.com/studiographene/pulse-data-integration/commit/e75923c0d07f48dbb21d052c879294e74fac5bfb))
+
 ## [1.3.0](https://github.com/studiographene/pulse-data-integration/compare/v1.2.0...v1.3.0) (2025-02-07)
 
 
