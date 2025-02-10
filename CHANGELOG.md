@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/studiographene/pulse-data-integration/compare/v1.4.0...v1.4.1) (2025-02-10)
+
+
+### Bug Fixes
+
+* **PX-2131:** estimation should be gt 0, while calculating bug time ([079ec88](https://github.com/studiographene/pulse-data-integration/commit/079ec88b0791b975ec501449fd67ab7cb7951601))
+
 ## [1.4.0](https://github.com/studiographene/pulse-data-integration/compare/v1.3.0...v1.4.0) (2025-02-10)
 
 
