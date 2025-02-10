@@ -4,6 +4,7 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import { createSprintQuery, getDateRangeQueries } from './get-sprint-variance';
 import { searchedDataFormator } from 'src/util/response-formatter';
+import { processCategorizedTimeSpent } from './get-timespent-tabular-view';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -24,91 +25,9 @@ interface TimeSpentEntry {
     Bugs?: number;
     Others?: number;
 }
-interface TimeAggregation {
-    value: number;
-}
 
-interface CategoryBucket {
-    key: string;
-    doc_count: number;
-    total_time: TimeAggregation;
-}
-
-interface CategoryAggregation {
-    doc_count_error_upper_bound: number;
-    sum_other_doc_count: number;
-    buckets: CategoryBucket[];
-}
-
-interface SprintBucket {
-    key: string;
-    doc_count: number;
-    category_names: CategoryAggregation;
-}
-
-interface SprintAggregation {
-    doc_count_error_upper_bound: number;
-    sum_other_doc_count: number;
-    buckets: SprintBucket[];
-}
-
-interface CategorizedTimeSpentResponse {
-    sprint_aggregation: SprintAggregation;
-}
 interface TimeSpentResponse {
     trendsData: TimeSpentEntry[];
-}
-async function categorizedTimeSpent(
-    sprintIdsArr: string[],
-    reqCtx: Other.Type.RequestCtx
-): Promise<CategorizedTimeSpentResponse> {
-    const query = esb
-        .requestBodySearch()
-        .size(0)
-        .aggs([
-            esb
-                .termsAggregation('sprint_aggregation', 'body.sprintId').size(sprintIdsArr.length)
-                .aggs([
-                    esb
-                        .termsAggregation('category_names', 'body.category')
-                        .aggs([esb.sumAggregation('total_time', 'body.timeLogged')]),
-                ]),
-        ])
-        .query(
-            esb
-                .boolQuery()
-                .must([
-                    esb.termsQuery('body.sprintId', sprintIdsArr),
-                    esb.termQuery('body.isDeleted', false),
-                ])
-        )
-        .toJSON();
-    logger.info({ ...reqCtx, message: 'categorized timeSpent for sprints', data: { query } });
-    return esClientObj.queryAggs(Jira.Enums.IndexName.Worklog, query);
-}
-
-async function processCategorizedTimeSpent(
-    sprintIdsArr: string[],
-    reqCtx: Other.Type.RequestCtx
-) {
-    const response = await categorizedTimeSpent(sprintIdsArr, reqCtx);
-    const formattedData = response.sprint_aggregation.buckets.map((sprintData) => {
-        const obj: Record<string, number> = {
-            Development: 0,
-            QA: 0,
-            Meetings: 0,
-            Bugs: 0,
-            Others: 0,
-        };
-        sprintData.category_names.buckets.forEach((category: { key: string; total_time: { value: number } }) => {
-            obj[category.key] = category.total_time.value || 0;
-        });
-        return {
-            sprintId: sprintData.key,
-            ...obj,
-        };
-    });
-    return formattedData;
 }
 
 export async function getTimeSpentTrendsData(

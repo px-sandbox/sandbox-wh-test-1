@@ -87,7 +87,7 @@ async function categorizedTimeSpent(
     return esClientObj.queryAggs(Jira.Enums.IndexName.Worklog, query);
 }
 
-async function processCategorizedTimeSpent(
+export async function processCategorizedTimeSpent(
     sprintIdsArr: string[],
     reqCtx: Other.Type.RequestCtx
 ) {
