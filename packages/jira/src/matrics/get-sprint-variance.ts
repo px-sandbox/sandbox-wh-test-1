@@ -58,9 +58,9 @@ export async function sprintHitsResponse(
           sprintState
             ? esb.termQuery('body.state', sprintState)
             : esb.termsQuery('body.state', [
-              Jira.Enums.SprintState.CLOSED,
-              Jira.Enums.SprintState.ACTIVE,
-            ]),
+                Jira.Enums.SprintState.CLOSED,
+                Jira.Enums.SprintState.ACTIVE,
+              ]),
         ])
     )
     .sort(esb.sort('body.startDate', 'desc'))
@@ -298,6 +298,7 @@ async function getBugTimeForSprint(
           esb.termQuery('body.isDeleted', false),
           esb.existsQuery('body.issueLinks'),
         ])
+        .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
         .should([
           esb.termQuery('body.issueType', IssuesTypes.STORY),
           esb.termQuery('body.issueType', IssuesTypes.TASK),
@@ -452,9 +453,9 @@ export function createSprintQuery(
               sprintState
                 ? esb.termQuery('body.state', sprintState)
                 : esb.termsQuery('body.state', [
-                  Jira.Enums.SprintState.CLOSED,
-                  Jira.Enums.SprintState.ACTIVE,
-                ])
+                    Jira.Enums.SprintState.CLOSED,
+                    Jira.Enums.SprintState.ACTIVE,
+                  ])
             ),
         ])
     )
@@ -539,7 +540,7 @@ export async function sprintVarianceGraphAvg(
       (ftpRateGraph.estimatedTime.value === 0
         ? 0
         : ((ftpRateGraph.actualTime.value - ftpRateGraph.estimatedTime.value) * 100) /
-        ftpRateGraph.estimatedTime.value
+          ftpRateGraph.estimatedTime.value
       ).toFixed(2)
     );
   } catch (e) {
