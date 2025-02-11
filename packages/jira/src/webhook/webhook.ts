@@ -10,6 +10,7 @@ import * as project from './projects';
 import * as sprint from './sprints';
 import * as user from './users';
 import { issueLinkCreateHandler, issueLinkDeleteHandler } from './issues/issue-links';
+import { worklogHandler } from './issues/worklogs';
 
 /**
  * Processes the webhook event based on the event name and performs the corresponding action.
@@ -80,36 +81,29 @@ async function processWebhookEvent(
         await board.delete(body.board.id, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.IssueCreated:
+        await issue.create(body.issue, eventTime.toISOString(), organization, requestId);
+        break;
       case Jira.Enums.Event.IssueUpdated:
-      case Jira.Enums.Event.IssueDeleted:
-        await issue.issueHandler(
-          {
-            issue: body.issue,
-            changelog: body.changelog,
-            organization,
-            eventName,
-            timestamp: eventTime.toISOString(),
-          },
+        await issue.update(
+          body.changelog,
+          body.issue,
+          eventTime.toISOString(),
+          organization,
           requestId
         );
+        break;
+      case Jira.Enums.Event.IssueDeleted:
+        await issue.deleted(body.issue.id, eventTime.toISOString(), organization, requestId);
         break;
       case Jira.Enums.Event.WorklogCreated:
       case Jira.Enums.Event.WorklogUpdated:
       case Jira.Enums.Event.WorklogDeleted:
-        await issue.worklog(body.worklog, body.worklog.issueId, eventName, eventTime, organization, requestId);
+        await worklogHandler(body.worklog, eventName, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.IssueLinkCreated:
-        logger.info({
-          message: 'issueLinkHandler.webhookEvent',
-          data: { eventName, organization, requestId },
-        });
         await issueLinkCreateHandler(body.issueLink, organization, requestId);
         break;
       case Jira.Enums.Event.IssueLinkDeleted:
-        logger.info({
-          message: 'issueLinkHandler.webhookEvent',
-          data: { eventName, organization, requestId },
-        });
         await issueLinkDeleteHandler(body.issueLink, organization, requestId);
         break;
       default:

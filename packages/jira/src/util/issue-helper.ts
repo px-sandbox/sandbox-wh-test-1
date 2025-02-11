@@ -1,5 +1,18 @@
-import { Other } from 'abstraction';
+import { Jira, Other } from 'abstraction';
+import { mappingPrefixes } from 'src/constant/config';
+import { getIssueById } from 'src/repository/issue/get-issue';
+import { ChangelogField } from 'test/type';
+import { getSprintForTo } from './prepare-reopen-rate';
+import { logger } from 'core';
+import { Hit } from 'abstraction/github/type';
+import { HitBody } from 'abstraction/other/type';
+import { generateUuid, searchedDataFormator } from './response-formatter';
+import { ParamsMapping } from 'src/model/params-mapping';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import esb from 'elastic-builder';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 
+const esClientObj = ElasticSearchClient.getInstance();
 /**
  * Creates an issue object based on the provided issue data.
  * @param issueData - The data used to create the issue.
@@ -49,4 +62,166 @@ export function formatIssue(issueData: Other.Type.HitBody): any {
       deletedAt: issueData.deletedAt,
     },
   };
+}
+const dynamoDbDocClient = DynamoDbDocClient.getInstance();
+// async function getSprintAndBoardId(data: Jira.ExternalType.Webhook.Issue): Promise<{
+//   sprintId: string | null;
+//   boardId: string | null;
+// }> {
+//   let sprintId: string | null;
+//   let boardId: string | null;
+//   const esbIssueData = await getIssueById(data.issue.id, data.organization, {
+//     requestId: this.requestId,
+//   });
+//   const [sprintChangelog] = !data.changelog
+//     ? []
+//     : data.changelog.items.filter(
+//         (item) =>
+//           item.fieldId === ChangelogField.SPRINT || item.fieldId === ChangelogField.CUSTOM_FIELD
+//       );
+//   if (sprintChangelog) {
+//     const changelogSprintId = getSprintForTo(sprintChangelog.to, sprintChangelog.from);
+//     sprintId = changelogSprintId ? `${mappingPrefixes.sprint}_${changelogSprintId}` : null;
+//   } else if (esbIssueData?.sprintId) {
+//     sprintId = esbIssueData.sprintId;
+//   } else {
+//     const customFieldSprintId = data.issue.fields.customfield_10007?.[0]?.id ?? null;
+//     sprintId = customFieldSprintId ? `${mappingPrefixes.sprint}_${customFieldSprintId}` : null;
+//   }
+
+//   if (data.issue.fields.customfield_10007) {
+//     const item = data.issue.fields.customfield_10007.find(
+//       (items) => `${mappingPrefixes.sprint}_${items.id}` === sprintId
+//     );
+//     boardId = item ? `${mappingPrefixes.board}_${item.boardId}` : null;
+//   } else if (sprintId === null) {
+//     boardId = null;
+//   } else if (esbIssueData?.boardId) {
+//     boardId = esbIssueData.boardId;
+//   } else {
+//     boardId = null;
+//   }
+//   if (boardId === null) {
+//     logger.info({
+//       message: 'sprint_board_data_for_issue',
+//       data: JSON.stringify({
+//         sprintChangelog,
+//         customfield_10007: data.issue.fields.customfield_10007,
+//       }),
+//       requestId: this.requestId,
+//       resourceId: this.resourceId,
+//     });
+//   }
+//   return {
+//     sprintId: sprintId ?? null,
+//     boardId: boardId ?? null,
+//   };
+// }
+async function getParentId(id: string): Promise<string> {
+  const ddbRes = await dynamoDbDocClient.find(new ParamsMapping().prepareGetParams(id));
+
+  return ddbRes?.parentId as string;
+}
+async function putDataToDynamoDB(parentId: string, jiraId: string): Promise<void> {
+  await dynamoDbDocClient.put(new ParamsMapping().preparePutParams(parentId, jiraId));
+}
+async function parentId(id: string): Promise<string> {
+  let parentId: string = await getParentId(id);
+  if (!parentId) {
+    parentId = generateUuid();
+    await putDataToDynamoDB(parentId, id);
+  }
+  return parentId;
+}
+/**
+ * Creates an issue object based on the provided issue data.
+ * @param issueData - The data used to create the issue.
+ * @returns The created issue object.
+ */
+export async function formatIssueNew(
+  issueData: Other.Type.HitBody,
+  organization: Pick<Hit, '_id'> & HitBody
+) {
+  const customfield10007 = issueData.fields.customfield_10007?.[0];
+  const devRca = issueData.fields.customfield_11225?.id;
+  const qaRca = issueData.fields.customfield_11226?.id;
+  return {
+    id: await parentId(`${mappingPrefixes.issue}_${issueData.id}_${organization.id}`),
+    body: {
+      id: `${mappingPrefixes.issue}_${issueData.id}`,
+      issueId: issueData.id,
+      projectKey: issueData.fields.project.key,
+      projectId: `${mappingPrefixes.project}_${issueData.fields.project.id}`,
+      parent: {
+        key: issueData.fields.parent?.key ?? null,
+        id: issueData.fields.parent?.id
+          ? `${mappingPrefixes.issue}_${issueData.fields.parent?.id}`
+          : null,
+      },
+      issueKey: issueData.key,
+      isFTP: issueData.fields.labels?.includes('FTP') ?? false,
+      isFTF: issueData.fields.labels?.includes('FTF') ?? false,
+      issueType: issueData.fields.issuetype.name,
+      rcaData: {
+        devRca: devRca ? `${mappingPrefixes.rca}_${devRca}` : null,
+        qaRca: qaRca ? `${mappingPrefixes.rca}_${qaRca}` : null,
+      },
+      priority: issueData.fields.priority.name,
+      label: issueData.fields.labels,
+      summary: issueData?.fields?.summary ?? '',
+      issueLinks: issueData.fields.issuelinks.map((link: object) => ({
+        key: link.outwardIssue.key || link.inwardIssue.key,
+        type: link.outwardIssue.fields.issueType.name || link.inwardIssue.key,
+        relation: link.inwardIssue.key ? 'inward' : 'outward',
+      })),
+      assigneeId: issueData.fields.assignee?.accountId
+        ? `${mappingPrefixes.user}_${issueData.fields.assignee.accountId}`
+        : null,
+      reporterId: issueData.fields.reporter?.accountId
+        ? `${mappingPrefixes.user}_${issueData.fields.reporter.accountId}`
+        : null,
+      creatorId: issueData.fields.creator?.accountId
+        ? `${mappingPrefixes.user}_${issueData.fields.creator.accountId}`
+        : null,
+      status: issueData.fields.status.name,
+      subtasks:
+        issueData.fields.subtasks.map((subtask: { id: string; key: string }) => ({
+          id: `${mappingPrefixes.issue}_${subtask.id}`,
+          key: subtask.key,
+        })) ?? [],
+      createdDate: issueData.fields.created,
+      lastUpdated: issueData.fields.updated,
+      sprintId: customfield10007 ? `${mappingPrefixes.sprint}_${customfield10007.id}` : null,
+      boardId: customfield10007 ? `${mappingPrefixes.board}_${customfield10007.boardId}` : null,
+      isDeleted: false,
+      deletedAt: null,
+      organizationId: organization.id ?? null,
+      timeTracker: {
+        estimate: issueData?.fields?.timetracking?.originalEstimateSeconds ?? 0,
+        actual: 0,
+      },
+      bugTime: {
+        estimate: 0,
+        actual: 0,
+      },
+    },
+  };
+}
+
+export async function getBoardFromSprintId(sprintId: string | null): Promise<string | null> {
+  //fetch sprint data from elastic search
+  if (sprintId === null) {
+    return null;
+  }
+  const query = esb
+    .requestBodySearch()
+    .query(esb.boolQuery().must(esb.termQuery('body.id', sprintId)))
+    .toJSON();
+  const data = await esClientObj.search(Jira.Enums.IndexName.Sprint, query);
+  const [sprint] = await searchedDataFormator(data);
+  if (sprint) {
+    const boardId = sprint.boardId;
+    return boardId;
+  }
+  return null;
 }
