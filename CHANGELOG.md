@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/studiographene/pulse-data-integration/compare/v1.4.1...v1.5.0) (2025-02-11)
+
+
+### Features
+
+* **feature/PX-2184:** api created for trends view ([3a4a241](https://github.com/studiographene/pulse-data-integration/commit/3a4a241e0c4445bb38f2abb94b016f7ab8a61334))
+* **feature/PX-2184:** api created for trends view ([5192ae1](https://github.com/studiographene/pulse-data-integration/commit/5192ae15ff3cde614439487dc477383628b1cdfb))
+
 ## [1.4.1](https://github.com/studiographene/pulse-data-integration/compare/v1.4.0...v1.4.1) (2025-02-10)
 
 
