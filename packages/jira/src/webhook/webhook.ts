@@ -93,7 +93,7 @@ async function processWebhookEvent(
         );
         break;
       case Jira.Enums.Event.IssueDeleted:
-        await issue.deleted(body.issue.id, eventTime.toISOString(), organization, requestId);
+        await issue.deleted(body.issue, eventTime.toISOString(), organization, requestId);
         break;
       case Jira.Enums.Event.WorklogCreated:
       case Jira.Enums.Event.WorklogUpdated:

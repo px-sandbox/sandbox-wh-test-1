@@ -32,7 +32,7 @@ function isAllowedProjectOrIssueType(
   }
 }
 export async function create(
-  issue: Jira.ExternalType.Webhook.newIssue,
+  issue: Jira.ExternalType.Webhook.Issue,
   eventTime: string,
   organization: string,
   requestId: string
@@ -56,6 +56,14 @@ export async function create(
   await sqsClient.sendFifoMessage(
     { eventName: Jira.Enums.Event.IssueCreated, issueData, eventTime, organization },
     Queue.qIssueFormat.queueUrl,
+    { requestId, resourceId: id },
+    key,
+    uuid()
+  );
+
+  await sqsClient.sendFifoMessage(
+    { issue: issue, eventTime, organization },
+    Queue.qCycleTimeFormat.queueUrl,
     { requestId, resourceId: id },
     key,
     uuid()
@@ -93,6 +101,14 @@ export async function update(
     key,
     uuid()
   );
+  //update cycle time
+  await sqsClient.sendFifoMessage(
+    { issue: issueData, changelog, eventTime, organization },
+    Queue.qCycleTimeFormat.queueUrl,
+    { requestId, resourceId: id },
+    key,
+    uuid()
+  );
 }
 
 export async function deleted(
@@ -102,102 +118,25 @@ export async function deleted(
   requestId: string
 ) {
   const {
-    issue: {
-      id: resourceId,
-      key: issueKey,
-      fields: {
-        project,
-        issuetype: { name: issueTypeName },
-      },
+    id,
+    key,
+    fields: {
+      project,
+      issuetype: { name: issueTypeName },
     },
   } = issue;
-
-  const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
-
-  if (!ALLOWED_ISSUE_TYPES.includes(issueTypeName)) {
-    logger.info({ message: 'Issue: Update => Issue type is not among allowed values' });
-    return;
-  } else if (
-    projectKeys.includes(project.key) ||
-    project.projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE
-  ) {
-    logger.info({
-      message:
-        'Issue: Update => Either the project is not allowed or we do not support this project type',
-    });
-    return;
-  }
+  isAllowedProjectOrIssueType(project.key, project.projectTypeKey, issueTypeName);
 
   await sqsClient.sendFifoMessage(
     {
-      eventName: 'issue.delete',
-      issueInfo: { id: resourceId, issueKey, issueType: issueTypeName },
+      eventName: Jira.Enums.Event.IssueDeleted,
+      issueInfo: issue,
       eventTime,
       organization,
     },
     Queue.qIssueFormat.queueUrl,
-    { requestId, resourceId },
-    issueKey,
+    { requestId, resourceId: id },
+    key,
     uuid()
   );
 }
-
-// /**
-//  * Creates a Jira issue and sends a message to SQS.
-//  * @param issue - The Jira issue to create.
-//  * @returns A Promise that resolves when the message is sent to SQS.
-//  */
-// export async function issueHandler(
-//   issue: Jira.ExternalType.Webhook.Issue,
-//   requestId: string
-// ): Promise<void> {
-//   const resourceId = issue.issue.id;
-//   const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
-//   const { project } = issue.issue.fields;
-
-//   logger.info({
-//     requestId,
-//     resourceId,
-//     message: 'issue_event.Send_message_to_SQS',
-//   });
-
-//   if (issue.issue.fields.issuetype.name === IssuesTypes.TEST) {
-//     logger.info({ message: 'processIssueCreatedEvent: Issue type TEST is not allowed' });
-//     return;
-//   }
-//   if (!ALLOWED_ISSUE_TYPES.includes(issue.issue.fields.issuetype.name)) {
-//     logger.info({ message: 'processIssueCreatedEvent: Issue type not allowed' });
-//     return;
-//   }
-
-//   // checking is project key is available in our system
-//   if (projectKeys.includes(project.key)) {
-//     logger.info({ message: 'processIssueCreatedEvent: Project not available in our system' });
-//     return;
-//   }
-
-//   // checking is project type is software.
-//   logger.info({
-//     requestId,
-//     resourceId,
-//     message: 'issue_event.Checking_project_type',
-//   });
-
-//   if (project.projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE) {
-//     await sqsClient.sendFifoMessage(
-//       { ...issue },
-//       Queue.qIssueFormat.queueUrl,
-//       { requestId, resourceId },
-//       issue.issue.key,
-//       uuid()
-//     );
-
-//     await sqsClient.sendFifoMessage(
-//       { ...issue },
-//       Queue.qCycleTimeFormat.queueUrl,
-//       { requestId, resourceId },
-//       issue.issue.key,
-//       uuid()
-//     );
-//   }
-// }

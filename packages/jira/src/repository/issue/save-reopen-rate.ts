@@ -13,30 +13,13 @@ import { searchedDataFormator } from '../../util/response-formatter';
  */
 const esClientObj = ElasticSearchClient.getInstance();
 export async function saveReOpenRate(
-  data: Jira.Type.Issue,
+  data: Jira.Type.ReopenRate,
   reqCtx: Other.Type.RequestCtx,
   processId?: string
 ): Promise<void> {
   const { requestId, resourceId } = reqCtx;
   try {
     const { ...updatedData } = data;
-    const matchQry = esb
-      .requestBodySearch()
-      .query(
-        esb
-          .boolQuery()
-          .must([
-            esb.termsQuery('body.id', data.body.id),
-            esb.termQuery('body.organizationId', data.body.organizationId),
-          ])
-      )
-      .toJSON();
-    const reOpenRateData = await esClientObj.search(Jira.Enums.IndexName.ReopenRate, matchQry);
-
-    const [formattedData] = await searchedDataFormator(reOpenRateData);
-    if (formattedData) {
-      updatedData.id = formattedData._id;
-    }
     await esClientObj.putDocument(Jira.Enums.IndexName.ReopenRate, updatedData);
     logger.info({ requestId, resourceId, message: 'saveReopenRateDetails.successful' });
     await deleteProcessfromDdb(processId, reqCtx);

@@ -3,6 +3,7 @@ export type Project = {
   id: number;
   key: string;
   name: string;
+  projectTypeKey: string;
   avatarUrls: {
     '48x48': string;
     '24x24': string;

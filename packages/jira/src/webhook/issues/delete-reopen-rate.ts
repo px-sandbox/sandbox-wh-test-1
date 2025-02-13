@@ -1,12 +1,11 @@
-import { SQSClient } from '@pulse/event-handler';
-import { Jira } from 'abstraction';
-import { Hit, HitBody } from 'abstraction/other/type';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
-import { Config } from 'sst/node/config';
-import { Queue } from 'sst/node/queue';
-import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
+import esb from 'elastic-builder';
+import { searchedDataFormator } from 'src/util/response-formatter';
+import { mappingPrefixes } from '../../constant/config';
 
-const sqsClient = SQSClient.getInstance();
+const esClientObj = ElasticSearchClient.getInstance();
 /**
  * Removes the reopen issue with the given ID and marks it as deleted.
  * @param issueId - The ID of the issue to be removed.
@@ -16,33 +15,30 @@ const sqsClient = SQSClient.getInstance();
  *  or false if the issue was not found.
  */
 export async function removeReopenRate(
-  issue: (Pick<Hit, '_id'> & HitBody) | Jira.Mapped.ReopenRateIssue,
+  issueId: string,
   eventTime: string,
-  requestId: string
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void | false> {
-  // checking if issue type is allowed
-
-  if (!ALLOWED_ISSUE_TYPES.includes(issue?.issue?.fields?.issuetype?.name)) {
-    logger.info({ message: 'processDeleteReopenRateEvent: Issue type not allowed' });
-    return;
-  }
-
-  // checking is project key is available in our system
-  const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
-  const projectKey = issue?.issue?.fields?.project?.key;
-  if (projectKeys.includes(projectKey)) {
-    logger.info({ message: 'processDeleteReopenRateEvent: Project not available in our system' });
-    return;
-  }
-
-  const resourceId = issue.issue.id;
-
   try {
-    await sqsClient.sendMessage({ ...issue, eventTime }, Queue.qReOpenRateDelete.queueUrl, {
-      requestId,
-      resourceId,
+    const query = esb
+      .requestBodySearch()
+      .query(
+        esb.boolQuery().must([esb.termQuery('body.issueId', `${mappingPrefixes.issue}_${issueId}`)])
+      )
+      .toJSON();
+    const reopenRes = await esClientObj.search(Jira.Enums.IndexName.ReopenRate, query);
+    const [reopenData] = await searchedDataFormator(reopenRes);
+    if (!reopenData) {
+      logger.info({ ...reqCtx, message: 'removeReopenRate.error', error: 'Issue not found' });
+      return;
+    }
+    await esClientObj.updateDocument(Jira.Enums.IndexName.ReopenRate, reopenData._id, {
+      body: {
+        isDeleted: true,
+        deletedAt: eventTime,
+      },
     });
   } catch (error) {
-    logger.error({ requestId, resourceId, message: 'removeReopenRate.error', error: `${error}` });
+    logger.error({ ...reqCtx, message: 'removeReopenRate.error', error: `${error}` });
   }
 }

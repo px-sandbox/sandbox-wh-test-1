@@ -11,6 +11,7 @@ import { ParamsMapping } from 'src/model/params-mapping';
 import { DynamoDbDocClient } from '@pulse/dynamodb';
 import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { ReopenItem } from './reopen-body-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 /**
@@ -64,59 +65,6 @@ export function formatIssue(issueData: Other.Type.HitBody): any {
   };
 }
 const dynamoDbDocClient = DynamoDbDocClient.getInstance();
-// async function getSprintAndBoardId(data: Jira.ExternalType.Webhook.Issue): Promise<{
-//   sprintId: string | null;
-//   boardId: string | null;
-// }> {
-//   let sprintId: string | null;
-//   let boardId: string | null;
-//   const esbIssueData = await getIssueById(data.issue.id, data.organization, {
-//     requestId: this.requestId,
-//   });
-//   const [sprintChangelog] = !data.changelog
-//     ? []
-//     : data.changelog.items.filter(
-//         (item) =>
-//           item.fieldId === ChangelogField.SPRINT || item.fieldId === ChangelogField.CUSTOM_FIELD
-//       );
-//   if (sprintChangelog) {
-//     const changelogSprintId = getSprintForTo(sprintChangelog.to, sprintChangelog.from);
-//     sprintId = changelogSprintId ? `${mappingPrefixes.sprint}_${changelogSprintId}` : null;
-//   } else if (esbIssueData?.sprintId) {
-//     sprintId = esbIssueData.sprintId;
-//   } else {
-//     const customFieldSprintId = data.issue.fields.customfield_10007?.[0]?.id ?? null;
-//     sprintId = customFieldSprintId ? `${mappingPrefixes.sprint}_${customFieldSprintId}` : null;
-//   }
-
-//   if (data.issue.fields.customfield_10007) {
-//     const item = data.issue.fields.customfield_10007.find(
-//       (items) => `${mappingPrefixes.sprint}_${items.id}` === sprintId
-//     );
-//     boardId = item ? `${mappingPrefixes.board}_${item.boardId}` : null;
-//   } else if (sprintId === null) {
-//     boardId = null;
-//   } else if (esbIssueData?.boardId) {
-//     boardId = esbIssueData.boardId;
-//   } else {
-//     boardId = null;
-//   }
-//   if (boardId === null) {
-//     logger.info({
-//       message: 'sprint_board_data_for_issue',
-//       data: JSON.stringify({
-//         sprintChangelog,
-//         customfield_10007: data.issue.fields.customfield_10007,
-//       }),
-//       requestId: this.requestId,
-//       resourceId: this.resourceId,
-//     });
-//   }
-//   return {
-//     sprintId: sprintId ?? null,
-//     boardId: boardId ?? null,
-//   };
-// }
 async function getParentId(id: string): Promise<string> {
   const ddbRes = await dynamoDbDocClient.find(new ParamsMapping().prepareGetParams(id));
 
@@ -139,7 +87,7 @@ async function parentId(id: string): Promise<string> {
  * @returns The created issue object.
  */
 export async function formatIssueNew(
-  issueData: Other.Type.HitBody,
+  issueData: Jira.ExternalType.Webhook.Issue,
   organization: Pick<Hit, '_id'> & HitBody
 ) {
   const customfield10007 = issueData.fields.customfield_10007?.[0];
@@ -169,9 +117,9 @@ export async function formatIssueNew(
       priority: issueData.fields.priority.name,
       label: issueData.fields.labels,
       summary: issueData?.fields?.summary ?? '',
-      issueLinks: issueData.fields.issuelinks.map((link: object) => ({
+      issueLinks: issueData.fields.issuelinks.map((link) => ({
         key: link.outwardIssue.key || link.inwardIssue.key,
-        type: link.outwardIssue.fields.issueType.name || link.inwardIssue.key,
+        type: link.outwardIssue.fields.issuetype.name || link.outwardIssue.fields.issuetype.name,
         relation: link.inwardIssue.key ? 'inward' : 'outward',
       })),
       assigneeId: issueData.fields.assignee?.accountId
@@ -197,7 +145,7 @@ export async function formatIssueNew(
       deletedAt: null,
       organizationId: organization.id ?? null,
       timeTracker: {
-        estimate: issueData?.fields?.timetracking?.originalEstimateSeconds ?? 0,
+        estimate: issueData?.fields?.timeestimate ?? 0,
         actual: 0,
       },
       bugTime: {
@@ -224,4 +172,27 @@ export async function getBoardFromSprintId(sprintId: string | null): Promise<str
     return boardId;
   }
   return null;
+}
+
+export async function formatReopenRateData(
+  messageBody: Other.Type.HitBody
+): Promise<Jira.Type.ReopenRate> {
+  const { body } = messageBody;
+  return {
+    id: await parentId(`${mappingPrefixes.reopen_rate}_${body.issueId}_${body.sprintId}`),
+    body: {
+      id: `${mappingPrefixes.reopen_rate}_${body.issueId}_${body.sprintId}`,
+      organizationId: body.organizationId,
+      issueKey: body.issueKey,
+      projectId: body.projectId,
+      projectKey: body.projectKey,
+      boardId: body.boardId,
+      issueId: body.id,
+      sprintId: body.sprintId,
+      isReopen: false,
+      reOpenCount: 0,
+      isDeleted: body.isDeleted,
+      deletedAt: body.deletedAt,
+    },
+  };
 }

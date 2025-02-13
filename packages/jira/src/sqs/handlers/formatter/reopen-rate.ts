@@ -3,8 +3,8 @@ import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import { logProcessToRetry } from 'rp';
 import { Queue } from 'sst/node/queue';
-import { getOrganization } from '../../../repository/organization/get-organization';
 import { ReopenRateProcessor } from '../../../processors/reopen-rate';
+import { getOrganization } from '../../../repository/organization/get-organization';
 import { prepareReopenRate } from '../../../util/prepare-reopen-rate';
 
 const sqsClient = SQSClient.getInstance();
@@ -41,7 +41,6 @@ async function repoInfoQueueFunc(record: SQSRecord): Promise<void> {
       await reOpenRateProcessor.process();
       await reOpenRateProcessor.save();
       logger.info({ requestId, resourceId, message: 'reopenRateInfoQueue.success' });
-
       return;
     }
     logger.info({

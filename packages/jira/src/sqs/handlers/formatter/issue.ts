@@ -1,18 +1,23 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Jira, Other } from 'abstraction';
+import { ChangelogStatus } from 'abstraction/jira/enums';
 import async from 'async';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import _ from 'lodash';
+import moment from 'moment';
 import { logProcessToRetry } from 'rp';
 import { mappingPrefixes } from 'src/constant/config';
-import { getIssueById } from 'src/repository/issue/get-issue';
+import { softDeleteCycleTimeDocument } from 'src/repository/cycle-time/update';
+import { getIssueById, getReopenRateDataById } from 'src/repository/issue/get-issue';
 import { saveIssueDetails } from 'src/repository/issue/save-issue';
-import { getBoardFromSprintId } from 'src/util/issue-helper';
+import { saveReOpenRate } from 'src/repository/issue/save-reopen-rate';
+import { formatReopenRateData, getBoardFromSprintId } from 'src/util/issue-helper';
+import { getIssueStatusForReopenRate } from 'src/util/issue-status';
 import { getSprintForTo } from 'src/util/prepare-reopen-rate';
-import { generateUuid } from 'src/util/response-formatter';
+import { removeReopenRate } from 'src/webhook/issues/delete-reopen-rate';
 import { Queue } from 'sst/node/queue';
 
 const esClientObj = ElasticSearchClient.getInstance();
@@ -36,6 +41,7 @@ async function fetchIssue(
   }
   return issueData;
 }
+
 async function updateSprintAndBoard(
   item: Jira.ExternalType.Webhook.ChangelogItem,
   issueDoc: any,
@@ -67,7 +73,24 @@ async function updateSprintAndBoard(
       .toJSON();
     await esClientObj.updateByQuery(Jira.Enums.IndexName.Issue, subtaskQuery, sprintScript);
   }
+
+  //update sprintIds of reopenrate bugs issues
+  if (issueDoc.issueType === Jira.Enums.IssuesTypes.BUG) {
+    const reopenRateDocId = await getReopenRateDataById(
+      issueDoc.id,
+      issueDoc.sprintId,
+      issueDoc.organizationId
+    );
+
+    await esClientObj.updateDocument(Jira.Enums.IndexName.ReopenRate, reopenRateDocId._id, {
+      body: {
+        sprintId,
+        boardId,
+      },
+    });
+  }
 }
+
 async function updateLabels(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
   const labels = item.toString.split(' ');
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
@@ -77,6 +100,7 @@ async function updateLabels(item: Jira.ExternalType.Webhook.ChangelogItem, issue
     },
   });
 }
+
 async function updateDescription(
   item: Jira.ExternalType.Webhook.ChangelogItem,
   issueDocId: string
@@ -87,17 +111,11 @@ async function updateDescription(
     },
   });
 }
+
 async function updateSummary(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       summary: item.toString,
-    },
-  });
-}
-async function updateDevRca(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
-  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
-    body: {
-      rcaData: { devRca: `${mappingPrefixes.rca}_${item.to}` },
     },
   });
 }
@@ -113,14 +131,29 @@ async function updateIssueStatus(
       status: item.toString,
     },
   });
-  // update cycle time
-  await sqsClient.sendFifoMessage(
-    { ...issueData },
-    Queue.qCycleTimeFormat.queueUrl,
-    { requestId, resourceId },
-    issueData.issueKey,
-    generateUuid()
-  );
+
+  if (issueData.issueType === Jira.Enums.IssuesTypes.BUG) {
+    // update reopen rate
+    const orgId = issueData.organizationId.split('jira_org_')[1];
+    const issueStatus = await getIssueStatusForReopenRate(orgId, {
+      requestId,
+      resourceId,
+    });
+    const typeOfChangelog =
+      issueStatus[ChangelogStatus.READY_FOR_QA] === item.to
+        ? ChangelogStatus.READY_FOR_QA
+        : ChangelogStatus.QA_FAILED;
+    logger.info({
+      requestId,
+      resourceId,
+      data: { typeOfChangelog },
+      message: 'issue_info_ready_for_QA_update_event: Send message to SQS',
+    });
+    await sqsClient.sendMessage({ ...issueData, typeOfChangelog }, Queue.qReOpenRate.queueUrl, {
+      requestId,
+      resourceId,
+    });
+  }
 }
 
 async function updateAssignee(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
@@ -139,6 +172,14 @@ async function updatePriority(item: Jira.ExternalType.Webhook.ChangelogItem, iss
   });
 }
 
+async function updateDevRca(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
+    body: {
+      rcaData: { devRca: `${mappingPrefixes.rca}_${item.to}` },
+    },
+  });
+}
+
 async function updateQARca(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
@@ -147,9 +188,46 @@ async function updateQARca(item: Jira.ExternalType.Webhook.ChangelogItem, issueD
   });
 }
 
-async function handleIssueChangelogs(
+async function updateIssueType(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
+    body: {
+      issueType: item.toString,
+    },
+  });
+}
+
+async function updateIssueParentAssociation(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueData: Jira.ExternalType.Webhook.Issue,
+  organization: string,
+  reqCtx: { requestId: string; resourceId: string }
+) {
+  const parentIssue = await fetchIssue(item.to, organization, reqCtx);
+  const parentIssueId = parentIssue._id;
+  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, parentIssueId, {
+    body: {
+      subtasks: [
+        ...parentIssue.subtasks,
+        { id: `${mappingPrefixes.issue}_${issueData.id}`, key: issueData.key },
+      ],
+    },
+  });
+}
+
+async function updateTimeTracker(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDocId: string
+) {
+  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
+    body: {
+      timeTracker: { estimate: item.to },
+    },
+  });
+}
+
+async function handleIssueUpdate(
   changelog: { items: Jira.ExternalType.Webhook.ChangelogItem[] },
-  issueData: Jira.ExternalType.Webhook.newIssue,
+  issueData: Jira.ExternalType.Webhook.Issue,
   organization: string,
   reqCtx: { requestId: string; resourceId: string },
   processId: string
@@ -157,57 +235,96 @@ async function handleIssueChangelogs(
   const issueDoc = await fetchIssue(issueData.id, organization, reqCtx);
   const issueDocId = issueDoc._id;
   changelog.items.forEach(async (item) => {
-    const field = item.fieldId || item.field;
-    switch (field) {
-      case Jira.Enums.ChangelogName.SPRINT:
-        await updateSprintAndBoard(item, issueDoc, issueDocId);
-        break;
-      case Jira.Enums.ChangelogName.STATUS:
-        //also incorporate cycle time
-        await updateIssueStatus(item, issueDocId, issueDoc, reqCtx);
-        break;
-      case Jira.Enums.ChangelogName.ASSIGNEE:
-        await updateAssignee(item, issueDocId);
-        break;
-      case Jira.Enums.ChangelogName.SUMMARY:
-        //worklogs category
-        await updateSummary(item, issueDocId);
-        break;
-      case Jira.Enums.ChangelogName.DESCRIPTION:
-        await updateDescription(item, issueDocId);
-        break;
-      case Jira.Enums.ChangelogName.PRIORITY:
-        await updatePriority(item, issueDocId);
-        break;
-      case Jira.Enums.ChangelogName.LABELS:
-        await updateLabels(item, issueDocId);
-        break;
-      case Jira.Enums.ChangelogName.ISSUE_TYPE:
-        break;
-      case Jira.Enums.ChangelogName.ISSUE_PARENT_ASSOCIATION:
-        //changelog contains parentId and issueData contains subtask.
-        // update parent task with subtask id
-        {
-          const parentIssue = await fetchIssue(item.to, organization, reqCtx);
-          const parentIssueId = parentIssue._id;
-          await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, parentIssueId, {
-            body: {
-              subtasks: [
-                ...parentIssue.subtasks,
-                { id: `${mappingPrefixes.issue}_${issueData.id}`, key: issueData.key },
-              ],
-            },
+    try {
+      const field = item.fieldId || item.field;
+      switch (field) {
+        case Jira.Enums.ChangelogName.SPRINT:
+          await updateSprintAndBoard(item, issueDoc, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.STATUS:
+          //also incorporate cycle time and on ready for qa create index in reopenrate
+          await updateIssueStatus(item, issueDocId, issueDoc, reqCtx);
+          break;
+        case Jira.Enums.ChangelogName.ASSIGNEE:
+          await updateAssignee(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.SUMMARY:
+          //worklogs category
+          await updateSummary(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.DESCRIPTION:
+          await updateDescription(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.PRIORITY:
+          await updatePriority(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.LABELS:
+          await updateLabels(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.ISSUE_TYPE:
+          await updateIssueType(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.ISSUE_PARENT_ASSOCIATION:
+          //changelog contains parentId and issueData contains subtask.
+          //update parent task with subtask id
+          await updateIssueParentAssociation(item, issueData, organization, reqCtx);
+          break;
+        case Jira.Enums.ChangelogName.DEV_RCA:
+          await updateDevRca(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.QA_RCA:
+          await updateQARca(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.TIME_TRACKER:
+          await updateTimeTracker(item, issueDocId);
+          break;
+        default:
+          logger.error({
+            requestId: reqCtx.requestId,
+            resourceId: reqCtx.resourceId,
+            message: 'ISSUE_SQS_RECEIVER_HANDLER',
+            error: 'unknown_changelog_type',
           });
-        }
-        break;
-      case Jira.Enums.ChangelogName.DEV_RCA:
-        await updateDevRca(item, issueDocId);
-        break;
-      case Jira.Enums.ChangelogName.QA_RCA:
-        await updateQARca(item, issueDocId);
-        break;
+          break;
+      }
+    } catch (error) {
+      throw new Error('unknown_changelog_type_error');
     }
   });
+}
+
+async function deleteIssueCycleTimeAndReOpenRate(
+  issueData: Jira.ExternalType.Webhook.Issue,
+  organization: string,
+  reqCtx: Other.Type.RequestCtx
+) {
+  logger.info({ message: 'deleteIssue.event', data: issueData, ...reqCtx });
+  const issueDoc = await fetchIssue(issueData.id, organization, reqCtx);
+  const issueDocId = issueDoc._id;
+  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
+    body: {
+      isDeleted: true,
+      deletedAt: moment().toISOString(),
+    },
+  });
+  //soft delete cycle time document
+  await softDeleteCycleTimeDocument(
+    issueData.id,
+    issueData.fields.issuetype.name,
+    organization,
+    issueData?.fields.parent?.id
+  );
+
+  if (issueData.fields.issuetype.name === Jira.Enums.IssuesTypes.BUG) {
+    //  remove reopen rate
+    await removeReopenRate(issueData.id, moment().toISOString(), reqCtx);
+  }
+}
+
+async function createReOpenRate(issueData: Jira.Type.Issue, reqCtx: Other.Type.RequestCtx) {
+  const reopenRateData = await formatReopenRateData(issueData);
+  logger.info({ message: 'createReOpenRate.formatted.data', data: JSON.stringify(reopenRateData) });
+  await saveReOpenRate(reopenRateData, reqCtx);
 }
 /**
  * Formats the issue data received from an SQS record.
@@ -216,7 +333,6 @@ async function handleIssueChangelogs(
  */
 async function save(record: SQSRecord): Promise<void> {
   const { reqCtx, message: messageBody, processId } = JSON.parse(record.body);
-
   try {
     logger.info({
       requestId: reqCtx.requestId,
@@ -224,14 +340,15 @@ async function save(record: SQSRecord): Promise<void> {
       message: 'ISSUE_SQS_RECEIVER_HANDLER',
       data: messageBody,
     });
-
     switch (messageBody.eventName) {
       case Jira.Enums.Event.IssueCreated:
         await saveIssueDetails(messageBody.issueData, reqCtx, processId);
+        if (messageBody.issueData.body.issueType === Jira.Enums.IssuesTypes.BUG) {
+          await createReOpenRate(messageBody.issueData, reqCtx);
+        }
         break;
       case Jira.Enums.Event.IssueUpdated:
-        // changelogs switch cases for every field changes
-        await handleIssueChangelogs(
+        await handleIssueUpdate(
           messageBody.changelog,
           messageBody.issueInfo,
           messageBody.organization,
@@ -240,14 +357,18 @@ async function save(record: SQSRecord): Promise<void> {
         );
         break;
       case Jira.Enums.Event.IssueDeleted:
-        // await issueProcessorDelete.delete();
+        await deleteIssueCycleTimeAndReOpenRate(
+          messageBody.issueInfo,
+          messageBody.organization,
+          reqCtx
+        );
         break;
       default:
         logger.error({
           requestId: reqCtx.requestId,
           resourceId: reqCtx.resourceId,
           message: 'ISSUE_SQS_RECEIVER_HANDLER',
-          error: 'Unknown event type',
+          error: 'Unknown_event_type',
         });
         break;
     }
