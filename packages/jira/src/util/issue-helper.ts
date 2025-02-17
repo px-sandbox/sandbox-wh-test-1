@@ -118,9 +118,9 @@ export async function formatIssueNew(
       label: issueData.fields.labels,
       summary: issueData?.fields?.summary ?? '',
       issueLinks: issueData.fields.issuelinks.map((link) => ({
-        id: link.outwardIssue.id || link.inwardIssue.id,
-        key: link.outwardIssue.key || link.inwardIssue.key,
-        type: link.outwardIssue.fields.issuetype.name || link.outwardIssue.fields.issuetype.name,
+        id: link.outwardIssue?.id || link.inwardIssue?.id,
+        key: link.outwardIssue?.key || link.inwardIssue?.key,
+        type: link.outwardIssue?.fields.issuetype.name || link.inwardIssue?.fields.issuetype.name,
         relation: link.inwardIssue.key ? 'inward' : 'outward',
       })),
       assigneeId: issueData.fields.assignee?.accountId
@@ -178,22 +178,23 @@ export async function getBoardFromSprintId(sprintId: string | null): Promise<str
 export async function formatReopenRateData(
   messageBody: Other.Type.HitBody
 ): Promise<Jira.Type.ReopenRate> {
-  const { body } = messageBody;
   return {
-    id: await parentId(`${mappingPrefixes.reopen_rate}_${body.issueId}_${body.sprintId}`),
+    id: await parentId(
+      `${mappingPrefixes.reopen_rate}_${messageBody.issueId}_${messageBody.sprintId}`
+    ),
     body: {
-      id: `${mappingPrefixes.reopen_rate}_${body.issueId}_${body.sprintId}`,
-      organizationId: body.organizationId,
-      issueKey: body.issueKey,
-      projectId: body.projectId,
-      projectKey: body.projectKey,
-      boardId: body.boardId,
-      issueId: body.id,
-      sprintId: body.sprintId,
+      id: `${mappingPrefixes.reopen_rate}_${messageBody.issueId}_${messageBody.sprintId}`,
+      organizationId: messageBody.organizationId,
+      issueKey: messageBody.issueKey,
+      projectId: messageBody.projectId,
+      projectKey: messageBody.projectKey,
+      boardId: messageBody.boardId,
+      issueId: messageBody.id,
+      sprintId: messageBody.sprintId,
       isReopen: false,
       reOpenCount: 0,
-      isDeleted: body.isDeleted,
-      deletedAt: body.deletedAt,
+      isDeleted: messageBody.isDeleted,
+      deletedAt: messageBody.deletedAt,
     },
   };
 }

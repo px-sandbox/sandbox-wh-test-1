@@ -53,6 +53,7 @@ async function updateSprintAndBoard(
   const boardId = (await getBoardFromSprintId(sprintId))
     ? `${mappingPrefixes.board}_${await getBoardFromSprintId(item.to)}`
     : null;
+
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       sprintId,
@@ -97,6 +98,7 @@ async function updateLabels(item: Jira.ExternalType.Webhook.ChangelogItem, issue
     body: {
       isFTP: labels.includes('FTP') ? true : false,
       isFTF: labels.includes('FTF') ? true : false,
+      label: labels,
     },
   });
 }
@@ -133,30 +135,51 @@ async function updateIssueStatus(
   });
 
   if (issueData.issueType === Jira.Enums.IssuesTypes.BUG) {
-    // update reopen rate
-
+    // update reopen rate or create reopen rate
     const orgId = issueData.organizationId.split('jira_org_')[1];
-    const issueStatus = await getIssueStatusForReopenRate(orgId, {
-      requestId,
-      resourceId,
-    });
+    const issueStatus = await getIssueStatusForReopenRate(
+      `${mappingPrefixes.organization}_${orgId}`,
+      {
+        requestId,
+        resourceId,
+      }
+    );
     if (issueStatus[ChangelogStatus.READY_FOR_QA] === item.to) {
       await createReOpenRate(issueData, { requestId, resourceId });
+    } else if (issueStatus[ChangelogStatus.QA_FAILED] === item.to) {
+      const typeOfChangelog =
+        issueStatus[ChangelogStatus.READY_FOR_QA] == item.to
+          ? ChangelogStatus.READY_FOR_QA
+          : ChangelogStatus.QA_FAILED;
+      logger.info({
+        requestId,
+        resourceId,
+        data: { typeOfChangelog },
+        message: 'issue_info_ready_for_QA_update_event: Send message to SQS',
+      });
+      const reOpenRateData = await getReopenRateDataById(
+        issueData.issueId,
+        issueData.sprintId,
+        issueData.organizationId,
+        { requestId, resourceId }
+      );
+      if (reOpenRateData) {
+        const reopenDocId = reOpenRateData._id;
+        await esClientObj.updateDocument(Jira.Enums.IndexName.ReopenRate, reopenDocId, {
+          body: {
+            isReopen: true,
+            reOpenCount: reOpenRateData.reOpenCount + 1,
+          },
+        });
+        logger.info({ message: 'Reopen rate updated', data: { reopenDocId } });
+      } else {
+        logger.error({
+          requestId,
+          resourceId,
+          message: 'issue_info_ready_for_QA_update_event: Reopen rate data not found',
+        });
+      }
     }
-    const typeOfChangelog =
-      issueStatus[ChangelogStatus.READY_FOR_QA] === item.to
-        ? ChangelogStatus.READY_FOR_QA
-        : ChangelogStatus.QA_FAILED;
-    logger.info({
-      requestId,
-      resourceId,
-      data: { typeOfChangelog },
-      message: 'issue_info_ready_for_QA_update_event: Send message to SQS',
-    });
-    await sqsClient.sendMessage({ ...issueData, typeOfChangelog }, Queue.qReOpenRate.queueUrl, {
-      requestId,
-      resourceId,
-    });
   }
 }
 
@@ -288,6 +311,7 @@ async function handleIssueUpdate(
             resourceId: reqCtx.resourceId,
             message: 'ISSUE_SQS_RECEIVER_HANDLER',
             error: 'unknown_changelog_type',
+            data: item,
           });
           break;
       }

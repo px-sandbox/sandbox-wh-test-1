@@ -57,7 +57,7 @@ export async function getReopenRateDataById(
         esb.boolQuery().must([
           // eslint-disable-next-line max-len
           esb.termsQuery('body.id', `${mappingPrefixes.reopen_rate}_${issueId}_${sprintId}`),
-          esb.termQuery('body.organizationId', orgId),
+          esb.termQuery('body.organizationId.keyword', orgId),
         ])
       )
       .toJSON();
@@ -136,7 +136,7 @@ export async function getIssuesById(
             'body.id',
             issueId.map((id) => `${mappingPrefixes.issue}_${id}`)
           ),
-          esb.termQuery('body.organizationId.keyword', orgData.id),
+          esb.termQuery('body.organizationI', orgData.id),
         ])
       )
       .toJSON();

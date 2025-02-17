@@ -48,6 +48,21 @@ export type Subtask = {
     };
   };
 };
+export type IssueLinkType = {
+  destinationIssueId: string;
+  id: string;
+  issueLinkType: {
+    id: number;
+    inwardName: string;
+    isSubTaskLinkType: boolean;
+    isSystemLinkType: boolean;
+    name: string;
+    outwardName: string;
+    style: string;
+  };
+  sourceIssueId: string;
+  systemLink: boolean;
+};
 export type IssueLinks = {
   id: string;
   self: string;

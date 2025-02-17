@@ -118,7 +118,7 @@ async function processWebhookEvent(
     logger.error({
       requestId,
       message: 'webhook.handler.processWebhookEvent.error',
-      data: { error, eventName, eventTime, body, organization },
+      data: { error: `${error}`, eventName, eventTime, body, organization },
       resourceId,
     });
     throw error;

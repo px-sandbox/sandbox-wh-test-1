@@ -7,59 +7,27 @@ import { getIssuesById } from 'src/repository/issue/get-issue';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-function prepareInwardIssue(
-  issueLink: Jira.ExternalType.Webhook.IssueLinks,
-  sourceIssueId: Pick<Hit, '_id'> & HitBody
-) {
+function prepareInwardIssue(sourceIssueId: Pick<Hit, '_id'> & HitBody) {
   return {
-    id: issueLink.id,
-    type: issueLink.issueLinkType,
-    inwardIssue: {
-      id: sourceIssueId.issueId,
-      key: sourceIssueId.issueKey,
-      fields: {
-        status: {
-          name: sourceIssueId.status,
-        },
-        priority: {
-          name: sourceIssueId.priority,
-        },
-        issuetype: {
-          name: sourceIssueId.issueType,
-        },
-      },
-    },
+    id: sourceIssueId.issueId,
+    key: sourceIssueId.issueKey,
+    type: sourceIssueId.issueType,
+    relation: 'inward',
   };
 }
 
-function prepareOutWardIssue(
-  issueLink: Jira.ExternalType.Webhook.IssueLinks,
-  destIssueId: Pick<Hit, '_id'> & HitBody
-) {
+function prepareOutWardIssue(destIssueId: Pick<Hit, '_id'> & HitBody) {
   return {
-    id: issueLink.id,
-    type: issueLink.issueLinkType,
-    outwardIssue: {
-      id: destIssueId.issueId,
-      key: destIssueId.issueKey,
-      fields: {
-        status: {
-          name: destIssueId.status,
-        },
-        priority: {
-          name: destIssueId.priority,
-        },
-        issuetype: {
-          name: destIssueId.issueType,
-        },
-      },
-    },
+    id: destIssueId.issueId,
+    key: destIssueId.issueKey,
+    type: destIssueId.issueType,
+    relation: 'outward',
   };
 }
 
 function checkIfIssueLinkExists(
   esbData: (Pick<Hit, '_id'> & HitBody) | undefined,
-  issueLink: Jira.ExternalType.Webhook.IssueLinks
+  issueLink: Jira.ExternalType.Webhook.IssueLinkType
 ) {
   const issueLinkData = esbData?.issueLinks;
   const issueLinkExists = issueLinkData.find((ele: { id: string }) => ele.id === issueLink.id);
@@ -71,7 +39,7 @@ function checkIfIssueLinkExists(
  * source issue id is outward
  */
 export async function issueLinkCreateHandler(
-  issueLink: Jira.ExternalType.Webhook.IssueLinks,
+  issueLink: Jira.ExternalType.Webhook.IssueLinkType,
   organization: string,
   requestId: string
 ): Promise<void> {
@@ -87,7 +55,7 @@ export async function issueLinkCreateHandler(
         resourceId,
       }
     );
-
+    console.log('issuelinkskldfn', issueData);
     if (!issueData) {
       logger.error({
         message: 'issueLinkHandler.issueDataNotFound',
@@ -119,7 +87,7 @@ export async function issueLinkCreateHandler(
       // Process destinationIssueData
       const destinationIssueDocId = destinationIssueData._id;
       if (!checkIfIssueLinkExists(destinationIssueData, issueLink)) {
-        const inwardIssueData = prepareInwardIssue(issueLink, sourceIssueIdData);
+        const inwardIssueData = prepareInwardIssue(sourceIssueIdData);
         destinationIssueData.issueLinks.push(inwardIssueData);
         logger.info({
           message: 'issueLinkHandler.issuelinks.length',
@@ -138,7 +106,7 @@ export async function issueLinkCreateHandler(
       // Process sourceIssueIdData
       const sourceIssueDocId = sourceIssueIdData._id;
       if (!checkIfIssueLinkExists(sourceIssueIdData, issueLink)) {
-        const outwardIssueData = prepareOutWardIssue(issueLink, destinationIssueData);
+        const outwardIssueData = prepareOutWardIssue(destinationIssueData);
         sourceIssueIdData.issueLinks.push(outwardIssueData);
         logger.info({
           message: 'issueLinkHandler.issuelinks.length',
@@ -171,7 +139,7 @@ export async function issueLinkCreateHandler(
  * source issue id is outward
  */
 export async function issueLinkDeleteHandler(
-  issueLink: Jira.ExternalType.Webhook.IssueLinks,
+  issueLink: Jira.ExternalType.Webhook.IssueLinkType,
   organization: string,
   requestId: string
 ): Promise<void> {
