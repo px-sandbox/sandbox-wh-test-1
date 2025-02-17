@@ -7,7 +7,90 @@ export type ChangelogItem = {
   to: string;
   toString: string;
 };
-
+export type Sprint = {
+  boardId: number;
+  endDate: string;
+  goal: '';
+  id: number;
+  name: string;
+  startDate: string;
+  state: string;
+};
+export type IssueLinks = {
+  id: string;
+  self: string;
+  type: {
+    id: string;
+    name: string;
+    inward: string;
+    outward: string;
+    self: string;
+  };
+  inwardIssue: {
+    id: string;
+    key: string;
+    self: string;
+    fields: {
+      summary: string;
+      status: {
+        self: string;
+        description: string;
+        iconUrl: string;
+        name: string;
+        id: string;
+      };
+      priority: {
+        self: string;
+        iconUrl: string;
+        name: string;
+        id: string;
+      };
+      issuetype: {
+        self: string;
+        id: string;
+        description: string;
+        iconUrl: string;
+        name: string;
+        subtask: boolean;
+        avatarId: number;
+        entityId: string;
+        heirarchyLevel: number;
+      };
+    };
+  };
+  outwardIssue: {
+    id: string;
+    key: string;
+    self: string;
+    fields: {
+      summary: string;
+      status: {
+        self: string;
+        description: string;
+        iconUrl: string;
+        name: string;
+        id: string;
+      };
+      priority: {
+        self: string;
+        iconUrl: string;
+        name: string;
+        id: string;
+      };
+      issuetype: {
+        self: string;
+        id: string;
+        description: string;
+        iconUrl: string;
+        name: string;
+        subtask: boolean;
+        avatarId: number;
+        entityId: string;
+        heirarchyLevel: number;
+      };
+    };
+  };
+};
 export type Issue = {
   id: string;
   self: string;
@@ -21,17 +104,7 @@ export type Issue = {
       id: string;
       name: string;
     };
-    customfield_10007: [
-      {
-        boardId: number;
-        endDate: string;
-        goal: '';
-        id: number;
-        name: string;
-        startDate: string;
-        state: string;
-      }
-    ];
+    customfield_10007: Array<Sprint>;
     issuetype: {
       self: string;
       id: string;
@@ -95,83 +168,7 @@ export type Issue = {
     };
     labels: Array<string>;
     timeestimate: number;
-    issuelinks: [
-      {
-        id: string;
-        self: string;
-        type: {
-          id: string;
-          name: string;
-          inward: string;
-          outward: string;
-          self: string;
-        };
-        inwardIssue: {
-          id: string;
-          key: string;
-          self: string;
-          fields: {
-            summary: string;
-            status: {
-              self: string;
-              description: string;
-              iconUrl: string;
-              name: string;
-              id: string;
-            };
-            priority: {
-              self: string;
-              iconUrl: string;
-              name: string;
-              id: string;
-            };
-            issuetype: {
-              self: string;
-              id: string;
-              description: string;
-              iconUrl: string;
-              name: string;
-              subtask: boolean;
-              avatarId: number;
-              entityId: string;
-              heirarchyLevel: number;
-            };
-          };
-        };
-        outwardIssue: {
-          id: string;
-          key: string;
-          self: string;
-          fields: {
-            summary: string;
-            status: {
-              self: string;
-              description: string;
-              iconUrl: string;
-              name: string;
-              id: string;
-            };
-            priority: {
-              self: string;
-              iconUrl: string;
-              name: string;
-              id: string;
-            };
-            issuetype: {
-              self: string;
-              id: string;
-              description: string;
-              iconUrl: string;
-              name: string;
-              subtask: boolean;
-              avatarId: number;
-              entityId: string;
-              heirarchyLevel: number;
-            };
-          };
-        };
-      }
-    ];
+    issuelinks: Array<IssueLinks>;
     assignee: {
       self: string;
       accountId: string;

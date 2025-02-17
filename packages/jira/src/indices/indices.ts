@@ -169,13 +169,13 @@ const indices = [
             issueLinks: {
               type: 'nested',
               properties: {
+                id: { type: 'keyword' },
                 key: { type: 'keyword' },
                 type: { type: 'keyword' },
                 relation: { type: 'keyword' },
               },
             },
             assigneeId: { type: 'keyword' },
-
             reporter: {
               properties: {
                 reporterId: { type: 'keyword' },

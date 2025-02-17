@@ -134,11 +134,15 @@ async function updateIssueStatus(
 
   if (issueData.issueType === Jira.Enums.IssuesTypes.BUG) {
     // update reopen rate
+
     const orgId = issueData.organizationId.split('jira_org_')[1];
     const issueStatus = await getIssueStatusForReopenRate(orgId, {
       requestId,
       resourceId,
     });
+    if (issueStatus[ChangelogStatus.READY_FOR_QA] === item.to) {
+      await createReOpenRate(issueData, { requestId, resourceId });
+    }
     const typeOfChangelog =
       issueStatus[ChangelogStatus.READY_FOR_QA] === item.to
         ? ChangelogStatus.READY_FOR_QA
@@ -321,7 +325,10 @@ async function deleteIssueCycleTimeAndReOpenRate(
   }
 }
 
-async function createReOpenRate(issueData: Jira.Type.Issue, reqCtx: Other.Type.RequestCtx) {
+async function createReOpenRate(
+  issueData: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody,
+  reqCtx: Other.Type.RequestCtx
+) {
   const reopenRateData = await formatReopenRateData(issueData);
   logger.info({ message: 'createReOpenRate.formatted.data', data: JSON.stringify(reopenRateData) });
   await saveReOpenRate(reopenRateData, reqCtx);
@@ -343,9 +350,6 @@ async function save(record: SQSRecord): Promise<void> {
     switch (messageBody.eventName) {
       case Jira.Enums.Event.IssueCreated:
         await saveIssueDetails(messageBody.issueData, reqCtx, processId);
-        if (messageBody.issueData.body.issueType === Jira.Enums.IssuesTypes.BUG) {
-          await createReOpenRate(messageBody.issueData, reqCtx);
-        }
         break;
       case Jira.Enums.Event.IssueUpdated:
         await handleIssueUpdate(
