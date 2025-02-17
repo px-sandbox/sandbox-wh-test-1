@@ -2,8 +2,6 @@ import { Jira, Other } from 'abstraction';
 import { ChangelogField, ChangelogStatus } from 'abstraction/jira/enums';
 import { Hit, HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
-import { getIssueChangelogs } from '../lib/get-issue-changelogs';
-import { JiraClient } from '../lib/jira-client';
 import { getReopenRateDataById } from '../repository/issue/get-issue';
 
 export function getSprintForTo(to: string, from: string): string | null {
@@ -53,8 +51,7 @@ export async function prepareReopenRate(
     case ChangelogStatus.READY_FOR_QA:
       if (reOpenRateData) {
         logger.info({
-          requestId: reqCtx.requestId,
-          resourceId: reqCtx.resourceId,
+          ...reqCtx,
           message: `issue_already_exists_in_reopen_rate_index',issueId: ${updatedMessageBody.issueId},
                     typeOfChangelog: ${typeOfChangelog}  `,
         });
@@ -65,8 +62,7 @@ export async function prepareReopenRate(
     case ChangelogStatus.QA_FAILED:
       if (!reOpenRateData) {
         logger.info({
-          requestId: reqCtx.requestId,
-          resourceId: reqCtx.resourceId,
+          ...reqCtx,
           message: `issue_not_exists_in_reopen_rate_index', issueId: ${updatedMessageBody.issueId},
                     typeOfChangelog: ${typeOfChangelog} `,
         });
