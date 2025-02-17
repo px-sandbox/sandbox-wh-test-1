@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.1](https://github.com/studiographene/pulse-data-integration/compare/v1.5.0...v1.5.1) (2025-02-17)
+
+
+### Bug Fixes
+
+* **PX-123456:** cleanups and sprint ids empty array check ([539959c](https://github.com/studiographene/pulse-data-integration/commit/539959ceda1327055dbb057455862db5497107c4))
+* **PX-123456:** cleanups and sprint ids empty array check ([#998](https://github.com/studiographene/pulse-data-integration/issues/998)) ([1306d26](https://github.com/studiographene/pulse-data-integration/commit/1306d269bff12b8b7ce24fdcc5beaa9b02b6cc1f))
+
 ## [1.5.0](https://github.com/studiographene/pulse-data-integration/compare/v1.4.1...v1.5.0) (2025-02-11)
 
 
