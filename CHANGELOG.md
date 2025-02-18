@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.5.2](https://github.com/studiographene/pulse-data-integration/compare/v1.5.1...v1.5.2) (2025-02-18)
+
+
+### Bug Fixes
+
+* **PX-2302:** bugtracker key ([24dcfdb](https://github.com/studiographene/pulse-data-integration/commit/24dcfdbc3d67fe5a0b759aa2532477dad2d01114))
+* **PX-2302:** issue formatter refactoring ([#997](https://github.com/studiographene/pulse-data-integration/issues/997)) ([2d28d51](https://github.com/studiographene/pulse-data-integration/commit/2d28d518ad50b6c273e0c5e7e20a5713a1deef6b))
+* **PX-2302:** issue link delete ([a95bc94](https://github.com/studiographene/pulse-data-integration/commit/a95bc9421d192e55da48d1d0f73453a216607e64))
+* **PX-2302:** issue link refactor ([fa5c504](https://github.com/studiographene/pulse-data-integration/commit/fa5c504b7e26177bc36bab07d4244ee92a9d57a5))
+* **PX-2302:** issuelinks bugtime update ([260b811](https://github.com/studiographene/pulse-data-integration/commit/260b8113145a1a238d5567295cfea777e55d70d4))
+* **PX-2302:** pr feedbacks ([4d042b7](https://github.com/studiographene/pulse-data-integration/commit/4d042b7f7ef6a8a260e9b6cac21101902bd379e6))
+* **PX-2302:** pr feedbacks ([2224b5b](https://github.com/studiographene/pulse-data-integration/commit/2224b5bf8fb290f57b154975ce5756af85c90d25))
+* **PX-2302:** pr feedbacks ([49b433c](https://github.com/studiographene/pulse-data-integration/commit/49b433c1e533666c930bd23d1d17cb51f610b088))
+* **PX-2302:** worklog events ([01b3334](https://github.com/studiographene/pulse-data-integration/commit/01b33345b7c34a75d31949115419966f794f6c16))
+
 ## [1.5.1](https://github.com/studiographene/pulse-data-integration/compare/v1.5.0...v1.5.1) (2025-02-17)
 
 
