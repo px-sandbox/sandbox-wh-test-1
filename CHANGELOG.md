@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.6](https://github.com/studiographene/pulse-data-integration/compare/v1.5.5...v1.5.6) (2025-02-18)
+
+
+### Bug Fixes
+
+* **PX-2302:** fix subtask ([b66ef1c](https://github.com/studiographene/pulse-data-integration/commit/b66ef1cb9e5c44e5a73beb217c01cc72877ba1f5))
+* **PX-2302:** fix subtask ([#1007](https://github.com/studiographene/pulse-data-integration/issues/1007)) ([9a473ae](https://github.com/studiographene/pulse-data-integration/commit/9a473aeab610bd67c633383fce8f06bb3ec5bb5f))
+
 ## [1.5.5](https://github.com/studiographene/pulse-data-integration/compare/v1.5.4...v1.5.5) (2025-02-18)
 
 
