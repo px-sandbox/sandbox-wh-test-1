@@ -167,7 +167,6 @@ const indices = [
             label: { type: 'keyword' },
             summary: { type: 'text' },
             issueLinks: {
-              type: 'nested',
               properties: {
                 id: { type: 'keyword' },
                 key: { type: 'keyword' },
@@ -180,7 +179,6 @@ const indices = [
             creatorId: { type: 'keyword' },
             status: { type: 'keyword' },
             subtasks: {
-              type: 'nested',
               properties: {
                 id: { type: 'keyword' },
                 key: { type: 'keyword' },
