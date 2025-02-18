@@ -31,7 +31,7 @@ export async function getIssueById(
           .boolQuery()
           .must([
             esb.termsQuery('body.id', `${mappingPrefixes.issue}_${issueId}`),
-            esb.termQuery('body.organizationId.keyword', orgData.id),
+            esb.termQuery('body.organizationId', orgData.id),
           ])
       )
       .toJSON();
@@ -39,33 +39,24 @@ export async function getIssueById(
     const [formattedIssueData] = await searchedDataFormatorWithDeleted(issueData);
     return formattedIssueData;
   } catch (error: unknown) {
-    logger.error({ ...reqCtx, message: 'getIssueById.error', error });
+    logger.error({ ...reqCtx, message: 'getIssueById.error', error: `${error}` });
     throw error;
   }
 }
 
 export async function getReopenRateDataById(
   issueId: string,
-  sprintId: string,
-  organization: string,
-  reqCtx: Other.Type.RequestCtx
+  orgId: string,
+  reqCtx?: Other.Type.RequestCtx
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
   try {
-    const orgData = await getOrganization(organization);
-    if (!orgData) {
-      logger.error({ ...reqCtx, message: `Organization ${organization} not found` });
-      throw new Error(`Organization ${organization} not found`);
-    }
     const matchQry = esb
       .requestBodySearch()
       .query(
         esb.boolQuery().must([
           // eslint-disable-next-line max-len
-          esb.termsQuery(
-            'body.id',
-            `${mappingPrefixes.reopen_rate}_${issueId}_${mappingPrefixes.sprint}_${sprintId}`
-          ),
-          esb.termQuery('body.organizationId', orgData.id),
+          esb.termsQuery('body.issueId', `${mappingPrefixes.issue}_${issueId}`),
+          esb.termQuery('body.organizationId.keyword', orgId),
         ])
       )
       .toJSON();
@@ -74,7 +65,7 @@ export async function getReopenRateDataById(
     const [formattedIssueData] = await searchedDataFormatorWithDeleted(reopenRateData);
     return formattedIssueData;
   } catch (error: unknown) {
-    logger.error({ ...reqCtx, message: 'getReopenRateDataById.error', error });
+    logger.error({ ...reqCtx, message: 'getReopenRateDataById.error', error: `${error} ` });
     throw error;
   }
 }
@@ -144,7 +135,7 @@ export async function getIssuesById(
             'body.id',
             issueId.map((id) => `${mappingPrefixes.issue}_${id}`)
           ),
-          esb.termQuery('body.organizationId.keyword', orgData.id),
+          esb.termQuery('body.organizationId', orgData.id),
         ])
       )
       .toJSON();
@@ -153,6 +144,31 @@ export async function getIssuesById(
     return formattedIssueData;
   } catch (error: unknown) {
     logger.error({ ...reqCtx, message: 'getIssueById.error', error });
+    throw error;
+  }
+}
+
+export async function getCycleTimeByIssueId(
+  issueId: string,
+  orgId: string
+): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
+  try {
+    const matchQry = esb
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.id', `${mappingPrefixes.issue}_${issueId}`),
+            esb.termQuery('body.organizationId', orgId),
+          ])
+      )
+      .toJSON();
+    const issueData = await esClientObj.search(Jira.Enums.IndexName.CycleTime, matchQry);
+    const [formattedIssueData] = await searchedDataFormatorWithDeleted(issueData);
+    return formattedIssueData;
+  } catch (error: unknown) {
+    logger.error({ message: 'getIssueById.error', error: `${error}` });
     throw error;
   }
 }

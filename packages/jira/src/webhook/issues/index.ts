@@ -1,2 +1,2 @@
-export { issueHandler } from './issue';
+export { create, update, deleted } from './issue';
 export { worklog } from './worklogs';

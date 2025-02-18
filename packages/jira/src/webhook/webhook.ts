@@ -80,36 +80,36 @@ async function processWebhookEvent(
         await board.delete(body.board.id, eventTime, organization, requestId);
         break;
       case Jira.Enums.Event.IssueCreated:
+        await issue.create(body.issue, eventTime.toISOString(), organization, requestId);
+        break;
       case Jira.Enums.Event.IssueUpdated:
-      case Jira.Enums.Event.IssueDeleted:
-        await issue.issueHandler(
-          {
-            issue: body.issue,
-            changelog: body.changelog,
-            organization,
-            eventName,
-            timestamp: eventTime.toISOString(),
-          },
+        await issue.update(
+          body.changelog,
+          body.issue,
+          eventTime.toISOString(),
+          organization,
           requestId
         );
+        break;
+      case Jira.Enums.Event.IssueDeleted:
+        await issue.deleted(body.issue, eventTime.toISOString(), organization, requestId);
         break;
       case Jira.Enums.Event.WorklogCreated:
       case Jira.Enums.Event.WorklogUpdated:
       case Jira.Enums.Event.WorklogDeleted:
-        await issue.worklog(body.worklog, body.worklog.issueId, eventName, eventTime, organization, requestId);
+        await issue.worklog(
+          body.worklog,
+          body.worklog.issueId,
+          eventName,
+          eventTime,
+          organization,
+          requestId
+        );
         break;
       case Jira.Enums.Event.IssueLinkCreated:
-        logger.info({
-          message: 'issueLinkHandler.webhookEvent',
-          data: { eventName, organization, requestId },
-        });
         await issueLinkCreateHandler(body.issueLink, organization, requestId);
         break;
       case Jira.Enums.Event.IssueLinkDeleted:
-        logger.info({
-          message: 'issueLinkHandler.webhookEvent',
-          data: { eventName, organization, requestId },
-        });
         await issueLinkDeleteHandler(body.issueLink, organization, requestId);
         break;
       default:
@@ -124,7 +124,7 @@ async function processWebhookEvent(
     logger.error({
       requestId,
       message: 'webhook.handler.processWebhookEvent.error',
-      data: { error, eventName, eventTime, body, organization },
+      data: { error: `${error}`, eventName, eventTime, body, organization },
       resourceId,
     });
     throw error;

@@ -18,8 +18,8 @@ export enum ChangelogStatus {
   IN_PROGRESS = 'In_Progress',
   DEV_COMPLETE = 'Dev_Complete',
   CODE_REVIEW = 'Code_Review',
-  DEV_RCA ="Dev RCA",
-  QA_RCA="QA RCA",
+  DEV_RCA = 'Dev RCA',
+  QA_RCA = 'QA RCA',
 }
 export enum ChangelogField {
   SPRINT = 'Sprint',
@@ -39,4 +39,30 @@ export enum IssueTimeTrackerSort {
 export enum IssueTimeTracker {
   estimate = 'estimate',
   actual = 'actual',
+}
+
+export enum ChangelogName {
+  STATUS = 'status',
+  CUSTOM = 'custom',
+  JIRA = 'jira',
+  SPRINT = 'customfield_10007',
+  ASSIGNEE = 'assignee',
+  SUMMARY = 'summary',
+  LABELS = 'labels',
+  DESCRIPTION = 'description',
+  PRIORITY = 'priority',
+  ISSUE_TYPE = 'issuetype',
+  PROJECT = 'project',
+  CREATED = 'created',
+  UPDATED = 'updated',
+  COMMENT = 'comment',
+  ATTACHMENT = 'attachment',
+  ISSUE_LINK = 'issueLink',
+  PARENT = 'parent',
+  ISSUE_PARENT_ASSOCIATION = 'IssueParentAssociation',
+  WATCHERS = 'watchers',
+  TIME_TRACKER = 'timeestimate',
+  PROGRESS = 'progress',
+  DEV_RCA = 'customfield_11225',
+  QA_RCA = 'customfield_11226',
 }

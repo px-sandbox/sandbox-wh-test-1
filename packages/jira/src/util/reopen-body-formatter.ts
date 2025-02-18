@@ -6,7 +6,7 @@ import { ChangelogStatus } from 'abstraction/jira/enums';
 import { HitBody } from 'abstraction/other/type';
 import { mappingPrefixes } from '../constant/config';
 
-interface ReopenItem {
+export interface ReopenItem {
   organizationId: string;
   issueKey: string;
   projectId: string;

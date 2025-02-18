@@ -1,65 +1,34 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { Hit } from 'abstraction/github/type';
+import { IssuesTypes } from 'abstraction/jira/enums';
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import { getIssuesById } from 'src/repository/issue/get-issue';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-function prepareInwardIssue(
-  issueLink: Jira.ExternalType.Webhook.IssueLinks,
-  sourceIssueId: Pick<Hit, '_id'> & HitBody
-) {
+function prepareInwardIssue(sourceIssueId: Pick<Hit, '_id'> & HitBody) {
   return {
-    id: issueLink.id,
-    type: issueLink.issueLinkType,
-    inwardIssue: {
-      id: sourceIssueId.issueId,
-      key: sourceIssueId.issueKey,
-      fields: {
-        status: {
-          name: sourceIssueId.status,
-        },
-        priority: {
-          name: sourceIssueId.priority,
-        },
-        issuetype: {
-          name: sourceIssueId.issueType,
-        },
-      },
-    },
+    id: sourceIssueId.issueId,
+    key: sourceIssueId.issueKey,
+    type: sourceIssueId.issueType,
+    relation: 'inward',
   };
 }
 
-function prepareOutWardIssue(
-  issueLink: Jira.ExternalType.Webhook.IssueLinks,
-  destIssueId: Pick<Hit, '_id'> & HitBody
-) {
+function prepareOutWardIssue(destIssueId: Pick<Hit, '_id'> & HitBody) {
   return {
-    id: issueLink.id,
-    type: issueLink.issueLinkType,
-    outwardIssue: {
-      id: destIssueId.issueId,
-      key: destIssueId.issueKey,
-      fields: {
-        status: {
-          name: destIssueId.status,
-        },
-        priority: {
-          name: destIssueId.priority,
-        },
-        issuetype: {
-          name: destIssueId.issueType,
-        },
-      },
-    },
+    id: destIssueId.issueId,
+    key: destIssueId.issueKey,
+    type: destIssueId.issueType,
+    relation: 'outward',
   };
 }
 
 function checkIfIssueLinkExists(
   esbData: (Pick<Hit, '_id'> & HitBody) | undefined,
-  issueLink: Jira.ExternalType.Webhook.IssueLinks
+  issueLink: Jira.ExternalType.Webhook.IssueLinkType
 ) {
   const issueLinkData = esbData?.issueLinks;
   const issueLinkExists = issueLinkData.find((ele: { id: string }) => ele.id === issueLink.id);
@@ -71,7 +40,7 @@ function checkIfIssueLinkExists(
  * source issue id is outward
  */
 export async function issueLinkCreateHandler(
-  issueLink: Jira.ExternalType.Webhook.IssueLinks,
+  issueLink: Jira.ExternalType.Webhook.IssueLinkType,
   organization: string,
   requestId: string
 ): Promise<void> {
@@ -119,15 +88,28 @@ export async function issueLinkCreateHandler(
       // Process destinationIssueData
       const destinationIssueDocId = destinationIssueData._id;
       if (!checkIfIssueLinkExists(destinationIssueData, issueLink)) {
-        const inwardIssueData = prepareInwardIssue(issueLink, sourceIssueIdData);
+        const inwardIssueData = prepareInwardIssue(sourceIssueIdData);
         destinationIssueData.issueLinks.push(inwardIssueData);
         logger.info({
           message: 'issueLinkHandler.issuelinks.length',
           data: { length: destinationIssueData.issueLinks.length },
         });
         // Update the issue link data in the destination issue id
+        let sourceActualTime = 0;
+        if (sourceIssueIdData.issueType === IssuesTypes.BUG) {
+          sourceActualTime =
+            destinationIssueData.bugTimeTracker.actual + sourceIssueIdData.timeTracker.actual;
+          await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
+            body: {
+              issueLinks: destinationIssueData.issueLinks,
+              bugTimeTracker: { actual: sourceActualTime },
+            },
+          });
+        }
         await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
-          body: { issueLinks: destinationIssueData.issueLinks },
+          body: {
+            issueLinks: destinationIssueData.issueLinks,
+          },
         });
       } else {
         logger.error({
@@ -138,13 +120,23 @@ export async function issueLinkCreateHandler(
       // Process sourceIssueIdData
       const sourceIssueDocId = sourceIssueIdData._id;
       if (!checkIfIssueLinkExists(sourceIssueIdData, issueLink)) {
-        const outwardIssueData = prepareOutWardIssue(issueLink, destinationIssueData);
+        const outwardIssueData = prepareOutWardIssue(destinationIssueData);
         sourceIssueIdData.issueLinks.push(outwardIssueData);
         logger.info({
           message: 'issueLinkHandler.issuelinks.length',
           data: { length: sourceIssueIdData.issueLinks.length },
         });
-
+        let sourceActualTime = 0;
+        if (destinationIssueData.issueType === IssuesTypes.BUG) {
+          sourceActualTime =
+            destinationIssueData.bugTimeTracker.actual + sourceIssueIdData.timeTracker.actual;
+          await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
+            body: {
+              issueLinks: destinationIssueData.issueLinks,
+              bugTimeTracker: { actual: sourceActualTime },
+            },
+          });
+        }
         // Update the issue link data in the source issue id
         await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
           body: { issueLinks: sourceIssueIdData.issueLinks },
@@ -171,7 +163,7 @@ export async function issueLinkCreateHandler(
  * source issue id is outward
  */
 export async function issueLinkDeleteHandler(
-  issueLink: Jira.ExternalType.Webhook.IssueLinks,
+  issueLink: Jira.ExternalType.Webhook.IssueLinkType,
   organization: string,
   requestId: string
 ): Promise<void> {
@@ -223,13 +215,23 @@ export async function issueLinkDeleteHandler(
       const destinationIssueDocId = destinationIssueData._id;
 
       const destIssueTypeDeleted = destinationIssueData.issueLinks.filter((ele: { id: string }) => {
-        return ele.id !== String(issueLink.id);
+        return ele.id !== String(issueLink.sourceIssueId);
       });
       destinationIssueData.issueLinks = destIssueTypeDeleted;
       logger.info({
         message: 'issueLinkDeleteHandler.issuelinks.length',
         data: { length: destinationIssueData.issueLinks.length },
       });
+      if (sourceIssueIdData.issueType === IssuesTypes.BUG) {
+        const sourceActualTime =
+          destinationIssueData.bugTimeTracker.actual - sourceIssueIdData.timeTracker.actual;
+        await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
+          body: {
+            issueLinks: destinationIssueData.issueLinks,
+            bugTimeTracker: { actual: sourceActualTime },
+          },
+        });
+      }
       // Update the issue link data in the destination issue id
       await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
         body: { issueLinks: destinationIssueData.issueLinks },
@@ -239,14 +241,23 @@ export async function issueLinkDeleteHandler(
       const sourceIssueDocId = sourceIssueIdData._id;
 
       const sourceIssueTypeDeleted = sourceIssueIdData.issueLinks.filter((ele: { id: string }) => {
-        return ele.id !== String(issueLink.id);
+        return ele.id !== String(issueLink.destinationIssueId);
       });
       sourceIssueIdData.issueLinks = sourceIssueTypeDeleted;
       logger.info({
         message: 'issueLinkDeleteHandler.issuelinks.length',
         data: { length: sourceIssueIdData.issueLinks.length },
       });
-
+      if (destinationIssueData.issueType === IssuesTypes.BUG) {
+        const sourceActualTime =
+          destinationIssueData.bugTimeTracker.actual - sourceIssueIdData.timeTracker.actual;
+        await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
+          body: {
+            issueLinks: sourceIssueIdData.issueLinks,
+            bugTimeTracker: { actual: sourceActualTime },
+          },
+        });
+      }
       // Update the issue link data in the source issue id
       await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
         body: { issueLinks: sourceIssueIdData.issueLinks },

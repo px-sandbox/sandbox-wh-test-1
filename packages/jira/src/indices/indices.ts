@@ -152,77 +152,64 @@ const indices = [
             id: { type: 'keyword' },
             issueId: { type: 'keyword' },
             issueKey: { type: 'keyword' },
-            containsDevRca: { type: 'keyword' },
-            containsQARca: { type: 'keyword' },
+            parent: { properties: { key: { type: 'keyword' }, id: { type: 'keyword' } } },
             rcaData: {
               properties: {
                 devRca: { type: 'keyword' },
-                qaRca: { type: 'keyword' }
-              }
+                qaRca: { type: 'keyword' },
+              },
             },
             projectKey: { type: 'keyword' },
             isFTP: { type: 'boolean' },
             isFTF: { type: 'boolean' },
-            reOpenCount: { type: 'integer' },
             issueType: { type: 'keyword' },
-            isPrimary: { type: 'boolean' },
             priority: { type: 'keyword' },
             label: { type: 'keyword' },
             summary: { type: 'text' },
-            issuelinks: {
+            issueLinks: {
+              type: 'nested',
               properties: {
-                issueKey: { type: 'keyword' },
+                id: { type: 'keyword' },
+                key: { type: 'keyword' },
+                type: { type: 'keyword' },
+                relation: { type: 'keyword' },
               },
             },
-            assignee: {
-              properties: {
-                assigneeId: { type: 'keyword' },
-                name: { type: 'text' },
-                isActive: { type: 'boolean' },
-              },
-            },
-            reporter: {
-              properties: {
-                reporterId: { type: 'keyword' },
-                name: { type: 'text' },
-                isActive: { type: 'boolean' },
-              },
-            },
-            creator: {
-              properties: {
-                creatorId: { type: 'keyword' },
-                name: { type: 'text' },
-                isActive: { type: 'boolean' },
-              },
-            },
+            assigneeId: { type: 'keyword' },
+            reporterId: { type: 'keyword' },
+            creatorId: { type: 'keyword' },
             status: { type: 'keyword' },
             subtasks: {
+              type: 'nested',
               properties: {
-                subtaskKey: { type: 'keyword' },
-              },
-            },
-            sprint: {
-              properties: {
-                name: { type: 'keyword' },
-                state: { type: 'keyword' },
-                startDate: { type: 'date', format: 'strict_date_optional_time' },
-                endDate: { type: 'date', format: 'strict_date_optional_time' },
+                id: { type: 'keyword' },
+                key: { type: 'keyword' },
               },
             },
             createdDate: { type: 'date', format: 'strict_date_optional_time' },
-            lastViewed: { type: 'date', format: 'strict_date_optional_time' },
             lastUpdated: { type: 'date', format: 'strict_date_optional_time' },
-            isDelete: { type: 'boolean' },
+            isDeleted: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time' },
             sprintId: { type: 'keyword' },
             boardId: { type: 'keyword' },
             projectId: { type: 'keyword' },
-            organizationID: { type: 'keyword' },
+            organizationId: { type: 'keyword' },
             timeTracker: {
               type: 'object',
               properties: {
                 estimate: { type: 'long' },
                 actual: { type: 'long' },
+              },
+            },
+            bugTimeTracker: {
+              type: 'object',
+              properties: {
+                estimate: {
+                  type: 'long',
+                },
+                actual: {
+                  type: 'long',
+                },
               },
             },
           },
@@ -317,10 +304,10 @@ const indices = [
             id: { type: 'keyword' },
             name: { type: 'keyword' },
             type: { type: 'keyword' },
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   },
 
   {
