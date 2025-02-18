@@ -79,7 +79,7 @@ function createSubtaskSearchQuery(
         .boolQuery()
         .must([
           esb.termQuery('body.projectId', projectId),
-          esb.termsQuery('body.issueId', subtaskIds),
+          esb.termsQuery('body.id', subtaskIds),
           esb.termQuery('body.organizationId', orgId),
           esb.termQuery('body.issueType', 'Sub-task'),
           esb.rangeQuery('body.timeTracker.estimate').gt(0),
