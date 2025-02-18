@@ -117,12 +117,7 @@ export async function formatIssueNew(
       priority: issueData.fields.priority.name,
       label: issueData.fields.labels,
       summary: issueData?.fields?.summary ?? '',
-      issueLinks: issueData.fields.issuelinks.map((link) => ({
-        id: `${mappingPrefixes.issue}_${link.outwardIssue?.id || link.inwardIssue?.id}`,
-        key: link.outwardIssue?.key || link.inwardIssue?.key,
-        type: link.outwardIssue?.fields.issuetype.name || link.inwardIssue?.fields.issuetype.name,
-        relation: link.inwardIssue.key ? 'inward' : 'outward',
-      })),
+      issueLinks: [], // will be added from issuelink_create events
       assigneeId: issueData.fields.assignee?.accountId
         ? `${mappingPrefixes.user}_${issueData.fields.assignee.accountId}`
         : null,
