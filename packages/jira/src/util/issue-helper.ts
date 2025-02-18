@@ -118,7 +118,7 @@ export async function formatIssueNew(
       label: issueData.fields.labels,
       summary: issueData?.fields?.summary ?? '',
       issueLinks: issueData.fields.issuelinks.map((link) => ({
-        id: link.outwardIssue?.id || link.inwardIssue?.id,
+        id: `${mappingPrefixes.issue}_${link.outwardIssue?.id || link.inwardIssue?.id}`,
         key: link.outwardIssue?.key || link.inwardIssue?.key,
         type: link.outwardIssue?.fields.issuetype.name || link.inwardIssue?.fields.issuetype.name,
         relation: link.inwardIssue.key ? 'inward' : 'outward',
