@@ -42,6 +42,21 @@ async function fetchIssue(
   return issueData;
 }
 
+async function updateActualTime(
+  worklogData: Jira.ExternalType.Webhook.Worklog,
+  reqCtx: Other.Type.RequestCtx
+) {
+  const issueData = await fetchIssue(worklogData.issueId, worklogData.organization, reqCtx);
+  const issueDocId = issueData._id;
+  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
+    body: {
+      timeTracker: {
+        actual: worklogData.worklog.timeSpentSeconds,
+      },
+    },
+  });
+  logger.info({ message: 'actual_time_updated', data: { issueDocId } });
+}
 async function updateSprintAndBoard(
   item: Jira.ExternalType.Webhook.ChangelogItem,
   issueDoc: any,
@@ -73,22 +88,6 @@ async function updateSprintAndBoard(
       .query(esb.termQuery('body.parent.id', issueDoc.id))
       .toJSON();
     await esClientObj.updateByQuery(Jira.Enums.IndexName.Issue, subtaskQuery, sprintScript);
-  }
-
-  //update sprintIds of reopenrate bugs issues
-  if (issueDoc.issueType === Jira.Enums.IssuesTypes.BUG) {
-    const reopenRateDocId = await getReopenRateDataById(
-      issueDoc.id,
-      issueDoc.sprintId,
-      issueDoc.organizationId
-    );
-
-    await esClientObj.updateDocument(Jira.Enums.IndexName.ReopenRate, reopenRateDocId._id, {
-      body: {
-        sprintId,
-        boardId,
-      },
-    });
   }
 }
 
@@ -147,22 +146,16 @@ async function updateIssueStatus(
     if (issueStatus[ChangelogStatus.READY_FOR_QA] === item.to) {
       await createReOpenRate(issueData, { requestId, resourceId });
     } else if (issueStatus[ChangelogStatus.QA_FAILED] === item.to) {
-      const typeOfChangelog =
-        issueStatus[ChangelogStatus.READY_FOR_QA] == item.to
-          ? ChangelogStatus.READY_FOR_QA
-          : ChangelogStatus.QA_FAILED;
       logger.info({
         requestId,
         resourceId,
-        data: { typeOfChangelog },
+        data: { typeOfChangelog: ChangelogStatus.QA_FAILED },
         message: 'issue_info_ready_for_QA_update_event: Send message to SQS',
       });
-      const reOpenRateData = await getReopenRateDataById(
-        issueData.issueId,
-        issueData.sprintId,
-        issueData.organizationId,
-        { requestId, resourceId }
-      );
+      const reOpenRateData = await getReopenRateDataById(issueData.id, issueData.organizationId, {
+        requestId,
+        resourceId,
+      });
       if (reOpenRateData) {
         const reopenDocId = reOpenRateData._id;
         await esClientObj.updateDocument(Jira.Enums.IndexName.ReopenRate, reopenDocId, {
@@ -390,6 +383,11 @@ async function save(record: SQSRecord): Promise<void> {
           messageBody.organization,
           reqCtx
         );
+        break;
+      case Jira.Enums.Event.WorklogCreated:
+      case Jira.Enums.Event.WorklogUpdated:
+      case Jira.Enums.Event.WorklogDeleted:
+        await updateActualTime(messageBody, reqCtx);
         break;
       default:
         logger.error({

@@ -1,6 +1,7 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { Hit } from 'abstraction/github/type';
+import { IssuesTypes } from 'abstraction/jira/enums';
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import { getIssuesById } from 'src/repository/issue/get-issue';
@@ -55,7 +56,7 @@ export async function issueLinkCreateHandler(
         resourceId,
       }
     );
-    console.log('issuelinkskldfn', issueData);
+
     if (!issueData) {
       logger.error({
         message: 'issueLinkHandler.issueDataNotFound',
@@ -94,8 +95,21 @@ export async function issueLinkCreateHandler(
           data: { length: destinationIssueData.issueLinks.length },
         });
         // Update the issue link data in the destination issue id
+        let sourceActualTime = 0;
+        if (sourceIssueIdData.issueType === IssuesTypes.BUG) {
+          sourceActualTime =
+            destinationIssueData.bugTime.actual + sourceIssueIdData.timeTracker.actual;
+          await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
+            body: {
+              issueLinks: destinationIssueData.issueLinks,
+              bugTimeTracker: { actual: sourceActualTime },
+            },
+          });
+        }
         await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
-          body: { issueLinks: destinationIssueData.issueLinks },
+          body: {
+            issueLinks: destinationIssueData.issueLinks,
+          },
         });
       } else {
         logger.error({
@@ -112,7 +126,17 @@ export async function issueLinkCreateHandler(
           message: 'issueLinkHandler.issuelinks.length',
           data: { length: sourceIssueIdData.issueLinks.length },
         });
-
+        let sourceActualTime = 0;
+        if (destinationIssueData.issueType === IssuesTypes.BUG) {
+          sourceActualTime =
+            destinationIssueData.bugTime.actual + sourceIssueIdData.timeTracker.actual;
+          await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
+            body: {
+              issueLinks: destinationIssueData.issueLinks,
+              bugTimeTracker: { actual: sourceActualTime },
+            },
+          });
+        }
         // Update the issue link data in the source issue id
         await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
           body: { issueLinks: sourceIssueIdData.issueLinks },

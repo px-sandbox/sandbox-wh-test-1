@@ -5,24 +5,26 @@ export type Worklog = {
   isDeleted: boolean; // Corresponds to "isDeleted" (boolean type)
   deletedAt: string;
   organization: string; // Corresponds to "organization" (keyword type)
-  issueId: string,
-  timeLogged: number,
-  startTime: string,
-  eventName: string,
-  projectKey: string,
-  issueKey: string,
-  started: string,
-  timeSpentSeconds: number,
-  createdDate: string,
+  issueId: string;
+  timeLogged: number;
+  startTime: string;
+  eventName: string;
+  projectKey: string;
+  issueKey: string;
+  started: string;
+  worklog: {
+    timeSpentSeconds: number;
+  };
+  createdDate: string;
   issueData: {
-    _id: string,
-    id: string,
-    issueId: string,
-    projectKey: string,
-    projectId: string,
-    issueKey: string,
-    issueType: string,
-    isDeleted: boolean,
-    sprintId: string,
-  }
+    _id: string;
+    id: string;
+    issueId: string;
+    projectKey: string;
+    projectId: string;
+    issueKey: string;
+    issueType: string;
+    isDeleted: boolean;
+    sprintId: string;
+  };
 };

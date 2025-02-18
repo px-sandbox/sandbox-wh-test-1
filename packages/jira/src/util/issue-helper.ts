@@ -149,7 +149,7 @@ export async function formatIssueNew(
         estimate: issueData?.fields?.timeestimate ?? 0,
         actual: 0,
       },
-      bugTime: {
+      bugTimeTracker: {
         estimate: 0,
         actual: 0,
       },

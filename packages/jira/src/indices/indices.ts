@@ -176,16 +176,8 @@ const indices = [
               },
             },
             assigneeId: { type: 'keyword' },
-            reporter: {
-              properties: {
-                reporterId: { type: 'keyword' },
-              },
-            },
-            creator: {
-              properties: {
-                creatorId: { type: 'keyword' },
-              },
-            },
+            reporterId: { type: 'keyword' },
+            creatorId: { type: 'keyword' },
             status: { type: 'keyword' },
             subtasks: {
               type: 'nested',
