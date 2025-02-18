@@ -22,7 +22,7 @@ function isAllowedProjectOrIssueType(
     return false;
   } else if (
     projectKeys.includes(projectKey) ||
-    projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE
+    projectTypeKey.toLowerCase() !== ProjectTypeKey.SOFTWARE
   ) {
     logger.info({
       message:
