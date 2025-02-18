@@ -215,13 +215,23 @@ export async function issueLinkDeleteHandler(
       const destinationIssueDocId = destinationIssueData._id;
 
       const destIssueTypeDeleted = destinationIssueData.issueLinks.filter((ele: { id: string }) => {
-        return ele.id !== String(issueLink.id);
+        return ele.id !== String(issueLink.sourceIssueId);
       });
       destinationIssueData.issueLinks = destIssueTypeDeleted;
       logger.info({
         message: 'issueLinkDeleteHandler.issuelinks.length',
         data: { length: destinationIssueData.issueLinks.length },
       });
+      if (sourceIssueIdData.issueType === IssuesTypes.BUG) {
+        const sourceActualTime =
+          destinationIssueData.bugTime.actual - sourceIssueIdData.timeTracker.actual;
+        await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
+          body: {
+            issueLinks: destinationIssueData.issueLinks,
+            bugTimeTracker: { actual: sourceActualTime },
+          },
+        });
+      }
       // Update the issue link data in the destination issue id
       await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
         body: { issueLinks: destinationIssueData.issueLinks },
@@ -231,14 +241,23 @@ export async function issueLinkDeleteHandler(
       const sourceIssueDocId = sourceIssueIdData._id;
 
       const sourceIssueTypeDeleted = sourceIssueIdData.issueLinks.filter((ele: { id: string }) => {
-        return ele.id !== String(issueLink.id);
+        return ele.id !== String(issueLink.destinationIssueId);
       });
       sourceIssueIdData.issueLinks = sourceIssueTypeDeleted;
       logger.info({
         message: 'issueLinkDeleteHandler.issuelinks.length',
         data: { length: sourceIssueIdData.issueLinks.length },
       });
-
+      if (destinationIssueData.issueType === IssuesTypes.BUG) {
+        const sourceActualTime =
+          destinationIssueData.bugTime.actual - sourceIssueIdData.timeTracker.actual;
+        await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
+          body: {
+            issueLinks: sourceIssueIdData.issueLinks,
+            bugTimeTracker: { actual: sourceActualTime },
+          },
+        });
+      }
       // Update the issue link data in the source issue id
       await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
         body: { issueLinks: sourceIssueIdData.issueLinks },
