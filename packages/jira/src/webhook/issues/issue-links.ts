@@ -98,7 +98,7 @@ export async function issueLinkCreateHandler(
         let sourceActualTime = 0;
         if (sourceIssueIdData.issueType === IssuesTypes.BUG) {
           sourceActualTime =
-            destinationIssueData.bugTime.actual + sourceIssueIdData.timeTracker.actual;
+            destinationIssueData.bugTimeTracker.actual + sourceIssueIdData.timeTracker.actual;
           await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
             body: {
               issueLinks: destinationIssueData.issueLinks,
@@ -129,7 +129,7 @@ export async function issueLinkCreateHandler(
         let sourceActualTime = 0;
         if (destinationIssueData.issueType === IssuesTypes.BUG) {
           sourceActualTime =
-            destinationIssueData.bugTime.actual + sourceIssueIdData.timeTracker.actual;
+            destinationIssueData.bugTimeTracker.actual + sourceIssueIdData.timeTracker.actual;
           await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
             body: {
               issueLinks: destinationIssueData.issueLinks,
@@ -224,7 +224,7 @@ export async function issueLinkDeleteHandler(
       });
       if (sourceIssueIdData.issueType === IssuesTypes.BUG) {
         const sourceActualTime =
-          destinationIssueData.bugTime.actual - sourceIssueIdData.timeTracker.actual;
+          destinationIssueData.bugTimeTracker.actual - sourceIssueIdData.timeTracker.actual;
         await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, destinationIssueDocId, {
           body: {
             issueLinks: destinationIssueData.issueLinks,
@@ -250,7 +250,7 @@ export async function issueLinkDeleteHandler(
       });
       if (destinationIssueData.issueType === IssuesTypes.BUG) {
         const sourceActualTime =
-          destinationIssueData.bugTime.actual - sourceIssueIdData.timeTracker.actual;
+          destinationIssueData.bugTimeTracker.actual - sourceIssueIdData.timeTracker.actual;
         await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, sourceIssueDocId, {
           body: {
             issueLinks: sourceIssueIdData.issueLinks,
