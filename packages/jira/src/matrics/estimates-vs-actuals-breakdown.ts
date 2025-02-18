@@ -34,7 +34,7 @@ function createIssueSearchQuery(
         .must([
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.sprintId', sprintId),
-          esb.termQuery('body.organizationId.keyword', orgId),
+          esb.termQuery('body.organizationId', orgId),
           esb.termsQuery('body.issueType', [IssuesTypes.STORY, IssuesTypes.TASK, IssuesTypes.BUG]),
           esb.existsQuery('body.timeTracker'),
         ])
@@ -80,7 +80,7 @@ function createSubtaskSearchQuery(
         .must([
           esb.termQuery('body.projectId', projectId),
           esb.termsQuery('body.issueId', subtaskIds),
-          esb.termQuery('body.organizationId.keyword', orgId),
+          esb.termQuery('body.organizationId', orgId),
           esb.termQuery('body.issueType', 'Sub-task'),
           esb.rangeQuery('body.timeTracker.estimate').gt(0),
         ])
