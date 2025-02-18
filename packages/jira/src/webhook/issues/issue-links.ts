@@ -4,13 +4,14 @@ import { Hit } from 'abstraction/github/type';
 import { IssuesTypes } from 'abstraction/jira/enums';
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
+import { mappingPrefixes } from 'src/constant/config';
 import { getIssuesById } from 'src/repository/issue/get-issue';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
 function prepareInwardIssue(sourceIssueId: Pick<Hit, '_id'> & HitBody) {
   return {
-    id: sourceIssueId.issueId,
+    id: `${mappingPrefixes.issue}_${sourceIssueId.issueId}`,
     key: sourceIssueId.issueKey,
     type: sourceIssueId.issueType,
     relation: 'inward',
@@ -19,7 +20,7 @@ function prepareInwardIssue(sourceIssueId: Pick<Hit, '_id'> & HitBody) {
 
 function prepareOutWardIssue(destIssueId: Pick<Hit, '_id'> & HitBody) {
   return {
-    id: destIssueId.issueId,
+    id: `${mappingPrefixes.issue}_${destIssueId.issueId}`,
     key: destIssueId.issueKey,
     type: destIssueId.issueType,
     relation: 'outward',

@@ -2,54 +2,9 @@ import { retryProcess } from './retry-process';
 
 export type IssueLinks = {
   id: string;
-  type: {
-    id: string;
-    name: string;
-    inward: string;
-    outward: string;
-  };
-  inwardIssue: {
-    id: string;
-    key: string;
-    self: string;
-    fields: {
-      summary: string;
-      status: {
-        name: string;
-        id: string;
-      };
-      issuetype: {
-        name: string;
-        id: string;
-        subtask: boolean;
-      };
-      priority: {
-        name: string;
-        id: string;
-      };
-    };
-  };
-  outwardIssue: {
-    id: string;
-    key: string;
-    self: string;
-    fields: {
-      summary: string;
-      status: {
-        name: string;
-        id: string;
-      };
-      issuetype: {
-        name: string;
-        id: string;
-        subtask: boolean;
-      };
-      priority: {
-        name: string;
-        id: string;
-      };
-    };
-  };
+  type: string;
+  relation: string;
+  key: string;
 };
 export type Issue = retryProcess & {
   id: string;
