@@ -19,7 +19,7 @@ function isAllowedProjectOrIssueType(
   const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
   if (!ALLOWED_ISSUE_TYPES.includes(issueTypeName)) {
     logger.info({ message: 'Issue: Create => Issue type is not among allowed values' });
-    return;
+    return false;
   } else if (
     projectKeys.includes(projectKey) ||
     projectTypeKey.toLowerCase() === ProjectTypeKey.SOFTWARE
@@ -28,7 +28,7 @@ function isAllowedProjectOrIssueType(
       message:
         'Issue: Create => Either the project is not allowed or we do not support this project type',
     });
-    return;
+    return false;
   }
 }
 export async function create(
@@ -46,7 +46,14 @@ export async function create(
     },
   } = issue;
 
-  isAllowedProjectOrIssueType(project.key, project.projectTypeKey, issueTypeName);
+  const isAllowedProjectOrIssue = isAllowedProjectOrIssueType(
+    project.key,
+    project.projectTypeKey,
+    issueTypeName
+  );
+  if (!isAllowedProjectOrIssue) {
+    return;
+  }
   const orgId = await getOrganization(organization);
   if (!orgId) {
     throw new Error(`worklog.hanlder.organization ${organization} not found`);
@@ -86,7 +93,14 @@ export async function update(
     },
   } = issueData;
 
-  isAllowedProjectOrIssueType(project.key, project.projectTypeKey, issueTypeName);
+  const isAllowedProjectOrIssue = isAllowedProjectOrIssueType(
+    project.key,
+    project.projectTypeKey,
+    issueTypeName
+  );
+  if (!isAllowedProjectOrIssue) {
+    return;
+  }
 
   await sqsClient.sendFifoMessage(
     {
@@ -125,7 +139,14 @@ export async function deleted(
       issuetype: { name: issueTypeName },
     },
   } = issue;
-  isAllowedProjectOrIssueType(project.key, project.projectTypeKey, issueTypeName);
+  const isAllowedProjectOrIssue = isAllowedProjectOrIssueType(
+    project.key,
+    project.projectTypeKey,
+    issueTypeName
+  );
+  if (!isAllowedProjectOrIssue) {
+    return;
+  }
 
   await sqsClient.sendFifoMessage(
     {

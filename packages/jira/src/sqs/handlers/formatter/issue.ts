@@ -1,5 +1,4 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { SQSClient } from '@pulse/event-handler';
 import { Jira, Other } from 'abstraction';
 import { ChangelogStatus } from 'abstraction/jira/enums';
 import async from 'async';
@@ -21,7 +20,6 @@ import { removeReopenRate } from 'src/webhook/issues/delete-reopen-rate';
 import { Queue } from 'sst/node/queue';
 
 const esClientObj = ElasticSearchClient.getInstance();
-const sqsClient = SQSClient.getInstance();
 
 async function fetchIssue(
   issueId: string,
@@ -37,7 +35,7 @@ async function fetchIssue(
       message: 'issueLinkHandler.issueDataNotFound',
       data: { issueId, reqCtx },
     });
-    throw new Error('issueData not found');
+    throw new Error(`issueData not found_for_${issueId}`);
   }
   return issueData;
 }
@@ -252,61 +250,62 @@ async function handleIssueUpdate(
   reqCtx: { requestId: string; resourceId: string },
   processId: string
 ): Promise<void> {
-  const issueDoc = await fetchIssue(issueData.id, organization, reqCtx);
-  const issueDocId = issueDoc._id;
   changelog.items.forEach(async (item) => {
     try {
       const field = item.fieldId || item.field;
-      switch (field) {
-        case Jira.Enums.ChangelogName.SPRINT:
-          await updateSprintAndBoard(item, issueDoc, issueDocId);
-          break;
-        case Jira.Enums.ChangelogName.STATUS:
-          //also incorporate cycle time and on ready for qa create index in reopenrate
-          await updateIssueStatus(item, issueDocId, issueDoc, reqCtx);
-          break;
-        case Jira.Enums.ChangelogName.ASSIGNEE:
-          await updateAssignee(item, issueDocId);
-          break;
-        case Jira.Enums.ChangelogName.SUMMARY:
-          //worklogs category
-          await updateSummary(item, issueDocId);
-          break;
-        case Jira.Enums.ChangelogName.DESCRIPTION:
-          await updateDescription(item, issueDocId);
-          break;
-        case Jira.Enums.ChangelogName.PRIORITY:
-          await updatePriority(item, issueDocId);
-          break;
-        case Jira.Enums.ChangelogName.LABELS:
-          await updateLabels(item, issueDocId);
-          break;
-        case Jira.Enums.ChangelogName.ISSUE_TYPE:
-          await updateIssueType(item, issueDocId);
-          break;
-        case Jira.Enums.ChangelogName.ISSUE_PARENT_ASSOCIATION:
-          //changelog contains parentId and issueData contains subtask.
-          //update parent task with subtask id
-          await updateIssueParentAssociation(item, issueData, organization, reqCtx);
-          break;
-        case Jira.Enums.ChangelogName.DEV_RCA:
-          await updateDevRca(item, issueDocId);
-          break;
-        case Jira.Enums.ChangelogName.QA_RCA:
-          await updateQARca(item, issueDocId);
-          break;
-        case Jira.Enums.ChangelogName.TIME_TRACKER:
-          await updateTimeTracker(item, issueDocId);
-          break;
-        default:
-          logger.error({
-            requestId: reqCtx.requestId,
-            resourceId: reqCtx.resourceId,
-            message: 'ISSUE_SQS_RECEIVER_HANDLER',
-            error: 'unknown_changelog_type',
-            data: item,
-          });
-          break;
+      if (field === Jira.Enums.ChangelogName.ISSUE_PARENT_ASSOCIATION) {
+        //changelog contains parentId and issueData contains subtask.
+        //update parent task with subtask id
+        await updateIssueParentAssociation(item, issueData, organization, reqCtx);
+      } else {
+        const issueDoc = await fetchIssue(issueData.id, organization, reqCtx);
+        const issueDocId = issueDoc._id;
+        switch (field) {
+          case Jira.Enums.ChangelogName.SPRINT:
+            await updateSprintAndBoard(item, issueDoc, issueDocId);
+            break;
+          case Jira.Enums.ChangelogName.STATUS:
+            //also incorporate cycle time and on ready for qa create index in reopenrate
+            await updateIssueStatus(item, issueDocId, issueDoc, reqCtx);
+            break;
+          case Jira.Enums.ChangelogName.ASSIGNEE:
+            await updateAssignee(item, issueDocId);
+            break;
+          case Jira.Enums.ChangelogName.SUMMARY:
+            //worklogs category
+            await updateSummary(item, issueDocId);
+            break;
+          case Jira.Enums.ChangelogName.DESCRIPTION:
+            await updateDescription(item, issueDocId);
+            break;
+          case Jira.Enums.ChangelogName.PRIORITY:
+            await updatePriority(item, issueDocId);
+            break;
+          case Jira.Enums.ChangelogName.LABELS:
+            await updateLabels(item, issueDocId);
+            break;
+          case Jira.Enums.ChangelogName.ISSUE_TYPE:
+            await updateIssueType(item, issueDocId);
+            break;
+          case Jira.Enums.ChangelogName.DEV_RCA:
+            await updateDevRca(item, issueDocId);
+            break;
+          case Jira.Enums.ChangelogName.QA_RCA:
+            await updateQARca(item, issueDocId);
+            break;
+          case Jira.Enums.ChangelogName.TIME_TRACKER:
+            await updateTimeTracker(item, issueDocId);
+            break;
+          default:
+            logger.error({
+              requestId: reqCtx.requestId,
+              resourceId: reqCtx.resourceId,
+              message: 'ISSUE_SQS_RECEIVER_HANDLER',
+              error: 'unknown_changelog_type',
+              data: item,
+            });
+            break;
+        }
       }
     } catch (error) {
       throw new Error('unknown_changelog_type_error');
