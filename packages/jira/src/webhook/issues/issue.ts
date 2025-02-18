@@ -28,7 +28,7 @@ function isAllowedProjectOrIssueType(
       message:
         'Issue: Create => Either the project is not allowed or we do not support this project type',
     });
-    // return;
+    return;
   }
 }
 export async function create(
