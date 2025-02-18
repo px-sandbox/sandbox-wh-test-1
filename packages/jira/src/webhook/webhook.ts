@@ -10,7 +10,6 @@ import * as project from './projects';
 import * as sprint from './sprints';
 import * as user from './users';
 import { issueLinkCreateHandler, issueLinkDeleteHandler } from './issues/issue-links';
-import { worklogHandler } from './issues/worklogs';
 
 /**
  * Processes the webhook event based on the event name and performs the corresponding action.
@@ -98,7 +97,14 @@ async function processWebhookEvent(
       case Jira.Enums.Event.WorklogCreated:
       case Jira.Enums.Event.WorklogUpdated:
       case Jira.Enums.Event.WorklogDeleted:
-        await worklogHandler(body.worklog, eventName, eventTime, organization, requestId);
+        await issue.worklog(
+          body.worklog,
+          body.worklog.issueId,
+          eventName,
+          eventTime,
+          organization,
+          requestId
+        );
         break;
       case Jira.Enums.Event.IssueLinkCreated:
         await issueLinkCreateHandler(body.issueLink, organization, requestId);

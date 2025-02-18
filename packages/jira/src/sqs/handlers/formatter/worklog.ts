@@ -29,12 +29,19 @@ export const handler = async function worklogFormattedDataReciever(event: SQSEve
           case Jira.Enums.Event.WorklogCreated:
             const processedData = await saveFormattedData(messageBody);
             await saveWorklogDetails(processedData);
+            //issue time tracking update
             break;
           case Jira.Enums.Event.WorklogUpdated:
-            await updateWorklogDetails(`${mappingPrefixes.worklog}_${messageBody?.id}`, messageBody?.timeSpentSeconds, messageBody?.started);
+            await updateWorklogDetails(
+              `${mappingPrefixes.worklog}_${messageBody?.worklog.id}`,
+              messageBody?.worklog.timeSpentSeconds,
+              messageBody?.worklog.started
+            );
+            //issue time tracking update
             break;
           case Jira.Enums.Event.WorklogDeleted:
-            await deleteWorklogDetails(`${mappingPrefixes.worklog}_${messageBody?.id}`);
+            await deleteWorklogDetails(`${mappingPrefixes.worklog}_${messageBody?.worklog.id}`);
+            //issue time tracking update
             break;
           default:
             logger.error({
@@ -57,7 +64,9 @@ export const handler = async function worklogFormattedDataReciever(event: SQSEve
   );
 };
 
-async function saveFormattedData(data: Jira.ExternalType.Webhook.Worklog): Promise<Jira.Type.Worklog> {
+async function saveFormattedData(
+  data: Jira.ExternalType.Webhook.Worklog
+): Promise<Jira.Type.Worklog> {
   const orgData = await getOrganization(data.organization);
   if (!orgData) {
     logger.error({
@@ -71,9 +80,9 @@ async function saveFormattedData(data: Jira.ExternalType.Webhook.Worklog): Promi
       id: `${mappingPrefixes.worklog}_${data?.id}`,
       projectKey: data?.issueData.projectKey,
       issueKey: data?.issueData.issueKey,
-      timeLogged: data?.timeSpentSeconds,
+      timeLogged: data?.worklog.timeSpentSeconds,
       category: null,
-      date: data?.started,
+      date: data?.worklog.started,
       createdAt: data?.created,
       isDeleted: false,
       organizationId: orgData.id ?? null,

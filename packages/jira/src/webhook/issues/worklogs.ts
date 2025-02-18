@@ -105,7 +105,7 @@ export async function worklog(
       ),
       sqsClient.sendMessage(
         {
-          ...worklog,
+          worklog,
           eventName,
           issueData: issueData,
           createdDate,
