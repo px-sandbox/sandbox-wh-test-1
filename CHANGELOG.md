@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.1](https://github.com/studiographene/pulse-data-integration/compare/v1.6.0...v1.6.1) (2025-02-19)
+
+
+### Bug Fixes
+
+* **PX-2302:** batch size ([0f7653a](https://github.com/studiographene/pulse-data-integration/commit/0f7653ac9d775fe75b02f5060f85739bb4379add))
+* **PX-2302:** batch size ([#1013](https://github.com/studiographene/pulse-data-integration/issues/1013)) ([42ffca3](https://github.com/studiographene/pulse-data-integration/commit/42ffca38935c6126f2409146e34176404e80def2))
+
 ## [1.6.0](https://github.com/studiographene/pulse-data-integration/compare/v1.5.7...v1.6.0) (2025-02-19)
 
 
