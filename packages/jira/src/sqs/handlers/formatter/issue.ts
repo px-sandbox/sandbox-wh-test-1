@@ -63,7 +63,7 @@ async function updateSprintAndBoard(item: Jira.ExternalType.Webhook.ChangelogIte
   const sprintId = getSprintForTo(item.to, item.from);
   const boardId = await getBoardFromSprintId(sprintId);
   const sprintWithMapping = sprintId ? `${mappingPrefixes.sprint}_${sprintId}` : null;
-  const boardWithMapping = boardId ? `${mappingPrefixes.board}_${boardId}` : null;
+  const boardWithMapping = boardId ?? null;
 
   logger.info({
     message: 'updateSprintAndBoard.sprint.computed',
