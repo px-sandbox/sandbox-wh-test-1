@@ -1,6 +1,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
-import { ChangelogStatus } from 'abstraction/jira/enums';
+import { ChangelogStatus, validChangelogFields } from 'abstraction/jira/enums';
 import async from 'async';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
@@ -269,7 +269,11 @@ async function updateTimeTracker(
   });
   logger.info({ message: 'updateTimeTracker.completed', data: { issueDocId } });
 }
-
+function changelogsToProcess(changelogs: Jira.ExternalType.Webhook.ChangelogItem[]) {
+  const [item] = changelogs.filter((item) => validChangelogFields.includes(item.field));
+  logger.info({ message: 'changelogsToProcess', data: { changelogs, item } });
+  return item;
+}
 async function handleIssueUpdate(
   changelog: { items: Jira.ExternalType.Webhook.ChangelogItem[] },
   issueData: Jira.ExternalType.Webhook.Issue,
@@ -277,67 +281,77 @@ async function handleIssueUpdate(
   reqCtx: { requestId: string; resourceId: string },
   processId: string
 ): Promise<void> {
-  changelog.items.forEach(async (item) => {
-    try {
-      const field = item.fieldId || item.field;
-      if (field === Jira.Enums.ChangelogName.ISSUE_PARENT_ASSOCIATION) {
-        //changelog contains parentId and issueData contains subtask.
-        //update parent task with subtask id
-        await updateIssueParentAssociation(item, issueData, organization, reqCtx);
-      } else {
-        const issueDoc = await fetchIssue(issueData.id, organization, reqCtx);
-        const issueDocId = issueDoc._id;
-        switch (field) {
-          case Jira.Enums.ChangelogName.SPRINT:
-            await updateSprintAndBoard(item, issueDoc);
-            break;
-          case Jira.Enums.ChangelogName.STATUS:
-            //also incorporate cycle time and on ready for qa create index in reopenrate
-            await updateIssueStatus(item, issueDocId, issueDoc, reqCtx);
-            break;
-          case Jira.Enums.ChangelogName.ASSIGNEE:
-            await updateAssignee(item, issueDocId);
-            break;
-          case Jira.Enums.ChangelogName.SUMMARY:
-            //worklogs category
-            await updateSummary(item, issueDocId);
-            break;
-          case Jira.Enums.ChangelogName.DESCRIPTION:
-            await updateDescription(item, issueDocId);
-            break;
-          case Jira.Enums.ChangelogName.PRIORITY:
-            await updatePriority(item, issueDocId);
-            break;
-          case Jira.Enums.ChangelogName.LABELS:
-            await updateLabels(item, issueDocId);
-            break;
-          case Jira.Enums.ChangelogName.ISSUE_TYPE:
-            await updateIssueType(item, issueDocId);
-            break;
-          case Jira.Enums.ChangelogName.DEV_RCA:
-            await updateDevRca(item, issueDocId);
-            break;
-          case Jira.Enums.ChangelogName.QA_RCA:
-            await updateQARca(item, issueDocId);
-            break;
-          case Jira.Enums.ChangelogName.TIME_TRACKER:
-            await updateTimeTracker(item, issueDocId);
-            break;
-          default:
-            logger.error({
-              requestId: reqCtx.requestId,
-              resourceId: reqCtx.resourceId,
-              message: 'ISSUE_SQS_RECEIVER_HANDLER',
-              error: 'unknown_changelog_type',
-              data: item,
-            });
-            break;
-        }
-      }
-    } catch (error) {
-      throw new Error('unknown_changelog_type_error');
+  logger.info({ message: 'handleIssueUpdate.initiated', data: { issueData } });
+  try {
+    const item = changelogsToProcess(changelog.items);
+    if (!item) {
+      logger.info({
+        message: 'handleIssueUpdate.invalid.changelog',
+        data: { changelog, issueData },
+      });
+      return;
     }
-  });
+    const field = item.fieldId || item.field;
+    logger.info({ message: 'handleIssueUpdate.field.toBeUpdated', data: { field } });
+    if (field === Jira.Enums.ChangelogName.ISSUE_PARENT_ASSOCIATION) {
+      logger.info({ message: 'handleIssueUpdate.parentAssociation', data: { field } });
+      //changelog contains parentId and issueData contains subtask.
+      //update parent task with subtask id
+      await updateIssueParentAssociation(item, issueData, organization, reqCtx);
+    } else {
+      const issueDoc = await fetchIssue(issueData.id, organization, reqCtx);
+      const issueDocId = issueDoc._id;
+      logger.info({ message: 'handleIssueUpdate.issueDocId', data: { issueDocId, field } });
+      switch (field) {
+        case Jira.Enums.ChangelogName.SPRINT:
+          await updateSprintAndBoard(item, issueDoc);
+          break;
+        case Jira.Enums.ChangelogName.STATUS:
+          //also incorporate cycle time and on ready for qa create index in reopenrate
+          await updateIssueStatus(item, issueDocId, issueDoc, reqCtx);
+          break;
+        case Jira.Enums.ChangelogName.ASSIGNEE:
+          await updateAssignee(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.SUMMARY:
+          //worklogs category
+          await updateSummary(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.DESCRIPTION:
+          await updateDescription(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.PRIORITY:
+          await updatePriority(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.LABELS:
+          await updateLabels(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.ISSUE_TYPE:
+          await updateIssueType(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.DEV_RCA:
+          await updateDevRca(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.QA_RCA:
+          await updateQARca(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.TIME_TRACKER:
+          await updateTimeTracker(item, issueDocId);
+          break;
+        default:
+          logger.error({
+            requestId: reqCtx.requestId,
+            resourceId: reqCtx.resourceId,
+            message: 'ISSUE_SQS_RECEIVER_HANDLER',
+            error: 'unknown_changelog_type',
+            data: item,
+          });
+          break;
+      }
+    }
+  } catch (error) {
+    throw new Error('unknown_changelog_type_error');
+  }
 }
 
 async function deleteIssueCycleTimeAndReOpenRate(
