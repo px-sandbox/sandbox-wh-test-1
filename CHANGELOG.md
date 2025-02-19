@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.7.3](https://github.com/studiographene/pulse-data-integration/compare/v1.7.2...v1.7.3) (2025-02-19)
+
+
+### Bug Fixes
+
+* **PX-2302:** fix ([599ecda](https://github.com/studiographene/pulse-data-integration/commit/599ecdaf7c314d9cb53a5fec658557ace0bdcc56))
+* **PX-2302:** fix ([#1021](https://github.com/studiographene/pulse-data-integration/issues/1021)) ([55a6f1c](https://github.com/studiographene/pulse-data-integration/commit/55a6f1c6e10419c2f9c04ffa2d8749374a2ce824))
+
+## [1.7.2](https://github.com/studiographene/pulse-data-integration/compare/v1.7.1...v1.7.2) (2025-02-19)
+
+
+### Bug Fixes
+
+* **PX-2302:** fixes ([59a24b4](https://github.com/studiographene/pulse-data-integration/commit/59a24b460002024f9140241c64d03e3ec21c2539))
+* **PX-2302:** fixes ([#1019](https://github.com/studiographene/pulse-data-integration/issues/1019)) ([dec6c41](https://github.com/studiographene/pulse-data-integration/commit/dec6c414045ef2d4c84475140f08395481065689))
+
+## [1.7.1](https://github.com/studiographene/pulse-data-integration/compare/v1.7.0...v1.7.1) (2025-02-19)
+
+
+### Bug Fixes
+
+* **PX-2302:** fix ([32cfaec](https://github.com/studiographene/pulse-data-integration/commit/32cfaecec66c49e09e5e0fc186afd94634fd9a25))
+* **PX-2302:** fix ([e3c0fbc](https://github.com/studiographene/pulse-data-integration/commit/e3c0fbc9e9f33418308cca2877fb9ff2a4beac5a))
+* **PX-2302:** fix ([e15419f](https://github.com/studiographene/pulse-data-integration/commit/e15419fbee275e42a50bd8cd44d0630769656f53))
+* **PX-2302:** fix ([65d46d6](https://github.com/studiographene/pulse-data-integration/commit/65d46d6594b861c69ae7db59145a032eaf2d955a))
+* **PX-2302:** fix ([492e76c](https://github.com/studiographene/pulse-data-integration/commit/492e76cb71dcc86161605eeb97ceb89a469ab63c))
+* **PX-2302:** logger ([4bf114e](https://github.com/studiographene/pulse-data-integration/commit/4bf114e9c110cde5cdd4f0213037d8bc91b447f4))
+* **PX-2302:** logger ([#1017](https://github.com/studiographene/pulse-data-integration/issues/1017)) ([6665879](https://github.com/studiographene/pulse-data-integration/commit/666587933743e0f35131287fa38aeefbb801c4d8))
+
 ## [1.7.0](https://github.com/studiographene/pulse-data-integration/compare/v1.6.1...v1.7.0) (2025-02-19)
 
 
