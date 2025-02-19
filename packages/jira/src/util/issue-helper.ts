@@ -164,7 +164,7 @@ export async function getBoardFromSprintId(sprintId: string | null): Promise<str
   const data = await esClientObj.search(Jira.Enums.IndexName.Sprint, query);
   const [sprint] = await searchedDataFormator(data);
   if (sprint) {
-    const boardId = sprint.boardId;
+    const boardId = sprint.originBoardId;
     return boardId;
   }
   return null;
