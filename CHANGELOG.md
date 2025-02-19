@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.6](https://github.com/studiographene/pulse-data-integration/compare/v1.7.5...v1.7.6) (2025-02-19)
+
+
+### Bug Fixes
+
+* **PX-2302:** timeestimate update and subtask remove ([b06c8ba](https://github.com/studiographene/pulse-data-integration/commit/b06c8bad52f006b5ebcc86a88bd3e4799de60b84))
+* **PX-2302:** timeestimate update and subtask remove ([#1027](https://github.com/studiographene/pulse-data-integration/issues/1027)) ([0cdeef9](https://github.com/studiographene/pulse-data-integration/commit/0cdeef9421e88f60a8e472ed05aa8218c1a0f151))
+
 ## [1.7.5](https://github.com/studiographene/pulse-data-integration/compare/v1.7.4...v1.7.5) (2025-02-19)
 
 
