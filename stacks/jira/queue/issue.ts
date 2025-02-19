@@ -39,7 +39,7 @@ export function initializeIssueQueue(
     }),
     cdk: {
       eventSource: {
-        batchSize: 5,
+        batchSize: 2,
       },
     },
   });
