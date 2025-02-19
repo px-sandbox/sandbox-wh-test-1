@@ -199,6 +199,26 @@ async function updateAssignee(item: Jira.ExternalType.Webhook.ChangelogItem, iss
   logger.info({ message: 'updateAssignee.completed', data: { issueDocId } });
 }
 
+async function updateReporter(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+  logger.info({ message: 'updateReporter.initiated', data: { issueDocId } });
+  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
+    body: {
+      reporterId: `${mappingPrefixes.user}_${item.to}`,
+    },
+  });
+  logger.info({ message: 'updateReporter.completed', data: { issueDocId } });
+}
+
+async function updateCreator(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+  logger.info({ message: 'updateReporter.initiated', data: { issueDocId } });
+  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
+    body: {
+      creatorId: `${mappingPrefixes.user}_${item.to}`,
+    },
+  });
+  logger.info({ message: 'updateReporter.completed', data: { issueDocId } });
+}
+
 async function updatePriority(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
   logger.info({ message: 'updatePriority.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
@@ -318,6 +338,12 @@ async function handleIssueUpdate(
         case Jira.Enums.ChangelogName.ASSIGNEE:
           await updateAssignee(item, issueDocId);
           break;
+        case Jira.Enums.ChangelogName.REPORTER:
+          await updateReporter(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.CREATOR:
+          await updateCreator(item, issueDocId);
+          break;
         case Jira.Enums.ChangelogName.SUMMARY:
           //worklogs category
           await updateSummary(item, issueDocId);
@@ -373,6 +399,28 @@ async function deleteIssueCycleTimeAndReOpenRate(
       deletedAt: moment().toISOString(),
     },
   });
+  logger.info({
+    message: 'issueDelete.completed',
+    data: issueData,
+  });
+
+  if (issueDoc.parent.id) {
+    const parentId = issueDoc.parent.id.replace('jira_issue_', '');
+    logger.info({ message: 'issueDelete.subtask.initiated', data: { parentId } });
+    const parentIssue = await fetchIssue(parentId, organization, reqCtx);
+    const parentIssueId = parentIssue._id;
+    await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, parentIssueId, {
+      body: {
+        subtasks: parentIssue.subtasks.filter(
+          (subtask: { id: string }) => subtask.id !== `${mappingPrefixes.issue}_${issueData.id}`
+        ),
+      },
+    });
+    logger.info({
+      message: 'issueDelete.subtask.completed',
+      data: issueData,
+    });
+  }
   //soft delete cycle time document
   await softDeleteCycleTimeDocument(
     issueData.id,
