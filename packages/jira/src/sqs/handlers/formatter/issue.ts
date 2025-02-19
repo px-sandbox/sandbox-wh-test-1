@@ -164,11 +164,18 @@ async function updateIssueStatus(
       logger.info({ message: 'updateIssueStatus.issueStatus.READY_FOR_QA', data: { issueDocId } });
       await createReOpenRate(issueData, { requestId, resourceId });
     } else if (issueStatus[ChangelogStatus.QA_FAILED] === item.to) {
-      logger.info({ message: 'updateIssueStatus.issueStatus.QA_FAILED', data: { issueDocId } });
-      const reOpenRateData = await getReopenRateDataById(issueData.id, issueData.organizationId, {
-        requestId,
-        resourceId,
+      logger.info({
+        message: 'updateIssueStatus.issueStatus.QA_FAILED',
+        data: JSON.stringify(issueData),
       });
+      const reOpenRateData = await getReopenRateDataById(
+        issueData.issueId,
+        issueData.organizationId,
+        {
+          requestId,
+          resourceId,
+        }
+      );
       if (reOpenRateData) {
         const reopenDocId = reOpenRateData._id;
         await esClientObj.updateDocument(Jira.Enums.IndexName.ReopenRate, reopenDocId, {
@@ -187,6 +194,7 @@ async function updateIssueStatus(
       }
     }
   }
+  logger.info({ message: 'updateStatus.completed', data: { issueDocId } });
 }
 
 async function updateAssignee(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
