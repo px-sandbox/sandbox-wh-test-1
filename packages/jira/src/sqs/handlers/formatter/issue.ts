@@ -57,22 +57,24 @@ async function updateActualTime(
   });
   logger.info({ message: 'updateActualTime.completed', data: { issueDocId } });
 }
-async function updateSprintAndBoard(item: Jira.ExternalType.Webhook.ChangelogItem, issueDoc: any) {
-  logger.info({ message: 'updateSprintAndBoard.initiated', data: { issueKey: issueDoc.key } });
-
+async function updateSprintAndBoard(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDoc: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody
+) {
+  logger.info({ message: 'updateSprintAndBoard.initiated', data: { issueKey: issueDoc.issueKey } });
   const sprintId = getSprintForTo(item.to, item.from);
   const boardId = await getBoardFromSprintId(sprintId);
   const sprintWithMapping = sprintId ? `${mappingPrefixes.sprint}_${sprintId}` : null;
 
   logger.info({
     message: 'updateSprintAndBoard.sprint.computed',
-    data: { issueKey: issueDoc.key, sprintId, boardId },
+    data: { issueKey: issueDoc.issueKey, sprintId, boardId },
   });
 
   const sprintScript = esb
     .script(
       'inline',
-      `ctx._source.body.sprintId = params.sprintId; ctx._source.body.boardId = params.boardId`
+      `ctx._source.body.sprintId = params.sprintWithMapping; ctx._source.body.boardId = params.boardId`
     )
     .params({ sprintWithMapping, boardId });
   const subtaskQuery = esb
@@ -81,8 +83,8 @@ async function updateSprintAndBoard(item: Jira.ExternalType.Webhook.ChangelogIte
       esb
         .boolQuery()
         .should([
-          esb.termsQuery('body.parent.key', issueDoc.key),
-          esb.termsQuery('body.issueKey', issueDoc.key),
+          esb.termsQuery('body.parent.key', issueDoc.issueKey),
+          esb.termsQuery('body.issueKey', issueDoc.issueKey),
         ])
         .minimumShouldMatch(1)
     )
@@ -92,7 +94,7 @@ async function updateSprintAndBoard(item: Jira.ExternalType.Webhook.ChangelogIte
 
   logger.info({
     message: 'updateSprintAndBoard.sprint.completed',
-    data: { issueKey: issueDoc.key },
+    data: { issueKey: issueDoc.issueKey },
   });
 }
 
