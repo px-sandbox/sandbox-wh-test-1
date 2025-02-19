@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.7](https://github.com/studiographene/pulse-data-integration/compare/v1.7.6...v1.7.7) (2025-02-19)
+
+
+### Bug Fixes
+
+* **PX-2302:** reopen fix ([84fa4cd](https://github.com/studiographene/pulse-data-integration/commit/84fa4cd3b133014795d86d49fc737f1c62a76360))
+* **PX-2302:** reopen fix ([#1029](https://github.com/studiographene/pulse-data-integration/issues/1029)) ([8be084e](https://github.com/studiographene/pulse-data-integration/commit/8be084e9757f834c5000037e158eaf963281b091))
+
 ## [1.7.6](https://github.com/studiographene/pulse-data-integration/compare/v1.7.5...v1.7.6) (2025-02-19)
 
 
