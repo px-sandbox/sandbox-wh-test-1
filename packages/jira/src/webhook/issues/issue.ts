@@ -30,6 +30,7 @@ function isAllowedProjectOrIssueType(
     });
     return false;
   }
+  return true;
 }
 export async function create(
   issue: Jira.ExternalType.Webhook.Issue,
