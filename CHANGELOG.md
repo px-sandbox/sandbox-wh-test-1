@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.3](https://github.com/studiographene/pulse-data-integration/compare/v1.7.2...v1.7.3) (2025-02-19)
+
+
+### Bug Fixes
+
+* **PX-2302:** fix ([599ecda](https://github.com/studiographene/pulse-data-integration/commit/599ecdaf7c314d9cb53a5fec658557ace0bdcc56))
+* **PX-2302:** fix ([#1021](https://github.com/studiographene/pulse-data-integration/issues/1021)) ([55a6f1c](https://github.com/studiographene/pulse-data-integration/commit/55a6f1c6e10419c2f9c04ffa2d8749374a2ce824))
+
 ## [1.7.2](https://github.com/studiographene/pulse-data-integration/compare/v1.7.1...v1.7.2) (2025-02-19)
 
 
