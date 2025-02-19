@@ -57,9 +57,9 @@ async function updateActualTime(
 }
 async function updateSprintAndBoard(
   item: Jira.ExternalType.Webhook.ChangelogItem,
-  issueDoc: any,
-  issueDocId: string
+  issueDoc: any
 ) {
+  logger.info({ message: 'updateSprintAndBoard.initiated', data: {issueKey: issueDoc.key} });
   const sprintId = getSprintForTo(item.to, item.from)
     ? `${mappingPrefixes.sprint}_${getSprintForTo(item.to, item.from)}`
     : null;
@@ -67,14 +67,8 @@ async function updateSprintAndBoard(
     ? `${mappingPrefixes.board}_${await getBoardFromSprintId(item.to)}`
     : null;
 
-  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
-    body: {
-      sprintId,
-      boardId,
-    },
-  });
-  if (issueDoc.subtasks.length > 0) {
-    // update subtask for with parent's sprintId
+    logger.info({ message: 'updateSprintAndBoard.sprint.computed', data: { issueKey: issueDoc.key, sprintId, boardId } });
+
     const sprintScript = esb
       .script(
         'inline',
@@ -83,10 +77,20 @@ async function updateSprintAndBoard(
       .params({ sprintId, boardId });
     const subtaskQuery = esb
       .requestBodySearch()
-      .query(esb.termQuery('body.parent.id', issueDoc.id))
+      .query(
+        esb
+          .boolQuery()
+          .should([
+            esb.termsQuery('body.parent.key', issueDoc.key),
+            esb.termsQuery('body.issueKey', issueDoc.key),
+          ])
+          .minimumShouldMatch(1)
+      )
       .toJSON();
+
     await esClientObj.updateByQuery(Jira.Enums.IndexName.Issue, subtaskQuery, sprintScript);
-  }
+
+    logger.info({ message: 'updateSprintAndBoard.sprint.Updated', data: { issueKey: issueDoc.key } });
 }
 
 async function updateLabels(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
@@ -262,7 +266,7 @@ async function handleIssueUpdate(
         const issueDocId = issueDoc._id;
         switch (field) {
           case Jira.Enums.ChangelogName.SPRINT:
-            await updateSprintAndBoard(item, issueDoc, issueDocId);
+            await updateSprintAndBoard(item, issueDoc);
             break;
           case Jira.Enums.ChangelogName.STATUS:
             //also incorporate cycle time and on ready for qa create index in reopenrate
