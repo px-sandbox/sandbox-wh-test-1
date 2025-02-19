@@ -44,8 +44,10 @@ async function updateActualTime(
   worklogData: Jira.ExternalType.Webhook.Worklog,
   reqCtx: Other.Type.RequestCtx
 ) {
+  logger.info({ message: 'updateActualTime.initiated', data: worklogData });
   const issueData = await fetchIssue(worklogData.issueId, worklogData.organization, reqCtx);
   const issueDocId = issueData._id;
+  logger.info({ message: 'updateActualTime.issueFetched', data: {issueKey: issueData.issueKey} });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       timeTracker: {
@@ -53,13 +55,13 @@ async function updateActualTime(
       },
     },
   });
-  logger.info({ message: 'actual_time_updated', data: { issueDocId } });
+  logger.info({ message: 'updateActualTime.completed', data: { issueDocId } });
 }
 async function updateSprintAndBoard(
   item: Jira.ExternalType.Webhook.ChangelogItem,
-  issueDoc: any,
-  issueDocId: string
+  issueDoc: any
 ) {
+  logger.info({ message: 'updateSprintAndBoard.initiated', data: {issueKey: issueDoc.key} });
   const sprintId = getSprintForTo(item.to, item.from)
     ? `${mappingPrefixes.sprint}_${getSprintForTo(item.to, item.from)}`
     : null;
@@ -67,14 +69,8 @@ async function updateSprintAndBoard(
     ? `${mappingPrefixes.board}_${await getBoardFromSprintId(item.to)}`
     : null;
 
-  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
-    body: {
-      sprintId,
-      boardId,
-    },
-  });
-  if (issueDoc.subtasks.length > 0) {
-    // update subtask for with parent's sprintId
+    logger.info({ message: 'updateSprintAndBoard.sprint.computed', data: { issueKey: issueDoc.key, sprintId, boardId } });
+
     const sprintScript = esb
       .script(
         'inline',
@@ -83,13 +79,24 @@ async function updateSprintAndBoard(
       .params({ sprintId, boardId });
     const subtaskQuery = esb
       .requestBodySearch()
-      .query(esb.termQuery('body.parent.id', issueDoc.id))
+      .query(
+        esb
+          .boolQuery()
+          .should([
+            esb.termsQuery('body.parent.key', issueDoc.key),
+            esb.termsQuery('body.issueKey', issueDoc.key),
+          ])
+          .minimumShouldMatch(1)
+      )
       .toJSON();
+
     await esClientObj.updateByQuery(Jira.Enums.IndexName.Issue, subtaskQuery, sprintScript);
-  }
+
+    logger.info({ message: 'updateSprintAndBoard.sprint.completed', data: { issueKey: issueDoc.key } });
 }
 
 async function updateLabels(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+  logger.info({ message: 'updateLabels.initiated', data: { issueDocId } });
   const labels = item.toString.split(' ');
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
@@ -98,25 +105,30 @@ async function updateLabels(item: Jira.ExternalType.Webhook.ChangelogItem, issue
       label: labels,
     },
   });
+  logger.info({ message: 'updateLabels.completed', data: { issueDocId } });
 }
 
 async function updateDescription(
   item: Jira.ExternalType.Webhook.ChangelogItem,
   issueDocId: string
 ) {
+  logger.info({ message: 'updateDescription.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       description: item.toString,
     },
   });
+  logger.info({ message: 'updateDescription.completed', data: { issueDocId } });
 }
 
 async function updateSummary(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+  logger.info({ message: 'updateSummary.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       summary: item.toString,
     },
   });
+  logger.info({ message: 'updateSummary.completed', data: { issueDocId } });
 }
 
 async function updateIssueStatus(
@@ -125,14 +137,18 @@ async function updateIssueStatus(
   issueData: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody,
   { requestId, resourceId }: Other.Type.RequestCtx
 ) {
+  logger.info({ message: 'updateIssueStatus.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       status: item.toString,
     },
   });
 
+  logger.info({ message: 'updateIssueStatus.issueDocument.updated', data: { issueDocId } });
+
   if (issueData.issueType === Jira.Enums.IssuesTypes.BUG) {
-    // update reopen rate or create reopen rate
+    logger.info({message: 'updateIssueStatus.issueType.BUG', data: { issueDocId }});
+    
     const orgId = issueData.organizationId.split('jira_org_')[1];
     const issueStatus = await getIssueStatusForReopenRate(
       `${mappingPrefixes.organization}_${orgId}`,
@@ -142,14 +158,10 @@ async function updateIssueStatus(
       }
     );
     if (issueStatus[ChangelogStatus.READY_FOR_QA] === item.to) {
+      logger.info({message: 'updateIssueStatus.issueStatus.READY_FOR_QA', data: { issueDocId }});
       await createReOpenRate(issueData, { requestId, resourceId });
     } else if (issueStatus[ChangelogStatus.QA_FAILED] === item.to) {
-      logger.info({
-        requestId,
-        resourceId,
-        data: { typeOfChangelog: ChangelogStatus.QA_FAILED },
-        message: 'issue_info_ready_for_QA_update_event: Send message to SQS',
-      });
+      logger.info({message: 'updateIssueStatus.issueStatus.QA_FAILED', data: { issueDocId }});
       const reOpenRateData = await getReopenRateDataById(issueData.id, issueData.organizationId, {
         requestId,
         resourceId,
@@ -175,43 +187,53 @@ async function updateIssueStatus(
 }
 
 async function updateAssignee(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+  logger.info({ message: 'updateAssignee.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       assigneeId: `${mappingPrefixes.user}_${item.to}`,
     },
   });
+  logger.info({ message: 'updateAssignee.completed', data: { issueDocId } });
 }
 
 async function updatePriority(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+  logger.info({ message: 'updatePriority.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       priority: item.toString,
     },
   });
+  logger.info({ message: 'updatePriority.completed', data: { issueDocId } });
 }
 
 async function updateDevRca(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+  logger.info({ message: 'updateDevRca.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       rcaData: { devRca: `${mappingPrefixes.rca}_${item.to}` },
     },
   });
+  logger.info({ message: 'updateDevRca.completed', data: { issueDocId } });
 }
 
 async function updateQARca(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+  logger.info({ message: 'updateQARca.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       rcaData: { qaRca: `${mappingPrefixes.rca}_${item.to}` },
     },
   });
+  logger.info({ message: 'updateQARca.completed', data: { issueDocId } });
 }
 
 async function updateIssueType(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+  logger.info({ message: 'updateIssueType.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       issueType: item.toString,
     },
   });
+  logger.info({ message: 'updateIssueType.completed', data: { issueDocId } });
 }
 
 async function updateIssueParentAssociation(
@@ -220,6 +242,7 @@ async function updateIssueParentAssociation(
   organization: string,
   reqCtx: { requestId: string; resourceId: string }
 ) {
+  logger.info({ message: 'updateIssueParentAssociation.initiated', data: { issueData } });
   const parentIssue = await fetchIssue(item.to, organization, reqCtx);
   const parentIssueId = parentIssue._id;
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, parentIssueId, {
@@ -230,17 +253,20 @@ async function updateIssueParentAssociation(
       ],
     },
   });
+  logger.info({ message: 'updateIssueParentAssociation.completed', data: { issueData } });
 }
 
 async function updateTimeTracker(
   item: Jira.ExternalType.Webhook.ChangelogItem,
   issueDocId: string
 ) {
+  logger.info({ message: 'updateTimeTracker.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       timeTracker: { estimate: item.to },
     },
   });
+  logger.info({ message: 'updateTimeTracker.completed', data: { issueDocId } });
 }
 
 async function handleIssueUpdate(
@@ -262,7 +288,7 @@ async function handleIssueUpdate(
         const issueDocId = issueDoc._id;
         switch (field) {
           case Jira.Enums.ChangelogName.SPRINT:
-            await updateSprintAndBoard(item, issueDoc, issueDocId);
+            await updateSprintAndBoard(item, issueDoc);
             break;
           case Jira.Enums.ChangelogName.STATUS:
             //also incorporate cycle time and on ready for qa create index in reopenrate
@@ -318,7 +344,7 @@ async function deleteIssueCycleTimeAndReOpenRate(
   organization: string,
   reqCtx: Other.Type.RequestCtx
 ) {
-  logger.info({ message: 'deleteIssue.event', data: issueData, ...reqCtx });
+  logger.info({ message: 'deleteIssueCycleTimeAndReOpenRate.initiated', data: issueData });
   const issueDoc = await fetchIssue(issueData.id, organization, reqCtx);
   const issueDocId = issueDoc._id;
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
@@ -337,17 +363,22 @@ async function deleteIssueCycleTimeAndReOpenRate(
 
   if (issueData.fields.issuetype.name === Jira.Enums.IssuesTypes.BUG) {
     //  remove reopen rate
+    logger.info({ message: 'deleteIssueCycleTimeAndReOpenRate.removeReopenRate', data: issueData });
     await removeReopenRate(issueData.id, moment().toISOString(), reqCtx);
   }
+
+  logger.info({ message: 'deleteIssueCycleTimeAndReOpenRate.completed', data: issueData });
 }
 
 async function createReOpenRate(
   issueData: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody,
   reqCtx: Other.Type.RequestCtx
 ) {
+  logger.info({ message: 'createReOpenRate.initiated', data: issueData });
   const reopenRateData = await formatReopenRateData(issueData);
   logger.info({ message: 'createReOpenRate.formatted.data', data: JSON.stringify(reopenRateData) });
   await saveReOpenRate(reopenRateData, reqCtx);
+  logger.info({ message: 'createReOpenRate.completed', data: issueData });
 }
 /**
  * Formats the issue data received from an SQS record.
