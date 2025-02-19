@@ -159,12 +159,12 @@ export async function getBoardFromSprintId(sprintId: string | null): Promise<str
   }
   const query = esb
     .requestBodySearch()
-    .query(esb.boolQuery().must(esb.termQuery('body.id', sprintId)))
+    .query(esb.boolQuery().must(esb.termQuery('body.sprintId', sprintId)))
     .toJSON();
   const data = await esClientObj.search(Jira.Enums.IndexName.Sprint, query);
   const [sprint] = await searchedDataFormator(data);
   if (sprint) {
-    const boardId = sprint.boardId;
+    const boardId = sprint.originBoardId;
     return boardId;
   }
   return null;
