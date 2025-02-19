@@ -57,7 +57,6 @@ export async function issueLinkCreateHandler(
         resourceId,
       }
     );
-
     if (!issueData) {
       logger.error({
         message: 'issueLinkHandler.issueDataNotFound',
@@ -216,13 +215,15 @@ export async function issueLinkDeleteHandler(
       const destinationIssueDocId = destinationIssueData._id;
 
       const destIssueTypeDeleted = destinationIssueData.issueLinks.filter((ele: { id: string }) => {
-        return ele.id !== String(issueLink.sourceIssueId);
+        return ele.id !== String(`${mappingPrefixes.issue}_${issueLink.sourceIssueId}`);
       });
+
       destinationIssueData.issueLinks = destIssueTypeDeleted;
       logger.info({
         message: 'issueLinkDeleteHandler.issuelinks.length',
         data: { length: destinationIssueData.issueLinks.length },
       });
+
       if (sourceIssueIdData.issueType === IssuesTypes.BUG) {
         const sourceActualTime =
           destinationIssueData.bugTimeTracker.actual - sourceIssueIdData.timeTracker.actual;
@@ -242,7 +243,7 @@ export async function issueLinkDeleteHandler(
       const sourceIssueDocId = sourceIssueIdData._id;
 
       const sourceIssueTypeDeleted = sourceIssueIdData.issueLinks.filter((ele: { id: string }) => {
-        return ele.id !== String(issueLink.destinationIssueId);
+        return ele.id !== String(`${mappingPrefixes.issue}_${issueLink.destinationIssueId}`);
       });
       sourceIssueIdData.issueLinks = sourceIssueTypeDeleted;
       logger.info({
