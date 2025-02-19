@@ -1,5 +1,56 @@
 # Changelog
 
+## [1.6.0](https://github.com/studiographene/pulse-data-integration/compare/v1.5.7...v1.6.0) (2025-02-19)
+
+
+### Features
+
+* **PX-2302:** small fix ([eaa287c](https://github.com/studiographene/pulse-data-integration/commit/eaa287c5955daa1f3024982f39eb324b4b8a1c28))
+* **PX-2302:** small fix ([#1011](https://github.com/studiographene/pulse-data-integration/issues/1011)) ([ff95550](https://github.com/studiographene/pulse-data-integration/commit/ff95550c8f5a4e314240a1d346d195eb1fc0a135))
+
+## [1.5.7](https://github.com/studiographene/pulse-data-integration/compare/v1.5.6...v1.5.7) (2025-02-18)
+
+
+### Bug Fixes
+
+* **PX-2302:** fix ([a640d0c](https://github.com/studiographene/pulse-data-integration/commit/a640d0c26ed3c618abf000a0e1c154b84ba97b32))
+* **PX-2302:** fix ([#1009](https://github.com/studiographene/pulse-data-integration/issues/1009)) ([9d60285](https://github.com/studiographene/pulse-data-integration/commit/9d602858e85853d6664453c91ae8fca634164119))
+
+## [1.5.6](https://github.com/studiographene/pulse-data-integration/compare/v1.5.5...v1.5.6) (2025-02-18)
+
+
+### Bug Fixes
+
+* **PX-2302:** fix subtask ([b66ef1c](https://github.com/studiographene/pulse-data-integration/commit/b66ef1cb9e5c44e5a73beb217c01cc72877ba1f5))
+* **PX-2302:** fix subtask ([#1007](https://github.com/studiographene/pulse-data-integration/issues/1007)) ([9a473ae](https://github.com/studiographene/pulse-data-integration/commit/9a473aeab610bd67c633383fce8f06bb3ec5bb5f))
+
+## [1.5.5](https://github.com/studiographene/pulse-data-integration/compare/v1.5.4...v1.5.5) (2025-02-18)
+
+
+### Bug Fixes
+
+* **PX-2302:** fix ([7330921](https://github.com/studiographene/pulse-data-integration/commit/7330921ec563f3628e9cd660e1369740ad106836))
+* **PX-2302:** fix ([#1005](https://github.com/studiographene/pulse-data-integration/issues/1005)) ([89c0568](https://github.com/studiographene/pulse-data-integration/commit/89c0568234af2cfb09f96eaaf541fe735f4a48c6))
+
+## [1.5.4](https://github.com/studiographene/pulse-data-integration/compare/v1.5.3...v1.5.4) (2025-02-18)
+
+
+### Bug Fixes
+
+* **PX-2302:** fix ([0ba12e8](https://github.com/studiographene/pulse-data-integration/commit/0ba12e868adae26a60e0a60879aae2c801a01707))
+* **PX-2302:** fixes ([8b7061c](https://github.com/studiographene/pulse-data-integration/commit/8b7061cf73098cb619286a0cf7a0419ac0938f5e))
+* **PX-2302:** fixes ([#1003](https://github.com/studiographene/pulse-data-integration/issues/1003)) ([a95beff](https://github.com/studiographene/pulse-data-integration/commit/a95beffab1ab9051dd3d3ecd5dd190b35e9be720))
+
+## [1.5.3](https://github.com/studiographene/pulse-data-integration/compare/v1.5.2...v1.5.3) (2025-02-18)
+
+
+### Bug Fixes
+
+* **PX-2302:** fix ([41fad5b](https://github.com/studiographene/pulse-data-integration/commit/41fad5b4d1772fac7f894be134021f609b2a873c))
+* **PX-2302:** fix issuelinks ([a5277c7](https://github.com/studiographene/pulse-data-integration/commit/a5277c7b0fb99aca7e97c5e660ffbc39e785caf0))
+* **PX-2302:** fix organization keyword ([1c27009](https://github.com/studiographene/pulse-data-integration/commit/1c270091973855f183c6764eb3faf26e456d3d55))
+* **PX-2302:** fix organization keyword ([#1001](https://github.com/studiographene/pulse-data-integration/issues/1001)) ([cf8f552](https://github.com/studiographene/pulse-data-integration/commit/cf8f552c7557d06ea483e627f370ecb968a7168f))
+
 ## [1.5.2](https://github.com/studiographene/pulse-data-integration/compare/v1.5.1...v1.5.2) (2025-02-18)
 
 
