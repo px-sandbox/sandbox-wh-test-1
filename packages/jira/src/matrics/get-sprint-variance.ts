@@ -295,7 +295,7 @@ async function getBugTimeForSprint(
           esb.termQuery('body.isDeleted', false),
           esb.existsQuery('body.issueLinks'),
         ])
-        .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
+        .filter(esb.rangeQuery('body.timeTracker.estimate').gte(0))
         .should([
           esb.termQuery('body.issueType', IssuesTypes.STORY),
           esb.termQuery('body.issueType', IssuesTypes.TASK),
