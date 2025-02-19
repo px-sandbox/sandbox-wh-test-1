@@ -47,7 +47,7 @@ async function updateActualTime(
   logger.info({ message: 'updateActualTime.initiated', data: worklogData });
   const issueData = await fetchIssue(worklogData.issueId, worklogData.organization, reqCtx);
   const issueDocId = issueData._id;
-  logger.info({ message: 'updateActualTime.issueFetched', data: {issueKey: issueData.issueKey} });
+  logger.info({ message: 'updateActualTime.issueFetched', data: { issueKey: issueData.issueKey } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       timeTracker: {
@@ -57,11 +57,8 @@ async function updateActualTime(
   });
   logger.info({ message: 'updateActualTime.completed', data: { issueDocId } });
 }
-async function updateSprintAndBoard(
-  item: Jira.ExternalType.Webhook.ChangelogItem,
-  issueDoc: any
-) {
-  logger.info({ message: 'updateSprintAndBoard.initiated', data: {issueKey: issueDoc.key} });
+async function updateSprintAndBoard(item: Jira.ExternalType.Webhook.ChangelogItem, issueDoc: any) {
+  logger.info({ message: 'updateSprintAndBoard.initiated', data: { issueKey: issueDoc.key } });
   const sprintId = getSprintForTo(item.to, item.from)
     ? `${mappingPrefixes.sprint}_${getSprintForTo(item.to, item.from)}`
     : null;
@@ -69,30 +66,36 @@ async function updateSprintAndBoard(
     ? `${mappingPrefixes.board}_${await getBoardFromSprintId(item.to)}`
     : null;
 
-    logger.info({ message: 'updateSprintAndBoard.sprint.computed', data: { issueKey: issueDoc.key, sprintId, boardId } });
+  logger.info({
+    message: 'updateSprintAndBoard.sprint.computed',
+    data: { issueKey: issueDoc.key, sprintId, boardId },
+  });
 
-    const sprintScript = esb
-      .script(
-        'inline',
-        `ctx._source.body.sprintId = params.sprintId; ctx._source.body.boardId = params.boardId`
-      )
-      .params({ sprintId, boardId });
-    const subtaskQuery = esb
-      .requestBodySearch()
-      .query(
-        esb
-          .boolQuery()
-          .should([
-            esb.termsQuery('body.parent.key', issueDoc.key),
-            esb.termsQuery('body.issueKey', issueDoc.key),
-          ])
-          .minimumShouldMatch(1)
-      )
-      .toJSON();
+  const sprintScript = esb
+    .script(
+      'inline',
+      `ctx._source.body.sprintId = params.sprintId; ctx._source.body.boardId = params.boardId`
+    )
+    .params({ sprintId, boardId });
+  const subtaskQuery = esb
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
+        .should([
+          esb.termsQuery('body.parent.key', issueDoc.key),
+          esb.termsQuery('body.issueKey', issueDoc.key),
+        ])
+        .minimumShouldMatch(1)
+    )
+    .toJSON();
 
-    await esClientObj.updateByQuery(Jira.Enums.IndexName.Issue, subtaskQuery, sprintScript);
+  await esClientObj.updateByQuery(Jira.Enums.IndexName.Issue, subtaskQuery, sprintScript);
 
-    logger.info({ message: 'updateSprintAndBoard.sprint.completed', data: { issueKey: issueDoc.key } });
+  logger.info({
+    message: 'updateSprintAndBoard.sprint.completed',
+    data: { issueKey: issueDoc.key },
+  });
 }
 
 async function updateLabels(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
@@ -147,8 +150,8 @@ async function updateIssueStatus(
   logger.info({ message: 'updateIssueStatus.issueDocument.updated', data: { issueDocId } });
 
   if (issueData.issueType === Jira.Enums.IssuesTypes.BUG) {
-    logger.info({message: 'updateIssueStatus.issueType.BUG', data: { issueDocId }});
-    
+    logger.info({ message: 'updateIssueStatus.issueType.BUG', data: { issueDocId } });
+
     const orgId = issueData.organizationId.split('jira_org_')[1];
     const issueStatus = await getIssueStatusForReopenRate(
       `${mappingPrefixes.organization}_${orgId}`,
@@ -158,10 +161,10 @@ async function updateIssueStatus(
       }
     );
     if (issueStatus[ChangelogStatus.READY_FOR_QA] === item.to) {
-      logger.info({message: 'updateIssueStatus.issueStatus.READY_FOR_QA', data: { issueDocId }});
+      logger.info({ message: 'updateIssueStatus.issueStatus.READY_FOR_QA', data: { issueDocId } });
       await createReOpenRate(issueData, { requestId, resourceId });
     } else if (issueStatus[ChangelogStatus.QA_FAILED] === item.to) {
-      logger.info({message: 'updateIssueStatus.issueStatus.QA_FAILED', data: { issueDocId }});
+      logger.info({ message: 'updateIssueStatus.issueStatus.QA_FAILED', data: { issueDocId } });
       const reOpenRateData = await getReopenRateDataById(issueData.id, issueData.organizationId, {
         requestId,
         resourceId,
@@ -396,9 +399,11 @@ async function save(record: SQSRecord): Promise<void> {
     });
     switch (messageBody.eventName) {
       case Jira.Enums.Event.IssueCreated:
+        logger.info({ message: 'ISSUE_CREATE_EVENT', data: messageBody.issueData.key });
         await saveIssueDetails(messageBody.issueData, reqCtx, processId);
         break;
       case Jira.Enums.Event.IssueUpdated:
+        logger.info({ message: 'ISSUE_UPDATED_EVENT', data: messageBody.issueInfo.key });
         await handleIssueUpdate(
           messageBody.changelog,
           messageBody.issueInfo,
@@ -408,6 +413,7 @@ async function save(record: SQSRecord): Promise<void> {
         );
         break;
       case Jira.Enums.Event.IssueDeleted:
+        logger.info({ message: 'ISSUE_DELETE_EVENT', data: messageBody.issueInfo.key });
         await deleteIssueCycleTimeAndReOpenRate(
           messageBody.issueInfo,
           messageBody.organization,
@@ -417,6 +423,7 @@ async function save(record: SQSRecord): Promise<void> {
       case Jira.Enums.Event.WorklogCreated:
       case Jira.Enums.Event.WorklogUpdated:
       case Jira.Enums.Event.WorklogDeleted:
+        logger.info({ message: 'WORKLOGS_EVENT', data: messageBody.worklog });
         await updateActualTime(messageBody, reqCtx);
         break;
       default:
@@ -425,6 +432,7 @@ async function save(record: SQSRecord): Promise<void> {
           resourceId: reqCtx.resourceId,
           message: 'ISSUE_SQS_RECEIVER_HANDLER',
           error: 'Unknown_event_type',
+          data: messageBody.eventName,
         });
         break;
     }
