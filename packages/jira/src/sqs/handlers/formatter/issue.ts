@@ -270,7 +270,10 @@ async function updateTimeTracker(
   logger.info({ message: 'updateTimeTracker.completed', data: { issueDocId } });
 }
 function changelogsToProcess(changelogs: Jira.ExternalType.Webhook.ChangelogItem[]) {
-  const [item] = changelogs.filter((item) => validChangelogFields.includes(item.field));
+  const [item] = changelogs.filter(
+    (item) =>
+      validChangelogFields.includes(item.field) || validChangelogFields.includes(item.fieldId)
+  );
   logger.info({ message: 'changelogsToProcess', data: { changelogs, item } });
   return item;
 }
