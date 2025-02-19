@@ -59,12 +59,11 @@ async function updateActualTime(
 }
 async function updateSprintAndBoard(item: Jira.ExternalType.Webhook.ChangelogItem, issueDoc: any) {
   logger.info({ message: 'updateSprintAndBoard.initiated', data: { issueKey: issueDoc.key } });
-  const sprintId = getSprintForTo(item.to, item.from)
-    ? `${mappingPrefixes.sprint}_${getSprintForTo(item.to, item.from)}`
-    : null;
-  const boardId = (await getBoardFromSprintId(sprintId))
-    ? `${mappingPrefixes.board}_${await getBoardFromSprintId(item.to)}`
-    : null;
+
+  const sprintId = getSprintForTo(item.to, item.from);
+  const boardId = await getBoardFromSprintId(sprintId);
+  const sprintWithMapping = sprintId ? `${mappingPrefixes.sprint}_${sprintId}` : null;
+  const boardWithMapping = boardId ? `${mappingPrefixes.board}_${boardId}` : null;
 
   logger.info({
     message: 'updateSprintAndBoard.sprint.computed',
@@ -76,7 +75,7 @@ async function updateSprintAndBoard(item: Jira.ExternalType.Webhook.ChangelogIte
       'inline',
       `ctx._source.body.sprintId = params.sprintId; ctx._source.body.boardId = params.boardId`
     )
-    .params({ sprintId, boardId });
+    .params({ sprintWithMapping, boardWithMapping });
   const subtaskQuery = esb
     .requestBodySearch()
     .query(
