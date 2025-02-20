@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.9](https://github.com/studiographene/pulse-data-integration/compare/v1.7.8...v1.7.9) (2025-02-20)
+
+
+### Bug Fixes
+
+* **PX-2302:** estimate time parseInt ([38c4fb3](https://github.com/studiographene/pulse-data-integration/commit/38c4fb35e5b349c64aa659f82541fa11b9a0b2d3))
+* **PX-2302:** estimate time parseInt ([#1033](https://github.com/studiographene/pulse-data-integration/issues/1033)) ([b69e274](https://github.com/studiographene/pulse-data-integration/commit/b69e274b5ca20d0889386b628f44be729d221b77))
+
 ## [1.7.8](https://github.com/studiographene/pulse-data-integration/compare/v1.7.7...v1.7.8) (2025-02-20)
 
 
