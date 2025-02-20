@@ -56,7 +56,7 @@ export async function getReopenRateDataById(
         esb.boolQuery().must([
           // eslint-disable-next-line max-len
           esb.termsQuery('body.issueId', `${mappingPrefixes.issue}_${issueId}`),
-          esb.termQuery('body.organizationId.keyword', orgId),
+          esb.termQuery('body.organizationId', orgId),
         ])
       )
       .toJSON();
