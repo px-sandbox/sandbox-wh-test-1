@@ -294,7 +294,7 @@ async function updateTimeTracker(
   logger.info({ message: 'updateTimeTracker.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
-      timeTracker: { estimate: item.to },
+      timeTracker: { estimate: parseInt(item.to) },
     },
   });
   logger.info({ message: 'updateTimeTracker.completed', data: { issueDocId } });
