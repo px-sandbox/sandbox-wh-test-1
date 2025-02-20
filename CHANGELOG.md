@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.8](https://github.com/studiographene/pulse-data-integration/compare/v1.7.7...v1.7.8) (2025-02-20)
+
+
+### Bug Fixes
+
+* **PX-2302:** reopenrate organization query keyword removed ([a05d167](https://github.com/studiographene/pulse-data-integration/commit/a05d167caf4a10694b8561d9bcd7a7979c1f0c61))
+* **PX-2302:** reopenrate organization query keyword removed ([#1031](https://github.com/studiographene/pulse-data-integration/issues/1031)) ([32a3f4d](https://github.com/studiographene/pulse-data-integration/commit/32a3f4d4361cf07ea7f12dded775f0ac61514fdb))
+
 ## [1.7.7](https://github.com/studiographene/pulse-data-integration/compare/v1.7.6...v1.7.7) (2025-02-19)
 
 
