@@ -491,7 +491,10 @@ async function ftpRateGraphResponse(
           esb.termQuery('body.issueType', IssuesTypes.STORY),
           esb.termQuery('body.issueType', IssuesTypes.TASK),
           esb.termQuery('body.issueType', IssuesTypes.SUBTASK),
-          esb.termQuery('body.issueType', IssuesTypes.BUG),
+          esb
+            .boolQuery()
+            .must(esb.termQuery('body.issueType', IssuesTypes.BUG))
+            .mustNot(esb.existsQuery('body.issueLinks')),
         ])
         .minimumShouldMatch(1)
     )
