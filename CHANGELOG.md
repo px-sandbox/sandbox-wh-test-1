@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.7.11](https://github.com/studiographene/pulse-data-integration/compare/v1.7.10...v1.7.11) (2025-02-21)
+
+
+### Bug Fixes
+
+* **PX-2302:** parent change logic ([d165c98](https://github.com/studiographene/pulse-data-integration/commit/d165c981b7a5453fd6cb7d3ed13d0acb9a7015a6))
+* **PX-2302:** parent change logic ([#1037](https://github.com/studiographene/pulse-data-integration/issues/1037)) ([1f3504f](https://github.com/studiographene/pulse-data-integration/commit/1f3504f237c54f566cebdb31818301d72547d03b))
+* **PX-2302:** parent issue updation ([67dc8cd](https://github.com/studiographene/pulse-data-integration/commit/67dc8cd0bd970c340b0844667912c3b46d4426b6))
+
 ## [1.7.10](https://github.com/studiographene/pulse-data-integration/compare/v1.7.9...v1.7.10) (2025-02-21)
 
 
