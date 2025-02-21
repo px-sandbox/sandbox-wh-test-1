@@ -10,7 +10,11 @@ import moment from 'moment';
 import { logProcessToRetry } from 'rp';
 import { mappingPrefixes } from 'src/constant/config';
 import { softDeleteCycleTimeDocument } from 'src/repository/cycle-time/update';
-import { getIssueById, getReopenRateDataById } from 'src/repository/issue/get-issue';
+import {
+  getIssueById,
+  getIssueParentChildIssues,
+  getReopenRateDataById,
+} from 'src/repository/issue/get-issue';
 import { saveIssueDetails } from 'src/repository/issue/save-issue';
 import { saveReOpenRate } from 'src/repository/issue/save-reopen-rate';
 import { formatReopenRateData, getBoardFromSprintId } from 'src/util/issue-helper';
@@ -273,17 +277,39 @@ async function updateIssueParentAssociation(
   organization: string,
   reqCtx: { requestId: string; resourceId: string }
 ) {
-  logger.info({ message: 'updateIssueParentAssociation.initiated', data: { issueData } });
-  const parentIssue = await fetchIssue(item.to, organization, reqCtx);
-  const parentIssueId = parentIssue._id;
-  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, parentIssueId, {
-    body: {
-      subtasks: [
-        ...parentIssue.subtasks,
-        { id: `${mappingPrefixes.issue}_${issueData.id}`, key: issueData.key },
-      ],
-    },
+  logger.info({ message: 'updateIssueParentAssociation.initiated', data: { issueData, item } });
+  const issues = await getIssueParentChildIssues(item.to, issueData.id, organization, reqCtx);
+  const parentIssue: Other.Type.HitBody | undefined = issues.find(
+    (issue: Other.Type.HitBody) => issue.issueId === item.to
+  );
+  const childIssue: Other.Type.HitBody | undefined = issues.find(
+    (issue: Other.Type.HitBody) => issue.issueKey === issueData.key
+  );
+  logger.info({
+    message: 'updateIssueParentAssociation.issues.data',
+    data: { parentIssue, childIssue },
   });
+  if (parentIssue) {
+    await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, parentIssue._id, {
+      body: {
+        subtasks: [
+          ...parentIssue.subtasks,
+          { id: `${mappingPrefixes.issue}_${issueData.id}`, key: issueData.key },
+        ],
+      },
+    });
+  }
+  if (childIssue && parentIssue) {
+    logger.info({
+      message: 'updateIssueParentAssociation.childIssue',
+      data: { childIssue, parentIssue },
+    });
+    await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, childIssue._id, {
+      body: {
+        parent: { id: `${mappingPrefixes.issue}_${item.to}`, key: parentIssue.issueKey },
+      },
+    });
+  }
   logger.info({ message: 'updateIssueParentAssociation.completed', data: { issueData } });
 }
 

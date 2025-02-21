@@ -1,7 +1,7 @@
-import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
+import esb from 'elastic-builder';
 import { mappingPrefixes } from '../../constant/config';
 import { searchedDataFormatorWithDeleted } from '../../util/response-formatter';
 import { getOrganization } from '../organization/get-organization';
@@ -171,4 +171,43 @@ export async function getCycleTimeByIssueId(
     logger.error({ message: 'getIssueById.error', error: `${error}` });
     throw error;
   }
+}
+
+export async function getIssueParentChildIssues(
+  parentId: string,
+  childId: string,
+  organization: string,
+  reqCtx: Other.Type.RequestCtx
+): Promise<Pick<Other.Type.Hit, '_id'>[] & Other.Type.HitBody> {
+  const orgData = await getOrganization(organization);
+  if (!orgData) {
+    logger.error({ ...reqCtx, message: `Organization ${organization} not found` });
+    throw new Error(`Organization ${organization} not found`);
+  }
+  const matchQry = esb
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termsQuery('body.id', [
+            `${mappingPrefixes.issue}_${parentId}`,
+            `${mappingPrefixes.issue}_${childId}`,
+          ]),
+          esb.termQuery('body.organizationId', orgData.id),
+          esb.termQuery('body.isDeleted', false),
+        ])
+    )
+    .toJSON();
+  const issueData = await esClientObj.search(Jira.Enums.IndexName.Issue, matchQry);
+  const formattedIssueData = await searchedDataFormatorWithDeleted(issueData);
+  logger.info({ message: 'getIssueParentChildIssues', data: formattedIssueData });
+  if (!formattedIssueData) {
+    logger.error({
+      message: 'issueLinkHandler.issueDataNotFound',
+      data: { issueData, reqCtx },
+    });
+    throw new Error(`issueData not found_for_parent:${parentId}_child:${childId}`);
+  }
+  return formattedIssueData;
 }
