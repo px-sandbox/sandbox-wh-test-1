@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.10](https://github.com/studiographene/pulse-data-integration/compare/v1.7.9...v1.7.10) (2025-02-21)
+
+
+### Bug Fixes
+
+* **PX-2409:** varience reopenrate ([c1d5613](https://github.com/studiographene/pulse-data-integration/commit/c1d5613e2a76913885a80f5e1ee09ce4c14e9e53))
+* **PX-2409:** varience reopenrate ([#1035](https://github.com/studiographene/pulse-data-integration/issues/1035)) ([fcec67e](https://github.com/studiographene/pulse-data-integration/commit/fcec67e63aa8328d01139d643bb7df7beaa66dd7))
+
 ## [1.7.9](https://github.com/studiographene/pulse-data-integration/compare/v1.7.8...v1.7.9) (2025-02-20)
 
 
