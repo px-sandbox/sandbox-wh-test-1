@@ -173,7 +173,7 @@ export async function getCycleTimeByIssueId(
   }
 }
 
-export async function getIssueParentChildIssues(
+export async function getParentChildIssues(
   parentId: string,
   childId: string,
   organization: string,
@@ -204,10 +204,10 @@ export async function getIssueParentChildIssues(
   logger.info({ message: 'getIssueParentChildIssues', data: formattedIssueData });
   if (!formattedIssueData) {
     logger.error({
-      message: 'issueLinkHandler.issueDataNotFound',
+      message: 'getParentChildIssues.issueDataNotFound',
       data: { issueData, reqCtx },
     });
-    throw new Error(`issueData not found_for_parent:${parentId}_child:${childId}`);
+    throw new Error(`getParentChildIssues.not found_for_parent:${parentId}_child:${childId}`);
   }
   return formattedIssueData;
 }

@@ -12,7 +12,7 @@ import { mappingPrefixes } from 'src/constant/config';
 import { softDeleteCycleTimeDocument } from 'src/repository/cycle-time/update';
 import {
   getIssueById,
-  getIssueParentChildIssues,
+  getParentChildIssues,
   getReopenRateDataById,
 } from 'src/repository/issue/get-issue';
 import { saveIssueDetails } from 'src/repository/issue/save-issue';
@@ -278,7 +278,7 @@ async function updateIssueParentAssociation(
   reqCtx: { requestId: string; resourceId: string }
 ) {
   logger.info({ message: 'updateIssueParentAssociation.initiated', data: { issueData, item } });
-  const issues = await getIssueParentChildIssues(item.to, issueData.id, organization, reqCtx);
+  const issues = await getParentChildIssues(item.to, issueData.id, organization, reqCtx);
   const parentIssue: Other.Type.HitBody | undefined = issues.find(
     (issue: Other.Type.HitBody) => issue.issueId === item.to
   );
@@ -304,11 +304,18 @@ async function updateIssueParentAssociation(
       message: 'updateIssueParentAssociation.childIssue',
       data: { childIssue, parentIssue },
     });
-    await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, childIssue._id, {
-      body: {
-        parent: { id: `${mappingPrefixes.issue}_${item.to}`, key: parentIssue.issueKey },
-      },
-    });
+    if (childIssue.parent.id != null) {
+      logger.info({
+        message: 'updateIssueParentAssociation.childIssue.parentId.exists',
+        data: { parent: childIssue.parent },
+      });
+    } else {
+      await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, childIssue._id, {
+        body: {
+          parent: { id: `${mappingPrefixes.issue}_${item.to}`, key: parentIssue.issueKey },
+        },
+      });
+    }
   }
   logger.info({ message: 'updateIssueParentAssociation.completed', data: { issueData } });
 }
