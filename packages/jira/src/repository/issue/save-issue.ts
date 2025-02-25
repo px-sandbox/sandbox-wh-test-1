@@ -11,15 +11,13 @@ import { deleteProcessfromDdb } from 'rp';
 const esClientObj = ElasticSearchClient.getInstance();
 export async function saveIssueDetails(
   data: Jira.Type.Issue,
-  reqCtx: Other.Type.RequestCtx,
-  processId?: string
+  reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   const { requestId, resourceId } = reqCtx;
   try {
     const updatedData = { ...data };
     await esClientObj.putDocument(Jira.Enums.IndexName.Issue, updatedData);
     logger.info({ requestId, resourceId, message: 'saveIssueDetails.successful' });
-    await deleteProcessfromDdb(processId, reqCtx);
   } catch (error: unknown) {
     logger.error({ requestId, resourceId, message: `saveIssueDetails.error: ${error}` });
     throw error;
