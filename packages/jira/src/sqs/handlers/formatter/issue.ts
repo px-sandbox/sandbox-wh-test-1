@@ -7,7 +7,7 @@ import { logger } from 'core';
 import esb from 'elastic-builder';
 import _ from 'lodash';
 import moment from 'moment';
-import { logProcessToRetry } from 'rp';
+import { deleteProcessfromDdb, logProcessToRetry } from 'rp';
 import { mappingPrefixes } from 'src/constant/config';
 import { softDeleteCycleTimeDocument } from 'src/repository/cycle-time/update';
 import {
@@ -344,8 +344,7 @@ async function handleIssueUpdate(
   changelog: { items: Jira.ExternalType.Webhook.ChangelogItem[] },
   issueData: Jira.ExternalType.Webhook.Issue,
   organization: string,
-  reqCtx: { requestId: string; resourceId: string },
-  processId: string
+  reqCtx: { requestId: string; resourceId: string }
 ): Promise<void> {
   logger.info({ message: 'handleIssueUpdate.initiated', data: { issueData } });
   try {
@@ -495,7 +494,7 @@ async function createReOpenRate(
  * @returns A Promise that resolves to void.
  */
 async function save(record: SQSRecord): Promise<void> {
-  const { reqCtx, message: messageBody, processId } = JSON.parse(record.body);
+  const { reqCtx, message: messageBody } = JSON.parse(record.body);
   try {
     logger.info({
       requestId: reqCtx.requestId,
@@ -506,7 +505,7 @@ async function save(record: SQSRecord): Promise<void> {
     switch (messageBody.eventName) {
       case Jira.Enums.Event.IssueCreated:
         logger.info({ message: 'ISSUE_CREATE_EVENT', data: messageBody.issueData.key });
-        await saveIssueDetails(messageBody.issueData, reqCtx, processId);
+        await saveIssueDetails(messageBody.issueData, reqCtx);
         break;
       case Jira.Enums.Event.IssueUpdated:
         logger.info({ message: 'ISSUE_UPDATED_EVENT', data: messageBody.issueInfo.key });
@@ -514,8 +513,7 @@ async function save(record: SQSRecord): Promise<void> {
           messageBody.changelog,
           messageBody.issueInfo,
           messageBody.organization,
-          reqCtx,
-          processId
+          reqCtx
         );
         break;
       case Jira.Enums.Event.IssueDeleted:
@@ -542,6 +540,7 @@ async function save(record: SQSRecord): Promise<void> {
         });
         break;
     }
+    await deleteProcessfromDdb(messageBody.processId, reqCtx);
   } catch (error) {
     await logProcessToRetry(record, Queue.qIssueFormat.queueUrl, error as Error);
     logger.error({
