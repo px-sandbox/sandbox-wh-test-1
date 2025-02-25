@@ -74,7 +74,8 @@ export const handler = async function reopenInfoQueue(event: SQSEvent): Promise<
           logger.info({
             requestId,
             resourceId,
-            message: `Delete reopen rate data not found for issueId : ${messageBody.issue.id}`,
+            data: messageBody.issue.id,
+            message: `Delete reopen rate data not found`,
           });
         }
         logger.info({ requestId, resourceId, message: 'reopenRateDeleteQueue.success' });
