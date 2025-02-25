@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.8.0](https://github.com/studiographene/pulse-data-integration/compare/v1.7.12...v1.8.0) (2025-02-25)
+
+
+### Features
+
+* **feature/PX-2113:** removed eslint file ([75982d9](https://github.com/studiographene/pulse-data-integration/commit/75982d95e1417e3162fedefff153ebdd7580f2b4))
+* **feature/PX-2113:** sast errors resolved for backend ([2a877a8](https://github.com/studiographene/pulse-data-integration/commit/2a877a85f7b86bf5425a16db86feeec35a9654f2))
+* **feature/PX-2113:** sast errors resolved for backend ([#1041](https://github.com/studiographene/pulse-data-integration/issues/1041)) ([f598543](https://github.com/studiographene/pulse-data-integration/commit/f59854331535d2165334028bb40e3497db8717bb))
+
 ## [1.7.12](https://github.com/studiographene/pulse-data-integration/compare/v1.7.11...v1.7.12) (2025-02-24)
 
 
