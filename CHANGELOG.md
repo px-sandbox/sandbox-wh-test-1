@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.1](https://github.com/studiographene/pulse-data-integration/compare/v1.8.0...v1.8.1) (2025-02-25)
+
+
+### Bug Fixes
+
+* **PX-12345:** implemented retry process delete execution code ([a0bc2ff](https://github.com/studiographene/pulse-data-integration/commit/a0bc2ffa57216a6f83479f0a94c48562ed1f6da8))
+* **PX-12345:** implemented retry process delete execution code ([#1043](https://github.com/studiographene/pulse-data-integration/issues/1043)) ([bc5dd2c](https://github.com/studiographene/pulse-data-integration/commit/bc5dd2c2d2f16223ded7ab6dbdebfb410c6c16f4))
+
 ## [1.8.0](https://github.com/studiographene/pulse-data-integration/compare/v1.7.12...v1.8.0) (2025-02-25)
 
 
