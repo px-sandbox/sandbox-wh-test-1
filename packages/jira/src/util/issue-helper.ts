@@ -65,16 +65,17 @@ async function getParentId(id: string): Promise<string> {
 
   return ddbRes?.parentId as string;
 }
-async function putDataToDynamoDB(parent_id: string, jiraId: string): Promise<void> {
-  await dynamoDbDocClient.put(new ParamsMapping().preparePutParams(parent_id, jiraId));
+
+async function putDataToDynamoDB(pId: string, jiraId: string): Promise<void> {
+  await dynamoDbDocClient.put(new ParamsMapping().preparePutParams(pId, jiraId));
 }
 async function parentId(id: string): Promise<string> {
-  let parentId: string = await getParentId(id);
-  if (!parentId) {
-    parentId = generateUuid();
-    await putDataToDynamoDB(parentId, id);
+  let pId: string = await getParentId(id);
+  if (!pId) {
+    pId = generateUuid();
+    await putDataToDynamoDB(pId, id);
   }
-  return parentId;
+  return pId;
 }
 /**
  * Creates an issue object based on the provided issue data.
