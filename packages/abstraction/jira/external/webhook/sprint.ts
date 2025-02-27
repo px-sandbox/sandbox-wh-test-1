@@ -12,3 +12,12 @@ export type Sprint = {
   deletedAt: string;
   organization: string;
 };
+export type IssueSprint = {
+  boardId: number;
+  endDate: string;
+  goal: '';
+  id: number;
+  name: string;
+  startDate: string;
+  state: string;
+};

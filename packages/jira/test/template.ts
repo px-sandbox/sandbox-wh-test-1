@@ -1,7 +1,6 @@
 /* eslint-enable */
 
 import { Jira } from 'abstraction';
-import { Issue } from 'abstraction/jira/type';
 
 export function getIssueCreate(timestamp: string): object {
   return {

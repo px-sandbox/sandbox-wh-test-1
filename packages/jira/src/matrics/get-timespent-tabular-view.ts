@@ -100,7 +100,7 @@ async function categorizedTimeSpent(
 export async function processCategorizedTimeSpent(
   sprintIdsArr: string[],
   reqCtx: Other.Type.RequestCtx
-) {
+): Promise<{ sprintId: string }[]> {
   const response = await categorizedTimeSpent(sprintIdsArr, reqCtx);
   const formattedData = response.sprint_aggregation.buckets.map((sprintData) => {
     const obj: Record<string, number> = {

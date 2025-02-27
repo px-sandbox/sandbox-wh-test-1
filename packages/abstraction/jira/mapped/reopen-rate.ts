@@ -1,5 +1,3 @@
-import { ChangelogItem } from '../external/webhook/issue';
-
 export type ReopenRateIssue = {
   _id?: string;
   id: string;
