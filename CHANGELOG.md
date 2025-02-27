@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.0](https://github.com/studiographene/pulse-data-integration/compare/v1.8.1...v1.9.0) (2025-02-27)
+
+
+### Features
+
+* **PX-2426:** test case coverage ([9793c7d](https://github.com/studiographene/pulse-data-integration/commit/9793c7d77a7d03bb9228ea2be75be9467742898b))
+* **PX-2426:** test case coverage ([#1045](https://github.com/studiographene/pulse-data-integration/issues/1045)) ([a9ac8e7](https://github.com/studiographene/pulse-data-integration/commit/a9ac8e7573900f0c1faa41062fa2b53e183627c4))
+
 ## [1.8.1](https://github.com/studiographene/pulse-data-integration/compare/v1.8.0...v1.8.1) (2025-02-25)
 
 
