@@ -1,8 +1,8 @@
-import { Client, RequestParams } from '@elastic/elasticsearch';
-import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
+import { Client, RequestParams, ApiResponse } from '@elastic/elasticsearch';
+import { MultiSearchBody, SearchResponse } from '@elastic/elasticsearch/api/types';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
-import { ApiResponse, TransportRequestPromise } from '@elastic/elasticsearch/lib/Transport';
+import { ApiResponse as ElasticsearchApiResponse, TransportRequestPromise } from '@elastic/elasticsearch/lib/Transport';
 import { Other } from 'abstraction';
 import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
 
@@ -53,11 +53,12 @@ export class ElasticSearchClient implements IElasticSearchClient {
 
   public async queryAggs<T>(indexName: string, query: object): Promise<T> {
     try {
-      const { body } = await this.client.search({
+      const result = await this.client.search<SearchResponse<T>>({
         index: indexName,
         body: query,
       });
-      return body.aggregations;
+
+      return result.body.aggregations as T; 
     } catch (error) {
       logger.error({ message: `${ElasticSearchClient.name}.queryAggs.error`, error });
       throw error;
