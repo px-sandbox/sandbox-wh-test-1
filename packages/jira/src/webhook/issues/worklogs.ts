@@ -1,15 +1,14 @@
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
-import moment, { Moment } from 'moment';
-import { Queue } from 'sst/node/queue';
-import { getOrganization } from '../../repository/organization/get-organization';
-import { ALLOWED_ISSUE_TYPES } from 'src/constant/config';
-import { Config } from 'sst/node/config';
-import { formatIssue } from 'src/util/issue-helper';
-import { generateUuid, searchedDataFormator } from 'src/util/response-formatter';
 import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import moment from 'moment';
+import { Config } from 'sst/node/config';
+import { Queue } from 'sst/node/queue';
+import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
+import { generateUuid, searchedDataFormator } from '../../util/response-formatter';
+import { getOrganization } from '../../repository/organization/get-organization';
 
 const sqsClient = SQSClient.getInstance();
 const esClient = ElasticSearchClient.getInstance();
@@ -107,7 +106,7 @@ export async function worklog(
         {
           worklog,
           eventName,
-          issueData: issueData,
+          issueData,
           createdDate,
           organization,
         },
