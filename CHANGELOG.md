@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.9.1](https://github.com/studiographene/pulse-data-integration/compare/v1.9.0...v1.9.1) (2025-02-28)
+
+
+### Bug Fixes
+
+* **PX-2426:** cleanup ([84bf9ad](https://github.com/studiographene/pulse-data-integration/commit/84bf9ada71d1955b50922f8a8392589cb73f7910))
+* **PX-2426:** eslint fixes ([cc53701](https://github.com/studiographene/pulse-data-integration/commit/cc537010f30eb944206fbe73b4f0a0ef118812a4))
+* **PX-2624:** cleanup ([5140951](https://github.com/studiographene/pulse-data-integration/commit/514095106c1e1565aac84d9b9de35f5c917152b5))
+
 ## [1.9.0](https://github.com/studiographene/pulse-data-integration/compare/v1.8.1...v1.9.0) (2025-02-27)
 
 
