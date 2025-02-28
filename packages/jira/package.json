@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@aws-sdk/lib-dynamodb": "^3.309.0",
-    "@elastic/elasticsearch": "8.17.1",
+    "@elastic/elasticsearch": "7.13.0",
     "@middy/validator": "6.1.2",
     "@pulse/dynamodb": "workspace:^1.0.0",
     "@pulse/elasticsearch": "workspace:^1.0.0",

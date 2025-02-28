@@ -1,8 +1,8 @@
-import { Client, RequestParams, ApiResponse } from '@elastic/elasticsearch';
-import { MultiSearchBody, SearchResponse } from '@elastic/elasticsearch/api/types';
+import { Client, RequestParams } from '@elastic/elasticsearch';
+import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
-import { ApiResponse as ElasticsearchApiResponse, TransportRequestPromise } from '@elastic/elasticsearch/lib/Transport';
+import { ApiResponse, TransportRequestPromise } from '@elastic/elasticsearch/lib/Transport';
 import { Other } from 'abstraction';
 import { ConnectionOptions, ElasticSearchDocument, IElasticSearchClient } from '../types';
 
@@ -53,12 +53,11 @@ export class ElasticSearchClient implements IElasticSearchClient {
 
   public async queryAggs<T>(indexName: string, query: object): Promise<T> {
     try {
-      const result = await this.client.search<SearchResponse<T>>({
+      const { body } = await this.client.search({
         index: indexName,
         body: query,
       });
-
-      return result.body.aggregations as T; 
+      return body.aggregations;
     } catch (error) {
       logger.error({ message: `${ElasticSearchClient.name}.queryAggs.error`, error });
       throw error;
@@ -161,7 +160,6 @@ export class ElasticSearchClient implements IElasticSearchClient {
         { index: { _index: indexName, _id: doc._id } },
         { body: { ...doc.body } },
       ]);
-
       await this.client.bulk({ refresh: true, body });
     } catch (error) {
       logger.error({ message: `${ElasticSearchClient.name}.bulkInsert.error `, error });
@@ -180,7 +178,6 @@ export class ElasticSearchClient implements IElasticSearchClient {
           doc: { body: { isDeleted: true, deletedAt: new Date().toISOString() } },
         },
       ]);
-
       await this.client.bulk({ refresh: true, body });
     } catch (error) {
       logger.error({ message: `${ElasticSearchClient.name}.bulkUpdate.error `, error });
