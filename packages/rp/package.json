@@ -11,7 +11,7 @@
     "@pulse/dynamodb": "workspace:^1.0.0",
     "@pulse/elasticsearch": "workspace:^1.0.0",
     "@pulse/event-handler": "workspace:^1.0.0",
-    "@types/uuid": "^9.0.1",
+    "@types/uuid": "10.0.0",
     "abstraction": "workspace:^1.0.0",
     "aws-lambda": "^1.0.7",
     "core": "workspace:0.0.1",

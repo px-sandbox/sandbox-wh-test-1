@@ -10,11 +10,11 @@
     "lint": "eslint . --ext .ts"
   },
   "devDependencies": {
-    "@types/node": "^18.15.10"
+    "@types/node": "22.13.5"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.306.0",
+    "@aws-sdk/client-dynamodb": "3.758.0",
     "@aws-sdk/lib-dynamodb": "^3.309.0",
-    "@aws-sdk/util-dynamodb": "^3.309.0"
+    "@aws-sdk/util-dynamodb": "3.758.0"
   }
 }

@@ -160,7 +160,6 @@ export class ElasticSearchClient implements IElasticSearchClient {
         { index: { _index: indexName, _id: doc._id } },
         { body: { ...doc.body } },
       ]);
-
       await this.client.bulk({ refresh: true, body });
     } catch (error) {
       logger.error({ message: `${ElasticSearchClient.name}.bulkInsert.error `, error });
@@ -179,7 +178,6 @@ export class ElasticSearchClient implements IElasticSearchClient {
           doc: { body: { isDeleted: true, deletedAt: new Date().toISOString() } },
         },
       ]);
-
       await this.client.bulk({ refresh: true, body });
     } catch (error) {
       logger.error({ message: `${ElasticSearchClient.name}.bulkUpdate.error `, error });
