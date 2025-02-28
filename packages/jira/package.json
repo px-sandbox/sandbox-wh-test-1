@@ -8,20 +8,20 @@
     "lint": "eslint . --ext .ts"
   },
   "devDependencies": {
-    "@aws-sdk/client-dynamodb": "^3.306.0",
-    "@aws-sdk/smithy-client": "^3.0.0",
-    "@aws-sdk/types": "^3.306.0",
-    "@types/aws-lambda": "^8.10.114",
+    "@aws-sdk/client-dynamodb": "3.758.0",
+    "@aws-sdk/smithy-client": "3.374.0",
+    "@aws-sdk/types": "3.734.0",
+    "@types/aws-lambda": "^8.10.147",
     "@types/moment": "^2.13.0",
-    "@types/node": "^18.15.10",
-    "@types/node-rsa": "^1.1.1",
-    "@types/uuid": "^9.0.1",
-    "@types/async": "^3.2.23"
+    "@types/node": "22.13.5",
+    "@types/node-rsa": "1.1.4",
+    "@types/uuid": "10.0.0",
+    "@types/async": "3.2.24"
   },
   "dependencies": {
     "@aws-sdk/lib-dynamodb": "^3.309.0",
-    "@elastic/elasticsearch": "7.13.0",
-    "@middy/validator": "^4.2.8",
+    "@elastic/elasticsearch": "8.17.1",
+    "@middy/validator": "6.1.2",
     "@pulse/dynamodb": "workspace:^1.0.0",
     "@pulse/elasticsearch": "workspace:^1.0.0",
     "@pulse/event-handler": "workspace:^1.0.0",
@@ -41,7 +41,7 @@
     "uuid": "^9.0.0",
     "lodash": "^4.17.21",
     "vitest": "^2.1.0",
-    "@types/lodash": "^4.14.201",
+    "@types/lodash": "4.17.15",
     "rp": "workspace:^1.0.0"
   }
 }
