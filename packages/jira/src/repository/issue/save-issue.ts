@@ -1,7 +1,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
-import { deleteProcessfromDdb } from 'rp';
 /**
  * Saves the details of a Jira issue to DynamoDB and Elasticsearch.
  * @param data The issue data to be saved.

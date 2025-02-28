@@ -1,9 +1,7 @@
-import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import { deleteProcessfromDdb } from 'rp';
-import { searchedDataFormator } from '../../util/response-formatter';
 
 /**
  * Saves the details of a Jira issue to DynamoDB and Elasticsearch.

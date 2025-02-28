@@ -8,20 +8,20 @@ import esb from 'elastic-builder';
 import _ from 'lodash';
 import moment from 'moment';
 import { deleteProcessfromDdb, logProcessToRetry } from 'rp';
-import { mappingPrefixes } from 'src/constant/config';
-import { softDeleteCycleTimeDocument } from 'src/repository/cycle-time/update';
+import { Queue } from 'sst/node/queue';
+import { mappingPrefixes } from '../../../constant/config';
+import { softDeleteCycleTimeDocument } from '../../../repository/cycle-time/update';
 import {
   getIssueById,
   getParentChildIssues,
   getReopenRateDataById,
-} from 'src/repository/issue/get-issue';
-import { saveIssueDetails } from 'src/repository/issue/save-issue';
-import { saveReOpenRate } from 'src/repository/issue/save-reopen-rate';
-import { formatReopenRateData, getBoardFromSprintId } from 'src/util/issue-helper';
-import { getIssueStatusForReopenRate } from 'src/util/issue-status';
-import { getSprintForTo } from 'src/util/prepare-reopen-rate';
-import { removeReopenRate } from 'src/webhook/issues/delete-reopen-rate';
-import { Queue } from 'sst/node/queue';
+} from '../../../repository/issue/get-issue';
+import { saveIssueDetails } from '../../../repository/issue/save-issue';
+import { saveReOpenRate } from '../../../repository/issue/save-reopen-rate';
+import { formatReopenRateData, getBoardFromSprintId } from '../../../util/issue-helper';
+import { getIssueStatusForReopenRate } from '../../../util/issue-status';
+import { getSprintForTo } from '../../../util/prepare-reopen-rate';
+import { removeReopenRate } from '../../../webhook/issues/delete-reopen-rate';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -47,7 +47,7 @@ async function fetchIssue(
 async function updateActualTime(
   worklogData: Jira.ExternalType.Webhook.Worklog,
   reqCtx: Other.Type.RequestCtx
-) {
+): Promise<void> {
   logger.info({ message: 'updateActualTime.initiated', data: worklogData });
   const issueData = await fetchIssue(worklogData.issueId, worklogData.organization, reqCtx);
   const issueDocId = issueData._id;
@@ -64,7 +64,7 @@ async function updateActualTime(
 async function updateSprintAndBoard(
   item: Jira.ExternalType.Webhook.ChangelogItem,
   issueDoc: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody
-) {
+): Promise<void> {
   logger.info({ message: 'updateSprintAndBoard.initiated', data: { issueKey: issueDoc.issueKey } });
   const sprintId = getSprintForTo(item.to, item.from);
   const boardId = await getBoardFromSprintId(sprintId);
@@ -102,13 +102,16 @@ async function updateSprintAndBoard(
   });
 }
 
-async function updateLabels(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+async function updateLabels(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDocId: string
+): Promise<void> {
   logger.info({ message: 'updateLabels.initiated', data: { issueDocId } });
   const labels = item.toString.split(' ');
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
-      isFTP: labels.includes('FTP') ? true : false,
-      isFTF: labels.includes('FTF') ? true : false,
+      isFTP: !!labels.includes('FTP'),
+      isFTF: !!labels.includes('FTF'),
       label: labels,
     },
   });
@@ -118,7 +121,7 @@ async function updateLabels(item: Jira.ExternalType.Webhook.ChangelogItem, issue
 async function updateDescription(
   item: Jira.ExternalType.Webhook.ChangelogItem,
   issueDocId: string
-) {
+): Promise<void> {
   logger.info({ message: 'updateDescription.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
@@ -128,7 +131,10 @@ async function updateDescription(
   logger.info({ message: 'updateDescription.completed', data: { issueDocId } });
 }
 
-async function updateSummary(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+async function updateSummary(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDocId: string
+): Promise<void> {
   logger.info({ message: 'updateSummary.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
@@ -138,12 +144,23 @@ async function updateSummary(item: Jira.ExternalType.Webhook.ChangelogItem, issu
   logger.info({ message: 'updateSummary.completed', data: { issueDocId } });
 }
 
+async function createReOpenRate(
+  issueData: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody,
+  reqCtx: Other.Type.RequestCtx
+): Promise<void> {
+  logger.info({ message: 'createReOpenRate.initiated', data: issueData });
+  const reopenRateData = await formatReopenRateData(issueData);
+  logger.info({ message: 'createReOpenRate.formatted.data', data: JSON.stringify(reopenRateData) });
+  await saveReOpenRate(reopenRateData, reqCtx);
+  logger.info({ message: 'createReOpenRate.completed', data: issueData });
+}
+
 async function updateIssueStatus(
   item: Jira.ExternalType.Webhook.ChangelogItem,
   issueDocId: string,
   issueData: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody,
   { requestId, resourceId }: Other.Type.RequestCtx
-) {
+): Promise<void> {
   logger.info({ message: 'updateIssueStatus.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
@@ -201,7 +218,10 @@ async function updateIssueStatus(
   logger.info({ message: 'updateStatus.completed', data: { issueDocId } });
 }
 
-async function updateAssignee(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+async function updateAssignee(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDocId: string
+): Promise<void> {
   logger.info({ message: 'updateAssignee.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
@@ -211,7 +231,10 @@ async function updateAssignee(item: Jira.ExternalType.Webhook.ChangelogItem, iss
   logger.info({ message: 'updateAssignee.completed', data: { issueDocId } });
 }
 
-async function updateReporter(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+async function updateReporter(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDocId: string
+): Promise<void> {
   logger.info({ message: 'updateReporter.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
@@ -221,7 +244,10 @@ async function updateReporter(item: Jira.ExternalType.Webhook.ChangelogItem, iss
   logger.info({ message: 'updateReporter.completed', data: { issueDocId } });
 }
 
-async function updateCreator(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+async function updateCreator(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDocId: string
+): Promise<void> {
   logger.info({ message: 'updateReporter.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
@@ -231,7 +257,10 @@ async function updateCreator(item: Jira.ExternalType.Webhook.ChangelogItem, issu
   logger.info({ message: 'updateReporter.completed', data: { issueDocId } });
 }
 
-async function updatePriority(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+async function updatePriority(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDocId: string
+): Promise<void> {
   logger.info({ message: 'updatePriority.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
@@ -241,7 +270,10 @@ async function updatePriority(item: Jira.ExternalType.Webhook.ChangelogItem, iss
   logger.info({ message: 'updatePriority.completed', data: { issueDocId } });
 }
 
-async function updateDevRca(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+async function updateDevRca(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDocId: string
+): Promise<void> {
   logger.info({ message: 'updateDevRca.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
@@ -251,7 +283,10 @@ async function updateDevRca(item: Jira.ExternalType.Webhook.ChangelogItem, issue
   logger.info({ message: 'updateDevRca.completed', data: { issueDocId } });
 }
 
-async function updateQARca(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+async function updateQARca(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDocId: string
+): Promise<void> {
   logger.info({ message: 'updateQARca.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
@@ -261,7 +296,10 @@ async function updateQARca(item: Jira.ExternalType.Webhook.ChangelogItem, issueD
   logger.info({ message: 'updateQARca.completed', data: { issueDocId } });
 }
 
-async function updateIssueType(item: Jira.ExternalType.Webhook.ChangelogItem, issueDocId: string) {
+async function updateIssueType(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDocId: string
+): Promise<void> {
   logger.info({ message: 'updateIssueType.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
@@ -276,7 +314,7 @@ async function updateIssueParentAssociation(
   issueData: Jira.ExternalType.Webhook.Issue,
   organization: string,
   reqCtx: { requestId: string; resourceId: string }
-) {
+): Promise<void> {
   logger.info({ message: 'updateIssueParentAssociation.initiated', data: { issueData, item } });
   const issues = await getParentChildIssues(item.to, issueData.id, organization, reqCtx);
   const parentIssue: Other.Type.HitBody | undefined = issues.find(
@@ -323,19 +361,21 @@ async function updateIssueParentAssociation(
 async function updateTimeTracker(
   item: Jira.ExternalType.Webhook.ChangelogItem,
   issueDocId: string
-) {
+): Promise<void> {
   logger.info({ message: 'updateTimeTracker.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
-      timeTracker: { estimate: parseInt(item.to) },
+      timeTracker: { estimate: parseInt(item.to, 10) },
     },
   });
   logger.info({ message: 'updateTimeTracker.completed', data: { issueDocId } });
 }
-function changelogsToProcess(changelogs: Jira.ExternalType.Webhook.ChangelogItem[]) {
+function changelogsToProcess(
+  changelogs: Jira.ExternalType.Webhook.ChangelogItem[]
+): Jira.ExternalType.Webhook.ChangelogItem {
   const [item] = changelogs.filter(
-    (item) =>
-      validChangelogFields.includes(item.field) || validChangelogFields.includes(item.fieldId)
+    (items) =>
+      validChangelogFields.includes(items.field) || validChangelogFields.includes(items.fieldId)
   );
   logger.info({ message: 'changelogsToProcess', data: { changelogs, item } });
   return item;
@@ -360,8 +400,8 @@ async function handleIssueUpdate(
     logger.info({ message: 'handleIssueUpdate.field.toBeUpdated', data: { field } });
     if (field === Jira.Enums.ChangelogName.ISSUE_PARENT_ASSOCIATION) {
       logger.info({ message: 'handleIssueUpdate.parentAssociation', data: { field } });
-      //changelog contains parentId and issueData contains subtask.
-      //update parent task with subtask id
+      // changelog contains parentId and issueData contains subtask.
+      // update parent task with subtask id
       await updateIssueParentAssociation(item, issueData, organization, reqCtx);
     } else {
       const issueDoc = await fetchIssue(issueData.id, organization, reqCtx);
@@ -372,7 +412,7 @@ async function handleIssueUpdate(
           await updateSprintAndBoard(item, issueDoc);
           break;
         case Jira.Enums.ChangelogName.STATUS:
-          //also incorporate cycle time and on ready for qa create index in reopenrate
+          // also incorporate cycle time and on ready for qa create index in reopenrate
           await updateIssueStatus(item, issueDocId, issueDoc, reqCtx);
           break;
         case Jira.Enums.ChangelogName.ASSIGNEE:
@@ -385,7 +425,7 @@ async function handleIssueUpdate(
           await updateCreator(item, issueDocId);
           break;
         case Jira.Enums.ChangelogName.SUMMARY:
-          //worklogs category
+          // worklogs category
           await updateSummary(item, issueDocId);
           break;
         case Jira.Enums.ChangelogName.DESCRIPTION:
@@ -429,7 +469,7 @@ async function deleteIssueCycleTimeAndReOpenRate(
   issueData: Jira.ExternalType.Webhook.Issue,
   organization: string,
   reqCtx: Other.Type.RequestCtx
-) {
+): Promise<void> {
   logger.info({ message: 'deleteIssueCycleTimeAndReOpenRate.initiated', data: issueData });
   const issueDoc = await fetchIssue(issueData.id, organization, reqCtx);
   const issueDocId = issueDoc._id;
@@ -461,7 +501,7 @@ async function deleteIssueCycleTimeAndReOpenRate(
       data: issueData,
     });
   }
-  //soft delete cycle time document
+  // soft delete cycle time document
   await softDeleteCycleTimeDocument(
     issueData.id,
     issueData.fields.issuetype.name,
@@ -478,16 +518,6 @@ async function deleteIssueCycleTimeAndReOpenRate(
   logger.info({ message: 'deleteIssueCycleTimeAndReOpenRate.completed', data: issueData });
 }
 
-async function createReOpenRate(
-  issueData: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody,
-  reqCtx: Other.Type.RequestCtx
-) {
-  logger.info({ message: 'createReOpenRate.initiated', data: issueData });
-  const reopenRateData = await formatReopenRateData(issueData);
-  logger.info({ message: 'createReOpenRate.formatted.data', data: JSON.stringify(reopenRateData) });
-  await saveReOpenRate(reopenRateData, reqCtx);
-  logger.info({ message: 'createReOpenRate.completed', data: issueData });
-}
 /**
  * Formats the issue data received from an SQS record.
  * @param record - The SQS record containing the issue data.

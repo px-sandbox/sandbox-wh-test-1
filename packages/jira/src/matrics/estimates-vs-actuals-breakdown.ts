@@ -128,7 +128,7 @@ const fetchIssueData = async (
   issues: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
   subtasks: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
 }> => {
-  let issues = [];
+  const issues = [];
   const issueQuery = createIssueSearchQuery(projectId, sprintId, orgId);
   let unformattedIssues: Other.Type.HitBody = await esClientObj.search(
     Jira.Enums.IndexName.Issue,
@@ -154,12 +154,12 @@ const fetchIssueData = async (
 
   const subtaskQuery = createSubtaskSearchQuery(projectId, subtaskKeys, orgId);
 
-  let unformattedSubtasks: Other.Type.HitBody = await esClientObj.search(
+  const unformattedSubtasks: Other.Type.HitBody = await esClientObj.search(
     Jira.Enums.IndexName.Issue,
     subtaskQuery.toJSON()
   );
 
-  let subtasks = await searchedDataFormator(unformattedSubtasks);
+  const subtasks = await searchedDataFormator(unformattedSubtasks);
 
   return { issues, subtasks };
 };

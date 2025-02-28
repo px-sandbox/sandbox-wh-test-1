@@ -17,7 +17,6 @@ export type Issue = retryProcess & {
     isFTP: boolean;
     isFTF: boolean;
     issueType: string;
-    isPrimary: boolean;
     priority: string;
     label: Array<string>;
     issueLinks: Array<IssueLinks>;
@@ -26,21 +25,27 @@ export type Issue = retryProcess & {
     creatorId: string | null;
     status: string;
     summary: string;
+    parent: { id: string | null; key: string };
     subtasks: Array<{
       id: string;
       key: string;
-      self: string;
-      fields: { summary: string; status: string; issuetype: string; priority: string };
     }>;
     createdDate: string;
-    lastViewed: string;
     lastUpdated: string;
     sprintId: string | null;
     boardId: string | null;
     isDeleted?: boolean | null;
     deletedAt?: string | null;
     organizationId: string;
+    rcaData: {
+      devRca: string | null;
+      qaRca: string | null;
+    };
     timeTracker: {
+      estimate: number;
+      actual: number;
+    };
+    bugTimeTracker: {
       estimate: number;
       actual: number;
     };

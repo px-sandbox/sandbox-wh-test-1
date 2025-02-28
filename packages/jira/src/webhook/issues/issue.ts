@@ -2,12 +2,12 @@ import { SQSClient } from '@pulse/event-handler';
 import { Jira } from 'abstraction';
 import { ProjectTypeKey } from 'abstraction/jira/enums/project';
 import { logger } from 'core';
-import { formatIssueNew } from 'src/util/issue-helper';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
+import { formatIssueNew } from '../../util/issue-helper';
+import { getOrganization } from '../../repository/organization/get-organization';
 import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
-import { getOrganization } from 'src/repository/organization/get-organization';
 
 const sqsClient = SQSClient.getInstance();
 
@@ -15,12 +15,13 @@ function isAllowedProjectOrIssueType(
   projectKey: string,
   projectTypeKey: string,
   issueTypeName: string
-) {
+): boolean {
   const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
   if (!ALLOWED_ISSUE_TYPES.includes(issueTypeName)) {
     logger.info({ message: 'Issue: Create => Issue type is not among allowed values' });
     return false;
-  } else if (
+  }
+  if (
     projectKeys.includes(projectKey) ||
     projectTypeKey.toLowerCase() !== ProjectTypeKey.SOFTWARE
   ) {
@@ -37,7 +38,7 @@ export async function create(
   eventTime: string,
   organization: string,
   requestId: string
-) {
+): Promise<void> {
   const {
     id,
     key,
@@ -70,7 +71,7 @@ export async function create(
   );
 
   await sqsClient.sendFifoMessage(
-    { issue: issue, eventTime, organization },
+    { issue, eventTime, organization },
     Queue.qCycleTimeFormat.queueUrl,
     { requestId, resourceId: id },
     key,
@@ -84,7 +85,7 @@ export async function update(
   eventTime: string,
   organization: string,
   requestId: string
-) {
+): Promise<void> {
   const {
     id,
     key,
@@ -116,7 +117,7 @@ export async function update(
     key,
     uuid()
   );
-  //update cycle time
+  // update cycle time
   await sqsClient.sendFifoMessage(
     { issue: issueData, changelog, eventTime, organization },
     Queue.qCycleTimeFormat.queueUrl,
@@ -131,7 +132,7 @@ export async function deleted(
   eventTime: string,
   organization: string,
   requestId: string
-) {
+): Promise<void> {
   const {
     id,
     key,

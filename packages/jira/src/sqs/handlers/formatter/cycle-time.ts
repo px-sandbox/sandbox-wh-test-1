@@ -1,22 +1,19 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Jira, Other } from 'abstraction';
+import { Jira } from 'abstraction';
 import { IssuesTypes } from 'abstraction/jira/enums';
 import { Subtasks } from 'abstraction/jira/external/api';
 import { Hit, HitBody } from 'abstraction/other/type';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { Queue } from 'sst/node/queue';
 import { logProcessToRetry } from 'rp';
+import { Queue } from 'sst/node/queue';
 import { mappingPrefixes } from '../../../constant/config';
 import { MainTicket } from '../../../lib/issue/main-ticket';
+import { saveCycleTime } from '../../../repository/cycle-time/save-cycle-time';
 import { getOrganization } from '../../../repository/organization/get-organization';
 import { initializeMapping } from '../../../util/cycle-time';
 import { searchedDataFormator } from '../../../util/response-formatter';
-import { saveCycleTime } from '../../../repository/cycle-time/save-cycle-time';
-import { getCycleTimeByIssueId, getIssueById } from 'src/repository/issue/get-issue';
-import { ChangelogField } from 'test/type';
-import { getSprintForTo } from 'src/util/prepare-reopen-rate';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
