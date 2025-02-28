@@ -15,8 +15,8 @@
   "dependencies": {
     "@aws-sdk/client-sqs": "3.758.0",
     "@elastic/elasticsearch": "7.13.0",
-    "aws-sdk": "^2.1444.0",
-    "aws-sdk-js-codemod": "0.17.1",
+    "aws-sdk": "^2.1692.0",
+    "aws-sdk-js-codemod": "2.4.5",
     "abstraction": "workspace:^1.0.0",
     "core": "workspace:0.0.1"
   }
