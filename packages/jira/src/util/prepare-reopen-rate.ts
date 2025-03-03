@@ -5,7 +5,7 @@ export function getSprintForTo(to: string, from: string): string | null {
   if (toElements.length === 0) {
     result[0] = null;
   } else if (toElements.length === 1) {
-    result[0] = toElements[0];
+    result[0] = [toElements];
   } else {
     result = toElements.filter((item) => !fromElements.includes(item));
   }
