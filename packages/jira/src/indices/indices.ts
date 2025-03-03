@@ -461,8 +461,8 @@ async function createMapping(name: string, mappings: Jira.Type.IndexMapping): Pr
   try {
     const esClient = ElasticSearchClient.getInstance();
 
-    const { statusCode } = await esClient.isIndexExists(name);
-    if (statusCode === 200) {
+    const indexExists = await esClient.isIndexExists(name);
+    if (indexExists) {
       logger.info({ message: `Index '${name}' already exists.` });
       await esClient.updateIndex(name, mappings);
       return;
