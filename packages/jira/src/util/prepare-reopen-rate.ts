@@ -1,9 +1,3 @@
-import { Jira, Other } from 'abstraction';
-import { ChangelogField, ChangelogStatus } from 'abstraction/jira/enums';
-import { Hit, HitBody } from 'abstraction/other/type';
-import { logger } from 'core';
-import { getReopenRateDataById } from '../repository/issue/get-issue';
-
 export function getSprintForTo(to: string, from: string): string | null {
   const toElements = to.split(', ').filter(Boolean);
   const fromElements = from.split(', ').filter(Boolean);
