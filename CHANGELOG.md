@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.9.2](https://github.com/studiographene/pulse-data-integration/compare/v1.9.1...v1.9.2) (2025-03-03)
+
+
+### Bug Fixes
+
+* **PX-2426:** eslint fixes ([9a1862e](https://github.com/studiographene/pulse-data-integration/commit/9a1862e4251ab32fbe617afd59d6f5de73c813ad))
+* **PX-2426:** removed reopen rate queue ([ad06ca2](https://github.com/studiographene/pulse-data-integration/commit/ad06ca273a4c3f4debc559f335af815383c2657b))
+* **PX-2426:** removed reopen rate queue ([#1052](https://github.com/studiographene/pulse-data-integration/issues/1052)) ([8142174](https://github.com/studiographene/pulse-data-integration/commit/81421748afa947c72729dcf4b5ff9d08b0f2f927))
+
 ## [1.9.1](https://github.com/studiographene/pulse-data-integration/compare/v1.9.0...v1.9.1) (2025-02-28)
 
 
