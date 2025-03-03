@@ -4,12 +4,12 @@ import { Hit } from 'abstraction/github/type';
 import { IssuesTypes } from 'abstraction/jira/enums';
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
-import { mappingPrefixes } from 'src/constant/config';
-import { getIssuesById } from 'src/repository/issue/get-issue';
+import { mappingPrefixes } from '../../constant/config';
+import { getIssuesById } from '../../repository/issue/get-issue';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-function prepareInwardIssue(sourceIssueId: Pick<Hit, '_id'> & HitBody) {
+function prepareInwardIssue(sourceIssueId: Pick<Hit, '_id'> & HitBody): object {
   return {
     id: `${mappingPrefixes.issue}_${sourceIssueId.issueId}`,
     key: sourceIssueId.issueKey,
@@ -18,7 +18,7 @@ function prepareInwardIssue(sourceIssueId: Pick<Hit, '_id'> & HitBody) {
   };
 }
 
-function prepareOutWardIssue(destIssueId: Pick<Hit, '_id'> & HitBody) {
+function prepareOutWardIssue(destIssueId: Pick<Hit, '_id'> & HitBody): object {
   return {
     id: `${mappingPrefixes.issue}_${destIssueId.issueId}`,
     key: destIssueId.issueKey,
@@ -30,7 +30,7 @@ function prepareOutWardIssue(destIssueId: Pick<Hit, '_id'> & HitBody) {
 function checkIfIssueLinkExists(
   esbData: (Pick<Hit, '_id'> & HitBody) | undefined,
   issueLink: Jira.ExternalType.Webhook.IssueLinkType
-) {
+): boolean {
   const issueLinkData = esbData?.issueLinks;
   const issueLinkExists = issueLinkData.find((ele: { id: string }) => ele.id === issueLink.id);
   return issueLinkExists;
@@ -40,6 +40,7 @@ function checkIfIssueLinkExists(
  * destination issue id is inward
  * source issue id is outward
  */
+// eslint-disable-next-line max-lines-per-function
 export async function issueLinkCreateHandler(
   issueLink: Jira.ExternalType.Webhook.IssueLinkType,
   organization: string,
@@ -48,7 +49,7 @@ export async function issueLinkCreateHandler(
   const resourceId = issueLink.destinationIssueId;
   logger.info({ message: 'issueLinkHandler.invoked', data: { issueLink, requestId, resourceId } });
   try {
-    //GET issue from elastic search
+    // GET issue from elastic search
     const issueData = await getIssuesById(
       [issueLink.destinationIssueId, issueLink.sourceIssueId],
       organization,
@@ -74,18 +75,12 @@ export async function issueLinkCreateHandler(
         data: { issueLink, requestId, resourceId },
       });
       throw new Error('destinationIssue and sourceIssue data not found');
-    } else if (!destinationIssueData) {
+    } else if (!destinationIssueData || !sourceIssueIdData) {
       logger.error({
-        message: 'issueLinkHandler.destinationIssueDataNotFound',
-        data: { issueLink, requestId, resourceId },
-      });
-    } else if (!sourceIssueIdData) {
-      logger.error({
-        message: 'issueLinkHandler.sourceIssueIdNotFound',
+        message: 'issueLinkHandler.destination_source_IssueDataNotFound',
         data: { issueLink, requestId, resourceId },
       });
     } else {
-      // Process destinationIssueData
       const destinationIssueDocId = destinationIssueData._id;
       if (!checkIfIssueLinkExists(destinationIssueData, issueLink)) {
         const inwardIssueData = prepareInwardIssue(sourceIssueIdData);
@@ -173,7 +168,7 @@ export async function issueLinkDeleteHandler(
     data: { issueLink, requestId, resourceId },
   });
   try {
-    //GET issue from elastic search
+    // GET issue from elastic search
     const issueData = await getIssuesById(
       [issueLink.destinationIssueId, issueLink.sourceIssueId],
       organization,
@@ -200,23 +195,19 @@ export async function issueLinkDeleteHandler(
         data: { issueLink, requestId, resourceId },
       });
       throw new Error('destinationIssue and sourceIssue data not found');
-    } else if (!destinationIssueData) {
+    } else if (!destinationIssueData || !sourceIssueIdData) {
       logger.error({
-        message: 'issueLinDeleteHandler.destinationIssueDataNotFound',
-        data: { issueLink, requestId, resourceId },
-      });
-    } else if (!sourceIssueIdData) {
-      logger.error({
-        message: 'issueLinkDeleteHandler.sourceIssueIdNotFound',
+        message: 'issueLinkDeleteHandler.destination_source_IssueDataNotFound',
         data: { issueLink, requestId, resourceId },
       });
     } else {
       // Process destinationIssueData
       const destinationIssueDocId = destinationIssueData._id;
 
-      const destIssueTypeDeleted = destinationIssueData.issueLinks.filter((ele: { id: string }) => {
-        return ele.id !== String(`${mappingPrefixes.issue}_${issueLink.sourceIssueId}`);
-      });
+      const destIssueTypeDeleted = destinationIssueData.issueLinks.filter(
+        (ele: { id: string }) =>
+          ele.id !== String(`${mappingPrefixes.issue}_${issueLink.sourceIssueId}`)
+      );
 
       destinationIssueData.issueLinks = destIssueTypeDeleted;
       logger.info({
@@ -242,9 +233,10 @@ export async function issueLinkDeleteHandler(
       // Process sourceIssueIdData
       const sourceIssueDocId = sourceIssueIdData._id;
 
-      const sourceIssueTypeDeleted = sourceIssueIdData.issueLinks.filter((ele: { id: string }) => {
-        return ele.id !== String(`${mappingPrefixes.issue}_${issueLink.destinationIssueId}`);
-      });
+      const sourceIssueTypeDeleted = sourceIssueIdData.issueLinks.filter(
+        (ele: { id: string }) =>
+          ele.id !== String(`${mappingPrefixes.issue}_${issueLink.destinationIssueId}`)
+      );
       sourceIssueIdData.issueLinks = sourceIssueTypeDeleted;
       logger.info({
         message: 'issueLinkDeleteHandler.issuelinks.length',

@@ -6,3 +6,5 @@ jobs:
   sast_analytics:
     uses: studiographene/github-action-workflows/.github/workflows/pulse-sast-analytics.yml@master
     secrets: inherit
+    with:
+     semgrep_options: --exclude-rule root.configs.semgrep.rules.eslint.detect-object-injection

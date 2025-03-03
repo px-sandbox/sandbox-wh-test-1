@@ -1,15 +1,14 @@
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
-import moment, { Moment } from 'moment';
-import { Queue } from 'sst/node/queue';
-import { getOrganization } from '../../repository/organization/get-organization';
-import { ALLOWED_ISSUE_TYPES } from 'src/constant/config';
-import { Config } from 'sst/node/config';
-import { formatIssue } from 'src/util/issue-helper';
-import { generateUuid, searchedDataFormator } from 'src/util/response-formatter';
 import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
+import moment from 'moment';
+import { Config } from 'sst/node/config';
+import { Queue } from 'sst/node/queue';
+import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
+import { generateUuid, searchedDataFormator } from '../../util/response-formatter';
+import { getOrganization } from '../../repository/organization/get-organization';
 
 const sqsClient = SQSClient.getInstance();
 const esClient = ElasticSearchClient.getInstance();
@@ -41,87 +40,6 @@ const esClient = ElasticSearchClient.getInstance();
 //     throw error;
 //   }
 // }
-
-export async function worklog(
-  worklog: Jira.ExternalType.Webhook.Worklog,
-  issueId: string,
-  eventName: string,
-  eventTime: moment.Moment,
-  organization: string,
-  requestId: string
-): Promise<void> {
-  try {
-    const orgId = await getOrganization(organization);
-    if (!orgId) {
-      throw new Error(`worklog.organization ${organization} not found`);
-    }
-    const issueData = await fetchJiraIssues(issueId, orgId.id, requestId);
-    if (!issueData) {
-      logger.error({
-        requestId,
-        resourceId: worklog.id,
-        message: `worklog.no_issue_found: ${organization}, issueId: ${worklog.issueId}`,
-      });
-      throw new Error(`worklog.no_issue_found: ${organization}, issueId: ${issueId}`);
-    }
-
-    // checking if issue type is allowed
-
-    if (!ALLOWED_ISSUE_TYPES.includes(issueData?.issueType)) {
-      logger.info({ message: 'processWorklogEvent: Issue type not allowed' });
-      return;
-    }
-
-    // checking is project key is available in our system
-    const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
-    const projectKey = issueData?.projectKey;
-    if (projectKeys.includes(projectKey)) {
-      logger.info({ message: 'processWorklogEvent: Project not available in our system' });
-      return;
-    }
-    const createdDate = moment(eventTime).toISOString();
-    logger.info({
-      requestId,
-      resourceId: worklog.id,
-      ...worklog,
-      message: 'worklog.prepared_data',
-    });
-
-    await Promise.all([
-      sqsClient.sendFifoMessage(
-        {
-          organization,
-          projectId: issueData.projectId,
-          boardId: issueData.boardId,
-          sprintId: issueData.sprintId,
-          issueId,
-          worklog,
-          eventName,
-        },
-        Queue.qIssueFormat.queueUrl,
-        { requestId, resourceId: issueId },
-        worklog.issueId,
-        generateUuid()
-      ),
-      sqsClient.sendMessage(
-        {
-          worklog,
-          eventName,
-          issueData: issueData,
-          createdDate,
-          organization,
-        },
-        Queue.qWorklogFormat.queueUrl,
-        { requestId, resourceId: worklog.id }
-      ),
-    ]);
-    logger.info({ requestId, resourceId: worklog.id, message: 'worklog.success' });
-  } catch (error) {
-    logger.error({ requestId, resourceId: issueId, message: 'worklog.error', error });
-    throw error;
-  }
-}
-
 export async function fetchJiraIssues(
   issueId: string,
   orgId: string,
@@ -155,6 +73,86 @@ export async function fetchJiraIssues(
     return issuesData;
   } catch (error) {
     logger.error({ requestId, resourceId: issueId, message: 'fetchJiraIssues.error', error });
+    throw error;
+  }
+}
+
+export async function worklog(
+  worklogData: Jira.ExternalType.Webhook.Worklog,
+  issueId: string,
+  eventName: string,
+  eventTime: moment.Moment,
+  organization: string,
+  requestId: string
+): Promise<void> {
+  try {
+    const orgId = await getOrganization(organization);
+    if (!orgId) {
+      throw new Error(`worklog.organization ${organization} not found`);
+    }
+    const issueData = await fetchJiraIssues(issueId, orgId.id, requestId);
+    if (!issueData) {
+      logger.error({
+        requestId,
+        resourceId: worklogData.id,
+        message: `worklog.no_issue_found: ${organization}, issueId: ${worklogData.issueId}`,
+      });
+      throw new Error(`worklog.no_issue_found: ${organization}, issueId: ${issueId}`);
+    }
+
+    // checking if issue type is allowed
+
+    if (!ALLOWED_ISSUE_TYPES.includes(issueData?.issueType)) {
+      logger.info({ message: 'processWorklogEvent: Issue type not allowed' });
+      return;
+    }
+
+    // checking is project key is available in our system
+    const projectKeys = Config.IGNORED_PROJECT_KEYS?.split(',') || [];
+    const projectKey = issueData?.projectKey;
+    if (projectKeys.includes(projectKey)) {
+      logger.info({ message: 'processWorklogEvent: Project not available in our system' });
+      return;
+    }
+    const createdDate = moment(eventTime).toISOString();
+    logger.info({
+      requestId,
+      resourceId: worklogData.id,
+      ...worklogData,
+      message: 'worklog.prepared_data',
+    });
+
+    await Promise.all([
+      sqsClient.sendFifoMessage(
+        {
+          organization,
+          projectId: issueData.projectId,
+          boardId: issueData.boardId,
+          sprintId: issueData.sprintId,
+          issueId,
+          worklogData,
+          eventName,
+        },
+        Queue.qIssueFormat.queueUrl,
+        { requestId, resourceId: issueId },
+        worklogData.issueId,
+        generateUuid()
+      ),
+      sqsClient.sendMessage(
+        {
+          worklogData,
+          eventName,
+          issueData,
+          createdDate,
+          organization,
+        },
+        Queue.qWorklogFormat.queueUrl,
+        { requestId, resourceId: worklogData.id }
+      ),
+    ]);
+    logger.info({ requestId, resourceId: worklogData.id, message: 'worklog.success' });
+  } catch (error) {
+    logger.error({ requestId, resourceId: issueId, message: 'worklog.error', error });
     throw error;
   }
 }

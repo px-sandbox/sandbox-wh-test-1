@@ -2,7 +2,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
-import { searchedDataFormator } from 'src/util/response-formatter';
+import { searchedDataFormator } from '../../util/response-formatter';
 import { mappingPrefixes } from '../../constant/config';
 
 const esClientObj = ElasticSearchClient.getInstance();

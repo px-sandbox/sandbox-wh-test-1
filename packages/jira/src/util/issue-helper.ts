@@ -1,17 +1,12 @@
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
-import { mappingPrefixes } from 'src/constant/config';
-import { getIssueById } from 'src/repository/issue/get-issue';
-import { ChangelogField } from 'test/type';
-import { getSprintForTo } from './prepare-reopen-rate';
-import { logger } from 'core';
 import { Hit } from 'abstraction/github/type';
 import { HitBody } from 'abstraction/other/type';
-import { generateUuid, searchedDataFormator } from './response-formatter';
-import { ParamsMapping } from 'src/model/params-mapping';
-import { DynamoDbDocClient } from '@pulse/dynamodb';
 import esb from 'elastic-builder';
-import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { ReopenItem } from './reopen-body-formatter';
+import { mappingPrefixes } from '../constant/config';
+import { ParamsMapping } from '../model/params-mapping';
+import { generateUuid, searchedDataFormator } from './response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 /**
@@ -70,16 +65,17 @@ async function getParentId(id: string): Promise<string> {
 
   return ddbRes?.parentId as string;
 }
-async function putDataToDynamoDB(parentId: string, jiraId: string): Promise<void> {
-  await dynamoDbDocClient.put(new ParamsMapping().preparePutParams(parentId, jiraId));
+
+async function putDataToDynamoDB(pId: string, jiraId: string): Promise<void> {
+  await dynamoDbDocClient.put(new ParamsMapping().preparePutParams(pId, jiraId));
 }
 async function parentId(id: string): Promise<string> {
-  let parentId: string = await getParentId(id);
-  if (!parentId) {
-    parentId = generateUuid();
-    await putDataToDynamoDB(parentId, id);
+  let pId: string = await getParentId(id);
+  if (!pId) {
+    pId = generateUuid();
+    await putDataToDynamoDB(pId, id);
   }
-  return parentId;
+  return pId;
 }
 /**
  * Creates an issue object based on the provided issue data.
@@ -89,7 +85,7 @@ async function parentId(id: string): Promise<string> {
 export async function formatIssueNew(
   issueData: Jira.ExternalType.Webhook.Issue,
   organization: Pick<Hit, '_id'> & HitBody
-) {
+): Promise<Jira.Type.Issue> {
   const customfield10007 = issueData.fields.customfield_10007?.[0];
   const devRca = issueData.fields.customfield_11225?.id;
   const qaRca = issueData.fields.customfield_11226?.id;
@@ -153,7 +149,7 @@ export async function formatIssueNew(
 }
 
 export async function getBoardFromSprintId(sprintId: string | null): Promise<string | null> {
-  //fetch sprint data from elastic search
+  // fetch sprint data from elastic search
   if (sprintId === null) {
     return null;
   }

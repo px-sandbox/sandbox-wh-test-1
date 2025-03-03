@@ -1,68 +1,15 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import _ from 'lodash';
 import { deleteProcessfromDdb, logProcessToRetry } from 'rp';
 import { Queue } from 'sst/node/queue';
-import { saveWorklogDetails } from '../../../repository/worklog/save-worklog';
 import { Jira } from 'abstraction';
-import { mappingPrefixes } from 'src/constant/config';
-import { getOrganization } from 'src/repository/organization/get-organization';
-import { deleteWorklogDetails, updateWorklogDetails } from 'src/repository/worklog/update-worklog';
-
-export const handler = async function worklogFormattedDataReciever(event: SQSEvent): Promise<void> {
-  logger.info({ message: `Records Length: ${event.Records.length}` });
-
-  await Promise.all(
-    event.Records.map(async (record: SQSRecord) => {
-      const {
-        reqCtx: { requestId, resourceId },
-        message: messageBody,
-      } = JSON.parse(record.body);
-      try {
-        logger.info({
-          requestId,
-          resourceId,
-          message: 'WORKLOG_SQS_RECIEVER_HANDLER',
-          data: { messageBody },
-        });
-        switch (messageBody.eventName) {
-          case Jira.Enums.Event.WorklogCreated:
-            const processedData = await saveFormattedData(messageBody);
-            await saveWorklogDetails(processedData);
-            //issue time tracking update
-            break;
-          case Jira.Enums.Event.WorklogUpdated:
-            await updateWorklogDetails(
-              `${mappingPrefixes.worklog}_${messageBody?.worklog.id}`,
-              messageBody?.worklog.timeSpentSeconds,
-              messageBody?.worklog.started
-            );
-            //issue time tracking update
-            break;
-          case Jira.Enums.Event.WorklogDeleted:
-            await deleteWorklogDetails(`${mappingPrefixes.worklog}_${messageBody?.worklog.id}`);
-            //issue time tracking update
-            break;
-          default:
-            logger.error({
-              requestId: requestId,
-              resourceId: resourceId,
-              message: 'worklogFormattedDataReceiver.no_case_found',
-            });
-        }
-        await deleteProcessfromDdb(messageBody.processId, { requestId, resourceId });
-      } catch (error) {
-        await logProcessToRetry(record, Queue.qWorklogFormat.queueUrl, error as Error);
-        logger.error({
-          requestId,
-          resourceId,
-          message: 'worklogFormattedDataReciever.error',
-          error,
-        });
-      }
-    })
-  );
-};
+import { mappingPrefixes } from '../../../constant/config';
+import { getOrganization } from '../../../repository/organization/get-organization';
+import {
+  deleteWorklogDetails,
+  updateWorklogDetails,
+} from '../../../repository/worklog/update-worklog';
+import { saveWorklogDetails } from '../../../repository/worklog/save-worklog';
 
 async function saveFormattedData(
   data: Jira.ExternalType.Webhook.Worklog
@@ -91,3 +38,60 @@ async function saveFormattedData(
   };
   return formattedData;
 }
+
+export const handler = async function worklogFormattedDataReciever(event: SQSEvent): Promise<void> {
+  logger.info({ message: `Records Length: ${event.Records.length}` });
+
+  await Promise.all(
+    event.Records.map(async (record: SQSRecord) => {
+      const {
+        reqCtx: { requestId, resourceId },
+        message: messageBody,
+      } = JSON.parse(record.body);
+      try {
+        logger.info({
+          requestId,
+          resourceId,
+          message: 'WORKLOG_SQS_RECIEVER_HANDLER',
+          data: { messageBody },
+        });
+        switch (messageBody.eventName) {
+          case Jira.Enums.Event.WorklogCreated:
+            {
+              const processedData = await saveFormattedData(messageBody);
+              await saveWorklogDetails(processedData);
+            }
+            // issue time tracking update
+            break;
+          case Jira.Enums.Event.WorklogUpdated:
+            await updateWorklogDetails(
+              `${mappingPrefixes.worklog}_${messageBody?.worklog.id}`,
+              messageBody?.worklog.timeSpentSeconds,
+              messageBody?.worklog.started
+            );
+            // issue time tracking update
+            break;
+          case Jira.Enums.Event.WorklogDeleted:
+            await deleteWorklogDetails(`${mappingPrefixes.worklog}_${messageBody?.worklog.id}`);
+            // issue time tracking update
+            break;
+          default:
+            logger.error({
+              requestId,
+              resourceId,
+              message: 'worklogFormattedDataReceiver.no_case_found',
+            });
+        }
+        await deleteProcessfromDdb(messageBody.processId, { requestId, resourceId });
+      } catch (error) {
+        await logProcessToRetry(record, Queue.qWorklogFormat.queueUrl, error as Error);
+        logger.error({
+          requestId,
+          resourceId,
+          message: 'worklogFormattedDataReciever.error',
+          error,
+        });
+      }
+    })
+  );
+};
