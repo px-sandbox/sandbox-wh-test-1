@@ -40,6 +40,7 @@ function checkIfIssueLinkExists(
  * destination issue id is inward
  * source issue id is outward
  */
+// eslint-disable-next-line max-lines-per-function
 export async function issueLinkCreateHandler(
   issueLink: Jira.ExternalType.Webhook.IssueLinkType,
   organization: string,
@@ -74,14 +75,9 @@ export async function issueLinkCreateHandler(
         data: { issueLink, requestId, resourceId },
       });
       throw new Error('destinationIssue and sourceIssue data not found');
-    } else if (!destinationIssueData) {
+    } else if (!destinationIssueData || !sourceIssueIdData) {
       logger.error({
-        message: 'issueLinkHandler.destinationIssueDataNotFound',
-        data: { issueLink, requestId, resourceId },
-      });
-    } else if (!sourceIssueIdData) {
-      logger.error({
-        message: 'issueLinkHandler.sourceIssueIdNotFound',
+        message: 'issueLinkHandler.destination_source_IssueDataNotFound',
         data: { issueLink, requestId, resourceId },
       });
     } else {
@@ -199,14 +195,9 @@ export async function issueLinkDeleteHandler(
         data: { issueLink, requestId, resourceId },
       });
       throw new Error('destinationIssue and sourceIssue data not found');
-    } else if (!destinationIssueData) {
+    } else if (!destinationIssueData || !sourceIssueIdData) {
       logger.error({
-        message: 'issueLinDeleteHandler.destinationIssueDataNotFound',
-        data: { issueLink, requestId, resourceId },
-      });
-    } else if (!sourceIssueIdData) {
-      logger.error({
-        message: 'issueLinkDeleteHandler.sourceIssueIdNotFound',
+        message: 'issueLinkDeleteHandler.destination_source_IssueDataNotFound',
         data: { issueLink, requestId, resourceId },
       });
     } else {

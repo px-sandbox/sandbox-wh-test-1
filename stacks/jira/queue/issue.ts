@@ -44,26 +44,6 @@ export function initializeIssueQueue(
     },
   });
 
-  const reOpenRateDataQueue = new Queue(stack, 'qReOpenRate', {
-    cdk: {
-      queue: {
-        deadLetterQueue: getDeadLetterQ(stack, 'qReOpenRate'),
-      },
-    },
-  });
-  reOpenRateDataQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnReOpenRate', {
-      handler: 'packages/jira/src/sqs/handlers/formatter/reopen-rate.handler',
-      bind: [reOpenRateDataQueue],
-      runtime: NODE_VERSION,
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
-
   const reOpenRateMigratorQueue = new Queue(stack, 'qReOpenRateMigrator', {
     cdk: {
       queue: {
@@ -138,21 +118,7 @@ export function initializeIssueQueue(
     IGNORED_PROJECT_KEYS,
     REQUEST_TIMEOUT,
     cycleTimeQueue,
-    reOpenRateDataQueue,
     reOpenRateDeleteQueue,
-  ]);
-
-  reOpenRateDataQueue.bind([
-    jiraDDB.jiraCredsTable,
-    jiraDDB.retryProcessTable,
-    jiraDDB.jiraMappingTable,
-    OPENSEARCH_NODE,
-    OPENSEARCH_PASSWORD,
-    OPENSEARCH_USERNAME,
-    jiraIndexDataQueue,
-    IGNORED_PROJECT_KEYS,
-    REQUEST_TIMEOUT,
-    reOpenRateMigratorQueue,
   ]);
 
   reOpenRateMigratorQueue.bind([
@@ -191,7 +157,6 @@ export function initializeIssueQueue(
 
   return [
     issueFormatDataQueue,
-    reOpenRateDataQueue,
     reOpenRateMigratorQueue,
     reOpenRateDeleteQueue,
     issueTimeTrackingMigrationQueue,

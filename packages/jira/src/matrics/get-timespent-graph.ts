@@ -65,8 +65,10 @@ export async function getTimeSpentGraphData(
     let lastHit;
     do {
       const query = sprintQuery.searchAfter(lastHit);
+      //  eslint-disable-next-line no-await-in-loop
       const body: Other.Type.HitBody = await esClientObj.search(Jira.Enums.IndexName.Sprint, query);
       lastHit = body.hits.hits[body.hits.hits.length - 1]?.sort;
+      // eslint-disable-next-line no-await-in-loop
       sprintIds = await searchedDataFormator(body);
       sprintIdsArr.push(...sprintIds.map((id) => id.id));
     } while (sprintIds?.length);
