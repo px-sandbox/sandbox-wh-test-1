@@ -1,17 +1,11 @@
-// import { ApiResponse, estypes, RequestParams } from '@elastic/elasticsearch';
-// import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
+import { ApiResponse, estypes, RequestParams } from '@elastic/elasticsearch';
+import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
+import { TransportRequestPromise } from '@elastic/elasticsearch/lib/Transport';
 import { Other } from 'abstraction';
-import type { IndicesExistsResponse, IndicesPutMappingResponse, IndicesCreateResponse } from '@elastic/elasticsearch/lib/api/types';
-import type { SearchResponse as ESSearchResponse } from '@elastic/elasticsearch/lib/api/types';
 
-export type SearchResponse<T> = ESSearchResponse<T>;
-export type EqlHits = any;
-export type Hit<T> = {
-  _index: string;
-  _id: string;
-  _score: number;
-  _source: T;
-};
+export type SearchResponse<T> = estypes.SearchResponse<T>;
+export type EqlHits = estypes.EqlHits;
+export type Hit<T> = estypes.Hit<T>;
 
 export type ElasticSearchDocument = {
   id: string;
@@ -21,27 +15,27 @@ export type ElasticSearchDocument = {
 export interface IElasticSearchClient {
   putDocument(index: string, document: ElasticSearchDocument): Promise<void>;
 
-  search(indexName: string, query: object): Promise<SearchResponse<unknown>>;
+  search(indexName: string, query: object): Promise<RequestParams.Search<MultiSearchBody>>;
   queryAggs<T>(indexName: string, query: object): Promise<T>;
 
   updateDocument(indexName: string, id: string, updatedDoc: object): Promise<void>;
   deleteByQuery(indexName: string | string[], query: object): Promise<void>;
   updateByQuery(indexName: string, query: object, script: object): Promise<void>;
-  paginateSearch(indexName: string, query: object): Promise<SearchResponse<unknown>>;
+  paginateSearch(indexName: string, query: object): Promise<RequestParams.Search<MultiSearchBody>>;
   bulkInsert(indexName: string, data: { _id: string; body: Other.Type.HitBody }[]): Promise<void>;
   bulkUpdate(
     indexName: string,
     data: (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]
   ): Promise<void>;
-  isIndexExists(indexName: string): Promise<IndicesExistsResponse>;
+  isIndexExists(indexName: string): Promise<TransportRequestPromise<ApiResponse<boolean, unknown>>>;
   updateIndex(
     indexName: string,
     body: object
-  ): Promise<IndicesPutMappingResponse>;
+  ): Promise<TransportRequestPromise<ApiResponse<unknown, unknown>>>;
   createIndex(
     indexName: string,
     body: object
-  ): Promise<IndicesCreateResponse>;
+  ): Promise<TransportRequestPromise<ApiResponse<unknown, unknown>>>;
 }
 
 export type ConnectionOptions = {
