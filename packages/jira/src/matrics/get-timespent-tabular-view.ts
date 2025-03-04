@@ -2,6 +2,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
+import _ from 'lodash';
 import { getDateRangeQueries, sprintHitsResponse } from './get-sprint-variance';
 
 const esClientObj = ElasticSearchClient.getInstance();
@@ -156,8 +157,8 @@ export async function getTimeSpentTabularData(
     });
     const categorizedData = await processCategorizedTimeSpent(sprintIds, reqCtx);
     const mergedData = sprintData.map((sprintItem: SprintData) => {
-      const { sprintId, ...categorized } =
-        categorizedData.find((item) => item.sprintId === sprintItem.id) || {};
+      const catData = categorizedData.find((item) => item.sprintId === sprintItem.id) || {};
+      const { ...categorized } = _.omit(catData, 'sprintId');
       return {
         sprintdata: sprintItem,
         ...categorized,

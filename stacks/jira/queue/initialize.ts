@@ -32,7 +32,6 @@ export function initializeQueues(
   const worklogFormatter = initializeWorklogQueue(stack, jiraDDB, jiraIndexer);
   const [
     issueFormatter,
-    reOpenRateDataQueue,
     reOpenRateMigratorQueue,
     reOpenRateDeleteQueue,
     issueTimeTrackingMigrationQueue,
@@ -68,12 +67,11 @@ export function initializeQueues(
     boardFormatter,
     issueFormatter,
     issueStatusFormatter,
-    reOpenRateDataQueue,
     reOpenRateMigratorQueue,
     reOpenRateDeleteQueue,
     issueTimeTrackingMigrationQueue,
     cycleTimeFormatter,
     jiraIndexer,
-    worklogFormatter
+    worklogFormatter,
   };
 }

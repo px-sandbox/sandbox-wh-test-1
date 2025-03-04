@@ -1,6 +1,7 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
+import _ from 'lodash';
 import { searchedDataFormator } from '../util/response-formatter';
 import { createSprintQuery, getDateRangeQueries } from './get-sprint-variance';
 import { processCategorizedTimeSpent } from './get-timespent-tabular-view';
@@ -44,8 +45,10 @@ export async function getTimeSpentTrendsData(
     let lastHit;
     do {
       const query = sprintQuery.searchAfter(lastHit);
+      //  eslint-disable-next-line no-await-in-loop
       const body: Other.Type.HitBody = await esClientObj.search(Jira.Enums.IndexName.Sprint, query);
       lastHit = body.hits.hits[body.hits.hits.length - 1]?.sort;
+      //  eslint-disable-next-line no-await-in-loop
       sprintIds = await searchedDataFormator(body);
       sprintIds.forEach((item) => {
         sprintData.push({
@@ -62,8 +65,8 @@ export async function getTimeSpentTrendsData(
     logger.info({ ...reqCtx, message: 'sprintIds', data: { sprintIdsArr } });
     const categorizedData = await processCategorizedTimeSpent(sprintIdsArr, reqCtx);
     const mergedData = sprintData.map((sprintItem: SprintData) => {
-      const { sprintId, ...categorized } =
-        categorizedData.find((item) => item.sprintId === sprintItem.id) || {};
+      const catData = categorizedData.find((item) => item.sprintId === sprintItem.id) || {};
+      const { ...categorized } = _.omit(catData, 'sprintId');
       return {
         sprintdata: sprintItem,
         ...categorized,
