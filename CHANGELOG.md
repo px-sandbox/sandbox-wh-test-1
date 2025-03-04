@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.10.0](https://github.com/studiographene/pulse-data-integration/compare/v1.9.2...v1.10.0) (2025-03-04)
+
+
+### Features
+
+* **feature/PX-2421-v2:** pnpm-lock file added ([b5c4c7b](https://github.com/studiographene/pulse-data-integration/commit/b5c4c7b7285ee996fec770d1b28c02601389c051))
+* **feature/PX-2421-v2:** pnpm-lock file added ([#1055](https://github.com/studiographene/pulse-data-integration/issues/1055)) ([45f48c4](https://github.com/studiographene/pulse-data-integration/commit/45f48c4b39c1e315beca6ee00acf90d33abbfb14))
+* **feature/PX-2421:** 29 packages upgraded ([#1047](https://github.com/studiographene/pulse-data-integration/issues/1047)) ([cd6868c](https://github.com/studiographene/pulse-data-integration/commit/cd6868cc109c67bbbd733ee773a075ed5fd0b955))
+* **feature/PX-2422-v2:** elasticsearch version updated ([1b9e186](https://github.com/studiographene/pulse-data-integration/commit/1b9e186d152346b46c9607cb6d8728e3b3a1a6ca))
+* **feature/PX-2422-v2:** pnpm-lock file deleted ([cd0262d](https://github.com/studiographene/pulse-data-integration/commit/cd0262d0c4ac31d5890870013b46d3f1a85e971e))
+* **PX-000:** Update dependency-analytics.yml ([42c7168](https://github.com/studiographene/pulse-data-integration/commit/42c7168ebc947aceb1fd4a3bc8ba10be5f7caac0))
+* **PX-000:** Update dependency-analytics.yml ([#1056](https://github.com/studiographene/pulse-data-integration/issues/1056)) ([27ef74a](https://github.com/studiographene/pulse-data-integration/commit/27ef74a2be676ba2ef67bca260c3be98be10c068))
+
 ## [1.9.2](https://github.com/studiographene/pulse-data-integration/compare/v1.9.1...v1.9.2) (2025-03-03)
 
 
