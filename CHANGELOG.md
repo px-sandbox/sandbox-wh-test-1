@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.12.1](https://github.com/studiographene/pulse-data-integration/compare/v1.12.0...v1.12.1) (2025-03-04)
+
+
+### Bug Fixes
+
+* **PX-2345:** package version and middy error ([8afc2cd](https://github.com/studiographene/pulse-data-integration/commit/8afc2cd43acf3e1fb8c850dcff0ec53b634a83d4))
+* **PX-2345:** sprint function ([5e65b01](https://github.com/studiographene/pulse-data-integration/commit/5e65b01804a90d6fe90db42be293544cadd69150))
+* **PX-2345:** sprint function ([#1061](https://github.com/studiographene/pulse-data-integration/issues/1061)) ([af60808](https://github.com/studiographene/pulse-data-integration/commit/af608084846e37f4a2991fbfe746200c3487d9fd))
+
 ## [1.12.0](https://github.com/studiographene/pulse-data-integration/compare/v1.11.0...v1.12.0) (2025-03-04)
 
 
