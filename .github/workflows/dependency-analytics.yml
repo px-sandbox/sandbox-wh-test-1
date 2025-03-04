@@ -1,7 +1,7 @@
 name: StudioGraphene-Dependency-Analytics
 on:
   push:
-    branches: [dev]
+    branches: [master]
 jobs:
   dependency_analytics:
     uses: studiographene/github-action-workflows/.github/workflows/pulse-dependencies-analytics.yml@master
