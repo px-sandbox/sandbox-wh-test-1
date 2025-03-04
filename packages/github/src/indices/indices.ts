@@ -598,8 +598,8 @@ async function createMapping(name: string, mappings: Github.Type.IndexMapping): 
   try {
     const esClient = ElasticSearchClient.getInstance();
 
-    const { statusCode } = await esClient.isIndexExists(name);
-    if (statusCode === 200) {
+    const indexExists = await esClient.isIndexExists(name);
+    if (indexExists) {
       logger.info({ message: `GithubIndices.info Index '${name}' already exists.` });
       // update
       await esClient.updateIndex(name, mappings);
