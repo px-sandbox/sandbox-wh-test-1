@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.0](https://github.com/studiographene/pulse-data-integration/compare/v1.11.0...v1.12.0) (2025-03-04)
+
+
+### Features
+
+* **feature/PX-2421-v3:** build error resolved ([dc5c2a0](https://github.com/studiographene/pulse-data-integration/commit/dc5c2a0fabf410f7edb085af14bd6ab994ce1bdb))
+* **feature/PX-2421-v3:** build error resolved ([#1059](https://github.com/studiographene/pulse-data-integration/issues/1059)) ([3458362](https://github.com/studiographene/pulse-data-integration/commit/3458362751599d7f24c7e7b94d6900d95335a405))
+
 ## [1.11.0](https://github.com/studiographene/pulse-data-integration/compare/v1.10.0...v1.11.0) (2025-03-04)
 
 
