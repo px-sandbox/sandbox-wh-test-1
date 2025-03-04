@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.11.0](https://github.com/studiographene/pulse-data-integration/compare/v1.10.0...v1.11.0) (2025-03-04)
+
+
+### Features
+
+* **feature/PX-2421-v2:** elastic search version updated ([10a1b41](https://github.com/studiographene/pulse-data-integration/commit/10a1b410da0f007ea59c3d6e6d220acf0c084fd4))
+* **feature/PX-2421-v2:** elastic search version updated ([9024733](https://github.com/studiographene/pulse-data-integration/commit/90247337668edb1fd24c0bf24ca954f6090cbcc5))
+* **feature/PX-2421-v2:** elastic search version updated ([e24a6ba](https://github.com/studiographene/pulse-data-integration/commit/e24a6ba64b337ac771673c1d5090e7918c8edc2c))
+* **feature/PX-2421-v2:** elastic search version updated ([#1057](https://github.com/studiographene/pulse-data-integration/issues/1057)) ([10afca8](https://github.com/studiographene/pulse-data-integration/commit/10afca865855236c9e525114158a50b006595a30))
+
 ## [1.10.0](https://github.com/studiographene/pulse-data-integration/compare/v1.9.2...v1.10.0) (2025-03-04)
 
 
