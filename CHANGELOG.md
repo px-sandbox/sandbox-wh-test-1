@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.14.0](https://github.com/studiographene/pulse-data-integration/compare/v1.13.0...v1.14.0) (2025-03-05)
+
+
+### Features
+
+* **feature/PX-2434:** feedback resolved ([4ed1ec1](https://github.com/studiographene/pulse-data-integration/commit/4ed1ec103ae57f4a360d5bc30d8f4622f543951c))
+* **feature/PX-2434:** jira version created webhook handled ([5dc7e48](https://github.com/studiographene/pulse-data-integration/commit/5dc7e48f0baee1064b11d120fdd192ec46a872eb))
+* **feature/PX-2434:** jira version created webhook handled ([e072bd5](https://github.com/studiographene/pulse-data-integration/commit/e072bd5db8e5cd0e07fd32dfec9b71e004e03ced))
+* **feature/PX-2434:** jira version created webhook handled ([#1071](https://github.com/studiographene/pulse-data-integration/issues/1071)) ([5933e03](https://github.com/studiographene/pulse-data-integration/commit/5933e03f8c449250d876c568befca58b45b6f293))
+
 ## [1.13.0](https://github.com/studiographene/pulse-data-integration/compare/v1.12.3...v1.13.0) (2025-03-05)
 
 
