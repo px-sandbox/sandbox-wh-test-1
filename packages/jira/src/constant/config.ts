@@ -11,6 +11,7 @@ export const mappingPrefixes = {
   cycleTime: 'jira_cycle_time',
   rca: 'jira_rca',
   worklog: 'jira_worklog',
+  version: 'jira_version',
 };
 
 export const ALLOWED_ISSUE_TYPES = ['Epic', 'Story', 'Task', 'Bug', 'Sub-task'];

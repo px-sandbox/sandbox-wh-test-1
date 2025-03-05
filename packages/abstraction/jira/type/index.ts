@@ -14,3 +14,4 @@ export * from './aggrigation/sprint-variance';
 export * from './cycle-time';
 export * from './aggrigation/cycle-time';
 export * from './worklog';
+export * from './version';
