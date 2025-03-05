@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.13.0](https://github.com/studiographene/pulse-data-integration/compare/v1.12.3...v1.13.0) (2025-03-05)
+
+
+### Features
+
+* **PX-2474:** update indice issue with new fields ([7ed9338](https://github.com/studiographene/pulse-data-integration/commit/7ed93387c33c0187679fdb84b907ae14e7ca20fb))
+* **PX-2474:** update indice issue with new fields ([#1068](https://github.com/studiographene/pulse-data-integration/issues/1068)) ([6ae5189](https://github.com/studiographene/pulse-data-integration/commit/6ae5189459159e7ec47fc7f1b51b4fd39de817c7))
+* **PX-2475:** cycle time indcies updated ([0bd6b05](https://github.com/studiographene/pulse-data-integration/commit/0bd6b05e44f281d04ea7d4ac580d425f4b049f11))
+* **PX-2475:** cycle time indcies updated ([#1070](https://github.com/studiographene/pulse-data-integration/issues/1070)) ([3bcd12d](https://github.com/studiographene/pulse-data-integration/commit/3bcd12da394e02a942ca338f8df5405e581a9efd))
+
 ## [1.12.3](https://github.com/studiographene/pulse-data-integration/compare/v1.12.2...v1.12.3) (2025-03-05)
 
 
