@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.3](https://github.com/studiographene/pulse-data-integration/compare/v1.12.2...v1.12.3) (2025-03-05)
+
+
+### Bug Fixes
+
+* **PX-2345:** pnpm and node version revert ([d5338fc](https://github.com/studiographene/pulse-data-integration/commit/d5338fcc99906650ea51d49aae480cef05c0df1c))
+* **PX-2345:** pnpm and node version revert ([#1066](https://github.com/studiographene/pulse-data-integration/issues/1066)) ([b2b0eb2](https://github.com/studiographene/pulse-data-integration/commit/b2b0eb2c1d1af8ef4634f0694ec81fbd3f819952))
+
 ## [1.12.2](https://github.com/studiographene/pulse-data-integration/compare/v1.12.1...v1.12.2) (2025-03-04)
 
 
