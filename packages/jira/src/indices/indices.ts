@@ -210,7 +210,7 @@ const indices = [
                 },
               },
             },
-            acceptVersion: { type: 'keyword' },
+            fixVersion: { type: 'keyword' },
             affectedVersion: { type: 'keyword' },
           },
         },
@@ -421,7 +421,7 @@ const indices = [
             isDeleted: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
             affectedVersion: { type: 'keyword' },
-            acceptVersion: { type: 'keyword' },
+            fixVersion: { type: 'keyword' },
           },
         },
       },
@@ -479,7 +479,7 @@ const indices = [
         },
       },
     },
-  }
+  },
 ];
 /**
  * Creates a mapping for an index in Elasticsearch.
