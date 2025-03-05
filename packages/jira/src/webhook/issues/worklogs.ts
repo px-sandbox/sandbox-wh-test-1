@@ -130,7 +130,7 @@ export async function worklog(
           boardId: issueData.boardId,
           sprintId: issueData.sprintId,
           issueId,
-          worklogData,
+          worklog:worklogData,
           eventName,
         },
         Queue.qIssueFormat.queueUrl,
