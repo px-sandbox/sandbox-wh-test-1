@@ -474,7 +474,7 @@ const indices = [
             organizationId: { type: 'text' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time' },
             status: { type: 'keyword' },
-            projectKey: { type: 'text' },
+            projectKey: { type: 'keyword' },
           },
         },
       },

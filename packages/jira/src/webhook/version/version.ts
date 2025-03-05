@@ -20,7 +20,7 @@ export async function version(
     }
     const projectData = await getProjectById(Number(versionData.projectId), organization, { requestId });
     if (!projectData) {
-      throw new Error(`version.project ${projectData} not found`);
+      throw new Error(`version.project with ID ${versionData.projectId} not found`);
     }
 
     logger.info({
