@@ -3,10 +3,12 @@ import { Jira } from 'abstraction';
 import { logger } from 'core';
 
 /**
- * Saves the details of a Jira version to DynamoDB and Elasticsearch.
- * @param data The version data to be saved.
- * @returns A Promise that resolves when the version details have been saved.
- * @throws Throws an error if there was an issue saving the version details.
+ * Saves the details of a Jira version to Elasticsearch.
+ * @param versionId The ID of the version to be updated.
+ * @param name The name of the version.
+ * @param description The description of the version.
+ * @param startDate The start date of the version.
+ * @param releaseDate The release date of the version.
  */
 
 const esClientObj = ElasticSearchClient.getInstance();
