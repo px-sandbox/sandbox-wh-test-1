@@ -57,7 +57,7 @@
     "errorMsg": "Please follow the branch naming convention, eg: feature/SG-1"
   },
   "engines": {
-    "node": ">=v18.18.0",
-    "pnpm": ">=10.5.2"
+    "node": ">=18.20.7",
+    "pnpm": ">=9.12.1"
   }
 }
