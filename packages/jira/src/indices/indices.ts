@@ -448,6 +448,33 @@ const indices = [
       },
     },
   },
+
+  {
+    name: Jira.Enums.IndexName.Version,
+    _id: { type: 'uuid' },
+    mappings: {
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'keyword' },
+            projectId: { type: 'keyword' },
+            name: { type: 'text' },
+            description: { type: 'text' },
+            archived: { type: 'boolean' },
+            overdue: { type: 'boolean' },
+            released: { type: 'boolean' },
+            startDate: { type: 'date', format: 'strict_date_optional_time' },
+            releaseDate: { type: 'date', format: 'strict_date_optional_time' },
+            isDeleted: { type: 'boolean' },
+            organizationId: { type: 'text' },
+            deletedAt: { type: 'date', format: 'strict_date_optional_time' },
+            status: { type: 'keyword' },
+          },
+        },
+      },
+    },
+  }
 ];
 /**
  * Creates a mapping for an index in Elasticsearch.
