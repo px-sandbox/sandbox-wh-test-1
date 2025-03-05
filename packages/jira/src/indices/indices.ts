@@ -420,6 +420,8 @@ const indices = [
             issueType: { type: 'text' },
             isDeleted: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
+            affectedVersion: { type: 'keyword' },
+            acceptVersion: { type: 'keyword' },
           },
         },
       },
