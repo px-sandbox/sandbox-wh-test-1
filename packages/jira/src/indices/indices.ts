@@ -210,6 +210,8 @@ const indices = [
                 },
               },
             },
+            acceptVersion: { type: 'keyword' },
+            affectedVersion: { type: 'keyword' },
           },
         },
       },
