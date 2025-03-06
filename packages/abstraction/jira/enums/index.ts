@@ -5,3 +5,4 @@ export * from './sprints';
 export * from './issues';
 export * from './user-type';
 export * from './cycle-time';
+export * from './version';

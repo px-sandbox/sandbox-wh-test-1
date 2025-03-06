@@ -1,5 +1,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
+import { VersionStatus } from 'abstraction/jira/enums';
 import { logger } from 'core';
 
 /**
@@ -40,6 +41,7 @@ export async function releaseVersion(versionId: string, releaseDate: string): Pr
             body: {
                 releaseDate,
                 released: true,
+                status: VersionStatus.RELEASED,
             },
         });
         logger.info({ data: { versionId, releaseDate }, message: 'releaseVersion.successful' });
@@ -58,6 +60,7 @@ export async function UnreleaseVersion(versionId: string): Promise<void> {
         await esClientObj.updateDocument(Jira.Enums.IndexName.Version, versionId, {
             body: {
                 released: false,
+                status: VersionStatus.UNRELEASED,
             },
         });
         logger.info({ data: { versionId }, message: 'UnreleaseVersion.successful' });
