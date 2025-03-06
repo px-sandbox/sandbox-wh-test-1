@@ -5,7 +5,7 @@ import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
 import { mappingPrefixes } from '../../../constant/config';
 import { saveVersionDetails } from 'src/repository/version/save-version';
-import { updateVersionDetails } from 'src/repository/version/update-version';
+import { releaseVersion, UnreleaseVersion, updateVersionDetails } from 'src/repository/version/update-version';
 
 function saveVersionFormattedData(
     data: Jira.ExternalType.Webhook.Version,
@@ -49,7 +49,6 @@ export const handler = async function versionFormattedDataReceiver(event: SQSEve
                 });
                 switch (eventName) {
                     case Jira.Enums.Event.VersionCreated:
-                    case Jira.Enums.Event.VersionReleased:
                         {
                             const processedData = saveVersionFormattedData(versionData, projectKey);
                             await saveVersionDetails(processedData);
@@ -63,6 +62,15 @@ export const handler = async function versionFormattedDataReceiver(event: SQSEve
                             versionData.startDate,
                             versionData.releaseDate
                         );
+                        break;
+                    case Jira.Enums.Event.VersionReleased:
+                        await releaseVersion(
+                            `${mappingPrefixes.version}_${versionData.id}`,
+                            versionData.releaseDate
+                        );
+                        break;
+                    case Jira.Enums.Event.VersionUnreleased:
+                        await UnreleaseVersion(`${mappingPrefixes.version}_${versionData.id}`);
                         break;
                     default:
                         logger.error({
