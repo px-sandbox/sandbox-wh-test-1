@@ -33,3 +33,40 @@ export async function updateVersionDetails(versionId: string, name: string, desc
         throw error;
     }
 }
+
+export async function releaseVersion(versionId: string, releaseDate: string): Promise<void> {
+    try {
+        await esClientObj.updateDocument(Jira.Enums.IndexName.Version, versionId, {
+            body: {
+                releaseDate,
+                released: true,
+            },
+        });
+        logger.info({ data: { versionId, releaseDate }, message: 'releaseVersion.successful' });
+    } catch (error: unknown) {
+        logger.error({
+            data: versionId,
+            message: 'releaseVersion.error',
+            error,
+        });
+        throw error;
+    }
+}
+
+export async function UnreleaseVersion(versionId: string): Promise<void> {
+    try {
+        await esClientObj.updateDocument(Jira.Enums.IndexName.Version, versionId, {
+            body: {
+                released: false,
+            },
+        });
+        logger.info({ data: { versionId }, message: 'UnreleaseVersion.successful' });
+    } catch (error: unknown) {
+        logger.error({
+            data: versionId,
+            message: 'UnreleaseVersion.error',
+            error,
+        });
+        throw error;
+    }
+}
