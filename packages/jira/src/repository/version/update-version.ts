@@ -1,0 +1,35 @@
+import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { Jira } from 'abstraction';
+import { logger } from 'core';
+
+/**
+ * Saves the details of a Jira version to Elasticsearch.
+ * @param versionId The ID of the version to be updated.
+ * @param name The name of the version.
+ * @param description The description of the version.
+ * @param startDate The start date of the version.
+ * @param releaseDate The release date of the version.
+ */
+
+const esClientObj = ElasticSearchClient.getInstance();
+
+export async function updateVersionDetails(versionId: string, name: string, description: string, startDate: string, releaseDate: string): Promise<void> {
+    try {
+        await esClientObj.updateDocument(Jira.Enums.IndexName.Version, versionId, {
+            body: {
+                name,
+                description,
+                startDate,
+                releaseDate,
+            },
+        });
+        logger.info({ data: { versionId, name, description, startDate, releaseDate }, message: 'updateVersionDetails.successful' });
+    } catch (error: unknown) {
+        logger.error({
+            data: versionId,
+            message: 'updateVersionDetails.error',
+            error,
+        });
+        throw error;
+    }
+}
