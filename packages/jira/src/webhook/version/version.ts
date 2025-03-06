@@ -1,9 +1,9 @@
 import { SQSClient } from '@pulse/event-handler';
-import { Jira, Other } from 'abstraction';
+import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
+import { getProjectById } from '../../repository/project/get-project';
 import { getOrganization } from '../../repository/organization/get-organization';
-import { getProjectById } from 'src/repository/project/get-project';
 
 const sqsClient = SQSClient.getInstance();
 
@@ -18,7 +18,9 @@ export async function version(
     if (!orgId) {
       throw new Error(`version.organization ${organization} not found`);
     }
-    const projectData = await getProjectById(Number(versionData.projectId), organization, { requestId });
+    const projectData = await getProjectById(Number(versionData.projectId), organization, {
+      requestId,
+    });
     if (!projectData) {
       throw new Error(`version.project with ID ${versionData.projectId} not found`);
     }
@@ -33,10 +35,10 @@ export async function version(
     await Promise.all([
       sqsClient.sendMessage(
         {
-        versionData,
+          versionData,
           eventName,
           organization,
-          projectKey: projectData.key
+          projectKey: projectData.key,
         },
         Queue.qVersionFormat.queueUrl,
         { requestId, resourceId: versionData.id }

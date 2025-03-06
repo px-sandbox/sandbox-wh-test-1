@@ -183,7 +183,7 @@ async function updateIssueStatus(
     );
     if (issueStatus[ChangelogStatus.READY_FOR_QA] === item.to) {
       const checkReOpenRate = await getReopenRateDataById(
-        issueData.issueId,
+        `${mappingPrefixes.reopen_rate}_${issueData.issueId}_${issueData.sprintId}`,
         issueData.organizationId,
         {
           requestId,
@@ -203,7 +203,7 @@ async function updateIssueStatus(
         data: JSON.stringify(issueData),
       });
       const reOpenRateData = await getReopenRateDataById(
-        issueData.issueId,
+        `${mappingPrefixes.reopen_rate}_${issueData.issueId}_${issueData.sprintId}`,
         issueData.organizationId,
         {
           requestId,
