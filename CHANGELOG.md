@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.15.0](https://github.com/studiographene/pulse-data-integration/compare/v1.14.1...v1.15.0) (2025-03-06)
+
+
+### Features
+
+* **feature/PX-2435:** updated verion event handled ([#1073](https://github.com/studiographene/pulse-data-integration/issues/1073)) ([0ae84a0](https://github.com/studiographene/pulse-data-integration/commit/0ae84a0adbaa441a32a80a5c2f273ccf39c6d028))
+* **feature/PX-2436:** released and unreleased version event handled ([7d254dc](https://github.com/studiographene/pulse-data-integration/commit/7d254dc93ccc2be0aef0b5e15de30fff1c2e3d8e))
+* **feature/PX-2436:** released and unreleased version event handled with status ([2fac4c6](https://github.com/studiographene/pulse-data-integration/commit/2fac4c6600506db8cc3041138ff24c1608ae1945))
+
+## [1.14.1](https://github.com/studiographene/pulse-data-integration/compare/v1.14.0...v1.14.1) (2025-03-05)
+
+
+### Bug Fixes
+
+* **PX-2475:** change ([28127ed](https://github.com/studiographene/pulse-data-integration/commit/28127ed47927a95c8d6cb3d15b1ee6c3e2767ec1))
+* **PX-2475:** change ([#1074](https://github.com/studiographene/pulse-data-integration/issues/1074)) ([33fbe0e](https://github.com/studiographene/pulse-data-integration/commit/33fbe0edcfb68d5e1a4b821f324883c6fdf59588))
+
 ## [1.14.0](https://github.com/studiographene/pulse-data-integration/compare/v1.13.0...v1.14.0) (2025-03-05)
 
 
