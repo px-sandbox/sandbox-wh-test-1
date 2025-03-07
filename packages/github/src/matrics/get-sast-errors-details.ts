@@ -68,14 +68,14 @@ async function getRepoSastErrorsFromEsb(
             esb
               .boolQuery()
               .must([
-                esb.rangeQuery('body.metadata.firstReportedOn').gte(startDate).lte(endDate),
+                esb.rangeQuery('body.metadata.lastReportedOn').gte(startDate).lte(endDate),
                 esb.termsQuery('body.metadata.branch', [...branch]),
                 esb.termQuery('body.metadata.isResolved', false),
               ])
           ),
       ])
     )
-    .sort(esb.sort('body.metadata.firstReportedOn', 'asc').nestedPath('body.metadata'));
+    .sort(esb.sort('body.metadata.lastReportedOn', 'asc').nestedPath('body.metadata'));
   if (afterKeyObj) {
     sastDetailedQuery.searchAfter(afterKeyObj);
   }
