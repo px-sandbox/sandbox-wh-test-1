@@ -14,7 +14,7 @@ import { logger } from 'core';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-export async function updateVersionDetails(versionId: string, name: string, description: string, startDate: string, releaseDate: string): Promise<void> {
+export async function updateVersionDetails(versionId: string, name: string, description: string, startDate: string, releaseDate: string, archived: boolean, overdue: boolean): Promise<void> {
     try {
         await esClientObj.updateDocument(Jira.Enums.IndexName.Version, versionId, {
             body: {
@@ -22,6 +22,8 @@ export async function updateVersionDetails(versionId: string, name: string, desc
                 description,
                 startDate,
                 releaseDate,
+                archived,
+                overdue,
             },
         });
         logger.info({ data: { versionId, name, description, startDate, releaseDate }, message: 'updateVersionDetails.successful' });
@@ -68,6 +70,25 @@ export async function UnreleaseVersion(versionId: string): Promise<void> {
         logger.error({
             data: versionId,
             message: 'UnreleaseVersion.error',
+            error,
+        });
+        throw error;
+    }
+}
+
+export async function deleteVersion(versionId: string): Promise<void> {
+    try {
+        await esClientObj.updateDocument(Jira.Enums.IndexName.Version, versionId, {
+            body: {
+                isDeleted: true,
+                deletedAt: new Date().toISOString(),
+            },
+        });
+        logger.info({ data: versionId, message: 'deleteVersion.successful' });
+    } catch (error: unknown) {
+        logger.error({
+            data: versionId,
+            message: 'deleteVersion.error',
             error,
         });
         throw error;

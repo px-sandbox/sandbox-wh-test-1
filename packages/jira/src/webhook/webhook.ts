@@ -117,6 +117,7 @@ async function processWebhookEvent(
       case Jira.Enums.Event.VersionUpdated:
       case Jira.Enums.Event.VersionReleased:
       case Jira.Enums.Event.VersionUnreleased:
+      case Jira.Enums.Event.VersionDeleted:
         await version(body.version, eventName, organization, requestId);
         break;
       default:
