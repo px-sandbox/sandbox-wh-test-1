@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.15.1](https://github.com/studiographene/pulse-data-integration/compare/v1.15.0...v1.15.1) (2025-03-07)
+
+
+### Bug Fixes
+
+* **PX-2375:** reopen rate cases handled for sprint and lint fixes ([2aa6078](https://github.com/studiographene/pulse-data-integration/commit/2aa6078a62c23a5f7d80d198eac0a718bfdf6e06))
+* **PX-2475:** fix ([02859c8](https://github.com/studiographene/pulse-data-integration/commit/02859c8be56c67c0c910d5894d7e0691c73bfb59))
+* **PX-2475:** fix ([55e7dca](https://github.com/studiographene/pulse-data-integration/commit/55e7dca850b435e8cf4095b4a51f0e73447c98c3))
+* **PX-2475:** fix reopenrate exists or not ([3394bc2](https://github.com/studiographene/pulse-data-integration/commit/3394bc29aeb696d216c6c154c6d9350dafc94b52))
+* **PX-2475:** fix reopenrate exists or not ([#1078](https://github.com/studiographene/pulse-data-integration/issues/1078)) ([6c72650](https://github.com/studiographene/pulse-data-integration/commit/6c72650e3d885c1a3d26384b517d332fc55d27f1))
+
 ## [1.15.0](https://github.com/studiographene/pulse-data-integration/compare/v1.14.1...v1.15.0) (2025-03-06)
 
 
