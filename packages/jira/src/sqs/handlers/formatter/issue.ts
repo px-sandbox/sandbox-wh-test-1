@@ -182,15 +182,28 @@ async function updateIssueStatus(
       }
     );
     if (issueStatus[ChangelogStatus.READY_FOR_QA] === item.to) {
-      logger.info({ message: 'updateIssueStatus.issueStatus.READY_FOR_QA', data: { issueDocId } });
-      await createReOpenRate(issueData, { requestId, resourceId });
+      const checkReOpenRate = await getReopenRateDataById(
+        `${mappingPrefixes.reopen_rate}_${issueData.issueId}_${issueData.sprintId}`,
+        issueData.organizationId,
+        {
+          requestId,
+          resourceId,
+        }
+      );
+      logger.info({
+        message: 'updateIssueStatus.issueStatus.READY_FOR_QA',
+        data: { issueDocId, isReopenRateExists: JSON.stringify(checkReOpenRate) },
+      });
+      if (!checkReOpenRate) {
+        await createReOpenRate(issueData, { requestId, resourceId });
+      }
     } else if (issueStatus[ChangelogStatus.QA_FAILED] === item.to) {
       logger.info({
         message: 'updateIssueStatus.issueStatus.QA_FAILED',
         data: JSON.stringify(issueData),
       });
       const reOpenRateData = await getReopenRateDataById(
-        issueData.issueId,
+        `${mappingPrefixes.reopen_rate}_${issueData.issueId}_${issueData.sprintId}`,
         issueData.organizationId,
         {
           requestId,
