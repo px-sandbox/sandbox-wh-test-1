@@ -75,7 +75,7 @@ async function getRepoSastErrorsFromEsb(
           ),
       ])
     )
-    .sort(esb.sort('body.metadata.lastReportedOn', 'asc').nestedPath('body.metadata'));
+    .sort(esb.sort('body.metadata.firstReportedOn', 'asc').nestedPath('body.metadata'));
   if (afterKeyObj) {
     sastDetailedQuery.searchAfter(afterKeyObj);
   }
