@@ -54,6 +54,7 @@ const compareAndUpdateData = async (
         const branchObj = dbItem.body.metadata.find((item) => item.branch == branch);
         if (branchObj) {
           branchObj.lastReportedOn = moment().toISOString();
+          branchObj.isResolved = false;
         } else {
           dbItem.body.metadata.push(...apiItem.body.metadata);
         }
