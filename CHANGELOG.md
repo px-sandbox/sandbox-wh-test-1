@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.16.0](https://github.com/studiographene/pulse-data-integration/compare/v1.15.1...v1.16.0) (2025-03-07)
+
+
+### Features
+
+* **feature/PX-2438:** conflicts resolved ([42dc495](https://github.com/studiographene/pulse-data-integration/commit/42dc4952cc7e5fc349b3bdbd21c9674b995b4836))
+* **feature/PX-2438:** delete and merge events handled ([#1080](https://github.com/studiographene/pulse-data-integration/issues/1080)) ([096678c](https://github.com/studiographene/pulse-data-integration/commit/096678c4fe8fbc4a78df5fb936de38e59ff3b5a6))
+
 ## [1.15.0](https://github.com/studiographene/pulse-data-integration/compare/v1.14.1...v1.15.0) (2025-03-06)
 
 
