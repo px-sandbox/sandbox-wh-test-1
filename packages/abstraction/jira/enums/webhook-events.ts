@@ -28,4 +28,5 @@ export enum Event {
   VersionUpdated = 'jira:version_updated',
   VersionReleased = 'jira:version_released',
   VersionUnreleased = 'jira:version_unreleased',
+  VersionDeleted = 'jira:version_deleted',
 }
