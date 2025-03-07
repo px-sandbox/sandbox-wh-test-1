@@ -45,7 +45,7 @@ export async function getIssueById(
 }
 
 export async function getReopenRateDataById(
-  issueId: string,
+  reOpenRateId: string,
   orgId: string,
   reqCtx?: Other.Type.RequestCtx
 ): Promise<Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody> {
@@ -53,11 +53,12 @@ export async function getReopenRateDataById(
     const matchQry = esb
       .requestBodySearch()
       .query(
-        esb.boolQuery().must([
-          // eslint-disable-next-line max-len
-          esb.termsQuery('body.issueId', `${mappingPrefixes.issue}_${issueId}`),
-          esb.termQuery('body.organizationId', orgId),
-        ])
+        esb
+          .boolQuery()
+          .must([
+            esb.termsQuery('body.id', reOpenRateId),
+            esb.termQuery('body.organizationId', orgId),
+          ])
       )
       .toJSON();
 

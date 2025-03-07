@@ -4,8 +4,13 @@ import { deleteProcessfromDdb, logProcessToRetry } from 'rp';
 import { Queue } from 'sst/node/queue';
 import { Jira } from 'abstraction';
 import { mappingPrefixes } from '../../../constant/config';
-import { saveVersionDetails } from 'src/repository/version/save-version';
-import { deleteVersion, releaseVersion, UnreleaseVersion, updateVersionDetails } from 'src/repository/version/update-version';
+import { saveVersionDetails } from '../../../repository/version/save-version';
+import {
+    deleteVersion,
+    releaseVersion,
+    UnreleaseVersion,
+    updateVersionDetails,
+} from '../../../repository/version/update-version';
 
 function saveVersionFormattedData(
     data: Jira.ExternalType.Webhook.Version,
