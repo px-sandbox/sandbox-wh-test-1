@@ -68,7 +68,7 @@ async function getRepoSastErrorsFromEsb(
             esb
               .boolQuery()
               .must([
-                esb.rangeQuery('body.metadata.firstReportedOn').gte(startDate).lte(endDate),
+                esb.rangeQuery('body.metadata.lastReportedOn').gte(startDate).lte(endDate),
                 esb.termsQuery('body.metadata.branch', [...branch]),
                 esb.termQuery('body.metadata.isResolved', false),
               ])
