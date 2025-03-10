@@ -113,6 +113,11 @@ export function initializeRoutes(
       },
       authorizer: 'admin',
     },
+
+    'GET /jira/versions': {
+      function: 'packages/jira/src/service/get-versions.handler',
+      authorizer: 'universal',
+    },
   };
 
   return routesObj;
