@@ -22,9 +22,9 @@ async function saveFormattedData(
     throw new Error(`Organization ${data.organization} not found`);
   }
   const formattedData = {
-    id: `${mappingPrefixes.worklog}_${data?.id}`,
+    id: `${mappingPrefixes.worklog}_${data?.worklog.id}`,
     body: {
-      id: `${mappingPrefixes.worklog}_${data?.id}`,
+      id: `${mappingPrefixes.worklog}_${data?.worklog.id}`,
       projectKey: data?.issueData.projectKey,
       issueKey: data?.issueData.issueKey,
       timeLogged: data?.worklog.timeSpentSeconds,
