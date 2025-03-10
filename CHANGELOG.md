@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.16.2](https://github.com/studiographene/pulse-data-integration/compare/v1.16.1...v1.16.2) (2025-03-10)
+
+
+### Bug Fixes
+
+* **PX-2518:** added isResolved key ([d1ea663](https://github.com/studiographene/pulse-data-integration/commit/d1ea663bd7900c53d7314c672334b212e4633d24))
+* **PX-2518:** added isResolved key ([#1084](https://github.com/studiographene/pulse-data-integration/issues/1084)) ([5eb0a10](https://github.com/studiographene/pulse-data-integration/commit/5eb0a1043924f1eec69c61b1ca7d96b67fa11a35))
+* **PX-2518:** lint fix ([834917a](https://github.com/studiographene/pulse-data-integration/commit/834917aca1149b0d7ff53ca3564a44e78ef4f1a6))
+
 ## [1.16.1](https://github.com/studiographene/pulse-data-integration/compare/v1.16.0...v1.16.1) (2025-03-07)
 
 
