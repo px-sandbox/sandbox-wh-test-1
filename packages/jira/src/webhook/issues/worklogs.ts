@@ -130,7 +130,7 @@ export async function worklog(
           boardId: issueData.boardId,
           sprintId: issueData.sprintId,
           issueId,
-          worklog:worklogData,
+          worklog: worklogData,
           eventName,
         },
         Queue.qIssueFormat.queueUrl,
@@ -140,7 +140,7 @@ export async function worklog(
       ),
       sqsClient.sendMessage(
         {
-          worklogData,
+          worklog: worklogData,
           eventName,
           issueData,
           createdDate,
