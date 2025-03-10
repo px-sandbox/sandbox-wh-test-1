@@ -70,7 +70,6 @@ async function getRepoSastErrorsFromEsb(
               .must([
                 esb.rangeQuery('body.metadata.lastReportedOn').gte(startDate).lte(endDate),
                 esb.termsQuery('body.metadata.branch', [...branch]),
-                esb.termQuery('body.metadata.isResolved', false),
               ])
           ),
       ])
@@ -136,9 +135,10 @@ export async function getRepoSastErrors(
           ruleId: data.body.ruleId as string,
           filename: data.body.fileName as string,
           branch: data.body.metadata.map(
-            (branches: { branch: string; firstReportedOn: string }) => ({
+            (branches: { branch: string; firstReportedOn: string; isResolved: boolean }) => ({
               name: branches.branch as string,
               firstOccurredAt: branches.firstReportedOn as string,
+              isResolved: branches.isResolved as boolean,
             })
           ),
         }));
