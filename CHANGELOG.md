@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.16.3](https://github.com/studiographene/pulse-data-integration/compare/v1.16.2...v1.16.3) (2025-03-10)
+
+
+### Bug Fixes
+
+* **PX-4444:** fix the actual time delete event ([33cdd69](https://github.com/studiographene/pulse-data-integration/commit/33cdd6940ad68aed0cf1d3cced6f9fc28300c90b))
+* **PX-4444:** fix the actual time delete event ([#1086](https://github.com/studiographene/pulse-data-integration/issues/1086)) ([603701b](https://github.com/studiographene/pulse-data-integration/commit/603701b26b9816f9198d471e6f54054b9fee7acc))
+
 ## [1.16.2](https://github.com/studiographene/pulse-data-integration/compare/v1.16.1...v1.16.2) (2025-03-10)
 
 
