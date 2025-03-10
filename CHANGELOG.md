@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.16.1](https://github.com/studiographene/pulse-data-integration/compare/v1.16.0...v1.16.1) (2025-03-07)
+
+
+### Bug Fixes
+
+* **PX-2518:** changed to lastReportedOn ([10ba8f8](https://github.com/studiographene/pulse-data-integration/commit/10ba8f8b2752af9a290740db4ebdc93b8024b7ae))
+* **PX-2518:** fix ([a96ea4e](https://github.com/studiographene/pulse-data-integration/commit/a96ea4e61dbfcaf8f7d4f0567f82899b9ec8f622))
+* **PX-2518:** sast error count ([52e98aa](https://github.com/studiographene/pulse-data-integration/commit/52e98aa93bdc0db13d3cf662fcd209f5e664d850))
+* **PX-2518:** sast error count ([#1082](https://github.com/studiographene/pulse-data-integration/issues/1082)) ([f58fd78](https://github.com/studiographene/pulse-data-integration/commit/f58fd78225ee2879cf5b4e3c4009d94b05472027))
+
 ## [1.16.0](https://github.com/studiographene/pulse-data-integration/compare/v1.15.1...v1.16.0) (2025-03-07)
 
 
