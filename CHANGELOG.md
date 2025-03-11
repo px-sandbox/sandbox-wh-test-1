@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.17.0](https://github.com/studiographene/pulse-data-integration/compare/v1.16.3...v1.17.0) (2025-03-11)
+
+
+### Features
+
+* **PX-2443:** jira version get api ([9b015df](https://github.com/studiographene/pulse-data-integration/commit/9b015df38f5f87d87ef11f677c315e1e905da18a))
+* **PX-2443:** jira version get api ([#1088](https://github.com/studiographene/pulse-data-integration/issues/1088)) ([33b4ec8](https://github.com/studiographene/pulse-data-integration/commit/33b4ec8453629a454c67a11a46c6f64b3fe00b24))
+
+
+### Bug Fixes
+
+* **PX-2443:** fic ([8b365eb](https://github.com/studiographene/pulse-data-integration/commit/8b365eb963c65ba1f2dd95e1d9c80d486203a0e6))
+* **PX-2443:** pr feedbacks ([743af9c](https://github.com/studiographene/pulse-data-integration/commit/743af9c06b4a5252e75370a027e225ad7562b070))
+
 ## [1.16.3](https://github.com/studiographene/pulse-data-integration/compare/v1.16.2...v1.16.3) (2025-03-10)
 
 
