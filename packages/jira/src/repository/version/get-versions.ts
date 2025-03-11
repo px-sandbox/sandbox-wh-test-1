@@ -39,7 +39,7 @@ async function getVersionsFromEsb(
     }
     return getVersionsFromEsb(projectId, orgId, reqCtx, from + size, size, formattedVersionData);
   } catch (error: unknown) {
-    logger.error({ ...reqCtx, message: 'getAllVersions.error', error: `${error}` });
+    logger.error({ ...reqCtx, message: 'getVersionsFromEsb.error', error: `${error}` });
     throw error;
   }
 }
