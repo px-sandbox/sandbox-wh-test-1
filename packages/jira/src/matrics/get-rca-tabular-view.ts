@@ -105,7 +105,7 @@ async function getHeadlineByVersion(type: string, versionIds: string[]): Promise
                   esb.existsQuery(`body.rcaData.${type}`),
                   esb.termQuery('body.issueType', IssuesTypes.BUG),
                   esb.termQuery('body.isDeleted', false),
-                  esb.termsQuery('body.sprintId', versionIds),
+                  esb.termsQuery('body.affectedVersion', versionIds),
                 ])
             ),
         ])
@@ -121,7 +121,7 @@ async function getHeadlineByVersion(type: string, versionIds: string[]): Promise
 
 export async function rcaTableView(ids: string[], idType: FILTER_ID_TYPES, type: string): Promise<rcaTableView> {
   // Build query based on ID type
-  const query = buildRcaTableViewQuery(ids, idType, type);
+  const query = await buildRcaTableViewQuery(ids, idType, type);
 
   logger.info({ message: 'rcaTableView query', data: query });
 
@@ -159,7 +159,7 @@ export async function rcaTableView(ids: string[], idType: FILTER_ID_TYPES, type:
 /**
  * Build query for RCA table view based on ID type
  */
-function buildRcaTableViewQuery(ids: string[], idType: FILTER_ID_TYPES, type: string): object {
+export async function buildRcaTableViewQuery(ids: string[], idType: FILTER_ID_TYPES, type: string): Promise<object> {
   // Configuration for different ID types
   const idTypeConfig = {
     [FILTER_ID_TYPES.VERSION]: {
