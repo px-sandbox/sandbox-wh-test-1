@@ -52,10 +52,14 @@ async function updateActualTime(
   const issueData = await fetchIssue(worklogData.issueId, worklogData.organization, reqCtx);
   const issueDocId = issueData._id;
   logger.info({ message: 'updateActualTime.issueFetched', data: { issueKey: issueData.issueKey } });
+  const updatedActualTime = Math.max(
+    0,
+    issueData.timeTracker.actual + worklogData.worklog.timeSpentSeconds
+  );
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       timeTracker: {
-        actual: worklogData.worklog.timeSpentSeconds,
+        actual: updatedActualTime,
       },
     },
   });
