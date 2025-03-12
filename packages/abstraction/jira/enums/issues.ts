@@ -67,6 +67,8 @@ export enum ChangelogName {
   PROGRESS = 'progress',
   DEV_RCA = 'customfield_11225',
   QA_RCA = 'customfield_11226',
+  FIX_VERSION = 'fixVersions',
+  AFFECTED_VERSION = 'versions',
 }
 
 export const validChangelogFields = [
@@ -95,4 +97,6 @@ export const validChangelogFields = [
   'progress',
   'customfield_11225',
   'customfield_11226',
+  'versions',
+  'fixVersions',
 ];
