@@ -96,3 +96,8 @@ export const validChangelogFields = [
   'customfield_11225',
   'customfield_11226',
 ];
+
+export enum FILTER_ID_TYPES {
+  SPRINT = 'sprint',
+  VERSION = 'version',
+}
