@@ -15,7 +15,7 @@ function createVersionSearchQuery(versionId: string): object {
         .toJSON();
 }
 /**
- * Retrieves a sprint by its ID.
+ * Retrieves a version by its ID.
  * @param versionId - The ID of the version to retrieve.
  * @returns A Promise that resolves to the retrieved version.
  */
