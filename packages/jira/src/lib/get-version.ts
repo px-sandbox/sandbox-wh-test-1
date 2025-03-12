@@ -11,7 +11,12 @@ import { Version, searchedDataFormator } from '../util/response-formatter';
 function createVersionSearchQuery(versionId: string): object {
     return esb
         .requestBodySearch()
-        .query(esb.termQuery('body.id', versionId))
+        .query(
+            esb.boolQuery().must([
+                esb.termQuery('body.id', versionId),
+                esb.termQuery('body.isDeleted', false)
+            ])
+        )
         .toJSON();
 }
 /**
