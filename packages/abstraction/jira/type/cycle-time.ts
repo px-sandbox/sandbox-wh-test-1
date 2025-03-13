@@ -37,6 +37,8 @@ export type CycleTime = retryProcess & {
       status: string;
       eventTime: string;
     }[];
+    fixVersion: string | null;
+    affectedVersion: string | null;
     isDeleted: boolean;
     deletedAt: string | null;
   };
@@ -69,6 +71,10 @@ export type FormatCycleTime = {
     issuetype: string;
     issueId: string;
   };
+  fixVersion: string | null;
+  affectedVersion: string | null;
+  isDeleted: boolean;
+  deletedAt: string | null;
 };
 
 export type MainTicket = {
@@ -106,6 +112,8 @@ export type MainTicket = {
   subtasks: Subtasks[];
   isDeleted: boolean;
   deletedAt: string;
+  fixVersion: string | null;
+  affectedVersion: string | null;
 };
 
 export type SubTicket = {

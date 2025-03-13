@@ -29,6 +29,8 @@ export enum ChangelogField {
   CUSTOM_FIELD = 'customfield_10007',
   ASSIGNEE = 'assignee',
   SUMMARY = 'summary',
+  FIX_VERSION = 'fixVersions',
+  AFFECTED_VERSION = 'versions',
 }
 
 export enum IssueTimeTrackerSort {
