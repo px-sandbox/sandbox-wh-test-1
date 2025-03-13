@@ -1,12 +1,11 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
-import { IssuesTypes } from 'abstraction/jira/enums';
+import { IssuesTypes, FILTER_ID_TYPES } from 'abstraction/jira/enums';
 import { rcaTableHeadline, rcaTableResponse, rcaTableView } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
-import { mappingPrefixes } from '../constant/config';
-import { FILTER_ID_TYPES } from 'abstraction/jira/enums';
-import { searchedDataFormator } from '../util/response-formatter';
 import { logger } from 'core';
+import { mappingPrefixes } from '../constant/config';
+import { searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
 export async function mapRcaBucketsWithFullNames(): Promise<{ [key: string]: string }> {
@@ -29,7 +28,7 @@ export async function mapRcaBucketsWithFullNames(): Promise<{ [key: string]: str
  * @param idType - Type of IDs (SPRINT or VERSION)
  * @returns Promise with headline data
  */
-async function getHeadlineData(type: string, ids: string[], idType: FILTER_ID_TYPES): Promise<rcaTableHeadline> {
+export async function getHeadlineData(type: string, ids: string[], idType: FILTER_ID_TYPES): Promise<rcaTableHeadline> {
   // Configuration for different ID types
   const idTypeConfig = {
     [FILTER_ID_TYPES.VERSION]: {
@@ -97,43 +96,6 @@ async function getHeadlineData(type: string, ids: string[], idType: FILTER_ID_TY
   return result;
 }
 
-export async function rcaTableView(ids: string[], idType: FILTER_ID_TYPES, type: string): Promise<rcaTableView> {
-  // Build query based on ID type
-  const query = await buildRcaTableViewQuery(ids, idType, type);
-
-  logger.info({ message: 'rcaTableView query', data: query });
-
-  const response: rcaTableResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
-
-  const QaRcaBuckets = response.rcaCount?.buckets.map((bucket) => ({
-    name: bucket.key,
-    count: bucket.doc_count,
-  }));
-  const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames();
-  const headlineRCA = await getHeadlineData(type, ids, idType);
-  const data = QaRcaBuckets.map((bucket: { name: string | number; count: number }) => {
-    const fullName = updatedQaRcaBuckets[bucket.name];
-    return { name: fullName ?? '', count: bucket.count };
-  });
-  const headlineRCANames = headlineRCA.max_rca_count.keys.map((name) => updatedQaRcaBuckets[name]);
-  return {
-    headline: {
-      value:
-        headlineRCA.global_agg.total_bug_count.doc_count === 0
-          ? 0
-          : parseFloat(
-            (
-              (headlineRCA.max_rca_count.value /
-                headlineRCA.global_agg.total_bug_count.doc_count) *
-              100
-            ).toFixed(2)
-          ),
-      names: headlineRCANames,
-    },
-    tableData: data,
-  };
-}
-
 /**
  * Build query for RCA table view based on ID type
  */
@@ -170,4 +132,41 @@ export async function buildRcaTableViewQuery(ids: string[], idType: FILTER_ID_TY
     )
     .agg(esb.termsAggregation('rcaCount').field(`body.rcaData.${type}`).size(1000))
     .toJSON();
+}
+
+export async function rcaTableView(ids: string[], idType: FILTER_ID_TYPES, type: string): Promise<rcaTableView> {
+  // Build query based on ID type
+  const query = await buildRcaTableViewQuery(ids, idType, type);
+
+  logger.info({ message: 'rcaTableView query', data: query });
+
+  const response: rcaTableResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
+
+  const QaRcaBuckets = response.rcaCount?.buckets.map((bucket) => ({
+    name: bucket.key,
+    count: bucket.doc_count,
+  }));
+  const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames();
+  const headlineRCA = await getHeadlineData(type, ids, idType);
+  const data = QaRcaBuckets.map((bucket: { name: string | number; count: number }) => {
+    const fullName = updatedQaRcaBuckets[bucket.name];
+    return { name: fullName ?? '', count: bucket.count };
+  });
+  const headlineRCANames = headlineRCA.max_rca_count.keys.map((name) => updatedQaRcaBuckets[name]);
+  return {
+    headline: {
+      value:
+        headlineRCA.global_agg.total_bug_count.doc_count === 0
+          ? 0
+          : parseFloat(
+            (
+              (headlineRCA.max_rca_count.value /
+                headlineRCA.global_agg.total_bug_count.doc_count) *
+              100
+            ).toFixed(2)
+          ),
+      names: headlineRCANames,
+    },
+    tableData: data,
+  };
 }

@@ -5,12 +5,12 @@ import { IFtpRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb, { BoolQuery } from 'elastic-builder';
 import _ from 'lodash';
+import { FILTER_ID_TYPES } from 'abstraction/jira/enums';
+import { getVersion } from 'src/lib/get-version';
 import { getSprints } from '../lib/get-sprints';
 import { getBoardByOrgId } from '../repository/board/get-board';
 import { getOrganizationById } from '../repository/organization/get-organization';
 import { IssueResponse, searchedDataFormator } from '../util/response-formatter';
-import { FILTER_ID_TYPES } from 'abstraction/jira/enums';
-import { getVersion } from 'src/lib/get-version';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -134,58 +134,6 @@ async function getOrgAndProjectData(
   };
 }
 
-// eslint-disable-next-line max-lines-per-function,
-/**
- * Retrieves the FTP rate graph for a given organization, project, and sprint IDs.
- * @param organizationId The ID of the organization.
- * @param projectId The ID of the project.
- * @param sprintIds An array of sprint IDs.
- * @returns A promise that resolves to an array of IssueReponse objects representing the FTP rate graph.
- */
-export async function ftpRateGraph(
-  organizationId: string,
-  projectId: string,
-  ids: string[],
-  idType: FILTER_ID_TYPES,
-  reqCtx: Other.Type.RequestCtx
-): Promise<IssueResponse[]> {
-  try {
-    // Fetch organization and project data
-    const { orgName, projectKey } = await getOrgAndProjectData(organizationId, projectId, reqCtx);
-
-    const ftpRateGraphResponse: IFtpRateResponse = await ftpGraphRateResponse(ids, idType, reqCtx);
-    // Process data according to type
-    let response: IssueResponse[];
-    if (idType === FILTER_ID_TYPES.VERSION) {
-      response = await processVersionData(ids, ftpRateGraphResponse, orgName, projectKey, reqCtx);
-    } else if (idType === FILTER_ID_TYPES.SPRINT) {
-      response = await processSprintData(ids, ftpRateGraphResponse, orgName, projectKey, reqCtx);
-    } else {
-      throw new Error(`Unsupported ID type: ${idType}`);
-    }
-
-    // Sort and filter results
-    response = _.sortBy(response, [(item: IssueResponse): Date => new Date(item.startDate)])
-      .reverse();
-    logger.info({ ...reqCtx, message: 'response', data: response });
-    return response;
-  } catch (e) {
-    logger.error({ ...reqCtx, message: 'ftpRateGraphQuery.error', error: e });
-    throw e;
-  }
-}
-
-/**
- * Calculates FTP metrics from bucket data
- */
-function calculateFtpMetrics(ftpData: any): { total: number, totalFtp: number, percentValue: number } {
-  const total = ftpData?.doc_count ?? 0;
-  const totalFtp = ftpData?.isFTP_true_count?.doc_count ?? 0;
-  const percentValue = totalFtp === 0 || total === 0 ? 0 : (totalFtp / total) * 100;
-
-  return { total, totalFtp, percentValue };
-}
-
 /**
  * Processes version data
  */
@@ -267,6 +215,58 @@ async function processSprintData(
       };
     })
   );
+}
+
+// eslint-disable-next-line max-lines-per-function,
+/**
+ * Retrieves the FTP rate graph for a given organization, project, and sprint IDs.
+ * @param organizationId The ID of the organization.
+ * @param projectId The ID of the project.
+ * @param sprintIds An array of sprint IDs.
+ * @returns A promise that resolves to an array of IssueReponse objects representing the FTP rate graph.
+ */
+export async function ftpRateGraph(
+  organizationId: string,
+  projectId: string,
+  ids: string[],
+  idType: FILTER_ID_TYPES,
+  reqCtx: Other.Type.RequestCtx
+): Promise<IssueResponse[]> {
+  try {
+    // Fetch organization and project data
+    const { orgName, projectKey } = await getOrgAndProjectData(organizationId, projectId, reqCtx);
+
+    const ftpRateGraphResponse: IFtpRateResponse = await ftpGraphRateResponse(ids, idType, reqCtx);
+    // Process data according to type
+    let response: IssueResponse[];
+    if (idType === FILTER_ID_TYPES.VERSION) {
+      response = await processVersionData(ids, ftpRateGraphResponse, orgName, projectKey, reqCtx);
+    } else if (idType === FILTER_ID_TYPES.SPRINT) {
+      response = await processSprintData(ids, ftpRateGraphResponse, orgName, projectKey, reqCtx);
+    } else {
+      throw new Error(`Unsupported ID type: ${idType}`);
+    }
+
+    // Sort and filter results
+    response = _.sortBy(response, [(item: IssueResponse): Date => new Date(item.startDate)])
+      .reverse();
+    logger.info({ ...reqCtx, message: 'response', data: response });
+    return response;
+  } catch (e) {
+    logger.error({ ...reqCtx, message: 'ftpRateGraphQuery.error', error: e });
+    throw e;
+  }
+}
+
+/**
+ * Calculates FTP metrics from bucket data
+ */
+function calculateFtpMetrics(ftpData: any): { total: number, totalFtp: number, percentValue: number } {
+  const total = ftpData?.doc_count ?? 0;
+  const totalFtp = ftpData?.isFTP_true_count?.doc_count ?? 0;
+  const percentValue = totalFtp === 0 || total === 0 ? 0 : (totalFtp / total) * 100;
+
+  return { total, totalFtp, percentValue };
 }
 
 /**
