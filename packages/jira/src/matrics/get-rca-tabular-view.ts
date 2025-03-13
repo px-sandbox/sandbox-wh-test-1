@@ -4,8 +4,8 @@ import { IssuesTypes } from 'abstraction/jira/enums';
 import { rcaTableHeadline, rcaTableResponse, rcaTableView } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
 import { mappingPrefixes } from '../constant/config';
-import { searchedDataFormator } from '../util/response-formatter';
 import { FILTER_ID_TYPES } from 'abstraction/jira/enums';
+import { searchedDataFormator } from '../util/response-formatter';
 import { logger } from 'core';
 
 const esClient = ElasticSearchClient.getInstance();
