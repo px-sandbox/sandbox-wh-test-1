@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { ftpRateGraph, ftpRateGraphAvg } from '../matrics/get-ftp-rate';
 import { FILTER_ID_TYPES } from 'abstraction/jira/enums';
+import { ftpRateGraph, ftpRateGraphAvg } from '../matrics/get-ftp-rate';
 
 const ftpRate = async function ftpRateGraphs(
   event: APIGatewayProxyEvent

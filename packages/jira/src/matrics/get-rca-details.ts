@@ -3,10 +3,27 @@ import { Jira } from 'abstraction';
 import { rcaDetailResponse, rcaDetailType } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
 import { mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
+import { FILTER_ID_TYPES } from 'abstraction/jira/enums';
+import { logger } from 'core';
 
 const esClient = ElasticSearchClient.getInstance();
 
-export async function rcaDetailedView(sprintIds: string[], type: string): Promise<rcaDetailType[]> {
+export async function rcaDetailedView(ids: string[], idType: FILTER_ID_TYPES, type: string): Promise<rcaDetailType[]> {
+  // Configuration for different ID types
+  const idTypeConfig = {
+    [FILTER_ID_TYPES.VERSION]: {
+      filterField: 'body.affectedVersion'
+    },
+    [FILTER_ID_TYPES.SPRINT]: {
+      filterField: 'body.sprintId'
+    }
+  };
+
+  // Get configuration for the requested ID type
+  const config = idTypeConfig[idType];
+  if (!config) {
+    throw new Error(`Invalid idType: ${idType}. Must be either 'sprint' or 'version'`);
+  }
   const query = esb
     .requestBodySearch()
     .size(0)
@@ -14,7 +31,7 @@ export async function rcaDetailedView(sprintIds: string[], type: string): Promis
       esb
         .boolQuery()
         .must([
-          esb.termsQuery('body.sprintId', sprintIds),
+          esb.termsQuery(config.filterField, ids),
           esb.termQuery('body.issueType', 'Bug'),
           esb.existsQuery(`body.rcaData.${type}`),
           esb.termQuery('body.isDeleted', false),
@@ -35,7 +52,7 @@ export async function rcaDetailedView(sprintIds: string[], type: string): Promis
         ])
     )
     .toJSON();
-
+  logger.info({ message: "rca data detail query", data: query });
   const response: rcaDetailResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
   const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames();
 
