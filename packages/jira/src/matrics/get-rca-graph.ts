@@ -1,9 +1,9 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
-import { rcaGraphResponse, rcaGraphView, rcaTableHeadline } from 'abstraction/jira/type';
+import { rcaGraphResponse, rcaGraphView } from 'abstraction/jira/type';
 import { logger } from 'core';
-import { buildRcaTableViewQuery, getHeadlineData, mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
 import { FILTER_ID_TYPES } from 'abstraction/jira/enums';
+import { buildRcaTableViewQuery, getHeadlineData, mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
 
 const esClient = ElasticSearchClient.getInstance();
 

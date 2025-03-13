@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, responseParser } from 'core';
-import { rcaGraphView } from '../matrics/get-rca-graph';
 import { FILTER_ID_TYPES } from 'abstraction/jira/enums';
+import { rcaGraphView } from '../matrics/get-rca-graph';
 
 const rcaGrapViews = async function getRcaTabularView(
   event: APIGatewayProxyEvent
