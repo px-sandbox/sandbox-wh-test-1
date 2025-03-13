@@ -29,7 +29,7 @@ export async function mapRcaBucketsWithFullNames(): Promise<{ [key: string]: str
  * @param idType - Type of IDs (SPRINT or VERSION)
  * @returns Promise with headline data
  */
-async function getHeadlineData(type: string, ids: string[], idType: FILTER_ID_TYPES): Promise<rcaTableHeadline> {
+export async function getHeadlineData(type: string, ids: string[], idType: FILTER_ID_TYPES): Promise<rcaTableHeadline> {
   // Configuration for different ID types
   const idTypeConfig = {
     [FILTER_ID_TYPES.VERSION]: {
