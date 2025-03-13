@@ -2,13 +2,14 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { IssuesTypes, SprintState } from 'abstraction/jira/enums';
 import { Sprint } from 'abstraction/jira/external/api';
-import { rcaDetailResponse, rcaTableHeadline, rcaTrendsResponse } from 'abstraction/jira/type';
+import { rcaDetailResponse, rcaTableHeadline, rcaTrendsFilteredResponse, rcaTrendsResponse } from 'abstraction/jira/type';
 import { HitBody } from 'abstraction/other/type';
+import { FILTER_ID_TYPES } from 'abstraction/jira/enums';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import _ from 'lodash';
 import { mappingPrefixes } from '../constant/config';
-import { searchedDataFormator } from '../util/response-formatter';
+import { searchedDataFormator, Version } from '../util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
 
@@ -45,11 +46,50 @@ async function getSprints(sprintIds: string[]): Promise<Sprint[]> {
   const sprint = (await searchedDataFormator(body)) as Sprint[];
   return sprint;
 }
+
+async function getVersions(versionIds: string[]): Promise<Version[]> {
+  const query = esb
+    .requestBodySearch()
+    .size(versionIds.length)
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termsQuery('body.id', versionIds),
+          esb.termQuery('body.isDeleted', false)
+        ])
+    )
+    .sort(esb.sort('body.startDate', 'desc'))
+    .toJSON();
+
+  const body = await esClient.search(Jira.Enums.IndexName.Version, query);
+  const version = (await searchedDataFormator(body)) as Version[];
+  return version;
+}
+
 async function getHeadline(
   type: string,
   rcaId: string,
-  sprintIds: string[]
+  ids: string[],
+  idType: FILTER_ID_TYPES
 ): Promise<rcaTableHeadline> {
+  // Configuration for different ID types
+  const idTypeConfig = {
+    [FILTER_ID_TYPES.VERSION]: {
+      filterField: 'body.affectedVersion',
+      logMessage: 'issue headline by release query'
+    },
+    [FILTER_ID_TYPES.SPRINT]: {
+      filterField: 'body.sprintId',
+      logMessage: 'issue headline by sprint query'
+    }
+  };
+  // Get configuration for the requested ID type
+  const config = idTypeConfig[idType];
+  if (!config) {
+    throw new Error(`Invalid idType: ${idType}. Must be either 'sprint' or 'version'`);
+  }
+
   const query = esb
     .requestBodySearch()
     .size(0)
@@ -62,7 +102,7 @@ async function getHeadline(
           esb.termsQuery('body.priority', ['Highest', 'High', 'Medium']),
           esb.termQuery(`body.rcaData.${type}`, `${mappingPrefixes.rca}_${rcaId}`),
           esb.termQuery('body.isDeleted', false),
-          esb.termsQuery('body.sprintId', sprintIds),
+          esb.termsQuery(config.filterField, ids),
         ])
     )
     .agg(
@@ -85,12 +125,12 @@ async function getHeadline(
                   esb.termQuery('body.issueType', IssuesTypes.BUG),
                   esb.existsQuery(`body.rcaData.${type}`),
                   esb.termQuery('body.isDeleted', false),
-                  esb.termsQuery('body.sprintId', sprintIds),
+                  esb.termsQuery(config.filterField, ids),
                 ])
             ),
         ])
     );
-
+  logger.info({ message: 'rca.trends_headline_data', data: query });
   const result: rcaTableHeadline = await esClient.queryAggs(
     Jira.Enums.IndexName.Issue,
     query.toJSON()
@@ -98,45 +138,7 @@ async function getHeadline(
   return result;
 }
 
-export async function getRcaTrends(
-  sprintIds: string[],
-  rca: string,
-  type: string
-): Promise<rcaTrendsResponse> {
-  logger.info({ message: 'rca.trends', data: { sprintIds, rca } });
-  const rcaNameType = type === 'qaRca' ? 'qa' : 'dev';
-  const rcaData = await getRCAName(rca, rcaNameType);
-  logger.info({ message: 'rca.trends_category_data', data: { rcaData } });
-  const headline = await getHeadline(type, rcaData[0]?.id, sprintIds);
-  const query = esb
-    .requestBodySearch()
-    .size(0)
-    .query(
-      esb
-        .boolQuery()
-        .must([
-          esb.termsQuery('body.sprintId', sprintIds),
-          esb.termQuery('body.issueType', 'Bug'),
-          esb.termQuery(`body.rcaData.${type}`, `${mappingPrefixes.rca}_${rcaData[0]?.id}`),
-          esb.termQuery('body.isDeleted', false),
-        ])
-    )
-    .agg(
-      esb
-        .termsAggregation('by_rca')
-        .size(sprintIds.length)
-        .field('body.sprintId')
-        .aggs([
-          esb.filterAggregation('high_count', esb.termQuery('body.priority', 'High')),
-          esb.filterAggregation('highest_count', esb.termQuery('body.priority', 'Highest')),
-          esb.filterAggregation('medium_count', esb.termQuery('body.priority', 'Medium')),
-          esb.filterAggregation('low_count', esb.termQuery('body.priority', 'Low')),
-          esb.filterAggregation('lowest_count', esb.termQuery('body.priority', 'Lowest')),
-        ])
-    )
-    .toJSON();
-  const response: rcaDetailResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
-
+async function processSprintData(sprintIds: string[], response: rcaDetailResponse): Promise<rcaTrendsFilteredResponse[]> {
   const sprintData = await getSprints(sprintIds);
   const rcaGraphData = await Promise.all(
     sprintIds.map(async (sprintId) => {
@@ -155,20 +157,112 @@ export async function getRcaTrends(
       };
     })
   );
+  logger.info({ message: 'rca.trends_sprint_data', data: rcaGraphData });
   const rcaGraphDataSorted = _.orderBy(rcaGraphData, ['sprintCreated'], ['asc']);
-
   const rcaGraphDataFiltered = rcaGraphDataSorted.map((rest) => _.omit(rest, 'sprintCreated'));
+  return rcaGraphDataFiltered;
+}
+
+async function processVersionData(versionIds: string[], response: rcaDetailResponse): Promise<rcaTrendsFilteredResponse[]> {
+  const versionData = await getVersions(versionIds);
+  const rcaGraphData = await Promise.all(
+    versionIds.map(async (versionId) => {
+      const findInResponse = response.by_rca.buckets.find((item) => item.key === versionId);
+      const version = versionData.find((items) => String(items.id) === versionId);
+      const versionName = version?.name ?? '';
+      const versionCreated = version?.startDate ?? '';
+      return {
+        versionName,
+        high: findInResponse?.high_count.doc_count ?? 0,
+        highest: findInResponse?.highest_count.doc_count ?? 0,
+        medium: findInResponse?.medium_count.doc_count ?? 0,
+        low: findInResponse?.low_count.doc_count ?? 0,
+        lowest: findInResponse?.lowest_count.doc_count ?? 0,
+        versionCreated,
+      };
+    })
+  );
+  logger.info({ message: 'rca.trends_version_data', data: rcaGraphData });
+  const rcaGraphDataSorted = _.orderBy(rcaGraphData, ['versionCreated'], ['asc']);
+  const rcaGraphDataFiltered = rcaGraphDataSorted.map((rest) => _.omit(rest, 'versionCreated'));
+  return rcaGraphDataFiltered;
+}
+
+export async function getRcaTrends(
+  ids: string[],
+  rca: string,
+  type: string,
+  idType: FILTER_ID_TYPES
+): Promise<rcaTrendsResponse> {
+  logger.info({ message: 'rca.trends', data: { ids, rca } });
+  const rcaNameType = type === 'qaRca' ? 'qa' : 'dev';
+  const rcaData = await getRCAName(rca, rcaNameType);
+  logger.info({ message: 'rca.trends_category_data', data: { rcaData } });
+  const headline = await getHeadline(type, rcaData[0]?.id, ids, idType);
+  // Configuration for different ID types
+  const idTypeConfig = {
+    [FILTER_ID_TYPES.VERSION]: {
+      filterField: 'body.affectedVersion',
+      logMessage: 'issue headline by release query'
+    },
+    [FILTER_ID_TYPES.SPRINT]: {
+      filterField: 'body.sprintId',
+      logMessage: 'issue headline by sprint query'
+    }
+  };
+
+  // Get configuration for the requested ID type
+  const config = idTypeConfig[idType];
+  if (!config) {
+    throw new Error(`Invalid idType: ${idType}. Must be either 'sprint' or 'version'`);
+  }
+  const query = esb
+    .requestBodySearch()
+    .size(0)
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termsQuery(config.filterField, ids),
+          esb.termQuery('body.issueType', 'Bug'),
+          esb.termQuery(`body.rcaData.${type}`, `${mappingPrefixes.rca}_${rcaData[0]?.id}`),
+          esb.termQuery('body.isDeleted', false),
+        ])
+    )
+    .agg(
+      esb
+        .termsAggregation('by_rca')
+        .size(ids.length)
+        .field(config.filterField)
+        .aggs([
+          esb.filterAggregation('high_count', esb.termQuery('body.priority', 'High')),
+          esb.filterAggregation('highest_count', esb.termQuery('body.priority', 'Highest')),
+          esb.filterAggregation('medium_count', esb.termQuery('body.priority', 'Medium')),
+          esb.filterAggregation('low_count', esb.termQuery('body.priority', 'Low')),
+          esb.filterAggregation('lowest_count', esb.termQuery('body.priority', 'Lowest')),
+        ])
+    )
+    .toJSON();
+  logger.info({ message: 'rca.trends_detail_data', data: query });
+  const response: rcaDetailResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
+
+  let rcaGraphDataFiltered: rcaTrendsFilteredResponse[] = [];
+  if (idType === FILTER_ID_TYPES.SPRINT) {
+    rcaGraphDataFiltered = await processSprintData(ids, response);
+  } else if (idType === FILTER_ID_TYPES.VERSION) {
+    rcaGraphDataFiltered = await processVersionData(ids, response);
+  }
   return {
     headline: {
       value:
         headline.global_agg.total_bug_count.doc_count === 0
           ? 0
           : parseFloat(
-              (
-                (headline.max_rca_count.value / headline.global_agg.total_bug_count.doc_count) *
-                100
-              ).toFixed(2)
-            ),
+            (
+              (headline.max_rca_count.value / headline.global_agg.total_bug_count.doc_count) *
+              100
+            ).toFixed(2)
+          ),
       names: rca,
     },
     trendsData: rcaGraphDataFiltered,
