@@ -88,7 +88,7 @@ async function ftpGraphRateResponse(
   if (!config[idType]) {
     logger.error({
       message: `Invalid idType: ${idType}. Must be either 'sprint' or 'version'`,
-      data: { idType: idType },
+      data: { idType },
     });
     throw new Error(`Invalid idType: ${idType}. Must be either 'sprint' or 'version'`);
   }
@@ -145,7 +145,9 @@ async function getOrgAndProjectData(
 /**
  * Calculates FTP metrics from bucket data
  */
-function calculateFtpMetrics(ftpData: FtpBucket | undefined): { total: number, totalFtp: number, percentValue: number } {
+function calculateFtpMetrics(
+  ftpData: FtpBucket | undefined
+): { total: number, totalFtp: number, percentValue: number } {
   const total = ftpData?.doc_count ?? 0;
   const totalFtp = ftpData?.isFTP_true_count?.doc_count ?? 0;
   const percentValue = totalFtp === 0 || total === 0 ? 0 : (totalFtp / total) * 100;
