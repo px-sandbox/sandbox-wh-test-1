@@ -52,7 +52,7 @@ export async function rcaDetailedView(ids: string[], idType: FILTER_ID_TYPES, ty
         ])
     )
     .toJSON();
-    logger.info({ message: "rca data detail query", data: query });
+  logger.info({ message: "rca data detail query", data: query });
   const response: rcaDetailResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
   const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames();
 
