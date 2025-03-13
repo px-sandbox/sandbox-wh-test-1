@@ -2,9 +2,9 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { rcaDetailResponse, rcaDetailType } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
-import { mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
 import { FILTER_ID_TYPES } from 'abstraction/jira/enums';
 import { logger } from 'core';
+import { mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
 
 const esClient = ElasticSearchClient.getInstance();
 

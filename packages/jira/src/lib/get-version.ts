@@ -3,6 +3,7 @@ import { Jira } from 'abstraction';
 import esb from 'elastic-builder';
 import { Version, searchedDataFormator } from '../util/response-formatter';
 
+const esClientObj = ElasticSearchClient.getInstance();
 /**
  * Creates a search query for retrieving a version by its ID.
  * @param versionId - The ID of the version.
@@ -25,7 +26,6 @@ function createVersionSearchQuery(versionId: string): object {
  * @returns A Promise that resolves to the retrieved version.
  */
 export async function getVersion(versionId: string): Promise<Version> {
-    const esClientObj = ElasticSearchClient.getInstance();
     const query = createVersionSearchQuery(versionId);
     const body = await esClientObj.search(Jira.Enums.IndexName.Version, query);
     const [version] = (await searchedDataFormator(body)) as Version[];

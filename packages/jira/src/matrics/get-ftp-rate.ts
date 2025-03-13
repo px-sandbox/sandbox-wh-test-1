@@ -1,12 +1,13 @@
 /* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
-import { IFtpRateResponse } from 'abstraction/jira/type';
+import { FtpBucket, IFtpRateResponse } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb, { BoolQuery } from 'elastic-builder';
 import _ from 'lodash';
 import { FILTER_ID_TYPES } from 'abstraction/jira/enums';
-import { getVersion } from 'src/lib/get-version';
+import { HitBody } from 'abstraction/other/type';
+import { getVersion } from '../lib/get-version';
 import { getSprints } from '../lib/get-sprints';
 import { getBoardByOrgId } from '../repository/board/get-board';
 import { getOrganizationById } from '../repository/organization/get-organization';
@@ -33,23 +34,28 @@ function getJiraLinkForVersion(orgName: string, projectKey: string, versionId: n
  * @param sprintIds - An array of sprint IDs to filter the query.
  * @returns The constructed BoolQuery object.
  */
-function boolQuery(sprintIds: string[]): BoolQuery {
-  return esb
-    .boolQuery()
-    .must([
-      esb.termsQuery('body.sprintId', sprintIds),
-      esb.termQuery('body.isDeleted', false),
-      esb.termsQuery('body.issueType', [Jira.Enums.IssuesTypes.TASK, Jira.Enums.IssuesTypes.STORY]),
-    ])
-    .should([esb.termQuery('body.isFTP', true), esb.termQuery('body.isFTF', true)])
-    .minimumShouldMatch(1);
-}
+function boolQuery(ids: string[], idType: FILTER_ID_TYPES): BoolQuery {
+  // Configuration for different ID types
+  const idTypeConfig = {
+    [FILTER_ID_TYPES.VERSION]: {
+      filterField: 'body.affectedVersion',
+      logMessage: 'issue headline by release query'
+    },
+    [FILTER_ID_TYPES.SPRINT]: {
+      filterField: 'body.sprintId',
+      logMessage: 'issue headline by sprint query'
+    }
+  };
 
-function boolQueryByVersion(versionIds: string[]): BoolQuery {
+  // Get configuration for the requested ID type
+  const config = idTypeConfig[idType];
+  if (!config) {
+    throw new Error(`Invalid idType: ${idType}. Must be either 'sprint' or 'version'`);
+  }
   return esb
     .boolQuery()
     .must([
-      esb.termsQuery('body.affectedVersion', versionIds),
+      esb.termsQuery(config.filterField, ids),
       esb.termQuery('body.isDeleted', false),
       esb.termsQuery('body.issueType', [Jira.Enums.IssuesTypes.TASK, Jira.Enums.IssuesTypes.STORY]),
     ])
@@ -69,12 +75,10 @@ async function ftpGraphRateResponse(
 ): Promise<IFtpRateResponse> {
   const config = {
     [FILTER_ID_TYPES.SPRINT]: {
-      queryFn: boolQuery,
       bucketField: 'body.sprintId',
       bucketName: 'sprint_buckets'
     },
     [FILTER_ID_TYPES.VERSION]: {
-      queryFn: boolQueryByVersion,
       bucketField: 'body.affectedVersion',
       bucketName: 'version_buckets'
     }
@@ -82,14 +86,18 @@ async function ftpGraphRateResponse(
 
   // Validate ID type
   if (!config[idType]) {
+    logger.error({
+      message: `Invalid idType: ${idType}. Must be either 'sprint' or 'version'`,
+      data: { idType: idType },
+    });
     throw new Error(`Invalid idType: ${idType}. Must be either 'sprint' or 'version'`);
   }
 
-  const { queryFn, bucketField, bucketName } = config[idType];
+  const { bucketField, bucketName } = config[idType];
   const ftpRateGraphQuery = esb
     .requestBodySearch()
     .size(1)
-    .query(queryFn(ids))
+    .query(boolQuery(ids, idType))
     .agg(
       esb
         .termsAggregation(bucketName, bucketField)
@@ -135,6 +143,18 @@ async function getOrgAndProjectData(
 }
 
 /**
+ * Calculates FTP metrics from bucket data
+ */
+function calculateFtpMetrics(ftpData: FtpBucket | undefined): { total: number, totalFtp: number, percentValue: number } {
+  const total = ftpData?.doc_count ?? 0;
+  const totalFtp = ftpData?.isFTP_true_count?.doc_count ?? 0;
+  const percentValue = totalFtp === 0 || total === 0 ? 0 : (totalFtp / total) * 100;
+
+  return { total, totalFtp, percentValue };
+}
+
+
+/**
  * Processes version data
  */
 async function processVersionData(
@@ -153,7 +173,6 @@ async function processVersionData(
       const ftpData = ftpRateGraphResponse?.version_buckets?.buckets?.find(
         (obj) => obj.key === versionId
       );
-
       // Calculate percentages
       const { total, totalFtp, percentValue } = calculateFtpMetrics(ftpData);
 
@@ -198,7 +217,6 @@ async function processSprintData(
       const ftpData = ftpRateGraphResponse?.sprint_buckets?.buckets?.find(
         (obj) => obj.key === sprintId
       );
-
       // Calculate percentages
       const { total, totalFtp, percentValue } = calculateFtpMetrics(ftpData);
 
@@ -259,17 +277,6 @@ export async function ftpRateGraph(
 }
 
 /**
- * Calculates FTP metrics from bucket data
- */
-function calculateFtpMetrics(ftpData: any): { total: number, totalFtp: number, percentValue: number } {
-  const total = ftpData?.doc_count ?? 0;
-  const totalFtp = ftpData?.isFTP_true_count?.doc_count ?? 0;
-  const percentValue = totalFtp === 0 || total === 0 ? 0 : (totalFtp / total) * 100;
-
-  return { total, totalFtp, percentValue };
-}
-
-/**
  * Retrieves the FTP graph query response for the given IDs.
  *
  * @param ids - An array of IDs (sprint or release).
@@ -281,26 +288,13 @@ async function ftpGraphQueryResponse(
   ids: string[],
   idType: FILTER_ID_TYPES,
   reqCtx: Other.Type.RequestCtx
-): Promise<any> {
-  let ftpRateGraphQuery: object;
-  if (idType === FILTER_ID_TYPES.SPRINT) {
-    ftpRateGraphQuery = esb
-      .requestBodySearch()
-      .size(0)
-      .query(boolQuery(ids).mustNot(esb.termQuery('body.priority', 'HIGH')))
-      .agg(esb.filterAggregation('isFTP_true_count', esb.termQuery('body.isFTP', true)))
-      .toJSON();
-
-  } else if (idType === FILTER_ID_TYPES.VERSION) {
-    ftpRateGraphQuery = esb
-      .requestBodySearch()
-      .size(0)
-      .query(boolQueryByVersion(ids).mustNot(esb.termQuery('body.priority', 'HIGH')))
-      .agg(esb.filterAggregation('isFTP_true_count', esb.termQuery('body.isFTP', true)))
-      .toJSON();
-  } else {
-    throw new Error(`Invalid idType: ${idType}. Must be either 'sprint' or 'version'`);
-  }
+): Promise<HitBody> {
+  const ftpRateGraphQuery = esb
+    .requestBodySearch()
+    .size(0)
+    .query(boolQuery(ids, idType).mustNot(esb.termQuery('body.priority', 'HIGH')))
+    .agg(esb.filterAggregation('isFTP_true_count', esb.termQuery('body.isFTP', true)))
+    .toJSON();
 
   logger.info({ ...reqCtx, message: 'AvgftpRateGraphQuery', data: { ftpRateGraphQuery } });
 

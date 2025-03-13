@@ -2,7 +2,12 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
 import { FILTER_ID_TYPES, IssuesTypes, SprintState } from 'abstraction/jira/enums';
 import { Sprint } from 'abstraction/jira/external/api';
-import { rcaDetailResponse, rcaTableHeadline, rcaTrendsFilteredResponse, rcaTrendsResponse } from 'abstraction/jira/type';
+import { 
+  rcaDetailResponse, 
+  rcaTableHeadline, 
+  rcaTrendsFilteredResponse, 
+  rcaTrendsResponse 
+} from 'abstraction/jira/type';
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
@@ -169,7 +174,10 @@ async function getHeadline(
  * @param response - RCA detail response
  * @returns Processed sprint data
  */
-async function processSprintData(sprintIds: string[], response: rcaDetailResponse): Promise<rcaTrendsFilteredResponse[]> {
+async function processSprintData(
+  sprintIds: string[], 
+  response: rcaDetailResponse
+): Promise<rcaTrendsFilteredResponse[]> {
   const sprintData = await getSprints(sprintIds);
   const rcaGraphData = await Promise.all(
     sprintIds.map(async (sprintId) => {
@@ -200,7 +208,10 @@ async function processSprintData(sprintIds: string[], response: rcaDetailRespons
  * @param response - RCA detail response
  * @returns Processed version data
  */
-async function processVersionData(versionIds: string[], response: rcaDetailResponse): Promise<rcaTrendsFilteredResponse[]> {
+async function processVersionData(
+  versionIds: string[], 
+  response: rcaDetailResponse
+): Promise<rcaTrendsFilteredResponse[]> {
   const versionData = await getVersions(versionIds);
   const rcaGraphData = await Promise.all(
     versionIds.map(async (versionId) => {
@@ -244,7 +255,6 @@ export async function getRcaTrends(
   const rcaData = await getRCAName(rca, rcaNameType);
   logger.info({ message: 'rca.trends_category_data', data: { rcaData } });
   const headline = await getHeadline(type, rcaData[0]?.id, ids, idType);
-  
   // Configuration for different ID types
   const idTypeConfig = {
     [FILTER_ID_TYPES.VERSION]: {
@@ -262,7 +272,6 @@ export async function getRcaTrends(
   if (!config) {
     throw new Error(`Invalid idType: ${idType}. Must be either 'sprint' or 'version'`);
   }
-  
   const query = esb
     .requestBodySearch()
     .size(0)
@@ -299,7 +308,6 @@ export async function getRcaTrends(
   } else if (idType === FILTER_ID_TYPES.VERSION) {
     rcaGraphDataFiltered = await processVersionData(ids, response);
   }
-  
   return {
     headline: {
       value:
