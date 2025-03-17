@@ -34,6 +34,8 @@ export class MainTicket {
   public issueType: string;
   public isDeleted: boolean;
   public deletedAt: string;
+  public fixVersion: string | null;
+  public affectedVersion: string | null;
 
   constructor(
     data: Jira.Type.MainTicket,
@@ -62,6 +64,8 @@ export class MainTicket {
     this.issueType = data.issueType;
     this.deletedAt = data.deletedAt ?? '';
     this.isDeleted = data.isDeleted ?? false;
+    this.fixVersion = data.fixVersion ?? null;
+    this.affectedVersion = data.affectedVersion ?? null;
   }
 
   private updateHistory(toStatus: string, timestamp: string): void {
@@ -100,7 +104,9 @@ export class MainTicket {
         item.fieldId === ChangelogField.STATUS ||
         item.field === ChangelogField.SPRINT ||
         item.field === ChangelogField.ASSIGNEE ||
-        item.fieldId === ChangelogField.SUMMARY
+        item.fieldId === ChangelogField.SUMMARY ||
+        item.fieldId === ChangelogField.FIX_VERSION ||
+        item.fieldId === ChangelogField.AFFECTED_VERSION
     );
 
     if (items && items.field === ChangelogField.SPRINT) {
@@ -160,6 +166,12 @@ export class MainTicket {
             } else {
               this.statusTransition(items.to, changelogs.timestamp);
             }
+            break;
+          case ChangelogField.FIX_VERSION:
+            this.fixVersion = `${mappingPrefixes.version}_${items.to}`;
+            break;
+          case ChangelogField.AFFECTED_VERSION:
+            this.affectedVersion = `${mappingPrefixes.version}_${items.to}`;
             break;
           default:
             break;
@@ -501,6 +513,8 @@ export class MainTicket {
         assignees: this.assignees,
         history: this.history,
         issueType: this.issueType,
+        fixVersion: this.fixVersion,
+        affectedVersion: this.affectedVersion,
         isDeleted: this.isDeleted ?? false,
         deletedAt: this.deletedAt || null,
       },

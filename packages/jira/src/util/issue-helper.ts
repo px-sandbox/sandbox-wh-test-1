@@ -136,6 +136,12 @@ export async function formatIssueNew(
       isDeleted: false,
       deletedAt: null,
       organizationId: organization.id ?? null,
+      fixVersion: issueData.fields.fixVersions[0]
+        ? `${mappingPrefixes.version}_${issueData.fields.fixVersions[0]?.id}`
+        : null,
+      affectedVersion: issueData.fields.versions[0]
+        ? `${mappingPrefixes.version}_${issueData.fields.versions?.[0]?.id}`
+        : null,
       timeTracker: {
         estimate: issueData?.fields?.timeestimate ?? 0,
         actual: 0,

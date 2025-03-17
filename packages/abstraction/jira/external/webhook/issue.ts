@@ -121,6 +121,20 @@ export type Issue = {
       key: string;
       self: string;
     };
+    fixVersions: Array<{
+      id: string;
+      name: string;
+      description: string;
+      releaseDate: string;
+      archived: boolean;
+      released: boolean;
+    }>;
+    versions: Array<{
+      id: string;
+      name: string;
+      description: string;
+      releaseDate: string;
+    }>;
     project: {
       self: string;
       id: string;

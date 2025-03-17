@@ -60,7 +60,7 @@ function formatCycleTimeData(
   data: Jira.ExternalType.Webhook.Issue,
   changelog: Jira.ExternalType.Webhook.ChangelogItem[],
   orgId: string
-): Promise<Jira.Type.FormatCycleTime> {
+): Jira.Type.FormatCycleTime {
   const isSubtask = data.fields.issuetype.subtask;
   const subtasks: Subtasks[] = [];
   if (isSubtask) {
@@ -95,6 +95,14 @@ function formatCycleTimeData(
       issuetype: data.fields.issuetype.name,
       issueId: `${mappingPrefixes.issue}_${data.id}`,
     },
+    fixVersion: data.fields.fixVersions[0]
+      ? `${mappingPrefixes.version}_${data.fields.fixVersions[0].id}`
+      : null,
+    affectedVersion: data.fields.versions[0]
+      ? `${mappingPrefixes.version}_${data.fields.versions[0].id}`
+      : null,
+    isDeleted: false,
+    deletedAt: null,
   };
 }
 
@@ -184,7 +192,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
         const cycleTimeData = mainTicket.toJSON();
         await saveCycleTime(cycleTimeData, { requestId, resourceId }, messageBody.processId);
         logger.info({
-          message: 'CYCLE_TIME_SQS_RECEIVER_HANDLER',
+          message: 'CYCLE_TIME_SQS_HANDLER_AFTER_SAVE',
           data: cycleTimeData,
           requestId,
           resourceId,
