@@ -29,6 +29,8 @@ export enum ChangelogField {
   CUSTOM_FIELD = 'customfield_10007',
   ASSIGNEE = 'assignee',
   SUMMARY = 'summary',
+  FIX_VERSION = 'fixVersions',
+  AFFECTED_VERSION = 'versions',
 }
 
 export enum IssueTimeTrackerSort {
@@ -67,6 +69,8 @@ export enum ChangelogName {
   PROGRESS = 'progress',
   DEV_RCA = 'customfield_11225',
   QA_RCA = 'customfield_11226',
+  FIX_VERSION = 'fixVersions',
+  AFFECTED_VERSION = 'versions',
 }
 
 export const validChangelogFields = [
@@ -95,6 +99,8 @@ export const validChangelogFields = [
   'progress',
   'customfield_11225',
   'customfield_11226',
+  'versions',
+  'fixVersions',
 ];
 
 export enum FILTER_ID_TYPES {

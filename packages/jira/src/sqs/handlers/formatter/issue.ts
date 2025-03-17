@@ -36,7 +36,7 @@ async function fetchIssue(
   });
   if (!issueData) {
     logger.error({
-      message: 'issueLinkHandler.issueDataNotFound',
+      message: 'fetchIssue.issueDataNotFound',
       data: { issueId, reqCtx },
     });
     throw new Error(`issueData not found_for_${issueId}`);
@@ -410,6 +410,35 @@ async function updateTimeTracker(
   });
   logger.info({ message: 'updateTimeTracker.completed', data: { issueDocId } });
 }
+
+// Function to update the fix version of an issue
+async function updateFixVersion(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDocId: string
+): Promise<void> {
+  logger.info({ message: 'updateFixVersion.initiated', data: { issueDocId } });
+  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
+    body: {
+      fixVersion: `${mappingPrefixes.version}_${item.to}`,
+    },
+  });
+  logger.info({ message: 'updateFixVersion.completed', data: { issueDocId } });
+}
+
+// Function to update the affected version of an issue
+async function updateAffectedVersion(
+  item: Jira.ExternalType.Webhook.ChangelogItem,
+  issueDocId: string
+): Promise<void> {
+  logger.info({ message: 'updateAffectedVersion.initiated', data: { issueDocId } });
+  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
+    body: {
+      affectedVersion: `${mappingPrefixes.version}_${item.to}`,
+    },
+  });
+  logger.info({ message: 'updateAffectedVersion.completed', data: { issueDocId } });
+}
+
 function changelogsToProcess(
   changelogs: Jira.ExternalType.Webhook.ChangelogItem[]
 ): Jira.ExternalType.Webhook.ChangelogItem {
@@ -420,6 +449,7 @@ function changelogsToProcess(
   logger.info({ message: 'changelogsToProcess', data: { changelogs, item } });
   return item;
 }
+
 async function handleIssueUpdate(
   changelog: { items: Jira.ExternalType.Webhook.ChangelogItem[] },
   issueData: Jira.ExternalType.Webhook.Issue,
@@ -488,6 +518,12 @@ async function handleIssueUpdate(
           break;
         case Jira.Enums.ChangelogName.TIME_TRACKER:
           await updateTimeTracker(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.FIX_VERSION:
+          await updateFixVersion(item, issueDocId);
+          break;
+        case Jira.Enums.ChangelogName.AFFECTED_VERSION:
+          await updateAffectedVersion(item, issueDocId);
           break;
         default:
           logger.error({
