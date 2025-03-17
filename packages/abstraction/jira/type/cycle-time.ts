@@ -300,13 +300,24 @@ export type rcaTrendsResponse = {
     names: string;
   };
   trendsData: {
-    sprintName: string;
+    sprintName?: string;
+    versionName?: string;
     highest: number;
     high: number;
     medium: number;
     low: number;
     lowest: number;
   }[];
+};
+
+export type rcaTrendsFilteredResponse = {
+  sprintName?: string;
+  versionName?: string;
+  highest: number;
+  high: number;
+  medium: number;
+  low: number;
+  lowest: number;
 };
 
 export type rcaGraphResponse = {

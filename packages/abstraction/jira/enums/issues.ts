@@ -102,3 +102,8 @@ export const validChangelogFields = [
   'versions',
   'fixVersions',
 ];
+
+export enum FILTER_ID_TYPES {
+  SPRINT = 'sprint',
+  VERSION = 'version',
+}

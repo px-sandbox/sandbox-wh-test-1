@@ -42,7 +42,7 @@ export async function version(
         {
           versionData,
           eventName,
-          organization,
+          organizationId: orgId.id,
           projectKey: projectData.key,
         },
         Queue.qVersionFormat.queueUrl,

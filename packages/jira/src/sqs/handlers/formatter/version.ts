@@ -14,7 +14,8 @@ import {
 
 function saveVersionFormattedData(
     data: Jira.ExternalType.Webhook.Version,
-    projectKey: string
+    projectKey: string,
+    organizationId: string
 ): Jira.Type.Version {
     const formattedData = {
         id: `${mappingPrefixes.version}_${data.id}`,
@@ -30,6 +31,7 @@ function saveVersionFormattedData(
             releaseDate: data.releaseDate,
             isDeleted: false,
             status: data?.status ?? null,
+            organizationId,
             projectKey,
         },
     };
@@ -43,7 +45,7 @@ export const handler = async function versionFormattedDataReceiver(event: SQSEve
         event.Records.map(async (record: SQSRecord) => {
             const {
                 reqCtx: { requestId, resourceId },
-                message: { versionData, projectKey, eventName, processId },
+                message: { versionData, projectKey, eventName, processId, organizationId },
             } = JSON.parse(record.body);
             try {
                 logger.info({
@@ -55,7 +57,7 @@ export const handler = async function versionFormattedDataReceiver(event: SQSEve
                 switch (eventName) {
                     case Jira.Enums.Event.VersionCreated:
                         {
-                            const processedData = saveVersionFormattedData(versionData, projectKey);
+                            const processedData = saveVersionFormattedData(versionData, projectKey, organizationId);
                             await saveVersionDetails(processedData);
                         }
                         break;
