@@ -1,5 +1,41 @@
 # Changelog
 
+## [1.19.0](https://github.com/studiographene/pulse-data-integration/compare/v1.18.0...v1.19.0) (2025-03-18)
+
+
+### Features
+
+* **feature/PX-2550-v2:** logs added ([efb471b](https://github.com/studiographene/pulse-data-integration/commit/efb471bef8db698b76b154f04a099d6bf14fc8a2))
+* **feature/PX-2550-v2:** logs added ([#1097](https://github.com/studiographene/pulse-data-integration/issues/1097)) ([4c1b94e](https://github.com/studiographene/pulse-data-integration/commit/4c1b94e4f965398db22359dbadd51b2d42437156))
+
+## [1.18.0](https://github.com/studiographene/pulse-data-integration/compare/v1.17.0...v1.18.0) (2025-03-17)
+
+
+### Features
+
+* **feature/PX-2446:** changes done for headline and table for ftp ([ea976cb](https://github.com/studiographene/pulse-data-integration/commit/ea976cbfbf8d14cb6c5881518eb9be6544a7dce4))
+* **feature/PX-2446:** changes done for headline and table for ftp ([#1090](https://github.com/studiographene/pulse-data-integration/issues/1090)) ([cd5d787](https://github.com/studiographene/pulse-data-integration/commit/cd5d787ca2d64a634723190bee5f9fd9cc1f08c4))
+* **feature/PX-2446:** suggested changes done ([3d7592f](https://github.com/studiographene/pulse-data-integration/commit/3d7592f83221e7711e2e45542b765cc01f353a0b))
+* **feature/PX-2446:** suggestions resolved ([b923cfe](https://github.com/studiographene/pulse-data-integration/commit/b923cfe5bb5002a7ae88a5f53c564444f82a4136))
+* **feature/PX-2446:** suggestions resolved ([31b1d09](https://github.com/studiographene/pulse-data-integration/commit/31b1d09c2838694894110cf8d193511da1cc096d))
+* **feature/PX-2446:** suggestions resolved ([4190cc6](https://github.com/studiographene/pulse-data-integration/commit/4190cc639168aca4a572ae9c246c336da7284187))
+* **feature/PX-2450:** common method made for headline data ([0ffa342](https://github.com/studiographene/pulse-data-integration/commit/0ffa3429638564ba3c84ed2a5e4f02b544448d17))
+* **feature/PX-2450:** name changes for release ([478df9a](https://github.com/studiographene/pulse-data-integration/commit/478df9ac69808bc3cc280b75fcbdcb2a88ea9da7))
+* **feature/PX-2450:** version id changes done for rca table ([af71458](https://github.com/studiographene/pulse-data-integration/commit/af71458b45e09b3ba8f038a1f9436cf898640c05))
+* **feature/PX-2452-v2:** import statements reordered ([a3d03d0](https://github.com/studiographene/pulse-data-integration/commit/a3d03d04232854693b317f398f477c1021309685))
+* **feature/PX-2452-v2:** import statements reordered ([fcd603b](https://github.com/studiographene/pulse-data-integration/commit/fcd603bc0b6a856f9174753263b1decdd7d80c6f))
+* **feature/PX-2452-v2:** release changes done for graph ([7a7be59](https://github.com/studiographene/pulse-data-integration/commit/7a7be59efb60316e6d5c8892b8984be5f1a40090))
+* **feature/PX-2453:** conflict resolved ([3cf874c](https://github.com/studiographene/pulse-data-integration/commit/3cf874cad09f1819bb87401293a6e7c6881c66db))
+* **feature/PX-2453:** details api changes done for versionids ([79726bd](https://github.com/studiographene/pulse-data-integration/commit/79726bd832555f55127e861f5a52904ff913477e))
+* **feature/PX-2453:** details api changes done for versionids ([e3c641b](https://github.com/studiographene/pulse-data-integration/commit/e3c641b0ea162c15fe9849ff37219499d2ad4670))
+* **feature/PX-2453:** import statements reordered ([f1e897a](https://github.com/studiographene/pulse-data-integration/commit/f1e897aab72d492097f139b47281a7ca8855abf4))
+* **feature/PX-2453:** import statements reordered ([27c3257](https://github.com/studiographene/pulse-data-integration/commit/27c325733a1c982b8102eecf782ce94039f3b2ad))
+* **feature/PX-2454:** trends api changes for version ([32bc044](https://github.com/studiographene/pulse-data-integration/commit/32bc044ea4ac5fc9df9d90aff5c63d2ce59128dc))
+* **feature/PX-2454:** trends api changes for version ([69e2f07](https://github.com/studiographene/pulse-data-integration/commit/69e2f07ca05c5a8b7f24d39bb5424593a18dae8a))
+* **PX-2476:** cycle time update for versions ([6b69af7](https://github.com/studiographene/pulse-data-integration/commit/6b69af723440753f5f69d310e9de3a588c21421d))
+* **PX-2476:** jira_issue_update event handled versions update ([4c0c69b](https://github.com/studiographene/pulse-data-integration/commit/4c0c69b2221ff035a657ff5af21df592dfed5631))
+* **PX-2476:** jira_issue_update event handled versions update ([#1092](https://github.com/studiographene/pulse-data-integration/issues/1092)) ([c28adb6](https://github.com/studiographene/pulse-data-integration/commit/c28adb67e0605204d73d7f7f4303846d1695f295))
+
 ## [1.17.0](https://github.com/studiographene/pulse-data-integration/compare/v1.16.3...v1.17.0) (2025-03-11)
 
 

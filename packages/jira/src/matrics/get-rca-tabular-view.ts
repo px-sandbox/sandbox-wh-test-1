@@ -1,8 +1,9 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
-import { IssuesTypes } from 'abstraction/jira/enums';
+import { IssuesTypes, FILTER_ID_TYPES } from 'abstraction/jira/enums';
 import { rcaTableHeadline, rcaTableResponse, rcaTableView } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
+import { logger } from 'core';
 import { mappingPrefixes } from '../constant/config';
 import { searchedDataFormator } from '../util/response-formatter';
 
@@ -20,7 +21,33 @@ export async function mapRcaBucketsWithFullNames(): Promise<{ [key: string]: str
   return idToNameMap;
 }
 
-async function getHeadline(type: string, sprintIds: string[]): Promise<rcaTableHeadline> {
+/**
+ * Get headline data for RCA based on ID type
+ * @param type - The RCA data type
+ * @param ids - Array of IDs (sprint or version)
+ * @param idType - Type of IDs (SPRINT or VERSION)
+ * @returns Promise with headline data
+ */
+export async function getHeadlineData(type: string, ids: string[], idType: FILTER_ID_TYPES): Promise<rcaTableHeadline> {
+  // Configuration for different ID types
+  const idTypeConfig = {
+    [FILTER_ID_TYPES.VERSION]: {
+      filterField: 'body.affectedVersion',
+      logMessage: 'issue headline by release query'
+    },
+    [FILTER_ID_TYPES.SPRINT]: {
+      filterField: 'body.sprintId',
+      logMessage: 'issue headline by sprint query'
+    }
+  };
+
+  // Get configuration for the requested ID type
+  const config = idTypeConfig[idType];
+  if (!config) {
+    throw new Error(`Invalid idType: ${idType}. Must be either 'sprint' or 'version'`);
+  }
+
+  // Build the query with the appropriate filter field
   const query = esb
     .requestBodySearch()
     .size(0)
@@ -32,7 +59,7 @@ async function getHeadline(type: string, sprintIds: string[]): Promise<rcaTableH
           esb.termQuery('body.issueType', IssuesTypes.BUG),
           esb.termsQuery('body.priority', ['Highest', 'High', 'Medium']),
           esb.termQuery('body.isDeleted', false),
-          esb.termsQuery('body.sprintId', sprintIds),
+          esb.termsQuery(config.filterField, ids),
         ])
     )
     .agg(
@@ -55,28 +82,49 @@ async function getHeadline(type: string, sprintIds: string[]): Promise<rcaTableH
                   esb.existsQuery(`body.rcaData.${type}`),
                   esb.termQuery('body.issueType', IssuesTypes.BUG),
                   esb.termQuery('body.isDeleted', false),
-                  esb.termsQuery('body.sprintId', sprintIds),
+                  esb.termsQuery(config.filterField, ids),
                 ])
             ),
         ])
     );
-
+  logger.info({ message: config.logMessage, data: query });
   const result: rcaTableHeadline = await esClient.queryAggs(
     Jira.Enums.IndexName.Issue,
     query.toJSON()
   );
+
   return result;
 }
 
-export async function rcaTableView(sprintIds: string[], type: string): Promise<rcaTableView> {
-  const query = esb
+/**
+ * Build query for RCA table view based on ID type
+ */
+export async function buildRcaTableViewQuery(ids: string[], idType: FILTER_ID_TYPES, type: string): Promise<object> {
+  // Configuration for different ID types
+  const idTypeConfig = {
+    [FILTER_ID_TYPES.VERSION]: {
+      filterField: 'body.affectedVersion'
+    },
+    [FILTER_ID_TYPES.SPRINT]: {
+      filterField: 'body.sprintId'
+    }
+  };
+
+  // Get configuration for the requested ID type
+  const config = idTypeConfig[idType];
+  if (!config) {
+    throw new Error(`Invalid idType: ${idType}. Must be either 'sprint' or 'version'`);
+  }
+
+  // Build the query with the appropriate filter field
+  return esb
     .requestBodySearch()
     .size(0)
     .query(
       esb
         .boolQuery()
         .must([
-          esb.termsQuery('body.sprintId', sprintIds),
+          esb.termsQuery(config.filterField, ids),
           esb.termQuery('body.issueType', IssuesTypes.BUG),
           esb.existsQuery(`body.rcaData.${type}`),
           esb.termQuery('body.isDeleted', false),
@@ -84,14 +132,22 @@ export async function rcaTableView(sprintIds: string[], type: string): Promise<r
     )
     .agg(esb.termsAggregation('rcaCount').field(`body.rcaData.${type}`).size(1000))
     .toJSON();
+}
+
+export async function rcaTableView(ids: string[], idType: FILTER_ID_TYPES, type: string): Promise<rcaTableView> {
+  // Build query based on ID type
+  const query = await buildRcaTableViewQuery(ids, idType, type);
+
+  logger.info({ message: 'rcaTableView query', data: query });
 
   const response: rcaTableResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
+
   const QaRcaBuckets = response.rcaCount?.buckets.map((bucket) => ({
     name: bucket.key,
     count: bucket.doc_count,
   }));
   const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames();
-  const headlineRCA = await getHeadline(type, sprintIds);
+  const headlineRCA = await getHeadlineData(type, ids, idType);
   const data = QaRcaBuckets.map((bucket: { name: string | number; count: number }) => {
     const fullName = updatedQaRcaBuckets[bucket.name];
     return { name: fullName ?? '', count: bucket.count };
@@ -103,12 +159,12 @@ export async function rcaTableView(sprintIds: string[], type: string): Promise<r
         headlineRCA.global_agg.total_bug_count.doc_count === 0
           ? 0
           : parseFloat(
-              (
-                (headlineRCA.max_rca_count.value /
-                  headlineRCA.global_agg.total_bug_count.doc_count) *
-                100
-              ).toFixed(2)
-            ),
+            (
+              (headlineRCA.max_rca_count.value /
+                headlineRCA.global_agg.total_bug_count.doc_count) *
+              100
+            ).toFixed(2)
+          ),
       names: headlineRCANames,
     },
     tableData: data,

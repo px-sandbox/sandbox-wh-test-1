@@ -1,16 +1,21 @@
-name: CI
+name: studiographene-ci
+
 on:
-  pull_request:
-    paths-ignore:
-      - "CHANGELOG.md"
+  pull_request: {
+    types: [opened, synchronize, reopened, closed]
+  }
   issue_comment:
+
 jobs:
   call-workflow:
     uses: studiographene/github-action-workflows/.github/workflows/nodejs-ci.yml@master # if you want alternatively pin to tag version version
     secrets: inherit
-    permissions: write-all
     with:
       package_manager: pnpm
-      lint_command: pnpm run -r --aggregate-output --reporter=append-only --no-bail lint
-      excluded_jobs: docker, build
-      
+      build_command: pnpm run build
+      lint_command: pnpm run lint
+      excluded_jobs: docker
+      run_dev_test: true
+      dev_test_branch: master
+      send_dev_test_coverage_report_to_pulse: true
+      dev_test_coverage_report_directory: coverage

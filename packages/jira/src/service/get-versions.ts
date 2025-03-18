@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import { getAllVersions } from 'src/repository/version/get-versions';
+import { getAllVersions } from '../repository/version/get-versions';
 
 const versions = async function getVersions(
   event: APIGatewayProxyEvent

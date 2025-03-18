@@ -35,6 +35,10 @@ function saveVersionFormattedData(
             projectKey,
         },
     };
+    logger.info({
+        message: 'VERSION_FORMATTED_DATA',
+        data: { formattedData, projectKey, organizationId },
+    });
     return formattedData;
 }
 
@@ -52,7 +56,7 @@ export const handler = async function versionFormattedDataReceiver(event: SQSEve
                     requestId,
                     resourceId,
                     message: 'VERSION_SQS_RECIEVER_HANDLER',
-                    data: { versionData, projectKey },
+                    data: { versionData, projectKey, organizationId, eventName },
                 });
                 switch (eventName) {
                     case Jira.Enums.Event.VersionCreated:

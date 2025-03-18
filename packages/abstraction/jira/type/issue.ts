@@ -37,6 +37,8 @@ export type Issue = retryProcess & {
     isDeleted?: boolean | null;
     deletedAt?: string | null;
     organizationId: string;
+    fixVersion: string | null;
+    affectedVersion: string | null;
     rcaData: {
       devRca: string | null;
       qaRca: string | null;

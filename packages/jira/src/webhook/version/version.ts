@@ -30,6 +30,7 @@ export async function version(
       resourceId: versionData.id,
       ...versionData,
       message: 'version.prepared_data',
+      data: { versionData, projectKey: projectData.key, organizationId: orgId.id, eventName }
     });
 
     let delaySeconds = 0;
