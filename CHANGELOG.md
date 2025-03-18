@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.0](https://github.com/studiographene/pulse-data-integration/compare/v1.18.0...v1.19.0) (2025-03-18)
+
+
+### Features
+
+* **feature/PX-2550-v2:** logs added ([efb471b](https://github.com/studiographene/pulse-data-integration/commit/efb471bef8db698b76b154f04a099d6bf14fc8a2))
+* **feature/PX-2550-v2:** logs added ([#1097](https://github.com/studiographene/pulse-data-integration/issues/1097)) ([4c1b94e](https://github.com/studiographene/pulse-data-integration/commit/4c1b94e4f965398db22359dbadd51b2d42437156))
+
 ## [1.18.0](https://github.com/studiographene/pulse-data-integration/compare/v1.17.0...v1.18.0) (2025-03-17)
 
 
