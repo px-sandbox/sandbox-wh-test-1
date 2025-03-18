@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.2](https://github.com/studiographene/pulse-data-integration/compare/v1.19.1...v1.19.2) (2025-03-18)
+
+
+### Bug Fixes
+
+* **PX-04000:** vitest config ([84a58ec](https://github.com/studiographene/pulse-data-integration/commit/84a58ec992c2788e8b92010f921d98becad07282))
+* **PX-04000:** vitest config ([#1102](https://github.com/studiographene/pulse-data-integration/issues/1102)) ([bc6e18d](https://github.com/studiographene/pulse-data-integration/commit/bc6e18d3c1ef8700645a4f070709632a83a306a9))
+
 ## [1.19.1](https://github.com/studiographene/pulse-data-integration/compare/v1.19.0...v1.19.1) (2025-03-18)
 
 
