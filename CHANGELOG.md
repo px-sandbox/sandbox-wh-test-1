@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.1](https://github.com/studiographene/pulse-data-integration/compare/v1.19.0...v1.19.1) (2025-03-18)
+
+
+### Bug Fixes
+
+* **PX-0400:** version mapping fix ([809d1da](https://github.com/studiographene/pulse-data-integration/commit/809d1da830cc17e60bf4e0f45fbf650e5dae413a))
+* **PX-0400:** version mapping fix ([#1100](https://github.com/studiographene/pulse-data-integration/issues/1100)) ([6039703](https://github.com/studiographene/pulse-data-integration/commit/6039703c54619bc0aff8b3dbaf84b75e0e1059ed))
+
 ## [1.19.0](https://github.com/studiographene/pulse-data-integration/compare/v1.18.0...v1.19.0) (2025-03-18)
 
 
