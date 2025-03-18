@@ -471,7 +471,7 @@ const indices = [
             startDate: { type: 'date', format: 'strict_date_optional_time' },
             releaseDate: { type: 'date', format: 'strict_date_optional_time' },
             isDeleted: { type: 'boolean' },
-            organizationId: { type: 'text' },
+            organizationId: { type: 'keyword' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time' },
             status: { type: 'keyword' },
             projectKey: { type: 'keyword' },
