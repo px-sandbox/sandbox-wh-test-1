@@ -194,5 +194,12 @@ export function initializeRoutes(
       },
       authorizer: 'none',
     },
+
+    'POST /github/commit/workbreakdown': {
+      function: {
+        handler: 'packages/github/src/service/commit-workbreakdown.handler',
+      },
+      authorizer: 'none',
+    },
   };
 }
