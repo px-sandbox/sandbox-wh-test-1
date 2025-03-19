@@ -475,7 +475,7 @@ async function processVersionData(
         name: item.name,
         status: item.status,
         startDate: item.startDate,
-        endDate: item.releaseDate,
+        releaseDate: item.releaseDate,
       });
       versionIds.push(item.id);
       return item;
