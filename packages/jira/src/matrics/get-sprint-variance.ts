@@ -6,7 +6,7 @@ import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira
 import { logger } from 'core';
 import esb, { RequestBodySearch } from 'elastic-builder';
 import { getOrganizationById } from '../repository/organization/get-organization';
-import { searchedDataFormator } from '../util/response-formatter';
+import { searchedDataFormator, searchedDataFormatorWithDeleted } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -24,7 +24,21 @@ function getJiraLink(
   const orderBy = 'AND type != Test ORDER BY created DESC';
   return encodeURI(`${baseUrl} ${query} ${orderBy}`);
 }
-
+function getJiraLinkForVersion(
+  orgName: string,
+  projectKey: string,
+  versionId: string,
+  isOgEstimate = false
+): string {
+  const versionIdWithoutPrefix = versionId.replace('jira_version_', '');
+  const baseUrl = `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=
+  project = "${projectKey}" and fixVersion = ${versionIdWithoutPrefix}`;
+  const query = isOgEstimate
+    ? 'AND OriginalEstimate IS EMPTY'
+    : 'AND TimeSpent IS EMPTY AND OriginalEstimate != EMPTY';
+  const orderBy = 'AND type != Test ORDER BY created DESC';
+  return encodeURI(`${baseUrl} ${query} ${orderBy}`);
+}
 /**
  * Retrieves sprint hits based on the provided parameters.
  * @param limit - The maximum number of hits to retrieve.
@@ -39,7 +53,7 @@ export async function sprintHitsResponse(
   projectId: string,
   dateRangeQueries: esb.RangeQuery[],
   reqCtx: Other.Type.RequestCtx,
-  sprintState?: string
+  state?: string
 ): Promise<{
   sprintHits: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
   totalPages: number;
@@ -55,12 +69,9 @@ export async function sprintHitsResponse(
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
           esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
-          sprintState
-            ? esb.termQuery('body.state', sprintState)
-            : esb.termsQuery('body.state', [
-                Jira.Enums.SprintState.CLOSED,
-                Jira.Enums.SprintState.ACTIVE,
-              ]),
+          state
+            ? esb.termQuery('body.state', state)
+            : esb.termsQuery('body.state', [Jira.Enums.State.CLOSED, Jira.Enums.State.ACTIVE]),
         ])
     )
     .sort(esb.sort('body.startDate', 'desc'))
@@ -77,6 +88,52 @@ export async function sprintHitsResponse(
   };
 }
 
+export async function versionHitsResponse(
+  limit: number,
+  page: number,
+  projectId: string,
+  startDate: string,
+  endDate: string,
+  reqCtx: Other.Type.RequestCtx,
+  versionState?: string
+): Promise<{
+  versionHits: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
+  totalPages: number;
+}> {
+  const versionQuery = esb
+    .requestBodySearch()
+    .size(limit)
+    .from((page - 1) * limit)
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.isDeleted', true),
+          esb.rangeQuery('body.startDate').gte(startDate),
+          esb.rangeQuery('body.releaseDate').lte(endDate),
+          versionState
+            ? esb.termQuery('body.status', versionState)
+            : esb.termsQuery('body.status', [
+                Jira.Enums.State.RELEASED,
+                Jira.Enums.State.UNRELEASED,
+              ]),
+        ])
+    )
+    .sort(esb.sort('body.startDate', 'desc'))
+    .toJSON();
+
+  logger.info({ ...reqCtx, message: 'versionQuery', data: { versionQuery } });
+  const body = (await esClientObj.search(
+    Jira.Enums.IndexName.Version,
+    versionQuery
+  )) as Other.Type.HitBody;
+  return {
+    versionHits: await searchedDataFormatorWithDeleted(body),
+    totalPages: Math.ceil(body.hits.total.value / limit),
+  };
+}
+
 /**
  * Retrieves the estimated and actual time data for a given set of sprints.
  * @param sortKey - The key to sort the sprint aggregation by.
@@ -87,28 +144,44 @@ export async function sprintHitsResponse(
 async function estimateActualGraphResponse(
   sortKey: Jira.Enums.IssueTimeTracker,
   sortOrder: 'desc' | 'asc',
+  reqCtx: Other.Type.RequestCtx,
   sprintIds: string[],
-  reqCtx: Other.Type.RequestCtx
+  versionIds: string[]
 ): Promise<{
   sprint_aggregation: { buckets: BucketItem[] };
+  version_aggregation: { buckets: BucketItem[] };
 }> {
   const query = esb
     .requestBodySearch()
     .size(0)
     .agg(
-      esb
-        .termsAggregation('sprint_aggregation', 'body.sprintId')
-        .order(sortKey, sortOrder)
-        .size(10)
-        .aggs([
-          esb.sumAggregation('estimate', 'body.timeTracker.estimate'),
-          esb.sumAggregation('actual', 'body.timeTracker.actual'),
-        ])
+      sprintIds.length > 0
+        ? esb
+            .termsAggregation('sprint_aggregation', 'body.sprintId')
+            .order(sortKey, sortOrder)
+            .size(10)
+            .aggs([
+              esb.sumAggregation('estimate', 'body.timeTracker.estimate'),
+              esb.sumAggregation('actual', 'body.timeTracker.actual'),
+            ])
+        : esb
+            .termsAggregation('version_aggregation', 'body.fixVersion')
+            .order(sortKey, sortOrder)
+            .size(10)
+            .aggs([
+              esb.sumAggregation('estimate', 'body.timeTracker.estimate'),
+              esb.sumAggregation('actual', 'body.timeTracker.actual'),
+            ])
     )
     .query(
       esb
         .boolQuery()
-        .must([esb.termsQuery('body.sprintId', sprintIds), esb.termQuery('body.isDeleted', false)])
+        .must([
+          sprintIds.length > 0
+            ? esb.termsQuery('body.sprintId', sprintIds)
+            : esb.termsQuery('body.fixVersion', versionIds),
+          esb.termQuery('body.isDeleted', false),
+        ])
         .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
         .should([
           esb.termQuery('body.issueType', IssuesTypes.STORY),
@@ -128,22 +201,32 @@ async function estimateActualGraphResponse(
 }
 
 async function countIssuesWithZeroEstimates(
+  reqCtx: Other.Type.RequestCtx,
   sprintIds: string[],
-  reqCtx: Other.Type.RequestCtx
+  versionIds: string[]
 ): Promise<{
   sprint_aggregation: {
+    buckets: Jira.Type.BucketItem[];
+  };
+  version_aggregation: {
     buckets: Jira.Type.BucketItem[];
   };
 }> {
   const query = esb
     .requestBodySearch()
     .size(0)
-    .agg(esb.termsAggregation('sprint_aggregation', 'body.sprintId'))
+    .agg(
+      sprintIds.length > 0
+        ? esb.termsAggregation('sprint_aggregation', 'body.sprintId')
+        : esb.termsAggregation('version_aggregation', 'body.fixVersion')
+    )
     .query(
       esb
         .boolQuery()
         .must([
-          esb.termsQuery('body.sprintId', sprintIds),
+          sprintIds.length > 0
+            ? esb.termsQuery('body.sprintId', sprintIds)
+            : esb.termsQuery('body.fixVersion', versionIds),
           esb.termQuery('body.isDeleted', false),
           esb.termQuery('body.timeTracker.estimate', 0),
         ])
@@ -280,6 +363,7 @@ export function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string
 
 async function getBugTimeForSprint(
   sprintId: string,
+  versionIds: string,
   reqCtx: Other.Type.RequestCtx
 ): Promise<{
   actual: { value: number };
@@ -291,7 +375,9 @@ async function getBugTimeForSprint(
       esb
         .boolQuery()
         .must([
-          esb.termQuery('body.sprintId', sprintId),
+          sprintId.length > 0
+            ? esb.termQuery('body.sprintId', sprintId)
+            : esb.termsQuery('body.fixVersion', versionIds),
           esb.termQuery('body.isDeleted', false),
           esb.existsQuery('body.issueLinks'),
         ])
@@ -327,18 +413,224 @@ async function getBugTimeForSprint(
 
   return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, bugQuery);
 }
-/**
- * Retrieves the sprint variance graph data for a given project within a specified date range.
- * @param projectId - The ID of the project.
- * @param startDate - The start date of the date range.
- * @param endDate - The end date of the date range.
- * @param page - The page number for pagination.
- * @param limit - The maximum number of results per page.
- * @param sortKey - The key to sort the results by.
- * @param sortOrder - The order to sort the results in ('asc' or 'desc').
- * @returns A Promise that resolves to the sprint variance data.
- * @throws An error if an error occurs while retrieving the data.
- */
+
+async function processSprintData(
+  limit: number,
+  page: number,
+  projectId: string,
+  dateRangeQueries: esb.RangeQuery[],
+  reqCtx: Other.Type.RequestCtx,
+  state: string
+): Promise<{ sprintData: any[]; sprintIds: string[]; totalPages: number }> {
+  const sprintData: any[] = [];
+  const sprintIds: string[] = [];
+  const { sprintHits, totalPages } = await sprintHitsResponse(
+    limit,
+    page,
+    projectId,
+    dateRangeQueries,
+    reqCtx,
+    state
+  );
+  await Promise.all(
+    sprintHits.map(async (item: Other.Type.HitBody) => {
+      sprintData.push({
+        id: item.id,
+        sprintId: item.sprintId,
+        name: item.name,
+        status: item.state,
+        startDate: item.startDate,
+        endDate: item.endDate,
+      });
+      sprintIds.push(item.id);
+    })
+  );
+  return { sprintData, sprintIds, totalPages };
+}
+
+async function processVersionData(
+  limit: number,
+  page: number,
+  projectId: string,
+  startDate: string,
+  endDate: string,
+  reqCtx: Other.Type.RequestCtx,
+  state: string
+): Promise<{ versionData: any[]; versionIds: string[]; totalPages: number }> {
+  const versionData: any[] = [];
+  const versionIds: string[] = [];
+  const { versionHits, totalPages } = await versionHitsResponse(
+    limit,
+    page,
+    projectId,
+    startDate,
+    endDate,
+    reqCtx,
+    state
+  );
+  await Promise.all(
+    versionHits.map((item: Other.Type.HitBody) => {
+      versionData.push({
+        id: item.id,
+        name: item.name,
+        status: item.status,
+        startDate: item.startDate,
+        endDate: item.releaseDate,
+      });
+      versionIds.push(item.id);
+      return item;
+    })
+  );
+  return { versionData, versionIds, totalPages };
+}
+
+function versionEstimateResponse(
+  versionData: any[],
+  estimateActualGraph: {
+    version_aggregation: {
+      buckets: Jira.Type.BucketItem[];
+    };
+  },
+  orgName: string,
+  projectKey: string
+): SprintVariance[] {
+  return versionData.map((versionDetails) => {
+    const item = estimateActualGraph.version_aggregation.buckets.find(
+      (bucketItem: BucketItem) => bucketItem.key === versionDetails.id
+    );
+    if (item) {
+      return {
+        version: versionDetails,
+        time: {
+          estimate: item.estimate.value,
+          actual: item.actual.value,
+        },
+        isAllEstimated: true, // Assuming all are estimated for simplicity
+        jiraInfo: {
+          estimateIssueLink: '',
+          loggedIssueLink: getJiraLinkForVersion(orgName, projectKey, versionDetails.id),
+        },
+        variance: parseFloat(
+          (item.estimate.value === 0
+            ? 0
+            : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
+          ).toFixed(2)
+        ),
+        bugTime: 0, // Assuming no bug time for simplicity
+        totalTime: item.actual.value,
+      };
+    }
+    return {
+      version: versionDetails,
+      time: {
+        estimate: 0,
+        actual: 0,
+      },
+      isAllEstimated: true,
+      jiraInfo: {
+        estimateIssueLink: '',
+        loggedIssueLink: getJiraLinkForVersion(orgName, projectKey, versionDetails.id),
+      },
+      variance: 0,
+      bugTime: 0,
+      totalTime: 0,
+    };
+  });
+}
+
+async function processVersionDataWithEstimates(
+  limit: number,
+  page: number,
+  projectId: string,
+  startDate: string,
+  endDate: string,
+  reqCtx: Other.Type.RequestCtx,
+  state: string,
+  sortKey: Jira.Enums.IssueTimeTracker,
+  sortOrder: 'asc' | 'desc',
+  orgName: string,
+  projectKey: string
+): Promise<{ data: SprintVariance[]; totalPages: number; page: number }> {
+  const { versionData, versionIds, totalPages } = await processVersionData(
+    limit,
+    page,
+    projectId,
+    startDate,
+    endDate,
+    reqCtx,
+    state
+  );
+
+  const estimateActualGraph = await estimateActualGraphResponse(
+    sortKey,
+    sortOrder,
+    reqCtx,
+    [],
+    versionIds
+  );
+
+  const issueWithZeroEstimate = await countIssuesWithZeroEstimates(reqCtx, [], versionIds);
+  const bugTime: [{ versionId: string; bugTime: number }] = (await Promise.all(
+    versionIds.map(async (versionId: string) => {
+      const bugTimeForVersion = await getBugTimeForSprint('', versionId, reqCtx);
+      return { versionId, bugTime: bugTimeForVersion.actual.value };
+    })
+  )) as [{ versionId: string; bugTime: number }];
+  const versionEstimate = versionEstimateResponse(
+    versionData,
+    estimateActualGraph,
+    orgName,
+    projectKey
+  ).map((estimate) => {
+    const bugTimeEntry = bugTime.find((bt) => bt.versionId === estimate.version?.id);
+    const zeroEstimateEntry = issueWithZeroEstimate.version_aggregation.buckets.find(
+      (bucketItem: BucketItem) => bucketItem.key === estimate.version?.id
+    );
+    return {
+      ...estimate,
+      bugTime: bugTimeEntry?.bugTime ?? 0,
+      isAllEstimated: zeroEstimateEntry ? zeroEstimateEntry.doc_count <= 4 : true,
+    };
+  });
+
+  return {
+    data: versionEstimate,
+    totalPages,
+    page,
+  };
+}
+
+export function createVersionQuery(
+  projectId: string,
+  startDate: string,
+  endDate: string,
+  state?: Jira.Enums.State
+): RequestBodySearch {
+  return esb
+    .requestBodySearch()
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.isDeleted', false),
+          esb.rangeQuery('body.startDate').gte(startDate),
+          esb.rangeQuery('body.releaseDate').lte(endDate),
+          esb
+            .boolQuery()
+            .must(
+              state
+                ? esb.termQuery('body.status', state)
+                : esb.termsQuery('body.status', [
+                    Jira.Enums.State.RELEASED,
+                    Jira.Enums.State.UNRELEASED,
+                  ])
+            ),
+        ])
+    )
+    .sort(esb.sort('body.startDate', 'desc'));
+}
+
 export async function sprintVarianceGraph(
   projectId: string,
   startDate: string,
@@ -349,7 +641,8 @@ export async function sprintVarianceGraph(
   sortOrder: 'asc' | 'desc',
   reqCtx: Other.Type.RequestCtx,
   organizationId: string,
-  sprintState?: string
+  state: string,
+  type: string
 ): Promise<SprintVarianceData> {
   try {
     let orgName = '';
@@ -365,57 +658,64 @@ export async function sprintVarianceGraph(
     projectKey = projectData[0].key;
 
     const dateRangeQueries = getDateRangeQueries(startDate, endDate);
+    if (type === Jira.Enums.JiraFilterType.SPRINT) {
+      const { sprintData, sprintIds, totalPages } = await processSprintData(
+        limit,
+        page,
+        projectId,
+        dateRangeQueries,
+        reqCtx,
+        state
+      );
 
-    const { sprintHits, totalPages } = await sprintHitsResponse(
-      limit,
-      page,
-      projectId,
-      dateRangeQueries,
-      reqCtx,
-      sprintState
-    );
+      const estimateActualGraph = await estimateActualGraphResponse(
+        sortKey,
+        sortOrder,
+        reqCtx,
+        sprintIds,
+        []
+      );
+      const issueWithZeroEstimate = await countIssuesWithZeroEstimates(reqCtx, sprintIds, []);
+      const bugTime: [{ sprintId: string; bugTime: number }] = (await Promise.all(
+        sprintIds.map(async (sprintId: string) => {
+          const bugTimeForSprint = await getBugTimeForSprint(sprintId, '', reqCtx);
+          return { sprintId, bugTime: bugTimeForSprint.actual.value };
+        })
+      )) as [{ sprintId: string; bugTime: number }];
 
-    const sprintData: any = [];
-    const sprintIds: any = [];
-    await Promise.all(
-      sprintHits.map(async (item: Other.Type.HitBody) => {
-        sprintData.push({
-          id: item.id,
-          sprintId: item.sprintId,
-          name: item.name,
-          status: item.state,
-          startDate: item.startDate,
-          endDate: item.endDate,
-        });
-        sprintIds.push(item.id);
-      })
-    );
+      const sprintEstimate = sprintEstimateResponse(
+        sprintData,
+        estimateActualGraph,
+        bugTime,
+        issueWithZeroEstimate,
+        orgName,
+        projectKey
+      );
+      return {
+        data: sprintEstimate,
+        totalPages,
+        page,
+      };
+    }
 
-    const estimateActualGraph = await estimateActualGraphResponse(
-      sortKey,
-      sortOrder,
-      sprintIds,
-      reqCtx
-    );
-    const issueWithZeroEstimate = await countIssuesWithZeroEstimates(sprintIds, reqCtx);
-    const bugTime: [{ sprintId: string; bugTime: number }] = (await Promise.all(
-      sprintIds.map(async (sprintId: string) => {
-        const bugTimeForSprint = await getBugTimeForSprint(sprintId, reqCtx);
-        return { sprintId, bugTime: bugTimeForSprint.actual.value };
-      })
-    )) as [{ sprintId: string; bugTime: number }];
-
-    const sprintEstimate = sprintEstimateResponse(
-      sprintData,
-      estimateActualGraph,
-      bugTime,
-      issueWithZeroEstimate,
-      orgName,
-      projectKey
-    );
+    if (type === Jira.Enums.JiraFilterType.VERSION) {
+      return await processVersionDataWithEstimates(
+        limit,
+        page,
+        projectId,
+        startDate,
+        endDate,
+        reqCtx,
+        state,
+        sortKey,
+        sortOrder,
+        orgName,
+        projectKey
+      );
+    }
     return {
-      data: sprintEstimate,
-      totalPages,
+      data: [],
+      totalPages: 0,
       page,
     };
   } catch (e) {
@@ -433,7 +733,7 @@ export async function sprintVarianceGraph(
 export function createSprintQuery(
   projectId: string,
   dateRangeQueries: esb.RangeQuery[],
-  sprintState?: Jira.Enums.SprintState
+  state?: Jira.Enums.State
 ): RequestBodySearch {
   return esb
     .requestBodySearch()
@@ -447,12 +747,9 @@ export function createSprintQuery(
           esb
             .boolQuery()
             .must(
-              sprintState
-                ? esb.termQuery('body.state', sprintState)
-                : esb.termsQuery('body.state', [
-                    Jira.Enums.SprintState.CLOSED,
-                    Jira.Enums.SprintState.ACTIVE,
-                  ])
+              state
+                ? esb.termQuery('body.state', state)
+                : esb.termsQuery('body.state', [Jira.Enums.State.CLOSED, Jira.Enums.State.ACTIVE])
             ),
         ])
     )
@@ -465,8 +762,9 @@ export function createSprintQuery(
  * @param sprintIdsArr - An array of sprint IDs.
  * @returns A promise that resolves to an object containing the estimated and actual time.
  */
-async function ftpRateGraphResponse(
+async function estimateAvgResponse(
   sprintIdsArr: string[],
+  versionIdsArr: string[],
   reqCtx: Other.Type.RequestCtx
 ): Promise<{
   estimatedTime: { value: number };
@@ -483,7 +781,9 @@ async function ftpRateGraphResponse(
       esb
         .boolQuery()
         .must([
-          esb.termsQuery('body.sprintId', sprintIdsArr),
+          sprintIdsArr.length > 0
+            ? esb.termsQuery('body.sprintId', sprintIdsArr)
+            : esb.termsQuery('body.fixVersion', versionIdsArr),
           esb.termQuery('body.isDeleted', false),
         ])
         .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
@@ -499,7 +799,7 @@ async function ftpRateGraphResponse(
         .minimumShouldMatch(1)
     )
     .toJSON();
-  logger.info({ ...reqCtx, message: 'issue_for_sprints_query', data: { query } });
+  logger.info({ ...reqCtx, message: 'issue_for_sprints_version_avg_query', data: { query } });
 
   return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
 }
@@ -517,32 +817,65 @@ export async function sprintVarianceGraphAvg(
   startDate: string,
   endDate: string,
   reqCtx: Other.Type.RequestCtx,
-  sprintState: Jira.Enums.SprintState
+  type: string,
+  state: Jira.Enums.State
 ): Promise<number> {
   const sprintIdsArr = [];
+  const versionIdsArr = [];
   try {
-    const dateRangeQueries = getDateRangeQueries(startDate, endDate);
-    const sprintQuery = createSprintQuery(projectId, dateRangeQueries, sprintState);
+    if (type === Jira.Enums.JiraFilterType.SPRINT) {
+      const dateRangeQueries = getDateRangeQueries(startDate, endDate);
+      const sprintQuery = createSprintQuery(projectId, dateRangeQueries, state);
 
-    let sprintIds = [];
-    let lastHit;
-    do {
-      const query = sprintQuery.searchAfter(lastHit);
-      const body: Other.Type.HitBody = await esClientObj.search(Jira.Enums.IndexName.Sprint, query);
-      lastHit = body.hits.hits[body.hits.hits.length - 1]?.sort;
-      sprintIds = await searchedDataFormator(body);
-      sprintIdsArr.push(...sprintIds.map((id) => id.id));
-    } while (sprintIds?.length);
-    logger.info({ ...reqCtx, message: 'sprintIds', data: { sprintIdsArr } });
+      let sprintIds = [];
+      let lastHit;
+      do {
+        const query = sprintQuery.searchAfter(lastHit);
+        const body: Other.Type.HitBody = await esClientObj.search(
+          Jira.Enums.IndexName.Sprint,
+          query
+        );
+        lastHit = body.hits.hits[body.hits.hits.length - 1]?.sort;
+        sprintIds = await searchedDataFormator(body);
+        sprintIdsArr.push(...sprintIds.map((id) => id.id));
+      } while (sprintIds?.length);
+      logger.info({ ...reqCtx, message: 'sprintIds', data: { sprintIdsArr } });
 
-    const ftpRateGraph = await ftpRateGraphResponse(sprintIdsArr, reqCtx);
-    return parseFloat(
-      (ftpRateGraph.estimatedTime.value === 0
-        ? 0
-        : ((ftpRateGraph.actualTime.value - ftpRateGraph.estimatedTime.value) * 100) /
-          ftpRateGraph.estimatedTime.value
-      ).toFixed(2)
-    );
+      const ftpRateGraph = await estimateAvgResponse(sprintIdsArr, [], reqCtx);
+      return parseFloat(
+        (ftpRateGraph.estimatedTime.value === 0
+          ? 0
+          : ((ftpRateGraph.actualTime.value - ftpRateGraph.estimatedTime.value) * 100) /
+            ftpRateGraph.estimatedTime.value
+        ).toFixed(2)
+      );
+    }
+    if (type === Jira.Enums.JiraFilterType.VERSION) {
+      const versionQuery = createVersionQuery(projectId, startDate, endDate, state);
+      let versionIds = [];
+      let lastHit;
+      do {
+        const query = versionQuery.searchAfter(lastHit);
+        const body: Other.Type.HitBody = await esClientObj.search(
+          Jira.Enums.IndexName.Version,
+          query
+        );
+        lastHit = body.hits.hits[body.hits.hits.length - 1]?.sort;
+        versionIds = await searchedDataFormator(body);
+        versionIdsArr.push(...versionIds.map((id) => id.id));
+      } while (versionIds?.length);
+      logger.info({ ...reqCtx, message: 'versionIds', data: { versionIdsArr } });
+
+      const estimateAvg = await estimateAvgResponse(versionIdsArr, [], reqCtx);
+      return parseFloat(
+        (estimateAvg.estimatedTime.value === 0
+          ? 0
+          : ((estimateAvg.actualTime.value - estimateAvg.estimatedTime.value) * 100) /
+            estimateAvg.estimatedTime.value
+        ).toFixed(2)
+      );
+    }
+    return 0;
   } catch (e) {
     throw new Error(`error_occurred_sprint_variance_avg: ${e}`);
   }
