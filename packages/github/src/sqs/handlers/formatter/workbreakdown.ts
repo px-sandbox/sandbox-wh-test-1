@@ -53,16 +53,11 @@ const processCommits = async (payload: Github.ExternalType.Webhook.Workbreakdown
 export const handler = async (event: SQSEvent ) => {
   
   for (const record of event.Records) {
+    const payload = JSON.parse(record.body) as Github.ExternalType.Webhook.WorkbreakdownMessage;
     try {
-      const payload = JSON.parse(record.body) as Github.ExternalType.Webhook.WorkbreakdownMessage;
       await processCommits(payload);
     } catch (error) {
-      console.error('Error processing workbreakdown:', {
-        error,
-        record: record.body,
-        errorMessage: error.message,
-        stack: error.stack
-      });
+      logger.error({message: "handler.error", error, requestId: payload.reqCtx.requestId});
 
       await logProcessToRetry(record, Queue.qGhWorkbreakdown.queueUrl, error as Error);
     }

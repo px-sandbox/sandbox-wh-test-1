@@ -24,13 +24,13 @@ export const handler = async (event: { body: string, requestId: string }) => {
     }));
 
     logger.info({message: "handler.completed", data: {commits}, requestId: event.requestId});
-    
+
     return {
       statusCode: 200,
       body: JSON.stringify({ message: 'Workbreakdown data queued for processing' }),
     };
   } catch (error) {
-    console.error('Error processing workbreakdown data:', error);
+    logger.error({message: "handler.error", error, requestId: event.requestId});
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to process workbreakdown data' }),
