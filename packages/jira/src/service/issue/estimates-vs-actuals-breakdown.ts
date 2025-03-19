@@ -15,11 +15,13 @@ const esClientObj = ElasticSearchClient.getInstance();
  * @throws Error if projectId, sprintId, or orgId is missing, or if the organization is not found.
  */
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const projectId = event?.queryStringParameters?.projectId;
-  const sprintId = event?.queryStringParameters?.sprintId;
+  const projectId = event?.queryStringParameters?.projectId ?? '';
+  const sprintId = event?.queryStringParameters?.sprintId ?? '';
+  const versionId = event?.queryStringParameters?.versionId ?? '';
   const sortKey = event?.queryStringParameters?.sortKey ?? 'estimate';
   const SortOrder = event?.queryStringParameters?.sortOrder ?? 'asc';
   const orgId = event?.queryStringParameters?.orgId ?? '';
+  const type = event?.queryStringParameters?.type ?? 'sprint';
 
   const orgnameQuery = esb
     .requestBodySearch()
@@ -29,9 +31,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     await esClientObj.search(Jira.Enums.IndexName.Organization, orgnameQuery.toJSON())
   );
 
-  if (!projectId || !sprintId || !orgId) {
+  if ((!projectId || !orgId) && (!sprintId || !versionId)) {
     throw new Error(
-      'estimates-VS-actuals-breakdown: projectId, sprintId and organization are required!'
+      'estimates-VS-actuals-breakdown: projectId, sprintId, versionId and organization are required!'
     );
   }
 
@@ -41,12 +43,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   const response = await estimatesVsActualsBreakdown(
     projectId,
-    sprintId,
     sortKey,
     SortOrder,
     orgId,
-    orgnameRes[0].name
+    orgnameRes[0].name,
+    type,
+    type === Jira.Enums.JiraFilterType.SPRINT ? sprintId : versionId
   );
+
   return responseParser
     .setBody(response)
     .setMessage('successfully fetched estimates vs actuals breakdown view')
