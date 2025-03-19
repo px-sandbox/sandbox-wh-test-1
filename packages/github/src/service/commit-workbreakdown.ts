@@ -1,34 +1,33 @@
-interface WorkBreakdown {
-  newFeature: number;
-  refactor: number;
-  rewrite: number;
-}
+import { SQSClient } from "@pulse/event-handler";
+import { Queue } from "sst/node/queue";
+import { Github } from 'abstraction';
+import { logger } from "core";
 
-interface CommitWorkBreakdown {
-  commitId: string;
-  repoId: string;
-  orgId: string;
-  workbreakdown: WorkBreakdown;
-}
+const sqsClient = SQSClient.getInstance();
 
-export const handler = async (event: { body: string }) => {
+export const handler = async (event: { body: string, requestId: string }) => {
   try {
-    const commits: CommitWorkBreakdown[] = JSON.parse(event.body);
+    const commits: Github.ExternalType.Webhook.CommitWorkBreakdown[] = JSON.parse(event.body);
+
+    logger.info({message: "handler.invoked", data: {commits}, requestId: event.requestId});
 
     // Log each commit's workbreakdown
-    commits.forEach((commit) => {
-      // TODO: save to ES
-      console.log('Commit Workbreakdown:', {
-        commitId: commit.commitId,
-        repoId: commit.repoId,
-        orgId: commit.orgId,
-        workbreakdown: commit.workbreakdown,
-      });
-    });
+    await Promise.all(commits.map(async(commit) => {
+      await sqsClient.sendMessage(
+        commit,
+        Queue.qGhWorkbreakdown.queueUrl,
+        {
+          requestId: commit.commitId,
+          resourceId: commit.commitId,
+        }
+      );
+    }));
 
+    logger.info({message: "handler.completed", data: {commits}, requestId: event.requestId});
+    
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Workbreakdown data logged successfully' }),
+      body: JSON.stringify({ message: 'Workbreakdown data queued for processing' }),
     };
   } catch (error) {
     console.error('Error processing workbreakdown data:', error);

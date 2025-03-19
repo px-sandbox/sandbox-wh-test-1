@@ -27,6 +27,7 @@ export function initializeRoutes(
     prReviewCommentMigrationQueue,
     testCoverageQueue,
     githubDeploymentFrequencyQueue,
+    workbreakdownQueue,
   } = queues;
   const { GITHUB_APP_PRIVATE_KEY_PEM, GITHUB_APP_ID } = use(commonConfig);
   /* We aso extract and bind the tables
@@ -198,6 +199,7 @@ export function initializeRoutes(
     'POST /github/commit/workbreakdown': {
       function: {
         handler: 'packages/github/src/service/commit-workbreakdown.handler',
+        bind: [workbreakdownQueue],
       },
       authorizer: 'none',
     },
