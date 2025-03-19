@@ -1,7 +1,7 @@
 import { SQSClient } from "@pulse/event-handler";
 import { Queue } from "sst/node/queue";
 import { Github } from 'abstraction';
-import { logger } from "core";
+import { logger, responseParser, HttpStatusCode } from "core";
 
 const sqsClient = SQSClient.getInstance();
 
@@ -24,11 +24,12 @@ export const handler = async (event: { body: string, requestId: string }) => {
     }));
 
     logger.info({message: "handler.completed", data: {commits}, requestId: event.requestId});
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: 'Workbreakdown data queued for processing' }),
-    };
+    return responseParser
+      .setBody({ message: 'Workbreakdown data queued for processing' })
+      .setMessage('Commit Workbreakdown')
+      .setStatusCode(HttpStatusCode[200])
+      .setResponseBodyCode('SUCCESS')
+      .send();
   } catch (error) {
     logger.error({message: "handler.error", error, requestId: event.requestId});
     return {
