@@ -32,9 +32,11 @@ export const handler = async (event: { body: string, requestId: string }) => {
       .send();
   } catch (error) {
     logger.error({message: "handler.error", error, requestId: event.requestId});
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to process workbreakdown data' }),
-    };
+    return responseParser
+      .setBody({ message: 'Failed to process workbreakdown data' })
+      .setMessage('Commit Workbreakdown')
+      .setStatusCode(HttpStatusCode[500])
+      .setResponseBodyCode('FAILED')
+      .send();
   }
 }; 
