@@ -2,8 +2,8 @@ export enum State {
   FUTURE = 'future',
   ACTIVE = 'active',
   CLOSED = 'closed',
-  RELEASED = 'Released',
-  UNRELEASED = 'Unreleased',
+  RELEASED = 'released',
+  UNRELEASED = 'unreleased',
 }
 
 export enum JiraFilterType {

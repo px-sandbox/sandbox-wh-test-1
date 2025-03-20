@@ -92,8 +92,7 @@ export async function versionHitsResponse(
   limit: number,
   page: number,
   projectId: string,
-  startDate: string,
-  endDate: string,
+  dateRangeQuery: esb.RangeQuery[],
   reqCtx: Other.Type.RequestCtx,
   versionState?: string
 ): Promise<{
@@ -109,9 +108,8 @@ export async function versionHitsResponse(
         .boolQuery()
         .must([
           esb.termQuery('body.projectId', projectId),
-          esb.termQuery('body.isDeleted', true),
-          esb.rangeQuery('body.startDate').gte(startDate),
-          esb.rangeQuery('body.releaseDate').lte(endDate),
+          esb.termQuery('body.isDeleted', false),
+          esb.boolQuery().should(dateRangeQuery).minimumShouldMatch(1),
           versionState
             ? esb.termQuery('body.status', versionState)
             : esb.termsQuery('body.status', [
@@ -350,6 +348,20 @@ export function getDateRangeQueries(startDate: string, endDate: string): esb.Ran
   return dateRangeQueries;
 }
 
+export function getDatesForVersion(startDate: string, endDate: string): esb.RangeQuery[] {
+  let dateRangeQueries = [
+    esb.rangeQuery('body.startDate').gte(startDate),
+    esb.rangeQuery('body.releaseDate').gte(startDate),
+  ];
+
+  if (endDate) {
+    dateRangeQueries = [
+      esb.rangeQuery('body.startDate').gte(startDate).lte(endDate),
+      esb.rangeQuery('body.releaseDate').gte(startDate).lte(endDate),
+    ];
+  }
+  return dateRangeQueries;
+}
 export function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string[] | [] {
   // Iterate through the issueLinks array
   const bugKeys = [];
@@ -452,8 +464,7 @@ async function processVersionData(
   limit: number,
   page: number,
   projectId: string,
-  startDate: string,
-  endDate: string,
+  dateRangeQuery: esb.RangeQuery[],
   reqCtx: Other.Type.RequestCtx,
   state: string
 ): Promise<{ versionData: any[]; versionIds: string[]; totalPages: number }> {
@@ -463,8 +474,7 @@ async function processVersionData(
     limit,
     page,
     projectId,
-    startDate,
-    endDate,
+    dateRangeQuery,
     reqCtx,
     state
   );
@@ -542,8 +552,7 @@ async function processVersionDataWithEstimates(
   limit: number,
   page: number,
   projectId: string,
-  startDate: string,
-  endDate: string,
+  dateRangeQuery: esb.RangeQuery[],
   reqCtx: Other.Type.RequestCtx,
   state: string,
   sortKey: Jira.Enums.IssueTimeTracker,
@@ -555,8 +564,7 @@ async function processVersionDataWithEstimates(
     limit,
     page,
     projectId,
-    startDate,
-    endDate,
+    dateRangeQuery,
     reqCtx,
     state
   );
@@ -602,8 +610,7 @@ async function processVersionDataWithEstimates(
 
 export function createVersionQuery(
   projectId: string,
-  startDate: string,
-  endDate: string,
+  dateRange: esb.RangeQuery[],
   state?: Jira.Enums.State
 ): RequestBodySearch {
   return esb
@@ -614,8 +621,7 @@ export function createVersionQuery(
         .must([
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
-          esb.rangeQuery('body.startDate').gte(startDate),
-          esb.rangeQuery('body.releaseDate').lte(endDate),
+          esb.boolQuery().should(dateRange).minimumShouldMatch(1),
           esb
             .boolQuery()
             .must(
@@ -658,6 +664,7 @@ export async function sprintVarianceGraph(
     projectKey = projectData[0].key;
 
     const dateRangeQueries = getDateRangeQueries(startDate, endDate);
+    const datesForVersion = getDatesForVersion(startDate, endDate);
     if (type === Jira.Enums.JiraFilterType.SPRINT) {
       const { sprintData, sprintIds, totalPages } = await processSprintData(
         limit,
@@ -703,8 +710,7 @@ export async function sprintVarianceGraph(
         limit,
         page,
         projectId,
-        startDate,
-        endDate,
+        datesForVersion,
         reqCtx,
         state,
         sortKey,
@@ -804,6 +810,32 @@ async function estimateAvgResponse(
   return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
 }
 
+async function paginateIds(
+  indexName: Jira.Enums.IndexName,
+  query: esb.RequestBodySearch
+): Promise<string[]> {
+  const ids = [];
+  let formattedIds = [];
+  let lastHit;
+  do {
+    const searchQuery = query.searchAfter(lastHit);
+    const body: Other.Type.HitBody = await esClientObj.search(indexName, searchQuery);
+    lastHit = body.hits.hits[body.hits.hits.length - 1]?.sort;
+    formattedIds = await searchedDataFormator(body);
+    ids.push(...formattedIds.map((id) => id.id));
+  } while (formattedIds?.length);
+  return ids;
+}
+async function calculateVariance(ids: string[], reqCtx: Other.Type.RequestCtx): Promise<number> {
+  const estimateAvg = await estimateAvgResponse(ids, [], reqCtx);
+  return parseFloat(
+    (estimateAvg.estimatedTime.value === 0
+      ? 0
+      : ((estimateAvg.actualTime.value - estimateAvg.estimatedTime.value) * 100) /
+        estimateAvg.estimatedTime.value
+    ).toFixed(2)
+  );
+}
 /**
  * Calculates the average sprint variance graph for a given project within a specified date range.
  * @param projectId - The ID of the project.
@@ -820,60 +852,20 @@ export async function sprintVarianceGraphAvg(
   type: string,
   state: Jira.Enums.State
 ): Promise<number> {
-  const sprintIdsArr = [];
-  const versionIdsArr = [];
+  const dateRangeQueries = getDateRangeQueries(startDate, endDate);
+  const datesForVersion = getDatesForVersion(startDate, endDate);
   try {
     if (type === Jira.Enums.JiraFilterType.SPRINT) {
-      const dateRangeQueries = getDateRangeQueries(startDate, endDate);
       const sprintQuery = createSprintQuery(projectId, dateRangeQueries, state);
-
-      let sprintIds = [];
-      let lastHit;
-      do {
-        const query = sprintQuery.searchAfter(lastHit);
-        const body: Other.Type.HitBody = await esClientObj.search(
-          Jira.Enums.IndexName.Sprint,
-          query
-        );
-        lastHit = body.hits.hits[body.hits.hits.length - 1]?.sort;
-        sprintIds = await searchedDataFormator(body);
-        sprintIdsArr.push(...sprintIds.map((id) => id.id));
-      } while (sprintIds?.length);
+      const sprintIdsArr = await paginateIds(Jira.Enums.IndexName.Sprint, sprintQuery);
       logger.info({ ...reqCtx, message: 'sprintIds', data: { sprintIdsArr } });
-
-      const ftpRateGraph = await estimateAvgResponse(sprintIdsArr, [], reqCtx);
-      return parseFloat(
-        (ftpRateGraph.estimatedTime.value === 0
-          ? 0
-          : ((ftpRateGraph.actualTime.value - ftpRateGraph.estimatedTime.value) * 100) /
-            ftpRateGraph.estimatedTime.value
-        ).toFixed(2)
-      );
+      return await calculateVariance(sprintIdsArr, reqCtx);
     }
     if (type === Jira.Enums.JiraFilterType.VERSION) {
-      const versionQuery = createVersionQuery(projectId, startDate, endDate, state);
-      let versionIds = [];
-      let lastHit;
-      do {
-        const query = versionQuery.searchAfter(lastHit);
-        const body: Other.Type.HitBody = await esClientObj.search(
-          Jira.Enums.IndexName.Version,
-          query
-        );
-        lastHit = body.hits.hits[body.hits.hits.length - 1]?.sort;
-        versionIds = await searchedDataFormator(body);
-        versionIdsArr.push(...versionIds.map((id) => id.id));
-      } while (versionIds?.length);
+      const versionQuery = createVersionQuery(projectId, datesForVersion, state);
+      const versionIdsArr = await paginateIds(Jira.Enums.IndexName.Version, versionQuery);
       logger.info({ ...reqCtx, message: 'versionIds', data: { versionIdsArr } });
-
-      const estimateAvg = await estimateAvgResponse(versionIdsArr, [], reqCtx);
-      return parseFloat(
-        (estimateAvg.estimatedTime.value === 0
-          ? 0
-          : ((estimateAvg.actualTime.value - estimateAvg.estimatedTime.value) * 100) /
-            estimateAvg.estimatedTime.value
-        ).toFixed(2)
-      );
+      return await calculateVariance(versionIdsArr, reqCtx);
     }
     return 0;
   } catch (e) {
