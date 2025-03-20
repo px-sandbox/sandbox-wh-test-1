@@ -18,9 +18,10 @@ const sprintVariance = async function sprintVariance(
     (event.queryStringParameters?.sortOrder as 'asc' | 'desc') ?? 'desc';
   const page: number = parseInt(event.queryStringParameters?.page || '1', 10);
   const limit: number = parseInt(event.queryStringParameters?.limit || '10', 10);
-  const sprintState: Jira.Enums.SprintState | undefined = event.queryStringParameters
-    ?.sprintState as Jira.Enums.SprintState;
+  const state: Jira.Enums.State | undefined = event.queryStringParameters
+    ?.state as Jira.Enums.State;
   const orgId: string = event.queryStringParameters?.organizationId || '';
+  const type: string = event.queryStringParameters?.type || 'sprint';
 
   try {
     const [graphData, headline] = await Promise.all([
@@ -37,7 +38,8 @@ const sprintVariance = async function sprintVariance(
           resourceId: projectId,
         },
         orgId,
-        sprintState
+        state,
+        type
       ),
       await sprintVarianceGraphAvg(
         projectId,
@@ -47,7 +49,8 @@ const sprintVariance = async function sprintVariance(
           requestId,
           resourceId: projectId,
         },
-        sprintState
+        type,
+        state
       ),
     ]);
 
