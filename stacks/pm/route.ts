@@ -43,5 +43,12 @@ export function initializeRoutes(): Record<string, ApiRouteProps<'universal'>> {
       },
       authorizer: 'universal',
     },
+
+    'GET /github/workbreakdown/graph': {
+      function: {
+        handler: 'packages/github/src/service/workbreakdown-graph.handler',
+      },
+      authorizer: 'universal',
+    },
   };
 }
