@@ -3,36 +3,20 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
 import { IndexName as GithubIndices } from 'abstraction/github/enums';
-import moment from 'moment';
+import middy, { Request } from '@middy/core';
+import validator from '@middy/validator';
+import { transpileSchema } from '@middy/validator/transpile';
+import { workbreakdownGraphSchema } from '../schema/workbreakdown-graph';
 import { HitBody } from 'abstraction/other/type';
 
 const elasticsearchClient = ElasticSearchClient.getInstance();
 
-export const handler = async function workbreakdownHeadlines(
+const baseHandler = async (
   event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> {
+): Promise<APIGatewayProxyResult> => {
   const { requestId } = event.requestContext;
   try {
-    const { repoIds, startDate, endDate = moment().add(1, 'day').format('YYYY-MM-DD') } = event.queryStringParameters || {};
-
-    // Validate required parameters
-    if (!repoIds || !startDate || !endDate) {
-      return responseParser
-        .setMessage('Missing required parameters: repoIds, startDate, or endDate')
-        .setStatusCode(HttpStatusCode['400'])
-        .setResponseBodyCode('ERROR')
-        .send();
-    }
-
-    // Validate date formats
-    if (!moment(startDate, 'YYYY-MM-DD', true).isValid() || !moment(endDate, 'YYYY-MM-DD', true).isValid()) {
-      return responseParser
-        .setMessage('Invalid date format. Use YYYY-MM-DD')
-        .setStatusCode(HttpStatusCode['400'])
-        .setResponseBodyCode('ERROR')
-        .send();
-    }
-
+    const { repoIds, startDate, endDate } = event.queryStringParameters as { repoIds: string, startDate: string, endDate: string };
     const repoIdList = repoIds.split(',');
 
     // Build elasticsearch query with aggregations
@@ -46,7 +30,7 @@ export const handler = async function workbreakdownHeadlines(
               .lte(endDate)
           ])
       )
-      .size(0) // We only need aggregations, not the actual documents
+      .size(0)
       .agg(
         esb.sumAggregation('newFeature_sum', 'body.workbreakdown.newFeature')
       )
@@ -58,20 +42,14 @@ export const handler = async function workbreakdownHeadlines(
       )
       .toJSON();
 
-    logger.info({
-      message: 'workbreakdownHeadlines.query',
-      data: { query },
-      requestId,
-    });
-
     const searchResult: HitBody = await elasticsearchClient.search(GithubIndices.GitCommits, query);
 
-    const totals = {
-      newFeature: Math.round(searchResult.aggregations?.newFeature_sum?.value || 0),
-      refactor: Math.round(searchResult.aggregations?.refactor_sum?.value || 0),
-      rewrite: Math.round(searchResult.aggregations?.rewrite_sum?.value || 0)
-    };
+    const newFeatureSum = Math.round(searchResult.aggregations?.newFeature_sum?.value || 0);
+    const refactorSum = Math.round(searchResult.aggregations?.refactor_sum?.value || 0);
+    const rewriteSum = Math.round(searchResult.aggregations?.rewrite_sum?.value || 0);
 
+    const totals = newFeatureSum + refactorSum + rewriteSum;
+    
     logger.info({
       message: 'workbreakdownHeadlines.success',
       data: {
@@ -86,7 +64,7 @@ export const handler = async function workbreakdownHeadlines(
 
     return responseParser
       .setBody({
-        data: totals.newFeature + totals.refactor + totals.rewrite
+        data: totals
       })
       .setMessage('Workbreakdown headlines fetched successfully')
       .setStatusCode(HttpStatusCode['200'])
@@ -100,10 +78,48 @@ export const handler = async function workbreakdownHeadlines(
       requestId,
     });
 
-    return responseParser
-      .setMessage(`Failed to fetch workbreakdown headlines`)
-      .setStatusCode(HttpStatusCode['500'])
-      .setResponseBodyCode('ERROR')
-      .send();
+    throw error;
   }
-}; 
+};
+
+// Add middy validator
+export const handler = middy(baseHandler)
+  .use(
+    validator({
+      eventSchema: transpileSchema(workbreakdownGraphSchema),
+    })
+  )
+  .use({
+    onError: async (request: Request) => {
+      const { error } = request;
+      if (!error) return;
+      
+      logger.error({
+        message: 'workbreakdownHeadlines.error',
+        error,
+        data: {
+          event: request.event,
+          context: request.context,
+          error: request.error,
+          response: request.response,
+          
+        }
+      });
+
+      // Check if it's a validation error
+      if (error.name === 'BadRequestError') {
+        return responseParser
+          .setMessage(error.message)
+          .setStatusCode(HttpStatusCode['400'])
+          .setResponseBodyCode('ERROR')
+          .send();
+      }
+
+      // Handle all other errors as 500
+      return responseParser
+        .setMessage(error.message)
+        .setStatusCode(HttpStatusCode['500'])
+        .setResponseBodyCode('ERROR')
+        .send();
+    }
+  }); 
