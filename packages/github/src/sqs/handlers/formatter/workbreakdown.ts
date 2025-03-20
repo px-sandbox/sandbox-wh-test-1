@@ -5,6 +5,9 @@ import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { logProcessToRetry, deleteProcessfromDdb } from 'rp';
 import { Github } from 'abstraction';
+import esb from 'elastic-builder';
+import { searchedDataFormator } from './../../../util/response-formatter';
+import _ from 'lodash';
 
 
 const elasticsearchClient = ElasticSearchClient.getInstance();
@@ -14,29 +17,30 @@ const processCommits = async (payload: Github.ExternalType.Webhook.Workbreakdown
   const { commitId, repoId, orgId, workbreakdown, processId } = payload.message;
       const { requestId, resourceId } = payload.reqCtx;
 
-      // Search for the commit in elasticsearch
-      const searchResult = await elasticsearchClient.search(
-        GithubIndices.GitCommits,
-        {query: {
-            bool: {
-              must: [
-                { term: { "body.githubCommitId": commitId } },
-                { term: { "body.repoId": repoId } },
-                { term: { "body.organizationId": orgId } }
-              ]
-            }
-          }});
+      // Search for the commit in elasticsearch using esb
+      const query = esb.requestBodySearch()
+        .query(
+          esb.boolQuery()
+            .must([
+              esb.termQuery('body.githubCommitId', commitId),
+              esb.termQuery('body.repoId', repoId),
+              esb.termQuery('body.organizationId', orgId)
+            ])
+        )
+        .toJSON();
 
+      const searchResult = await elasticsearchClient.search(GithubIndices.GitCommits, query);
+      const [commit] = await searchedDataFormator(searchResult);
 
       // Check if commit exists
-      if (searchResult.hits.total.value === 0) {
+      if (!commit) {
         throw new Error(`Commit not found: ${commitId} for repo: ${repoId} and org: ${orgId}`);
       }
 
       const updatedData = {
-        id: searchResult.hits.hits[0]._id,
+        id: commit._id,
         body: {
-          ...searchResult.hits.hits[0]._source.body,
+          ..._.omit(commit, ['_id']),
           workbreakdown
         }
       }
