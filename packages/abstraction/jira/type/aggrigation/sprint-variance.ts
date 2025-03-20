@@ -5,6 +5,13 @@ type sprint = {
   startDate: string;
   endDate: string;
 };
+type version = {
+  id: string;
+  name: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+};
 export type BucketItem = {
   key: string;
   doc_count: number;
@@ -16,7 +23,8 @@ export type BucketItem = {
   };
 };
 export type SprintVariance = {
-  sprint: sprint;
+  sprint?: sprint;
+  version?: version;
   time: {
     estimate: number;
     actual: number;
