@@ -38,7 +38,7 @@ function createIssueSearchQuery(
             ? esb.termQuery('body.sprintId', sprintIdORVersionId)
             : esb.termQuery('body.fixVersion', sprintIdORVersionId),
           esb.termQuery('body.isDeleted', false),
-          esb.termQuery('body.organizationId.keyword', orgId),
+          esb.termQuery('body.organizationId', orgId),
           esb.termsQuery('body.issueType', [IssuesTypes.STORY, IssuesTypes.TASK, IssuesTypes.BUG]),
           esb.existsQuery('body.timeTracker'),
         ])
