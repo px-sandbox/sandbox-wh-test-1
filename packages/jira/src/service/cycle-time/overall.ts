@@ -1,8 +1,8 @@
-import { Other } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, responseParser } from 'core';
 import { transpileSchema } from '@middy/validator/transpile';
-import { fetchSprintsFromES, calculateCycleTime } from '../../matrics/cycle-time/overall';
+import { calculateCycleTime, fetchSprintOrVersionIds } from '../../matrics/cycle-time/overall';
 import { CycleTimeOverallValidator } from '../validations';
 
 /**
@@ -19,25 +19,34 @@ async function fetchOverallCycleTime(
   reqCtx: Other.Type.RequestCtx,
   projectId: string,
   orgId: string,
-  sprintIds: string[]
+  type: Jira.Enums.JiraFilterType,
+  sprintIds?: string[],
+  versionIds?: string[]
 ): Promise<number> {
-  const sprints = await fetchSprintsFromES(reqCtx, projectId, sprintIds, orgId);
-
-  return calculateCycleTime(reqCtx, sprints, orgId);
+  const ids = await fetchSprintOrVersionIds(projectId, orgId, type, reqCtx, sprintIds, versionIds);
+  return calculateCycleTime(type, orgId, ids);
 }
+
 export const cycleTimeOverall = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const { requestId } = event.requestContext;
   const sprintIds: string[] | undefined = event.queryStringParameters?.sprintIds?.split(',') || [];
+  const versionIds: string[] | undefined =
+    event.queryStringParameters?.versionIds?.split(',') || [];
   const orgId = event.queryStringParameters?.orgId ?? '';
   const projectId = event.queryStringParameters?.projectId ?? '';
+  const type: Jira.Enums.JiraFilterType =
+    (event.queryStringParameters?.type as Jira.Enums.JiraFilterType) ??
+    Jira.Enums.JiraFilterType.SPRINT;
 
   const response = await fetchOverallCycleTime(
     { requestId, resourceId: projectId },
     projectId,
     orgId,
-    sprintIds
+    type,
+    sprintIds,
+    versionIds
   );
   return responseParser
     .setBody({ overall: response })
