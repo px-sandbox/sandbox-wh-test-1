@@ -8,6 +8,8 @@ import { Push } from './push';
 import { PRReview } from './pr-review';
 import { Installation } from './installation';
 
+export * from './work-break-down';
+
 export {
   Branch,
   Repository,

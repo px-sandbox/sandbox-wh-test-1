@@ -17,6 +17,7 @@ import { initializeSecurityScanQueue } from './update-security-scan';
 import { initializeIndexerQueue } from './indexer';
 import { createGhTestCoverageQueue } from "./test-coverage";
 import {createGhDeploymentQueue} from "./github-deployment"
+import { initializeWorkbreakdownQueue } from './workbreakdown';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeQueue(
@@ -69,6 +70,8 @@ export function initializeQueue(
   const [scansSaveQueue] = initializeSecurityScanQueue(stack, githubDDb);
   const [testCoverageQueue] = createGhTestCoverageQueue(stack, buckets.testCoverageReportsBucket);
   const [githubDeploymentFrequencyQueue]=createGhDeploymentQueue(stack);
+  const workbreakdownQueue = initializeWorkbreakdownQueue(stack, githubDDb);
+
   // Bindings for indexerQueue
   indexerQueue.bind([afterRepoSaveQueue]);
 
@@ -100,6 +103,7 @@ export function initializeQueue(
     prReviewCommentMigrationQueue,
     indexerQueue,
     testCoverageQueue,
-    githubDeploymentFrequencyQueue
+    githubDeploymentFrequencyQueue,
+    workbreakdownQueue,
   };
 }
