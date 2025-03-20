@@ -3,37 +3,30 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
 import { IndexName as GithubIndices } from 'abstraction/github/enums';
-import moment from 'moment';
+import middy, { Request } from '@middy/core';
+import validator from '@middy/validator';
+import { transpileSchema } from '@middy/validator/transpile';
 import { HitBody } from 'abstraction/other/type';
+import { workbreakdownGraphSchema } from '../schema/workbreakdown-graph';
 
 const elasticsearchClient = ElasticSearchClient.getInstance();
 
-export const handler = async function workbreakdownGraph(
+const baseHandler = async (
   event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> {
+): Promise<APIGatewayProxyResult> => {
+
+  console.log("baseHandler.invoked");
+
   const { requestId } = event.requestContext;
   try {
-    const { repoIds, startDate, endDate = moment().add(1, 'day').format('YYYY-MM-DD') } = event.queryStringParameters || {};
-
-    // Validate required parameters
-    if (!repoIds || !startDate || !endDate) {
-      return responseParser
-        .setMessage('Missing required parameters: repoIds, startDate, or endDate')
-        .setStatusCode(HttpStatusCode['400'])
-        .setResponseBodyCode('ERROR')
-        .send();
-    }
-
-    // Validate date formats
-    if (!moment(startDate, 'YYYY-MM-DD', true).isValid() || !moment(endDate, 'YYYY-MM-DD', true).isValid()) {
-      return responseParser
-        .setMessage('Invalid date format. Use YYYY-MM-DD')
-        .setStatusCode(HttpStatusCode['400'])
-        .setResponseBodyCode('ERROR')
-        .send();
-    }
-
+    const { repoIds, startDate, endDate  } = event.queryStringParameters as { repoIds: string, startDate: string, endDate: string };
     const repoIdList = repoIds.split(',');
+
+    logger.info({
+      message: 'workbreakdownGraph.params',
+      data: { repoIds, startDate, endDate },
+      requestId,
+    });
 
     // Build elasticsearch query with aggregations
     const query = esb.requestBodySearch()
@@ -46,7 +39,7 @@ export const handler = async function workbreakdownGraph(
               .lte(endDate)
           ])
       )
-      .size(0) // We only need aggregations, not the actual documents
+      .size(0)
       .agg(
         esb.sumAggregation('refactor', 'body.workbreakdown.refactor')
       )
@@ -78,6 +71,8 @@ export const handler = async function workbreakdownGraph(
       requestId,
     });
 
+    throw new Error("Intentional error");
+
     return responseParser
       .setBody({ data })
       .setMessage('Workbreakdown graph data fetched successfully')
@@ -92,10 +87,48 @@ export const handler = async function workbreakdownGraph(
       requestId,
     });
 
-    return responseParser
-      .setMessage(`Failed to fetch workbreakdown graph data`)
-      .setStatusCode(HttpStatusCode['500'])
-      .setResponseBodyCode('ERROR')
-      .send();
+    throw error;
   }
-}; 
+};
+
+// Add middy validator
+export const handler = middy(baseHandler)
+  .use(
+    validator({
+      eventSchema: transpileSchema(workbreakdownGraphSchema)
+    })
+  )
+  .use({
+    onError: async (request: Request) => {
+      const { error } = request;
+      if (!error) return;
+      
+      logger.error({
+        message: 'workbreakdownGraph.error',
+        error,
+        data: {
+          event: request.event,
+          context: request.context,
+          error: request.error,
+          response: request.response,
+          
+        }
+      });
+
+      // Check if it's a validation error
+      if (error.name === 'BadRequestError') {
+        return responseParser
+          .setMessage(error.message)
+          .setStatusCode(HttpStatusCode['400'])
+          .setResponseBodyCode('ERROR')
+          .send();
+      }
+
+      // Handle all other errors as 500
+      return responseParser
+        .setMessage(error.message)
+        .setStatusCode(HttpStatusCode['500'])
+        .setResponseBodyCode('ERROR')
+        .send();
+    }
+  }); 
