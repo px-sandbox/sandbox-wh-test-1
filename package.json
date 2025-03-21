@@ -1,6 +1,6 @@
 {
   "name": "pulse-dx",
-  "version": "1.20.0",
+  "version": "1.21.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,7 +10,7 @@
     "remove": "sst remove",
     "console": "sst console",
     "typecheck": "tsc --noEmit",
-    "test": "sst bind vitest",
+    "test": "sst bind vitest run --coverage",
     "test2": "vitest run --coverage",
     "prepare": "pnpx husky install",
     "lint": "eslint . --ext .ts",
