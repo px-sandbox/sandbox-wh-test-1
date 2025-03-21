@@ -77,7 +77,7 @@ async function manipulatedBoardsData(
               esb.termQuery('body.organizationId.keyword', orgId),
               esb.termQuery('body.isDeleted', false),
             ])
-            .mustNot(esb.termQuery('body.state', Jira.Enums.SprintState.FUTURE))
+            .mustNot(esb.termQuery('body.state', Jira.Enums.State.FUTURE))
         )
         .sort(esb.sort('body.startDate', 'desc'))
         .toJSON();

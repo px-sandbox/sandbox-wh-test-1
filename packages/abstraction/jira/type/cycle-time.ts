@@ -140,11 +140,8 @@ export type SubTicket = {
 };
 
 export type CycleTimeSummary = {
-  sprintName: string;
   startDate: string;
-  endDate: string;
   status: string;
-  sprintId: string;
   development: {
     coding: number;
     pickup: number;
@@ -162,6 +159,17 @@ export type CycleTimeSummary = {
   };
   overall: number;
   overallWithoutDeployment: number;
+};
+
+export type CycleTimeSprintSummaryResponse = CycleTimeSummary & {
+  sprintName: string;
+  sprintId: string;
+  endDate: string;
+};
+export type CycleTimeVersionSummaryResponse = CycleTimeSummary & {
+  versionName: string;
+  releaseDate: string;
+  versionId: string;
 };
 
 export type CycleTimeOverallSummary = {
@@ -226,9 +234,7 @@ export type CycleTimeDetailedType = {
   qa: unknown;
   link: string;
 };
-
-export type CycleTimeSummaryResponse = {
-  sprintId: string;
+type CycleTimeSummaryResponse = {
   development: {
     coding: number;
     pickup: number;
@@ -246,6 +252,12 @@ export type CycleTimeSummaryResponse = {
   };
   overall: number;
   overallWithoutDeployment: number;
+};
+export type CycleTimeSprintSummary = CycleTimeSummaryResponse & {
+  sprintId: string;
+};
+export type CycleTimeVersionSummary = CycleTimeSummaryResponse & {
+  versionId: string;
 };
 export type rcaDetailType = {
   name: string;

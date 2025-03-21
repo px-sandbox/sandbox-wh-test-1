@@ -3,6 +3,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import esb from 'elastic-builder';
 import { logger } from 'core';
+import { VersionMapping, SprintMapping } from 'abstraction/jira/enums/sprints';
 import { searchedDataFormator } from '../../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
@@ -47,7 +48,7 @@ async function fetchVersions(
 ): Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]> {
   const versionsQuery = esb
     .requestBodySearch()
-    .source(['body.id', 'body.name', 'body.startDate', 'body.releaseDate'])
+    .source(['body.id', 'body.name', 'body.startDate', 'body.releaseDate', 'body.status'])
     .size(1000)
     .query(
       esb
@@ -55,7 +56,7 @@ async function fetchVersions(
         .must([
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.organizationId', orgId),
-          esb.termsQuery('body.state', [Jira.Enums.State.RELEASED, Jira.Enums.State.UNRELEASED]),
+          esb.termsQuery('body.status', [Jira.Enums.State.RELEASED, Jira.Enums.State.UNRELEASED]),
           esb.termsQuery('body.id', [...versionIds]),
         ])
     )
@@ -109,30 +110,41 @@ export async function fetchSprintOrVersionIds(
  * @param orgId - The ID of the organization.
  * @returns A promise that resolves to an array of objects containing the sprint ID and status.
  */
-export async function fetchSprintsFromESWithOtherInfo(
-  reqCtx: Other.Type.RequestCtx,
+export async function fetchSprintsOrVersions(
   projectId: string,
-  sprintIds: string[],
-  orgId: string
-): Promise<
-  {
-    sprintId: string;
-    status: Jira.Enums.State;
-    name: string;
-    startDate: string;
-    endDate: string;
-  }[]
-> {
-  const sprints = await fetchSprints(projectId, sprintIds, orgId);
-  return sprints.map((sprint) => ({
-    sprintId: sprint.id,
-    name: sprint.name,
-    status: sprint.state,
-    startDate: sprint.startDate,
-    endDate: sprint.endDate,
-  }));
+  orgId: string,
+  type: Jira.Enums.JiraFilterType,
+  reqCtx: Other.Type.RequestCtx,
+  sprintIds?: string[],
+  versionIds?: string[]
+): Promise<SprintMapping[] | VersionMapping[]> {
+  logger.info({
+    message: 'Fetching sprints or versions from ES for project',
+    data: { projectId, type, sprintIds, versionIds },
+    ...reqCtx,
+  });
+  if (type === Jira.Enums.JiraFilterType.SPRINT && sprintIds) {
+    const sprints = await fetchSprints(projectId, sprintIds, orgId);
+    return sprints.map((sprint) => ({
+      sprintId: sprint.id,
+      name: sprint.name,
+      status: sprint.state,
+      startDate: sprint.startDate,
+      endDate: sprint.endDate,
+    }));
+  }
+  if (type === Jira.Enums.JiraFilterType.VERSION && versionIds) {
+    const versions = await fetchVersions(projectId, versionIds, orgId);
+    return versions.map((version) => ({
+      versionId: version.id,
+      name: version.name,
+      status: version.status,
+      startDate: version.startDate,
+      releaseDate: version.releaseDate,
+    }));
+  }
+  return [];
 }
-
 /**
  * Returns the Elasticsearch query for calculating cycle time.
  * @param sprints - An array of sprint IDs.
