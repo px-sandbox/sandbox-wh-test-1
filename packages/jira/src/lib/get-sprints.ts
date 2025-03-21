@@ -1,6 +1,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
-import { SprintState } from 'abstraction/jira/enums';
+import { State } from 'abstraction/jira/enums';
 import esb from 'elastic-builder';
 import { Sprint, searchedDataFormator } from '../util/response-formatter';
 
@@ -17,8 +17,8 @@ function createSprintSearchQuery(sprintId: string): object {
         .boolQuery()
         .must(esb.termQuery('body.id', sprintId))
         .should([
-          esb.termQuery('body.state', SprintState.ACTIVE),
-          esb.termQuery('body.state', SprintState.CLOSED),
+          esb.termQuery('body.state', State.ACTIVE),
+          esb.termQuery('body.state', State.CLOSED),
         ])
         .minimumShouldMatch(1)
     )

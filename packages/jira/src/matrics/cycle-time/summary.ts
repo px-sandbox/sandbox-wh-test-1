@@ -1,50 +1,58 @@
 /* eslint-disable complexity */
 /* eslint-disable max-lines-per-function */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
+import { SprintMapping, VersionMapping } from 'abstraction/jira/enums/sprints';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-function getQuery(sprintArr: string[], orgId: string): esb.RequestBodySearch {
-  const baseAgg = esb
-    .termsAggregation('sprints', 'body.sprintId')
-    .size(sprintArr.length)
-    .agg(esb.avgAggregation('avg_development_coding', 'body.development.coding'))
-    .agg(esb.avgAggregation('avg_development_pickup', 'body.development.pickup'))
-    .agg(esb.avgAggregation('avg_development_handover', 'body.development.handover'))
-    .agg(esb.avgAggregation('avg_development_review', 'body.development.review'))
-    .agg(esb.avgAggregation('avg_development_total', 'body.development.total'))
+function getQuery(
+  type: Jira.Enums.JiraFilterType,
+  orgId: string,
+  ids: string[]
+): esb.RequestBodySearch {
+  const baseAgg =
+    type === Jira.Enums.JiraFilterType.SPRINT
+      ? esb.termsAggregation('sprints', 'body.sprintId')
+      : esb
+          .termsAggregation('versions', 'body.fixVersion.keyword')
+          .size(ids.length)
+          .agg(esb.avgAggregation('avg_development_coding', 'body.development.coding'))
+          .agg(esb.avgAggregation('avg_development_pickup', 'body.development.pickup'))
+          .agg(esb.avgAggregation('avg_development_handover', 'body.development.handover'))
+          .agg(esb.avgAggregation('avg_development_review', 'body.development.review'))
+          .agg(esb.avgAggregation('avg_development_total', 'body.development.total'))
 
-    .agg(esb.avgAggregation('avg_qa_pickup', 'body.qa.pickup'))
-    .agg(esb.avgAggregation('avg_qa_testing', 'body.qa.testing'))
-    .agg(esb.avgAggregation('avg_qa_handover', 'body.qa.handover'))
-    .agg(esb.avgAggregation('avg_qa_total', 'body.qa.total'))
+          .agg(esb.avgAggregation('avg_qa_pickup', 'body.qa.pickup'))
+          .agg(esb.avgAggregation('avg_qa_testing', 'body.qa.testing'))
+          .agg(esb.avgAggregation('avg_qa_handover', 'body.qa.handover'))
+          .agg(esb.avgAggregation('avg_qa_total', 'body.qa.total'))
 
-    .agg(esb.avgAggregation('avg_deployment_total', 'body.deployment.total'))
+          .agg(esb.avgAggregation('avg_deployment_total', 'body.deployment.total'))
 
-    .agg(
-      esb
-        .bucketScriptAggregation('overall')
-        .bucketsPath({
-          devTotal: 'avg_development_total',
-          qaTotal: 'avg_qa_total',
-          depTotal: 'avg_deployment_total',
-        })
-        .script('params.devTotal + params.qaTotal + params.depTotal')
-    )
+          .agg(
+            esb
+              .bucketScriptAggregation('overall')
+              .bucketsPath({
+                devTotal: 'avg_development_total',
+                qaTotal: 'avg_qa_total',
+                depTotal: 'avg_deployment_total',
+              })
+              .script('params.devTotal + params.qaTotal + params.depTotal')
+          )
 
-    .agg(
-      esb
-        .bucketScriptAggregation('overallWithoutDeployment')
-        .bucketsPath({
-          devTotal: 'avg_development_total',
-          qaTotal: 'avg_qa_total',
-          depTotal: 'avg_deployment_total',
-        })
-        .script('params.devTotal + params.qaTotal')
-    );
+          .agg(
+            esb
+              .bucketScriptAggregation('overallWithoutDeployment')
+              .bucketsPath({
+                devTotal: 'avg_development_total',
+                qaTotal: 'avg_qa_total',
+                depTotal: 'avg_deployment_total',
+              })
+              .script('params.devTotal + params.qaTotal')
+          );
 
   return esb
     .requestBodySearch()
@@ -52,13 +60,15 @@ function getQuery(sprintArr: string[], orgId: string): esb.RequestBodySearch {
       esb
         .boolQuery()
         .must([
-          esb.termsQuery('body.sprintId', sprintArr),
+          type === Jira.Enums.JiraFilterType.SPRINT
+            ? esb.termsQuery('body.sprintId', ids)
+            : esb.termsQuery('body.fixVersion', ids),
           esb.termQuery('body.organizationId', orgId),
           esb.termQuery('body.isDeleted', false),
         ])
     )
 
-    .source(['body.sprintId'])
+    .source(['body.sprintId', 'body.fixVersion'])
     .agg(baseAgg);
 }
 
@@ -71,21 +81,14 @@ function getQuery(sprintArr: string[], orgId: string): esb.RequestBodySearch {
  * @returns A promise that resolves to an array of cycle time summary objects, or undefined if there is no result.
  */
 export async function sprintLevelSummaryCalc(
-  sprints: {
-    sprintId: string;
-    status: Jira.Enums.SprintState;
-    name: string;
-    startDate: string;
-    endDate: string;
-  }[],
+  sprints: SprintMapping[],
   orgId: string
-): Promise<Jira.Type.CycleTimeSummary[] | undefined> {
+): Promise<Jira.Type.CycleTimeSprintSummaryResponse[] | undefined> {
   const sprintArr = sprints.map((sp) => sp.sprintId);
-
   const sprintObj: {
     [key: string]: {
       sprintId: string;
-      status: Jira.Enums.SprintState;
+      status: Jira.Enums.State;
       name: string;
       startDate: string;
       endDate: string;
@@ -101,14 +104,14 @@ export async function sprintLevelSummaryCalc(
     };
   });
   logger.info({ message: 'cycle_time_summary_query', data: JSON.stringify(sprintArr) });
-  const summaryQuery = getQuery(sprintArr, orgId);
+  const summaryQuery = getQuery(Jira.Enums.JiraFilterType.SPRINT, orgId, sprintArr);
 
   const result = await esClientObj.queryAggs<Jira.Type.SprintLevelSummaryResult>(
     Jira.Enums.IndexName.CycleTime,
     summaryQuery.toJSON()
   );
 
-  const response: Jira.Type.CycleTimeSummaryResponse[] = [];
+  const response: Jira.Type.CycleTimeSprintSummary[] = [];
   if (sprintArr.length > 0) {
     sprintArr.map((sprintId) => {
       const bucket = result?.sprints?.buckets?.find((b) => b.key === sprintId);
@@ -175,8 +178,14 @@ export async function sprintLevelSummaryCalc(
  * @returns The overall summary of cycle time.
  */
 export function overallSummary(
-  sprintLevelSumm: Jira.Type.CycleTimeSummary[]
+  sprintLevelSumm: Jira.Type.CycleTimeSprintSummary[] | Jira.Type.CycleTimeVersionSummary[],
+  reqCtx: Other.Type.RequestCtx
 ): Jira.Type.CycleTimeOverallSummary {
+  logger.info({
+    message: 'Calculating overall summary of cycle time',
+    data: { sprintLevelSumm },
+    ...reqCtx,
+  });
   const data = {
     development: {
       coding: 0,
@@ -224,4 +233,97 @@ export function overallSummary(
     data.deployment.total = parseFloat((data.deployment.total / len).toFixed(2));
   }
   return data;
+}
+
+export async function versionLevelSummaryCalc(
+  versions: VersionMapping[],
+  orgId: string
+): Promise<Jira.Type.CycleTimeVersionSummaryResponse[] | undefined> {
+  const versionArr = versions.map((version) => version.versionId);
+  const versionObj: {
+    [key: string]: {
+      versionId: string;
+      name: string;
+      startDate: string;
+      releaseDate: string;
+      status: Jira.Enums.State;
+    };
+  } = {};
+
+  versions.forEach((version) => {
+    versionObj[version.versionId] = {
+      versionId: version.versionId,
+      name: version.name,
+      startDate: version.startDate,
+      releaseDate: version.releaseDate,
+      status: version.status,
+    };
+  });
+  logger.info({ message: 'cycle_time_summary_version_query', data: JSON.stringify(versionArr) });
+  const summaryQuery = getQuery(Jira.Enums.JiraFilterType.VERSION, orgId, versionArr);
+  const result = await esClientObj.queryAggs<Jira.Type.VersionLevelSummaryResult>(
+    Jira.Enums.IndexName.CycleTime,
+    summaryQuery.toJSON()
+  );
+
+  const response: Jira.Type.CycleTimeVersionSummary[] = [];
+  if (versionArr.length > 0) {
+    versionArr.map((versionId) => {
+      const bucket = result?.versions?.buckets?.find((b) => b.key === versionId);
+      if (bucket) {
+        if (result?.versions?.buckets) {
+          response.push({
+            versionId: bucket.key,
+            development: {
+              coding: parseFloat(bucket.avg_development_coding.value.toFixed(2)),
+              pickup: parseFloat(bucket.avg_development_pickup.value.toFixed(2)),
+              handover: parseFloat(bucket.avg_development_handover.value.toFixed(2)),
+              review: parseFloat(bucket.avg_development_review.value.toFixed(2)),
+              total: parseFloat(bucket.avg_development_total.value.toFixed(2)),
+            },
+            qa: {
+              pickup: parseFloat(bucket.avg_qa_pickup.value.toFixed(2)),
+              testing: parseFloat(bucket.avg_qa_testing.value.toFixed(2)),
+              total: parseFloat(bucket.avg_qa_total.value.toFixed(2)),
+            },
+            deployment: {
+              total: parseFloat(bucket.avg_deployment_total.value.toFixed(2)),
+            },
+            overall: parseFloat(bucket.overall.value.toFixed(2)),
+            overallWithoutDeployment: parseFloat(bucket.overallWithoutDeployment.value.toFixed(2)),
+          });
+        }
+      } else {
+        response.push({
+          versionId,
+          development: {
+            coding: 0,
+            pickup: 0,
+            handover: 0,
+            review: 0,
+            total: 0,
+          },
+          qa: {
+            pickup: 0,
+            testing: 0,
+            total: 0,
+          },
+          deployment: {
+            total: 0,
+          },
+          overall: 0,
+          overallWithoutDeployment: 0,
+        });
+      }
+      return response;
+    });
+  }
+
+  return response?.map((item) => ({
+    ...item,
+    versionName: versionObj[item.versionId].name,
+    startDate: versionObj[item.versionId].startDate,
+    releaseDate: versionObj[item.versionId].releaseDate,
+    status: versionObj[item.versionId].status,
+  }));
 }

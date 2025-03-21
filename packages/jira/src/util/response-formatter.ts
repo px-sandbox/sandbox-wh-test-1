@@ -1,4 +1,4 @@
-import { SprintState, VersionStatus } from 'abstraction/jira/enums';
+import { State, VersionStatus } from 'abstraction/jira/enums';
 import { Other } from 'abstraction';
 import { v4 as uuid } from 'uuid';
 
@@ -85,7 +85,7 @@ export interface Sprint {
   id: number;
   sprintId: number;
   name: string;
-  state: SprintState;
+  state: State;
   startDate: string;
   endDate: string;
   completeDate: string;
@@ -115,7 +115,7 @@ export interface IssueResponse {
   totalReopen?: number;
   sprintName?: string;
   boardName?: string | null;
-  status?: SprintState | VersionStatus | null;
+  status?: State | VersionStatus | null;
   startDate: string;
   endDate?: string;
   percentValue?: number;
