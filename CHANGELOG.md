@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.21.0](https://github.com/studiographene/pulse-data-integration/compare/v1.20.0...v1.21.0) (2025-03-21)
+
+
+### Features
+
+* **PX-2547:** api for pie chart ([436d2d7](https://github.com/studiographene/pulse-data-integration/commit/436d2d7fee8bd452c3eab3efd63c5daebe17f861))
+* **PX-2547:** middy implemented ([9a96cfb](https://github.com/studiographene/pulse-data-integration/commit/9a96cfb7aac2b075ca80ca0d0ac6e72eb0af9a90))
+* **PX-2547:** middy implemented ([9af0cb4](https://github.com/studiographene/pulse-data-integration/commit/9af0cb42721196b51fd2a86ed07b40144f106b2f))
+* **PX-2547:** middy implemented in headlines ([f2bb4d4](https://github.com/studiographene/pulse-data-integration/commit/f2bb4d4966c32b82648c59fec019a01ef3fe71f3))
+* **PX-2547:** misome more fixes ([ccec7b6](https://github.com/studiographene/pulse-data-integration/commit/ccec7b6f8cd80f2a101b58d5b29575be87387f30))
+* **PX-2547:** misome more fixes ([c02c384](https://github.com/studiographene/pulse-data-integration/commit/c02c384adf5509234ce1f4ee038a1b240bf4bdc4))
+* **PX-2552:** implemented versions for cycle time overall ([f424ad4](https://github.com/studiographene/pulse-data-integration/commit/f424ad4c3b7be00c103845d04aac157298101ac4))
+* **PX-2552:** implemented versions for cycle time overall ([#1111](https://github.com/studiographene/pulse-data-integration/issues/1111)) ([7a8ba84](https://github.com/studiographene/pulse-data-integration/commit/7a8ba84c69cb6f46ba14367649d7f273cbfc9e9c))
+* **PX-2558:** versions implementation for cyctle time detailed api ([#1112](https://github.com/studiographene/pulse-data-integration/issues/1112)) ([a4ad3b4](https://github.com/studiographene/pulse-data-integration/commit/a4ad3b4626a57ca3a83127142e4799cf102a2131))
+* **PX-2559:** versions implementation for cyctle time detailed api ([76537c0](https://github.com/studiographene/pulse-data-integration/commit/76537c0fae2d8963c68e6dc200628f9614895755))
+
 ## [1.20.0](https://github.com/studiographene/pulse-data-integration/compare/v1.19.2...v1.20.0) (2025-03-20)
 
 

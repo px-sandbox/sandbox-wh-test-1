@@ -72,8 +72,16 @@ export const CycleTimeOverallValidator = {
           type: 'string',
           pattern: '^jira_sprint_\\d+(,jira_sprint_\\d+)*$',
         },
+        versionIds: {
+          type: 'string',
+          pattern: '^jira_version_\\d+(,jira_version_\\d+)*$',
+        },
+        type: {
+          type: 'string',
+          enum: Object.values(Jira.Enums.JiraFilterType),
+        },
       },
-      required: ['orgId', 'projectId', 'sprintIds'],
+      required: ['orgId', 'projectId', 'type'],
     },
   },
 };
