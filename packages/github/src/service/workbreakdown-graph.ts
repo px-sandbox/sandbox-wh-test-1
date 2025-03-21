@@ -1,15 +1,10 @@
-import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
-import esb from 'elastic-builder';
-import { IndexName as GithubIndices } from 'abstraction/github/enums';
 import middy, { Request } from '@middy/core';
 import validator from '@middy/validator';
 import { transpileSchema } from '@middy/validator/transpile';
-import { HitBody } from 'abstraction/other/type';
 import { workbreakdownGraphSchema } from '../schema/workbreakdown-graph';
-
-const elasticsearchClient = ElasticSearchClient.getInstance();
+import { getTotalWorkbreakdown } from '../matrics/get-total-work-break-down';
 
 const baseHandler = async (
   event: APIGatewayProxyEvent
@@ -28,36 +23,7 @@ const baseHandler = async (
       requestId,
     });
 
-    // Build elasticsearch query with aggregations
-    const query = esb.requestBodySearch()
-      .query(
-        esb.boolQuery()
-          .must([
-            esb.termsQuery('body.repoId', repoIdList),
-            esb.rangeQuery('body.createdAt')
-              .gte(startDate)
-              .lte(endDate)
-          ])
-      )
-      .size(0)
-      .agg(
-        esb.sumAggregation('refactor', 'body.workbreakdown.refactor')
-      )
-      .agg(
-        esb.sumAggregation('rewrite', 'body.workbreakdown.rewrite')
-      )
-      .agg(
-        esb.sumAggregation('newWork', 'body.workbreakdown.newFeature')
-      )
-      .toJSON();
-
-    logger.info({
-      message: 'workbreakdownGraph.query',
-      data: { query },
-      requestId,
-    });
-
-    const searchResult: HitBody = await elasticsearchClient.search(GithubIndices.GitCommits, query);
+    const searchResult = await getTotalWorkbreakdown(repoIdList, startDate, endDate);
 
     const data = {
       refactor: Math.round(searchResult.aggregations?.refactor?.value || 0),
@@ -70,8 +36,6 @@ const baseHandler = async (
       data,
       requestId,
     });
-
-    throw new Error("Intentional error");
 
     return responseParser
       .setBody({ data })
