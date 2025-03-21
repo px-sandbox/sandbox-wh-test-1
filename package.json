@@ -1,6 +1,6 @@
 {
   "name": "pulse-dx",
-  "version": "1.21.0",
+  "version": "1.22.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -57,7 +57,7 @@
     "errorMsg": "Please follow the branch naming convention, eg: feature/SG-1"
   },
   "engines": {
-    "node": ">=18.20.7",
+    "node": ">=18.20.6",
     "pnpm": ">=9.12.1"
   }
 }
