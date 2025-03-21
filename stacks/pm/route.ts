@@ -36,5 +36,19 @@ export function initializeRoutes(): Record<string, ApiRouteProps<'universal'>> {
       function: 'packages/jira/src/service/time-spent-trends.handler',
       authorizer: 'universal',
     },
+
+    'GET /github/workbreakdown/headlines': {
+      function: {
+        handler: 'packages/github/src/service/workbreakdown-headlines.handler',
+      },
+      authorizer: 'universal',
+    },
+
+    'GET /github/workbreakdown/graph': {
+      function: {
+        handler: 'packages/github/src/service/workbreakdown-graph.handler',
+      },
+      authorizer: 'universal',
+    },
   };
 }

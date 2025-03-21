@@ -70,5 +70,6 @@ class ResponseParser {
   }
 }
 
+// TODO: Instead of exporting responseParser Object, export the class and make instance of it in the lambda function
 const responseParser = new ResponseParser();
 export { responseParser };

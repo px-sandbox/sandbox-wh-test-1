@@ -1,5 +1,53 @@
 # Changelog
 
+## [1.21.0](https://github.com/studiographene/pulse-data-integration/compare/v1.20.0...v1.21.0) (2025-03-21)
+
+
+### Features
+
+* **PX-2547:** api for pie chart ([436d2d7](https://github.com/studiographene/pulse-data-integration/commit/436d2d7fee8bd452c3eab3efd63c5daebe17f861))
+* **PX-2547:** middy implemented ([9a96cfb](https://github.com/studiographene/pulse-data-integration/commit/9a96cfb7aac2b075ca80ca0d0ac6e72eb0af9a90))
+* **PX-2547:** middy implemented ([9af0cb4](https://github.com/studiographene/pulse-data-integration/commit/9af0cb42721196b51fd2a86ed07b40144f106b2f))
+* **PX-2547:** middy implemented in headlines ([f2bb4d4](https://github.com/studiographene/pulse-data-integration/commit/f2bb4d4966c32b82648c59fec019a01ef3fe71f3))
+* **PX-2547:** misome more fixes ([ccec7b6](https://github.com/studiographene/pulse-data-integration/commit/ccec7b6f8cd80f2a101b58d5b29575be87387f30))
+* **PX-2547:** misome more fixes ([c02c384](https://github.com/studiographene/pulse-data-integration/commit/c02c384adf5509234ce1f4ee038a1b240bf4bdc4))
+* **PX-2552:** implemented versions for cycle time overall ([f424ad4](https://github.com/studiographene/pulse-data-integration/commit/f424ad4c3b7be00c103845d04aac157298101ac4))
+* **PX-2552:** implemented versions for cycle time overall ([#1111](https://github.com/studiographene/pulse-data-integration/issues/1111)) ([7a8ba84](https://github.com/studiographene/pulse-data-integration/commit/7a8ba84c69cb6f46ba14367649d7f273cbfc9e9c))
+* **PX-2558:** versions implementation for cyctle time detailed api ([#1112](https://github.com/studiographene/pulse-data-integration/issues/1112)) ([a4ad3b4](https://github.com/studiographene/pulse-data-integration/commit/a4ad3b4626a57ca3a83127142e4799cf102a2131))
+* **PX-2559:** versions implementation for cyctle time detailed api ([76537c0](https://github.com/studiographene/pulse-data-integration/commit/76537c0fae2d8963c68e6dc200628f9614895755))
+
+## [1.20.0](https://github.com/studiographene/pulse-data-integration/compare/v1.19.2...v1.20.0) (2025-03-20)
+
+
+### Features
+
+* **PX-2525:** created Webhook API for workbreakdown ([69aa2a3](https://github.com/studiographene/pulse-data-integration/commit/69aa2a3d24d92379bfa97fe2ba61ebd70729e5b3))
+* **PX-2525:** created Webhook API for workbreakdown ([#1105](https://github.com/studiographene/pulse-data-integration/issues/1105)) ([5997736](https://github.com/studiographene/pulse-data-integration/commit/5997736503c4f49474131d64e0f348cd17f00765))
+* **PX-2526:** added queur to process commits ([71733d4](https://github.com/studiographene/pulse-data-integration/commit/71733d490a62eb5b22ef7ad275715bbad1ba782e))
+* **PX-2526:** feedback fix ([6bb2e17](https://github.com/studiographene/pulse-data-integration/commit/6bb2e17d78380e5088cb3b5192ac6c8f589b167a))
+* **PX-2526:** feedback fix ([f2445ee](https://github.com/studiographene/pulse-data-integration/commit/f2445eeeb937d544017c57ae1828ae85963f3ed0))
+* **PX-2526:** feedback fix ([20d2ae1](https://github.com/studiographene/pulse-data-integration/commit/20d2ae1963830f0bef95ea6c9f4a34ad14feeddb))
+* **PX-2526:** feedback fix ([3fb8521](https://github.com/studiographene/pulse-data-integration/commit/3fb852173e11f263770fa2d861a8c1a76486285e))
+* **PX-2551:** estimate actual table view api to accept versionIds ([6f11583](https://github.com/studiographene/pulse-data-integration/commit/6f115835557339cb0423fd4e7fdb3762d3aafa0a))
+* **PX-2551:** estimate actual table view api to accept versionIds ([#1106](https://github.com/studiographene/pulse-data-integration/issues/1106)) ([31722eb](https://github.com/studiographene/pulse-data-integration/commit/31722eb44f9cd1310a14cb66ba670ee0a82cea35))
+* **PX-2557:** estimate vs actual detail view for jira versions ([796115f](https://github.com/studiographene/pulse-data-integration/commit/796115f90e6a10c44f6939edfc2dfda9aa2775a1))
+* **PX-2557:** estimate vs actual detail view for jira versions ([#1107](https://github.com/studiographene/pulse-data-integration/issues/1107)) ([3921465](https://github.com/studiographene/pulse-data-integration/commit/3921465feb2ae0bcf0588c30b6fe559c3ee4aa95))
+
+
+### Bug Fixes
+
+* **PX-2551:** pr feedbacks ([09a3405](https://github.com/studiographene/pulse-data-integration/commit/09a3405210001fb2ad866abe6a4f2b4c78364461))
+* **PX-2551:** small fix ([afe1a8a](https://github.com/studiographene/pulse-data-integration/commit/afe1a8a77b8a8e7c83726a810d2537ae19642f6e))
+* **PX-2557:** pr feedbacks ([4717ba4](https://github.com/studiographene/pulse-data-integration/commit/4717ba40bf0ab0918426f94904cd1c0911b818bb))
+
+## [1.19.2](https://github.com/studiographene/pulse-data-integration/compare/v1.19.1...v1.19.2) (2025-03-18)
+
+
+### Bug Fixes
+
+* **PX-04000:** vitest config ([84a58ec](https://github.com/studiographene/pulse-data-integration/commit/84a58ec992c2788e8b92010f921d98becad07282))
+* **PX-04000:** vitest config ([#1102](https://github.com/studiographene/pulse-data-integration/issues/1102)) ([bc6e18d](https://github.com/studiographene/pulse-data-integration/commit/bc6e18d3c1ef8700645a4f070709632a83a306a9))
+
 ## [1.19.1](https://github.com/studiographene/pulse-data-integration/compare/v1.19.0...v1.19.1) (2025-03-18)
 
 

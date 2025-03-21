@@ -23,8 +23,9 @@ const esClientObj = ElasticSearchClient.getInstance();
  */
 function createIssueSearchQuery(
   projectId: string,
-  sprintId: string,
-  orgId: string
+  orgId: string,
+  type: string,
+  sprintIdORVersionId?: string
 ): RequestBodySearch {
   return esb
     .requestBodySearch()
@@ -33,7 +34,9 @@ function createIssueSearchQuery(
         .boolQuery()
         .must([
           esb.termQuery('body.projectId', projectId),
-          esb.termQuery('body.sprintId', sprintId),
+          type === Jira.Enums.JiraFilterType.SPRINT
+            ? esb.termQuery('body.sprintId', sprintIdORVersionId)
+            : esb.termQuery('body.fixVersion', sprintIdORVersionId),
           esb.termQuery('body.isDeleted', false),
           esb.termQuery('body.organizationId', orgId),
           esb.termsQuery('body.issueType', [IssuesTypes.STORY, IssuesTypes.TASK, IssuesTypes.BUG]),
@@ -122,14 +125,15 @@ async function getBugTimeForIssues(
  */
 const fetchIssueData = async (
   projectId: string,
-  sprintId: string,
-  orgId: string
+  orgId: string,
+  type: string,
+  sprintIdORVersionId?: string
 ): Promise<{
   issues: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
   subtasks: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
 }> => {
   const issues = [];
-  const issueQuery = createIssueSearchQuery(projectId, sprintId, orgId);
+  const issueQuery = createIssueSearchQuery(projectId, orgId, type, sprintIdORVersionId);
   let unformattedIssues: Other.Type.HitBody = await esClientObj.search(
     Jira.Enums.IndexName.Issue,
     issueQuery.toJSON()
@@ -178,15 +182,16 @@ const fetchIssueData = async (
  */
 export const estimatesVsActualsBreakdown = async (
   projectId: string,
-  sprintId: string,
   sortKey: string,
   sortOrder: string,
   orgId: string,
-  orgname: string
+  orgname: string,
+  type: string,
+  sprintIdORVersionId?: string
 ): Promise<Jira.Type.EstimatesVsActualsBreakdownResponse[]> => {
   let bugTimeForIssueActual = 0;
   try {
-    const { issues, subtasks } = await fetchIssueData(projectId, sprintId, orgId);
+    const { issues, subtasks } = await fetchIssueData(projectId, orgId, type, sprintIdORVersionId);
     const parentBugMapping = issues.reduce((acc: Record<string, string[]>, ele) => {
       if (ele.issueLinks) {
         acc[ele.issueKey] = getBugIssueLinksKeys(ele.issueLinks);
