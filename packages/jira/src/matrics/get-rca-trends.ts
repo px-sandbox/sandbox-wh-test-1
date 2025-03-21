@@ -1,12 +1,12 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira } from 'abstraction';
-import { FILTER_ID_TYPES, IssuesTypes, SprintState } from 'abstraction/jira/enums';
+import { FILTER_ID_TYPES, IssuesTypes, State } from 'abstraction/jira/enums';
 import { Sprint } from 'abstraction/jira/external/api';
-import { 
-  rcaDetailResponse, 
-  rcaTableHeadline, 
-  rcaTrendsFilteredResponse, 
-  rcaTrendsResponse 
+import {
+  rcaDetailResponse,
+  rcaTableHeadline,
+  rcaTrendsFilteredResponse,
+  rcaTrendsResponse,
 } from 'abstraction/jira/type';
 import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
@@ -50,8 +50,8 @@ async function getSprints(sprintIds: string[]): Promise<Sprint[]> {
         .boolQuery()
         .must(esb.termsQuery('body.id', sprintIds))
         .should([
-          esb.termQuery('body.state', SprintState.ACTIVE),
-          esb.termQuery('body.state', SprintState.CLOSED),
+          esb.termQuery('body.state', State.ACTIVE),
+          esb.termQuery('body.state', State.CLOSED),
         ])
         .minimumShouldMatch(1)
     )
@@ -75,10 +75,7 @@ async function getVersions(versionIds: string[]): Promise<Version[]> {
     .query(
       esb
         .boolQuery()
-        .must([
-          esb.termsQuery('body.id', versionIds),
-          esb.termQuery('body.isDeleted', false)
-        ])
+        .must([esb.termsQuery('body.id', versionIds), esb.termQuery('body.isDeleted', false)])
     )
     .sort(esb.sort('body.startDate', 'desc'))
     .toJSON();
@@ -106,14 +103,14 @@ async function getHeadline(
   const idTypeConfig = {
     [FILTER_ID_TYPES.VERSION]: {
       filterField: 'body.affectedVersion',
-      logMessage: 'issue headline by release query'
+      logMessage: 'issue headline by release query',
     },
     [FILTER_ID_TYPES.SPRINT]: {
       filterField: 'body.sprintId',
-      logMessage: 'issue headline by sprint query'
-    }
+      logMessage: 'issue headline by sprint query',
+    },
   };
-  
+
   // Get configuration for the requested ID type
   const config = idTypeConfig[idType];
   if (!config) {
@@ -175,7 +172,7 @@ async function getHeadline(
  * @returns Processed sprint data
  */
 async function processSprintData(
-  sprintIds: string[], 
+  sprintIds: string[],
   response: rcaDetailResponse
 ): Promise<rcaTrendsFilteredResponse[]> {
   const sprintData = await getSprints(sprintIds);
@@ -209,7 +206,7 @@ async function processSprintData(
  * @returns Processed version data
  */
 async function processVersionData(
-  versionIds: string[], 
+  versionIds: string[],
   response: rcaDetailResponse
 ): Promise<rcaTrendsFilteredResponse[]> {
   const versionData = await getVersions(versionIds);
@@ -259,12 +256,12 @@ export async function getRcaTrends(
   const idTypeConfig = {
     [FILTER_ID_TYPES.VERSION]: {
       filterField: 'body.affectedVersion',
-      logMessage: 'issue headline by release query'
+      logMessage: 'issue headline by release query',
     },
     [FILTER_ID_TYPES.SPRINT]: {
       filterField: 'body.sprintId',
-      logMessage: 'issue headline by sprint query'
-    }
+      logMessage: 'issue headline by sprint query',
+    },
   };
 
   // Get configuration for the requested ID type
@@ -314,11 +311,11 @@ export async function getRcaTrends(
         headline.global_agg.total_bug_count.doc_count === 0
           ? 0
           : parseFloat(
-            (
-              (headline.max_rca_count.value / headline.global_agg.total_bug_count.doc_count) *
-              100
-            ).toFixed(2)
-          ),
+              (
+                (headline.max_rca_count.value / headline.global_agg.total_bug_count.doc_count) *
+                100
+              ).toFixed(2)
+            ),
       names: rca,
     },
     trendsData: rcaGraphDataFiltered,
