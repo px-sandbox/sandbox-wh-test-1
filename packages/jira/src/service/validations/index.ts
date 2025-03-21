@@ -107,9 +107,14 @@ export const CycleTimeSummaryValidator = {
         },
         sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
         sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
-        type: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSummaryType) },
+        type: { type: 'string', enum: Object.values(Jira.Enums.JiraFilterType) },
+        view: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSummaryType) },
+        versionIds: {
+          type: 'string',
+          pattern: '^jira_version_\\d+(,jira_version_\\d+)*$',
+        },
       },
-      required: ['orgId', 'projectId', 'type', 'sprintIds'],
+      required: ['orgId', 'projectId', 'type', 'view'],
     },
   },
 };
