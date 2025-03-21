@@ -11,15 +11,8 @@ import { HitBody } from 'abstraction/other/type';
 
 const elasticsearchClient = ElasticSearchClient.getInstance();
 
-const baseHandler = async (
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
-  const { requestId } = event.requestContext;
-  try {
-    const { repoIds, startDate, endDate } = event.queryStringParameters as { repoIds: string, startDate: string, endDate: string };
-    const repoIdList = repoIds.split(',');
-
-    // Build elasticsearch query with aggregations
+async function getTotalWorkbreakdown(repoIdList: string[], startDate: string, endDate: string) {
+  // Build elasticsearch query with aggregations
     const query = esb.requestBodySearch()
       .query(
         esb.boolQuery()
@@ -43,7 +36,19 @@ const baseHandler = async (
       .toJSON();
 
     const searchResult: HitBody = await elasticsearchClient.search(GithubIndices.GitCommits, query);
+    return searchResult;
+}
 
+const baseHandler = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const { requestId } = event.requestContext;
+  try {
+    const { repoIds, startDate, endDate } = event.queryStringParameters as { repoIds: string, startDate: string, endDate: string };
+    const repoIdList = repoIds.split(',');
+
+    const searchResult = await getTotalWorkbreakdown(repoIdList, startDate, endDate);
+    
     const newFeatureSum = Math.round(searchResult.aggregations?.newFeature_sum?.value || 0);
     const refactorSum = Math.round(searchResult.aggregations?.refactor_sum?.value || 0);
     const rewriteSum = Math.round(searchResult.aggregations?.rewrite_sum?.value || 0);
