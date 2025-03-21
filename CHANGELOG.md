@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.22.0](https://github.com/studiographene/pulse-data-integration/compare/v1.21.0...v1.22.0) (2025-03-21)
+
+
+### Features
+
+* **PX-2558:** some fixes ([686e1e6](https://github.com/studiographene/pulse-data-integration/commit/686e1e6f9ae13d996d2d94384349e22d039f351e))
+* **PX-2558:** some fixes ([#1116](https://github.com/studiographene/pulse-data-integration/issues/1116)) ([cbe601c](https://github.com/studiographene/pulse-data-integration/commit/cbe601c9d71402c27bc1ade6b337175e725cce45))
+* **PX-2559:** cycle time summary view ([ffe8a84](https://github.com/studiographene/pulse-data-integration/commit/ffe8a847cce9245bb06d39af86b21a36a9026086))
+
+
+### Bug Fixes
+
+* **PX-0400:** package.json ([#1104](https://github.com/studiographene/pulse-data-integration/issues/1104)) ([71bfb50](https://github.com/studiographene/pulse-data-integration/commit/71bfb5029b33c7828c8f446a644a0ec2c4f83d97))
+
 ## [1.21.0](https://github.com/studiographene/pulse-data-integration/compare/v1.20.0...v1.21.0) (2025-03-21)
 
 
