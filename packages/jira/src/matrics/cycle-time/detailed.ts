@@ -7,10 +7,12 @@ import { searchedDataFormator } from '../../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 function getCycleTimeDetailQuery(
-  sprintId: string,
   orgId: string,
   sortKey: Jira.Enums.CycleTimeDetailSortKey,
-  sortOrder: 'asc' | 'desc'
+  sortOrder: 'asc' | 'desc',
+  type: Jira.Enums.JiraFilterType,
+  sprintId?: string,
+  versionId?: string
 ): esb.RequestBodySearch {
   return esb
     .requestBodySearch()
@@ -31,7 +33,9 @@ function getCycleTimeDetailQuery(
       esb
         .boolQuery()
         .must([
-          esb.termQuery('body.sprintId', sprintId),
+          type === Jira.Enums.JiraFilterType.SPRINT
+            ? esb.termQuery('body.sprintId', sprintId)
+            : esb.termQuery('body.fixVersion', versionId),
           esb.termQuery('body.organizationId', orgId),
           esb.termQuery('body.isDeleted', false),
         ])
@@ -58,12 +62,21 @@ function getOrgNameQuery(orgId: string): esb.RequestBodySearch {
 }
 export async function fetchCycleTimeDetailed(
   reqCtx: Other.Type.RequestCtx,
-  sprintId: string,
   orgId: string,
   sortKey: Jira.Enums.CycleTimeDetailSortKey,
-  sortOrder: 'asc' | 'desc'
+  sortOrder: 'asc' | 'desc',
+  type: Jira.Enums.JiraFilterType,
+  sprintId?: string,
+  versionId?: string
 ): Promise<Jira.Type.CycleTimeDetailedType[]> {
-  const cycleTimeDetailQuery = getCycleTimeDetailQuery(sprintId, orgId, sortKey, sortOrder);
+  const cycleTimeDetailQuery = getCycleTimeDetailQuery(
+    orgId,
+    sortKey,
+    sortOrder,
+    type,
+    sprintId,
+    versionId
+  );
   const orgnameQuery = getOrgNameQuery(orgId);
   let formattedData: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[] = [];
   logger.info({

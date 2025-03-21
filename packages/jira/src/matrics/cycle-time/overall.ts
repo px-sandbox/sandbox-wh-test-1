@@ -2,6 +2,7 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import esb from 'elastic-builder';
+import { logger } from 'core';
 import { searchedDataFormator } from '../../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
@@ -30,16 +31,39 @@ async function fetchSprints(
         .must([
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.organizationId.keyword', orgId),
-          esb.termsQuery('body.state', [
-            Jira.Enums.SprintState.ACTIVE,
-            Jira.Enums.SprintState.CLOSED,
-          ]),
+          esb.termsQuery('body.state', [Jira.Enums.State.ACTIVE, Jira.Enums.State.CLOSED]),
           esb.termsQuery('body.id', [...sprintId]),
         ])
     )
     .sort(esb.sort('body.startDate', 'desc'))
     .toJSON();
   return searchedDataFormator(await esClientObj.search(Jira.Enums.IndexName.Sprint, sprintsQuery));
+}
+
+async function fetchVersions(
+  projectId: string,
+  versionIds: string[],
+  orgId: string
+): Promise<[] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[]> {
+  const versionsQuery = esb
+    .requestBodySearch()
+    .source(['body.id', 'body.name', 'body.startDate', 'body.releaseDate'])
+    .size(1000)
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          esb.termQuery('body.projectId', projectId),
+          esb.termQuery('body.organizationId', orgId),
+          esb.termsQuery('body.state', [Jira.Enums.State.RELEASED, Jira.Enums.State.UNRELEASED]),
+          esb.termsQuery('body.id', [...versionIds]),
+        ])
+    )
+    .sort(esb.sort('body.startDate', 'desc'))
+    .toJSON();
+  return searchedDataFormator(
+    await esClientObj.search(Jira.Enums.IndexName.Version, versionsQuery)
+  );
 }
 /**
  * Fetches sprints from Elasticsearch based on the provided parameters.
@@ -50,16 +74,30 @@ async function fetchSprints(
  * @param orgId - The ID of the organization.
  * @returns A promise that resolves to an array of sprint IDs.
  */
-export async function fetchSprintsFromES(
-  reqCtx: Other.Type.RequestCtx,
+export async function fetchSprintOrVersionIds(
   projectId: string,
-  sprintIds: string[],
-  orgId: string
+  orgId: string,
+  type: Jira.Enums.JiraFilterType,
+  reqCtx: Other.Type.RequestCtx,
+  sprintIds?: string[],
+  versionIds?: string[]
 ): Promise<string[]> {
-  const sprints = await fetchSprints(projectId, sprintIds, orgId);
-
-  if (!sprints?.length) return [];
-  return sprints.map((sprint) => sprint.id);
+  logger.info({
+    message: 'Fetching sprints from ES for project',
+    data: { projectId, type },
+    ...reqCtx,
+  });
+  if (type === Jira.Enums.JiraFilterType.SPRINT && sprintIds) {
+    const sprints = await fetchSprints(projectId, sprintIds, orgId);
+    if (!sprints?.length) return [];
+    return sprints.map((sprint) => sprint.id);
+  }
+  if (type === Jira.Enums.JiraFilterType.VERSION && versionIds) {
+    const versions = await fetchVersions(projectId, versionIds, orgId);
+    if (!versions?.length) return [];
+    return versions.map((version) => version.id);
+  }
+  return [];
 }
 /**
  * Fetches sprints from Elasticsearch with their status.
@@ -79,7 +117,7 @@ export async function fetchSprintsFromESWithOtherInfo(
 ): Promise<
   {
     sprintId: string;
-    status: Jira.Enums.SprintState;
+    status: Jira.Enums.State;
     name: string;
     startDate: string;
     endDate: string;
@@ -101,24 +139,32 @@ export async function fetchSprintsFromESWithOtherInfo(
  * @param orgId - The organization ID.
  * @returns The Elasticsearch RequestBodySearch object.
  */
-function getCycleTimeQuery(sprints: string[], orgId: string): esb.RequestBodySearch {
+function getCycleTimeQuery(
+  type: Jira.Enums.JiraFilterType,
+  orgId: string,
+  ids: string[]
+): esb.RequestBodySearch {
   return esb
     .requestBodySearch()
     .query(
       esb
         .boolQuery()
         .must([
-          esb.termsQuery('body.sprintId', sprints),
+          type === Jira.Enums.JiraFilterType.SPRINT
+            ? esb.termsQuery('body.sprintId', ids)
+            : esb.termsQuery('body.fixVersion', ids),
           esb.termQuery('body.organizationId', orgId),
           esb.termQuery('body.isDeleted', false),
         ])
     )
     .agg(
-      esb
-        .termsAggregation('sprints', 'body.sprintId')
-        .agg(esb.sumAggregation('total_development', 'body.development.total'))
-        .agg(esb.sumAggregation('total_qa', 'body.qa.total'))
-        .agg(esb.sumAggregation('total_deployment', 'body.deployment.total'))
+      type === Jira.Enums.JiraFilterType.SPRINT
+        ? esb.termsAggregation('sprints', 'body.sprintId')
+        : esb
+            .termsAggregation('versions', 'body.fixVersion')
+            .agg(esb.sumAggregation('total_development', 'body.development.total'))
+            .agg(esb.sumAggregation('total_qa', 'body.qa.total'))
+            .agg(esb.sumAggregation('total_deployment', 'body.deployment.total'))
     );
 }
 
@@ -130,11 +176,17 @@ function getCycleTimeQuery(sprints: string[], orgId: string): esb.RequestBodySea
  * @returns The overall cycle time as a number.
  */
 export async function calculateCycleTime(
-  reqCtx: Other.Type.RequestCtx,
-  sprints: string[],
-  orgId: string
+  type: Jira.Enums.JiraFilterType,
+  orgId: string,
+  ids: string[]
 ): Promise<number> {
-  const cycleTimeQuery = getCycleTimeQuery(sprints, orgId);
+  let cycleTimeQuery: esb.RequestBodySearch = esb.requestBodySearch();
+  if (type === Jira.Enums.JiraFilterType.SPRINT) {
+    cycleTimeQuery = getCycleTimeQuery(type, orgId, ids);
+  }
+  if (type === Jira.Enums.JiraFilterType.VERSION) {
+    cycleTimeQuery = getCycleTimeQuery(type, orgId, ids);
+  }
 
   const result = await esClientObj.queryAggs<Jira.Type.CycleTimeAggregationResult>(
     Jira.Enums.IndexName.CycleTime,
@@ -142,16 +194,14 @@ export async function calculateCycleTime(
   );
 
   let overallTime = 0;
-  // let sprintCount = 0;
 
   if (result?.sprints?.buckets) {
     for (const bucket of result.sprints.buckets) {
       const totalTime =
         bucket.total_development.value + bucket.total_qa.value + bucket.total_deployment.value;
       overallTime += totalTime / bucket.doc_count;
-      // sprintCount += 1;
     }
   }
 
-  return overallTime ? parseFloat((overallTime / sprints.length).toFixed(2)) : 0;
+  return overallTime ? parseFloat((overallTime / ids.length).toFixed(2)) : 0;
 }
