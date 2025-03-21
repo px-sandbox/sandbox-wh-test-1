@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@aws-sdk/lib-dynamodb": "3.309.0",
+    "@middy/core": "4.2.8",
     "@middy/validator": "4.2.8",
     "@octokit/auth-app": "4.0.9",
     "@octokit/core": "5.0.0",
