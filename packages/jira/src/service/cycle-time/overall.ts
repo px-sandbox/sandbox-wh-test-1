@@ -1,4 +1,4 @@
-import { Jira, Other } from 'abstraction';
+import { Other } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, responseParser } from 'core';
 import { transpileSchema } from '@middy/validator/transpile';
@@ -19,12 +19,11 @@ async function fetchOverallCycleTime(
   reqCtx: Other.Type.RequestCtx,
   projectId: string,
   orgId: string,
-  type: Jira.Enums.JiraFilterType,
   sprintIds?: string[],
   versionIds?: string[]
 ): Promise<number> {
-  const ids = await fetchSprintOrVersionIds(projectId, orgId, type, reqCtx, sprintIds, versionIds);
-  return calculateCycleTime(type, orgId, ids);
+  const ids = await fetchSprintOrVersionIds(projectId, orgId, reqCtx, sprintIds, versionIds);
+  return calculateCycleTime(orgId, ids, { isSprint: (sprintIds && sprintIds.length > 0) ?? false });
 }
 
 export const cycleTimeOverall = async (
@@ -36,15 +35,11 @@ export const cycleTimeOverall = async (
     event.queryStringParameters?.versionIds?.split(',') || [];
   const orgId = event.queryStringParameters?.orgId ?? '';
   const projectId = event.queryStringParameters?.projectId ?? '';
-  const type: Jira.Enums.JiraFilterType =
-    (event.queryStringParameters?.type as Jira.Enums.JiraFilterType) ??
-    Jira.Enums.JiraFilterType.SPRINT;
 
   const response = await fetchOverallCycleTime(
     { requestId, resourceId: projectId },
     projectId,
     orgId,
-    type,
     sprintIds,
     versionIds
   );

@@ -76,12 +76,8 @@ export const CycleTimeOverallValidator = {
           type: 'string',
           pattern: '^jira_version_\\d+(,jira_version_\\d+)*$',
         },
-        type: {
-          type: 'string',
-          enum: Object.values(Jira.Enums.JiraFilterType),
-        },
       },
-      required: ['orgId', 'projectId', 'type'],
+      required: ['orgId', 'projectId'],
     },
   },
 };
@@ -107,14 +103,13 @@ export const CycleTimeSummaryValidator = {
         },
         sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
         sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
-        type: { type: 'string', enum: Object.values(Jira.Enums.JiraFilterType) },
-        view: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSummaryType) },
+        type: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSummaryType) },
         versionIds: {
           type: 'string',
           pattern: '^jira_version_\\d+(,jira_version_\\d+)*$',
         },
       },
-      required: ['orgId', 'projectId', 'type', 'view'],
+      required: ['orgId', 'projectId', 'type'],
     },
   },
 };
@@ -129,6 +124,10 @@ export const CycleTimeDetailedValidator = {
           type: 'string',
           pattern: '^jira_sprint_\\d+$',
         },
+        versionId: {
+          type: 'string',
+          pattern: '^jira_version_\\d+$',
+        },
         sortKey: { type: 'string', enum: Object.values(Jira.Enums.CycleTimeSortKey) },
         sortOrder: { type: 'string', enum: Object.values(['asc', 'desc']) },
         orgId: {
@@ -137,7 +136,7 @@ export const CycleTimeDetailedValidator = {
             '^jira_org_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
         },
       },
-      required: ['sprintId', 'orgId'],
+      required: ['orgId'],
     },
   },
 };
