@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.22.3](https://github.com/studiographene/pulse-data-integration/compare/v1.22.2...v1.22.3) (2025-03-27)
+
+
+### Bug Fixes
+
+* **PX-2334:** fix average ([be9d7fd](https://github.com/studiographene/pulse-data-integration/commit/be9d7fd926fa8771a3a3a1bd2fda11a1c7594fc1))
+* **PX-2334:** fix average ([#1125](https://github.com/studiographene/pulse-data-integration/issues/1125)) ([a95e339](https://github.com/studiographene/pulse-data-integration/commit/a95e339de70befcde6ed8859839163772297ea4d))
+
 ## [1.22.2](https://github.com/studiographene/pulse-data-integration/compare/v1.22.1...v1.22.2) (2025-03-27)
 
 
