@@ -620,16 +620,7 @@ export function createVersionQuery(
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
           esb.boolQuery().should(dateRange).minimumShouldMatch(1),
-          esb
-            .boolQuery()
-            .must(
-              state
-                ? esb.termQuery('body.status', state)
-                : esb.termsQuery('body.status', [
-                    Jira.Enums.State.RELEASED,
-                    Jira.Enums.State.UNRELEASED,
-                  ])
-            ),
+          esb.boolQuery().must(esb.termsQuery('body.status', state)),
         ])
     )
     .sort(esb.sort('body.startDate', 'desc'));
@@ -750,13 +741,7 @@ export function createSprintQuery(
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
           esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
-          esb
-            .boolQuery()
-            .must(
-              state
-                ? esb.termQuery('body.state', state)
-                : esb.termsQuery('body.state', [Jira.Enums.State.CLOSED, Jira.Enums.State.ACTIVE])
-            ),
+          esb.boolQuery().must(esb.termsQuery('body.state', state)),
         ])
     )
     .sort(esb.sort('body.sprintId'));
