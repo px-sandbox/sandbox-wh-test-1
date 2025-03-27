@@ -53,7 +53,7 @@ export async function sprintHitsResponse(
   projectId: string,
   dateRangeQueries: esb.RangeQuery[],
   reqCtx: Other.Type.RequestCtx,
-  state?: string
+  state: string
 ): Promise<{
   sprintHits: [] | (Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody)[];
   totalPages: number;
@@ -69,9 +69,7 @@ export async function sprintHitsResponse(
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
           esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
-          state
-            ? esb.termQuery('body.state', state)
-            : esb.termsQuery('body.state', [Jira.Enums.State.CLOSED, Jira.Enums.State.ACTIVE]),
+          esb.termQuery('body.state', state),
         ])
     )
     .sort(esb.sort('body.startDate', 'desc'))
@@ -110,12 +108,7 @@ export async function versionHitsResponse(
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
           esb.boolQuery().should(dateRangeQuery).minimumShouldMatch(1),
-          versionState
-            ? esb.termQuery('body.status', versionState)
-            : esb.termsQuery('body.status', [
-                Jira.Enums.State.RELEASED,
-                Jira.Enums.State.UNRELEASED,
-              ]),
+          esb.termQuery('body.status', versionState),
         ])
     )
     .sort(esb.sort('body.startDate', 'desc'))
@@ -143,6 +136,7 @@ async function estimateActualGraphResponse(
   sortKey: Jira.Enums.IssueTimeTracker,
   sortOrder: 'desc' | 'asc',
   reqCtx: Other.Type.RequestCtx,
+  type: Jira.Enums.JiraFilterType,
   sprintIds: string[],
   versionIds: string[]
 ): Promise<{
@@ -153,7 +147,7 @@ async function estimateActualGraphResponse(
     .requestBodySearch()
     .size(0)
     .agg(
-      sprintIds.length > 0
+      type === Jira.Enums.JiraFilterType.SPRINT
         ? esb
             .termsAggregation('sprint_aggregation', 'body.sprintId')
             .order(sortKey, sortOrder)
@@ -175,7 +169,7 @@ async function estimateActualGraphResponse(
       esb
         .boolQuery()
         .must([
-          sprintIds.length > 0
+          type === Jira.Enums.JiraFilterType.SPRINT
             ? esb.termsQuery('body.sprintId', sprintIds)
             : esb.termsQuery('body.fixVersion', versionIds),
           esb.termQuery('body.isDeleted', false),
@@ -200,6 +194,7 @@ async function estimateActualGraphResponse(
 
 async function countIssuesWithZeroEstimates(
   reqCtx: Other.Type.RequestCtx,
+  type: Jira.Enums.JiraFilterType,
   sprintIds: string[],
   versionIds: string[]
 ): Promise<{
@@ -214,7 +209,7 @@ async function countIssuesWithZeroEstimates(
     .requestBodySearch()
     .size(0)
     .agg(
-      sprintIds.length > 0
+      type === Jira.Enums.JiraFilterType.SPRINT
         ? esb.termsAggregation('sprint_aggregation', 'body.sprintId')
         : esb.termsAggregation('version_aggregation', 'body.fixVersion')
     )
@@ -222,7 +217,7 @@ async function countIssuesWithZeroEstimates(
       esb
         .boolQuery()
         .must([
-          sprintIds.length > 0
+          type === Jira.Enums.JiraFilterType.SPRINT
             ? esb.termsQuery('body.sprintId', sprintIds)
             : esb.termsQuery('body.fixVersion', versionIds),
           esb.termQuery('body.isDeleted', false),
@@ -376,7 +371,8 @@ export function getBugIssueLinksKeys(issueLinks: Jira.Type.IssueLinks[]): string
 async function getBugTimeForSprint(
   sprintId: string,
   versionIds: string,
-  reqCtx: Other.Type.RequestCtx
+  reqCtx: Other.Type.RequestCtx,
+  type: Jira.Enums.JiraFilterType
 ): Promise<{
   actual: { value: number };
 }> {
@@ -387,7 +383,7 @@ async function getBugTimeForSprint(
       esb
         .boolQuery()
         .must([
-          sprintId.length > 0
+          type === Jira.Enums.JiraFilterType.SPRINT
             ? esb.termQuery('body.sprintId', sprintId)
             : esb.termsQuery('body.fixVersion', versionIds),
           esb.termQuery('body.isDeleted', false),
@@ -558,7 +554,8 @@ async function processVersionDataWithEstimates(
   sortKey: Jira.Enums.IssueTimeTracker,
   sortOrder: 'asc' | 'desc',
   orgName: string,
-  projectKey: string
+  projectKey: string,
+  type: Jira.Enums.JiraFilterType
 ): Promise<{ data: SprintVariance[]; totalPages: number; page: number }> {
   const { versionData, versionIds, totalPages } = await processVersionData(
     limit,
@@ -573,14 +570,15 @@ async function processVersionDataWithEstimates(
     sortKey,
     sortOrder,
     reqCtx,
+    type,
     [],
     versionIds
   );
 
-  const issueWithZeroEstimate = await countIssuesWithZeroEstimates(reqCtx, [], versionIds);
+  const issueWithZeroEstimate = await countIssuesWithZeroEstimates(reqCtx, type, [], versionIds);
   const bugTime: [{ versionId: string; bugTime: number }] = (await Promise.all(
     versionIds.map(async (versionId: string) => {
-      const bugTimeForVersion = await getBugTimeForSprint('', versionId, reqCtx);
+      const bugTimeForVersion = await getBugTimeForSprint('', versionId, reqCtx, type);
       return { versionId, bugTime: bugTimeForVersion.actual.value };
     })
   )) as [{ versionId: string; bugTime: number }];
@@ -679,13 +677,14 @@ export async function sprintVarianceGraph(
         sortKey,
         sortOrder,
         reqCtx,
+        type,
         sprintIds,
         []
       );
-      const issueWithZeroEstimate = await countIssuesWithZeroEstimates(reqCtx, sprintIds, []);
+      const issueWithZeroEstimate = await countIssuesWithZeroEstimates(reqCtx, type, sprintIds, []);
       const bugTime: [{ sprintId: string; bugTime: number }] = (await Promise.all(
         sprintIds.map(async (sprintId: string) => {
-          const bugTimeForSprint = await getBugTimeForSprint(sprintId, '', reqCtx);
+          const bugTimeForSprint = await getBugTimeForSprint(sprintId, '', reqCtx, type);
           return { sprintId, bugTime: bugTimeForSprint.actual.value };
         })
       )) as [{ sprintId: string; bugTime: number }];
@@ -716,7 +715,8 @@ export async function sprintVarianceGraph(
         sortKey,
         sortOrder,
         orgName,
-        projectKey
+        projectKey,
+        type
       );
     }
     return {
