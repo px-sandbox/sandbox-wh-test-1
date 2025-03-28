@@ -10,7 +10,6 @@ function getCycleTimeDetailQuery(
   orgId: string,
   sortKey: Jira.Enums.CycleTimeDetailSortKey,
   sortOrder: 'asc' | 'desc',
-  type: Jira.Enums.JiraFilterType,
   sprintId?: string,
   versionId?: string
 ): esb.RequestBodySearch {
@@ -33,7 +32,7 @@ function getCycleTimeDetailQuery(
       esb
         .boolQuery()
         .must([
-          type === Jira.Enums.JiraFilterType.SPRINT
+          sprintId && sprintId.length > 0
             ? esb.termQuery('body.sprintId', sprintId)
             : esb.termQuery('body.fixVersion', versionId),
           esb.termQuery('body.organizationId', orgId),
@@ -65,7 +64,6 @@ export async function fetchCycleTimeDetailed(
   orgId: string,
   sortKey: Jira.Enums.CycleTimeDetailSortKey,
   sortOrder: 'asc' | 'desc',
-  type: Jira.Enums.JiraFilterType,
   sprintId?: string,
   versionId?: string
 ): Promise<Jira.Type.CycleTimeDetailedType[]> {
@@ -73,7 +71,6 @@ export async function fetchCycleTimeDetailed(
     orgId,
     sortKey,
     sortOrder,
-    type,
     sprintId,
     versionId
   );
