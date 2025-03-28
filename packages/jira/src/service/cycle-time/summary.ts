@@ -18,16 +18,11 @@ const summary = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResu
   const sprintIds: string[] = event.queryStringParameters?.sprintIds?.split(',') || [];
   const versionIds = event.queryStringParameters?.versionIds?.split(',') || [];
   const type =
-    (event.queryStringParameters?.type as Jira.Enums.JiraFilterType) ??
-    Jira.Enums.JiraFilterType.SPRINT;
-  const view =
-    (event.queryStringParameters?.view as Jira.Enums.CycleTimeSummaryType) ??
+    (event.queryStringParameters?.type as Jira.Enums.CycleTimeSummaryType) ??
     Jira.Enums.CycleTimeSummaryType.GRAPH;
-
   const ids = await fetchSprintsOrVersions(
     projectId,
     orgId,
-    type,
     { requestId, resourceId: projectId },
     sprintIds,
     versionIds
@@ -45,13 +40,13 @@ const summary = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResu
       .setStatusCode(HttpStatusCode['200'])
       .send();
   }
-  if (type === Jira.Enums.JiraFilterType.SPRINT) {
+  if (sprintIds && sprintIds.length > 0) {
     sprintLevelSummary = await sprintLevelSummaryCalc(ids as SprintMapping[], orgId);
   } else {
     sprintLevelSummary = await versionLevelSummaryCalc(ids as VersionMapping[], orgId);
   }
 
-  if (view === Jira.Enums.CycleTimeSummaryType.TABLE && sprintLevelSummary) {
+  if (type === Jira.Enums.CycleTimeSummaryType.TABLE && sprintLevelSummary) {
     const response = overallSummary(sprintLevelSummary, { requestId, resourceId: projectId });
     return responseParser
       .setBody(response)
