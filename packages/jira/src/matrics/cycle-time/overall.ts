@@ -1,9 +1,9 @@
 /* eslint-disable no-await-in-loop */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
-import esb from 'elastic-builder';
 import { logger } from 'core';
-import { VersionMapping, SprintMapping } from 'abstraction/jira/enums/sprints';
+import esb from 'elastic-builder';
+import { SprintMapping, VersionMapping } from 'abstraction/jira/enums/sprints';
 import { searchedDataFormator } from '../../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
@@ -38,7 +38,8 @@ async function fetchSprints(
     )
     .sort(esb.sort('body.startDate', 'desc'))
     .toJSON();
-  return searchedDataFormator(await esClientObj.search(Jira.Enums.IndexName.Sprint, sprintsQuery));
+  const res = await esClientObj.search(Jira.Enums.IndexName.Sprint, sprintsQuery);
+  return searchedDataFormator(res);
 }
 
 async function fetchVersions(
@@ -156,6 +157,7 @@ function getCycleTimeQuery(
 ): esb.RequestBodySearch {
   return esb
     .requestBodySearch()
+    .size(0)
     .query(
       esb
         .boolQuery()
@@ -169,7 +171,11 @@ function getCycleTimeQuery(
     )
     .agg(
       type === Jira.Enums.JiraFilterType.SPRINT
-        ? esb.termsAggregation('sprints', 'body.sprintId')
+        ? esb
+            .termsAggregation('sprints', 'body.sprintId')
+            .agg(esb.sumAggregation('total_development', 'body.development.total'))
+            .agg(esb.sumAggregation('total_qa', 'body.qa.total'))
+            .agg(esb.sumAggregation('total_deployment', 'body.deployment.total'))
         : esb
             .termsAggregation('versions', 'body.fixVersion')
             .agg(esb.sumAggregation('total_development', 'body.development.total'))
@@ -188,7 +194,7 @@ function getCycleTimeQuery(
 export async function calculateCycleTime(
   orgId: string,
   ids: string[],
-  isSprint: { isSprint: boolean }
+  isSprint: boolean
 ): Promise<number> {
   let cycleTimeQuery: esb.RequestBodySearch = esb.requestBodySearch();
   if (isSprint) {
@@ -206,6 +212,12 @@ export async function calculateCycleTime(
 
   if (result?.sprints?.buckets) {
     for (const bucket of result.sprints.buckets) {
+      const totalTime =
+        bucket.total_development.value + bucket.total_qa.value + bucket.total_deployment.value;
+      overallTime += totalTime / bucket.doc_count;
+    }
+  } else if (result?.versions?.buckets) {
+    for (const bucket of result.versions.buckets) {
       const totalTime =
         bucket.total_development.value + bucket.total_qa.value + bucket.total_deployment.value;
       overallTime += totalTime / bucket.doc_count;

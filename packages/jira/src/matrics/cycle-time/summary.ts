@@ -15,7 +15,43 @@ function getQuery(
 ): esb.RequestBodySearch {
   const baseAgg =
     type === Jira.Enums.JiraFilterType.SPRINT
-      ? esb.termsAggregation('sprints', 'body.sprintId')
+      ? esb
+          .termsAggregation('sprints', 'body.sprintId')
+          .size(ids.length)
+          .agg(esb.avgAggregation('avg_development_coding', 'body.development.coding'))
+          .agg(esb.avgAggregation('avg_development_pickup', 'body.development.pickup'))
+          .agg(esb.avgAggregation('avg_development_handover', 'body.development.handover'))
+          .agg(esb.avgAggregation('avg_development_review', 'body.development.review'))
+          .agg(esb.avgAggregation('avg_development_total', 'body.development.total'))
+
+          .agg(esb.avgAggregation('avg_qa_pickup', 'body.qa.pickup'))
+          .agg(esb.avgAggregation('avg_qa_testing', 'body.qa.testing'))
+          .agg(esb.avgAggregation('avg_qa_handover', 'body.qa.handover'))
+          .agg(esb.avgAggregation('avg_qa_total', 'body.qa.total'))
+
+          .agg(esb.avgAggregation('avg_deployment_total', 'body.deployment.total'))
+
+          .agg(
+            esb
+              .bucketScriptAggregation('overall')
+              .bucketsPath({
+                devTotal: 'avg_development_total',
+                qaTotal: 'avg_qa_total',
+                depTotal: 'avg_deployment_total',
+              })
+              .script('params.devTotal + params.qaTotal + params.depTotal')
+          )
+
+          .agg(
+            esb
+              .bucketScriptAggregation('overallWithoutDeployment')
+              .bucketsPath({
+                devTotal: 'avg_development_total',
+                qaTotal: 'avg_qa_total',
+                depTotal: 'avg_deployment_total',
+              })
+              .script('params.devTotal + params.qaTotal')
+          )
       : esb
           .termsAggregation('versions', 'body.fixVersion.keyword')
           .size(ids.length)

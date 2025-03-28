@@ -23,7 +23,8 @@ async function fetchOverallCycleTime(
   versionIds?: string[]
 ): Promise<number> {
   const ids = await fetchSprintOrVersionIds(projectId, orgId, reqCtx, sprintIds, versionIds);
-  return calculateCycleTime(orgId, ids, { isSprint: (sprintIds && sprintIds.length > 0) ?? false });
+  const isSprint = (sprintIds && sprintIds.length > 0) ?? false;
+  return calculateCycleTime(orgId, ids, isSprint);
 }
 
 export const cycleTimeOverall = async (
