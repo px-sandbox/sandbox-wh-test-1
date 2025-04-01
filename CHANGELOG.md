@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.1](https://github.com/studiographene/pulse-data-integration/compare/v1.23.0...v1.23.1) (2025-04-01)
+
+
+### Bug Fixes
+
+* **PX-5333-2:** fix ([5429a22](https://github.com/studiographene/pulse-data-integration/commit/5429a22b92b15a38ec02d292c8fba94696c9173d))
+
 ## [1.23.0](https://github.com/studiographene/pulse-data-integration/compare/v1.22.4...v1.23.0) (2025-04-01)
 
 
