@@ -1,9 +1,9 @@
 /* eslint-disable no-await-in-loop */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
-import esb from 'elastic-builder';
 import { logger } from 'core';
-import { VersionMapping, SprintMapping } from 'abstraction/jira/enums/sprints';
+import esb from 'elastic-builder';
+import { SprintMapping, VersionMapping } from 'abstraction/jira/enums/sprints';
 import { searchedDataFormator } from '../../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
@@ -38,7 +38,8 @@ async function fetchSprints(
     )
     .sort(esb.sort('body.startDate', 'desc'))
     .toJSON();
-  return searchedDataFormator(await esClientObj.search(Jira.Enums.IndexName.Sprint, sprintsQuery));
+  const res = await esClientObj.search(Jira.Enums.IndexName.Sprint, sprintsQuery);
+  return searchedDataFormator(res);
 }
 
 async function fetchVersions(
@@ -78,22 +79,21 @@ async function fetchVersions(
 export async function fetchSprintOrVersionIds(
   projectId: string,
   orgId: string,
-  type: Jira.Enums.JiraFilterType,
   reqCtx: Other.Type.RequestCtx,
   sprintIds?: string[],
   versionIds?: string[]
 ): Promise<string[]> {
   logger.info({
     message: 'Fetching sprints from ES for project',
-    data: { projectId, type },
+    data: { projectId, sprintIds, versionIds },
     ...reqCtx,
   });
-  if (type === Jira.Enums.JiraFilterType.SPRINT && sprintIds) {
+  if (sprintIds && sprintIds.length > 0) {
     const sprints = await fetchSprints(projectId, sprintIds, orgId);
     if (!sprints?.length) return [];
     return sprints.map((sprint) => sprint.id);
   }
-  if (type === Jira.Enums.JiraFilterType.VERSION && versionIds) {
+  if (versionIds && versionIds.length > 0) {
     const versions = await fetchVersions(projectId, versionIds, orgId);
     if (!versions?.length) return [];
     return versions.map((version) => version.id);
@@ -113,17 +113,16 @@ export async function fetchSprintOrVersionIds(
 export async function fetchSprintsOrVersions(
   projectId: string,
   orgId: string,
-  type: Jira.Enums.JiraFilterType,
   reqCtx: Other.Type.RequestCtx,
   sprintIds?: string[],
   versionIds?: string[]
 ): Promise<SprintMapping[] | VersionMapping[]> {
   logger.info({
     message: 'Fetching sprints or versions from ES for project',
-    data: { projectId, type, sprintIds, versionIds },
+    data: { projectId, sprintIds, versionIds },
     ...reqCtx,
   });
-  if (type === Jira.Enums.JiraFilterType.SPRINT && sprintIds) {
+  if (sprintIds && sprintIds.length > 0) {
     const sprints = await fetchSprints(projectId, sprintIds, orgId);
     return sprints.map((sprint) => ({
       sprintId: sprint.id,
@@ -133,7 +132,7 @@ export async function fetchSprintsOrVersions(
       endDate: sprint.endDate,
     }));
   }
-  if (type === Jira.Enums.JiraFilterType.VERSION && versionIds) {
+  if (versionIds && versionIds.length > 0) {
     const versions = await fetchVersions(projectId, versionIds, orgId);
     return versions.map((version) => ({
       versionId: version.id,
@@ -158,6 +157,7 @@ function getCycleTimeQuery(
 ): esb.RequestBodySearch {
   return esb
     .requestBodySearch()
+    .size(0)
     .query(
       esb
         .boolQuery()
@@ -171,7 +171,11 @@ function getCycleTimeQuery(
     )
     .agg(
       type === Jira.Enums.JiraFilterType.SPRINT
-        ? esb.termsAggregation('sprints', 'body.sprintId')
+        ? esb
+            .termsAggregation('sprints', 'body.sprintId')
+            .agg(esb.sumAggregation('total_development', 'body.development.total'))
+            .agg(esb.sumAggregation('total_qa', 'body.qa.total'))
+            .agg(esb.sumAggregation('total_deployment', 'body.deployment.total'))
         : esb
             .termsAggregation('versions', 'body.fixVersion')
             .agg(esb.sumAggregation('total_development', 'body.development.total'))
@@ -188,16 +192,15 @@ function getCycleTimeQuery(
  * @returns The overall cycle time as a number.
  */
 export async function calculateCycleTime(
-  type: Jira.Enums.JiraFilterType,
   orgId: string,
-  ids: string[]
+  ids: string[],
+  isSprint: boolean
 ): Promise<number> {
   let cycleTimeQuery: esb.RequestBodySearch = esb.requestBodySearch();
-  if (type === Jira.Enums.JiraFilterType.SPRINT) {
-    cycleTimeQuery = getCycleTimeQuery(type, orgId, ids);
-  }
-  if (type === Jira.Enums.JiraFilterType.VERSION) {
-    cycleTimeQuery = getCycleTimeQuery(type, orgId, ids);
+  if (isSprint) {
+    cycleTimeQuery = getCycleTimeQuery(Jira.Enums.JiraFilterType.SPRINT, orgId, ids);
+  } else {
+    cycleTimeQuery = getCycleTimeQuery(Jira.Enums.JiraFilterType.VERSION, orgId, ids);
   }
 
   const result = await esClientObj.queryAggs<Jira.Type.CycleTimeAggregationResult>(
@@ -209,6 +212,12 @@ export async function calculateCycleTime(
 
   if (result?.sprints?.buckets) {
     for (const bucket of result.sprints.buckets) {
+      const totalTime =
+        bucket.total_development.value + bucket.total_qa.value + bucket.total_deployment.value;
+      overallTime += totalTime / bucket.doc_count;
+    }
+  } else if (result?.versions?.buckets) {
+    for (const bucket of result.versions.buckets) {
       const totalTime =
         bucket.total_development.value + bucket.total_qa.value + bucket.total_deployment.value;
       overallTime += totalTime / bucket.doc_count;

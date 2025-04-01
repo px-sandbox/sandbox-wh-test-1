@@ -1,5 +1,4 @@
 import { transpileSchema } from '@middy/validator/transpile';
-import { Jira } from 'abstraction';
 import { CycleTimeDetailSortKey } from 'abstraction/jira/enums';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, responseParser } from 'core';
@@ -10,9 +9,6 @@ const cycleTimeDetailed = async (event: APIGatewayProxyEvent): Promise<APIGatewa
   const { requestId } = event.requestContext;
   const sprintId = event.queryStringParameters?.sprintId ?? '';
   const versionId = event.queryStringParameters?.versionId ?? '';
-  const type: Jira.Enums.JiraFilterType =
-    (event.queryStringParameters?.type as Jira.Enums.JiraFilterType) ??
-    Jira.Enums.JiraFilterType.SPRINT;
   const orgId = event.queryStringParameters?.orgId ?? '';
   const sortKey =
     (event.queryStringParameters?.sortKey as CycleTimeDetailSortKey) ??
@@ -23,7 +19,6 @@ const cycleTimeDetailed = async (event: APIGatewayProxyEvent): Promise<APIGatewa
     orgId,
     sortKey,
     sortOrder,
-    type,
     sprintId,
     versionId
   );
