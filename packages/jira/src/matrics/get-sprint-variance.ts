@@ -606,13 +606,14 @@ async function processVersionDataWithEstimates(
   };
 }
 
-export function createVersionQuery(
+export async function createVersionQuery(
   projectId: string,
   dateRange: esb.RangeQuery[],
-  state?: Jira.Enums.State
-): RequestBodySearch {
-  return esb
+  state: Jira.Enums.State
+): Promise<RequestBodySearch> {
+  const query = esb
     .requestBodySearch()
+    .size(1000)
     .query(
       esb
         .boolQuery()
@@ -620,10 +621,13 @@ export function createVersionQuery(
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
           esb.boolQuery().should(dateRange).minimumShouldMatch(1),
-          esb.boolQuery().must(esb.termsQuery('body.status', state)),
+          esb.termsQuery('body.status', state.split(',')),
         ])
     )
-    .sort(esb.sort('body.startDate', 'desc'));
+    .sort(esb.sort('body.startDate', 'desc'))
+    .toJSON();
+  const res = await esClientObj.search(Jira.Enums.IndexName.Version, query);
+  return res;
 }
 
 export async function sprintVarianceGraph(
@@ -847,8 +851,9 @@ export async function sprintVarianceGraphAvg(
       return await calculateVariance(sprintIdsArr, reqCtx);
     }
     if (type === Jira.Enums.JiraFilterType.VERSION) {
-      const versionQuery = createVersionQuery(projectId, datesForVersion, state);
-      const versionIdsArr = await paginateIds(Jira.Enums.IndexName.Version, versionQuery);
+      const versionQuery = await createVersionQuery(projectId, datesForVersion, state);
+      const versionQueryRes = await searchedDataFormator(versionQuery);
+      const versionIdsArr = versionQueryRes.map((item) => item.id);
       logger.info({ ...reqCtx, message: 'versionIds', data: { versionIdsArr } });
       return await calculateVariance(versionIdsArr, reqCtx);
     }
