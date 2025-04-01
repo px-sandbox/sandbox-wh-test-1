@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.23.0](https://github.com/studiographene/pulse-data-integration/compare/v1.22.4...v1.23.0) (2025-04-01)
+
+
+### Features
+
+* **PX-2545:** api for trends workbreakdown ([#1124](https://github.com/studiographene/pulse-data-integration/issues/1124)) ([aa8586f](https://github.com/studiographene/pulse-data-integration/commit/aa8586fe6735651560b56627b175472929a33391))
+
+## [1.22.4](https://github.com/studiographene/pulse-data-integration/compare/v1.22.3...v1.22.4) (2025-03-28)
+
+
+### Bug Fixes
+
+* **PX-2559:** cycle time fixes ([670c435](https://github.com/studiographene/pulse-data-integration/commit/670c435ca327d17292df79cffd7f856e91669b44))
+
 ## [1.22.3](https://github.com/studiographene/pulse-data-integration/compare/v1.22.2...v1.22.3) (2025-03-27)
 
 
