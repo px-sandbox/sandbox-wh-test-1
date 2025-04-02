@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.23.3](https://github.com/studiographene/pulse-data-integration/compare/v1.23.2...v1.23.3) (2025-04-02)
+
+
+### Bug Fixes
+
+* **PX-3333-2:** fix sprint variance ([9ce0315](https://github.com/studiographene/pulse-data-integration/commit/9ce0315fbdfff772f0ed9c717369b22a63f78237))
+* **PX-3333-2:** fix sprint variance ([#1133](https://github.com/studiographene/pulse-data-integration/issues/1133)) ([351f786](https://github.com/studiographene/pulse-data-integration/commit/351f7867f38dff1afbcd8b323ec07a7dd18ea282))
+
 ## [1.23.2](https://github.com/studiographene/pulse-data-integration/compare/v1.23.1...v1.23.2) (2025-04-02)
 
 
