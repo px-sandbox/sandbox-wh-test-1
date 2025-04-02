@@ -734,7 +734,7 @@ export async function sprintVarianceGraph(
 export function createSprintQuery(
   projectId: string,
   dateRangeQueries: esb.RangeQuery[],
-  state?: Jira.Enums.State
+  state: Jira.Enums.State
 ): RequestBodySearch {
   return esb
     .requestBodySearch()
@@ -745,7 +745,7 @@ export function createSprintQuery(
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
           esb.boolQuery().should(dateRangeQueries).minimumShouldMatch(1),
-          esb.boolQuery().must(esb.termsQuery('body.state', state)),
+          esb.boolQuery().must(esb.termsQuery('body.state', state.split(','))),
         ])
     )
     .sort(esb.sort('body.sprintId'));
@@ -758,8 +758,8 @@ export function createSprintQuery(
  * @returns A promise that resolves to an object containing the estimated and actual time.
  */
 async function estimateAvgResponse(
-  sprintIdsArr: string[],
-  versionIdsArr: string[],
+  ids: string[],
+  type: string,
   reqCtx: Other.Type.RequestCtx
 ): Promise<{
   estimatedTime: { value: number };
@@ -776,9 +776,9 @@ async function estimateAvgResponse(
       esb
         .boolQuery()
         .must([
-          sprintIdsArr.length > 0
-            ? esb.termsQuery('body.sprintId', sprintIdsArr)
-            : esb.termsQuery('body.fixVersion', versionIdsArr),
+          type === Jira.Enums.JiraFilterType.SPRINT
+            ? esb.termsQuery('body.sprintId', ids)
+            : esb.termsQuery('body.fixVersion', ids),
           esb.termQuery('body.isDeleted', false),
         ])
         .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
@@ -815,8 +815,12 @@ async function paginateIds(
   } while (formattedIds?.length);
   return ids;
 }
-async function calculateVariance(ids: string[], reqCtx: Other.Type.RequestCtx): Promise<number> {
-  const estimateAvg = await estimateAvgResponse(ids, [], reqCtx);
+async function calculateVariance(
+  ids: string[],
+  type: string,
+  reqCtx: Other.Type.RequestCtx
+): Promise<number> {
+  const estimateAvg = await estimateAvgResponse(ids, type, reqCtx);
   return parseFloat(
     (estimateAvg.estimatedTime.value === 0
       ? 0
@@ -843,19 +847,20 @@ export async function sprintVarianceGraphAvg(
 ): Promise<number> {
   const dateRangeQueries = getDateRangeQueries(startDate, endDate);
   const datesForVersion = getDatesForVersion(startDate, endDate);
+
   try {
     if (type === Jira.Enums.JiraFilterType.SPRINT) {
       const sprintQuery = createSprintQuery(projectId, dateRangeQueries, state);
       const sprintIdsArr = await paginateIds(Jira.Enums.IndexName.Sprint, sprintQuery);
       logger.info({ ...reqCtx, message: 'sprintIds', data: { sprintIdsArr } });
-      return await calculateVariance(sprintIdsArr, reqCtx);
+      return await calculateVariance(sprintIdsArr, type, reqCtx);
     }
     if (type === Jira.Enums.JiraFilterType.VERSION) {
       const versionQuery = await createVersionQuery(projectId, datesForVersion, state);
       const versionQueryRes = await searchedDataFormator(versionQuery);
       const versionIdsArr = versionQueryRes.map((item) => item.id);
       logger.info({ ...reqCtx, message: 'versionIds', data: { versionIdsArr } });
-      return await calculateVariance(versionIdsArr, reqCtx);
+      return await calculateVariance(versionIdsArr, type, reqCtx);
     }
     return 0;
   } catch (e) {
