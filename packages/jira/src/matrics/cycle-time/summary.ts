@@ -53,7 +53,7 @@ function getQuery(
               .script('params.devTotal + params.qaTotal')
           )
       : esb
-          .termsAggregation('versions', 'body.fixVersion.keyword')
+          .termsAggregation('versions', 'body.fixVersion')
           .size(ids.length)
           .agg(esb.avgAggregation('avg_development_coding', 'body.development.coding'))
           .agg(esb.avgAggregation('avg_development_pickup', 'body.development.pickup'))
@@ -301,7 +301,6 @@ export async function versionLevelSummaryCalc(
     Jira.Enums.IndexName.CycleTime,
     summaryQuery.toJSON()
   );
-
   const response: Jira.Type.CycleTimeVersionSummary[] = [];
   if (versionArr.length > 0) {
     versionArr.map((versionId) => {
