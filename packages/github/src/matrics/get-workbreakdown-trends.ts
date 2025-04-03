@@ -3,6 +3,8 @@ import { IndexName as GithubIndices } from 'abstraction/github/enums';
 import { HitBody } from 'abstraction/other/type';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { logger } from 'core';
+import { processGraphInterval } from '../util/process-graph-intervals';
+import { esbDateHistogramInterval } from '../constant/config';
 
 const elasticsearchClient = ElasticSearchClient.getInstance();
 
@@ -21,49 +23,44 @@ export async function getWorkbreakdownTrends(
           esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
         ])
     )
-    .size(0)
+    .size(0);
+  const graphInterval = processGraphInterval(esbDateHistogramInterval.day, startDate, endDate);
+  query
     .agg(
-      esb
-        .dateHistogramAggregation('trends')
-        .field('body.createdAt')
-        .format('yyyy-MM-dd')
-        .fixedInterval('day')
-        .extendedBounds(startDate, endDate)
-        .minDocCount(0)
-        .aggs([
-          esb.sumAggregation('newWork', 'body.workbreakdown.newFeature'),
-          esb.sumAggregation('refactor', 'body.workbreakdown.refactor'),
-          esb.sumAggregation('rewrite', 'body.workbreakdown.rewrite'),
-          esb
-            .bucketScriptAggregation('total')
-            .script('params.newWork + params.refactor + params.rewrite')
-            .bucketsPath({
-              newWork: 'newWork',
-              refactor: 'refactor',
-              rewrite: 'rewrite',
-            }),
-          esb
-            .bucketScriptAggregation('newWorkPercentage')
-            .script('params.total > 0 ? (params.newWork / params.total) * 100 : 0')
-            .bucketsPath({
-              newWork: 'newWork',
-              total: 'total',
-            }),
-          esb
-            .bucketScriptAggregation('refactorPercentage')
-            .script('params.total > 0 ? (params.refactor / params.total) * 100 : 0')
-            .bucketsPath({
-              refactor: 'refactor',
-              total: 'total',
-            }),
-          esb
-            .bucketScriptAggregation('rewritePercentage')
-            .script('params.total > 0 ? (params.rewrite / params.total) * 100 : 0')
-            .bucketsPath({
-              rewrite: 'rewrite',
-              total: 'total',
-            }),
-        ])
+      graphInterval.aggs([
+        esb.sumAggregation('newWork', 'body.workbreakdown.newFeature'),
+        esb.sumAggregation('refactor', 'body.workbreakdown.refactor'),
+        esb.sumAggregation('rewrite', 'body.workbreakdown.rewrite'),
+        esb
+          .bucketScriptAggregation('total')
+          .script('params.newWork + params.refactor + params.rewrite')
+          .bucketsPath({
+            newWork: 'newWork',
+            refactor: 'refactor',
+            rewrite: 'rewrite',
+          }),
+        esb
+          .bucketScriptAggregation('newWorkPercentage')
+          .script('params.total > 0 ? (params.newWork / params.total) * 100 : 0')
+          .bucketsPath({
+            newWork: 'newWork',
+            total: 'total',
+          }),
+        esb
+          .bucketScriptAggregation('refactorPercentage')
+          .script('params.total > 0 ? (params.refactor / params.total) * 100 : 0')
+          .bucketsPath({
+            refactor: 'refactor',
+            total: 'total',
+          }),
+        esb
+          .bucketScriptAggregation('rewritePercentage')
+          .script('params.total > 0 ? (params.rewrite / params.total) * 100 : 0')
+          .bucketsPath({
+            rewrite: 'rewrite',
+            total: 'total',
+          }),
+      ])
     )
     .toJSON();
 
@@ -73,5 +70,18 @@ export async function getWorkbreakdownTrends(
   });
 
   const searchResult: HitBody = await elasticsearchClient.search(GithubIndices.GitCommits, query);
-  return searchResult;
+  const res = searchResult.aggregations?.commentsPerDay?.buckets?.map(
+    (bucket: {
+      key_as_string: string;
+      newWork: { value: number };
+      refactor: { value: number };
+      rewrite: { value: number };
+    }) => ({
+      date: bucket.key_as_string,
+      newWork: bucket.newWork.value,
+      refactor: bucket.refactor.value,
+      rewrite: bucket.rewrite.value,
+    })
+  );
+  return res;
 }
