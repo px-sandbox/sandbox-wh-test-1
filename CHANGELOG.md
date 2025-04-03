@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.23.4](https://github.com/studiographene/pulse-data-integration/compare/v1.23.3...v1.23.4) (2025-04-03)
+
+
+### Bug Fixes
+
+* **PX-3333-2:** fix params validation trends api ([156ebcf](https://github.com/studiographene/pulse-data-integration/commit/156ebcff7efbc68133f409262f9cc1aa957c6b36))
+* **PX-3333-2:** fix params validation trends api ([#1135](https://github.com/studiographene/pulse-data-integration/issues/1135)) ([a8585c5](https://github.com/studiographene/pulse-data-integration/commit/a8585c55da303e6fd8b13e3c45b1855f48e3c024))
+
 ## [1.23.3](https://github.com/studiographene/pulse-data-integration/compare/v1.23.2...v1.23.3) (2025-04-02)
 
 
