@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.23.5](https://github.com/studiographene/pulse-data-integration/compare/v1.23.4...v1.23.5) (2025-04-03)
+
+
+### Bug Fixes
+
+* **PX-3333:** workbreakdown trend response fix ([5d352ee](https://github.com/studiographene/pulse-data-integration/commit/5d352eefffdaa3e62334895a2dc3983709a35aa7))
+* **PX-3333:** workbreakdown trend response fix ([#1137](https://github.com/studiographene/pulse-data-integration/issues/1137)) ([63f8fe5](https://github.com/studiographene/pulse-data-integration/commit/63f8fe5ab654ff8dbbce13dc706a65c5a1de3bab))
+
 ## [1.23.4](https://github.com/studiographene/pulse-data-integration/compare/v1.23.3...v1.23.4) (2025-04-03)
 
 
