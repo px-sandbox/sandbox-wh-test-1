@@ -28,17 +28,21 @@ export async function mapRcaBucketsWithFullNames(): Promise<{ [key: string]: str
  * @param idType - Type of IDs (SPRINT or VERSION)
  * @returns Promise with headline data
  */
-export async function getHeadlineData(type: string, ids: string[], idType: FILTER_ID_TYPES): Promise<rcaTableHeadline> {
+export async function getHeadlineData(
+  type: string,
+  ids: string[],
+  idType: FILTER_ID_TYPES
+): Promise<rcaTableHeadline> {
   // Configuration for different ID types
   const idTypeConfig = {
     [FILTER_ID_TYPES.VERSION]: {
-      filterField: 'body.affectedVersion',
-      logMessage: 'issue headline by release query'
+      filterField: 'body.fixVersion',
+      logMessage: 'issue headline by release query',
     },
     [FILTER_ID_TYPES.SPRINT]: {
       filterField: 'body.sprintId',
-      logMessage: 'issue headline by sprint query'
-    }
+      logMessage: 'issue headline by sprint query',
+    },
   };
 
   // Get configuration for the requested ID type
@@ -99,15 +103,19 @@ export async function getHeadlineData(type: string, ids: string[], idType: FILTE
 /**
  * Build query for RCA table view based on ID type
  */
-export async function buildRcaTableViewQuery(ids: string[], idType: FILTER_ID_TYPES, type: string): Promise<object> {
+export async function buildRcaTableViewQuery(
+  ids: string[],
+  idType: FILTER_ID_TYPES,
+  type: string
+): Promise<object> {
   // Configuration for different ID types
   const idTypeConfig = {
     [FILTER_ID_TYPES.VERSION]: {
-      filterField: 'body.affectedVersion'
+      filterField: 'body.fixVersion',
     },
     [FILTER_ID_TYPES.SPRINT]: {
-      filterField: 'body.sprintId'
-    }
+      filterField: 'body.sprintId',
+    },
   };
 
   // Get configuration for the requested ID type
@@ -134,7 +142,11 @@ export async function buildRcaTableViewQuery(ids: string[], idType: FILTER_ID_TY
     .toJSON();
 }
 
-export async function rcaTableView(ids: string[], idType: FILTER_ID_TYPES, type: string): Promise<rcaTableView> {
+export async function rcaTableView(
+  ids: string[],
+  idType: FILTER_ID_TYPES,
+  type: string
+): Promise<rcaTableView> {
   // Build query based on ID type
   const query = await buildRcaTableViewQuery(ids, idType, type);
 
@@ -159,12 +171,12 @@ export async function rcaTableView(ids: string[], idType: FILTER_ID_TYPES, type:
         headlineRCA.global_agg.total_bug_count.doc_count === 0
           ? 0
           : parseFloat(
-            (
-              (headlineRCA.max_rca_count.value /
-                headlineRCA.global_agg.total_bug_count.doc_count) *
-              100
-            ).toFixed(2)
-          ),
+              (
+                (headlineRCA.max_rca_count.value /
+                  headlineRCA.global_agg.total_bug_count.doc_count) *
+                100
+              ).toFixed(2)
+            ),
       names: headlineRCANames,
     },
     tableData: data,
