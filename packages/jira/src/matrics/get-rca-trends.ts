@@ -102,7 +102,7 @@ async function getHeadline(
   // Configuration for different ID types
   const idTypeConfig = {
     [FILTER_ID_TYPES.VERSION]: {
-      filterField: 'body.affectedVersion',
+      filterField: 'body.fixVersion',
       logMessage: 'issue headline by release query',
     },
     [FILTER_ID_TYPES.SPRINT]: {

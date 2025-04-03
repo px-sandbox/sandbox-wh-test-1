@@ -38,13 +38,13 @@ function boolQuery(ids: string[], idType: FILTER_ID_TYPES): BoolQuery {
   // Configuration for different ID types
   const idTypeConfig = {
     [FILTER_ID_TYPES.VERSION]: {
-      filterField: 'body.affectedVersion',
-      logMessage: 'issue headline by release query'
+      filterField: 'body.fixVersion',
+      logMessage: 'issue headline by release query',
     },
     [FILTER_ID_TYPES.SPRINT]: {
       filterField: 'body.sprintId',
-      logMessage: 'issue headline by sprint query'
-    }
+      logMessage: 'issue headline by sprint query',
+    },
   };
 
   // Get configuration for the requested ID type
@@ -76,12 +76,12 @@ async function ftpGraphRateResponse(
   const config = {
     [FILTER_ID_TYPES.SPRINT]: {
       bucketField: 'body.sprintId',
-      bucketName: 'sprint_buckets'
+      bucketName: 'sprint_buckets',
     },
     [FILTER_ID_TYPES.VERSION]: {
-      bucketField: 'body.affectedVersion',
-      bucketName: 'version_buckets'
-    }
+      bucketField: 'body.fixVersion',
+      bucketName: 'version_buckets',
+    },
   };
 
   // Validate ID type
@@ -109,7 +109,6 @@ async function ftpGraphRateResponse(
   logger.info({ ...reqCtx, message: 'ftpRateGraphQuery', data: { ftpRateGraphQuery } });
 
   return esClientObj.queryAggs<IFtpRateResponse>(Jira.Enums.IndexName.Issue, ftpRateGraphQuery);
-
 }
 
 /**
@@ -119,7 +118,7 @@ async function getOrgAndProjectData(
   organizationId: string,
   projectId: string,
   reqCtx: Other.Type.RequestCtx
-): Promise<{ orgName: string, projectKey: string }> {
+): Promise<{ orgName: string; projectKey: string }> {
   const query = esb.requestBodySearch().query(esb.termQuery('body.id', projectId)).toJSON();
   const [orgData, projects] = await Promise.all([
     getOrganizationById(organizationId),
@@ -138,23 +137,24 @@ async function getOrgAndProjectData(
 
   return {
     orgName: orgData[0].name,
-    projectKey: projectData[0].key
+    projectKey: projectData[0].key,
   };
 }
 
 /**
  * Calculates FTP metrics from bucket data
  */
-function calculateFtpMetrics(
-  ftpData: FtpBucket | undefined
-): { total: number, totalFtp: number, percentValue: number } {
+function calculateFtpMetrics(ftpData: FtpBucket | undefined): {
+  total: number;
+  totalFtp: number;
+  percentValue: number;
+} {
   const total = ftpData?.doc_count ?? 0;
   const totalFtp = ftpData?.isFTP_true_count?.doc_count ?? 0;
   const percentValue = totalFtp === 0 || total === 0 ? 0 : (totalFtp / total) * 100;
 
   return { total, totalFtp, percentValue };
 }
-
 
 /**
  * Processes version data
@@ -268,8 +268,9 @@ export async function ftpRateGraph(
     }
 
     // Sort and filter results
-    response = _.sortBy(response, [(item: IssueResponse): Date => new Date(item.startDate)])
-      .reverse();
+    response = _.sortBy(response, [
+      (item: IssueResponse): Date => new Date(item.startDate),
+    ]).reverse();
     logger.info({ ...reqCtx, message: 'response', data: response });
     return response;
   } catch (e) {
@@ -323,12 +324,12 @@ export async function ftpRateGraphAvg(
         ftpRateGraphResponse.aggregations.isFTP_true_count.doc_count === 0
           ? 0
           : Number(
-            (
-              (ftpRateGraphResponse.aggregations.isFTP_true_count.doc_count /
-                ftpRateGraphResponse.hits.total.value) *
-              100
-            ).toFixed(2)
-          ),
+              (
+                (ftpRateGraphResponse.aggregations.isFTP_true_count.doc_count /
+                  ftpRateGraphResponse.hits.total.value) *
+                100
+              ).toFixed(2)
+            ),
     };
   } catch (e) {
     logger.error({ ...reqCtx, message: 'ftpRateGraphQuery.error', error: e });

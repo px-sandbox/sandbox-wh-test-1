@@ -8,15 +8,19 @@ import { mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
 
 const esClient = ElasticSearchClient.getInstance();
 
-export async function rcaDetailedView(ids: string[], idType: FILTER_ID_TYPES, type: string): Promise<rcaDetailType[]> {
+export async function rcaDetailedView(
+  ids: string[],
+  idType: FILTER_ID_TYPES,
+  type: string
+): Promise<rcaDetailType[]> {
   // Configuration for different ID types
   const idTypeConfig = {
     [FILTER_ID_TYPES.VERSION]: {
-      filterField: 'body.affectedVersion'
+      filterField: 'body.fixVersion',
     },
     [FILTER_ID_TYPES.SPRINT]: {
-      filterField: 'body.sprintId'
-    }
+      filterField: 'body.sprintId',
+    },
   };
 
   // Get configuration for the requested ID type
@@ -52,7 +56,7 @@ export async function rcaDetailedView(ids: string[], idType: FILTER_ID_TYPES, ty
         ])
     )
     .toJSON();
-  logger.info({ message: "rca data detail query", data: query });
+  logger.info({ message: 'rca data detail query', data: query });
   const response: rcaDetailResponse = await esClient.queryAggs(Jira.Enums.IndexName.Issue, query);
   const updatedQaRcaBuckets = await mapRcaBucketsWithFullNames();
 
