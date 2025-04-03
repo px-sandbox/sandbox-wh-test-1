@@ -1,10 +1,10 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, logger, responseParser } from 'core';
 import middy, { Request } from '@middy/core';
 import validator from '@middy/validator';
 import { transpileSchema } from '@middy/validator/transpile';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { HttpStatusCode, logger, responseParser } from 'core';
+import { getWorkbreakdownTrends } from '../matrics/get-workbreakdown-trends';
 import { workbreakdownGraphSchema } from '../schema/workbreakdown-graph';
-import { getTotalWorkbreakdown } from '../matrics/get-total-work-break-down';
 
 const baseHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const { requestId } = event.requestContext;
@@ -22,22 +22,16 @@ const baseHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       requestId,
     });
 
-    const searchResult = await getTotalWorkbreakdown(repoIdList, startDate, endDate);
-
-    const trendsData = {
-      refactor: Math.round(searchResult.aggregations?.refactor?.value || 0),
-      rewrite: Math.round(searchResult.aggregations?.rewrite?.value || 0),
-      newWork: Math.round(searchResult.aggregations?.newWork?.value || 0),
-    };
+    const searchResult = await getWorkbreakdownTrends(repoIdList, startDate, endDate);
 
     logger.info({
       message: 'workbreakdownTrends.success',
-      data: trendsData,
+      data: searchResult,
       requestId,
     });
 
     return responseParser
-      .setBody({ data: trendsData })
+      .setBody({ data: searchResult })
       .setMessage('Workbreakdown trends data fetched successfully')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')
