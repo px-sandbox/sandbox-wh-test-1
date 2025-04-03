@@ -10,20 +10,18 @@ export const workbreakdownGraphSchema = {
       properties: {
         repoIds: {
           type: 'string',
-          pattern: '^gh_repo_[0-9]+(,gh_repo_[0-9]+)*$' // Validates gh_repo_id format
+          pattern: '^gh_repo_[0-9]+(,gh_repo_[0-9]+)*$', // Validates gh_repo_id format
         },
         startDate: {
           type: 'string',
-          pattern: '^20[0-9]{2}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$'
         },
         endDate: {
           type: 'string',
-          pattern: '^20[0-9]{2}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$',
-          default: tomorrow
-        }
+          default: tomorrow,
+        },
       },
       required: ['repoIds', 'startDate'],
-      additionalProperties: false
-    }
-  }
-}; 
+      additionalProperties: false,
+    },
+  },
+};
