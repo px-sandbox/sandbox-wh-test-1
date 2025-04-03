@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.23.6](https://github.com/studiographene/pulse-data-integration/compare/v1.23.5...v1.23.6) (2025-04-03)
+
+
+### Bug Fixes
+
+* **PX-3333-2:** fix rca and ftp filter ([69526c0](https://github.com/studiographene/pulse-data-integration/commit/69526c048806543f96a377240b811693569148c8))
+* **PX-3333-2:** fix rca and ftp filter ([#1139](https://github.com/studiographene/pulse-data-integration/issues/1139)) ([ca4f879](https://github.com/studiographene/pulse-data-integration/commit/ca4f8794761a7176cef5bf8277d8fe9930666a7b))
+
 ## [1.23.5](https://github.com/studiographene/pulse-data-integration/compare/v1.23.4...v1.23.5) (2025-04-03)
 
 
