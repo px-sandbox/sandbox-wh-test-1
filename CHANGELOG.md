@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.23.9](https://github.com/studiographene/pulse-data-integration/compare/v1.23.8...v1.23.9) (2025-04-04)
+
+
+### Bug Fixes
+
+* **PX-2592:** edge case for worklog delete ([39feb60](https://github.com/studiographene/pulse-data-integration/commit/39feb608162287e5bc266d528f8ce0bf6128a401))
+* **PX-2592:** logged time ([83b007d](https://github.com/studiographene/pulse-data-integration/commit/83b007d7efff337cacc7db488e2a5565904628a0))
+* **PX-2592:** pr feedback ([ef3cb28](https://github.com/studiographene/pulse-data-integration/commit/ef3cb2805f553583ef78cae0bd151855787649f0))
+
 ## [1.23.8](https://github.com/studiographene/pulse-data-integration/compare/v1.23.7...v1.23.8) (2025-04-04)
 
 
