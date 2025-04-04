@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.23.8](https://github.com/studiographene/pulse-data-integration/compare/v1.23.7...v1.23.8) (2025-04-04)
+
+
+### Bug Fixes
+
+* **PX-2645:** name chage for rewrite to rework ([5baac6c](https://github.com/studiographene/pulse-data-integration/commit/5baac6c7080af4afa6256bddde935895eddcbffd))
+* **PX-2645:** name chage for rewrite to rework ([#1144](https://github.com/studiographene/pulse-data-integration/issues/1144)) ([98c127c](https://github.com/studiographene/pulse-data-integration/commit/98c127c20338758a1eff90b8884315c61a728799))
+
 ## [1.23.7](https://github.com/studiographene/pulse-data-integration/compare/v1.23.6...v1.23.7) (2025-04-04)
 
 
