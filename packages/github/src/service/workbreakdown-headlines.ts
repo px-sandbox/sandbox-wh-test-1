@@ -1,18 +1,19 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, logger, responseParser } from 'core';
 import middy, { Request } from '@middy/core';
 import validator from '@middy/validator';
 import { transpileSchema } from '@middy/validator/transpile';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { HttpStatusCode, logger, responseParser } from 'core';
+import { getHeadlineWorkbreakdown } from '../matrics/get-total-work-break-down';
 import { workbreakdownGraphSchema } from '../schema/workbreakdown-graph';
-import { getTotalWorkbreakdown } from '../matrics/get-total-work-break-down';
 
-
-const baseHandler = async (
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
+const baseHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const { requestId } = event.requestContext;
   try {
-    const { repoIds, startDate, endDate } = event.queryStringParameters as { repoIds: string, startDate: string, endDate: string };
+    const { repoIds, startDate, endDate } = event.queryStringParameters as {
+      repoIds: string;
+      startDate: string;
+      endDate: string;
+    };
     const repoIdList = repoIds.split(',');
 
     logger.info({
@@ -21,14 +22,14 @@ const baseHandler = async (
       requestId,
     });
 
-    const searchResult = await getTotalWorkbreakdown(repoIdList, startDate, endDate);
+    const searchResult = await getHeadlineWorkbreakdown(repoIdList, startDate, endDate);
 
     const newFeatureSum = Math.round(searchResult.aggregations?.newWork?.value || 0);
     const refactorSum = Math.round(searchResult.aggregations?.refactor?.value || 0);
     const rewriteSum = Math.round(searchResult.aggregations?.rewrite?.value || 0);
 
     const totals = newFeatureSum + refactorSum + rewriteSum;
-    
+
     logger.info({
       message: 'workbreakdownHeadlines.success',
       data: {
@@ -36,20 +37,19 @@ const baseHandler = async (
         startDate,
         endDate,
         totalHits: searchResult.hits.total.value,
-        totals
+        totals,
       },
       requestId,
     });
 
     return responseParser
       .setBody({
-        data: totals
+        data: totals,
       })
       .setMessage('Workbreakdown headlines fetched successfully')
       .setStatusCode(HttpStatusCode['200'])
       .setResponseBodyCode('SUCCESS')
       .send();
-
   } catch (error) {
     logger.error({
       message: 'workbreakdownHeadlines.error',
@@ -72,7 +72,7 @@ export const handler = middy(baseHandler)
     onError: async (request: Request) => {
       const { error } = request;
       if (!error) return;
-      
+
       logger.error({
         message: 'workbreakdownHeadlines.error',
         error,
@@ -81,8 +81,7 @@ export const handler = middy(baseHandler)
           context: request.context,
           error: request.error,
           response: request.response,
-          
-        }
+        },
       });
 
       // Check if it's a validation error
@@ -100,5 +99,5 @@ export const handler = middy(baseHandler)
         .setStatusCode(HttpStatusCode['500'])
         .setResponseBodyCode('ERROR')
         .send();
-    }
-  }); 
+    },
+  });

@@ -2,10 +2,11 @@ import esb from 'elastic-builder';
 import { IndexName as GithubIndices } from 'abstraction/github/enums';
 import { HitBody } from 'abstraction/other/type';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
+import { logger } from 'core';
 
 const elasticsearchClient = ElasticSearchClient.getInstance();
 
-export async function getHeadlineWorkbreakdown(
+export async function getWorkbreakdownGraph(
   repoIdList: string[],
   startDate: string,
   endDate: string
@@ -27,6 +28,20 @@ export async function getHeadlineWorkbreakdown(
     .agg(esb.sumAggregation('rewrite', 'body.workbreakdown.rewrite'))
     .toJSON();
 
-  const searchResult: HitBody = await elasticsearchClient.search(GithubIndices.GitCommits, query);
-  return searchResult;
+  logger.info({
+    message: 'workbreakdownGraph.query',
+    data: { query },
+  });
+
+  const searchResult: HitBody = await elasticsearchClient.queryAggs(
+    GithubIndices.GitCommits,
+    query
+  );
+  const totalWork =
+    searchResult.newWork.value + searchResult.refactor.value + searchResult.rewrite.value;
+  return {
+    newWork: parseFloat(((searchResult.newWork.value / totalWork) * 100).toFixed(2)),
+    refactor: parseFloat(((searchResult.refactor.value / totalWork) * 100).toFixed(2)),
+    rewrite: parseFloat(((searchResult.rewrite.value / totalWork) * 100).toFixed(2)),
+  };
 }

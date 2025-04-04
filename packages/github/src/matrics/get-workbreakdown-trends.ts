@@ -73,14 +73,14 @@ export async function getWorkbreakdownTrends(
   const res = searchResult.aggregations?.commentsPerDay?.buckets?.map(
     (bucket: {
       key_as_string: string;
-      newWork: { value: number };
-      refactor: { value: number };
-      rewrite: { value: number };
+      newWorkPercentage: { value: number };
+      refactorPercentage: { value: number };
+      rewritePercentage: { value: number };
     }) => ({
       date: bucket.key_as_string,
-      newWork: bucket.newWork.value,
-      refactor: bucket.refactor.value,
-      rewrite: bucket.rewrite.value,
+      newWork: parseFloat((bucket.newWorkPercentage?.value ?? 0).toFixed(2)),
+      refactor: parseFloat((bucket.refactorPercentage?.value ?? 0).toFixed(2)),
+      rewrite: parseFloat((bucket.rewritePercentage?.value ?? 0).toFixed(2)),
     })
   );
   return res;
