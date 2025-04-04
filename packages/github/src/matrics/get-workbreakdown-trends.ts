@@ -80,7 +80,7 @@ export async function getWorkbreakdownTrends(
       date: bucket.key_as_string,
       newWork: parseFloat((bucket.newWorkPercentage?.value ?? 0).toFixed(2)),
       refactor: parseFloat((bucket.refactorPercentage?.value ?? 0).toFixed(2)),
-      rewrite: parseFloat((bucket.rewritePercentage?.value ?? 0).toFixed(2)),
+      rework: parseFloat((bucket.rewritePercentage?.value ?? 0).toFixed(2)),
     })
   );
   return res;

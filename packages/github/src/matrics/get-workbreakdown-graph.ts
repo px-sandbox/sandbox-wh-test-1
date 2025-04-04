@@ -42,6 +42,6 @@ export async function getWorkbreakdownGraph(
   return {
     newWork: parseFloat(((searchResult.newWork.value / totalWork) * 100).toFixed(2)),
     refactor: parseFloat(((searchResult.refactor.value / totalWork) * 100).toFixed(2)),
-    rewrite: parseFloat(((searchResult.rewrite.value / totalWork) * 100).toFixed(2)),
+    rework: parseFloat(((searchResult.rewrite.value / totalWork) * 100).toFixed(2)),
   };
 }
