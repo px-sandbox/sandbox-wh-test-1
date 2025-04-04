@@ -15,6 +15,7 @@ import {
   getIssueById,
   getParentChildIssues,
   getReopenRateDataById,
+  getWorklogByIssueKey,
 } from '../../../repository/issue/get-issue';
 import { saveIssueDetails } from '../../../repository/issue/save-issue';
 import { saveReOpenRate } from '../../../repository/issue/save-reopen-rate';
@@ -44,48 +45,27 @@ async function fetchIssue(
   return issueData;
 }
 
-async function updateActualTime(
+export async function updateActualTime(
   worklogData: Jira.ExternalType.Webhook.Worklog,
   reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   logger.info({ message: 'updateActualTime.initiated', data: worklogData });
   const issueData = await fetchIssue(worklogData.issueId, worklogData.organization, reqCtx);
+  const worklogResults = await getWorklogByIssueKey(
+    worklogData.issueKey,
+    worklogData.organization,
+    reqCtx
+  );
   const issueDocId = issueData._id;
   logger.info({ message: 'updateActualTime.issueFetched', data: { issueKey: issueData.issueKey } });
-  const updatedActualTime = Math.max(
-    0,
-    issueData.timeTracker.actual + worklogData.worklog.timeSpentSeconds
-  );
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       timeTracker: {
-        actual: updatedActualTime,
+        actual: worklogResults.timeLogged.value ?? 0,
       },
     },
   });
   logger.info({ message: 'updateActualTime.completed', data: { issueDocId } });
-}
-
-async function deleteActualTime(
-  worklogData: Jira.ExternalType.Webhook.Worklog,
-  reqCtx: Other.Type.RequestCtx
-): Promise<void> {
-  logger.info({ message: 'deleteActualTime.initiated', data: worklogData });
-  const issueData = await fetchIssue(worklogData.issueId, worklogData.organization, reqCtx);
-  const issueDocId = issueData._id;
-  logger.info({ message: 'deleteActualTime.issueFetched', data: { issueKey: issueData.issueKey } });
-  const newActualTime = Math.max(
-    0,
-    issueData.timeTracker.actual - worklogData.worklog.timeSpentSeconds
-  );
-  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
-    body: {
-      timeTracker: {
-        actual: newActualTime,
-      },
-    },
-  });
-  logger.info({ message: 'deleteActualTime.completed', data: { issueDocId } });
 }
 
 async function updateSprintAndBoard(
@@ -632,12 +612,9 @@ async function save(record: SQSRecord): Promise<void> {
         break;
       case Jira.Enums.Event.WorklogCreated:
       case Jira.Enums.Event.WorklogUpdated:
+      case Jira.Enums.Event.WorklogDeleted:
         logger.info({ message: 'WORKLOGS_EVENT', data: messageBody.worklog });
         await updateActualTime(messageBody, reqCtx);
-        break;
-      case Jira.Enums.Event.WorklogDeleted:
-        logger.info({ message: 'WORKLOGS_DELETE_EVENT', data: messageBody.worklog });
-        await deleteActualTime(messageBody, reqCtx);
         break;
       default:
         logger.error({

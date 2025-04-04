@@ -25,15 +25,15 @@ async function saveFormattedData(
     id: `${mappingPrefixes.worklog}_${data?.worklog.id}`,
     body: {
       id: `${mappingPrefixes.worklog}_${data?.worklog.id}`,
-      projectKey: data?.issueData.projectKey,
-      issueKey: data?.issueData.issueKey,
-      timeLogged: data?.worklog.timeSpentSeconds,
+      projectKey: data.issueData.projectKey,
+      issueKey: data.issueData.issueKey,
+      timeLogged: data.worklog.timeSpentSeconds,
       category: null,
-      date: data?.worklog.started,
-      createdAt: data?.created,
+      date: data.worklog.started,
+      createdAt: data.created,
       isDeleted: false,
       organizationId: orgData.id ?? null,
-      sprintId: data?.issueData.sprintId,
+      sprintId: data.issueData.sprintId,
     },
   };
   return formattedData;

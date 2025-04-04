@@ -212,3 +212,44 @@ export async function getParentChildIssues(
   }
   return formattedIssueData;
 }
+
+export async function getWorklogByIssueKey(
+  issueKey: string,
+  organization: string,
+  reqCtx: Other.Type.RequestCtx
+): Promise<{ timeLogged: { value: number } }> {
+  try {
+    const orgData = await getOrganization(organization);
+    if (!orgData) {
+      logger.error({ ...reqCtx, message: `Organization ${organization} not found` });
+      throw new Error(`Organization ${organization} not found`);
+    }
+    const matchQry = esb
+      .requestBodySearch()
+      .query(
+        esb
+          .boolQuery()
+          .must([
+            esb.termQuery('body.issueKey', issueKey),
+            esb.termQuery('body.organizationId', orgData.id),
+            esb.termQuery('body.isDeleted', false),
+          ])
+      )
+      .agg(esb.sumAggregation('timeLogged', 'body.timeLogged'))
+      .toJSON();
+    const issueData = (await esClientObj.queryAggs(Jira.Enums.IndexName.Worklog, matchQry)) as {
+      timeLogged: { value: number };
+    };
+    if (!issueData || !issueData.timeLogged) {
+      logger.info({
+        message: 'getWorklogByIssueKey.WorklogDataNotFound',
+        data: { issueKey, organization, reqCtx },
+      });
+      return { timeLogged: { value: 0 } };
+    }
+    return issueData as { timeLogged: { value: number } };
+  } catch (error: unknown) {
+    logger.error({ ...reqCtx, message: 'getWorklogByIssueKey.error', error: `${error}` });
+    throw error;
+  }
+}
