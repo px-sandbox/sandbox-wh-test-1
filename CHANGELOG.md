@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.23.7](https://github.com/studiographene/pulse-data-integration/compare/v1.23.6...v1.23.7) (2025-04-04)
+
+
+### Bug Fixes
+
+* **PX-2645:** linktoJira for version without bugs ([022062f](https://github.com/studiographene/pulse-data-integration/commit/022062f36c4cebf630a0135a9b8f570611f95de7))
+* **PX-2645:** linktoJira for version without bugs ([#1141](https://github.com/studiographene/pulse-data-integration/issues/1141)) ([fbc83d6](https://github.com/studiographene/pulse-data-integration/commit/fbc83d6dbfd41d49bf573c107dce5bdfe981d1f4))
+* **PX-2645:** modified queries for workbreakdown ([e0bf789](https://github.com/studiographene/pulse-data-integration/commit/e0bf78945ea9b59bc51f3d806a2abe68c0fb8712))
+* **PX-2645:** modified queries for workbreakdown ([#1143](https://github.com/studiographene/pulse-data-integration/issues/1143)) ([6620f86](https://github.com/studiographene/pulse-data-integration/commit/6620f8689bd5e069798becaa319d2b68fb2aa15a))
+
 ## [1.23.6](https://github.com/studiographene/pulse-data-integration/compare/v1.23.5...v1.23.6) (2025-04-03)
 
 
