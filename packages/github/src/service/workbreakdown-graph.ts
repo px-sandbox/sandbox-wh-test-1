@@ -1,10 +1,10 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { HttpStatusCode, logger, responseParser } from 'core';
 import middy, { Request } from '@middy/core';
 import validator from '@middy/validator';
 import { transpileSchema } from '@middy/validator/transpile';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { HttpStatusCode, logger, responseParser } from 'core';
+import { getWorkbreakdownGraph } from '../matrics/get-workbreakdown-graph';
 import { workbreakdownGraphSchema } from '../schema/workbreakdown-graph';
-import { getTotalWorkbreakdown } from '../matrics/get-total-work-break-down';
 
 const baseHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   logger.info({
@@ -26,13 +26,7 @@ const baseHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       requestId,
     });
 
-    const searchResult = await getTotalWorkbreakdown(repoIdList, startDate, endDate);
-
-    const data = {
-      refactor: Math.round(searchResult.aggregations?.refactor?.value || 0),
-      rewrite: Math.round(searchResult.aggregations?.rewrite?.value || 0),
-      newWork: Math.round(searchResult.aggregations?.newWork?.value || 0),
-    };
+    const data = await getWorkbreakdownGraph(repoIdList, startDate, endDate);
 
     logger.info({
       message: 'workbreakdownGraph.success',
