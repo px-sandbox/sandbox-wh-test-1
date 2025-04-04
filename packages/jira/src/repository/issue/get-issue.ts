@@ -239,11 +239,10 @@ export async function getWorklogByIssueKey(
     const issueData = await esClientObj.search(Jira.Enums.IndexName.Worklog, matchQry);
     const formattedIssueData = await searchedDataFormatorWithDeleted(issueData);
     if (formattedIssueData.length === 0) {
-      logger.error({
+      logger.info({
         message: 'getWorklogByIssueKey.WorklogDataNotFound',
         data: { issueKey, organization, reqCtx },
       });
-      throw new Error(`WorklogDataNotFound_for_${issueKey}`);
     }
     return formattedIssueData;
   } catch (error: unknown) {
