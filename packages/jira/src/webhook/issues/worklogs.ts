@@ -130,6 +130,7 @@ export async function worklog(
           boardId: issueData.boardId,
           sprintId: issueData.sprintId,
           issueId,
+          issueKey: issueData.issueKey,
           worklog: worklogData,
           eventName,
         },
