@@ -217,7 +217,7 @@ export async function getWorklogByIssueKey(
   issueKey: string,
   organization: string,
   reqCtx: Other.Type.RequestCtx
-): Promise<Other.Type.HitBody[]> {
+): Promise<{ timeLogged: { value: number } }> {
   try {
     const orgData = await getOrganization(organization);
     if (!orgData) {
@@ -235,16 +235,19 @@ export async function getWorklogByIssueKey(
             esb.termQuery('body.isDeleted', false),
           ])
       )
+      .agg(esb.sumAggregation('timeLogged', 'body.timeLogged'))
       .toJSON();
-    const issueData = await esClientObj.search(Jira.Enums.IndexName.Worklog, matchQry);
-    const formattedIssueData = await searchedDataFormatorWithDeleted(issueData);
-    if (formattedIssueData.length === 0) {
+    const issueData = (await esClientObj.queryAggs(Jira.Enums.IndexName.Worklog, matchQry)) as {
+      timeLogged: { value: number };
+    };
+    if (!issueData || !issueData.timeLogged) {
       logger.info({
         message: 'getWorklogByIssueKey.WorklogDataNotFound',
         data: { issueKey, organization, reqCtx },
       });
+      return { timeLogged: { value: 0 } };
     }
-    return formattedIssueData;
+    return issueData as { timeLogged: { value: number } };
   } catch (error: unknown) {
     logger.error({ ...reqCtx, message: 'getWorklogByIssueKey.error', error: `${error}` });
     throw error;

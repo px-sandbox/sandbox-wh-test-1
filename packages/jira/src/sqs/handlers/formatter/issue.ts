@@ -56,13 +56,12 @@ export async function updateActualTime(
     worklogData.organization,
     reqCtx
   );
-
   const issueDocId = issueData._id;
   logger.info({ message: 'updateActualTime.issueFetched', data: { issueKey: issueData.issueKey } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       timeTracker: {
-        actual: worklogResults.reduce((acc, curr) => acc + curr.timeLogged, 0) ?? 0,
+        actual: worklogResults.timeLogged.value ?? 0,
       },
     },
   });
