@@ -338,46 +338,95 @@ async function updateIssueParentAssociation(
   reqCtx: { requestId: string; resourceId: string }
 ): Promise<void> {
   logger.info({ message: 'updateIssueParentAssociation.initiated', data: { issueData, item } });
-  const issues = await getParentChildIssues(item.to, issueData.id, organization, reqCtx);
-  const parentIssue: Other.Type.HitBody | undefined = issues.find(
-    (issue: Other.Type.HitBody) => issue.issueId === item.to
-  );
-  const childIssue: Other.Type.HitBody | undefined = issues.find(
-    (issue: Other.Type.HitBody) => issue.issueKey === issueData.key
-  );
-  logger.info({
-    message: 'updateIssueParentAssociation.issues.data',
-    data: { parentIssue, childIssue },
-  });
-  if (parentIssue) {
-    await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, parentIssue._id, {
-      body: {
-        subtasks: [
-          ...parentIssue.subtasks,
-          { id: `${mappingPrefixes.issue}_${issueData.id}`, key: issueData.key },
-        ],
-      },
-    });
-  }
-  if (childIssue && parentIssue) {
+  try {
+    const issues = await getParentChildIssues(item.to, issueData.id, organization, reqCtx);
+    const parentIssue: Other.Type.HitBody | undefined = issues.find(
+      (issue: Other.Type.HitBody) => issue.issueId === item.to
+    );
+    const childIssue: Other.Type.HitBody | undefined = issues.find(
+      (issue: Other.Type.HitBody) => issue.issueKey === issueData.key
+    );
     logger.info({
-      message: 'updateIssueParentAssociation.childIssue',
-      data: { childIssue, parentIssue },
+      message: 'updateIssueParentAssociation.issues.data',
+      data: { parentIssue, childIssue },
     });
-    if (childIssue.parent.id != null) {
+    if (parentIssue) {
+      if (
+        parentIssue.subtasks.find(
+          (subtask: { id: string }) => subtask.id === `${mappingPrefixes.issue}_${issueData.id}`
+        )
+      ) {
+        logger.info({
+          message: 'updateIssueParentAssociation.parentIssue.subtask.exists',
+          data: { parentIssue },
+        });
+      } else {
+        await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, parentIssue._id, {
+          body: {
+            subtasks: [
+              ...parentIssue.subtasks,
+              { id: `${mappingPrefixes.issue}_${issueData.id}`, key: issueData.key },
+            ],
+          },
+        });
+      }
+    }
+    if (childIssue && parentIssue) {
       logger.info({
-        message: 'updateIssueParentAssociation.childIssue.parentId.exists',
-        data: { parent: childIssue.parent },
+        message: 'updateIssueParentAssociation.childIssue',
+        data: { childIssue, parentIssue },
       });
-    } else {
+      // update child issue parent
       await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, childIssue._id, {
         body: {
           parent: { id: `${mappingPrefixes.issue}_${item.to}`, key: parentIssue.issueKey },
         },
       });
+      if (childIssue.parent.id != null) {
+        logger.info({
+          message: 'updateIssueParentAssociation.childIssue.parentId.exists',
+          data: { parent: childIssue.parent },
+        });
+        // Remove the child from previous parent's subtask list
+        const previousParentIssue = await fetchIssue(item.from, organization, reqCtx);
+        await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, previousParentIssue._id, {
+          body: {
+            subtasks: previousParentIssue.subtasks.filter(
+              (subtask: { id: string }) => subtask.id !== childIssue.id
+            ),
+          },
+        });
+      }
+      // Add the child to the new parent's subtask list
+      // if subtask already exists, to new parent
+      const newParentsubtask = parentIssue.subtasks.find(
+        (subtask: { id: string }) => subtask.id == childIssue.id
+      );
+      if (newParentsubtask) {
+        logger.info({
+          message: 'updateIssueParentAssociation.subtask.exists',
+          data: { subtask: parentIssue.subtasks },
+        });
+      } else {
+        logger.info({
+          message: 'updateIssueParentAssociation.subtask.not.exists',
+          data: { subtask: parentIssue.subtasks },
+        });
+        await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, parentIssue._id, {
+          body: {
+            subtasks: [...parentIssue.subtasks, { id: childIssue.id, key: childIssue.issueKey }],
+          },
+        });
+      }
     }
+
+    logger.info({ message: 'updateIssueParentAssociation.completed', data: { issueData } });
+  } catch (error) {
+    logger.error({
+      message: 'updateIssueParentAssociation.error',
+      data: JSON.stringify(error),
+    });
   }
-  logger.info({ message: 'updateIssueParentAssociation.completed', data: { issueData } });
 }
 
 async function updateTimeTracker(
