@@ -123,22 +123,23 @@ export async function worklog(
     });
 
     await Promise.all([
-      sqsClient.sendFifoMessage(
-        {
-          organization,
-          projectId: issueData.projectId,
-          boardId: issueData.boardId,
-          sprintId: issueData.sprintId,
-          issueId,
-          issueKey: issueData.issueKey,
-          worklog: worklogData,
-          eventName,
-        },
-        Queue.qIssueFormat.queueUrl,
-        { requestId, resourceId: issueId },
-        worklogData.issueId,
-        generateUuid()
-      ),
+      // TODO: remove this when dev is done
+      // sqsClient.sendFifoMessage(
+      //   {
+      //     organization,
+      //     projectId: issueData.projectId,
+      //     boardId: issueData.boardId,
+      //     sprintId: issueData.sprintId,
+      //     issueId,
+      //     issueKey: issueData.issueKey,
+      //     worklog: worklogData,
+      //     eventName,
+      //   },
+      //   Queue.qIssueFormat.queueUrl,
+      //   { requestId, resourceId: issueId },
+      //   worklogData.issueId,
+      //   generateUuid()
+      // ),
       sqsClient.sendMessage(
         {
           worklog: worklogData,

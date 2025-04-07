@@ -49,7 +49,7 @@ export async function updateActualTime(
   worklogData: Jira.ExternalType.Webhook.Worklog,
   reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
-  logger.info({ message: 'updateActualTime.initiated', data: worklogData });
+  logger.info({ message: 'updateActualTime.initiated', data: JSON.stringify(worklogData) });
   const worklogResults = await getWorklogByIssueKey(
     worklogData.issueData.issueKey,
     worklogData.organization,
@@ -59,6 +59,10 @@ export async function updateActualTime(
   logger.info({
     message: 'updateActualTime.issueFetched',
     data: { issueKey: worklogData.issueData.issueKey },
+  });
+  logger.info({
+    message: 'updateActualTime.worklogResults.timeLogged',
+    data: JSON.stringify(worklogResults.timeLogged),
   });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
