@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.23.11](https://github.com/studiographene/pulse-data-integration/compare/v1.23.10...v1.23.11) (2025-04-07)
+
+
+### Bug Fixes
+
+* **PX-2591:** parent child association ([#1150](https://github.com/studiographene/pulse-data-integration/issues/1150)) ([742306f](https://github.com/studiographene/pulse-data-integration/commit/742306fe947a591d6d32536c3ba61f7c12994749))
+* **PX-2592:** parent child association ([7a04b93](https://github.com/studiographene/pulse-data-integration/commit/7a04b930bb645b8e901f495e2ec97a964bb63139))
+
 ## [1.23.10](https://github.com/studiographene/pulse-data-integration/compare/v1.23.9...v1.23.10) (2025-04-07)
 
 
