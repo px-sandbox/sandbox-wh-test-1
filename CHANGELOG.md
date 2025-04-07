@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.23.12](https://github.com/studiographene/pulse-data-integration/compare/v1.23.11...v1.23.12) (2025-04-07)
+
+
+### Bug Fixes
+
+* **PX-2591:** worklog issue formatter removed ([33c60c6](https://github.com/studiographene/pulse-data-integration/commit/33c60c62c8046fc7a10c70897a46ab58ed53d897))
+* **PX-2591:** worklog issue formatter removed ([#1152](https://github.com/studiographene/pulse-data-integration/issues/1152)) ([6b89e6b](https://github.com/studiographene/pulse-data-integration/commit/6b89e6b1701a3ab1470f0e0f0f151c35b591a084))
+
 ## [1.23.11](https://github.com/studiographene/pulse-data-integration/compare/v1.23.10...v1.23.11) (2025-04-07)
 
 
