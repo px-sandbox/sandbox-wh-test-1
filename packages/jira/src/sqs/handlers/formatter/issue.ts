@@ -50,14 +50,16 @@ export async function updateActualTime(
   reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
   logger.info({ message: 'updateActualTime.initiated', data: worklogData });
-  const issueData = await fetchIssue(worklogData.issueId, worklogData.organization, reqCtx);
   const worklogResults = await getWorklogByIssueKey(
-    worklogData.issueKey,
+    worklogData.issueData.issueKey,
     worklogData.organization,
     reqCtx
   );
-  const issueDocId = issueData._id;
-  logger.info({ message: 'updateActualTime.issueFetched', data: { issueKey: issueData.issueKey } });
+  const issueDocId = worklogData.issueData._id;
+  logger.info({
+    message: 'updateActualTime.issueFetched',
+    data: { issueKey: worklogData.issueData.issueKey },
+  });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
       timeTracker: {
@@ -610,12 +612,12 @@ async function save(record: SQSRecord): Promise<void> {
           reqCtx
         );
         break;
-      case Jira.Enums.Event.WorklogCreated:
-      case Jira.Enums.Event.WorklogUpdated:
-      case Jira.Enums.Event.WorklogDeleted:
-        logger.info({ message: 'WORKLOGS_EVENT', data: messageBody.worklog });
-        await updateActualTime(messageBody, reqCtx);
-        break;
+      // case Jira.Enums.Event.WorklogCreated:
+      // case Jira.Enums.Event.WorklogUpdated:
+      // case Jira.Enums.Event.WorklogDeleted:
+      //   logger.info({ message: 'WORKLOGS_EVENT', data: messageBody.worklog });
+      //   // await updateActualTime(messageBody, reqCtx);
+      //   break;
       default:
         logger.error({
           requestId: reqCtx.requestId,

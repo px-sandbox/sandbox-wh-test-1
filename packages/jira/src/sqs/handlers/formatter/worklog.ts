@@ -10,6 +10,7 @@ import {
   updateWorklogDetails,
 } from '../../../repository/worklog/update-worklog';
 import { saveWorklogDetails } from '../../../repository/worklog/save-worklog';
+import { updateActualTime } from './issue';
 
 async function saveFormattedData(
   data: Jira.ExternalType.Webhook.Worklog
@@ -82,6 +83,7 @@ export const handler = async function worklogFormattedDataReciever(event: SQSEve
               message: 'worklogFormattedDataReceiver.no_case_found',
             });
         }
+        await updateActualTime(messageBody, { requestId, resourceId });
         await deleteProcessfromDdb(messageBody.processId, { requestId, resourceId });
       } catch (error) {
         await logProcessToRetry(record, Queue.qWorklogFormat.queueUrl, error as Error);
