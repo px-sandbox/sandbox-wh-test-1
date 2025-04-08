@@ -28,6 +28,8 @@ async function getVersionsFromEsb(
             esb.termQuery('body.isDeleted', false),
           ])
       )
+      .sort(esb.sort('body.status', 'asc'))
+      .sort(esb.sort('body.releaseDate', 'desc'))
       .toJSON();
     const versionData = await esClientObj.search(Jira.Enums.IndexName.Version, matchQry);
     const formattedData = (await searchedDataFormatorWithDeleted(

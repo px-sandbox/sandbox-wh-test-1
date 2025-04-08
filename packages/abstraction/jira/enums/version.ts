@@ -1,5 +1,5 @@
 export enum VersionStatus {
-    UNRELEASED = 'Unreleased',
-    RELEASED = 'Released',
-    ARCHIVED = 'Archived'
+  UNRELEASED = 'unreleased',
+  RELEASED = 'released',
+  ARCHIVED = 'archived',
 }
