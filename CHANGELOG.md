@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.23.13](https://github.com/studiographene/pulse-data-integration/compare/v1.23.12...v1.23.13) (2025-04-08)
+
+
+### Bug Fixes
+
+* **PX-2591:** update document with refresh ([56caac9](https://github.com/studiographene/pulse-data-integration/commit/56caac9c7c24f7d16983bbfd69708eddd9a3b6c9))
+* **PX-2591:** update document with refresh ([#1154](https://github.com/studiographene/pulse-data-integration/issues/1154)) ([f099ee1](https://github.com/studiographene/pulse-data-integration/commit/f099ee1adf21e59840b56c55930d82b89a082390))
+
 ## [1.23.12](https://github.com/studiographene/pulse-data-integration/compare/v1.23.11...v1.23.12) (2025-04-07)
 
 
