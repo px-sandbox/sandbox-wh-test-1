@@ -4,6 +4,7 @@ export enum State {
   CLOSED = 'closed',
   RELEASED = 'released',
   UNRELEASED = 'unreleased',
+  ARCHIVED = 'archived',
 }
 
 export enum JiraFilterType {
