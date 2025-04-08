@@ -17,6 +17,12 @@ function saveVersionFormattedData(
   projectKey: string,
   organizationId: string
 ): Jira.Type.Version {
+  let status = Jira.Enums.State.UNRELEASED;
+  if (data?.released) {
+    status = Jira.Enums.State.RELEASED;
+  } else if (data?.archived) {
+    status = Jira.Enums.State.ARCHIVED;
+  }
   const formattedData = {
     id: `${mappingPrefixes.version}_${data.id}`,
     body: {
@@ -30,7 +36,7 @@ function saveVersionFormattedData(
       startDate: data.startDate ?? null,
       releaseDate: data.releaseDate ?? null,
       isDeleted: false,
-      status: data?.status ?? null,
+      status,
       organizationId,
       projectKey,
     },
