@@ -82,6 +82,7 @@ export class ElasticSearchClient implements IElasticSearchClient {
         body: {
           doc: updatedDoc,
         },
+        refresh: true,
       });
     } catch (err) {
       logger.error({ message: `${ElasticSearchClient.name}.updateDocument.error`, error: err });
