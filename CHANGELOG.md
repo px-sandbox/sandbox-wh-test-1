@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.24.0](https://github.com/studiographene/pulse-data-integration/compare/v1.23.17...v1.24.0) (2025-04-09)
+
+
+### Features
+
+* **PX-2426:** updated test coverage script ([94f9a83](https://github.com/studiographene/pulse-data-integration/commit/94f9a83cb96cc0ec48f0eef9d69f2e1897f4a24f))
+* **PX-2426:** updated test coverage script ([#1164](https://github.com/studiographene/pulse-data-integration/issues/1164)) ([c982ecd](https://github.com/studiographene/pulse-data-integration/commit/c982ecd792ca50ffde9de722e1d9617888d96e61))
+
+
+### Bug Fixes
+
+* **PX-2666:** rca is set to null ([9d7acc8](https://github.com/studiographene/pulse-data-integration/commit/9d7acc88465d64e85cfea1fad36c693be7f4d00f))
+* **PX-2666:** rca is set to null ([#1166](https://github.com/studiographene/pulse-data-integration/issues/1166)) ([1a31dfa](https://github.com/studiographene/pulse-data-integration/commit/1a31dfa6d6fc9f2b32229ca94f2bf1194e812a84))
+
 ## [1.23.17](https://github.com/studiographene/pulse-data-integration/compare/v1.23.16...v1.23.17) (2025-04-09)
 
 
