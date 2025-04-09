@@ -64,8 +64,20 @@ export async function getAllVersions(
       formattedVersionData
     );
 
-    // Sort versions: with null/undefined dates first in each group
-    const sortedVersions = versionData.sort((a, b) => {
+    // Separate versions into released and unreleased arrays
+    const releasedVersions = versionData.filter(
+      (version) => version.status === Jira.Enums.VersionStatus.RELEASED
+    );
+    const unreleasedVersions = versionData.filter(
+      (version) => version.status !== Jira.Enums.VersionStatus.RELEASED
+    );
+
+    // Sort function to put null/undefined dates first, then sort by date (descending)
+    const sortByDateWithNullsFirst = (
+      a: Jira.Type.VersionBody,
+      b: Jira.Type.VersionBody
+    ): number => {
+      // If both have dates, sort by date (descending)
       if (a.releaseDate && b.releaseDate) {
         return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
       }
@@ -79,7 +91,14 @@ export async function getAllVersions(
       }
       // If neither has a date, maintain original order
       return 0;
-    });
+    };
+
+    // Sort each array individually
+    releasedVersions.sort(sortByDateWithNullsFirst);
+    unreleasedVersions.sort(sortByDateWithNullsFirst);
+
+    // Merge the arrays with released first, then unreleased
+    const sortedVersions = [...releasedVersions, ...unreleasedVersions];
 
     return await Promise.all(
       sortedVersions.map(async (version: Jira.Type.VersionBody) => ({
