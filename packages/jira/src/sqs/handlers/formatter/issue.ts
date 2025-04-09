@@ -303,7 +303,7 @@ async function updateDevRca(
   logger.info({ message: 'updateDevRca.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
-      rcaData: { devRca: `${mappingPrefixes.rca}_${item.to}` },
+      rcaData: { devRca: item.to == null ? null : `${mappingPrefixes.rca}_${item.to}` },
     },
   });
   logger.info({ message: 'updateDevRca.completed', data: { issueDocId } });
@@ -316,7 +316,7 @@ async function updateQARca(
   logger.info({ message: 'updateQARca.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
-      rcaData: { qaRca: `${mappingPrefixes.rca}_${item.to}` },
+      rcaData: { qaRca: item.to == null ? null : `${mappingPrefixes.rca}_${item.to}` },
     },
   });
   logger.info({ message: 'updateQARca.completed', data: { issueDocId } });
