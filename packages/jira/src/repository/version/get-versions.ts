@@ -63,8 +63,26 @@ export async function getAllVersions(
       size,
       formattedVersionData
     );
+
+    // Sort versions: with null/undefined dates first in each group
+    const sortedVersions = versionData.sort((a, b) => {
+      if (a.releaseDate && b.releaseDate) {
+        return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
+      }
+      // If only a has a date, b comes first
+      if (a.releaseDate && !b.releaseDate) {
+        return 1;
+      }
+      // If only b has a date, a comes first
+      if (!a.releaseDate && b.releaseDate) {
+        return -1;
+      }
+      // If neither has a date, maintain original order
+      return 0;
+    });
+
     return await Promise.all(
-      versionData.map(async (version: Jira.Type.VersionBody) => ({
+      sortedVersions.map(async (version: Jira.Type.VersionBody) => ({
         id: version.id,
         projectId: version.projectId,
         name: version.name,
