@@ -69,7 +69,7 @@ export async function getAllVersions(
       (version) => version.status === Jira.Enums.VersionStatus.RELEASED
     );
     const unreleasedVersions = versionData.filter(
-      (version) => version.status !== Jira.Enums.VersionStatus.RELEASED
+      (version) => version.status == Jira.Enums.VersionStatus.UNRELEASED
     );
 
     // Sort function to put null/undefined dates first, then sort by date (descending)
