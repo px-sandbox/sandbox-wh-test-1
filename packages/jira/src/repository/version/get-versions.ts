@@ -81,16 +81,12 @@ export async function getAllVersions(
       if (a.releaseDate && b.releaseDate) {
         return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
       }
-      // If only a has a date, b comes first
-      if (a.releaseDate && !b.releaseDate) {
+      if (a.releaseDate) {
+        // If only a has a date, b comes first
         return 1;
       }
       // If only b has a date, a comes first
-      if (!a.releaseDate && b.releaseDate) {
-        return -1;
-      }
-      // If neither has a date, maintain original order
-      return 0;
+      return -1;
     };
 
     // Sort each array individually
