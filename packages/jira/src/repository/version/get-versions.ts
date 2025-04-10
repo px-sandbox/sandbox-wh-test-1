@@ -94,7 +94,7 @@ export async function getAllVersions(
     unreleasedVersions.sort(sortByDateWithNullsFirst);
 
     // Merge the arrays with released first, then unreleased
-    const sortedVersions = [...releasedVersions, ...unreleasedVersions];
+    const sortedVersions = [...unreleasedVersions, ...releasedVersions];
 
     return await Promise.all(
       sortedVersions.map(async (version: Jira.Type.VersionBody) => ({

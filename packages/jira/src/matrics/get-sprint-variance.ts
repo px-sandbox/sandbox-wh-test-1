@@ -5,6 +5,8 @@ import { IssuesTypes } from 'abstraction/jira/enums';
 import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb, { RequestBodySearch } from 'elastic-builder';
+import { Search } from '@elastic/elasticsearch/api/requestParams';
+import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
 import { getOrganizationById } from '../repository/organization/get-organization';
 import { searchedDataFormator, searchedDataFormatorWithDeleted } from '../util/response-formatter';
 
@@ -674,7 +676,7 @@ export async function createVersionQuery(
   startDate: string,
   state: Jira.Enums.State,
   endDate?: string
-): Promise<RequestBodySearch> {
+): Promise<Search<MultiSearchBody>> {
   const { dateRangeQueries, startDateQuery, releaseDateQuery } = getDatesForVersion(
     startDate,
     endDate
