@@ -107,11 +107,15 @@ export async function versionHitsResponse(
         .must([
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
-          esb.boolQuery().should(dateRangeQuery).minimumShouldMatch(1),
           esb.termsQuery('body.status', versionState.split(',')),
         ])
+        .should([
+          esb.boolQuery().must(dateRangeQuery).minimumShouldMatch(1),
+          esb.boolQuery().mustNot(esb.existsQuery('body.releaseDate')),
+        ])
     )
-    .sort(esb.sort('body.startDate', 'desc'))
+    .sort(esb.sort('body.status', 'asc'))
+    .sort(esb.sort('body.releaseDate', 'desc'))
     .toJSON();
 
   logger.info({ ...reqCtx, message: 'versionQuery', data: { versionQuery } });
@@ -630,11 +634,15 @@ export async function createVersionQuery(
         .must([
           esb.termQuery('body.projectId', projectId),
           esb.termQuery('body.isDeleted', false),
-          esb.boolQuery().should(dateRange).minimumShouldMatch(1),
           esb.termsQuery('body.status', state.split(',')),
         ])
+        .should([
+          esb.boolQuery().must(dateRange).minimumShouldMatch(1),
+          esb.boolQuery().mustNot(esb.existsQuery('body.releaseDate')),
+        ])
     )
-    .sort(esb.sort('body.startDate', 'desc'))
+    .sort(esb.sort('body.status', 'asc'))
+    .sort(esb.sort('body.releaseDate', 'desc'))
     .toJSON();
   const res = await esClientObj.search(Jira.Enums.IndexName.Version, query);
   return res;
