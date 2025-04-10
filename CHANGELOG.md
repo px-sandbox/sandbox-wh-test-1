@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.24.4](https://github.com/studiographene/pulse-data-integration/compare/v1.24.3...v1.24.4) (2025-04-10)
+
+
+### Bug Fixes
+
+* **PX-2665:** test coverage cron ([#1173](https://github.com/studiographene/pulse-data-integration/issues/1173)) ([d496a46](https://github.com/studiographene/pulse-data-integration/commit/d496a46c9e79fccd522203fb97e15e7539d19dad))
+* **PX-2665:** test coverage cron ` ([2244a50](https://github.com/studiographene/pulse-data-integration/commit/2244a50b9afc64b304e17ead9894b74a0827c2d3))
+
 ## [1.24.3](https://github.com/studiographene/pulse-data-integration/compare/v1.24.2...v1.24.3) (2025-04-10)
 
 
