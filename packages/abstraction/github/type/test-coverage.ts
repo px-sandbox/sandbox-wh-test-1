@@ -31,7 +31,7 @@ export type TestCoverageData = {
 export type TestCoverageResponse = {
   _id: string;
   id: string;
-  organizationId: string;
+  organisationId: string;
   repoId: string;
   createdAt: string;
   forDate: string;
