@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.24.5](https://github.com/studiographene/pulse-data-integration/compare/v1.24.4...v1.24.5) (2025-04-10)
+
+
+### Bug Fixes
+
+* **PX-2585:** repolist pagination ([9d3d09f](https://github.com/studiographene/pulse-data-integration/commit/9d3d09f962bce44b360f7f8a2751fc8195767439))
+* **PX-2585:** repolist pagination ([#1175](https://github.com/studiographene/pulse-data-integration/issues/1175)) ([a25ee29](https://github.com/studiographene/pulse-data-integration/commit/a25ee29dfd23d4d41f9a97a42ed1aa483337d687))
+
 ## [1.24.4](https://github.com/studiographene/pulse-data-integration/compare/v1.24.3...v1.24.4) (2025-04-10)
 
 
