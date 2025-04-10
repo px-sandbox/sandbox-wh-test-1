@@ -10,17 +10,17 @@ import { searchedDataFormator } from '../util/response-formatter';
 const esClient = ElasticSearchClient.getInstance();
 
 const getYesterdayCoverageData = async (
-  RepoIds: string[]
+  repoIds: string[]
 ): Promise<Github.Type.TestCoverageResponse[]> => {
   const yesterDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
   try {
     const query = esb
       .requestBodySearch()
-      .size(RepoIds.length)
+      .size(repoIds.length)
       .query(
         esb
           .boolQuery()
-          .must([esb.termQuery('body.forDate', yesterDate), esb.termsQuery('body.repoId', RepoIds)])
+          .must([esb.termQuery('body.forDate', yesterDate), esb.termsQuery('body.repoId', repoIds)])
       )
       .toJSON();
 
@@ -29,7 +29,7 @@ const getYesterdayCoverageData = async (
     return records;
   } catch (error) {
     logger.error({
-      message: `getYesterdayCoverageRecords.error: Failed to get coverage records for RepoIds: ${RepoIds}`,
+      message: `getYesterdayCoverageRecords.error: Failed to get coverage records for repoIds: ${repoIds}`,
       error: `${error}`,
     });
     throw error;
@@ -37,7 +37,7 @@ const getYesterdayCoverageData = async (
 };
 
 const getCoverageData = async (
-  RepoIds: string[],
+  repoIds: string[],
   currentDate: string
 ): Promise<Github.Type.TestCoverageResponse[]> => {
   let coverage: Github.Type.TestCoverageResponse[] = [];
@@ -49,21 +49,21 @@ const getCoverageData = async (
           .boolQuery()
           .must([
             esb.termQuery('body.forDate', currentDate),
-            esb.termsQuery('body.repoId', RepoIds),
+            esb.termsQuery('body.repoId', repoIds),
           ])
       )
       .toJSON();
     const data = await esClient.search(Github.Enums.IndexName.GitTestCoverage, query);
     const formatted = await searchedDataFormator(data);
     const matchedRepoIds = formatted.map((hit: { repoId: string }) => hit.repoId);
-    const filteredRepoIds = RepoIds.filter((repo) => !matchedRepoIds.includes(repo));
+    const filteredRepoIds = repoIds.filter((repo) => !matchedRepoIds.includes(repo));
     if (filteredRepoIds.length > 0) {
       coverage = await getYesterdayCoverageData(filteredRepoIds);
     }
     return coverage;
   } catch (error) {
     logger.error({
-      message: `getCoverageData.error: Failed to get coverage for current date for RepoIds: ${RepoIds}`,
+      message: `getCoverageData.error: Failed to get coverage for current date for repoIds: ${repoIds}`,
       error: `${error}`,
     });
     throw error;
@@ -71,26 +71,26 @@ const getCoverageData = async (
 };
 
 export const fetchSaveTestCoverage = async (
-  RepoIds: string[],
+  repoIds: string[],
   currentDate: string
 ): Promise<void> => {
   try {
-    const dataCoverage = await getCoverageData(RepoIds, currentDate);
+    const dataCoverage = await getCoverageData(repoIds, currentDate);
     if (!dataCoverage?.length) {
       logger.info({
-        message: `fetchSaveTestCoverage.info: GET_GITHUB_BRANCH_DETAILS: No record found for repoIds: ${RepoIds}`,
+        message: `fetchSaveTestCoverage.info: GET_GITHUB_BRANCH_DETAILS: No record found for repoIds: ${repoIds}`,
       });
       return;
     }
 
     const updatedDataCoverage = dataCoverage.map((hit) => {
-      const { organizationId, repoId } = hit;
+      const { organisationId, repoId } = hit;
       const hitData = _.omit(hit, ['_id']);
       return {
         _id: uuid(),
         body: {
           hitData,
-          id: `${organizationId}_${repoId}_${currentDate}`,
+          id: `${organisationId}_${repoId}_${currentDate}`,
           forDate: currentDate,
           cron: true,
         },
@@ -99,7 +99,7 @@ export const fetchSaveTestCoverage = async (
     await esClient.bulkInsert(Github.Enums.IndexName.GitTestCoverage, updatedDataCoverage);
   } catch (error) {
     logger.error({
-      message: `fetchSaveTestCoverage.error: Failed to fetch and save test coverage for repoIds: ${RepoIds}`,
+      message: `fetchSaveTestCoverage.error: Failed to fetch and save test coverage for repoIds: ${repoIds}`,
       error: `${error}`,
     });
   }
