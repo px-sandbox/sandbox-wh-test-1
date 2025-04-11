@@ -89,7 +89,7 @@ export const fetchSaveTestCoverage = async (
       return {
         _id: uuid(),
         body: {
-          hitData,
+          ...hitData,
           id: `${organisationId}_${repoId}_${currentDate}`,
           forDate: currentDate,
           cron: true,
