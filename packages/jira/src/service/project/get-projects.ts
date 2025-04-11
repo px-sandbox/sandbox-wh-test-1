@@ -4,8 +4,7 @@ import { Jira } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
-import _ from 'lodash';
-import { paginate } from '../../util/pagination';
+import { HitBody } from 'abstraction/other/type';
 import { formatProjectsResponse, searchedDataFormator } from '../../util/response-formatter';
 import { getProjectsSchema } from '../validations';
 
@@ -22,11 +21,13 @@ const projects = async function getProjectsData(
   const searchTerm: string = event?.queryStringParameters?.search?.toLowerCase() ?? '';
   const page = Number(event?.queryStringParameters?.page ?? 1);
   const size = Number(event?.queryStringParameters?.size ?? 10);
-
-  let paginatedResp;
   try {
     // TODO: Keeping size 2000 for now. Maybe need to fetch all projects recursively in future
-    let query = esb.requestBodySearch().size(2000);
+    let query = esb
+      .requestBodySearch()
+      .from(size * (page - 1))
+      .size(size)
+      .query(esb.boolQuery().must(esb.termQuery('body.isDeleted', false)));
 
     if (searchTerm) {
       query = query.query(
@@ -34,31 +35,30 @@ const projects = async function getProjectsData(
           .boolQuery()
           .must([esb.termQuery('body.isDeleted', false), esb.termQuery('body.name', searchTerm)])
       );
-    } else {
-      query = query.query(esb.termQuery('body.isDeleted', false));
     }
-
     // fetching data from elastic search based on query
-    const data = await esClient.search(Jira.Enums.IndexName.Project, query.toJSON());
-
+    const data: HitBody = await esClient.search(Jira.Enums.IndexName.Project, query.toJSON());
+    const totalPages = Math.ceil(data.hits.total.value / size);
     // formatting above query response data
-    const response = await searchedDataFormator(data);
-    const sortedResp = _.sortBy(response, 'name');
-    paginatedResp = await paginate(sortedResp, page, size);
-
-    logger.info({ requestId, message: 'jira projects data', data: paginatedResp });
+    const result = await searchedDataFormator(data);
+    const formattedResult = formatProjectsResponse(result);
+    logger.info({ requestId, message: 'jira_projects_data', data: formattedResult });
+    const body = { projectList: formattedResult, totalPages };
+    return responseParser
+      .setBody(body)
+      .setMessage('get jira projects details')
+      .setStatusCode(HttpStatusCode['200'])
+      .setResponseBodyCode('SUCCESS')
+      .send();
   } catch (error) {
-    logger.error({ requestId, message: 'GET_JIRA_PROJECT_DETAILS', error });
+    logger.error({ requestId, message: 'GET_JIRA_PROJECT_DETAILS_ERROR', error });
+    return responseParser
+      .setBody({})
+      .setMessage('get jira projects details')
+      .setStatusCode(HttpStatusCode['400'])
+      .setResponseBodyCode('NOT_FOUND')
+      .send();
   }
-  const { '200': ok, '404': notFound } = HttpStatusCode;
-  const statusCode = paginatedResp ? ok : notFound;
-  const body = paginatedResp ? formatProjectsResponse(paginatedResp) : null;
-  return responseParser
-    .setBody(body)
-    .setMessage('get jira projects details')
-    .setStatusCode(statusCode)
-    .setResponseBodyCode('SUCCESS')
-    .send();
 };
 const handler = APIHandler(projects, {
   eventSchema: transpileSchema(getProjectsSchema),
