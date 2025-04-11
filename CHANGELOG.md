@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.24.6](https://github.com/studiographene/pulse-data-integration/compare/v1.24.5...v1.24.6) (2025-04-11)
+
+
+### Bug Fixes
+
+* **PX-2585:** jira project pagination ([ef7e5b0](https://github.com/studiographene/pulse-data-integration/commit/ef7e5b0641b35514f0bfda7ed0868d416c972e77))
+* **PX-2585:** jira project pagination ([#1178](https://github.com/studiographene/pulse-data-integration/issues/1178)) ([e848c3b](https://github.com/studiographene/pulse-data-integration/commit/e848c3b0e9122cc7535e86835fbe24754366c826))
+* **PX-2665:** test case coverage object ([6c0f04e](https://github.com/studiographene/pulse-data-integration/commit/6c0f04ecc891b5a0e9da568b46d8f1f07ab7cd11))
+* **PX-2665:** test case coverage object ([#1177](https://github.com/studiographene/pulse-data-integration/issues/1177)) ([a5a3290](https://github.com/studiographene/pulse-data-integration/commit/a5a3290a39de633ddbb94da5836990058653bb03))
+
 ## [1.24.5](https://github.com/studiographene/pulse-data-integration/compare/v1.24.4...v1.24.5) (2025-04-10)
 
 
