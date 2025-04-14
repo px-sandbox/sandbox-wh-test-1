@@ -60,8 +60,8 @@ export async function handler(event: SQSEvent): Promise<void> {
           });
         } else {
           const createdDate = createdAt.split('T')[0];
-          const coverageId = `${mappingPrefixes.organization}_${organisationId}_
-          ${mappingPrefixes.repo}_${repoId}_${createdDate}`;
+          const { organization, repo } = mappingPrefixes;
+          const coverageId = `${organization}_${organisationId}_${repo}_${repoId}_${createdDate}`;
           await deleteCoverageData(coverageId);
           const coverageObj = {
             id: generateUuid(),
