@@ -449,15 +449,24 @@ async function updateTimeTracker(
 // Function to update the fix version of an issue
 async function updateFixVersion(
   item: Jira.ExternalType.Webhook.ChangelogItem,
-  issueDocId: string
+  issueDocId: string,
+  currentFixVersion: string
 ): Promise<void> {
   logger.info({ message: 'updateFixVersion.initiated', data: { issueDocId } });
-  await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
-    body: {
-      fixVersion: `${mappingPrefixes.version}_${item.to}`,
-    },
-  });
-  logger.info({ message: 'updateFixVersion.completed', data: { issueDocId } });
+  const fromVersion = item.from ? `${mappingPrefixes.version}_${item.from}` : null;
+  if (fromVersion === currentFixVersion || fromVersion === null) {
+    await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
+      body: {
+        fixVersion: item.to ? `${mappingPrefixes.version}_${item.to}` : null,
+      },
+    });
+    logger.info({ message: 'updateFixVersion.completed', data: { issueDocId } });
+  } else {
+    logger.info({
+      message: 'updateFixVersion.noChange',
+      data: { issueDocId, current: currentFixVersion, changelog: item },
+    });
+  }
 }
 
 // Function to update the affected version of an issue
@@ -468,7 +477,7 @@ async function updateAffectedVersion(
   logger.info({ message: 'updateAffectedVersion.initiated', data: { issueDocId } });
   await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
     body: {
-      affectedVersion: `${mappingPrefixes.version}_${item.to}`,
+      affectedVersion: item.to ? `${mappingPrefixes.version}_${item.to}` : null,
     },
   });
   logger.info({ message: 'updateAffectedVersion.completed', data: { issueDocId } });
@@ -555,7 +564,7 @@ async function handleIssueUpdate(
           await updateTimeTracker(item, issueDocId);
           break;
         case Jira.Enums.ChangelogName.FIX_VERSION:
-          await updateFixVersion(item, issueDocId);
+          await updateFixVersion(item, issueDocId, issueDoc.fixVersion);
           break;
         case Jira.Enums.ChangelogName.AFFECTED_VERSION:
           await updateAffectedVersion(item, issueDocId);
