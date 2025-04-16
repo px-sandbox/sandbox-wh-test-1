@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.25.0](https://github.com/studiographene/pulse-data-integration/compare/v1.24.7...v1.25.0) (2025-04-16)
+
+
+### Features
+
+* **PX-2682:** edge case handle for fixVersion ([f27d538](https://github.com/studiographene/pulse-data-integration/commit/f27d5389cd1ef74f34a3d983ab0bdacaf445cb9a))
+* **PX-2682:** edge case handle for fixVersion ([#1182](https://github.com/studiographene/pulse-data-integration/issues/1182)) ([afb3b36](https://github.com/studiographene/pulse-data-integration/commit/afb3b36f69a148e37c526f8bcd8152b03fd99839))
+
 ## [1.24.7](https://github.com/studiographene/pulse-data-integration/compare/v1.24.6...v1.24.7) (2025-04-14)
 
 
