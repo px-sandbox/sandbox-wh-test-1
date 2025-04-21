@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.26.0](https://github.com/studiographene/pulse-data-integration/compare/v1.25.0...v1.26.0) (2025-04-21)
+
+
+### Features
+
+* **PX-2418:** Update ci.yml ([4260e49](https://github.com/studiographene/pulse-data-integration/commit/4260e49698a92a7b867b76a80334f3119d483d82))
+* **PX-2418:** Update ci.yml ([#1184](https://github.com/studiographene/pulse-data-integration/issues/1184)) ([6c50c78](https://github.com/studiographene/pulse-data-integration/commit/6c50c7889ee87596070d6c7c48962a969be44d59))
+
 ## [1.25.0](https://github.com/studiographene/pulse-data-integration/compare/v1.24.7...v1.25.0) (2025-04-16)
 
 
