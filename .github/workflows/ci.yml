@@ -8,7 +8,8 @@ on:
 
 jobs:
   call-workflow:
-    uses: studiographene/github-action-workflows/.github/workflows/nodejs-ci.yml@master # if you want alternatively pin to tag version version
+    # uses: studiographene/github-action-workflows/.github/workflows/nodejs-ci.yml@master # if you want alternatively pin to tag version version
+    uses: studiographene/github-action-workflows/.github/workflows/nodejs-ci.yml@feature/PX-2418 # Testing purpose
     secrets: inherit
     with:
       package_manager: pnpm
