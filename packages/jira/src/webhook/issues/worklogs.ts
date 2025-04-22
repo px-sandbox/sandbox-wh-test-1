@@ -7,8 +7,8 @@ import moment from 'moment';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
-import { generateUuid, searchedDataFormator } from '../../util/response-formatter';
 import { getOrganization } from '../../repository/organization/get-organization';
+import { searchedDataFormator } from '../../util/response-formatter';
 
 const sqsClient = SQSClient.getInstance();
 const esClient = ElasticSearchClient.getInstance();

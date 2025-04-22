@@ -143,29 +143,7 @@ export class MainTicket {
             this.title = items.toString;
             break;
           case ChangelogField.STATUS:
-            if (
-              items.to === this.StatusMapping[this.Status.Done].id &&
-              changelogs.issuetype !== IssuesTypes.SUBTASK
-            ) {
-              this.statusTransition(items.to, changelogs.timestamp);
-            } else if (
-              this.subtasks.length > 0 &&
-              statuses.includes(items.to) &&
-              !isAllSubtaskDeleted
-            ) {
-              const toStatus = this.StatusMapping[items.to].label;
-              this.updateHistory(toStatus, changelogs.timestamp);
-            } else if (
-              items.to === this.StatusMapping[this.Status.Ready_For_QA].id &&
-              this.subtasks.length > 0
-            ) {
-              const toStatus = this.StatusMapping[items.to].label;
-              this.updateHistory(toStatus, changelogs.timestamp);
-            } else if (this.subtasks.length > 0 && isAllSubtaskDeleted) {
-              this.statusTransition(items.to, changelogs.timestamp);
-            } else {
-              this.statusTransition(items.to, changelogs.timestamp);
-            }
+            this.handleStatusChange(items, changelogs, statuses, isAllSubtaskDeleted);
             break;
           case ChangelogField.FIX_VERSION:
             this.fixVersion = `${mappingPrefixes.version}_${items.to}`;
@@ -204,6 +182,37 @@ export class MainTicket {
         }
         return updatedSubtask;
       });
+    }
+  }
+
+  private handleStatusChange(
+    items: Jira.ExternalType.Webhook.ChangelogItem,
+    changelogs: any,
+    statuses: number[],
+    isAllSubtaskDeleted: boolean
+  ): void {
+    if (
+      String(items.to) === String(this.StatusMapping[this.Status.Done].id) &&
+      changelogs.issuetype !== IssuesTypes.SUBTASK
+    ) {
+      this.statusTransition(items.to, changelogs.timestamp);
+    } else if (
+      this.subtasks.length > 0 &&
+      statuses.includes(Number(items.to)) &&
+      !isAllSubtaskDeleted
+    ) {
+      const toStatus = this.StatusMapping[items.to].label;
+      this.updateHistory(toStatus, changelogs.timestamp);
+    } else if (
+      String(items.to) === String(this.StatusMapping[this.Status.Ready_For_QA].id) &&
+      this.subtasks.length > 0
+    ) {
+      const toStatus = this.StatusMapping[items.to].label;
+      this.updateHistory(toStatus, changelogs.timestamp);
+    } else if (this.subtasks.length > 0 && isAllSubtaskDeleted) {
+      this.statusTransition(items.to, changelogs.timestamp);
+    } else {
+      this.statusTransition(items.to, changelogs.timestamp);
     }
   }
 
