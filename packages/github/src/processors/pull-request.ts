@@ -65,7 +65,7 @@ export class PRProcessor extends DataProcessor<
     const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
     const responseData = (await octokitRequestWithTimeout(
       `GET /repos/${owner}/${repo}/pulls/${pullNumber}`
-    )) as OctokitResponse<any>;
+    )) as OctokitResponse<Github.ExternalType.Webhook.PullRequest>;
     const octokitRespData = getOctokitResp(responseData);
     if (octokitRespData.review_comments) {
       this.ghApiData.review_comments = octokitRespData.review_comments;

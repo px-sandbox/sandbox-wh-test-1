@@ -12,6 +12,27 @@ import { searchedDataFormator } from '../../util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
 
+// interface SecurityScanData {
+//   id: string;
+//   repoId: string;
+//   organizationId: string;
+//   scanType: string;
+//   scanStatus: string;
+//   scanResult: {
+//     vulnerabilities: Array<{
+//       id: string;
+//       severity: string;
+//       description: string;
+//       location: {
+//         path: string;
+//         line: number;
+//       };
+//     }>;
+//   };
+//   createdAt: string;
+//   updatedAt: string;
+// }
+
 /**
  * Creates a query object for scanning security updates.
  * @param repoId - The ID of the repository.
@@ -25,7 +46,7 @@ function createScanQuery(
   date: string,
   from: number,
   size: number
-): any {
+): esb.RequestBodySearch {
   return esb
     .requestBodySearch()
     .size(size)

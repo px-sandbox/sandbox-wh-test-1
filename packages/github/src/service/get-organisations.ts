@@ -1,35 +1,26 @@
 /* eslint-disable no-await-in-loop */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github } from 'abstraction';
+import { IOrganisation } from 'abstraction/github/type';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
-import {
-  IOrganisation,
-  formatOrgDataResponse,
-  searchedDataFormator,
-} from '../util/response-formatter';
+import { formatOrgDataResponse, searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
 
-async function fetchOrganisations(
-  requestId: string,
-): Promise<IOrganisation[]> {
+async function fetchOrganisations(requestId: string): Promise<IOrganisation[]> {
   const esbQuery = esb
-      .requestBodySearch()
-      .query(
-        esb.boolQuery().should(esb.termQuery('body.isDeleted', false))
-      )
-      .toJSON();
+    .requestBodySearch()
+    .query(esb.boolQuery().should(esb.termQuery('body.isDeleted', false)))
+    .toJSON();
   logger.info({ message: 'esbQuery', data: JSON.stringify(esbQuery), requestId });
   const data = await esClient.search(Github.Enums.IndexName.GitOrganization, esbQuery);
 
   return searchedDataFormator(data);
 }
 
-export const handler = async function(
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> {
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const { requestId } = event.requestContext;
   let response: IOrganisation[] = [];
   try {

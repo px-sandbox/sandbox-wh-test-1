@@ -9,14 +9,14 @@ import { searchedDataFormator } from '../util/response-formatter';
 
 const esObj = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
-const getRepoData = async (repoId: string, requestId: string): Promise<any> => {
+const getRepoData = async (repoId: string, requestId: string): Promise<Github.Type.Repository> => {
   const query = esb.requestBodySearch().query(esb.matchQuery('body.id', repoId)).toJSON();
   const repoData = await esObj.search(Github.Enums.IndexName.GitRepo, query);
   const [repo] = await searchedDataFormator(repoData);
   logger.info({ message: 'repo name -->', data: { repoName: repo.name }, requestId });
   return repo;
 };
-const getCommits = async (repoId: string): Promise<any> => {
+const getCommits = async (repoId: string): Promise<Github.Type.Commits[]> => {
   const query = esb
     .requestBodySearch()
     .size(10000)

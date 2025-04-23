@@ -15,6 +15,39 @@ import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 import { getWorkingTime } from '../../../util/timezone-calculation';
 
+interface GitHubPullRequest {
+  id: number;
+  number: number;
+  state: string;
+  title: string;
+  user: {
+    id: number;
+    login: string;
+  };
+  body: string;
+  created_at: string;
+  updated_at: string;
+  closed_at: string | null;
+  merged_at: string | null;
+  merge_commit_sha: string | null;
+  assignee: {
+    id: number;
+    login: string;
+  } | null;
+  labels: Array<{
+    id: number;
+    name: string;
+  }>;
+  head: {
+    ref: string;
+    sha: string;
+  };
+  base: {
+    ref: string;
+    sha: string;
+  };
+}
+
 const sqsClient = SQSClient.getInstance();
 
 export const handler = async function collectPrByNumberData(event: SQSEvent): Promise<void> {
@@ -42,7 +75,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
         const dataOnPr = await octokitRequestWithTimeout(
           `GET /repos/${messageBody.owner}/${messageBody.repoName}/pulls/${messageBody.prNumber}`
         );
-        const octokitRespData = getOctokitResp(dataOnPr) as any;
+        const octokitRespData = getOctokitResp(dataOnPr) as GitHubPullRequest;
         const createdTimezone = await getTimezoneOfUser(
           `${mappingPrefixes.user}_${octokitRespData.user.id}`
         );
@@ -70,7 +103,7 @@ export const handler = async function collectPrByNumberData(event: SQSEvent): Pr
           },
           Queue.qGhPrFormat.queueUrl,
           { requestId, resourceId },
-          octokitRespData.id,
+          String(octokitRespData.id),
           uuid()
         );
       } catch (error) {

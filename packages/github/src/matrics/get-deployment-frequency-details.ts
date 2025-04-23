@@ -1,12 +1,13 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github } from 'abstraction';
+import { Github, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
+import { ElasticSearchResponse, FormattedData } from 'abstraction/other/type';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-const getRepoName = async (repoIds: string[]): Promise<Github.Type.RepoNameType[]> => {
+const getRepoName = async (repoIds: string[]): Promise<FormattedData[]> => {
   const repoNamesQuery = esb
     .requestBodySearch()
     .size(repoIds.length)
@@ -18,7 +19,7 @@ const getRepoName = async (repoIds: string[]): Promise<Github.Type.RepoNameType[
     )
     .toJSON();
   const repoNamesData = await esClientObj.search(Github.Enums.IndexName.GitRepo, repoNamesQuery);
-  const repoNames = await searchedDataFormator(repoNamesData);
+  const repoNames = await searchedDataFormator(repoNamesData as ElasticSearchResponse);
   return repoNames;
 };
 
@@ -30,14 +31,22 @@ export async function getDeploymentFrequencyDetails(
   page: number,
   limit: number
 ): Promise<{
-  data: any;
+  data: {
+    date: string;
+    source: string;
+    destination: string;
+    env: string;
+    repo: { id: string; name: string };
+  }[];
   page: number;
   totalPages: number;
 }> {
   const repoNames = await getRepoName(repoIds);
   const repoNamesObj: { [key: string]: string } = {};
   repoNames.forEach((names) => {
-    repoNamesObj[names.id] = names.name;
+    if (typeof names.id === 'string' && typeof names.name === 'string') {
+      repoNamesObj[names.id] = names.name;
+    }
   });
   const deploymentFrequencyQuery = esb
     .requestBodySearch()
@@ -58,14 +67,14 @@ export async function getDeploymentFrequencyDetails(
     data: deploymentFrequencyQuery.toJSON(),
   });
 
-  const data: any = await esClientObj.search(
+  const data: Other.Type.HitBody = await esClientObj.search(
     Github.Enums.IndexName.GitDeploymentFrequency,
     deploymentFrequencyQuery.toJSON()
   );
 
-  const formattedData = await searchedDataFormator(data);
+  const formattedData = await searchedDataFormator(data as ElasticSearchResponse);
 
-  const result = formattedData.map((doc: any) => ({
+  const result = formattedData.map((doc) => ({
     date: doc.createdAt,
     source: doc.source,
     destination: doc.destination,

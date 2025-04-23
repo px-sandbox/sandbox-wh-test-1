@@ -112,10 +112,8 @@ export async function activeBranchesAvg(
 ): Promise<{ value: number } | null> {
   try {
     const activeBranchesAvgQuery = await getHeadlineQuery(startDate, endDate, repoIds, requestId);
-    const data: any = await esClientObj.queryAggs(
-      Github.Enums.IndexName.GitActiveBranches,
-      activeBranchesAvgQuery
-    );
+    const data: { repo_count: { value: string }; branch_count: { value: string } } =
+      await esClientObj.queryAggs(Github.Enums.IndexName.GitActiveBranches, activeBranchesAvgQuery);
     logger.info({ message: 'activeBranchesAvg.data', data });
     const totalRepo = Number(data.repo_count.value);
     const totalBranchCount = Number(data.branch_count.value);

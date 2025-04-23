@@ -79,7 +79,7 @@ async function branchEsbQuery(
  * @returns A record of workflow tools availability.
  */
 function workflowTools(
-  workflowsResp: OctokitResponse<any> | null,
+  workflowsResp: OctokitResponse<{ content: string }> | null,
   repo: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody,
   requestId: string
 ): Record<string, boolean> {
@@ -154,7 +154,7 @@ async function callGithubApis(
   ref: string | undefined,
   filename: string,
   requestId: string
-): Promise<(OctokitResponse<any> | null)[]> {
+): Promise<(OctokitResponse<{ content: string }> | null)[]> {
   const commonPath = `/repos/${org}/${repo.name}`;
   const workflowURL = `GET ${commonPath}/contents/.github/workflows/${filename}.yml${
     ref ? `?ref=${ref}` : ''

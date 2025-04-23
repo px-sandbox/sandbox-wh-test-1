@@ -241,6 +241,9 @@ importers:
 
   packages/github:
     dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: 3.758.0
+        version: 3.758.0(aws-crt@1.25.3)
       '@aws-sdk/lib-dynamodb':
         specifier: 3.309.0
         version: 3.309.0(@aws-sdk/client-dynamodb@3.758.0(aws-crt@1.25.3))(@aws-sdk/smithy-client@3.374.0)(@aws-sdk/types@3.734.0)
@@ -341,9 +344,6 @@ importers:
         specifier: 9.0.0
         version: 9.0.0
     devDependencies:
-      '@aws-sdk/client-dynamodb':
-        specifier: 3.758.0
-        version: 3.758.0(aws-crt@1.25.3)
       '@aws-sdk/smithy-client':
         specifier: 3.374.0
         version: 3.374.0

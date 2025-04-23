@@ -1,5 +1,5 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github, Other } from 'abstraction';
+import { Github } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import { formatRepoSastData, searchedDataFormator } from '../util/response-formatter';
@@ -54,7 +54,7 @@ async function getRepoSastErrorsFromEsb(
   endDate: string,
   branch: string[],
   afterKeyObj?: string[]
-): Promise<any> {
+): Promise<{ formattedSastData: Github.Type.RepoSastErrors[]; newAfterKeyObj: string }> {
   let newAfterKeyObj = '';
   const sastDetailedQuery = esb
     .requestBodySearch()
@@ -79,10 +79,7 @@ async function getRepoSastErrorsFromEsb(
     sastDetailedQuery.searchAfter(afterKeyObj);
   }
   const finalQuery = sastDetailedQuery.toJSON();
-  const report: Other.Type.HitBody = await esClientObj.search(
-    Github.Enums.IndexName.GitRepoSastErrors,
-    finalQuery
-  );
+  const report = await esClientObj.search(Github.Enums.IndexName.GitRepoSastErrors, finalQuery);
 
   const formattedSastData = await formatRepoSastData(report);
   // If there are more records, call the function recursively with the new afterKeyObj
@@ -107,8 +104,8 @@ export async function getRepoSastErrors(
     data: { repoIds, startDate, endDate, branch, afterKeyObj },
     requestId,
   });
-  let afterKey;
-  let finalData;
+  let afterKey = '';
+  let finalData: Github.Type.SastErrorsAggregation[] = [];
   try {
     const sastData = await getRepoSastErrorsFromEsb(
       repoIds,
@@ -128,20 +125,25 @@ export async function getRepoSastErrors(
       const repoNames = await getRepoNames(repoIds, requestId);
 
       if (sastData) {
-        finalData = sastData.formattedSastData.map((data: Github.Type.RepoSastErrors) => ({
-          repoName: repoNames.find((repo: Github.Type.RepoNameType) => repo.id === data.body.repoId)
-            ?.name as string | '',
-          errorName: data.body.errorMsg as string,
-          ruleId: data.body.ruleId as string,
-          filename: data.body.fileName as string,
-          branch: data.body.metadata.map(
-            (branches: { branch: string; firstReportedOn: string; isResolved: boolean }) => ({
-              name: branches.branch as string,
-              firstOccurredAt: branches.firstReportedOn as string,
-              isResolved: branches.isResolved as boolean,
-            })
-          ),
-        }));
+        finalData = sastData.formattedSastData.map((data: Github.Type.RepoSastErrors) => {
+          // Get the first occurrence date from the metadata
+          const firstOccurredAt =
+            data.body.metadata.length > 0 ? data.body.metadata[0].firstReportedOn : '';
+
+          // Extract branch names as an array of strings
+          const branchNames = data.body.metadata.map((meta: { branch: string }) => meta.branch);
+
+          return {
+            repoName:
+              (repoNames.find((repo: Github.Type.RepoNameType) => repo.id === data.body.repoId)
+                ?.name as string) || '',
+            errorName: data.body.errorMsg as string,
+            ruleId: data.body.ruleId as string,
+            filename: data.body.fileName as string,
+            branch: branchNames,
+            firstOccurredAt,
+          };
+        });
       }
       logger.info({
         message: 'getRepoSastErrorsMatrics.finalData',

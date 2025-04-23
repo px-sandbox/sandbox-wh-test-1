@@ -54,7 +54,7 @@ export abstract class DataProcessor<T, S> {
   }
 
   public async save(): Promise<void> {
-    if (Object.keys(this.formattedData as Record<string, any>).length === 0) {
+    if (Object.keys(this.formattedData as Record<string, unknown>).length === 0) {
       logger.error({
         message: 'DataProcessor.save.error: EMPTY_FORMATTED_DATA',
         data: {

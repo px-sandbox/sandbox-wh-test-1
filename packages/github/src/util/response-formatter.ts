@@ -1,8 +1,10 @@
 import { Hit, IOrganisation, IRepo, IformatUserDataResponse } from 'abstraction/github/type';
 import { v4 as uuid } from 'uuid';
+import { ElasticSearchResponse, FormattedData } from 'abstraction/other/type';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const searchedDataFormator = async (data: any): Promise<any> => {
+export const searchedDataFormator = async (
+  data: ElasticSearchResponse
+): Promise<FormattedData[]> => {
   if (data?.hits?.total.value > 0) {
     return data.hits.hits
       .filter(
@@ -17,7 +19,7 @@ export const searchedDataFormator = async (data: any): Promise<any> => {
   return [];
 };
 
-export const formatRepoSastData = async (data: any): Promise<any> => {
+export const formatRepoSastData = async (data: ElasticSearchResponse): Promise<FormattedData[]> => {
   if (data?.hits?.total.value > 0) {
     return data.hits.hits.map((hit: Hit) => ({
       _id: hit._id,

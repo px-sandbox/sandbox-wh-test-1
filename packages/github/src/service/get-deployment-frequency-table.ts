@@ -7,9 +7,7 @@ import esb from 'elastic-builder';
 
 const esClient = ElasticSearchClient.getInstance();
 
-export const handler = async function (
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> {
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const startDate: string = event.queryStringParameters?.startDate || '';
   const endDate: string = event.queryStringParameters?.endDate || '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [''];
@@ -33,7 +31,7 @@ export const handler = async function (
       query
     );
     const data = response.destination_counts.buckets.map(
-      (bucket: { key: any; doc_count: any }) => ({
+      (bucket: { key: string; doc_count: number }) => ({
         destination: bucket.key,
         count: bucket.doc_count,
       })

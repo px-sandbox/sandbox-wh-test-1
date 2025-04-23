@@ -11,17 +11,117 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
+interface GitHubPullRequestCommit {
+  sha: string;
+  node_id: string;
+  commit: {
+    author: {
+      name: string;
+      email: string;
+      date: string;
+    };
+    committer: {
+      name: string;
+      email: string;
+      date: string;
+    };
+    message: string;
+    tree: {
+      sha: string;
+      url: string;
+    };
+    url: string;
+    comment_count: number;
+    verification: {
+      verified: boolean;
+      reason: string;
+      signature: string | null;
+      payload: string | null;
+    };
+  };
+  url: string;
+  html_url: string;
+  comments_url: string;
+  author: {
+    login: string;
+    id: number;
+    node_id: string;
+    avatar_url: string;
+    gravatar_id: string;
+    url: string;
+    html_url: string;
+    followers_url: string;
+    following_url: string;
+    gists_url: string;
+    starred_url: string;
+    subscriptions_url: string;
+    organizations_url: string;
+    repos_url: string;
+    events_url: string;
+    received_events_url: string;
+    type: string;
+    site_admin: boolean;
+  } | null;
+  committer: {
+    login: string;
+    id: number;
+    node_id: string;
+    avatar_url: string;
+    gravatar_id: string;
+    url: string;
+    html_url: string;
+    followers_url: string;
+    following_url: string;
+    gists_url: string;
+    starred_url: string;
+    subscriptions_url: string;
+    organizations_url: string;
+    repos_url: string;
+    events_url: string;
+    received_events_url: string;
+    type: string;
+    site_admin: boolean;
+  } | null;
+  parents: Array<{
+    sha: string;
+    url: string;
+    html_url: string;
+  }>;
+}
+
+interface PullRequestMessageBody {
+  page?: number;
+  number: number;
+  head: {
+    repo: {
+      owner: {
+        login: string;
+        id: number;
+      };
+      name: string;
+    };
+  };
+}
+
+interface ExtendedGitHubPullRequestCommit extends GitHubPullRequestCommit {
+  isMergedCommit: boolean;
+  mergedBranch: string | null;
+  pushedBranch: string | null;
+}
+
 const sqsClient = SQSClient.getInstance();
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 async function saveCommit(
-  commitData: any,
-  messageBody: any,
+  commitData: GitHubPullRequestCommit,
+  messageBody: PullRequestMessageBody,
   reqCtx: Other.Type.RequestCtx
 ): Promise<void> {
-  const modifiedCommitData = { ...commitData };
-  modifiedCommitData.isMergedCommit = false;
-  modifiedCommitData.mergedBranch = null;
-  modifiedCommitData.pushedBranch = null;
+  const modifiedCommitData: ExtendedGitHubPullRequestCommit = {
+    ...commitData,
+    isMergedCommit: false,
+    mergedBranch: null,
+    pushedBranch: null,
+  };
   await sqsClient.sendFifoMessage(
     {
       commitId: modifiedCommitData.sha,
@@ -41,6 +141,7 @@ async function saveCommit(
     uuid()
   );
 }
+
 async function getPRCommits(record: SQSRecord): Promise<boolean | undefined> {
   const {
     reqCtx: { requestId, resourceId },
@@ -76,11 +177,10 @@ async function getPRCommits(record: SQSRecord): Promise<boolean | undefined> {
     const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
     const commentsDataOnPr = (await octokitRequestWithTimeout(
       `GET /repos/${owner.login}/${name}/pulls/${number}/commits?per_page=100&page=${page}`
-    )) as OctokitResponse<any>;
+    )) as OctokitResponse<GitHubPullRequestCommit[]>;
     const octokitRespData = getOctokitResp(commentsDataOnPr);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await Promise.all(
-      octokitRespData.map((commit: any) =>
+      octokitRespData.map((commit: GitHubPullRequestCommit) =>
         saveCommit(commit, messageBody, { requestId, resourceId })
       )
     );
@@ -102,6 +202,7 @@ async function getPRCommits(record: SQSRecord): Promise<boolean | undefined> {
     await logProcessToRetry(record, Queue.qGhHistoricalPrCommits.queueUrl, error as Error);
   }
 }
+
 export const handler = async function collectPRCommitData(
   event: SQSEvent
 ): Promise<void | boolean> {

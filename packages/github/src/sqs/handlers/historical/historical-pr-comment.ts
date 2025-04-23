@@ -10,6 +10,33 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
+interface GitHubPullRequestReviewComment {
+  id: number;
+  node_id: string;
+  diff_hunk: string;
+  path: string;
+  position: number;
+  original_position: number;
+  commit_id: string;
+  original_commit_id: string;
+  user: {
+    id: number;
+    login: string;
+  };
+  body: string;
+  created_at: string;
+  updated_at: string;
+  html_url: string;
+  pull_request_url: string;
+  author_association: string;
+  start_line: number | null;
+  original_start_line: number | null;
+  start_side: string | null;
+  line: number | null;
+  original_line: number | null;
+  side: string | null;
+}
+
 async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
   const {
     reqCtx: { requestId, resourceId },
@@ -46,11 +73,10 @@ async function getPrComments(record: SQSRecord): Promise<boolean | undefined> {
 
     const commentsDataOnPr = (await octokitRequestWithTimeout(
       `GET /repos/${login}/${name}/pulls/${number}/comments?per_page=100&page=${page}`
-    )) as OctokitResponse<any>;
+    )) as OctokitResponse<GitHubPullRequestReviewComment[]>;
     const octokitRespData = getOctokitResp(commentsDataOnPr);
     let queueProcessed = [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    queueProcessed = octokitRespData.map((comments: any) =>
+    queueProcessed = octokitRespData.map((comments: GitHubPullRequestReviewComment) =>
       sqsClient.sendMessage(
         {
           comment: comments,
