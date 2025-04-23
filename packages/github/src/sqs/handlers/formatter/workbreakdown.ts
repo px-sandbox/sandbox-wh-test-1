@@ -63,14 +63,16 @@ const processCommits = async (
 };
 
 export const handler = async (event: SQSEvent): Promise<void> => {
-  for (const record of event.Records) {
-    const payload = JSON.parse(record.body) as Github.ExternalType.Webhook.WorkbreakdownMessage;
-    try {
-      await processCommits(payload);
-    } catch (error) {
-      logger.error({ message: 'handler.error', error, requestId: payload.reqCtx.requestId });
+  await Promise.all(
+    event.Records.map(async (record) => {
+      const payload = JSON.parse(record.body) as Github.ExternalType.Webhook.WorkbreakdownMessage;
+      try {
+        await processCommits(payload);
+      } catch (error) {
+        logger.error({ message: 'handler.error', error, requestId: payload.reqCtx.requestId });
 
-      await logProcessToRetry(record, Queue.qGhWorkbreakdown.queueUrl, error as Error);
-    }
-  }
+        await logProcessToRetry(record, Queue.qGhWorkbreakdown.queueUrl, error as Error);
+      }
+    })
+  );
 };
