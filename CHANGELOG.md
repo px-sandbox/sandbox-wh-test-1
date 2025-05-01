@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.26.1](https://github.com/studiographene/pulse-data-integration/compare/v1.26.0...v1.26.1) (2025-05-01)
+
+
+### Bug Fixes
+
+* **PX-2712:** consider zero estimated linked bugs ([3ea80fd](https://github.com/studiographene/pulse-data-integration/commit/3ea80fd797d89ffea503ef39ed4a11f6517d650c))
+* **PX-2712:** consider zero estimated linked bugs ([#1187](https://github.com/studiographene/pulse-data-integration/issues/1187)) ([1811ec1](https://github.com/studiographene/pulse-data-integration/commit/1811ec12f322a054079f97962f26e3453df967de))
+
 ## [1.26.0](https://github.com/studiographene/pulse-data-integration/compare/v1.25.0...v1.26.0) (2025-04-21)
 
 
