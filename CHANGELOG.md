@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.26.2](https://github.com/studiographene/pulse-data-integration/compare/v1.26.1...v1.26.2) (2025-05-06)
+
+
+### Bug Fixes
+
+* **PX-2717:** fixversion updatation on subtask by parent ([cd48c64](https://github.com/studiographene/pulse-data-integration/commit/cd48c64ee056e3bab7f1477bb4f7f894545ea8da))
+* **PX-2717:** fixversion updatation on subtask by parent ([#1190](https://github.com/studiographene/pulse-data-integration/issues/1190)) ([867a7a5](https://github.com/studiographene/pulse-data-integration/commit/867a7a5ebed8e970f2de1ea2ac372f38a1c2356a))
+
 ## [1.26.1](https://github.com/studiographene/pulse-data-integration/compare/v1.26.0...v1.26.1) (2025-05-01)
 
 
