@@ -17,3 +17,13 @@ export interface RawActiveBRanches {
   createdAt: string;
   branchesCount: number;
 }
+
+export interface ActiveBranchDetails {
+  id: string;
+  name: string;
+  lastCommitDate: string;
+  author: { id: string; name: string };
+  prStatus: string;
+  createdSince: string;
+  createdAt?: string;
+}

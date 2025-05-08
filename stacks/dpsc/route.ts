@@ -122,5 +122,12 @@ export function initializeRoutes(): Record<string, ApiRouteProps<'universal'>> {
       },
       authorizer: 'universal',
     },
+
+    'GET /github/active-branches/details': {
+      function: {
+        handler: 'packages/github/src/service/get-active-branches-details.handler',
+      },
+      authorizer: 'universal',
+    },
   };
 }
