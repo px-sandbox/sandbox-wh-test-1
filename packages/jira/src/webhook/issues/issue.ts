@@ -5,9 +5,11 @@ import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
 import { v4 as uuid } from 'uuid';
+import { IssuesTypes } from 'abstraction/jira/enums';
 import { formatIssueNew } from '../../util/issue-helper';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { ALLOWED_ISSUE_TYPES } from '../../constant/config';
+import { getIssueById } from '../../repository/issue/get-issue';
 
 const sqsClient = SQSClient.getInstance();
 
@@ -61,7 +63,22 @@ export async function create(
     throw new Error(`worklog.hanlder.organization ${organization} not found`);
   }
   const issueData = await formatIssueNew(issue, orgId);
-
+  if (issueData.body.issueType === IssuesTypes.SUBTASK && issueData.body.parent.id) {
+    // get parent issue data form body.parent.id
+    const parentId = issueData.body.parent.id.replace('jira_issue_', '');
+    const parentIssue = await getIssueById(parentId, organization, { requestId, resourceId: id });
+    // update the subtask fixVersion with parent issue fixVersion
+    if (parentIssue.fixVersion) {
+      issueData.body.fixVersion = parentIssue.fixVersion;
+      logger.info({
+        message: 'subtask.fixVersion.updated',
+        data: {
+          subtaskId: issueData.id,
+          parentFixVersion: parentIssue.fixVersion,
+        },
+      });
+    }
+  }
   await sqsClient.sendFifoMessage(
     { eventName: Jira.Enums.Event.IssueCreated, issueData, eventTime, organization },
     Queue.qIssueFormat.queueUrl,
