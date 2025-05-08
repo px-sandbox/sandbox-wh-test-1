@@ -392,14 +392,16 @@ async function updateIssueParentAssociation(
           data: { parent: childIssue.parent },
         });
         // Remove the child from previous parent's subtask list
-        const previousParentIssue = await fetchIssue(item.from, organization, reqCtx);
-        await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, previousParentIssue._id, {
-          body: {
-            subtasks: previousParentIssue.subtasks.filter(
-              (subtask: { id: string }) => subtask.id !== childIssue.id
-            ),
-          },
-        });
+        if (item.from) {
+          const previousParentIssue = await fetchIssue(item.from, organization, reqCtx);
+          await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, previousParentIssue._id, {
+            body: {
+              subtasks: previousParentIssue.subtasks.filter(
+                (subtask: { id: string }) => subtask.id !== childIssue.id
+              ),
+            },
+          });
+        }
       }
       // Add the child to the new parent's subtask list
       // if subtask already exists, to new parent
@@ -449,22 +451,54 @@ async function updateTimeTracker(
 // Function to update the fix version of an issue
 async function updateFixVersion(
   item: Jira.ExternalType.Webhook.ChangelogItem,
-  issueDocId: string,
+  issueData: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody,
   currentFixVersion: string
 ): Promise<void> {
-  logger.info({ message: 'updateFixVersion.initiated', data: { issueDocId } });
+  logger.info({ message: 'updateFixVersion.initiated', data: { _id: issueData._id } });
   const fromVersion = item.from ? `${mappingPrefixes.version}_${item.from}` : null;
+  const newFixVersion = item.to ? `${mappingPrefixes.version}_${item.to}` : null;
+
   if (fromVersion === currentFixVersion || fromVersion === null) {
-    await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueDocId, {
+    // Update the main issue
+    await esClientObj.updateDocument(Jira.Enums.IndexName.Issue, issueData._id, {
       body: {
-        fixVersion: item.to ? `${mappingPrefixes.version}_${item.to}` : null,
+        fixVersion: newFixVersion,
       },
     });
-    logger.info({ message: 'updateFixVersion.completed', data: { issueDocId } });
+
+    // Handle subtasks if they exist
+    if (issueData.subtasks && issueData.subtasks.length > 0) {
+      const subtaskKeys = issueData.subtasks.map((subtask: { id: string }) => subtask.id);
+      // Create query to match all subtasks
+      const query = esb
+        .requestBodySearch()
+        .query(esb.boolQuery().must(esb.termsQuery('body.id', subtaskKeys)))
+        .toJSON();
+      // Create script to update fixVersion
+      const script = {
+        source: 'ctx._source.body.fixVersion = params.fixVersion',
+        lang: 'painless',
+        params: {
+          fixVersion: newFixVersion,
+        },
+      };
+
+      // Update all matching subtasks in a single operation
+      await esClientObj.updateByQuery(Jira.Enums.IndexName.Issue, query, script);
+    }
+
+    logger.info({
+      message: 'updateFixVersion.completed',
+      data: {
+        _id: issueData._id,
+        subtasksUpdated: issueData.subtasks?.length || 0,
+      },
+    });
+    logger.info({ message: 'updateFixVersion.completed', data: { _id: issueData._id } });
   } else {
     logger.info({
       message: 'updateFixVersion.noChange',
-      data: { issueDocId, current: currentFixVersion, changelog: item },
+      data: { _id: issueData._id, current: currentFixVersion, changelog: item },
     });
   }
 }
@@ -564,7 +598,7 @@ async function handleIssueUpdate(
           await updateTimeTracker(item, issueDocId);
           break;
         case Jira.Enums.ChangelogName.FIX_VERSION:
-          await updateFixVersion(item, issueDocId, issueDoc.fixVersion);
+          await updateFixVersion(item, issueDoc, issueDoc.fixVersion);
           break;
         case Jira.Enums.ChangelogName.AFFECTED_VERSION:
           await updateAffectedVersion(item, issueDocId);
