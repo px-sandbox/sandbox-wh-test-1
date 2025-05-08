@@ -17,3 +17,21 @@ export interface RawActiveBRanches {
   createdAt: string;
   branchesCount: number;
 }
+
+enum PRStatus {
+  merged = 'merged',
+  closedWithoutMerge = 'closedWithoutMerge',
+  opened = 'opened',
+  draft = 'draft',
+  noPr = 'noPr',
+}
+
+export interface ActiveBranchDetails {
+  id: string;
+  name: string;
+  lastCommitDate: string;
+  author: { id: string; name: string };
+  prStatus: PRStatus;
+  createdSince: string;
+  createdAt?: string;
+}
