@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.27.0](https://github.com/studiographene/pulse-data-integration/compare/v1.26.2...v1.27.0) (2025-05-08)
+
+
+### Features
+
+* **PX-2739:** active branch detail api ([4fb2c32](https://github.com/studiographene/pulse-data-integration/commit/4fb2c32bc6cf049a604e461d925ea6afbb3065c1))
+* **PX-2739:** active branch detail api ([#1192](https://github.com/studiographene/pulse-data-integration/issues/1192)) ([6244652](https://github.com/studiographene/pulse-data-integration/commit/62446525b81c4ec217847f2746f641c989e123a1))
+* **PX-2739:** enum for prstatus ([5eb9de8](https://github.com/studiographene/pulse-data-integration/commit/5eb9de8d2d0094b365114db322872e9b1fc0e913))
+
 ## [1.26.2](https://github.com/studiographene/pulse-data-integration/compare/v1.26.1...v1.26.2) (2025-05-06)
 
 
