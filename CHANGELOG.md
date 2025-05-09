@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.30.0](https://github.com/studiographene/pulse-data-integration/compare/v1.29.0...v1.30.0) (2025-05-09)
+
+
+### Features
+
+* **PX-2748:** fixin branch creation time ([afba792](https://github.com/studiographene/pulse-data-integration/commit/afba792e5e2fb1f3668aff67e4b55a6f40ad7d0c))
+* **PX-2748:** fixin branch creation time ([#1201](https://github.com/studiographene/pulse-data-integration/issues/1201)) ([9f6fd21](https://github.com/studiographene/pulse-data-integration/commit/9f6fd2144a7c954f5a381309014d8f05462fe868))
+
+## [1.29.0](https://github.com/studiographene/pulse-data-integration/compare/v1.28.1...v1.29.0) (2025-05-09)
+
+
+### Features
+
+* **PX-2748:** fixin branch creation time ([122be83](https://github.com/studiographene/pulse-data-integration/commit/122be8347725c3f46830e73f6d07cb9cb0be0ffa))
+* **PX-2748:** fixin branch creation time ([#1199](https://github.com/studiographene/pulse-data-integration/issues/1199)) ([2d4ea80](https://github.com/studiographene/pulse-data-integration/commit/2d4ea80b0d6ef52097afec3b7bb0de1131a5d5ba))
+
+## [1.28.1](https://github.com/studiographene/pulse-data-integration/compare/v1.28.0...v1.28.1) (2025-05-09)
+
+
+### Bug Fixes
+
+* **PX-2748:** authorId indices ([c6cf2d5](https://github.com/studiographene/pulse-data-integration/commit/c6cf2d5a903045113f065a821446985462bc7063))
+* **PX-2748:** authorId indices ([#1197](https://github.com/studiographene/pulse-data-integration/issues/1197)) ([0765301](https://github.com/studiographene/pulse-data-integration/commit/0765301c02d1c407ab8010740d1229cfa89226cb))
+
 ## [1.28.0](https://github.com/studiographene/pulse-data-integration/compare/v1.27.0...v1.28.0) (2025-05-09)
 
 
