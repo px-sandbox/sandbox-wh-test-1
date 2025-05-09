@@ -10,6 +10,7 @@ import { getCommits } from '../lib/git-commit-list';
 import { pRReviewCommentOnQueue } from '../lib/pr-review-comment-queue';
 import { pRReviewOnQueue } from '../lib/pr-review-queue';
 import { pROnQueue } from '../lib/pull-request-queue';
+import moment from 'moment';
 
 const sqsClient = SQSClient.getInstance();
 interface ReviewCommentProcessType {
@@ -78,7 +79,7 @@ async function processBranchEvent(
     name,
     id: Buffer.from(`${repoId}_${name}`, 'binary').toString('base64'),
     repo_id: repoId,
-    created_at: eventTime,
+    created_at: moment(eventTime).toISOString(),
     orgId,
     action: event.headers['x-github-event'],
     authorId,
