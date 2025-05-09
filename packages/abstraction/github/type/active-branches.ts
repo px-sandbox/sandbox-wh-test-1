@@ -18,7 +18,7 @@ export interface RawActiveBRanches {
   branchesCount: number;
 }
 
-enum PRStatus {
+export enum PRStatus {
   merged = 'merged',
   closedWithoutMerge = 'closedWithoutMerge',
   opened = 'opened',
