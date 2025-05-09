@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.30.0](https://github.com/studiographene/pulse-data-integration/compare/v1.29.0...v1.30.0) (2025-05-09)
+
+
+### Features
+
+* **PX-2748:** fixin branch creation time ([afba792](https://github.com/studiographene/pulse-data-integration/commit/afba792e5e2fb1f3668aff67e4b55a6f40ad7d0c))
+* **PX-2748:** fixin branch creation time ([#1201](https://github.com/studiographene/pulse-data-integration/issues/1201)) ([9f6fd21](https://github.com/studiographene/pulse-data-integration/commit/9f6fd2144a7c954f5a381309014d8f05462fe868))
+
 ## [1.29.0](https://github.com/studiographene/pulse-data-integration/compare/v1.28.1...v1.29.0) (2025-05-09)
 
 
