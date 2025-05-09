@@ -23,7 +23,7 @@ export type Branch = retryProcess & {
   };
 };
 
-export type BranchRep = retryProcess & {
+export type BranchEsResponse = retryProcess & {
   _id: string;
   id: string;
   githubBranchId: string;

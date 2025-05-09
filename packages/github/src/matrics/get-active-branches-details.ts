@@ -8,7 +8,7 @@ import { searchedDataFormator } from '../util/response-formatter';
 const esClient = ElasticSearchClient.getInstance();
 
 const getBranchDetails = async (
-  item: Github.Type.BranchRep,
+  item: Github.Type.BranchEsResponse,
   requestId: string
 ): Promise<Github.Type.ActiveBranchDetails> => {
   const [lastCommitData, prStatusData, authorDetailsData] = await Promise.all([
@@ -122,7 +122,9 @@ export const activeBranchDetailsGraphData = async (
     const activeBranchDetails = await searchedDataFormator(data);
 
     const graphData = await Promise.all(
-      activeBranchDetails.map((item: Github.Type.BranchRep) => getBranchDetails(item, requestId))
+      activeBranchDetails.map((item: Github.Type.BranchEsResponse) =>
+        getBranchDetails(item, requestId)
+      )
     );
     const totalPages = Math.ceil(data.hits.total.value / limit);
     return { totalPages, page, graphData };
