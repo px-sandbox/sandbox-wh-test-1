@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.28.0](https://github.com/studiographene/pulse-data-integration/compare/v1.27.0...v1.28.0) (2025-05-09)
+
+
+### Features
+
+* **PX-2740:** implemented pr and commit date ([b8d0bce](https://github.com/studiographene/pulse-data-integration/commit/b8d0bce4eaa38238d259dfc99b88604444645ee9))
+* **PX-2740:** implemented pr and commit date ([#1194](https://github.com/studiographene/pulse-data-integration/issues/1194)) ([bfab53d](https://github.com/studiographene/pulse-data-integration/commit/bfab53df7bec04b5aad63d1a92abdf89fd8503c1))
+* **PX-2745:** authorid implementation ([382ee36](https://github.com/studiographene/pulse-data-integration/commit/382ee36e1d629b280e77d8ed545f4fc71624057c))
+* **PX-2745:** authorid implementation ([#1196](https://github.com/studiographene/pulse-data-integration/issues/1196)) ([b5bc03c](https://github.com/studiographene/pulse-data-integration/commit/b5bc03c2190837ce265823b070c157cb47148df2))
+
+
+### Bug Fixes
+
+* **PX-2740:** pagination fix ([e05908a](https://github.com/studiographene/pulse-data-integration/commit/e05908ae2e361cf57a7d57914cd6155776cf9f18))
+* **PX-2740:** pr feedback ([ef1acf3](https://github.com/studiographene/pulse-data-integration/commit/ef1acf30c4d11835a957b0d79315bbe1d2dcd64c))
+* **PX-2741:** prstatus case handled ([84aacbd](https://github.com/studiographene/pulse-data-integration/commit/84aacbd4dbcaecc5d9f4f20600ea88578d9cfb98))
+* **PX-2745:** author id indices ([ddd307c](https://github.com/studiographene/pulse-data-integration/commit/ddd307c9c01974d621edb506451a47cbe6c83ab9))
+
 ## [1.27.0](https://github.com/studiographene/pulse-data-integration/compare/v1.26.2...v1.27.0) (2025-05-08)
 
 
