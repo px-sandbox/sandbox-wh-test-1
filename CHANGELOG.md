@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.28.1](https://github.com/studiographene/pulse-data-integration/compare/v1.28.0...v1.28.1) (2025-05-09)
+
+
+### Bug Fixes
+
+* **PX-2748:** authorId indices ([c6cf2d5](https://github.com/studiographene/pulse-data-integration/commit/c6cf2d5a903045113f065a821446985462bc7063))
+* **PX-2748:** authorId indices ([#1197](https://github.com/studiographene/pulse-data-integration/issues/1197)) ([0765301](https://github.com/studiographene/pulse-data-integration/commit/0765301c02d1c407ab8010740d1229cfa89226cb))
+
 ## [1.28.0](https://github.com/studiographene/pulse-data-integration/compare/v1.27.0...v1.28.0) (2025-05-09)
 
 
