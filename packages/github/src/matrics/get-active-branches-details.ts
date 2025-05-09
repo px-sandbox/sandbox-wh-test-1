@@ -101,7 +101,7 @@ export const activeBranchDetailsGraphData = async (
     const query = esb
       .requestBodySearch()
       .size(limit)
-      .from(page)
+      .from((page - 1) * limit)
       .query(
         esb
           .boolQuery()
