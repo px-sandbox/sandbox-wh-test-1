@@ -41,7 +41,7 @@ export enum PullRequest {
   Labeled = 'labeled',
   Locked = 'locked',
   Milestoned = 'milestoned',
-  Opened = 'opened',
+  Opened = 'open',
   ReadyForReview = 'ready_for_review',
   Reopened = 'reopened',
   ReviewRequestRemoved = 'review_request_removed',
