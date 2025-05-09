@@ -69,6 +69,7 @@ async function processBranchEvent(
       pushed_at: eventAt,
       owner: { id: orgId },
     },
+    sender: { id: authorId },
   } = data;
 
   let resourceId = '';
@@ -79,6 +80,7 @@ async function processBranchEvent(
     created_at: eventAt,
     orgId,
     action: event.headers['x-github-event'],
+    authorId,
   };
   resourceId = name;
 

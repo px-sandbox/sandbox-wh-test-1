@@ -1,4 +1,4 @@
- export type Branch = {
+export type Branch = {
   id: string;
   action?: string;
   name: string;
@@ -10,4 +10,5 @@
   deleted_at: string;
   ref: string;
   protected: boolean;
+  authorId: string;
 };

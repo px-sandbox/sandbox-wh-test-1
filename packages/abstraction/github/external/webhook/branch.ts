@@ -12,7 +12,9 @@ export type Branch = {
     };
   };
   organization: object;
-  sender: object;
+  sender: {
+    id: string;
+  };
   installation: object;
   action: string;
   protected: boolean;
