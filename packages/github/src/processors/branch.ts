@@ -40,7 +40,7 @@ export class BranchProcessor extends DataProcessor<
         name: this.ghApiData.name ?? this.ghApiData.ref,
         organizationId: `${mappingPrefixes.organization}_${this.ghApiData.orgId}`,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repo_id}`,
-        authorId: this.ghApiData.authorId,
+        authorId: `${mappingPrefixes.user}_${this.ghApiData.authorId}`,
         createdAt: this.ghApiData.created_at ?? new Date(),
         pushedAt: this.ghApiData?.pushed_at,
         updatedAt: this.ghApiData?.updated_at,

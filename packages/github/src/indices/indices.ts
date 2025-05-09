@@ -38,6 +38,7 @@ const indices = [
             githubDate: { type: 'date', format: 'yyyy-MM-dd' },
             timezone: { type: 'keyword' },
             isDeleted: { type: 'boolean' },
+            authorId: { type: 'keyword' },
           },
         },
       },
