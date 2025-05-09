@@ -8,54 +8,61 @@ import { searchedDataFormator } from '../util/response-formatter';
 const esClient = ElasticSearchClient.getInstance();
 
 const getBranchDetails = async (
-  item: Github.Type.ActiveBranchDetails,
+  item: Github.Type.BranchEsResponse,
   requestId: string
 ): Promise<Github.Type.ActiveBranchDetails> => {
-  const lastCommitQuery = esb
-    .requestBodySearch()
-    .size(1)
-    .query(
+  const [lastCommitData, prStatusData, authorDetailsData] = await Promise.all([
+    esClient.search(
+      Github.Enums.IndexName.GitCommits,
       esb
-        .boolQuery()
-        .must([
-          esb.termsQuery('body.pushedBranch', item.name),
-          esb.termQuery('body.isDeleted', false),
-        ])
-    )
-    .sort(esb.sort('body.createdAt', 'desc'))
-    .toJSON();
-  const lastCommitData: Other.Type.HitBody = await esClient.search(
-    Github.Enums.IndexName.GitCommits,
-    lastCommitQuery
-  );
-  logger.info({
-    message: 'lastCommitData.info',
-    data: JSON.stringify(lastCommitData),
-    requestId,
-  });
-
+        .requestBodySearch()
+        .size(1)
+        .query(
+          esb
+            .boolQuery()
+            .must([
+              esb.termsQuery('body.pushedBranch', item.name),
+              esb.termQuery('body.isDeleted', false),
+            ])
+        )
+        .sort(esb.sort('body.createdAt', 'desc'))
+        .toJSON()
+    ),
+    esClient.search(
+      Github.Enums.IndexName.GitPull,
+      esb
+        .requestBodySearch()
+        .size(1)
+        .query(
+          esb
+            .boolQuery()
+            .must([
+              esb.termsQuery('body.head.ref', item.name),
+              esb.termQuery('body.isDeleted', false),
+            ])
+        )
+        .toJSON()
+    ),
+    esClient.search(
+      Github.Enums.IndexName.GitUsers,
+      esb
+        .requestBodySearch()
+        .query(
+          esb
+            .boolQuery()
+            .must([esb.termQuery('body.id', item.authorId), esb.termQuery('body.isDeleted', false)])
+        )
+        .toJSON()
+    ),
+  ]);
   const [lastCommitDetails] = await searchedDataFormator(lastCommitData);
-
-  const prStatusQuery = esb
-    .requestBodySearch()
-    .query(
-      esb
-        .boolQuery()
-        .must([esb.termsQuery('body.head.ref', item.name), esb.termQuery('body.isDeleted', false)])
-    )
-    .sort(esb.sort('body.createdAt', 'desc'))
-    .toJSON();
-  const prStatusData: Other.Type.HitBody = await esClient.search(
-    Github.Enums.IndexName.GitPull,
-    prStatusQuery
-  );
+  const [prStatusDetails] = await searchedDataFormator(prStatusData);
+  const [authorDetails] = await searchedDataFormator(authorDetailsData);
   logger.info({
-    message: 'prStatusData.info',
-    data: JSON.stringify(prStatusData),
+    message: 'prStatusDetails.info',
+    data: JSON.stringify({ prStatusDetails, lastCommitDetails, authorDetails }),
     requestId,
   });
-  const [prStatusDetails] = await searchedDataFormator(prStatusData);
-
   let prStatus = Github.Type.PRStatus.noPr;
   if (prStatusDetails) {
     if (prStatusDetails.state === 'closed') {
@@ -66,14 +73,13 @@ const getBranchDetails = async (
       prStatus = Github.Type.PRStatus.opened;
     }
   }
-
   return {
     id: item.id,
     name: item.name,
     lastCommitDate: lastCommitDetails?.createdAt ?? '-',
     author: {
-      id: 'gh_user_123',
-      name: 'Xyz',
+      id: authorDetails?.id ?? '-',
+      name: authorDetails?.userName ?? '-',
     },
     prStatus,
     createdSince: moment(item.createdAt).fromNow(),
@@ -95,7 +101,7 @@ export const activeBranchDetailsGraphData = async (
     const query = esb
       .requestBodySearch()
       .size(limit)
-      .from(page)
+      .from((page - 1) * limit)
       .query(
         esb
           .boolQuery()
@@ -116,7 +122,7 @@ export const activeBranchDetailsGraphData = async (
     const activeBranchDetails = await searchedDataFormator(data);
 
     const graphData = await Promise.all(
-      activeBranchDetails.map((item: Github.Type.ActiveBranchDetails) =>
+      activeBranchDetails.map((item: Github.Type.BranchEsResponse) =>
         getBranchDetails(item, requestId)
       )
     );

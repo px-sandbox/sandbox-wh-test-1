@@ -8,6 +8,7 @@ export type Branch = retryProcess & {
     githubBranchId: string;
     name: string;
     repoId: string;
+    authorId: string;
     organizationId: string;
     createdAt: string;
     updatedAt: string;
@@ -22,7 +23,7 @@ export type Branch = retryProcess & {
   };
 };
 
-export type BranchRep = retryProcess & {
+export type BranchEsResponse = retryProcess & {
   _id: string;
   id: string;
   githubBranchId: string;
@@ -39,4 +40,5 @@ export type BranchRep = retryProcess & {
   githubDate: string | Date;
   protected: boolean;
   isDeleted: boolean;
+  authorId: string;
 };
