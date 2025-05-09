@@ -65,11 +65,11 @@ const getBranchDetails = async (
   });
   let prStatus = Github.Type.PRStatus.noPr;
   if (prStatusDetails) {
-    if (prStatusDetails.state === 'closed') {
+    if (prStatusDetails.state === Github.Enums.PullRequest.Closed) {
       prStatus = prStatusDetails.merged
         ? Github.Type.PRStatus.merged
         : Github.Type.PRStatus.closedWithoutMerge;
-    } else if (prStatusDetails.state === 'opened') {
+    } else if (prStatusDetails.state === Github.Enums.PullRequest.Opened) {
       prStatus = Github.Type.PRStatus.opened;
     }
   }
