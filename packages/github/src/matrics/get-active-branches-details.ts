@@ -56,6 +56,17 @@ const getBranchDetails = async (
   });
   const [prStatusDetails] = await searchedDataFormator(prStatusData);
 
+  let prStatus = Github.Type.PRStatus.noPr;
+  if (prStatusDetails) {
+    if (prStatusDetails.state === 'closed') {
+      prStatus = prStatusDetails.merged
+        ? Github.Type.PRStatus.merged
+        : Github.Type.PRStatus.closedWithoutMerge;
+    } else if (prStatusDetails.state === 'opened') {
+      prStatus = Github.Type.PRStatus.opened;
+    }
+  }
+
   return {
     id: item.id,
     name: item.name,
@@ -64,7 +75,7 @@ const getBranchDetails = async (
       id: 'gh_user_123',
       name: 'Xyz',
     },
-    prStatus: prStatusDetails?.state ?? Github.Type.PRStatus.noPr,
+    prStatus,
     createdSince: moment(item.createdAt).fromNow(),
   };
 };
