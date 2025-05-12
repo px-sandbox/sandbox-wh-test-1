@@ -21,8 +21,8 @@ const getBranchDetails = async (
           esb
             .boolQuery()
             .must([
-              esb.termsQuery('body.pushedBranch', item.name),
-              esb.termQuery('body.isDeleted', false),
+              esb.termQuery('body.pushedBranch', item.name),
+              esb.termQuery('body.repoId', item.repoId),
             ])
         )
         .sort(esb.sort('body.createdAt', 'desc'))
@@ -37,10 +37,11 @@ const getBranchDetails = async (
           esb
             .boolQuery()
             .must([
-              esb.termsQuery('body.head.ref', item.name),
-              esb.termQuery('body.isDeleted', false),
+              esb.termQuery('body.head.ref', item.name),
+              esb.termQuery('body.repoId', item.repoId),
             ])
         )
+        .sort(esb.sort('body.createdAt', 'desc'))
         .toJSON()
     ),
     esClient.search(
@@ -55,21 +56,22 @@ const getBranchDetails = async (
         .toJSON()
     ),
   ]);
+
   const [lastCommitDetails] = await searchedDataFormator(lastCommitData);
   const [prStatusDetails] = await searchedDataFormator(prStatusData);
   const [authorDetails] = await searchedDataFormator(authorDetailsData);
   logger.info({
     message: 'prStatusDetails.info',
-    data: JSON.stringify({ prStatusDetails, lastCommitDetails, authorDetails }),
+    data: { lastCommitData, prStatusData },
     requestId,
   });
   let prStatus = Github.Type.PRStatus.noPr;
   if (prStatusDetails) {
-    if (prStatusDetails.state === 'closed') {
+    if (prStatusDetails.state === Github.Enums.PullRequest.Closed) {
       prStatus = prStatusDetails.merged
         ? Github.Type.PRStatus.merged
         : Github.Type.PRStatus.closedWithoutMerge;
-    } else if (prStatusDetails.state === 'opened') {
+    } else if (prStatusDetails.state === Github.Enums.PullRequest.Open) {
       prStatus = Github.Type.PRStatus.opened;
     }
   }

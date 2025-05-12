@@ -10,6 +10,7 @@ import { getCommits } from '../lib/git-commit-list';
 import { pRReviewCommentOnQueue } from '../lib/pr-review-comment-queue';
 import { pRReviewOnQueue } from '../lib/pr-review-queue';
 import { pROnQueue } from '../lib/pull-request-queue';
+import moment from 'moment';
 
 const sqsClient = SQSClient.getInstance();
 interface ReviewCommentProcessType {
@@ -60,13 +61,14 @@ async function processRepoEvent(
 async function processBranchEvent(
   data: Github.ExternalType.Webhook.Branch,
   event: APIGatewayProxyEvent,
+  eventTime: number,
   requestId: string
 ): Promise<void> {
   const {
     ref: name,
     repository: {
       id: repoId,
-      pushed_at: eventAt,
+      // pushed_at: eventAt,
       owner: { id: orgId },
     },
     sender: { id: authorId },
@@ -77,7 +79,7 @@ async function processBranchEvent(
     name,
     id: Buffer.from(`${repoId}_${name}`, 'binary').toString('base64'),
     repo_id: repoId,
-    created_at: eventAt,
+    created_at: moment(eventTime).toISOString(),
     orgId,
     action: event.headers['x-github-event'],
     authorId,
@@ -160,7 +162,7 @@ async function processWebhookEvent(
       await processRepoEvent(data.repository, data.action, requestId);
       break;
     case Github.Enums.Event.Branch:
-      await processBranchEvent(data, event, requestId);
+      await processBranchEvent(data, event, eventTime, requestId);
       break;
     case Github.Enums.Event.Organization:
       if (!data?.membership) {
