@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.31.0](https://github.com/studiographene/pulse-data-integration/compare/v1.30.2...v1.31.0) (2025-05-12)
+
+
+### Features
+
+* **PX-2758:** estimate quality work items update ([7190e28](https://github.com/studiographene/pulse-data-integration/commit/7190e2818625186e688caff521a943a4c7dd6e2f))
+* **PX-2758:** estimate quality work items update ([#1207](https://github.com/studiographene/pulse-data-integration/issues/1207)) ([98c680a](https://github.com/studiographene/pulse-data-integration/commit/98c680a4e1515895eaf3a11800f0b82e20af0e4a))
+
+
+### Bug Fixes
+
+* **PX-2758:** pr feedback ([672e3a9](https://github.com/studiographene/pulse-data-integration/commit/672e3a9d36a58cdc836085016710cfcdee72b283))
+
 ## [1.30.2](https://github.com/studiographene/pulse-data-integration/compare/v1.30.1...v1.30.2) (2025-05-09)
 
 
