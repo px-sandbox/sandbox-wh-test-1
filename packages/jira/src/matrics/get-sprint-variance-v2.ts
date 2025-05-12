@@ -428,6 +428,12 @@ function sprintEstimateResponse(
         estimate: 0,
         actual: 0,
       },
+      workItems: {
+        task: 0,
+        story: 0,
+        bug: 0,
+        total: 0,
+      },
       isAllEstimated: estimateMissingFlagCtr,
       jiraInfo: {
         estimateIssueLink: !estimateMissingFlagCtr
@@ -528,6 +534,12 @@ function versionEstimateResponse(
       time: {
         estimate: 0,
         actual: 0,
+      },
+      workItems: {
+        task: 0,
+        story: 0,
+        bug: 0,
+        total: 0,
       },
       isAllEstimated: true,
       jiraInfo: {

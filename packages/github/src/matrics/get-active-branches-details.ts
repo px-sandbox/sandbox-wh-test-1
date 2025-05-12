@@ -62,7 +62,15 @@ const getBranchDetails = async (
   const [authorDetails] = await searchedDataFormator(authorDetailsData);
   logger.info({
     message: 'prStatusDetails.info',
-    data: { lastCommitData, prStatusData },
+    data: {
+      repoId: item.repoId,
+      branchName: item.name,
+      lastCommitData: {
+        createdAt: lastCommitDetails?.createdAt,
+        pushedBranch: lastCommitDetails?.pushedBranch,
+      },
+      prStatusData: { state: prStatusDetails?.state, pullNumber: prStatusDetails?.number },
+    },
     requestId,
   });
   let prStatus = Github.Type.PRStatus.noPr;
