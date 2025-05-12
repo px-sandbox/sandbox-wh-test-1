@@ -107,3 +107,10 @@ export enum FILTER_ID_TYPES {
   SPRINT = 'sprint',
   VERSION = 'version',
 }
+
+export enum IssueLinked {
+  ALL_BUGS_TIME_LOGGED = 'allBugsTimeLogged',
+  NO_BUGS_LINKED = 'noBugsLinked',
+  SOME_BUGS_TIME_LOGGED = 'someBugsTimeLogged',
+  NO_BUGS_TIME_LOGGED = 'noBugsTimeLogged',
+}
