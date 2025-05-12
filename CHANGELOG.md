@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.33.0](https://github.com/studiographene/pulse-data-integration/compare/v1.32.0...v1.33.0) (2025-05-12)
+
+
+### Features
+
+* **PX-2726:** bugtime info object ([43dd740](https://github.com/studiographene/pulse-data-integration/commit/43dd740bc4fbc8c50ed5259dfbb3b22a9cb40859))
+* **PX-2743:** bugtime info object ([#1213](https://github.com/studiographene/pulse-data-integration/issues/1213)) ([3349a34](https://github.com/studiographene/pulse-data-integration/commit/3349a3494bdc6d76735425e4cbf245dc16d57198))
+
 ## [1.32.0](https://github.com/studiographene/pulse-data-integration/compare/v1.31.1...v1.32.0) (2025-05-12)
 
 
