@@ -4,6 +4,7 @@ import { rcaDetailResponse, rcaDetailType } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
 import { FILTER_ID_TYPES } from 'abstraction/jira/enums';
 import { logger } from 'core';
+import { Config } from 'sst/node/config';
 import { mapRcaBucketsWithFullNames } from './get-rca-tabular-view';
 
 const esClient = ElasticSearchClient.getInstance();
@@ -40,6 +41,7 @@ export async function rcaDetailedView(
           esb.existsQuery(`body.rcaData.${type}`),
           esb.termQuery('body.isDeleted', false),
         ])
+        .mustNot(esb.termQuery('body.rcaData.qaRca', Config.NO_INTERNAL_DEFECT))
     )
     .agg(
       esb
