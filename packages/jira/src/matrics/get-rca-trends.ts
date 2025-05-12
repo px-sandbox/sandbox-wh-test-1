@@ -12,6 +12,7 @@ import { HitBody } from 'abstraction/other/type';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import _ from 'lodash';
+import { Config } from 'sst/node/config';
 import { mappingPrefixes } from '../constant/config';
 import { searchedDataFormator, Version } from '../util/response-formatter';
 
@@ -131,6 +132,7 @@ async function getHeadline(
           esb.termQuery('body.isDeleted', false),
           esb.termsQuery(config.filterField, ids),
         ])
+        .mustNot(esb.termQuery('body.rcaData.qaRca', Config.NO_INTERNAL_DEFECT))
     )
     .agg(
       esb
@@ -140,22 +142,19 @@ async function getHeadline(
     )
     .agg(esb.maxBucketAggregation('max_rca_count').bucketsPath('rca_count>rca_value_count'))
     .agg(
-      esb
-        .globalAggregation('global_agg')
-        .aggs([
+      esb.globalAggregation('global_agg').aggs([
+        esb.filterAggregation('total_bug_count').filter(
           esb
-            .filterAggregation('total_bug_count')
-            .filter(
-              esb
-                .boolQuery()
-                .must([
-                  esb.termQuery('body.issueType', IssuesTypes.BUG),
-                  esb.existsQuery(`body.rcaData.${type}`),
-                  esb.termQuery('body.isDeleted', false),
-                  esb.termsQuery(config.filterField, ids),
-                ])
-            ),
-        ])
+            .boolQuery()
+            .must([
+              esb.termQuery('body.issueType', IssuesTypes.BUG),
+              esb.existsQuery(`body.rcaData.${type}`),
+              esb.termQuery('body.isDeleted', false),
+              esb.termsQuery(config.filterField, ids),
+            ])
+            .mustNot(esb.termQuery('body.rcaData.qaRca', Config.NO_INTERNAL_DEFECT))
+        ),
+      ])
     );
   logger.info({ message: 'rca.trends_headline_data', data: query });
   const result: rcaTableHeadline = await esClient.queryAggs(
@@ -281,6 +280,7 @@ export async function getRcaTrends(
           esb.termQuery(`body.rcaData.${type}`, `${mappingPrefixes.rca}_${rcaData[0]?.id}`),
           esb.termQuery('body.isDeleted', false),
         ])
+        .mustNot(esb.termQuery('body.rcaData.qaRca', Config.NO_INTERNAL_DEFECT))
     )
     .agg(
       esb

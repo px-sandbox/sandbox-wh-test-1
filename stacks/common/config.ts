@@ -22,6 +22,7 @@ export const commonConfig = ({
   PROJECT_DELETION_AGE: Config.Secret;
   NODE_VERSION: Runtime;
   REQUEST_TIMEOUT: Config.Secret;
+  NO_INTERNAL_DEFECT: Config.Secret;
 } => ({
   OPENSEARCH_NODE: new Config.Secret(stack, 'OPENSEARCH_NODE'),
   OPENSEARCH_USERNAME: new Config.Secret(stack, 'OPENSEARCH_USERNAME'),
@@ -46,4 +47,5 @@ export const commonConfig = ({
   NODE_VERSION: 'nodejs18.x',
 
   REQUEST_TIMEOUT: new Config.Secret(stack, 'REQUEST_TIMEOUT'),
+  NO_INTERNAL_DEFECT: new Config.Secret(stack, 'NO_INTERNAL_DEFECT'),
 });
