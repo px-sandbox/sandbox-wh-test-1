@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.32.0](https://github.com/studiographene/pulse-data-integration/compare/v1.31.1...v1.32.0) (2025-05-12)
+
+
+### Features
+
+* **PX-2726:** removed no internal defect from rca ([c351f41](https://github.com/studiographene/pulse-data-integration/commit/c351f412c7637ed6eaac7b85004a520dc890e8cd))
+* **PX-2726:** removed no internal defect from rca ([#1211](https://github.com/studiographene/pulse-data-integration/issues/1211)) ([03f6a95](https://github.com/studiographene/pulse-data-integration/commit/03f6a9577befd1072940e3dbc88b69946339e39f))
+
+## [1.31.1](https://github.com/studiographene/pulse-data-integration/compare/v1.31.0...v1.31.1) (2025-05-12)
+
+
+### Bug Fixes
+
+* **PX-2758:** no workItems empty object ([fa4764a](https://github.com/studiographene/pulse-data-integration/commit/fa4764a3456114cdd8245b1c468159486b701ac5))
+* **PX-2758:** no workItems empty object ([#1209](https://github.com/studiographene/pulse-data-integration/issues/1209)) ([3ba6b26](https://github.com/studiographene/pulse-data-integration/commit/3ba6b26e207bb996df556d1e49fe249b34eecdbc))
+
 ## [1.31.0](https://github.com/studiographene/pulse-data-integration/compare/v1.30.2...v1.31.0) (2025-05-12)
 
 
