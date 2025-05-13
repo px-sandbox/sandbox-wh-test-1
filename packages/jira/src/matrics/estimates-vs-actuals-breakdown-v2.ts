@@ -48,7 +48,7 @@ export const calculateBugTimeInfo = (
     0
   );
 
-  let status: IssueLinked;
+  let status: IssueLinked = IssueLinked.NO_BUGS_TIME_LOGGED;
   if (loggedBugsCount === totalBugs) {
     status = IssueLinked.ALL_BUGS_TIME_LOGGED;
   } else if (loggedBugsCount === 0 && unloggedBugsCount > 0) {
