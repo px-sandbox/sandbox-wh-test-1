@@ -271,6 +271,8 @@ async function getWorkItemsData(
         .boolQuery()
         .must([
           esb.termsQuery('body.issueType', [IssuesTypes.TASK, IssuesTypes.STORY, IssuesTypes.BUG]),
+          esb.termQuery('body.isDeleted', false),
+          esb.rangeQuery('body.timeTracker.estimate').gt(0),
           type === Jira.Enums.JiraFilterType.SPRINT
             ? esb.termsQuery('body.sprintId', sprintIds)
             : esb.termsQuery('body.fixVersion', versionIds),
@@ -389,20 +391,24 @@ function sprintEstimateResponse(
       (bucketItem: { key: string; doc_count: number; issue_types: { buckets: BucketItem[] } }) =>
         bucketItem.key === sprintDetails.id
     );
+    console.log('WorkItems>>>>>>>>>>', workItems);
     if (item) {
       return {
         sprint: sprintDetails,
         workItems: {
-          task: workItems?.issue_types.buckets.find(
-            (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.TASK
-          )?.doc_count,
-          story: workItems?.issue_types.buckets.find(
-            (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.STORY
-          )?.doc_count,
-          bug: workItems?.issue_types.buckets.find(
-            (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.BUG
-          )?.doc_count,
-          total: workItems?.doc_count,
+          task:
+            workItems?.issue_types.buckets.find(
+              (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.TASK
+            )?.doc_count ?? 0,
+          story:
+            workItems?.issue_types.buckets.find(
+              (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.STORY
+            )?.doc_count ?? 0,
+          bug:
+            workItems?.issue_types.buckets.find(
+              (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.BUG
+            )?.doc_count ?? 0,
+          total: workItems?.doc_count ?? 0,
         },
         time: {
           estimate: item.estimate.value,
@@ -502,7 +508,6 @@ function versionEstimateResponse(
       (bucketItem: { key: string; doc_count: number; issue_types: { buckets: BucketItem[] } }) =>
         bucketItem.key === versionDetails.id
     );
-    console.log('Bugss>>>>>>>>>>', bugTime);
     if (item) {
       return {
         version: versionDetails,
@@ -905,6 +910,7 @@ export async function sprintVarianceGraph(
       )) as { bugInfo: BugTimeInfo; sprintIdOrVersionId: string }[];
 
       const workItemsData = await getWorkItemsData(type, reqCtx, sprintIds);
+      console.log('WorkItemsData>>>>>>>>>>', workItemsData);
       const sprintEstimate = sprintEstimateResponse(
         sprintData,
         estimateActualGraph,
