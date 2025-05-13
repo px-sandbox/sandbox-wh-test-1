@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.34.0](https://github.com/studiographene/pulse-data-integration/compare/v1.33.1...v1.34.0) (2025-05-13)
+
+
+### Features
+
+* **PX-2734:** bugs info on sprint level ([72256be](https://github.com/studiographene/pulse-data-integration/commit/72256bee69c4fbeafc3ac6a1343441209c055d38))
+* **PX-2734:** bugs info on sprint level ([#1217](https://github.com/studiographene/pulse-data-integration/issues/1217)) ([6c9f019](https://github.com/studiographene/pulse-data-integration/commit/6c9f019e333feb19e6faa4a46fb2437835db0b6f))
+
 ## [1.33.1](https://github.com/studiographene/pulse-data-integration/compare/v1.33.0...v1.33.1) (2025-05-13)
 
 
