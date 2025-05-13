@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.34.1](https://github.com/studiographene/pulse-data-integration/compare/v1.34.0...v1.34.1) (2025-05-13)
+
+
+### Bug Fixes
+
+* **PX-2829:** sprint count fixes ([a1a61ca](https://github.com/studiographene/pulse-data-integration/commit/a1a61ca0e31737157cdceefc2585327538db35a4))
+* **PX-2829:** sprint count fixes ([#1219](https://github.com/studiographene/pulse-data-integration/issues/1219)) ([945c26a](https://github.com/studiographene/pulse-data-integration/commit/945c26a9a5f9619a50cb415116fd6d262b56769f))
+
 ## [1.34.0](https://github.com/studiographene/pulse-data-integration/compare/v1.33.1...v1.34.0) (2025-05-13)
 
 
