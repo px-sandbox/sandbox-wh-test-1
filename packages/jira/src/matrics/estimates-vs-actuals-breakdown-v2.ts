@@ -48,10 +48,12 @@ export const calculateBugTimeInfo = (
     0
   );
 
-  let status: IssueLinked;
+  let status: IssueLinked = IssueLinked.NO_BUGS_TIME_LOGGED;
   if (loggedBugsCount === totalBugs) {
     status = IssueLinked.ALL_BUGS_TIME_LOGGED;
-  } else {
+  } else if (loggedBugsCount === 0 && unloggedBugsCount > 0) {
+    status = IssueLinked.NO_BUGS_TIME_LOGGED;
+  } else if (loggedBugsCount > 0 && loggedBugsCount < totalBugs) {
     status = IssueLinked.SOME_BUGS_TIME_LOGGED;
   }
 
@@ -64,25 +66,6 @@ export const calculateBugTimeInfo = (
       issueKey.split('-')[0]
     }/issues/?jql=issuetype%20in%20%28Bug%29%20and%20issueLink%20%3D%20%22${issueKey}%22%20`,
   };
-};
-
-/**
- * Formats the bug time message based on the bug time info
- * @param bugTimeInfo - The bug time information object
- * @returns Formatted message string
- */
-export const formatBugTimeMessage = (bugTimeInfo: BugTimeInfo): string => {
-  switch (bugTimeInfo.status) {
-    case 'noBugsLinked':
-      return '--';
-    case 'allBugsTimeLogged':
-      return bugTimeInfo.value.toString();
-    case 'someBugsTimeLogged':
-      return `${bugTimeInfo.value} (Time Logged for 
-      ${bugTimeInfo.unloggedBugsCount} bugs are pending for this ticket. Learn More)`;
-    default:
-      return '--';
-  }
 };
 
 /**
