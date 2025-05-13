@@ -117,5 +117,5 @@ export type BugTimeInfo = {
   status: IssueLinked;
   loggedBugsCount: number;
   unloggedBugsCount: number;
-  link: string;
+  link?: string;
 };

@@ -1,14 +1,15 @@
 /* eslint-disable no-await-in-loop */
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
-import { IssuesTypes } from 'abstraction/jira/enums';
-import { BucketItem, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
+import { IssueLinked, IssuesTypes } from 'abstraction/jira/enums';
+import { BucketItem, BugTimeInfo, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb, { RequestBodySearch } from 'elastic-builder';
 import { Search } from '@elastic/elasticsearch/api/requestParams';
 import { MultiSearchBody } from '@elastic/elasticsearch/api/types';
 import { getOrganizationById } from '../repository/organization/get-organization';
 import { searchedDataFormator, searchedDataFormatorWithDeleted } from '../util/response-formatter';
+import { calculateBugTimeInfo } from './estimates-vs-actuals-breakdown-v2';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
@@ -341,6 +342,7 @@ async function countIssuesWithZeroEstimates(
   return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
 }
 
+/* eslint-disable max-lines-per-function */
 function sprintEstimateResponse(
   sprintData: any[],
   estimateActualGraph: {
@@ -348,7 +350,7 @@ function sprintEstimateResponse(
       buckets: Jira.Type.BucketItem[];
     };
   },
-  bugTimeActual: [{ sprintId: string; bugTime: number }],
+  bugTimeActual: { bugInfo: BugTimeInfo; sprintIdOrVersionId: string }[],
   issueWithZeroEstimate: {
     sprint_aggregation: {
       buckets: Jira.Type.BucketItem[];
@@ -374,7 +376,8 @@ function sprintEstimateResponse(
       (bucketItem: BucketItem) => bucketItem.key === sprintDetails.id
     );
     const bugTime = bugTimeActual.find(
-      (bugData: { sprintId: string; bugTime: number }) => bugData.sprintId === sprintDetails.id
+      (bugData: { sprintIdOrVersionId: string; bugInfo: BugTimeInfo }) =>
+        bugData.sprintIdOrVersionId === sprintDetails.id
     );
     const estimateCount = issueWithZeroEstimate.sprint_aggregation.buckets.find(
       (bucketItem: BucketItem) => bucketItem.key === sprintDetails.id
@@ -418,8 +421,8 @@ function sprintEstimateResponse(
             : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
           ).toFixed(2)
         ),
-        bugTime: bugTime?.bugTime ?? 0,
-        totalTime: (bugTime?.bugTime ?? 0) + (item.actual.value ?? 0),
+        bugTime: bugTime?.bugInfo,
+        totalTime: (bugTime?.bugInfo.value ?? 0) + (item.actual.value ?? 0),
       };
     }
     return {
@@ -441,8 +444,13 @@ function sprintEstimateResponse(
           : '',
         loggedIssueLink: getJiraLink(orgName, projectKey, sprintDetails.sprintId),
       },
+      bugTime: {
+        value: 0,
+        status: IssueLinked.NO_BUGS_LINKED,
+        loggedBugsCount: 0,
+        unloggedBugsCount: 0,
+      },
       variance: 0,
-      bugTime: 0,
       totalTime: 0,
     };
   });
@@ -455,7 +463,7 @@ function versionEstimateResponse(
       buckets: Jira.Type.BucketItem[];
     };
   },
-  bugTimeActual: [{ versionId: string; bugTime: number }],
+  bugTimeActual: { bugInfo: BugTimeInfo; sprintIdOrVersionId: string }[],
   issueWithZeroEstimate: {
     version_aggregation: {
       buckets: Jira.Type.BucketItem[];
@@ -481,7 +489,8 @@ function versionEstimateResponse(
       (bucketItem: BucketItem) => bucketItem.key === versionDetails.id
     );
     const bugTime = bugTimeActual.find(
-      (bugData: { versionId: string; bugTime: number }) => bugData.versionId === versionDetails.id
+      (bugData: { sprintIdOrVersionId: string; bugInfo: BugTimeInfo }) =>
+        bugData.sprintIdOrVersionId === versionDetails.id
     );
     const estimateCount = issueWithZeroEstimate.version_aggregation.buckets.find(
       (bucketItem: BucketItem) => bucketItem.key === versionDetails.id
@@ -493,6 +502,7 @@ function versionEstimateResponse(
       (bucketItem: { key: string; doc_count: number; issue_types: { buckets: BucketItem[] } }) =>
         bucketItem.key === versionDetails.id
     );
+    console.log('Bugss>>>>>>>>>>', bugTime);
     if (item) {
       return {
         version: versionDetails,
@@ -525,8 +535,8 @@ function versionEstimateResponse(
             : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
           ).toFixed(2)
         ),
-        bugTime: bugTime?.bugTime ?? 0,
-        totalTime: (bugTime?.bugTime ?? 0) + (item.actual.value ?? 0),
+        bugTime: bugTime?.bugInfo,
+        totalTime: (bugTime?.bugInfo.value ?? 0) + (item.actual.value ?? 0),
       };
     }
     return {
@@ -546,8 +556,13 @@ function versionEstimateResponse(
         estimateIssueLink: '',
         loggedIssueLink: getJiraLinkForVersion(orgName, projectKey, versionDetails.id),
       },
+      bugTime: {
+        value: 0,
+        status: IssueLinked.NO_BUGS_LINKED,
+        loggedBugsCount: 0,
+        unloggedBugsCount: 0,
+      },
       variance: 0,
-      bugTime: 0,
       totalTime: 0,
     };
   });
@@ -582,10 +597,9 @@ async function getBugTimeForSprint(
   sprintId: string,
   versionIds: string,
   reqCtx: Other.Type.RequestCtx,
-  type: Jira.Enums.JiraFilterType
-): Promise<{
-  actual: { value: number };
-}> {
+  type: Jira.Enums.JiraFilterType,
+  orgName: string
+): Promise<{ bugInfo: BugTimeInfo; sprintIdOrVersionId: string }> {
   const query = esb
     .requestBodySearch()
     .size(1000)
@@ -614,8 +628,7 @@ async function getBugTimeForSprint(
   const issueKeys = issueData.map((items) => getBugIssueLinksKeys(items.issueLinks)).flat();
   const bugQuery = esb
     .requestBodySearch()
-    .size(0)
-    .agg(esb.sumAggregation('actual', 'body.timeTracker.actual'))
+    .size(issueKeys.length)
     .query(
       esb
         .boolQuery()
@@ -627,7 +640,30 @@ async function getBugTimeForSprint(
 
   logger.info({ ...reqCtx, message: 'bug_time_for_sprint_query', data: { bugQuery } });
 
-  return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, bugQuery);
+  const bugTimeData = await esClientObj.search(Jira.Enums.IndexName.Issue, bugQuery);
+  const formattedBugTime = await searchedDataFormator(bugTimeData);
+
+  const bugTimeForIssue = formattedBugTime.map((bug) => ({
+    issueKey: bug.issueKey,
+    timeTracker: {
+      actual: bug.timeTracker.actual,
+    },
+  }));
+
+  const bugInfo = calculateBugTimeInfo(
+    bugTimeForIssue,
+    `https://${orgName}.atlassian.net`,
+    sprintId || versionIds
+  );
+  return {
+    bugInfo: {
+      value: bugInfo.value,
+      status: bugInfo.status,
+      loggedBugsCount: bugInfo.loggedBugsCount,
+      unloggedBugsCount: bugInfo.unloggedBugsCount,
+    },
+    sprintIdOrVersionId: sprintId || versionIds,
+  };
 }
 
 async function processSprintData(
@@ -637,8 +673,8 @@ async function processSprintData(
   dateRangeQueries: esb.RangeQuery[],
   reqCtx: Other.Type.RequestCtx,
   state: string
-): Promise<{ sprintData: any[]; sprintIds: string[]; totalPages: number }> {
-  const sprintData: any[] = [];
+): Promise<{ sprintData: object[]; sprintIds: string[]; totalPages: number }> {
+  const sprintData: object[] = [];
   const sprintIds: string[] = [];
   const { sprintHits, totalPages } = await sprintHitsResponse(
     limit,
@@ -672,8 +708,8 @@ async function processVersionData(
   reqCtx: Other.Type.RequestCtx,
   state: string,
   endDate?: string
-): Promise<{ versionData: any[]; versionIds: string[]; totalPages: number }> {
-  const versionData: any[] = [];
+): Promise<{ versionData: object[]; versionIds: string[]; totalPages: number }> {
+  const versionData: object[] = [];
   const versionIds: string[] = [];
   const { versionHits, totalPages } = await versionHitsResponse(
     limit,
@@ -732,12 +768,14 @@ async function processVersionDataWithEstimates(
     versionIds
   );
   const issueWithZeroEstimate = await countIssuesWithZeroEstimates(reqCtx, type, [], versionIds);
-  const bugTime: [{ versionId: string; bugTime: number }] = (await Promise.all(
+
+  const bugTime: { bugInfo: BugTimeInfo; sprintIdOrVersionId: string }[] = (await Promise.all(
     versionIds.map(async (versionId: string) => {
-      const bugTimeForVersion = await getBugTimeForSprint('', versionId, reqCtx, type);
-      return { versionId, bugTime: bugTimeForVersion.actual.value };
+      const bugTimeForVersion = await getBugTimeForSprint('', versionId, reqCtx, type, orgName);
+      return bugTimeForVersion;
     })
-  )) as [{ versionId: string; bugTime: number }];
+  )) as { bugInfo: BugTimeInfo; sprintIdOrVersionId: string }[];
+
   const workItemsData = await getWorkItemsData(type, reqCtx, [], versionIds);
   const versionEstimate = versionEstimateResponse(
     versionData,
@@ -859,12 +897,13 @@ export async function sprintVarianceGraph(
         []
       );
       const issueWithZeroEstimate = await countIssuesWithZeroEstimates(reqCtx, type, sprintIds, []);
-      const bugTime: [{ sprintId: string; bugTime: number }] = (await Promise.all(
+      const bugTime: { bugInfo: BugTimeInfo; sprintIdOrVersionId: string }[] = (await Promise.all(
         sprintIds.map(async (sprintId: string) => {
-          const bugTimeForSprint = await getBugTimeForSprint(sprintId, '', reqCtx, type);
-          return { sprintId, bugTime: bugTimeForSprint.actual.value };
+          const bugTimeForSprint = await getBugTimeForSprint(sprintId, '', reqCtx, type, orgName);
+          return bugTimeForSprint;
         })
-      )) as [{ sprintId: string; bugTime: number }];
+      )) as { bugInfo: BugTimeInfo; sprintIdOrVersionId: string }[];
+
       const workItemsData = await getWorkItemsData(type, reqCtx, sprintIds);
       const sprintEstimate = sprintEstimateResponse(
         sprintData,
