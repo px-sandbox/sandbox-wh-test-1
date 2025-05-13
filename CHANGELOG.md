@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.33.1](https://github.com/studiographene/pulse-data-integration/compare/v1.33.0...v1.33.1) (2025-05-13)
+
+
+### Bug Fixes
+
+* **PX_2743:** all cases bugs linked type ([e188c57](https://github.com/studiographene/pulse-data-integration/commit/e188c57dd510f77e6cde7754b777b1f6b421f2b1))
+* **PX_2743:** all cases bugs linked type ([#1215](https://github.com/studiographene/pulse-data-integration/issues/1215)) ([522bf92](https://github.com/studiographene/pulse-data-integration/commit/522bf92aa8ca405b240e8740c7755e1ea7e50f80))
+* **PX-2743:** small fix ([40bedc3](https://github.com/studiographene/pulse-data-integration/commit/40bedc31d789bb81fec3bd3e4c290144585afbf3))
+
 ## [1.33.0](https://github.com/studiographene/pulse-data-integration/compare/v1.32.0...v1.33.0) (2025-05-12)
 
 
