@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.34.3](https://github.com/studiographene/pulse-data-integration/compare/v1.34.2...v1.34.3) (2025-05-14)
+
+
+### Bug Fixes
+
+* **PX-2831:** active branch repoIds ([b7cf6e1](https://github.com/studiographene/pulse-data-integration/commit/b7cf6e1fd6a7ea3b4aee33536e469bde3b87e6bd))
+* **PX-2831:** active branch repoIds ([#1223](https://github.com/studiographene/pulse-data-integration/issues/1223)) ([868df2a](https://github.com/studiographene/pulse-data-integration/commit/868df2aaa9b4e9931f99ca2da64cd8247c7c886e))
+
+## [1.34.2](https://github.com/studiographene/pulse-data-integration/compare/v1.34.1...v1.34.2) (2025-05-14)
+
+
+### Bug Fixes
+
+* **PX-2831:** total time fix ([1fbb90d](https://github.com/studiographene/pulse-data-integration/commit/1fbb90d8fe9cb09929f8b077d020e43b873e607b))
+* **PX-2831:** total time fix ([#1221](https://github.com/studiographene/pulse-data-integration/issues/1221)) ([39ee974](https://github.com/studiographene/pulse-data-integration/commit/39ee974dafe25e576b8a31f0ec8e1c33e5010bda))
+
 ## [1.34.1](https://github.com/studiographene/pulse-data-integration/compare/v1.34.0...v1.34.1) (2025-05-13)
 
 
