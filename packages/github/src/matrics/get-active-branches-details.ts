@@ -133,7 +133,8 @@ export const activeBranchDetailsGraphData = async (
 
     const graphData = await Promise.all(
       activeBranchDetails.map((item: Github.Type.BranchEsResponse) =>
-        getBranchDetails(item, requestId)
+        // check item.repoId is not empty
+        item.repoId ? getBranchDetails(item, requestId) : null
       )
     );
     const totalPages = Math.ceil(data.hits.total.value / limit);
