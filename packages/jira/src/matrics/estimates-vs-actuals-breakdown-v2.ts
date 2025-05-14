@@ -320,7 +320,7 @@ export const estimatesVsActualsBreakdownV2 = async (
             });
           }
         });
-
+        const totalTime = overallActual + (bugTimeInfo?.value ?? 0);
         return {
           id: issue?.id,
           issueKey: issue?.issueKey,
@@ -330,7 +330,7 @@ export const estimatesVsActualsBreakdownV2 = async (
           issueType: issue?.issueType,
           variance: parseFloat((((actual - estimate) / estimate) * 100).toFixed(2)),
           link: `https://${orgname}.atlassian.net/browse/${issue?.issueKey}`,
-          totalTime: actual,
+          totalTime,
           subtasks: subtasksArr,
           overallEstimate,
           overallActual,
