@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.34.4](https://github.com/studiographene/pulse-data-integration/compare/v1.34.3...v1.34.4) (2025-05-14)
+
+
+### Bug Fixes
+
+* **PX-2831:** added logger ([9dae2d3](https://github.com/studiographene/pulse-data-integration/commit/9dae2d3db0ca1cead9b2486fa50f6b8a2fa60746))
+* **PX-2831:** added logger ([#1225](https://github.com/studiographene/pulse-data-integration/issues/1225)) ([9456d97](https://github.com/studiographene/pulse-data-integration/commit/9456d972f21e9f1d06a53822e78f059d6fb5c56a))
+
 ## [1.34.3](https://github.com/studiographene/pulse-data-integration/compare/v1.34.2...v1.34.3) (2025-05-14)
 
 
