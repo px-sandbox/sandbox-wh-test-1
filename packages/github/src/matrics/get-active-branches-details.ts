@@ -11,6 +11,15 @@ const getBranchDetails = async (
   item: Github.Type.BranchEsResponse,
   requestId: string
 ): Promise<Github.Type.ActiveBranchDetails> => {
+  logger.info({
+    message: 'getBranchDetails.input',
+    data: {
+      branchName: item.name,
+      repoId: item.repoId,
+      authorId: item.authorId,
+    },
+    requestId,
+  });
   const [lastCommitData, prStatusData, authorDetailsData] = await Promise.all([
     esClient.search(
       Github.Enums.IndexName.GitCommits,
@@ -51,7 +60,10 @@ const getBranchDetails = async (
         .query(
           esb
             .boolQuery()
-            .must([esb.termQuery('body.id', item.authorId), esb.termQuery('body.isDeleted', false)])
+            .must([
+              esb.termQuery('body.id', item.authorId ?? ''),
+              esb.termQuery('body.isDeleted', false),
+            ])
         )
         .toJSON()
     ),
@@ -105,6 +117,17 @@ export const activeBranchDetailsGraphData = async (
   limit: number
 ): Promise<{ totalPages: number; page: number; graphData: Github.Type.ActiveBranchDetails[] }> => {
   try {
+    logger.info({
+      message: 'activeBranchDetailsGraphData.input',
+      data: {
+        repoIds,
+        startDate,
+        endDate,
+        page,
+        limit,
+      },
+      requestId,
+    });
     // TODO: Implement the actual logic to fetch active branches details graph data
     // create an esb query using dateRangehistogram function
     // fetch all the branches using pagination of the given repos
@@ -133,8 +156,7 @@ export const activeBranchDetailsGraphData = async (
 
     const graphData = await Promise.all(
       activeBranchDetails.map((item: Github.Type.BranchEsResponse) =>
-        // check item.repoId is not empty
-        item.repoId ? getBranchDetails(item, requestId) : null
+        getBranchDetails(item, requestId)
       )
     );
     const totalPages = Math.ceil(data.hits.total.value / limit);
