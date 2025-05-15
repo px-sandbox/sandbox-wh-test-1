@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.34.6](https://github.com/studiographene/pulse-data-integration/compare/v1.34.5...v1.34.6) (2025-05-15)
+
+
+### Bug Fixes
+
+* **PX-2827:** qa and dev rca count ([8b7d393](https://github.com/studiographene/pulse-data-integration/commit/8b7d3931f1381814794e06646d71db2ad538954c))
+* **PX-2827:** qa and dev rca count ([#1229](https://github.com/studiographene/pulse-data-integration/issues/1229)) ([0f86ff3](https://github.com/studiographene/pulse-data-integration/commit/0f86ff300aade28712cb6119ea32a22fb9b317b5))
+
 ## [1.34.5](https://github.com/studiographene/pulse-data-integration/compare/v1.34.4...v1.34.5) (2025-05-15)
 
 
