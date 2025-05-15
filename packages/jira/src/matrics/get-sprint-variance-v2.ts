@@ -272,7 +272,6 @@ async function getWorkItemsData(
         .must([
           esb.termsQuery('body.issueType', [IssuesTypes.TASK, IssuesTypes.STORY, IssuesTypes.BUG]),
           esb.termQuery('body.isDeleted', false),
-          esb.rangeQuery('body.timeTracker.estimate').gt(0),
           type === Jira.Enums.JiraFilterType.SPRINT
             ? esb.termsQuery('body.sprintId', sprintIds)
             : esb.termsQuery('body.fixVersion', versionIds),
