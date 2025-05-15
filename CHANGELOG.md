@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.34.5](https://github.com/studiographene/pulse-data-integration/compare/v1.34.4...v1.34.5) (2025-05-15)
+
+
+### Bug Fixes
+
+* **PX-0000:** revert workItems estimate check ([530d154](https://github.com/studiographene/pulse-data-integration/commit/530d1546dcbd1afc6937ec550dd8a1b3d6b9ff5d))
+* **PX-0000:** revert workItems estimate check ([#1227](https://github.com/studiographene/pulse-data-integration/issues/1227)) ([ff2573b](https://github.com/studiographene/pulse-data-integration/commit/ff2573bb1d0f7d89d159005e73ed67e83f54ac33))
+
 ## [1.34.4](https://github.com/studiographene/pulse-data-integration/compare/v1.34.3...v1.34.4) (2025-05-14)
 
 
