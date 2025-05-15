@@ -41,7 +41,7 @@ export async function rcaDetailedView(
           esb.existsQuery(`body.rcaData.${type}`),
           esb.termQuery('body.isDeleted', false),
         ])
-        .mustNot(esb.termQuery('body.rcaData.qaRca', Config.NO_INTERNAL_DEFECT))
+        .mustNot(esb.termQuery(`body.rcaData.${type}`, Config.NO_INTERNAL_DEFECT))
     )
     .agg(
       esb
