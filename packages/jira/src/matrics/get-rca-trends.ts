@@ -132,7 +132,7 @@ async function getHeadline(
           esb.termQuery('body.isDeleted', false),
           esb.termsQuery(config.filterField, ids),
         ])
-        .mustNot(esb.termQuery('body.rcaData.qaRca', Config.NO_INTERNAL_DEFECT))
+        .mustNot(esb.termQuery(`body.rcaData.${type}`, Config.NO_INTERNAL_DEFECT))
     )
     .agg(
       esb
@@ -152,7 +152,7 @@ async function getHeadline(
               esb.termQuery('body.isDeleted', false),
               esb.termsQuery(config.filterField, ids),
             ])
-            .mustNot(esb.termQuery('body.rcaData.qaRca', Config.NO_INTERNAL_DEFECT))
+            .mustNot(esb.termQuery(`body.rcaData.${type}`, Config.NO_INTERNAL_DEFECT))
         ),
       ])
     );
@@ -280,7 +280,7 @@ export async function getRcaTrends(
           esb.termQuery(`body.rcaData.${type}`, `${mappingPrefixes.rca}_${rcaData[0]?.id}`),
           esb.termQuery('body.isDeleted', false),
         ])
-        .mustNot(esb.termQuery('body.rcaData.qaRca', Config.NO_INTERNAL_DEFECT))
+        .mustNot(esb.termQuery(`body.rcaData.${type}`, Config.NO_INTERNAL_DEFECT))
     )
     .agg(
       esb
