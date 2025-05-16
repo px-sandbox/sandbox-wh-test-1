@@ -37,3 +37,23 @@ export type SprintVarianceData = {
   page: number;
   totalPages: number;
 };
+
+export type TaskItem = {
+  issueKey: string;
+  issueType: string;
+  timeTracker?: {
+    estimate: number;
+  };
+  embeddedSubtasks?: Array<{
+    timeTracker?: {
+      estimate: number;
+    };
+  }>;
+  issueLinks?: Array<{
+    type: string;
+    key: string;
+  }>;
+  parent?: {
+    key: string;
+  };
+};
