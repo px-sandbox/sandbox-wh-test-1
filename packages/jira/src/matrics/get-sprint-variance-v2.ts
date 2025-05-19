@@ -638,7 +638,7 @@ async function getBugTimeForSprint(
 
   const taskSubtaskMapping: Record<string, TaskItem> = {};
   (issueData as unknown as TaskItem[]).forEach((item) => {
-    if (item.issueType === IssuesTypes.TASK || item.issueType === IssuesTypes.STORY) {
+    if ([IssuesTypes.TASK, IssuesTypes.STORY].includes(item.issueType as IssuesTypes)) {
       taskSubtaskMapping[item.issueKey] = item;
     }
   });
