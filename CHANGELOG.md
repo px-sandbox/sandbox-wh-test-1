@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.34.7](https://github.com/studiographene/pulse-data-integration/compare/v1.34.6...v1.34.7) (2025-05-19)
+
+
+### Bug Fixes
+
+* **PX-2705:** bugtime header time calculation ([56b13b4](https://github.com/studiographene/pulse-data-integration/commit/56b13b4b5b016922b34b46ba6866bdc553b120df))
+* **PX-2705:** bugtime header time calculation ([#1231](https://github.com/studiographene/pulse-data-integration/issues/1231)) ([f5deb09](https://github.com/studiographene/pulse-data-integration/commit/f5deb090694c3abd9e1a8c105be77f0ffc39faf8))
+* **PX-2705:** small fix ([c820f17](https://github.com/studiographene/pulse-data-integration/commit/c820f17e07cfc16fa35d98b8327c02818aa274d1))
+
 ## [1.34.6](https://github.com/studiographene/pulse-data-integration/compare/v1.34.5...v1.34.6) (2025-05-15)
 
 
