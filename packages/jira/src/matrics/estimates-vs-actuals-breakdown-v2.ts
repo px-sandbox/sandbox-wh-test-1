@@ -106,7 +106,7 @@ function createIssueSearchQueryV2(
             ])
         )
     )
-    .sort(esb.sort('_id'))
+    .sort(esb.sort('body.issueKey'))
     .size(100)
     .source([
       'body.id',
@@ -146,7 +146,7 @@ function createSubtaskSearchQueryV2(
         ])
         .must(esb.existsQuery('body.timeTracker'))
     )
-    .sort(esb.sort('_id'))
+    .sort(esb.sort('body.issueKey'))
     .size(subtaskIds.length)
     .source(['body.id', 'body.issueKey', 'body.timeTracker', 'body.summary', 'body.issueType']);
 }
