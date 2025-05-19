@@ -2,7 +2,13 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import { IssueLinked, IssuesTypes } from 'abstraction/jira/enums';
-import { BucketItem, BugTimeInfo, SprintVariance, SprintVarianceData } from 'abstraction/jira/type';
+import {
+  BucketItem,
+  BugTimeInfo,
+  SprintVariance,
+  SprintVarianceData,
+  TaskItem,
+} from 'abstraction/jira/type';
 import { logger } from 'core';
 import esb, { RequestBodySearch } from 'elastic-builder';
 import { Search } from '@elastic/elasticsearch/api/requestParams';
@@ -390,7 +396,6 @@ function sprintEstimateResponse(
       (bucketItem: { key: string; doc_count: number; issue_types: { buckets: BucketItem[] } }) =>
         bucketItem.key === sprintDetails.id
     );
-    console.log('WorkItems>>>>>>>>>>', workItems);
     if (item) {
       return {
         sprint: sprintDetails,
@@ -615,12 +620,11 @@ async function getBugTimeForSprint(
             ? esb.termQuery('body.sprintId', sprintId)
             : esb.termsQuery('body.fixVersion', versionIds),
           esb.termQuery('body.isDeleted', false),
-          esb.existsQuery('body.issueLinks'),
         ])
-        .filter(esb.rangeQuery('body.timeTracker.estimate').gte(0))
         .should([
           esb.termQuery('body.issueType', IssuesTypes.STORY),
           esb.termQuery('body.issueType', IssuesTypes.TASK),
+          esb.termQuery('body.issueType', IssuesTypes.SUBTASK),
         ])
         .minimumShouldMatch(1)
     )
@@ -629,7 +633,43 @@ async function getBugTimeForSprint(
 
   const res = await esClientObj.search(Jira.Enums.IndexName.Issue, query);
   const issueData = await searchedDataFormator(res);
-  const issueKeys = issueData.map((items) => getBugIssueLinksKeys(items.issueLinks)).flat();
+
+  // create mapping for task and its subtask using parent key in subtask
+
+  const taskSubtaskMapping: Record<string, TaskItem> = {};
+  (issueData as unknown as TaskItem[]).forEach((item) => {
+    if ([IssuesTypes.TASK, IssuesTypes.STORY].includes(item.issueType as IssuesTypes)) {
+      taskSubtaskMapping[item.issueKey] = item;
+    }
+  });
+
+  // add subtask to task with parent mapping
+  (issueData as unknown as TaskItem[]).forEach((item) => {
+    const parentKey = item.parent?.key;
+    if (item.issueType === IssuesTypes.SUBTASK && parentKey && taskSubtaskMapping[parentKey]) {
+      const parentTask = taskSubtaskMapping[parentKey];
+      if (!parentTask.embeddedSubtasks) {
+        parentTask.embeddedSubtasks = [];
+      }
+      parentTask.embeddedSubtasks.push(item);
+    }
+  });
+
+  // filter out those issue Keys who's estimate is greater than 0
+  // or its subtask greater than 0
+  const issueKeys = Object.values(taskSubtaskMapping)
+    .filter(
+      (task) =>
+        (task.timeTracker?.estimate ?? 0) > 0 ||
+        (task.embeddedSubtasks &&
+          task.embeddedSubtasks.some((subtask) => (subtask.timeTracker?.estimate ?? 0) > 0))
+    )
+    .flatMap((item) =>
+      (item.issueLinks || [])
+        .filter((link) => link.type === Jira.Enums.IssuesTypes.BUG)
+        .map((link) => link.key)
+    );
+
   const bugQuery = esb
     .requestBodySearch()
     .size(issueKeys.length)
@@ -909,7 +949,6 @@ export async function sprintVarianceGraph(
       )) as { bugInfo: BugTimeInfo; sprintIdOrVersionId: string }[];
 
       const workItemsData = await getWorkItemsData(type, reqCtx, sprintIds);
-      console.log('WorkItemsData>>>>>>>>>>', workItemsData);
       const sprintEstimate = sprintEstimateResponse(
         sprintData,
         estimateActualGraph,
