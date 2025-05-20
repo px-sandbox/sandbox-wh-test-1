@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.37.0](https://github.com/studiographene/pulse-data-integration/compare/v1.36.0...v1.37.0) (2025-05-20)
+
+
+### Features
+
+* **PX-2847:** totalvarience and overallvarience ([#1238](https://github.com/studiographene/pulse-data-integration/issues/1238)) ([cddce32](https://github.com/studiographene/pulse-data-integration/commit/cddce32ab806bfee6d675ab7b037701f88abc7b8))
+
+
+### Bug Fixes
+
+* **PX-2847:** fix the divisional value ([76ac160](https://github.com/studiographene/pulse-data-integration/commit/76ac160d590f46ad24f71a79339583a3312ab1f4))
+
 ## [1.36.0](https://github.com/studiographene/pulse-data-integration/compare/v1.35.0...v1.36.0) (2025-05-20)
 
 
