@@ -436,7 +436,7 @@ function sprintEstimateResponse(
         totalTime,
         totalVariance: (totalTime === 0
           ? 0
-          : ((totalTime - item.estimate.value) * 100) / totalTime
+          : ((totalTime - item.estimate.value) * 100) / item.estimate.value
         ).toFixed(2),
       };
     }
@@ -554,7 +554,7 @@ function versionEstimateResponse(
         totalTime,
         totalVariance: (totalTime === 0
           ? 0
-          : ((totalTime - item.estimate.value) * 100) / totalTime
+          : ((totalTime - item.estimate.value) * 100) / item.estimate.value
         ).toFixed(2),
       };
     }
