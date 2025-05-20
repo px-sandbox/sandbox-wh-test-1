@@ -434,7 +434,7 @@ function sprintEstimateResponse(
         ),
         bugTime: bugTime?.bugInfo,
         totalTime,
-        totalVariance: (totalTime === 0
+        totalVariance: (item.estimate.value === 0
           ? 0
           : ((totalTime - item.estimate.value) * 100) / item.estimate.value
         ).toFixed(2),
@@ -552,7 +552,7 @@ function versionEstimateResponse(
         ),
         bugTime: bugTime?.bugInfo,
         totalTime,
-        totalVariance: (totalTime === 0
+        totalVariance: (item.estimate.value === 0
           ? 0
           : ((totalTime - item.estimate.value) * 100) / item.estimate.value
         ).toFixed(2),
