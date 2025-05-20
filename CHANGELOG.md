@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.36.0](https://github.com/studiographene/pulse-data-integration/compare/v1.35.0...v1.36.0) (2025-05-20)
+
+
+### Features
+
+* **PX-2846:** total varience calculation ([d1bb805](https://github.com/studiographene/pulse-data-integration/commit/d1bb805c275a486e156213a6d5d8fde71eaaa5b0))
+* **PX-2846:** total varience calculation ([#1235](https://github.com/studiographene/pulse-data-integration/issues/1235)) ([876c79e](https://github.com/studiographene/pulse-data-integration/commit/876c79ebc32fa4d9877c61a347b8db50501e3df4))
+
+
+### Bug Fixes
+
+* **PX-2754:** small fix ([ee76c87](https://github.com/studiographene/pulse-data-integration/commit/ee76c87f8861bb5ae0a1ae1b1946b5fd2154474d))
+* **PX-2754:** small fix ([ad04c59](https://github.com/studiographene/pulse-data-integration/commit/ad04c59625f0d80f74f0922609e44e16ae3c46f9))
+* **PX-2754:** small fix ([#1236](https://github.com/studiographene/pulse-data-integration/issues/1236)) ([9046d5d](https://github.com/studiographene/pulse-data-integration/commit/9046d5d4e9d211b05834a29f7bb30d4561166a82))
+* **PX-2846:** small fix ([e3fba14](https://github.com/studiographene/pulse-data-integration/commit/e3fba1474d6ddf8a37bbcc5fcb6929b6803ea66c))
+
 ## [1.35.0](https://github.com/studiographene/pulse-data-integration/compare/v1.34.7...v1.35.0) (2025-05-20)
 
 
