@@ -18,8 +18,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const projectId = event?.queryStringParameters?.projectId ?? '';
   const sprintId = event?.queryStringParameters?.sprintId ?? '';
   const versionId = event?.queryStringParameters?.versionId ?? '';
-  const sortKey = event?.queryStringParameters?.sortKey ?? 'issueKey';
-  const SortOrder = event?.queryStringParameters?.sortOrder ?? 'asc';
   const orgId = event?.queryStringParameters?.orgId ?? '';
   const type = event?.queryStringParameters?.type ?? 'sprint';
 
@@ -43,8 +41,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   const response = await estimatesVsActualsBreakdownV2(
     projectId,
-    sortKey,
-    SortOrder,
     orgId,
     orgnameRes[0].name,
     type,
