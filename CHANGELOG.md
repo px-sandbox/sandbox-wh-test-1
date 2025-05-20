@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.38.0](https://github.com/studiographene/pulse-data-integration/compare/v1.37.0...v1.38.0) (2025-05-20)
+
+
+### Features
+
+* **PX-2851:** added isdraft key ([936eee0](https://github.com/studiographene/pulse-data-integration/commit/936eee00156e4aa52efa7b83375641b61755ff19))
+* **PX-2851:** added isdraft key ([#1240](https://github.com/studiographene/pulse-data-integration/issues/1240)) ([aab7d08](https://github.com/studiographene/pulse-data-integration/commit/aab7d08ba72ba02d8193a0d844427bf3f7d4282d))
+
 ## [1.37.0](https://github.com/studiographene/pulse-data-integration/compare/v1.36.0...v1.37.0) (2025-05-20)
 
 
