@@ -397,6 +397,7 @@ function sprintEstimateResponse(
         bucketItem.key === sprintDetails.id
     );
     if (item) {
+      const totalTime = (bugTime?.bugInfo.value ?? 0) + (item.actual.value ?? 0);
       return {
         sprint: sprintDetails,
         workItems: {
@@ -432,7 +433,11 @@ function sprintEstimateResponse(
           ).toFixed(2)
         ),
         bugTime: bugTime?.bugInfo,
-        totalTime: (bugTime?.bugInfo.value ?? 0) + (item.actual.value ?? 0),
+        totalTime,
+        totalVariance: (totalTime === 0
+          ? 0
+          : ((totalTime - item.estimate.value) * 100) / item.estimate.value
+        ).toFixed(2),
       };
     }
     return {
@@ -513,6 +518,7 @@ function versionEstimateResponse(
         bucketItem.key === versionDetails.id
     );
     if (item) {
+      const totalTime = (bugTime?.bugInfo.value ?? 0) + (item.actual.value ?? 0);
       return {
         version: versionDetails,
         time: {
@@ -545,7 +551,11 @@ function versionEstimateResponse(
           ).toFixed(2)
         ),
         bugTime: bugTime?.bugInfo,
-        totalTime: (bugTime?.bugInfo.value ?? 0) + (item.actual.value ?? 0),
+        totalTime,
+        totalVariance: (totalTime === 0
+          ? 0
+          : ((totalTime - item.estimate.value) * 100) / item.estimate.value
+        ).toFixed(2),
       };
     }
     return {

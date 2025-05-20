@@ -3,7 +3,6 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Jira, Other } from 'abstraction';
 import esb, { RequestBodySearch } from 'elastic-builder';
-import _ from 'lodash';
 import { IssueLinked, IssuesTypes } from 'abstraction/jira/enums';
 import { logger } from 'core';
 import { Hit } from 'abstraction/github/type';
@@ -229,8 +228,6 @@ const fetchIssueDataV2 = async (
  *
  * @param projectId - The ID of the project.
  * @param sprintId - The ID of the sprint.
- * @param sortKey - The key to sort the breakdown by.
- * @param sortOrder - The order to sort the breakdown in ('asc' or 'desc').
  * @param orgId - The ID of the organization.
  * @param orgname - The name of the organization.
  * @returns A promise that resolves to an array of EstimatesVsActualsBreakdownResponse objects.
@@ -238,8 +235,6 @@ const fetchIssueDataV2 = async (
  */
 export const estimatesVsActualsBreakdownV2 = async (
   projectId: string,
-  sortKey: string,
-  sortOrder: string,
   orgId: string,
   orgname: string,
   type: string,
@@ -351,9 +346,7 @@ export const estimatesVsActualsBreakdownV2 = async (
     );
 
     const filteredResp = response?.filter((ele) => ele?.overallEstimate !== 0);
-    const data = _.orderBy(filteredResp, [sortKey], [sortOrder as 'asc' | 'desc']);
-
-    return data;
+    return filteredResp;
   } catch (error) {
     logger.error({ message: 'Error in estimatesVsActualsBreakdownV2', error });
     throw error;
