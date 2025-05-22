@@ -186,6 +186,7 @@ export class PRProcessor extends DataProcessor<
           ? { userId: `${mappingPrefixes.user}_${this.ghApiData.merged_by.id}` }
           : null,
         merged: this.ghApiData.merged,
+        isDraft: this.ghApiData.draft,
         mergedCommitId: this.ghApiData.merge_commit_sha
           ? `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`
           : null,
