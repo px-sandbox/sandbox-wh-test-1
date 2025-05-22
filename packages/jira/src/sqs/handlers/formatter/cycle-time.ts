@@ -53,6 +53,7 @@ function formatSubtask(data: any): Subtasks {
       ? [{ assigneeId: data.fields.assignee.accountId, name: data.fields.assignee.displayName }]
       : [],
     issueKey: data.key,
+    issueType: data.fields.issuetype.name,
   };
 }
 
