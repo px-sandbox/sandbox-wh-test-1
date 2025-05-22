@@ -9,56 +9,6 @@ export type Labels = {
   name: string;
 };
 
-export type ExternalPullRequest = {
-  id: number;
-  number: number;
-  state: string;
-  title: string;
-  body: string;
-  created_at: string;
-  updated_at: string;
-  closed_at: string;
-  merged_at: string | null;
-  draft: boolean;
-  merged: boolean;
-  merge_commit_sha: string | null;
-  comments: number;
-  review_comments: number;
-  commits: number;
-  additions: number;
-  deletions: number;
-  changed_files: number;
-  user: {
-    id: number;
-  };
-  head: {
-    label: string;
-    ref: string;
-    repo: {
-      id: number;
-      name: string;
-      owner: {
-        id: number;
-        login: string;
-      };
-    };
-  };
-  base: {
-    label: string;
-    ref: string;
-  };
-  merged_by: {
-    id: number;
-  } | null;
-  requested_reviewers: Array<{
-    id: number;
-  }>;
-  labels: Array<{
-    name: string;
-  }>;
-  action?: string;
-};
-
 export type PullRequestBody = {
   id: string;
   githubPullId: number;
