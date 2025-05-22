@@ -13,6 +13,7 @@ export type Subtasks = {
     assigneeId: string;
     name: string;
   }[];
+  issueType: string;
   history?: {
     status: string;
     eventTime: string;
