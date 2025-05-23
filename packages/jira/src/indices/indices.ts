@@ -382,6 +382,7 @@ const indices = [
               properties: {
                 issueId: { type: 'text' },
                 issueKey: { type: 'text' },
+                issueType: { type: 'keyword' },
                 title: { type: 'text' },
                 development: {
                   type: 'object',
@@ -417,7 +418,7 @@ const indices = [
                 status: { type: 'keyword' },
               },
             },
-            issueType: { type: 'text' },
+            issueType: { type: 'keyword' },
             isDeleted: { type: 'boolean' },
             deletedAt: { type: 'date', format: 'strict_date_optional_time||epoch_millis' },
             affectedVersion: { type: 'keyword' },

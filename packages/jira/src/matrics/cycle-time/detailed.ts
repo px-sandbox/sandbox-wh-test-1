@@ -27,6 +27,7 @@ function getCycleTimeDetailQuery(
       'body.assignees',
       'body.hasSubtask',
       'body.subtasks',
+      'body.issueType',
     ])
     .query(
       esb
@@ -141,6 +142,7 @@ export async function fetchCycleTimeDetailed(
     id: fd.id,
     issueKey: fd.issueKey,
     title: fd.title,
+    issueType: fd.issueType,
     development: {
       coding: parseFloat(fd.development.coding.toFixed(2)),
       pickup: parseFloat(fd.development.pickup.toFixed(2)),
@@ -161,7 +163,7 @@ export async function fetchCycleTimeDetailed(
     assignees: fd.assignees?.length
       ? fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId])
       : [],
-    hasSubtask: fd.hasSubtask,
+    hasSubtasks: fd.subtasks?.filter((sub: { isDeleted: boolean }) => !sub.isDeleted)?.length > 0,
     subtasks: fd.subtasks?.length
       ? fd.subtasks?.map((sub: { assignees: { assigneeId: string }[]; issueKey: string }) => ({
           ...sub,

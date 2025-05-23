@@ -270,6 +270,7 @@ const indices = [
                 userId: { type: 'keyword' },
               },
             },
+            isDraft: { type: 'boolean' },
             merged: { type: 'boolean' },
             mergedCommitId: { type: 'keyword' },
             comments: { type: 'integer' },
