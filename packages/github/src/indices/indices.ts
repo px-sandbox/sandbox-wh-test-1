@@ -271,6 +271,7 @@ const indices = [
               },
             },
             isDraft: { type: 'boolean' },
+            reviewStartedAt: { type: 'date', format: 'strict_date_optional_time' },
             merged: { type: 'boolean' },
             mergedCommitId: { type: 'keyword' },
             comments: { type: 'integer' },
