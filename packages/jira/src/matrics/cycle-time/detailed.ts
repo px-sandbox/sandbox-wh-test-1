@@ -27,6 +27,7 @@ function getCycleTimeDetailQuery(
       'body.assignees',
       'body.hasSubtask',
       'body.subtasks',
+      'body.issueType',
     ])
     .query(
       esb
@@ -141,6 +142,7 @@ export async function fetchCycleTimeDetailed(
     id: fd.id,
     issueKey: fd.issueKey,
     title: fd.title,
+    issueType: fd.issueType,
     development: {
       coding: parseFloat(fd.development.coding.toFixed(2)),
       pickup: parseFloat(fd.development.pickup.toFixed(2)),
