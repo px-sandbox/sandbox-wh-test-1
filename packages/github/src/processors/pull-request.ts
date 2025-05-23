@@ -79,6 +79,12 @@ export class PRProcessor extends DataProcessor<
     state: string
   ): Promise<{ approvedAt: string | null; reviewedAt: string | null; reviewSeconds: number }> {
     let { approvedAt, reviewedAt, reviewSeconds } = pullData;
+    
+    // Skip review time calculations if PR is in draft
+    if (this.ghApiData.draft) {
+      return { approvedAt, reviewedAt, reviewSeconds };
+    }
+
     if (
       !reviewedAt &&
       pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReviewUser.id}` &&
@@ -87,7 +93,7 @@ export class PRProcessor extends DataProcessor<
       reviewedAt = prReviewSubmittedAt;
       const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
       reviewSeconds = getWorkingTime(
-        moment(pullData.createdAt),
+        moment(pullData.reviewStartedAt),
         moment(reviewedAt),
         createdTimezone
       );
@@ -187,6 +193,7 @@ export class PRProcessor extends DataProcessor<
           : null,
         merged: this.ghApiData.merged,
         isDraft: this.ghApiData.draft,
+        reviewStartedAt: !this.ghApiData.draft ? new Date().toISOString() : null,
         mergedCommitId: this.ghApiData.merge_commit_sha
           ? `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`
           : null,

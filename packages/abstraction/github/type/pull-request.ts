@@ -22,6 +22,7 @@ export type PullRequestBody = {
   closedAt: string;
   mergedAt: string;
   reviewedAt: string | null;
+  reviewStartedAt: string | null;
   approvedAt: string | null;
   reviewSeconds: number;
   requestedReviewers?: RequestedReviewers[];
