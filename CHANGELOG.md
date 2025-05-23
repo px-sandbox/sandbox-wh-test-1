@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.41.0](https://github.com/studiographene/pulse-data-integration/compare/v1.40.0...v1.41.0) (2025-05-23)
+
+
+### Features
+
+* **cycletime:** return hasSubTask from PX-2816 API ([6620e2b](https://github.com/studiographene/pulse-data-integration/commit/6620e2b610ec833e5b53548aa741a990f896c7c2))
+* **cycletime:** return hasSubTask from PX-2816 API ([#1247](https://github.com/studiographene/pulse-data-integration/issues/1247)) ([f7e57ac](https://github.com/studiographene/pulse-data-integration/commit/f7e57ac173713c7dd9c260dc5e2201a07e9343f6))
+
 ## [1.40.0](https://github.com/studiographene/pulse-data-integration/compare/v1.39.0...v1.40.0) (2025-05-23)
 
 
