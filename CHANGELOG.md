@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.40.0](https://github.com/studiographene/pulse-data-integration/compare/v1.39.0...v1.40.0) (2025-05-23)
+
+
+### Features
+
+* **cycletime:** return issueType from PX-2816 API ([8e5bdb1](https://github.com/studiographene/pulse-data-integration/commit/8e5bdb1661cb07d1605db76c2866583fc57c0d3b))
+* **cycletime:** return issueType from PX-2816 API ([#1245](https://github.com/studiographene/pulse-data-integration/issues/1245)) ([67e94f4](https://github.com/studiographene/pulse-data-integration/commit/67e94f49e6fc9d0cef5777ff9f58f56cb9e91128))
+
+## [1.39.0](https://github.com/studiographene/pulse-data-integration/compare/v1.38.0...v1.39.0) (2025-05-22)
+
+
+### Features
+
+* **cycle-time:** reindex issueType for PX-2816 ([427fe5d](https://github.com/studiographene/pulse-data-integration/commit/427fe5d0e6f2476a5ae998e08b0f8e70b7225596))
+* **cycle-time:** reindex issueType for PX-2816 ([#1242](https://github.com/studiographene/pulse-data-integration/issues/1242)) ([5af0e63](https://github.com/studiographene/pulse-data-integration/commit/5af0e635a1bdc682030d945223b1eac2d02773fb))
+
 ## [1.38.0](https://github.com/studiographene/pulse-data-integration/compare/v1.37.0...v1.38.0) (2025-05-20)
 
 
