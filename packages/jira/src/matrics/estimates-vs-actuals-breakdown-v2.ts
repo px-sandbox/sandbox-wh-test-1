@@ -263,7 +263,7 @@ export const estimatesVsActualsBreakdownV2 = async (
         const estimate = issue?.timeTracker?.estimate ?? 0;
         const actual = issue?.timeTracker?.actual ?? 0;
         let overallEstimate = estimate;
-        let overallActual = estimate ? actual : 0;
+        let overallActual = actual;
         if (parentBugMapping[issue.issueKey]) {
           const bugTimeForIssue = parentBugMapping[issue.issueKey];
           const filteredBugTime = bugTime
