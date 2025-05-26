@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.41.2](https://github.com/studiographene/pulse-data-integration/compare/v1.41.1...v1.41.2) (2025-05-26)
+
+
+### Bug Fixes
+
+* **PX-2890:** parent no estimate, calculate actual time ([8094e7a](https://github.com/studiographene/pulse-data-integration/commit/8094e7a1e6b95a6f216e827b1dc1c5f246b1fbb8))
+* **PX-2890:** parent no estimate, calculate actual time ([#1251](https://github.com/studiographene/pulse-data-integration/issues/1251)) ([95f0b98](https://github.com/studiographene/pulse-data-integration/commit/95f0b982ecafab44b65d96607d5e2c66b829726c))
+
+## [1.41.1](https://github.com/studiographene/pulse-data-integration/compare/v1.41.0...v1.41.1) (2025-05-23)
+
+
+### Bug Fixes
+
+* **PX-2847:** small fix ([68add8a](https://github.com/studiographene/pulse-data-integration/commit/68add8a0eb18d91b5bcb52dc0e08030f8011f7ad))
+* **PX-2847:** small fix ([#1249](https://github.com/studiographene/pulse-data-integration/issues/1249)) ([2b952b8](https://github.com/studiographene/pulse-data-integration/commit/2b952b8c3313fb6807a211fc520176369a5a5d29))
+
+## [1.41.0](https://github.com/studiographene/pulse-data-integration/compare/v1.40.0...v1.41.0) (2025-05-23)
+
+
+### Features
+
+* **cycletime:** return hasSubTask from PX-2816 API ([6620e2b](https://github.com/studiographene/pulse-data-integration/commit/6620e2b610ec833e5b53548aa741a990f896c7c2))
+* **cycletime:** return hasSubTask from PX-2816 API ([#1247](https://github.com/studiographene/pulse-data-integration/issues/1247)) ([f7e57ac](https://github.com/studiographene/pulse-data-integration/commit/f7e57ac173713c7dd9c260dc5e2201a07e9343f6))
+
+## [1.40.0](https://github.com/studiographene/pulse-data-integration/compare/v1.39.0...v1.40.0) (2025-05-23)
+
+
+### Features
+
+* **cycletime:** return issueType from PX-2816 API ([8e5bdb1](https://github.com/studiographene/pulse-data-integration/commit/8e5bdb1661cb07d1605db76c2866583fc57c0d3b))
+* **cycletime:** return issueType from PX-2816 API ([#1245](https://github.com/studiographene/pulse-data-integration/issues/1245)) ([67e94f4](https://github.com/studiographene/pulse-data-integration/commit/67e94f49e6fc9d0cef5777ff9f58f56cb9e91128))
+
 ## [1.39.0](https://github.com/studiographene/pulse-data-integration/compare/v1.38.0...v1.39.0) (2025-05-22)
 
 

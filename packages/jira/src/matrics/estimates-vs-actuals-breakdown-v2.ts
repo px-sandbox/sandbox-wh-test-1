@@ -263,7 +263,7 @@ export const estimatesVsActualsBreakdownV2 = async (
         const estimate = issue?.timeTracker?.estimate ?? 0;
         const actual = issue?.timeTracker?.actual ?? 0;
         let overallEstimate = estimate;
-        let overallActual = estimate ? actual : 0;
+        let overallActual = actual;
         if (parentBugMapping[issue.issueKey]) {
           const bugTimeForIssue = parentBugMapping[issue.issueKey];
           const filteredBugTime = bugTime
@@ -288,6 +288,7 @@ export const estimatesVsActualsBreakdownV2 = async (
           estimate: number;
           actual: number;
           variance: number;
+          totalVariance: number;
           link: string;
           issueType: string;
           totalTime: number;
@@ -310,6 +311,9 @@ export const estimatesVsActualsBreakdownV2 = async (
               actual: subActual,
               issueType: subtask?.issueType,
               variance: parseFloat((((subActual - subEstimate) / subEstimate) * 100).toFixed(2)),
+              totalVariance: parseFloat(
+                (((subActual - subEstimate) / subEstimate) * 100).toFixed(2)
+              ),
               link: `https://${orgname}.atlassian.net/browse/${subtask?.issueKey}`,
               totalTime: subActual ?? 0,
             });
