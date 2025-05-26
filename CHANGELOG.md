@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.41.2](https://github.com/studiographene/pulse-data-integration/compare/v1.41.1...v1.41.2) (2025-05-26)
+
+
+### Bug Fixes
+
+* **PX-2890:** parent no estimate, calculate actual time ([8094e7a](https://github.com/studiographene/pulse-data-integration/commit/8094e7a1e6b95a6f216e827b1dc1c5f246b1fbb8))
+* **PX-2890:** parent no estimate, calculate actual time ([#1251](https://github.com/studiographene/pulse-data-integration/issues/1251)) ([95f0b98](https://github.com/studiographene/pulse-data-integration/commit/95f0b982ecafab44b65d96607d5e2c66b829726c))
+
 ## [1.41.1](https://github.com/studiographene/pulse-data-integration/compare/v1.41.0...v1.41.1) (2025-05-23)
 
 
