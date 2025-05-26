@@ -296,7 +296,7 @@ export class PRProcessor extends DataProcessor<
           break;
         case Github.Enums.PullRequest.ReviewSubmitted:
           if (this.ghApiData.review) {
-            //await this.updateReviewCommentCount();
+            await this.updateReviewCommentCount();
             await this.reviewSubmitted(
               this.ghApiData.review.user,
               this.ghApiData.review.submitted_at,
