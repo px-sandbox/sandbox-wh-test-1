@@ -180,9 +180,9 @@ export async function fetchCycleTimeDetailed(
     if (item.subtasks && item.subtasks.length > 0) {
       item.subtasks.sort(
         (firstSubtask: { issueKey: string }, secondSubtask: { issueKey: string }) => {
-          const firstSubtaskNumber = parseInt(firstSubtask.issueKey.split('-')[1]) || 0;
-          const secondSubtaskNumber = parseInt(secondSubtask.issueKey.split('-')[1]) || 0;
-          return firstSubtaskNumber - secondSubtaskNumber;
+          const firstSubtaskNum = parseInt(firstSubtask.issueKey.split('-')[1]) || 0;
+          const secondSubtaskNum = parseInt(secondSubtask.issueKey.split('-')[1]) || 0;
+          return firstSubtaskNum - secondSubtaskNum;
         }
       );
     }
