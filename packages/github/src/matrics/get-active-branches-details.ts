@@ -87,7 +87,9 @@ const getBranchDetails = async (
   });
   let prStatus = Github.Type.PRStatus.noPr;
   if (prStatusDetails) {
-    if (prStatusDetails.state === Github.Enums.PullRequest.Closed) {
+    if (prStatusDetails.isDraft && prStatusDetails.state === Github.Enums.PullRequest.Open) {
+      prStatus = Github.Type.PRStatus.draft;
+    } else if (prStatusDetails.state === Github.Enums.PullRequest.Closed) {
       prStatus = prStatusDetails.merged
         ? Github.Type.PRStatus.merged
         : Github.Type.PRStatus.closedWithoutMerge;
