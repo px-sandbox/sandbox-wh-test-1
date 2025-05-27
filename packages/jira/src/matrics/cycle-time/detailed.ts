@@ -138,7 +138,7 @@ export async function fetchCycleTimeDetailed(
     };
   });
 
-  return formattedData.map((fd) => ({
+  const result = formattedData.map((fd) => ({
     id: fd.id,
     issueKey: fd.issueKey,
     title: fd.title,
@@ -175,4 +175,23 @@ export async function fetchCycleTimeDetailed(
       : [],
     link: `https://${orgname[0]?.name}.atlassian.net/browse/${fd?.issueKey}`,
   }));
+
+  result.forEach((item) => {
+    if (item.subtasks && item.subtasks.length > 0) {
+      item.subtasks.sort(
+        (firstSubtask: { issueKey: string }, secondSubtask: { issueKey: string }) => {
+          const firstSubtaskNumber = parseInt(firstSubtask.issueKey.split('-')[1]) || 0;
+          const secondSubtaskNumber = parseInt(secondSubtask.issueKey.split('-')[1]) || 0;
+          return firstSubtaskNumber - secondSubtaskNumber;
+        }
+      );
+    }
+  });
+
+  // Sort main array by issueKey
+  return result.sort((firstIssue: { issueKey: string }, secondIssue: { issueKey: string }) => {
+    const firstIssueNumber = parseInt(firstIssue.issueKey.split('-')[1]) || 0;
+    const secondIssueNumber = parseInt(secondIssue.issueKey.split('-')[1]) || 0;
+    return firstIssueNumber - secondIssueNumber;
+  });
 }
