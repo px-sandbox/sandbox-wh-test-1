@@ -8,6 +8,7 @@ import { logger } from 'core';
 import { Hit } from 'abstraction/github/type';
 import { HitBody } from 'abstraction/other/type';
 import { BugTimeInfo } from 'abstraction/jira/type';
+import _ from 'lodash';
 import { getBugIssueLinksKeys } from './get-sprint-variance';
 import { searchedDataFormator } from '../util/response-formatter';
 
@@ -319,6 +320,11 @@ export const estimatesVsActualsBreakdownV2 = async (
             });
           }
         });
+        subtasksArr.sort((a, b) => {
+          const aKey = a.issueKey.split('-')[1];
+          const bKey = b.issueKey.split('-')[1];
+          return parseInt(aKey, 10) - parseInt(bKey, 10);
+        });
         const totalTime = overallActual + (bugTimeInfo?.value ?? 0);
         return {
           id: issue?.id,
@@ -350,7 +356,8 @@ export const estimatesVsActualsBreakdownV2 = async (
     );
 
     const filteredResp = response?.filter((ele) => ele?.overallEstimate !== 0);
-    return filteredResp;
+    const finalResp = _.sortBy(filteredResp, (item) => parseInt(item.issueKey.split('-')[1], 10));
+    return finalResp;
   } catch (error) {
     logger.error({ message: 'Error in estimatesVsActualsBreakdownV2', error });
     throw error;
