@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.42.0](https://github.com/studiographene/pulse-data-integration/compare/v1.41.2...v1.42.0) (2025-05-27)
+
+
+### Features
+
+* **PX-2852:** code changes to populate draft data ([#1244](https://github.com/studiographene/pulse-data-integration/issues/1244)) ([190c467](https://github.com/studiographene/pulse-data-integration/commit/190c4670a013143f9422c2e959bd990a3fcb2e01))
+* **PX-2852:** fixed review seconds ([dfb0302](https://github.com/studiographene/pulse-data-integration/commit/dfb030245902938cad6646e4f94e08424edc1bc6))
+* **PX-2852:** fixed review seconds ([26484b6](https://github.com/studiographene/pulse-data-integration/commit/26484b69067331d3883a3eb129a835ded6cb9ef0))
+
 ## [1.41.2](https://github.com/studiographene/pulse-data-integration/compare/v1.41.1...v1.41.2) (2025-05-26)
 
 
