@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.44.0](https://github.com/studiographene/pulse-data-integration/compare/v1.43.0...v1.44.0) (2025-05-27)
+
+
+### Features
+
+* **PX-2852-1:** added pr status ([b04e0a2](https://github.com/studiographene/pulse-data-integration/commit/b04e0a2f3491e4d9cd4a634c874713d028c2651a))
+* **PX-2852-1:** added pr status ([#1257](https://github.com/studiographene/pulse-data-integration/issues/1257)) ([3875704](https://github.com/studiographene/pulse-data-integration/commit/3875704acdaf8bd346c7ab6f6ad9f9f2e5ab5f69))
+
 ## [1.43.0](https://github.com/studiographene/pulse-data-integration/compare/v1.42.0...v1.43.0) (2025-05-27)
 
 
