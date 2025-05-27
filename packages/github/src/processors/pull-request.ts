@@ -79,6 +79,13 @@ export class PRProcessor extends DataProcessor<
     state: string
   ): Promise<{ approvedAt: string | null; reviewedAt: string | null; reviewSeconds: number }> {
     let { approvedAt, reviewedAt, reviewSeconds } = pullData;
+    
+    // Skip review time calculations if PR is in draft
+    if (this.ghApiData.draft) {
+      return { approvedAt, reviewedAt, reviewSeconds };
+    }
+
+    // Case 1 & 3: PR is not in draft
     if (
       !reviewedAt &&
       pullData.pRCreatedBy !== `${mappingPrefixes.user}_${prReviewUser.id}` &&
@@ -86,11 +93,28 @@ export class PRProcessor extends DataProcessor<
     ) {
       reviewedAt = prReviewSubmittedAt;
       const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
-      reviewSeconds = getWorkingTime(
-        moment(pullData.createdAt),
-        moment(reviewedAt),
-        createdTimezone
-      );
+
+      // Get the appropriate reviewStartedAt based on PR state
+      let startTime;
+      if (this.ghApiData.action === Github.Enums.PullRequest.ReadyForReview) {
+        // Case 2 & 3: When PR becomes ready for review
+        startTime = this.ghApiData.updated_at;
+      } else if (pullData.reviewStartedAt) {
+        // Use existing reviewStartedAt if available
+        startTime = pullData.reviewStartedAt;
+      } else {
+        // Case 1: Use creation time for initial review
+        startTime = this.ghApiData.created_at;
+      }
+
+      // Calculate review seconds only if we have valid start and end times
+      if (startTime && reviewedAt) {
+        reviewSeconds = getWorkingTime(
+          moment(startTime),
+          moment(reviewedAt),
+          createdTimezone
+        );
+      }
     }
 
     if (!approvedAt && state === Github.Enums.ReviewState.APPROVED) {
@@ -105,11 +129,25 @@ export class PRProcessor extends DataProcessor<
       if (this.ghApiData.user.id !== this.ghApiData.merged_by?.id) {
         pullData.reviewedAt = this.ghApiData.merged_at;
         const createdTimezone = await getTimezoneOfUser(pullData.pRCreatedBy);
-        pullData.reviewSeconds = getWorkingTime(
-          moment(this.ghApiData.created_at),
-          moment(this.ghApiData.merged_at),
-          createdTimezone
-        );
+
+        // Get the appropriate reviewStartedAt based on PR state
+        let startTime;
+        if (this.ghApiData.action === Github.Enums.PullRequest.ReadyForReview) {
+          startTime = this.ghApiData.updated_at;
+        } else if (pullData.reviewStartedAt) {
+          startTime = pullData.reviewStartedAt;
+        } else {
+          startTime = this.ghApiData.created_at;
+        }
+
+        // Calculate review seconds only if we have valid start and end times
+        if (startTime && this.ghApiData.merged_at) {
+          pullData.reviewSeconds = getWorkingTime(
+            moment(startTime),
+            moment(this.ghApiData.merged_at),
+            createdTimezone
+          );
+        }
       }
     }
     await this.format();
@@ -155,6 +193,40 @@ export class PRProcessor extends DataProcessor<
     if (pullData) {
       this.updateGhApiData(pullData);
     }
+
+    // Handle reviewStartedAt based on PR actions and cases
+    let reviewStartedAt = null;
+    
+    switch (this.ghApiData.action) {
+      case Github.Enums.PullRequest.Opened:
+        // Case 1: PR created - set reviewStartedAt to creation time
+        reviewStartedAt = this.ghApiData.created_at;
+        break;
+        
+      case Github.Enums.PullRequest.ConvertedToDraft:
+        // Case 2 & 3: PR converted to draft - set reviewStartedAt to null
+        reviewStartedAt = null;
+        break;
+        
+      case Github.Enums.PullRequest.ReadyForReview:
+        // Case 2 & 3: PR ready for review - set reviewStartedAt to current time
+        reviewStartedAt = this.ghApiData.updated_at;
+        break;
+        
+      case Github.Enums.PullRequest.ReviewRequested:
+      case Github.Enums.PullRequest.ReviewSubmitted:
+        // For review actions, maintain existing reviewStartedAt if set
+        // Otherwise use creation time for Case 1, or current time for Case 2 & 3
+        reviewStartedAt = pullData?.reviewStartedAt || 
+          (this.ghApiData.draft ? null : this.ghApiData.created_at);
+        break;
+        
+      default:
+        // For other actions, maintain existing reviewStartedAt
+        reviewStartedAt = pullData?.reviewStartedAt || 
+          (this.ghApiData.draft ? null : this.ghApiData.created_at);
+    }
+
     this.formattedData = {
       id: await this.parentId(`${mappingPrefixes.pull}_${this.ghApiData.id}`),
       body: {
@@ -186,6 +258,8 @@ export class PRProcessor extends DataProcessor<
           ? { userId: `${mappingPrefixes.user}_${this.ghApiData.merged_by.id}` }
           : null,
         merged: this.ghApiData.merged,
+        isDraft: this.ghApiData.draft,
+        reviewStartedAt: reviewStartedAt,
         mergedCommitId: this.ghApiData.merge_commit_sha
           ? `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`
           : null,
