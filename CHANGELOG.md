@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.43.0](https://github.com/studiographene/pulse-data-integration/compare/v1.42.0...v1.43.0) (2025-05-27)
+
+
+### Features
+
+* **PX-2755:** sorting tickets by issue key ([7f88fdd](https://github.com/studiographene/pulse-data-integration/commit/7f88fdd9a8a991a71c6a35ef3c217a091dc694b6))
+* **PX-2755:** sorting tickets by issue key ([#1255](https://github.com/studiographene/pulse-data-integration/issues/1255)) ([25597c7](https://github.com/studiographene/pulse-data-integration/commit/25597c75670c6ce36ac6da2435a414c1d69b2772))
+
 ## [1.42.0](https://github.com/studiographene/pulse-data-integration/compare/v1.41.2...v1.42.0) (2025-05-27)
 
 
