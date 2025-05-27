@@ -318,11 +318,12 @@ export const estimatesVsActualsBreakdownV2 = async (
               link: `https://${orgname}.atlassian.net/browse/${subtask?.issueKey}`,
               totalTime: subActual ?? 0,
             });
-            subtasksArr.sort(
-              (a, b) =>
-                parseInt(a.issueKey.split('-')[1], 10) - parseInt(b.issueKey.split('-')[1], 10)
-            );
           }
+        });
+        subtasksArr.sort((a, b) => {
+          const aKey = a.issueKey.split('-')[1];
+          const bKey = b.issueKey.split('-')[1];
+          return parseInt(aKey, 10) - parseInt(bKey, 10);
         });
         const totalTime = overallActual + (bugTimeInfo?.value ?? 0);
         return {
