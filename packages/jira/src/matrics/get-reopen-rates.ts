@@ -9,6 +9,19 @@ import { getSprints } from '../lib/get-sprints';
 import { getBoardByOrgId } from '../repository/board/get-board';
 import { IssueResponse } from '../util/response-formatter';
 
+interface ReopenRateQueryResponse {
+  hits: {
+    total: {
+      value: number;
+    };
+  };
+  aggregations: {
+    reopenRate: {
+      doc_count: number;
+    };
+  };
+}
+
 const esClientObj = ElasticSearchClient.getInstance();
 
 /**
@@ -60,14 +73,15 @@ async function reopenRateQueryRes(
 async function reopenRateQueryResponse(
   sprintIds: string[],
   reqCtx: Other.Type.RequestCtx
-): Promise<any> {
+): Promise<ReopenRateQueryResponse> {
   const reopenRateGraphQuery = requestBodySearchQuery(sprintIds)
     .agg(esb.filterAggregation('reopenRate', esb.rangeQuery('body.reOpenCount').gt(0)))
     .toJSON();
 
   logger.info({ ...reqCtx, message: 'AvgReopenRateGraphQuery', data: { reopenRateGraphQuery } });
 
-  return esClientObj.search(Jira.Enums.IndexName.ReopenRate, reopenRateGraphQuery);
+  const response = await esClientObj.search(Jira.Enums.IndexName.ReopenRate, reopenRateGraphQuery);
+  return response as unknown as ReopenRateQueryResponse;
 }
 /**
  * Retrieves the reopen rate graph data for the given sprint IDs.
@@ -128,7 +142,7 @@ export async function reopenRateGraph(
 export async function reopenRateGraphAvg(
   sprintIds: string[],
   reqCtx: Other.Type.RequestCtx
-): Promise<{ totalBugs: string; totalReopen: string; percentValue: number }> {
+): Promise<{ totalBugs: number; totalReopen: number; percentValue: number }> {
   try {
     const reopenRateGraphResponse = await reopenRateQueryResponse(sprintIds, reqCtx);
     return {
