@@ -97,7 +97,12 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     await processor.process();
     await processor.save();
   } catch (error) {
-    logger.error({ message: `commitFormattedDataReceiver.error, ${error}`, requestId, resourceId });
+    logger.error({
+      message: `commitFormattedDataReceiver.error, ${error}`,
+      requestId,
+      resourceId,
+      error: `${error}`,
+    });
     await logProcessToRetry(record, Queue.qGhCommitFormat.queueUrl, error as Error);
   }
 }

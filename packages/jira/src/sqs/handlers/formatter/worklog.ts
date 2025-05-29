@@ -91,7 +91,7 @@ export const handler = async function worklogFormattedDataReciever(event: SQSEve
           requestId,
           resourceId,
           message: 'worklogFormattedDataReciever.error',
-          error,
+          error: `${error}`,
         });
       }
     })

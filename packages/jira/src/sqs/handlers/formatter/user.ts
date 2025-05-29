@@ -27,7 +27,12 @@ export const handler = async function userFormattedDataReciever(event: SQSEvent)
         await userProcessor.save();
       } catch (error) {
         await logProcessToRetry(record, Queue.qUserFormat.queueUrl, error as Error);
-        logger.error({ requestId, resourceId, message: 'userFormattedDataReciever.error', error });
+        logger.error({
+          requestId,
+          resourceId,
+          message: 'userFormattedDataReciever.error',
+          error: `${error}`,
+        });
       }
     })
   );
