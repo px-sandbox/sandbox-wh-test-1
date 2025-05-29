@@ -32,7 +32,12 @@ export const handler = async function boardFormattedDataReciever(event: SQSEvent
         await processor.save();
       } catch (error) {
         await logProcessToRetry(record, Queue.qBoardFormat.queueUrl, error as Error);
-        logger.error({ requestId, resourceId, message: 'boardFormattedDataReciever.error', error });
+        logger.error({
+          requestId,
+          resourceId,
+          message: 'boardFormattedDataReciever.error',
+          error: `${error}`,
+        });
       }
     })
   );
