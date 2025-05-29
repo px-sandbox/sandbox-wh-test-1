@@ -233,6 +233,7 @@ export type CycleTimeDetailedType = {
   deployment: unknown;
   qa: unknown;
   link: string;
+  issueType?: string;
 };
 type CycleTimeSummaryResponse = {
   development: {

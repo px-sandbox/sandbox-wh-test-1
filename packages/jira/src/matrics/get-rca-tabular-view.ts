@@ -4,6 +4,7 @@ import { IssuesTypes, FILTER_ID_TYPES } from 'abstraction/jira/enums';
 import { rcaTableHeadline, rcaTableResponse, rcaTableView } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
 import { logger } from 'core';
+import { Config } from 'sst/node/config';
 import { mappingPrefixes } from '../constant/config';
 import { searchedDataFormator } from '../util/response-formatter';
 
@@ -65,6 +66,7 @@ export async function getHeadlineData(
           esb.termQuery('body.isDeleted', false),
           esb.termsQuery(config.filterField, ids),
         ])
+        .mustNot(esb.termQuery(`body.rcaData.${type}`, Config.NO_INTERNAL_DEFECT))
     )
     .agg(
       esb
@@ -74,22 +76,19 @@ export async function getHeadlineData(
     )
     .agg(esb.maxBucketAggregation('max_rca_count').bucketsPath('rca_count>rca_value_count'))
     .agg(
-      esb
-        .globalAggregation('global_agg')
-        .aggs([
+      esb.globalAggregation('global_agg').aggs([
+        esb.filterAggregation('total_bug_count').filter(
           esb
-            .filterAggregation('total_bug_count')
-            .filter(
-              esb
-                .boolQuery()
-                .must([
-                  esb.existsQuery(`body.rcaData.${type}`),
-                  esb.termQuery('body.issueType', IssuesTypes.BUG),
-                  esb.termQuery('body.isDeleted', false),
-                  esb.termsQuery(config.filterField, ids),
-                ])
-            ),
-        ])
+            .boolQuery()
+            .must([
+              esb.existsQuery(`body.rcaData.${type}`),
+              esb.termQuery('body.issueType', IssuesTypes.BUG),
+              esb.termQuery('body.isDeleted', false),
+              esb.termsQuery(config.filterField, ids),
+            ])
+            .mustNot(esb.termQuery(`body.rcaData.${type}`, Config.NO_INTERNAL_DEFECT))
+        ),
+      ])
     );
   logger.info({ message: config.logMessage, data: query });
   const result: rcaTableHeadline = await esClient.queryAggs(
@@ -137,6 +136,7 @@ export async function buildRcaTableViewQuery(
           esb.existsQuery(`body.rcaData.${type}`),
           esb.termQuery('body.isDeleted', false),
         ])
+        .mustNot(esb.termQuery(`body.rcaData.${type}`, Config.NO_INTERNAL_DEFECT))
     )
     .agg(esb.termsAggregation('rcaCount').field(`body.rcaData.${type}`).size(1000))
     .toJSON();

@@ -135,6 +135,7 @@ const indices = [
             createdAtDay: { type: 'keyword' },
             computationDate: { type: 'date', format: 'yyyy-MM-dd' },
             githubDate: { type: 'date', format: 'yyyy-MM-dd' },
+            authorId: { type: 'keyword' },
           },
         },
       },
@@ -151,8 +152,8 @@ const indices = [
             id: { type: 'keyword' },
             githubCommitId: { type: 'keyword' },
             isMergedCommit: { type: 'boolean' },
-            pushedBranch: { type: 'text' },
-            mergedBranch: { type: 'text' },
+            pushedBranch: { type: 'keyword' },
+            mergedBranch: { type: 'keyword' },
             message: { type: 'text' },
             authorId: { type: 'keyword' },
             committedAt: { type: 'date', format: 'strict_date_optional_time' },
@@ -231,7 +232,7 @@ const indices = [
             id: { type: 'keyword' },
             githubPullId: { type: 'keyword' },
             pullNumber: { type: 'keyword' },
-            state: { type: 'text' },
+            state: { type: 'keyword' },
             title: { type: 'text' },
             pRCreatedBy: { type: 'text' },
             pullBody: { type: 'text' },
@@ -249,19 +250,19 @@ const indices = [
             },
             labels: {
               properties: {
-                name: { type: 'text' },
+                name: { type: 'keyword' },
               },
             },
             head: {
               properties: {
-                label: { type: 'text' },
-                ref: { type: 'text' },
+                label: { type: 'keyword' },
+                ref: { type: 'keyword' },
               },
             },
             base: {
               properties: {
-                label: { type: 'text' },
-                ref: { type: 'text' },
+                label: { type: 'keyword' },
+                ref: { type: 'keyword' },
               },
             },
             mergedBy: {
@@ -269,6 +270,8 @@ const indices = [
                 userId: { type: 'keyword' },
               },
             },
+            isDraft: { type: 'boolean' },
+            reviewStartedAt: { type: 'date', format: 'strict_date_optional_time' },
             merged: { type: 'boolean' },
             mergedCommitId: { type: 'keyword' },
             comments: { type: 'integer' },

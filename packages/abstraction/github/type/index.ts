@@ -1,4 +1,4 @@
-import { Branch, BranchRep } from './branch';
+import { Branch, BranchEsResponse } from './branch';
 import { Organization } from './organization';
 import { Repository, RepoFormatter } from './repository';
 import { User, UserBody } from './user';
@@ -16,7 +16,12 @@ import { QueueMessage } from './retry-process';
 import { CommentState, MessageBody } from './historical-review';
 import { CalculateGraphAvgData } from './graph';
 import { GHCopilotReport } from './gh-copilot';
-import { ActiveBranches, RawActiveBRanches } from './active-branches';
+import {
+  ActiveBranches,
+  RawActiveBRanches,
+  ActiveBranchDetails,
+  PRStatus,
+} from './active-branches';
 import { IndexMapping } from './index-mapping';
 import { RepoLibrary } from './repo-library';
 import { LibInfo } from './lib-info';
@@ -136,8 +141,10 @@ export {
   DeploymentFrequencyGraph,
   AggregationResponse,
   DeploymentFreq,
-  BranchRep,
+  BranchEsResponse,
   TestCoverageHeadline,
   TestCoverageGraphAgg,
   TestCoverageLatestDoc,
+  ActiveBranchDetails,
+  PRStatus,
 };

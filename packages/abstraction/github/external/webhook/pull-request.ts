@@ -11,7 +11,9 @@ export type PullRequest = {
   updated_at: string;
   closed_at: string;
   merged_at: string;
+  draft: boolean;
   reviewed_at: string | null;
+  review_started_at: string | null;
   approved_at: string | null;
   requested_reviewers: [
     {

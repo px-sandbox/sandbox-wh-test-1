@@ -1,5 +1,300 @@
 # Changelog
 
+## [1.44.1](https://github.com/studiographene/pulse-data-integration/compare/v1.44.0...v1.44.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* **PX-2927:** fix ([47aa9aa](https://github.com/studiographene/pulse-data-integration/commit/47aa9aa58c4cd46a0520576e8c23ea5fde8dd989))
+* **PX-2927:** sorting fixes ([906ec91](https://github.com/studiographene/pulse-data-integration/commit/906ec91dcc3caf9f8897112d0754b099a6267b58))
+* **PX-2927:** sorting fixes ([#1259](https://github.com/studiographene/pulse-data-integration/issues/1259)) ([ae242d1](https://github.com/studiographene/pulse-data-integration/commit/ae242d1bc4bcdd2d8bca143f363514a8c91d95c5))
+
+## [1.44.0](https://github.com/studiographene/pulse-data-integration/compare/v1.43.0...v1.44.0) (2025-05-27)
+
+
+### Features
+
+* **PX-2852-1:** added pr status ([b04e0a2](https://github.com/studiographene/pulse-data-integration/commit/b04e0a2f3491e4d9cd4a634c874713d028c2651a))
+* **PX-2852-1:** added pr status ([#1257](https://github.com/studiographene/pulse-data-integration/issues/1257)) ([3875704](https://github.com/studiographene/pulse-data-integration/commit/3875704acdaf8bd346c7ab6f6ad9f9f2e5ab5f69))
+
+## [1.43.0](https://github.com/studiographene/pulse-data-integration/compare/v1.42.0...v1.43.0) (2025-05-27)
+
+
+### Features
+
+* **PX-2755:** sorting tickets by issue key ([7f88fdd](https://github.com/studiographene/pulse-data-integration/commit/7f88fdd9a8a991a71c6a35ef3c217a091dc694b6))
+* **PX-2755:** sorting tickets by issue key ([#1255](https://github.com/studiographene/pulse-data-integration/issues/1255)) ([25597c7](https://github.com/studiographene/pulse-data-integration/commit/25597c75670c6ce36ac6da2435a414c1d69b2772))
+
+## [1.42.0](https://github.com/studiographene/pulse-data-integration/compare/v1.41.2...v1.42.0) (2025-05-27)
+
+
+### Features
+
+* **PX-2852:** code changes to populate draft data ([#1244](https://github.com/studiographene/pulse-data-integration/issues/1244)) ([190c467](https://github.com/studiographene/pulse-data-integration/commit/190c4670a013143f9422c2e959bd990a3fcb2e01))
+* **PX-2852:** fixed review seconds ([dfb0302](https://github.com/studiographene/pulse-data-integration/commit/dfb030245902938cad6646e4f94e08424edc1bc6))
+* **PX-2852:** fixed review seconds ([26484b6](https://github.com/studiographene/pulse-data-integration/commit/26484b69067331d3883a3eb129a835ded6cb9ef0))
+
+## [1.41.2](https://github.com/studiographene/pulse-data-integration/compare/v1.41.1...v1.41.2) (2025-05-26)
+
+
+### Bug Fixes
+
+* **PX-2890:** parent no estimate, calculate actual time ([8094e7a](https://github.com/studiographene/pulse-data-integration/commit/8094e7a1e6b95a6f216e827b1dc1c5f246b1fbb8))
+* **PX-2890:** parent no estimate, calculate actual time ([#1251](https://github.com/studiographene/pulse-data-integration/issues/1251)) ([95f0b98](https://github.com/studiographene/pulse-data-integration/commit/95f0b982ecafab44b65d96607d5e2c66b829726c))
+
+## [1.41.1](https://github.com/studiographene/pulse-data-integration/compare/v1.41.0...v1.41.1) (2025-05-23)
+
+
+### Bug Fixes
+
+* **PX-2847:** small fix ([68add8a](https://github.com/studiographene/pulse-data-integration/commit/68add8a0eb18d91b5bcb52dc0e08030f8011f7ad))
+* **PX-2847:** small fix ([#1249](https://github.com/studiographene/pulse-data-integration/issues/1249)) ([2b952b8](https://github.com/studiographene/pulse-data-integration/commit/2b952b8c3313fb6807a211fc520176369a5a5d29))
+
+## [1.41.0](https://github.com/studiographene/pulse-data-integration/compare/v1.40.0...v1.41.0) (2025-05-23)
+
+
+### Features
+
+* **cycletime:** return hasSubTask from PX-2816 API ([6620e2b](https://github.com/studiographene/pulse-data-integration/commit/6620e2b610ec833e5b53548aa741a990f896c7c2))
+* **cycletime:** return hasSubTask from PX-2816 API ([#1247](https://github.com/studiographene/pulse-data-integration/issues/1247)) ([f7e57ac](https://github.com/studiographene/pulse-data-integration/commit/f7e57ac173713c7dd9c260dc5e2201a07e9343f6))
+
+## [1.40.0](https://github.com/studiographene/pulse-data-integration/compare/v1.39.0...v1.40.0) (2025-05-23)
+
+
+### Features
+
+* **cycletime:** return issueType from PX-2816 API ([8e5bdb1](https://github.com/studiographene/pulse-data-integration/commit/8e5bdb1661cb07d1605db76c2866583fc57c0d3b))
+* **cycletime:** return issueType from PX-2816 API ([#1245](https://github.com/studiographene/pulse-data-integration/issues/1245)) ([67e94f4](https://github.com/studiographene/pulse-data-integration/commit/67e94f49e6fc9d0cef5777ff9f58f56cb9e91128))
+
+## [1.39.0](https://github.com/studiographene/pulse-data-integration/compare/v1.38.0...v1.39.0) (2025-05-22)
+
+
+### Features
+
+* **cycle-time:** reindex issueType for PX-2816 ([427fe5d](https://github.com/studiographene/pulse-data-integration/commit/427fe5d0e6f2476a5ae998e08b0f8e70b7225596))
+* **cycle-time:** reindex issueType for PX-2816 ([#1242](https://github.com/studiographene/pulse-data-integration/issues/1242)) ([5af0e63](https://github.com/studiographene/pulse-data-integration/commit/5af0e635a1bdc682030d945223b1eac2d02773fb))
+
+## [1.38.0](https://github.com/studiographene/pulse-data-integration/compare/v1.37.0...v1.38.0) (2025-05-20)
+
+
+### Features
+
+* **PX-2851:** added isdraft key ([936eee0](https://github.com/studiographene/pulse-data-integration/commit/936eee00156e4aa52efa7b83375641b61755ff19))
+* **PX-2851:** added isdraft key ([#1240](https://github.com/studiographene/pulse-data-integration/issues/1240)) ([aab7d08](https://github.com/studiographene/pulse-data-integration/commit/aab7d08ba72ba02d8193a0d844427bf3f7d4282d))
+
+## [1.37.0](https://github.com/studiographene/pulse-data-integration/compare/v1.36.0...v1.37.0) (2025-05-20)
+
+
+### Features
+
+* **PX-2847:** totalvarience and overallvarience ([#1238](https://github.com/studiographene/pulse-data-integration/issues/1238)) ([cddce32](https://github.com/studiographene/pulse-data-integration/commit/cddce32ab806bfee6d675ab7b037701f88abc7b8))
+
+
+### Bug Fixes
+
+* **PX-2847:** fix the divisional value ([76ac160](https://github.com/studiographene/pulse-data-integration/commit/76ac160d590f46ad24f71a79339583a3312ab1f4))
+
+## [1.36.0](https://github.com/studiographene/pulse-data-integration/compare/v1.35.0...v1.36.0) (2025-05-20)
+
+
+### Features
+
+* **PX-2846:** total varience calculation ([d1bb805](https://github.com/studiographene/pulse-data-integration/commit/d1bb805c275a486e156213a6d5d8fde71eaaa5b0))
+* **PX-2846:** total varience calculation ([#1235](https://github.com/studiographene/pulse-data-integration/issues/1235)) ([876c79e](https://github.com/studiographene/pulse-data-integration/commit/876c79ebc32fa4d9877c61a347b8db50501e3df4))
+
+
+### Bug Fixes
+
+* **PX-2754:** small fix ([ee76c87](https://github.com/studiographene/pulse-data-integration/commit/ee76c87f8861bb5ae0a1ae1b1946b5fd2154474d))
+* **PX-2754:** small fix ([ad04c59](https://github.com/studiographene/pulse-data-integration/commit/ad04c59625f0d80f74f0922609e44e16ae3c46f9))
+* **PX-2754:** small fix ([#1236](https://github.com/studiographene/pulse-data-integration/issues/1236)) ([9046d5d](https://github.com/studiographene/pulse-data-integration/commit/9046d5d4e9d211b05834a29f7bb30d4561166a82))
+* **PX-2846:** small fix ([e3fba14](https://github.com/studiographene/pulse-data-integration/commit/e3fba1474d6ddf8a37bbcc5fcb6929b6803ea66c))
+
+## [1.35.0](https://github.com/studiographene/pulse-data-integration/compare/v1.34.7...v1.35.0) (2025-05-20)
+
+
+### Features
+
+* **PX-2754:** sorting issues based on issueKey and subtask keys ([a5ed175](https://github.com/studiographene/pulse-data-integration/commit/a5ed1759c1a2cf7a64ad9dffea0ad297f8c0e003))
+* **PX-2754:** sorting issues based on issueKey and subtask keys ([#1233](https://github.com/studiographene/pulse-data-integration/issues/1233)) ([a2402c0](https://github.com/studiographene/pulse-data-integration/commit/a2402c0aed769c1f9a78bdea0b50c87cfd19d785))
+
+## [1.34.7](https://github.com/studiographene/pulse-data-integration/compare/v1.34.6...v1.34.7) (2025-05-19)
+
+
+### Bug Fixes
+
+* **PX-2705:** bugtime header time calculation ([56b13b4](https://github.com/studiographene/pulse-data-integration/commit/56b13b4b5b016922b34b46ba6866bdc553b120df))
+* **PX-2705:** bugtime header time calculation ([#1231](https://github.com/studiographene/pulse-data-integration/issues/1231)) ([f5deb09](https://github.com/studiographene/pulse-data-integration/commit/f5deb090694c3abd9e1a8c105be77f0ffc39faf8))
+* **PX-2705:** small fix ([c820f17](https://github.com/studiographene/pulse-data-integration/commit/c820f17e07cfc16fa35d98b8327c02818aa274d1))
+
+## [1.34.6](https://github.com/studiographene/pulse-data-integration/compare/v1.34.5...v1.34.6) (2025-05-15)
+
+
+### Bug Fixes
+
+* **PX-2827:** qa and dev rca count ([8b7d393](https://github.com/studiographene/pulse-data-integration/commit/8b7d3931f1381814794e06646d71db2ad538954c))
+* **PX-2827:** qa and dev rca count ([#1229](https://github.com/studiographene/pulse-data-integration/issues/1229)) ([0f86ff3](https://github.com/studiographene/pulse-data-integration/commit/0f86ff300aade28712cb6119ea32a22fb9b317b5))
+
+## [1.34.5](https://github.com/studiographene/pulse-data-integration/compare/v1.34.4...v1.34.5) (2025-05-15)
+
+
+### Bug Fixes
+
+* **PX-0000:** revert workItems estimate check ([530d154](https://github.com/studiographene/pulse-data-integration/commit/530d1546dcbd1afc6937ec550dd8a1b3d6b9ff5d))
+* **PX-0000:** revert workItems estimate check ([#1227](https://github.com/studiographene/pulse-data-integration/issues/1227)) ([ff2573b](https://github.com/studiographene/pulse-data-integration/commit/ff2573bb1d0f7d89d159005e73ed67e83f54ac33))
+
+## [1.34.4](https://github.com/studiographene/pulse-data-integration/compare/v1.34.3...v1.34.4) (2025-05-14)
+
+
+### Bug Fixes
+
+* **PX-2831:** added logger ([9dae2d3](https://github.com/studiographene/pulse-data-integration/commit/9dae2d3db0ca1cead9b2486fa50f6b8a2fa60746))
+* **PX-2831:** added logger ([#1225](https://github.com/studiographene/pulse-data-integration/issues/1225)) ([9456d97](https://github.com/studiographene/pulse-data-integration/commit/9456d972f21e9f1d06a53822e78f059d6fb5c56a))
+
+## [1.34.3](https://github.com/studiographene/pulse-data-integration/compare/v1.34.2...v1.34.3) (2025-05-14)
+
+
+### Bug Fixes
+
+* **PX-2831:** active branch repoIds ([b7cf6e1](https://github.com/studiographene/pulse-data-integration/commit/b7cf6e1fd6a7ea3b4aee33536e469bde3b87e6bd))
+* **PX-2831:** active branch repoIds ([#1223](https://github.com/studiographene/pulse-data-integration/issues/1223)) ([868df2a](https://github.com/studiographene/pulse-data-integration/commit/868df2aaa9b4e9931f99ca2da64cd8247c7c886e))
+
+## [1.34.2](https://github.com/studiographene/pulse-data-integration/compare/v1.34.1...v1.34.2) (2025-05-14)
+
+
+### Bug Fixes
+
+* **PX-2831:** total time fix ([1fbb90d](https://github.com/studiographene/pulse-data-integration/commit/1fbb90d8fe9cb09929f8b077d020e43b873e607b))
+* **PX-2831:** total time fix ([#1221](https://github.com/studiographene/pulse-data-integration/issues/1221)) ([39ee974](https://github.com/studiographene/pulse-data-integration/commit/39ee974dafe25e576b8a31f0ec8e1c33e5010bda))
+
+## [1.34.1](https://github.com/studiographene/pulse-data-integration/compare/v1.34.0...v1.34.1) (2025-05-13)
+
+
+### Bug Fixes
+
+* **PX-2829:** sprint count fixes ([a1a61ca](https://github.com/studiographene/pulse-data-integration/commit/a1a61ca0e31737157cdceefc2585327538db35a4))
+* **PX-2829:** sprint count fixes ([#1219](https://github.com/studiographene/pulse-data-integration/issues/1219)) ([945c26a](https://github.com/studiographene/pulse-data-integration/commit/945c26a9a5f9619a50cb415116fd6d262b56769f))
+
+## [1.34.0](https://github.com/studiographene/pulse-data-integration/compare/v1.33.1...v1.34.0) (2025-05-13)
+
+
+### Features
+
+* **PX-2734:** bugs info on sprint level ([72256be](https://github.com/studiographene/pulse-data-integration/commit/72256bee69c4fbeafc3ac6a1343441209c055d38))
+* **PX-2734:** bugs info on sprint level ([#1217](https://github.com/studiographene/pulse-data-integration/issues/1217)) ([6c9f019](https://github.com/studiographene/pulse-data-integration/commit/6c9f019e333feb19e6faa4a46fb2437835db0b6f))
+
+## [1.33.1](https://github.com/studiographene/pulse-data-integration/compare/v1.33.0...v1.33.1) (2025-05-13)
+
+
+### Bug Fixes
+
+* **PX_2743:** all cases bugs linked type ([e188c57](https://github.com/studiographene/pulse-data-integration/commit/e188c57dd510f77e6cde7754b777b1f6b421f2b1))
+* **PX_2743:** all cases bugs linked type ([#1215](https://github.com/studiographene/pulse-data-integration/issues/1215)) ([522bf92](https://github.com/studiographene/pulse-data-integration/commit/522bf92aa8ca405b240e8740c7755e1ea7e50f80))
+* **PX-2743:** small fix ([40bedc3](https://github.com/studiographene/pulse-data-integration/commit/40bedc31d789bb81fec3bd3e4c290144585afbf3))
+
+## [1.33.0](https://github.com/studiographene/pulse-data-integration/compare/v1.32.0...v1.33.0) (2025-05-12)
+
+
+### Features
+
+* **PX-2726:** bugtime info object ([43dd740](https://github.com/studiographene/pulse-data-integration/commit/43dd740bc4fbc8c50ed5259dfbb3b22a9cb40859))
+* **PX-2743:** bugtime info object ([#1213](https://github.com/studiographene/pulse-data-integration/issues/1213)) ([3349a34](https://github.com/studiographene/pulse-data-integration/commit/3349a3494bdc6d76735425e4cbf245dc16d57198))
+
+## [1.32.0](https://github.com/studiographene/pulse-data-integration/compare/v1.31.1...v1.32.0) (2025-05-12)
+
+
+### Features
+
+* **PX-2726:** removed no internal defect from rca ([c351f41](https://github.com/studiographene/pulse-data-integration/commit/c351f412c7637ed6eaac7b85004a520dc890e8cd))
+* **PX-2726:** removed no internal defect from rca ([#1211](https://github.com/studiographene/pulse-data-integration/issues/1211)) ([03f6a95](https://github.com/studiographene/pulse-data-integration/commit/03f6a9577befd1072940e3dbc88b69946339e39f))
+
+## [1.31.1](https://github.com/studiographene/pulse-data-integration/compare/v1.31.0...v1.31.1) (2025-05-12)
+
+
+### Bug Fixes
+
+* **PX-2758:** no workItems empty object ([fa4764a](https://github.com/studiographene/pulse-data-integration/commit/fa4764a3456114cdd8245b1c468159486b701ac5))
+* **PX-2758:** no workItems empty object ([#1209](https://github.com/studiographene/pulse-data-integration/issues/1209)) ([3ba6b26](https://github.com/studiographene/pulse-data-integration/commit/3ba6b26e207bb996df556d1e49fe249b34eecdbc))
+
+## [1.31.0](https://github.com/studiographene/pulse-data-integration/compare/v1.30.2...v1.31.0) (2025-05-12)
+
+
+### Features
+
+* **PX-2758:** estimate quality work items update ([7190e28](https://github.com/studiographene/pulse-data-integration/commit/7190e2818625186e688caff521a943a4c7dd6e2f))
+* **PX-2758:** estimate quality work items update ([#1207](https://github.com/studiographene/pulse-data-integration/issues/1207)) ([98c680a](https://github.com/studiographene/pulse-data-integration/commit/98c680a4e1515895eaf3a11800f0b82e20af0e4a))
+
+
+### Bug Fixes
+
+* **PX-2758:** pr feedback ([672e3a9](https://github.com/studiographene/pulse-data-integration/commit/672e3a9d36a58cdc836085016710cfcdee72b283))
+
+## [1.30.2](https://github.com/studiographene/pulse-data-integration/compare/v1.30.1...v1.30.2) (2025-05-09)
+
+
+### Bug Fixes
+
+* **PX-2748:** small fix ([a0b2990](https://github.com/studiographene/pulse-data-integration/commit/a0b29900bd2a28ce64e8feccbaf40d175f561856))
+* **PX-2748:** small fix ([#1205](https://github.com/studiographene/pulse-data-integration/issues/1205)) ([e7e5348](https://github.com/studiographene/pulse-data-integration/commit/e7e5348fbfef41d7d25cc475f0f299f9b54d3d23))
+
+## [1.30.1](https://github.com/studiographene/pulse-data-integration/compare/v1.30.0...v1.30.1) (2025-05-09)
+
+
+### Bug Fixes
+
+* **PX-2748:** small fix ([#1203](https://github.com/studiographene/pulse-data-integration/issues/1203)) ([8256c8c](https://github.com/studiographene/pulse-data-integration/commit/8256c8ccd3fdf420d6bc9685f1b0201e801803d0))
+
+## [1.30.0](https://github.com/studiographene/pulse-data-integration/compare/v1.29.0...v1.30.0) (2025-05-09)
+
+
+### Features
+
+* **PX-2748:** fixin branch creation time ([afba792](https://github.com/studiographene/pulse-data-integration/commit/afba792e5e2fb1f3668aff67e4b55a6f40ad7d0c))
+* **PX-2748:** fixin branch creation time ([#1201](https://github.com/studiographene/pulse-data-integration/issues/1201)) ([9f6fd21](https://github.com/studiographene/pulse-data-integration/commit/9f6fd2144a7c954f5a381309014d8f05462fe868))
+
+## [1.29.0](https://github.com/studiographene/pulse-data-integration/compare/v1.28.1...v1.29.0) (2025-05-09)
+
+
+### Features
+
+* **PX-2748:** fixin branch creation time ([122be83](https://github.com/studiographene/pulse-data-integration/commit/122be8347725c3f46830e73f6d07cb9cb0be0ffa))
+* **PX-2748:** fixin branch creation time ([#1199](https://github.com/studiographene/pulse-data-integration/issues/1199)) ([2d4ea80](https://github.com/studiographene/pulse-data-integration/commit/2d4ea80b0d6ef52097afec3b7bb0de1131a5d5ba))
+
+## [1.28.1](https://github.com/studiographene/pulse-data-integration/compare/v1.28.0...v1.28.1) (2025-05-09)
+
+
+### Bug Fixes
+
+* **PX-2748:** authorId indices ([c6cf2d5](https://github.com/studiographene/pulse-data-integration/commit/c6cf2d5a903045113f065a821446985462bc7063))
+* **PX-2748:** authorId indices ([#1197](https://github.com/studiographene/pulse-data-integration/issues/1197)) ([0765301](https://github.com/studiographene/pulse-data-integration/commit/0765301c02d1c407ab8010740d1229cfa89226cb))
+
+## [1.28.0](https://github.com/studiographene/pulse-data-integration/compare/v1.27.0...v1.28.0) (2025-05-09)
+
+
+### Features
+
+* **PX-2740:** implemented pr and commit date ([b8d0bce](https://github.com/studiographene/pulse-data-integration/commit/b8d0bce4eaa38238d259dfc99b88604444645ee9))
+* **PX-2740:** implemented pr and commit date ([#1194](https://github.com/studiographene/pulse-data-integration/issues/1194)) ([bfab53d](https://github.com/studiographene/pulse-data-integration/commit/bfab53df7bec04b5aad63d1a92abdf89fd8503c1))
+* **PX-2745:** authorid implementation ([382ee36](https://github.com/studiographene/pulse-data-integration/commit/382ee36e1d629b280e77d8ed545f4fc71624057c))
+* **PX-2745:** authorid implementation ([#1196](https://github.com/studiographene/pulse-data-integration/issues/1196)) ([b5bc03c](https://github.com/studiographene/pulse-data-integration/commit/b5bc03c2190837ce265823b070c157cb47148df2))
+
+
+### Bug Fixes
+
+* **PX-2740:** pagination fix ([e05908a](https://github.com/studiographene/pulse-data-integration/commit/e05908ae2e361cf57a7d57914cd6155776cf9f18))
+* **PX-2740:** pr feedback ([ef1acf3](https://github.com/studiographene/pulse-data-integration/commit/ef1acf30c4d11835a957b0d79315bbe1d2dcd64c))
+* **PX-2741:** prstatus case handled ([84aacbd](https://github.com/studiographene/pulse-data-integration/commit/84aacbd4dbcaecc5d9f4f20600ea88578d9cfb98))
+* **PX-2745:** author id indices ([ddd307c](https://github.com/studiographene/pulse-data-integration/commit/ddd307c9c01974d621edb506451a47cbe6c83ab9))
+
+## [1.27.0](https://github.com/studiographene/pulse-data-integration/compare/v1.26.2...v1.27.0) (2025-05-08)
+
+
+### Features
+
+* **PX-2739:** active branch detail api ([4fb2c32](https://github.com/studiographene/pulse-data-integration/commit/4fb2c32bc6cf049a604e461d925ea6afbb3065c1))
+* **PX-2739:** active branch detail api ([#1192](https://github.com/studiographene/pulse-data-integration/issues/1192)) ([6244652](https://github.com/studiographene/pulse-data-integration/commit/62446525b81c4ec217847f2746f641c989e123a1))
+* **PX-2739:** enum for prstatus ([5eb9de8](https://github.com/studiographene/pulse-data-integration/commit/5eb9de8d2d0094b365114db322872e9b1fc0e913))
+
 ## [1.26.2](https://github.com/studiographene/pulse-data-integration/compare/v1.26.1...v1.26.2) (2025-05-06)
 
 

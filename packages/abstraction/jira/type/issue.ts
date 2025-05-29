@@ -1,3 +1,4 @@
+import { IssueLinked } from '../enums';
 import { retryProcess } from './retry-process';
 
 export type IssueLinks = {
@@ -109,4 +110,12 @@ export type EsIssueResponse = retryProcess & {
     estimate: number;
     actual: number;
   };
+};
+
+export type BugTimeInfo = {
+  value: number;
+  status: IssueLinked;
+  loggedBugsCount: number;
+  unloggedBugsCount: number;
+  link?: string;
 };

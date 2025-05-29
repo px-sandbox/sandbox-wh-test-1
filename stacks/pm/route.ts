@@ -8,6 +8,12 @@ export function initializeRoutes(): Record<string, ApiRouteProps<'universal'>> {
       authorizer: 'universal',
     },
 
+    // GET sprint variance data v2
+    'GET /jira/graph/estimates-vs-actuals/v2': {
+      function: 'packages/jira/src/service/sprint-variance-v2.handler',
+      authorizer: 'universal',
+    },
+
     // GET estimates vs actuals breakdown
     'GET /jira/graph/estimates-vs-actuals/details': {
       function: {
@@ -17,6 +23,14 @@ export function initializeRoutes(): Record<string, ApiRouteProps<'universal'>> {
       authorizer: 'universal',
     },
 
+    // GET estimates vs actuals breakdown v2
+    'GET /jira/graph/estimates-vs-actuals/details/v2': {
+      function: {
+        handler: 'packages/jira/src/service/issue/estimates-vs-actuals-breakdown-v2.handler',
+        timeout: '5 minutes',
+      },
+      authorizer: 'universal',
+    },
     'GET /jira/time-spent/headlines': {
       function: 'packages/jira/src/service/time-spent-headline.handler',
       authorizer: 'universal',

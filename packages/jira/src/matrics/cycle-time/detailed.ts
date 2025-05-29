@@ -27,6 +27,7 @@ function getCycleTimeDetailQuery(
       'body.assignees',
       'body.hasSubtask',
       'body.subtasks',
+      'body.issueType',
     ])
     .query(
       esb
@@ -137,10 +138,11 @@ export async function fetchCycleTimeDetailed(
     };
   });
 
-  return formattedData.map((fd) => ({
+  const result = formattedData.map((fd) => ({
     id: fd.id,
     issueKey: fd.issueKey,
     title: fd.title,
+    issueType: fd.issueType,
     development: {
       coding: parseFloat(fd.development.coding.toFixed(2)),
       pickup: parseFloat(fd.development.pickup.toFixed(2)),
@@ -161,7 +163,7 @@ export async function fetchCycleTimeDetailed(
     assignees: fd.assignees?.length
       ? fd.assignees.map((asgn: { assigneeId: string }) => userObj[asgn.assigneeId])
       : [],
-    hasSubtask: fd.hasSubtask,
+    hasSubtasks: fd.subtasks?.filter((sub: { isDeleted: boolean }) => !sub.isDeleted)?.length > 0,
     subtasks: fd.subtasks?.length
       ? fd.subtasks?.map((sub: { assignees: { assigneeId: string }[]; issueKey: string }) => ({
           ...sub,
@@ -173,4 +175,23 @@ export async function fetchCycleTimeDetailed(
       : [],
     link: `https://${orgname[0]?.name}.atlassian.net/browse/${fd?.issueKey}`,
   }));
+
+  result.forEach((item) => {
+    if (item.subtasks && item.subtasks.length > 0) {
+      item.subtasks.sort(
+        (firstSubtask: { issueKey: string }, secondSubtask: { issueKey: string }) => {
+          const firstSubtaskNum = parseInt(firstSubtask.issueKey.split('-')[1]) || 0;
+          const secondSubtaskNum = parseInt(secondSubtask.issueKey.split('-')[1]) || 0;
+          return firstSubtaskNum - secondSubtaskNum;
+        }
+      );
+    }
+  });
+
+  // Sort main array by issueKey
+  return result.sort((firstIssue: { issueKey: string }, secondIssue: { issueKey: string }) => {
+    const firstIssueNumber = parseInt(firstIssue.issueKey.split('-')[1]) || 0;
+    const secondIssueNumber = parseInt(secondIssue.issueKey.split('-')[1]) || 0;
+    return firstIssueNumber - secondIssueNumber;
+  });
 }
