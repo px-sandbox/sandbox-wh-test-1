@@ -10,7 +10,7 @@ import { generateUuid } from '../util/response-formatter';
  * @template T - Type of Jira API data.
  * @template S - Type of processed data.
  */
-export abstract class DataProcessor<T, S> {
+export abstract class DataProcessor<T, S extends object> {
   protected DynamoDbDocClient: DynamoDbDocClient;
   protected SQSClient: SQSClient;
   public formattedData: S;
@@ -84,7 +84,7 @@ export abstract class DataProcessor<T, S> {
    * @param url - URL of the SQS queue.
    */
   public async save(): Promise<void> {
-    if (Object.keys(this.formattedData as Record<string, any>).length === 0) {
+    if (Object.keys(this.formattedData).length === 0) {
       logger.error({
         message: 'DataProcessor.save.error: EMPTY_FORMATTED_DATA',
         data: {

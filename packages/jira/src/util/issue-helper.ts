@@ -9,12 +9,53 @@ import { ParamsMapping } from '../model/params-mapping';
 import { generateUuid, searchedDataFormator } from './response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
+
+interface FormattedIssue {
+  id: string;
+  key: string;
+  fields: {
+    project: {
+      id: string;
+      key: string;
+    };
+    labels: string[];
+    summary: string;
+    issuetype: {
+      name: string;
+    };
+    priority: {
+      name: string;
+    };
+    issueLinks: Array<{
+      id: string;
+      type: {
+        name: string;
+      };
+    }>;
+    assignee: { accountId: string } | null;
+    reporter: { accountId: string } | null;
+    creator: { accountId: string } | null;
+    status: {
+      name: string;
+    };
+    subtasks: Array<{
+      id: string;
+      key: string;
+    }>;
+    created: string;
+    updated: string;
+    lastViewed: string;
+    isDeleted: boolean;
+    deletedAt: string | null;
+  };
+}
+
 /**
  * Creates an issue object based on the provided issue data.
  * @param issueData - The data used to create the issue.
  * @returns The created issue object.
  */
-export function formatIssue(issueData: Other.Type.HitBody): any {
+export function formatIssue(issueData: Other.Type.HitBody): FormattedIssue {
   return {
     id: issueData.issueId,
     key: issueData.issueKey,
@@ -54,7 +95,7 @@ export function formatIssue(issueData: Other.Type.HitBody): any {
       created: issueData.createdDate,
       updated: issueData.lastUpdated,
       lastViewed: issueData.lastViewed,
-      isDeleted: issueData.isDeleted,
+      isDeleted: issueData.isDeleted ?? false,
       deletedAt: issueData.deletedAt,
     },
   };
@@ -133,8 +174,8 @@ export async function formatIssueNew(
       lastUpdated: issueData.fields.updated,
       sprintId: customfield10007 ? `${mappingPrefixes.sprint}_${customfield10007.id}` : null,
       boardId: customfield10007 ? `${mappingPrefixes.board}_${customfield10007.boardId}` : null,
-      isDeleted: false,
-      deletedAt: null,
+      isDeleted: issueData.isDeleted ?? false,
+      deletedAt: issueData.deletedAt,
       organizationId: organization.id ?? null,
       fixVersion: issueData.fields.fixVersions[0]
         ? `${mappingPrefixes.version}_${issueData.fields.fixVersions[0]?.id}`

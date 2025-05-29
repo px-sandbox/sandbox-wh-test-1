@@ -66,9 +66,9 @@ export async function issueLinkCreateHandler(
       throw new Error('issueData not found');
     }
     const destinationIssueData = issueData.find(
-      (ele) => ele.issueId == issueLink.destinationIssueId
+      (ele) => ele.issueId === issueLink.destinationIssueId
     );
-    const sourceIssueIdData = issueData.find((ele) => ele.issueId == issueLink.sourceIssueId);
+    const sourceIssueIdData = issueData.find((ele) => ele.issueId === issueLink.sourceIssueId);
     if (!destinationIssueData && !sourceIssueIdData) {
       logger.error({
         message: 'issueLinkHandler.destinationIssueDataNotFound',
@@ -186,9 +186,9 @@ export async function issueLinkDeleteHandler(
       throw new Error('issueData not found');
     }
     const destinationIssueData = issueData.find(
-      (ele) => ele.issueId == issueLink.destinationIssueId
+      (ele) => ele.issueId === issueLink.destinationIssueId
     );
-    const sourceIssueIdData = issueData.find((ele) => ele.issueId == issueLink.sourceIssueId);
+    const sourceIssueIdData = issueData.find((ele) => ele.issueId === issueLink.sourceIssueId);
     if (!destinationIssueData && !sourceIssueIdData) {
       logger.error({
         message: 'issueLinkDeleteHandler.destinationIssueDataNotFound',

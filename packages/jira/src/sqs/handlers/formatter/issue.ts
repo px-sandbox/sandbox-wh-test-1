@@ -406,7 +406,7 @@ async function updateIssueParentAssociation(
       // Add the child to the new parent's subtask list
       // if subtask already exists, to new parent
       const newParentsubtask = parentIssue.subtasks.find(
-        (subtask: { id: string }) => subtask.id == childIssue.id
+        (subtask: { id: string }) => subtask.id === childIssue.id
       );
       if (newParentsubtask) {
         logger.info({

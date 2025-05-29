@@ -259,7 +259,7 @@ export class PRProcessor extends DataProcessor<
           : null,
         merged: this.ghApiData.merged,
         isDraft: this.ghApiData.draft,
-        reviewStartedAt: reviewStartedAt,
+        reviewStartedAt,
         mergedCommitId: this.ghApiData.merge_commit_sha
           ? `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`
           : null,
