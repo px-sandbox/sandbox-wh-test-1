@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.44.2](https://github.com/studiographene/pulse-data-integration/compare/v1.44.1...v1.44.2) (2025-05-29)
+
+
+### Bug Fixes
+
+* **PX-00111:** imporved logging ([2610ef1](https://github.com/studiographene/pulse-data-integration/commit/2610ef145190802497d9ab11332e765c53251756))
+* **PX-00111:** imporved logging ([#1261](https://github.com/studiographene/pulse-data-integration/issues/1261)) ([4520bd1](https://github.com/studiographene/pulse-data-integration/commit/4520bd1e64f992734b795424f9ec82e69fac1ba2))
+
 ## [1.44.1](https://github.com/studiographene/pulse-data-integration/compare/v1.44.0...v1.44.1) (2025-05-27)
 
 
