@@ -112,7 +112,7 @@ export const handler = async function versionFormattedDataReceiver(event: SQSEve
           requestId,
           resourceId,
           message: 'versionFormattedDataReceiver.error',
-          error,
+          error: `${error}`,
         });
       }
     })
