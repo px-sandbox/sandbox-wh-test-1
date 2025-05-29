@@ -17,6 +17,17 @@ import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
 const esclient = ElasticSearchClient.getInstance();
 
+interface CommitFileChange {
+  filename: string;
+  additions: number;
+  deletions: number;
+  changes: number;
+  status: string;
+  raw_url: string;
+  blob_url: string;
+  patch: string;
+}
+
 async function getRepoNameById(repoId: string): Promise<string> {
   const query = esb.requestBodySearch().query(esb.matchQuery('body.id', repoId)).toJSON();
   const repoData = await esclient.search(Github.Enums.IndexName.GitRepo, query);
@@ -67,7 +78,7 @@ export const handler = async function commitFormattedDataReciever(event: SQSEven
         const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
         const responseData = (await octokitRequestWithTimeout(
           `GET /repos/${repoOwner}/${repoName}/commits/${githubCommitId}`
-        )) as OctokitResponse<any>;
+        )) as OctokitResponse<CommitFileChange>;
         const filesLink = responseData.headers.link;
         if (filesLink) {
           const files = await processFileChanges(

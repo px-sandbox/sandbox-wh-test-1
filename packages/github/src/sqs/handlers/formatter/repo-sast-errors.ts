@@ -51,7 +51,7 @@ const compareAndUpdateData = async (
       // and add new metadata for branch if it doesn't exist
       const dbItem = esDataMap.get(id);
       if (dbItem) {
-        const branchObj = dbItem.body.metadata.find((item) => item.branch == branch);
+        const branchObj = dbItem.body.metadata.find((item) => item.branch === branch);
         if (branchObj) {
           branchObj.lastReportedOn = moment().toISOString();
           branchObj.isResolved = false;

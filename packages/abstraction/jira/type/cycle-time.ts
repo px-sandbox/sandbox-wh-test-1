@@ -137,6 +137,7 @@ export type SubTicket = {
   }[];
   isDeleted: boolean;
   deletedAt: string | null;
+  issueType: string;
 };
 
 export type CycleTimeSummary = {

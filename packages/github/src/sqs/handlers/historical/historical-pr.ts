@@ -10,6 +10,55 @@ import { ghRequest } from '../../../lib/request-default';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
 import { getOctokitResp } from '../../../util/octokit-response';
 
+interface GitHubPullRequest {
+  id: number;
+  number: number;
+  state: string;
+  title: string;
+  user: {
+    id: number;
+    login: string;
+  };
+  body: string;
+  created_at: string;
+  updated_at: string;
+  closed_at: string | null;
+  merged_at: string | null;
+  merge_commit_sha: string | null;
+  assignee: {
+    id: number;
+    login: string;
+  } | null;
+  labels: Array<{
+    id: number;
+    name: string;
+  }>;
+  head: {
+    ref: string;
+    sha: string;
+    repo: {
+      id: number;
+      name: string;
+      owner: {
+        id: number;
+        login: string;
+      };
+    };
+  };
+  base: {
+    ref: string;
+    sha: string;
+    repo: {
+      id: number;
+      name: string;
+      owner: {
+        id: number;
+        login: string;
+      };
+    };
+  };
+}
+
 const sqsClient = SQSClient.getInstance();
 
 async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
@@ -48,7 +97,7 @@ async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
     const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
     const responseData = (await octokitRequestWithTimeout(
       `GET /repos/${login}/${name}/pulls?state=all&per_page=100&page=${page}&sort=created&direction=desc`
-    )) as OctokitResponse<any>;
+    )) as OctokitResponse<GitHubPullRequest[]>;
     logger.info({
       message: `total prs from GH: ${responseData.data.length}`,
       requestId,
@@ -63,13 +112,13 @@ async function getPrList(record: SQSRecord): Promise<boolean | undefined> {
 
     let processes = [];
     processes = [
-      ...octokitRespData.map((prData: unknown) =>
+      ...octokitRespData.map((prData: GitHubPullRequest) =>
         sqsClient.sendMessage(prData, Queue.qGhHistoricalReviews.queueUrl, {
           requestId,
           resourceId,
         })
       ),
-      ...octokitRespData.map((prData: unknown) =>
+      ...octokitRespData.map((prData: GitHubPullRequest) =>
         sqsClient.sendMessage(prData, Queue.qGhHistoricalPrComments.queueUrl, {
           requestId,
           resourceId,

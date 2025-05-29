@@ -7,11 +7,18 @@ import esb from 'elastic-builder';
 import { getBranches } from '../lib/get-branch-list';
 import { searchedDataFormator } from '../util/response-formatter';
 
+interface RepoData {
+  githubRepoId: string;
+  name: string;
+  owner: string;
+  organizationId: string;
+}
+
 const esClientObj = ElasticSearchClient.getInstance();
-const getReposFromES = async (requestId: string): Promise<any> => {
-  let reposFormatData;
+const getReposFromES = async (requestId: string): Promise<RepoData[]> => {
+  let reposFormatData: RepoData[];
   try {
-    const reposData = [];
+    const reposData: RepoData[] = [];
     const size = 100;
     let from = 0;
 
@@ -31,7 +38,7 @@ const getReposFromES = async (requestId: string): Promise<any> => {
       from += size;
 
       const getBranchesPromises = reposData.map((repoData) =>
-        getBranches(repoData.githubRepoId, repoData.name, repoData.owner, {
+        getBranches(repoData.githubRepoId, repoData.name, repoData.owner, repoData.organizationId, {
           requestId,
           resourceId: repoData.name,
         })

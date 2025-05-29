@@ -65,7 +65,7 @@ export class PRProcessor extends DataProcessor<
     const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
     const responseData = (await octokitRequestWithTimeout(
       `GET /repos/${owner}/${repo}/pulls/${pullNumber}`
-    )) as OctokitResponse<any>;
+    )) as OctokitResponse<Github.ExternalType.Webhook.PullRequest>;
     const octokitRespData = getOctokitResp(responseData);
     if (octokitRespData.review_comments) {
       this.ghApiData.review_comments = octokitRespData.review_comments;
@@ -259,7 +259,7 @@ export class PRProcessor extends DataProcessor<
           : null,
         merged: this.ghApiData.merged,
         isDraft: this.ghApiData.draft,
-        reviewStartedAt: reviewStartedAt,
+        reviewStartedAt,
         mergedCommitId: this.ghApiData.merge_commit_sha
           ? `${mappingPrefixes.commit}_${this.ghApiData.merge_commit_sha}`
           : null,

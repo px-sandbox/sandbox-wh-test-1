@@ -69,7 +69,8 @@ export async function orgInstallation(
     });
 
     const [installationData] = installation.data.filter(
-      (name: any) => data.installation.account.login === name.account.login
+      (name: { account: { login: string } }) =>
+        data.installation.account.login === name.account.login
     );
 
     const orgId = `${mappingPrefixes.organization}_${data.installation.account.id}`;

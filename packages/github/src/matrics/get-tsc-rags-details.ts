@@ -4,8 +4,17 @@ import esb from 'elastic-builder';
 import { searchedDataFormator } from '../util/response-formatter';
 import { weeklyHeadlineStat } from './get-product-security';
 
+interface BranchData {
+  repoId: string;
+  name: string;
+}
+
+interface BranchMap {
+  [repoId: string]: string;
+}
+
 const esClientObj = ElasticSearchClient.getInstance();
-const getBranches = async (repoIds: string[]): Promise<any[]> => {
+const getBranches = async (repoIds: string[]): Promise<BranchData[]> => {
   const getBranchesQuery = esb
     .requestBodySearch()
     .query(
@@ -22,11 +31,14 @@ const getBranches = async (repoIds: string[]): Promise<any[]> => {
   const branchesName = await searchedDataFormator(getBrancheData);
   return branchesName;
 };
+
 export async function getTscRagsDetails(repoIds: string[]): Promise<{ product_security: number }> {
   const branchesList = ['prod', 'master', 'main', 'uat', 'stage', 'qa', 'dev', 'develop'];
   const branchesName = await getBranches(repoIds);
-  const branches = branchesName.reduce(
-    (acc: { [x: string]: string[] }, branch: { repoId: string; name: string }) => {
+
+  // First collect all branches for each repo
+  const branchCollections: { [repoId: string]: string[] } = branchesName.reduce(
+    (acc: { [x: string]: string[] }, branch: BranchData) => {
       if (!acc[branch.repoId]) {
         acc[branch.repoId] = [branch.name];
       } else {
@@ -37,8 +49,11 @@ export async function getTscRagsDetails(repoIds: string[]): Promise<{ product_se
     {}
   );
 
-  Object.keys(branches).forEach((repoId) => {
-    branches[repoId] = branchesList.find((name) => branches[repoId].includes(name));
+  // Then select a single branch for each repo
+  const branches: BranchMap = {};
+  Object.keys(branchCollections).forEach((repoId) => {
+    const foundBranch = branchesList.find((name) => branchCollections[repoId].includes(name));
+    branches[repoId] = foundBranch || branchCollections[repoId][0]; // Use first branch as fallback
   });
 
   const result = Object.keys(branches).map((repoId) => ({ repoId, branch: branches[repoId] }));

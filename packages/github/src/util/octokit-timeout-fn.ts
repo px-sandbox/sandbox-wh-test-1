@@ -10,7 +10,7 @@ export async function getOctokitTimeoutReqFn(
       };
     }
   >
-): Promise<any> {
+): Promise<(endpoint: string, params?: Record<string, string | number>) => Promise<unknown>> {
   return async (endpoint: string, params?: Record<string, string | number>) => {
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(

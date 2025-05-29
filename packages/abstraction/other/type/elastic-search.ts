@@ -18,3 +18,17 @@ export type Hit = {
     [key: string]: unknown;
   };
 };
+
+export interface ElasticSearchResponse {
+  hits: {
+    total: {
+      value: number;
+    };
+    hits: Hit[];
+  };
+}
+
+export interface FormattedData {
+  _id: string;
+  [key: string]: unknown;
+}

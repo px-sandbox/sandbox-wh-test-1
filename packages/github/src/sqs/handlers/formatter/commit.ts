@@ -1,5 +1,5 @@
 import { OctokitResponse } from '@octokit/types';
-import async from 'async';
+import async, { ErrorCallback } from 'async';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
 import _ from 'lodash';
@@ -8,9 +8,40 @@ import { Queue } from 'sst/node/queue';
 import { ghRequest } from '../../../lib/request-default';
 import { CommitProcessor } from '../../../processors/commit';
 import { getInstallationAccessToken } from '../../../util/installation-access-token';
-import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 import { processFileChanges } from '../../../util/process-commit-changes';
+
+interface CommitResponse {
+  files: {
+    filename: string;
+    additions: number;
+    deletions: number;
+    changes: number;
+    status: string;
+    raw_url: string;
+    blob_url: string;
+    patch?: string;
+  }[];
+  parents: { sha: string; url: string }[];
+  commit: {
+    message: string;
+    committer: {
+      name: string;
+      email: string;
+      date: string;
+    };
+  };
+  stats: {
+    total: number;
+  };
+  author?: {
+    id: string;
+    login: string;
+  };
+  committer: {
+    id: string;
+  };
+}
 
 // eslint-disable-next-line max-lines-per-function
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
@@ -49,7 +80,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
     const responseData = (await octokitRequestWithTimeout(
       `GET /repos/${repoOwner}/${repoName}/commits/${commitId}`
-    )) as OctokitResponse<any>;
+    )) as OctokitResponse<CommitResponse>;
     const filesLink = responseData.headers.link;
     if (filesLink) {
       const files = await processFileChanges(
@@ -79,7 +110,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     });
     const processor = new CommitProcessor(
       {
-        ...getOctokitResp(responseData),
+        repoId,
         commits: {
           id: commitId,
           isMergedCommit,
@@ -87,8 +118,43 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
           pushedBranch,
           timestamp,
           orgId,
+          committer: {
+            username: responseData.data.commit.committer.name,
+            email: responseData.data.commit.committer.email,
+          },
+          message: responseData.data.commit.message,
         },
-        repoId,
+        timestamp: responseData.data.commit.committer.date,
+        author: responseData.data.author || { login: '', id: '' },
+        commit: {
+          message: responseData.data.commit.message,
+          committer: {
+            id: 0, // We don't have this in the response
+            login: responseData.data.commit.committer.name,
+            date: responseData.data.commit.committer.date,
+          },
+        },
+        stats: {
+          total: String(responseData.data.stats.total),
+        },
+        committer: responseData.data.committer || { id: '' },
+        files: [
+          {
+            filename: responseData.data.files[0].filename,
+            additions: String(responseData.data.files[0].additions),
+            deletions: String(responseData.data.files[0].deletions),
+            changes: String(responseData.data.files[0].changes),
+            status: responseData.data.files[0].status,
+          },
+        ] as [
+          {
+            filename: string;
+            additions: string;
+            deletions: string;
+            changes: string;
+            status: string;
+          }
+        ],
       },
       requestId,
       resourceId,
@@ -106,6 +172,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     await logProcessToRetry(record, Queue.qGhCommitFormat.queueUrl, error as Error);
   }
 }
+
 export const handler = async function commitFormattedDataReceiver(event: SQSEvent): Promise<void> {
   logger.info({ message: `Records Length: ${event.Records.length}` });
   const messageGroups = _.groupBy(event.Records, (record) => record.attributes.MessageGroupId);
@@ -118,12 +185,12 @@ export const handler = async function commitFormattedDataReceiver(event: SQSEven
             async (item: SQSRecord) => {
               await processAndStoreSQSRecord(item);
             },
-            (error: any) => {
+            ((error: Error | null) => {
               if (error) {
                 logger.error({ message: 'commitFormattedDataReceiver.error', error });
               }
               resolve('DONE');
-            }
+            }) as ErrorCallback<Error>
           );
         })
     )

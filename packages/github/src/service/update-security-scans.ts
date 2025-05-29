@@ -1,18 +1,20 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
-import { Github, Other } from 'abstraction';
+import { Github } from 'abstraction';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { APIHandler, HttpStatusCode, logger, responseParser } from 'core';
 import esb from 'elastic-builder';
 import moment from 'moment';
 import { Queue } from 'sst/node/queue';
-import { fetchSaveTestCoverage } from '../cron/test-coverage';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 
-const fetBranchesData = async (repoId: string, requestId: string): Promise<any> => {
+const fetBranchesData = async (
+  repoId: string,
+  requestId: string
+): Promise<Github.Type.Branch[] | undefined> => {
   try {
     const query = esb
       .requestBodySearch()
@@ -28,16 +30,15 @@ const fetBranchesData = async (repoId: string, requestId: string): Promise<any> 
       .toJSON();
 
     const branches = await esClient.search(Github.Enums.IndexName.GitBranch, query);
-
-    // formatting data into easily readable form
-    const formattedData = await searchedDataFormator(branches);
-    return formattedData;
+    const formattedBranches = await searchedDataFormator(branches);
+    return formattedBranches;
   } catch (e) {
     logger.error({
-      message: 'fetBranchesData.error: GET_GITHUB_BRANCH_DETAILS',
+      message: 'fetBranchesData.error',
       error: e,
       requestId,
     });
+    return undefined;
   }
 };
 /**
@@ -61,9 +62,7 @@ async function fetchBranchesData(
   }
 
   // modifying formatted data into array of branch names.
-  const branchesArr: string[] = formattedData.map(
-    (data: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody) => data.name
-  );
+  const branchesArr: string[] = formattedData.map((data) => data.body.name);
 
   // sending data to SQS for each branch of each repoId.
   logger.info({
@@ -101,7 +100,6 @@ const updateSecurityScans = async (event: APIGatewayProxyEvent): Promise<APIGate
     await Promise.all(
       repoIds.map(async (repoId) => fetchBranchesData(repoId, currDate, requestId))
     );
-    await fetchSaveTestCoverage(repoIds, currDate);
     return responseParser
       .setMessage('successfully updating scans for today')
       .setResponseBodyCode('SUCCESS')

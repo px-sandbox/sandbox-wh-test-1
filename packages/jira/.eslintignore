@@ -1,6 +1,0 @@
-test/parent_no_subtasks/*.test.ts
-test/parent_with_subtasks/*.test.ts
-test/**/*.test.ts
-test/*
-src/util/test/*.test.ts
-src/processors/test/*.test.ts

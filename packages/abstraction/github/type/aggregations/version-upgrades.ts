@@ -29,7 +29,7 @@ export type RepoLibType = BaseRepoType & {
 export type ESVersionUpgradeType = {
   updatedRepoLibs: RepoLibType[];
   libNames: string[];
-  afterKeyObj: string;
+  afterKeyObj: object;
 };
 
 export type VerUpgradeRes = RepoLibType & {

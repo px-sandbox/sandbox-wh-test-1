@@ -3,6 +3,7 @@ import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { SQSClient } from '@pulse/event-handler';
 import { Jira, Other } from 'abstraction';
 import { Issue } from 'abstraction/jira/external/api';
+import { ChangelogItem } from 'abstraction/jira/external/webhook';
 import { mapLimit } from 'async';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
@@ -51,7 +52,7 @@ async function getSprint(
   const changeLogs = await jira.getIssueChangelogs(issue.id);
   const sprint = changeLogs
     .flatMap((d) => d.items)
-    .findLast((item: any) => item.field === 'Sprint');
+    .findLast((item: ChangelogItem) => item.field === 'Sprint');
 
   let sprintId = null;
 

@@ -14,7 +14,35 @@ import { searchedDataFormator } from '../../../util/response-formatter';
 const esClient = ElasticSearchClient.getInstance();
 const sqsClient = SQSClient.getInstance();
 
-const fetchPRComments = async (prId: number): Promise<object[]> => {
+interface PRReviewComment {
+  id: number;
+  node_id: string;
+  diff_hunk: string;
+  path: string;
+  position: number;
+  original_position: number;
+  commit_id: string;
+  original_commit_id: string;
+  user: {
+    id: number;
+    login: string;
+  };
+  body: string;
+  created_at: string;
+  updated_at: string;
+  html_url: string;
+  pull_request_url: string;
+  author_association: string;
+  start_line: number | null;
+  original_start_line: number | null;
+  start_side: string | null;
+  line: number | null;
+  original_line: number | null;
+  side: string | null;
+  githubPRReviewCommentId: number;
+}
+
+const fetchPRComments = async (prId: number): Promise<PRReviewComment[]> => {
   // Fetch PR comments from Elasticsearch for each PR
   const query = esb
     .requestBodySearch()
@@ -26,7 +54,7 @@ const fetchPRComments = async (prId: number): Promise<object[]> => {
     query
   );
   const esPrReviewCommentFormattedData = await searchedDataFormator(prReviewCommentData);
-  return esPrReviewCommentFormattedData;
+  return esPrReviewCommentFormattedData as PRReviewComment[];
 };
 const updateDeletedComments = async (
   deletedCommentIds: number[],
@@ -70,7 +98,7 @@ export const handler = async function prReviewComment(event: SQSEvent): Promise<
           `GET /repos/${owner}/${repoName}/pulls/${prData.pullNumber}/comments`
         );
         const octokitRespData = getOctokitResp(commentsDataOnPr);
-        octokitRespData.forEach((comment: any) => {
+        octokitRespData.forEach((comment: PRReviewComment) => {
           prReviewCommentIdfromApi.push(comment.id);
         });
         logger.info({
@@ -82,7 +110,7 @@ export const handler = async function prReviewComment(event: SQSEvent): Promise<
 
         const esPrReviewCommentFormattedData = await fetchPRComments(prData.id);
         const prReviewCommentId: number[] = [];
-        esPrReviewCommentFormattedData.forEach((prReviewComments: any) => {
+        esPrReviewCommentFormattedData.forEach((prReviewComments: PRReviewComment) => {
           prReviewCommentId.push(prReviewComments.githubPRReviewCommentId);
         });
         logger.info({

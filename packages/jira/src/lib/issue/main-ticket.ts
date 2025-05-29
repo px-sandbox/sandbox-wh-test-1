@@ -8,6 +8,13 @@ import { calculateTimeDifference } from '../../util/cycle-time';
 import { mappingPrefixes } from '../../constant/config';
 import { getSprintForTo } from '../../util/prepare-reopen-rate';
 
+interface ChangelogData {
+  items: Jira.ExternalType.Webhook.ChangelogItem[];
+  issuetype: IssuesTypes;
+  issueId: string;
+  timestamp: string;
+}
+
 export class MainTicket {
   public issueId: string;
   public sprintId: string | null;
@@ -98,7 +105,7 @@ export class MainTicket {
     this.assignees.push(assignee);
   }
 
-  public async changelog(changelogs: any): Promise<void> {
+  public async changelog(changelogs: ChangelogData): Promise<void> {
     const [items] = changelogs.items.filter(
       (item: Jira.ExternalType.Webhook.ChangelogItem) =>
         item.fieldId === ChangelogField.STATUS ||
@@ -143,29 +150,7 @@ export class MainTicket {
             this.title = items.toString;
             break;
           case ChangelogField.STATUS:
-            if (
-              items.to === this.StatusMapping[this.Status.Done].id &&
-              changelogs.issuetype !== IssuesTypes.SUBTASK
-            ) {
-              this.statusTransition(items.to, changelogs.timestamp);
-            } else if (
-              this.subtasks.length > 0 &&
-              statuses.includes(items.to) &&
-              !isAllSubtaskDeleted
-            ) {
-              const toStatus = this.StatusMapping[items.to].label;
-              this.updateHistory(toStatus, changelogs.timestamp);
-            } else if (
-              items.to === this.StatusMapping[this.Status.Ready_For_QA].id &&
-              this.subtasks.length > 0
-            ) {
-              const toStatus = this.StatusMapping[items.to].label;
-              this.updateHistory(toStatus, changelogs.timestamp);
-            } else if (this.subtasks.length > 0 && isAllSubtaskDeleted) {
-              this.statusTransition(items.to, changelogs.timestamp);
-            } else {
-              this.statusTransition(items.to, changelogs.timestamp);
-            }
+            this.handleStatusChange(items, changelogs, statuses, isAllSubtaskDeleted);
             break;
           case ChangelogField.FIX_VERSION:
             this.fixVersion = `${mappingPrefixes.version}_${items.to}`;
@@ -204,6 +189,37 @@ export class MainTicket {
         }
         return updatedSubtask;
       });
+    }
+  }
+
+  private handleStatusChange(
+    items: Jira.ExternalType.Webhook.ChangelogItem,
+    changelogs: ChangelogData,
+    statuses: number[],
+    isAllSubtaskDeleted: boolean
+  ): void {
+    if (
+      String(items.to) === String(this.StatusMapping[this.Status.Done].id) &&
+      changelogs.issuetype !== IssuesTypes.SUBTASK
+    ) {
+      this.statusTransition(items.to, changelogs.timestamp);
+    } else if (
+      this.subtasks.length > 0 &&
+      statuses.includes(Number(items.to)) &&
+      !isAllSubtaskDeleted
+    ) {
+      const toStatus = this.StatusMapping[items.to].label;
+      this.updateHistory(toStatus, changelogs.timestamp);
+    } else if (
+      String(items.to) === String(this.StatusMapping[this.Status.Ready_For_QA].id) &&
+      this.subtasks.length > 0
+    ) {
+      const toStatus = this.StatusMapping[items.to].label;
+      this.updateHistory(toStatus, changelogs.timestamp);
+    } else if (this.subtasks.length > 0 && isAllSubtaskDeleted) {
+      this.statusTransition(items.to, changelogs.timestamp);
+    } else {
+      this.statusTransition(items.to, changelogs.timestamp);
     }
   }
 

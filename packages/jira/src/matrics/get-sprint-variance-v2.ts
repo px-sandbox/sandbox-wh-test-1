@@ -349,9 +349,144 @@ async function countIssuesWithZeroEstimates(
   return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
 }
 
-/* eslint-disable max-lines-per-function */
+interface SprintData {
+  id: string;
+  sprintId: number;
+  name: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface VersionData {
+  id: string;
+  name: string;
+  status: string;
+  startDate: string;
+  releaseDate: string;
+  endDate: string;
+}
+
+function calculateWorkItems(
+  workItems: { key: string; doc_count: number; issue_types: { buckets: BucketItem[] } } | undefined
+): { task: number; story: number; bug: number; total: number } {
+  return {
+    task:
+      workItems?.issue_types.buckets.find(
+        (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.TASK
+      )?.doc_count ?? 0,
+    story:
+      workItems?.issue_types.buckets.find(
+        (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.STORY
+      )?.doc_count ?? 0,
+    bug:
+      workItems?.issue_types.buckets.find(
+        (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.BUG
+      )?.doc_count ?? 0,
+    total: workItems?.doc_count ?? 0,
+  };
+}
+
+function calculateTimeAndVariance(
+  item: BucketItem,
+  bugTime: { bugInfo: BugTimeInfo; sprintIdOrVersionId: string } | undefined
+): {
+  time: { estimate: number; actual: number };
+  variance: number;
+  totalTime: number;
+  totalVariance: string;
+} {
+  const totalTime = (bugTime?.bugInfo.value ?? 0) + (item.actual.value ?? 0);
+  return {
+    time: {
+      estimate: item.estimate.value,
+      actual: item.actual.value,
+    },
+    variance: parseFloat(
+      (item.estimate.value === 0
+        ? 0
+        : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
+      ).toFixed(2)
+    ),
+    totalTime,
+    totalVariance: (item.estimate.value === 0
+      ? 0
+      : ((totalTime - item.estimate.value) * 100) / item.estimate.value
+    ).toFixed(2),
+  };
+}
+
+function createDefaultSprintResponse(
+  sprintDetails: SprintData,
+  orgName: string,
+  projectKey: string,
+  estimateMissingFlagCtr: boolean
+): SprintVariance {
+  return {
+    sprint: sprintDetails,
+    time: {
+      estimate: 0,
+      actual: 0,
+    },
+    workItems: {
+      task: 0,
+      story: 0,
+      bug: 0,
+      total: 0,
+    },
+    isAllEstimated: estimateMissingFlagCtr,
+    jiraInfo: {
+      estimateIssueLink: !estimateMissingFlagCtr
+        ? getJiraLink(orgName, projectKey, sprintDetails.sprintId, true)
+        : '',
+      loggedIssueLink: getJiraLink(orgName, projectKey, sprintDetails.sprintId),
+    },
+    bugTime: {
+      value: 0,
+      status: IssueLinked.NO_BUGS_LINKED,
+      loggedBugsCount: 0,
+      unloggedBugsCount: 0,
+    },
+    variance: 0,
+    totalTime: 0,
+  };
+}
+
+function createDefaultVersionResponse(
+  versionDetails: VersionData,
+  orgName: string,
+  projectKey: string
+): SprintVariance {
+  return {
+    version: versionDetails,
+    time: {
+      estimate: 0,
+      actual: 0,
+    },
+    workItems: {
+      task: 0,
+      story: 0,
+      bug: 0,
+      total: 0,
+    },
+    isAllEstimated: true,
+    jiraInfo: {
+      estimateIssueLink: '',
+      loggedIssueLink: getJiraLinkForVersion(orgName, projectKey, versionDetails.id),
+    },
+    bugTime: {
+      value: 0,
+      status: IssueLinked.NO_BUGS_LINKED,
+      loggedBugsCount: 0,
+      unloggedBugsCount: 0,
+    },
+    variance: 0,
+    totalTime: 0,
+  };
+}
+
 function sprintEstimateResponse(
-  sprintData: any[],
+  sprintData: SprintData[],
   estimateActualGraph: {
     sprint_aggregation: {
       buckets: Jira.Type.BucketItem[];
@@ -369,7 +504,7 @@ function sprintEstimateResponse(
         key: string;
         doc_count: number;
         issue_types: {
-          buckets: Jira.Type.BucketItem[];
+          buckets: BucketItem[];
         };
       }>;
     };
@@ -396,62 +531,23 @@ function sprintEstimateResponse(
       (bucketItem: { key: string; doc_count: number; issue_types: { buckets: BucketItem[] } }) =>
         bucketItem.key === sprintDetails.id
     );
-    if (item) {
-      const totalTime = (bugTime?.bugInfo.value ?? 0) + (item.actual.value ?? 0);
-      return {
-        sprint: sprintDetails,
-        workItems: {
-          task:
-            workItems?.issue_types.buckets.find(
-              (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.TASK
-            )?.doc_count ?? 0,
-          story:
-            workItems?.issue_types.buckets.find(
-              (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.STORY
-            )?.doc_count ?? 0,
-          bug:
-            workItems?.issue_types.buckets.find(
-              (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.BUG
-            )?.doc_count ?? 0,
-          total: workItems?.doc_count ?? 0,
-        },
-        time: {
-          estimate: item.estimate.value,
-          actual: item.actual.value,
-        },
-        isAllEstimated: estimateMissingFlagCtr,
-        jiraInfo: {
-          estimateIssueLink: !estimateMissingFlagCtr
-            ? getJiraLink(orgName, projectKey, sprintDetails.sprintId, true)
-            : '',
-          loggedIssueLink: getJiraLink(orgName, projectKey, sprintDetails.sprintId),
-        },
-        variance: parseFloat(
-          (item.estimate.value === 0
-            ? 0
-            : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
-          ).toFixed(2)
-        ),
-        bugTime: bugTime?.bugInfo,
-        totalTime,
-        totalVariance: (item.estimate.value === 0
-          ? 0
-          : ((totalTime - item.estimate.value) * 100) / item.estimate.value
-        ).toFixed(2),
-      };
+
+    if (!item) {
+      return createDefaultSprintResponse(
+        sprintDetails,
+        orgName,
+        projectKey,
+        estimateMissingFlagCtr
+      );
     }
+
+    const { time, variance, totalTime, totalVariance } = calculateTimeAndVariance(item, bugTime);
+    const calculatedWorkItems = calculateWorkItems(workItems);
+
     return {
       sprint: sprintDetails,
-      time: {
-        estimate: 0,
-        actual: 0,
-      },
-      workItems: {
-        task: 0,
-        story: 0,
-        bug: 0,
-        total: 0,
-      },
+      workItems: calculatedWorkItems,
+      time,
       isAllEstimated: estimateMissingFlagCtr,
       jiraInfo: {
         estimateIssueLink: !estimateMissingFlagCtr
@@ -459,20 +555,16 @@ function sprintEstimateResponse(
           : '',
         loggedIssueLink: getJiraLink(orgName, projectKey, sprintDetails.sprintId),
       },
-      bugTime: {
-        value: 0,
-        status: IssueLinked.NO_BUGS_LINKED,
-        loggedBugsCount: 0,
-        unloggedBugsCount: 0,
-      },
-      variance: 0,
-      totalTime: 0,
+      variance,
+      bugTime: bugTime?.bugInfo,
+      totalTime,
+      totalVariance,
     };
   });
 }
 
 function versionEstimateResponse(
-  versionData: any[],
+  versionData: VersionData[],
   estimateActualGraph: {
     version_aggregation: {
       buckets: Jira.Type.BucketItem[];
@@ -490,7 +582,7 @@ function versionEstimateResponse(
         key: string;
         doc_count: number;
         issue_types: {
-          buckets: Jira.Type.BucketItem[];
+          buckets: BucketItem[];
         };
       }>;
     };
@@ -517,72 +609,29 @@ function versionEstimateResponse(
       (bucketItem: { key: string; doc_count: number; issue_types: { buckets: BucketItem[] } }) =>
         bucketItem.key === versionDetails.id
     );
-    if (item) {
-      const totalTime = (bugTime?.bugInfo.value ?? 0) + (item.actual.value ?? 0);
-      return {
-        version: versionDetails,
-        time: {
-          estimate: item.estimate.value,
-          actual: item.actual.value,
-        },
-        workItems: {
-          task: workItems?.issue_types.buckets.find(
-            (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.TASK
-          )?.doc_count,
-          story: workItems?.issue_types.buckets.find(
-            (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.STORY
-          )?.doc_count,
-          bug: workItems?.issue_types.buckets.find(
-            (bucketItem: BucketItem) => bucketItem.key === IssuesTypes.BUG
-          )?.doc_count,
-          total: workItems?.doc_count,
-        },
-        isAllEstimated: estimateMissingFlagCtr,
-        jiraInfo: {
-          estimateIssueLink: !estimateMissingFlagCtr
-            ? getJiraLinkForVersion(orgName, projectKey, versionDetails.id, true)
-            : '',
-          loggedIssueLink: getJiraLinkForVersion(orgName, projectKey, versionDetails.id),
-        },
-        variance: parseFloat(
-          (item.estimate.value === 0
-            ? 0
-            : ((item.actual.value - item.estimate.value) * 100) / item.estimate.value
-          ).toFixed(2)
-        ),
-        bugTime: bugTime?.bugInfo,
-        totalTime,
-        totalVariance: (item.estimate.value === 0
-          ? 0
-          : ((totalTime - item.estimate.value) * 100) / item.estimate.value
-        ).toFixed(2),
-      };
+
+    if (!item) {
+      return createDefaultVersionResponse(versionDetails, orgName, projectKey);
     }
+
+    const { time, variance, totalTime, totalVariance } = calculateTimeAndVariance(item, bugTime);
+    const calculatedWorkItems = calculateWorkItems(workItems);
+
     return {
       version: versionDetails,
-      time: {
-        estimate: 0,
-        actual: 0,
-      },
-      workItems: {
-        task: 0,
-        story: 0,
-        bug: 0,
-        total: 0,
-      },
-      isAllEstimated: true,
+      workItems: calculatedWorkItems,
+      time,
+      isAllEstimated: estimateMissingFlagCtr,
       jiraInfo: {
-        estimateIssueLink: '',
+        estimateIssueLink: !estimateMissingFlagCtr
+          ? getJiraLinkForVersion(orgName, projectKey, versionDetails.id, true)
+          : '',
         loggedIssueLink: getJiraLinkForVersion(orgName, projectKey, versionDetails.id),
       },
-      bugTime: {
-        value: 0,
-        status: IssueLinked.NO_BUGS_LINKED,
-        loggedBugsCount: 0,
-        unloggedBugsCount: 0,
-      },
-      variance: 0,
-      totalTime: 0,
+      variance,
+      bugTime: bugTime?.bugInfo,
+      totalTime,
+      totalVariance,
     };
   });
 }
@@ -727,8 +776,8 @@ async function processSprintData(
   dateRangeQueries: esb.RangeQuery[],
   reqCtx: Other.Type.RequestCtx,
   state: string
-): Promise<{ sprintData: object[]; sprintIds: string[]; totalPages: number }> {
-  const sprintData: object[] = [];
+): Promise<{ sprintData: SprintData[]; sprintIds: string[]; totalPages: number }> {
+  const sprintData: SprintData[] = [];
   const sprintIds: string[] = [];
   const { sprintHits, totalPages } = await sprintHitsResponse(
     limit,
@@ -762,8 +811,8 @@ async function processVersionData(
   reqCtx: Other.Type.RequestCtx,
   state: string,
   endDate?: string
-): Promise<{ versionData: object[]; versionIds: string[]; totalPages: number }> {
-  const versionData: object[] = [];
+): Promise<{ versionData: VersionData[]; versionIds: string[]; totalPages: number }> {
+  const versionData: VersionData[] = [];
   const versionIds: string[] = [];
   const { versionHits, totalPages } = await versionHitsResponse(
     limit,
@@ -782,6 +831,7 @@ async function processVersionData(
         status: item.status,
         startDate: item.startDate,
         releaseDate: item.releaseDate,
+        endDate: item.releaseDate || item.startDate,
       });
       versionIds.push(item.id);
       return item;

@@ -9,6 +9,15 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
+interface GitHubBranch {
+  name: string;
+  commit: {
+    sha: string;
+    url: string;
+  };
+  protected: boolean;
+}
+
 async function getRepoBranches(record: SQSRecord | { body: string }): Promise<boolean | undefined> {
   const {
     reqCtx: { requestId, resourceId },
@@ -37,7 +46,7 @@ async function getRepoBranches(record: SQSRecord | { body: string }): Promise<bo
     } else {
       const githubBranches = (await octokitRequestWithTimeout(
         `GET /repos/${login}/${name}/branches?per_page=100&page=${page}`
-      )) as OctokitResponse<any>;
+      )) as OctokitResponse<GitHubBranch[]>;
       const octokitRespData = getOctokitResp(githubBranches);
       const branchNameRegx = /\b(^dev)\w*[\/0-9a-zA-Z]*\w*\b/; // eslint-disable-line no-useless-escape
       branches = octokitRespData

@@ -306,14 +306,35 @@ async function countIssuesWithZeroEstimates(
   return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
 }
 
-/**
- * Calculates the sprint variance for each sprint in the given sprint data.
- * @param sprintData An array of sprint data.
- * @param estimateActualGraph The estimate actual graph containing sprint aggregation data.
- * @returns An array of SprintVariance objects representing the sprint variance for each sprint.
- */
+interface SprintData {
+  id: string;
+  sprintId: number;
+  name: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface VersionData {
+  id: string;
+  name: string;
+  status: string;
+  startDate: string;
+  releaseDate: string;
+}
+
+interface SprintVarianceExtended extends SprintVariance {
+  isAllEstimated: boolean;
+  jiraInfo: {
+    estimateIssueLink: string;
+    loggedIssueLink: string;
+  };
+  bugTime: number;
+  totalTime: number;
+}
+
 function sprintEstimateResponse(
-  sprintData: any[],
+  sprintData: SprintData[],
   estimateActualGraph: {
     sprint_aggregation: {
       buckets: Jira.Type.BucketItem[];
@@ -327,7 +348,7 @@ function sprintEstimateResponse(
   },
   orgName: string,
   projectKey: string
-): SprintVariance[] {
+): SprintVarianceExtended[] {
   return sprintData.map((sprintDetails) => {
     let estimateMissingFlagCtr = true;
     const item = estimateActualGraph.sprint_aggregation.buckets.find(
@@ -387,7 +408,7 @@ function sprintEstimateResponse(
 }
 
 function versionEstimateResponse(
-  versionData: any[],
+  versionData: VersionData[],
   estimateActualGraph: {
     version_aggregation: {
       buckets: Jira.Type.BucketItem[];
@@ -401,7 +422,7 @@ function versionEstimateResponse(
   },
   orgName: string,
   projectKey: string
-): SprintVariance[] {
+): SprintVarianceExtended[] {
   return versionData.map((versionDetails) => {
     let estimateMissingFlagCtr = true;
     const item = estimateActualGraph.version_aggregation.buckets.find(
@@ -553,8 +574,8 @@ async function processSprintData(
   dateRangeQueries: esb.RangeQuery[],
   reqCtx: Other.Type.RequestCtx,
   state: string
-): Promise<{ sprintData: any[]; sprintIds: string[]; totalPages: number }> {
-  const sprintData: any[] = [];
+): Promise<{ sprintData: SprintData[]; sprintIds: string[]; totalPages: number }> {
+  const sprintData: SprintData[] = [];
   const sprintIds: string[] = [];
   const { sprintHits, totalPages } = await sprintHitsResponse(
     limit,
@@ -588,8 +609,8 @@ async function processVersionData(
   reqCtx: Other.Type.RequestCtx,
   state: string,
   endDate?: string
-): Promise<{ versionData: any[]; versionIds: string[]; totalPages: number }> {
-  const versionData: any[] = [];
+): Promise<{ versionData: VersionData[]; versionIds: string[]; totalPages: number }> {
+  const versionData: VersionData[] = [];
   const versionIds: string[] = [];
   const { versionHits, totalPages } = await versionHitsResponse(
     limit,
@@ -629,7 +650,7 @@ async function processVersionDataWithEstimates(
   projectKey: string,
   type: Jira.Enums.JiraFilterType,
   endDate?: string
-): Promise<{ data: SprintVariance[]; totalPages: number; page: number }> {
+): Promise<{ data: SprintVarianceExtended[]; totalPages: number; page: number }> {
   const { versionData, versionIds, totalPages } = await processVersionData(
     limit,
     page,

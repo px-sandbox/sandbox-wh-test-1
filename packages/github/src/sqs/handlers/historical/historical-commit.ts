@@ -10,6 +10,31 @@ import { getInstallationAccessToken } from '../../../util/installation-access-to
 import { getOctokitResp } from '../../../util/octokit-response';
 import { getOctokitTimeoutReqFn } from '../../../util/octokit-timeout-fn';
 
+interface GitHubCommit {
+  sha: string;
+  commit: {
+    message: string;
+    author: {
+      name: string;
+      email: string;
+      date: string;
+    };
+    committer: {
+      name: string;
+      email: string;
+      date: string;
+    };
+  };
+  author?: {
+    login: string;
+    id: number;
+  };
+  committer?: {
+    login: string;
+    id: number;
+  };
+}
+
 async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
   const {
     reqCtx: { requestId, resourceId },
@@ -29,11 +54,10 @@ async function getRepoCommits(record: SQSRecord): Promise<boolean | undefined> {
     const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
     const commitDataOnPr = (await octokitRequestWithTimeout(
       `GET /repos/${owner}/${name}/commits?sha=${branchName}&per_page=100&page=${page}`
-    )) as OctokitResponse<any>;
+    )) as OctokitResponse<GitHubCommit[]>;
     const octokitRespData = getOctokitResp(commitDataOnPr);
     let queueProcessed = [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    queueProcessed = octokitRespData.map((commitData: any) =>
+    queueProcessed = octokitRespData.map((commitData: GitHubCommit) =>
       sqsClient.sendFifoMessage(
         {
           commitId: commitData.sha,

@@ -180,8 +180,8 @@ export async function fetchCycleTimeDetailed(
     if (item.subtasks && item.subtasks.length > 0) {
       item.subtasks.sort(
         (firstSubtask: { issueKey: string }, secondSubtask: { issueKey: string }) => {
-          const firstSubtaskNum = parseInt(firstSubtask.issueKey.split('-')[1]) || 0;
-          const secondSubtaskNum = parseInt(secondSubtask.issueKey.split('-')[1]) || 0;
+          const firstSubtaskNum = parseInt(firstSubtask.issueKey.split('-')[1], 10) || 0;
+          const secondSubtaskNum = parseInt(secondSubtask.issueKey.split('-')[1], 10) || 0;
           return firstSubtaskNum - secondSubtaskNum;
         }
       );
@@ -190,8 +190,8 @@ export async function fetchCycleTimeDetailed(
 
   // Sort main array by issueKey
   return result.sort((firstIssue: { issueKey: string }, secondIssue: { issueKey: string }) => {
-    const firstIssueNumber = parseInt(firstIssue.issueKey.split('-')[1]) || 0;
-    const secondIssueNumber = parseInt(secondIssue.issueKey.split('-')[1]) || 0;
+    const firstIssueNumber = parseInt(firstIssue.issueKey.split('-')[1], 10) || 0;
+    const secondIssueNumber = parseInt(secondIssue.issueKey.split('-')[1], 10) || 0;
     return firstIssueNumber - secondIssueNumber;
   });
 }

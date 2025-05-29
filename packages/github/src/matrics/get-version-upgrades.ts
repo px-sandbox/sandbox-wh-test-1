@@ -1,8 +1,8 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable no-await-in-loop */
-import { DynamoDbDocClient } from '@pulse/dynamodb';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Github } from 'abstraction';
+import { DynamoDbDocClient } from '@pulse/dynamodb';
+import { Github, Other } from 'abstraction';
 import { logger } from 'core';
 import esb from 'elastic-builder';
 import moment from 'moment';
@@ -10,8 +10,8 @@ import { Table } from 'sst/node/table';
 import { searchedDataFormator } from '../util/response-formatter';
 import { sortData } from '../util/version-upgrades';
 
-// initializing elastic search client
 const esClientObj = ElasticSearchClient.getInstance();
+
 async function getCoreDependencies(
   repoIds: string[],
   searchString: string
@@ -31,20 +31,26 @@ async function getCoreDependencies(
     coreLibQuery.toJSON()
   );
   const coreDep = await searchedDataFormator(data);
-  const combinedData = coreDep.reduce((acc: any, item: any) => {
-    const key = `${item.libName}-${item.version}`;
-    if (!acc[key]) {
-      // If the key does not exist in the accumulator,
-      // create a new object with all properties of the item except for repoId,
-      // which is an array containing item.repoId
-      acc[key] = { ...item, repoId: [item.repoId] };
-    } else {
-      // If the key already exists in the accumulator,
-      // just push the new repoId into the existing repoId array
-      acc[key].repoId.push(item.repoId);
-    }
-    return acc;
-  }, {});
+  const combinedData = coreDep.reduce(
+    (
+      acc: { [key: string]: Github.Type.RepoLibType },
+      item: Github.Type.RepoLibType & { repoId: string }
+    ) => {
+      const key = `${item.libName}-${item.version}`;
+      if (!acc[key]) {
+        // If the key does not exist in the accumulator,
+        // create a new object with all properties of the item except for repoId,
+        // which is an array containing item.repoId
+        acc[key] = { ...item, repoId: [item.repoId] };
+      } else {
+        // If the key already exists in the accumulator,
+        // just push the new repoId into the existing repoId array
+        acc[key].repoId.push(item.repoId);
+      }
+      return acc;
+    },
+    {}
+  );
   const libs: Github.Type.RepoLibType[] = Object.values(combinedData);
   const libNames = libs.map((lib: Github.Type.RepoLibType) => lib.libName);
   return { libs, libNames };
@@ -66,8 +72,7 @@ async function fetchDDRecords(
   let results: Github.Type.LibraryRecord[] = [];
 
   // we are chunking array of keys into 100 keys each, as dynamo db can only take 100 keys at a time
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const chunk = (arr: any[], size: number): any[][] =>
+  const chunk = <T>(arr: T[], size: number): T[][] =>
     Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
       arr.slice(i * size, i * size + size)
     );
@@ -81,7 +86,7 @@ async function fetchDDRecords(
     const params = {
       RequestItems: {
         [tableIndex]: {
-          Keys: keys,
+          Keys: keys as Record<string, string>[],
         },
       },
     };
@@ -115,7 +120,7 @@ const repoLibsQuery = async (
   repoIds: string[],
   searchString: string,
   afterKey: object
-): Promise<any> => {
+): Promise<{ repoLibData: Github.Type.RepoLibType[]; afterKeyObj: object }> => {
   const query = esb.boolQuery();
   if (searchString) {
     query.must(esb.wildcardQuery('body.libName', `*${searchString.toLowerCase()}*`));
@@ -151,16 +156,43 @@ const repoLibsQuery = async (
   )) as Github.Type.VersionUpgradeAggregation;
 
   const afterKeyObj = data.aggregations.by_libName.after_key;
-  const repoLibData = data.aggregations.by_libName.buckets.map((bucket: any) => {
-    const { hits } = bucket.top_lib_hits.hits;
-    return {
-      ...hits[0]._source.body,
-      libName: bucket.key.libName,
-      version: bucket.key.version,
-      repoId: hits.map((hit: any) => hit._source.body.repoId),
-      releaseDate: hits[0]._source.body.releaseDate,
-    };
-  });
+  const repoLibData = data.aggregations.by_libName.buckets.map(
+    (bucket: {
+      key: { libName: string; version: string };
+      top_lib_hits: {
+        hits: {
+          hits: Array<{
+            _source: {
+              body: {
+                _id: string;
+                repoId: string;
+                organizationId: string;
+                name: string;
+                isDeleted: boolean;
+                isCore: boolean;
+                releaseDate: string;
+                [key: string]: unknown;
+              };
+            };
+          }>;
+        };
+      };
+    }) => {
+      const { hits } = bucket.top_lib_hits.hits;
+      const firstHit = hits[0]._source.body;
+      return {
+        _id: firstHit._id,
+        repoId: hits.map((hit: Other.Type.HitBody) => hit._source.body.repoId),
+        organizationId: firstHit.organizationId,
+        version: bucket.key.version,
+        name: firstHit.name,
+        libName: bucket.key.libName,
+        releaseDate: firstHit.releaseDate,
+        isDeleted: firstHit.isDeleted,
+        isCore: firstHit.isCore,
+      };
+    }
+  );
 
   return { repoLibData, afterKeyObj };
 };
@@ -258,7 +290,7 @@ export async function getVersionUpgrades(
     );
 
     if (!updatedRepoLibs?.length) {
-      return { versionData: [], afterKey: afterKeyObj ?? '' };
+      return { versionData: [], afterKey: afterKeyObj ? JSON.stringify(afterKeyObj) : '' };
     }
     const ddRecords = await fetchDDRecords([...new Set(libNames)], requestId);
 
@@ -276,7 +308,7 @@ export async function getVersionUpgrades(
       };
     });
     if (!finalData?.length) {
-      return { versionData: [], afterKey: afterKeyObj ?? '' };
+      return { versionData: [], afterKey: afterKeyObj ? JSON.stringify(afterKeyObj) : '' };
     }
 
     const sortedData = await sortData(finalData, sort);

@@ -5,12 +5,12 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { logger } from 'core';
 import { Config } from 'sst/node/config';
 import { Queue } from 'sst/node/queue';
+import moment from 'moment';
 import { orgInstallation } from '../lib/create-installation';
 import { getCommits } from '../lib/git-commit-list';
 import { pRReviewCommentOnQueue } from '../lib/pr-review-comment-queue';
 import { pRReviewOnQueue } from '../lib/pr-review-queue';
 import { pROnQueue } from '../lib/pull-request-queue';
-import moment from 'moment';
 
 const sqsClient = SQSClient.getInstance();
 interface ReviewCommentProcessType {
