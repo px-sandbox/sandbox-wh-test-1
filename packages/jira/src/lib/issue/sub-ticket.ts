@@ -19,6 +19,7 @@ export class SubTicket {
   public history: { status: string; eventTime: string }[];
   public isDeleted: boolean;
   public deletedAt: string;
+  public issueType: string;
 
   constructor(
     subtaskData: Subtasks,
@@ -39,6 +40,7 @@ export class SubTicket {
     this.history = subtaskData.history ?? [];
     this.isDeleted = subtaskData.isDeleted ?? false;
     this.deletedAt = subtaskData.deletedAt ?? '';
+    this.issueType = subtaskData.issueType;
   }
 
   private updateHistory(to: string, timestamp: string): void {
@@ -170,6 +172,7 @@ export class SubTicket {
       history: this.history,
       isDeleted: this.isDeleted ?? false,
       deletedAt: this.deletedAt || null,
+      issueType: this.issueType,
     };
   }
 }

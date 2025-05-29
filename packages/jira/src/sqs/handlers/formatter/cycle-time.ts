@@ -17,7 +17,15 @@ import { searchedDataFormator } from '../../../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-function cycleTimeQuery(issueId: string, organization: string): Record<string, any> {
+function cycleTimeQuery(issueId: string, organization: string): {
+  query: {
+    bool: {
+      must: {
+        term: Record<string, string>;
+      }[];
+    };
+  };
+} {
   return esb
     .requestBodySearch()
     .query(
@@ -45,7 +53,20 @@ async function getDataFromEsb(
   return cycleTimeData;
 }
 
-function formatSubtask(data: any): Subtasks {
+function formatSubtask(data: {
+  id: string;
+  key: string;
+  fields: {
+    summary: string;
+    issuetype: {
+      name: string;
+    };
+    assignee?: {
+      accountId: string;
+      displayName: string;
+    };
+  };
+}): Subtasks {
   return {
     issueId: `${mappingPrefixes.issue}_${data.id}`,
     title: data.fields.summary,
@@ -74,7 +95,7 @@ function formatCycleTimeData(
     issueId: `${mappingPrefixes.issue}_${data.id}`,
     sprintId: data.fields.customfield_10007
       ? `${mappingPrefixes.sprint}_${data.fields.customfield_10007[0].id}`
-      : null,
+      : `${mappingPrefixes.sprint}_null`,
     organizationId: `${mappingPrefixes.organization}_${orgId}`,
     subtasks,
     issueType: data.fields.issuetype.name,
@@ -91,9 +112,18 @@ function formatCycleTimeData(
     title: data.fields?.summary ?? '',
     issueKey: data.key,
     changelog: {
-      ...changelog,
+      id: `${mappingPrefixes.issue}_${data.id}`,
+      items: changelog.map(item => ({
+        field: item.field,
+        fieldId: item.fieldId || item.field,
+        fieldtype: item.fieldtype || 'jira',
+        from: item.from,
+        fromString: item.fromString,
+        to: item.to,
+        toString: item.toString
+      })),
       timestamp: data.fields.updated,
-      issuetype: data.fields.issuetype.name,
+      issuetype: data.fields.issuetype.name as IssuesTypes,
       issueId: `${mappingPrefixes.issue}_${data.id}`,
     },
     fixVersion: data.fields.fixVersions[0]
@@ -162,7 +192,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
         const statusMapping = await initializeMapping(orgId);
 
         const reverseMapping = Object.entries(statusMapping).reduce(
-          (acc: Record<string, any>, [key, value]) => {
+          (acc: Record<string, { label: string; id: string }>, [key, value]) => {
             acc[value] = { label: key, id: value };
             return acc;
           },
@@ -170,7 +200,10 @@ export const handler = async function cycleTimeFormattedDataReciever(
         );
         if (dataFromEsb.length > 0) {
           const ticketData = dataFromEsb[0];
-          mainTicketData = ticketData;
+          mainTicketData = {
+            ...formattedData,
+            ...ticketData.body
+          };
         } else {
           mainTicketData = formattedData;
         }
@@ -182,7 +215,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
           resourceId,
         });
 
-        const mainTicket = new MainTicket(mainTicketData, statusMapping, reverseMapping);
+        const mainTicket = new MainTicket(mainTicketData as Jira.Type.FormatCycleTime, statusMapping, reverseMapping);
         if (issueType === IssuesTypes.SUBTASK) {
           mainTicket.addSubtask(formatSubtask(messageBody.issue));
         }

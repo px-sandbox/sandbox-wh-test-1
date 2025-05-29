@@ -3,9 +3,38 @@ import esb from 'elastic-builder';
 import { ElasticSearchClient } from '@pulse/elasticsearch';
 import { Github, Other } from 'abstraction';
 import moment from 'moment';
+import { FormattedData } from 'abstraction/other/type';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
+
+interface PRStatusDetails extends FormattedData {
+  isDraft?: boolean;
+  state?: Github.Enums.PullRequest;
+  merged?: boolean;
+}
+
+const determinePRStatus = (prStatusDetails: PRStatusDetails | null): Github.Type.PRStatus => {
+  if (!prStatusDetails) {
+    return Github.Type.PRStatus.noPr;
+  }
+  
+  if (prStatusDetails.isDraft && prStatusDetails.state === Github.Enums.PullRequest.Open) {
+    return Github.Type.PRStatus.draft;
+  }
+  
+  if (prStatusDetails.state === Github.Enums.PullRequest.Closed) {
+    return prStatusDetails.merged
+      ? Github.Type.PRStatus.merged
+      : Github.Type.PRStatus.closedWithoutMerge;
+  }
+  
+  if (prStatusDetails.state === Github.Enums.PullRequest.Open) {
+    return Github.Type.PRStatus.opened;
+  }
+  
+  return Github.Type.PRStatus.noPr;
+};
 
 const getBranchDetails = async (
   item: Github.Type.BranchEsResponse,
@@ -85,18 +114,9 @@ const getBranchDetails = async (
     },
     requestId,
   });
-  let prStatus = Github.Type.PRStatus.noPr;
-  if (prStatusDetails) {
-    if (prStatusDetails.isDraft && prStatusDetails.state === Github.Enums.PullRequest.Open) {
-      prStatus = Github.Type.PRStatus.draft;
-    } else if (prStatusDetails.state === Github.Enums.PullRequest.Closed) {
-      prStatus = prStatusDetails.merged
-        ? Github.Type.PRStatus.merged
-        : Github.Type.PRStatus.closedWithoutMerge;
-    } else if (prStatusDetails.state === Github.Enums.PullRequest.Open) {
-      prStatus = Github.Type.PRStatus.opened;
-    }
-  }
+
+  const prStatus = determinePRStatus(prStatusDetails);
+
   return {
     id: item.id,
     name: item.name,

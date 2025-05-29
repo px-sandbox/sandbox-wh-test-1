@@ -1,3 +1,5 @@
+import { IssueLinked } from '../../enums';
+
 type sprint = {
   id: string;
   name: string;
@@ -29,7 +31,26 @@ export type SprintVariance = {
     estimate: number;
     actual: number;
   };
+  workItems: {
+    task: number;
+    story: number;
+    bug: number;
+    total: number;
+  };
+  isAllEstimated: boolean;
+  jiraInfo: {
+    estimateIssueLink: string;
+    loggedIssueLink: string;
+  };
+  bugTime: {
+    value: number;
+    status: IssueLinked;
+    loggedBugsCount: number;
+    unloggedBugsCount: number;
+  };
   variance: number;
+  totalTime: number;
+  totalVariance?: string;
 };
 
 export type SprintVarianceData = {

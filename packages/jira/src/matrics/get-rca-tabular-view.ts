@@ -1,5 +1,5 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { IssuesTypes, FILTER_ID_TYPES } from 'abstraction/jira/enums';
 import { rcaTableHeadline, rcaTableResponse, rcaTableView } from 'abstraction/jira/type';
 import esb from 'elastic-builder';
@@ -9,16 +9,20 @@ import { mappingPrefixes } from '../constant/config';
 import { searchedDataFormator } from '../util/response-formatter';
 
 const esClient = ElasticSearchClient.getInstance();
+
 export async function mapRcaBucketsWithFullNames(): Promise<{ [key: string]: string }> {
   const rcaNameQuery = esb.requestBodySearch().query(esb.matchAllQuery()).size(100).toJSON();
   const rcaRes = await esClient.search(Jira.Enums.IndexName.Rca, rcaNameQuery);
   const resData = await searchedDataFormator(rcaRes);
-  const idToNameMap = resData.reduce((acc: any, hit: any) => {
-    const id = `${mappingPrefixes.rca}_${hit.id}`;
-    const { name } = hit;
-    acc[id] = name;
-    return acc;
-  }, {});
+  const idToNameMap = resData.reduce(
+    (acc: { [key: string]: string }, hit: Pick<Other.Type.Hit, '_id'> & Other.Type.HitBody) => {
+      const id = `${mappingPrefixes.rca}_${hit.id}`;
+      const { name } = hit;
+      acc[id] = name;
+      return acc;
+    },
+    {}
+  );
   return idToNameMap;
 }
 
