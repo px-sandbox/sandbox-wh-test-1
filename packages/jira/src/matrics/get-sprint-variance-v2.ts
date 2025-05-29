@@ -349,9 +349,26 @@ async function countIssuesWithZeroEstimates(
   return esClientObj.queryAggs(Jira.Enums.IndexName.Issue, query);
 }
 
-/* eslint-disable max-lines-per-function */
+interface SprintData {
+  id: string;
+  sprintId: number;
+  name: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface VersionData {
+  id: string;
+  name: string;
+  status: string;
+  startDate: string;
+  releaseDate: string;
+  endDate: string;
+}
+
 function sprintEstimateResponse(
-  sprintData: any[],
+  sprintData: SprintData[],
   estimateActualGraph: {
     sprint_aggregation: {
       buckets: Jira.Type.BucketItem[];
@@ -472,7 +489,7 @@ function sprintEstimateResponse(
 }
 
 function versionEstimateResponse(
-  versionData: any[],
+  versionData: VersionData[],
   estimateActualGraph: {
     version_aggregation: {
       buckets: Jira.Type.BucketItem[];
@@ -727,8 +744,8 @@ async function processSprintData(
   dateRangeQueries: esb.RangeQuery[],
   reqCtx: Other.Type.RequestCtx,
   state: string
-): Promise<{ sprintData: object[]; sprintIds: string[]; totalPages: number }> {
-  const sprintData: object[] = [];
+): Promise<{ sprintData: SprintData[]; sprintIds: string[]; totalPages: number }> {
+  const sprintData: SprintData[] = [];
   const sprintIds: string[] = [];
   const { sprintHits, totalPages } = await sprintHitsResponse(
     limit,
@@ -762,8 +779,8 @@ async function processVersionData(
   reqCtx: Other.Type.RequestCtx,
   state: string,
   endDate?: string
-): Promise<{ versionData: object[]; versionIds: string[]; totalPages: number }> {
-  const versionData: object[] = [];
+): Promise<{ versionData: VersionData[]; versionIds: string[]; totalPages: number }> {
+  const versionData: VersionData[] = [];
   const versionIds: string[] = [];
   const { versionHits, totalPages } = await versionHitsResponse(
     limit,
@@ -782,6 +799,7 @@ async function processVersionData(
         status: item.status,
         startDate: item.startDate,
         releaseDate: item.releaseDate,
+        endDate: item.releaseDate || item.startDate,
       });
       versionIds.push(item.id);
       return item;

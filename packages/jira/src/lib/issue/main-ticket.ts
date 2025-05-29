@@ -8,6 +8,13 @@ import { calculateTimeDifference } from '../../util/cycle-time';
 import { mappingPrefixes } from '../../constant/config';
 import { getSprintForTo } from '../../util/prepare-reopen-rate';
 
+interface ChangelogData {
+  items: Jira.ExternalType.Webhook.ChangelogItem[];
+  issuetype: IssuesTypes;
+  issueId: string;
+  timestamp: string;
+}
+
 export class MainTicket {
   public issueId: string;
   public sprintId: string | null;
@@ -98,7 +105,7 @@ export class MainTicket {
     this.assignees.push(assignee);
   }
 
-  public async changelog(changelogs: any): Promise<void> {
+  public async changelog(changelogs: ChangelogData): Promise<void> {
     const [items] = changelogs.items.filter(
       (item: Jira.ExternalType.Webhook.ChangelogItem) =>
         item.fieldId === ChangelogField.STATUS ||
@@ -187,7 +194,7 @@ export class MainTicket {
 
   private handleStatusChange(
     items: Jira.ExternalType.Webhook.ChangelogItem,
-    changelogs: any,
+    changelogs: ChangelogData,
     statuses: number[],
     isAllSubtaskDeleted: boolean
   ): void {
