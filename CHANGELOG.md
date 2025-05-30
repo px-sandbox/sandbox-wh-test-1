@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.45.0](https://github.com/studiographene/pulse-data-integration/compare/v1.44.2...v1.45.0) (2025-05-30)
+
+
+### Features
+
+* **PX-2699-1:** fix lint error ([ad88a46](https://github.com/studiographene/pulse-data-integration/commit/ad88a46ecce9f61d8d48f01477bc48ec7b60ab6c))
+* **PX-2699-1:** fixed lint error ([96a6c9c](https://github.com/studiographene/pulse-data-integration/commit/96a6c9c4104f08e1b4606337f67de367de1ea9d2))
+* **PX-2699-1:** fixed lint errors ([c418788](https://github.com/studiographene/pulse-data-integration/commit/c4187885355cffe39ffd5e15b76de44ee73d37b4))
+
+
+### Bug Fixes
+
+* **PX-2699:** eslint fixes ([#1186](https://github.com/studiographene/pulse-data-integration/issues/1186)) ([6e62666](https://github.com/studiographene/pulse-data-integration/commit/6e6266650969c818b13f249277d498843e97e062))
+
 ## [1.44.2](https://github.com/studiographene/pulse-data-integration/compare/v1.44.1...v1.44.2) (2025-05-29)
 
 
