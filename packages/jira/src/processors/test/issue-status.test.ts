@@ -3,8 +3,26 @@ import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { IssueStatusProcessor } from '../issue-status'; 
 import { getOrganization } from '../../repository/organization/get-organization';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 
 vi.mock('../../repository/organization/get-organization');
+vi.mock('@pulse/elasticsearch', () => ({
+  ElasticSearchClient: {
+    getInstance: vi.fn().mockReturnValue({
+      search: vi.fn(),
+      putDocument: vi.fn(),
+      updateDocument: vi.fn(),
+      deleteByQuery: vi.fn(),
+      updateByQuery: vi.fn(),
+      paginateSearch: vi.fn(),
+      queryAggs: vi.fn(),
+      isIndexExists: vi.fn(),
+      updateIndex: vi.fn(),
+      createIndex: vi.fn(),
+    }),
+  },
+}));
+
 const mockGetOrganization = vi.mocked(getOrganization);
 
 describe('IssueStatusProcessor', () => {
