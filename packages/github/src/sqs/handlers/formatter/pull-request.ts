@@ -4,6 +4,7 @@ import { logger } from 'core';
 import _ from 'lodash';
 import { logProcessToRetry } from 'rp';
 import { Queue } from 'sst/node/queue';
+import { Github } from 'abstraction';
 import { PRProcessor } from '../../../processors/pull-request';
 
 async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
@@ -15,6 +16,21 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     logger.info({ message: 'PULL_SQS_RECEIVER_HANDLER', data: messageBody, requestId, resourceId });
     const processor = new PRProcessor(messageBody, requestId, resourceId, messageBody.processId);
     await processor.process();
+    if (
+      messageBody.action === Github.Enums.PullRequest.ReviewRequested &&
+      Object.keys(processor.formattedData as Record<string, unknown>).length === 0
+    ) {
+      logger.info({
+        message: 'PRProcessor.formatter.info.review_requested.event_not_processed',
+        data: {
+          pr_number: messageBody.number,
+          repo_id: messageBody.head.repo.id,
+          requestId,
+          resourceId,
+        },
+      });
+      return;
+    }
     await processor.save();
   } catch (error) {
     await logProcessToRetry(record, Queue.qGhPrFormat.queueUrl, error as Error);
