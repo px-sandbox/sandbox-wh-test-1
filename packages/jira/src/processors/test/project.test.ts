@@ -4,8 +4,17 @@ import { logger } from 'core';
 import { ProjectProcessor } from '../project';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { mappingPrefixes } from '../../constant/config';
+import { Config } from 'sst/node/config';
 
 vi.mock('../../repository/organization/get-organization');
+vi.mock('sst/node/config', () => ({
+  Config: {
+    OPENSEARCH_NODE: 'https://test-node:9200',
+    OPENSEARCH_USERNAME: 'test-username',
+    OPENSEARCH_PASSWORD: 'test-password',
+  },
+}));
+
 const mockGetOrganization = vi.mocked(getOrganization);
 describe('ProjectProcessor', () => {
   let projectProcessor: ProjectProcessor;
@@ -18,6 +27,7 @@ describe('ProjectProcessor', () => {
       self: 'self-url',
       id: '123',
       key: 'PROJ',
+      projectTypeKey: 'software',
       lead: {
         self: 'lead-self-url',
         accountId: 'lead-account-id',
@@ -73,6 +83,7 @@ describe('ProjectProcessor', () => {
           projectId: apiData.id,
           key: apiData.key,
           name: apiData.name,
+          projectTypeKey: apiData.projectTypeKey,
           avatarUrls: {
             avatarUrl48x48: apiData.avatarUrls['48x48'],
             avatarUrl32x32: apiData.avatarUrls['32x32'],
