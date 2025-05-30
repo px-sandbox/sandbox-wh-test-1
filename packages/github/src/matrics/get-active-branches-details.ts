@@ -18,21 +18,21 @@ const determinePRStatus = (prStatusDetails: PRStatusDetails | null): Github.Type
   if (!prStatusDetails) {
     return Github.Type.PRStatus.noPr;
   }
-  
+
   if (prStatusDetails.isDraft && prStatusDetails.state === Github.Enums.PullRequest.Open) {
     return Github.Type.PRStatus.draft;
   }
-  
+
   if (prStatusDetails.state === Github.Enums.PullRequest.Closed) {
     return prStatusDetails.merged
       ? Github.Type.PRStatus.merged
       : Github.Type.PRStatus.closedWithoutMerge;
   }
-  
+
   if (prStatusDetails.state === Github.Enums.PullRequest.Open) {
     return Github.Type.PRStatus.opened;
   }
-  
+
   return Github.Type.PRStatus.noPr;
 };
 
@@ -131,8 +131,6 @@ const getBranchDetails = async (
 };
 
 export const activeBranchDetailsGraphData = async (
-  startDate: string,
-  endDate: string,
   repoIds: string[],
   requestId: string,
   page: number,
@@ -143,15 +141,12 @@ export const activeBranchDetailsGraphData = async (
       message: 'activeBranchDetailsGraphData.input',
       data: {
         repoIds,
-        startDate,
-        endDate,
         page,
         limit,
       },
       requestId,
     });
     // TODO: Implement the actual logic to fetch active branches details graph data
-    // create an esb query using dateRangehistogram function
     // fetch all the branches using pagination of the given repos
     const query = esb
       .requestBodySearch()
@@ -160,11 +155,7 @@ export const activeBranchDetailsGraphData = async (
       .query(
         esb
           .boolQuery()
-          .must([
-            esb.rangeQuery('body.createdAt').gte(startDate).lte(endDate),
-            esb.termsQuery('body.repoId', repoIds),
-            esb.termQuery('body.isDeleted', false),
-          ])
+          .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.isDeleted', false)])
       )
       .toJSON();
 

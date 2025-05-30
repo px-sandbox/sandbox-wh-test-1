@@ -8,8 +8,6 @@ const getActiveBranchesDetails = async function getActiveBranchesDetails(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const { requestId } = event.requestContext;
-  const startDate: string = event.queryStringParameters?.startDate || '';
-  const endDate: string = event.queryStringParameters?.endDate || '';
   const repoIds: string[] = event.queryStringParameters?.repoIds?.split(',') || [];
   const page: number = event.queryStringParameters?.page
     ? parseInt(event.queryStringParameters?.page, 10)
@@ -20,8 +18,6 @@ const getActiveBranchesDetails = async function getActiveBranchesDetails(
 
   try {
     const activeBranchesDetailsGraph = await activeBranchDetailsGraphData(
-      startDate,
-      endDate,
       repoIds,
       requestId,
       page,
