@@ -5,9 +5,9 @@ import { Subtasks } from 'abstraction/jira/external/api';
 import { Hit, HitBody } from 'abstraction/other/type';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
-import esb from 'elastic-builder';
 import { logProcessToRetry } from 'rp';
 import { Queue } from 'sst/node/queue';
+import esb from 'elastic-builder';
 import { mappingPrefixes } from '../../../constant/config';
 import { MainTicket } from '../../../lib/issue/main-ticket';
 import { saveCycleTime } from '../../../repository/cycle-time/save-cycle-time';
@@ -17,7 +17,10 @@ import { searchedDataFormator } from '../../../util/response-formatter';
 
 const esClientObj = ElasticSearchClient.getInstance();
 
-function cycleTimeQuery(issueId: string, organization: string): {
+function cycleTimeQuery(
+  issueId: string,
+  organization: string
+): {
   query: {
     bool: {
       must: {
@@ -80,7 +83,7 @@ function formatSubtask(data: {
 
 function formatCycleTimeData(
   data: Jira.ExternalType.Webhook.Issue,
-  changelog: Jira.ExternalType.Webhook.ChangelogItem[],
+  changelog: Jira.ExternalType.Webhook.ChangelogWebhook,
   orgId: string
 ): Jira.Type.FormatCycleTime {
   const isSubtask = data.fields.issuetype.subtask;
@@ -95,7 +98,7 @@ function formatCycleTimeData(
     issueId: `${mappingPrefixes.issue}_${data.id}`,
     sprintId: data.fields.customfield_10007
       ? `${mappingPrefixes.sprint}_${data.fields.customfield_10007[0].id}`
-      : `${mappingPrefixes.sprint}_null`,
+      : null,
     organizationId: `${mappingPrefixes.organization}_${orgId}`,
     subtasks,
     issueType: data.fields.issuetype.name,
@@ -112,18 +115,9 @@ function formatCycleTimeData(
     title: data.fields?.summary ?? '',
     issueKey: data.key,
     changelog: {
-      id: `${mappingPrefixes.issue}_${data.id}`,
-      items: changelog.map(item => ({
-        field: item.field,
-        fieldId: item.fieldId || item.field,
-        fieldtype: item.fieldtype || 'jira',
-        from: item.from,
-        fromString: item.fromString,
-        to: item.to,
-        toString: item.toString
-      })),
+      ...changelog,
       timestamp: data.fields.updated,
-      issuetype: data.fields.issuetype.name as IssuesTypes,
+      issuetype: data.fields.issuetype.name,
       issueId: `${mappingPrefixes.issue}_${data.id}`,
     },
     fixVersion: data.fields.fixVersions[0]
@@ -141,7 +135,6 @@ export const handler = async function cycleTimeFormattedDataReciever(
   event: SQSEvent
 ): Promise<void> {
   logger.info({ message: `Records Length: ${event.Records.length}` });
-
   await Promise.all(
     event.Records.map(async (record: SQSRecord) => {
       const {
@@ -155,7 +148,6 @@ export const handler = async function cycleTimeFormattedDataReciever(
           requestId,
           resourceId,
         });
-
         const orgData = await getOrganization(messageBody.organization);
         if (!orgData) {
           logger.error({
@@ -190,7 +182,6 @@ export const handler = async function cycleTimeFormattedDataReciever(
         let mainTicketData: Jira.Type.FormatCycleTime;
         const orgId = `${mappingPrefixes.organization}_${orgData.orgId}`;
         const statusMapping = await initializeMapping(orgId);
-
         const reverseMapping = Object.entries(statusMapping).reduce(
           (acc: Record<string, { label: string; id: string }>, [key, value]) => {
             acc[value] = { label: key, id: value };
@@ -202,35 +193,30 @@ export const handler = async function cycleTimeFormattedDataReciever(
           const ticketData = dataFromEsb[0];
           mainTicketData = {
             ...formattedData,
-            ...ticketData.body
+            ...ticketData.body,
           };
         } else {
           mainTicketData = formattedData;
         }
-
         logger.info({
           message: 'CYCLE_TIME_SQS_RECEIVER_HANDLER-FORMATTED',
           data: JSON.stringify(mainTicketData),
           requestId,
           resourceId,
         });
-
-        const mainTicket = new MainTicket(mainTicketData as Jira.Type.FormatCycleTime, statusMapping, reverseMapping);
+        const mainTicket = new MainTicket(
+          mainTicketData as Jira.Type.FormatCycleTime,
+          statusMapping,
+          reverseMapping
+        );
         if (issueType === IssuesTypes.SUBTASK) {
           mainTicket.addSubtask(formatSubtask(messageBody.issue));
         }
-
         if (formattedData.changelog && formattedData.changelog.items) {
           mainTicket.changelog(formattedData.changelog);
         }
         const cycleTimeData = mainTicket.toJSON();
         await saveCycleTime(cycleTimeData, { requestId, resourceId }, messageBody.processId);
-        logger.info({
-          message: 'CYCLE_TIME_SQS_HANDLER_AFTER_SAVE',
-          data: cycleTimeData,
-          requestId,
-          resourceId,
-        });
       } catch (error) {
         await logProcessToRetry(record, Queue.qCycleTimeFormat.queueUrl, error as Error);
         logger.error({
