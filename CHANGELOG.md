@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.46.1](https://github.com/studiographene/pulse-data-integration/compare/v1.46.0...v1.46.1) (2025-06-02)
+
+
+### Bug Fixes
+
+* **PX-00111:** cyclet time changelog ([5027cbd](https://github.com/studiographene/pulse-data-integration/commit/5027cbd3ec797dd2ba53f037d851d9923b7daa6e))
+* **PX-00111:** cyclet time changelog ([#1270](https://github.com/studiographene/pulse-data-integration/issues/1270)) ([efb31b0](https://github.com/studiographene/pulse-data-integration/commit/efb31b09bf93afbdd2dbc55adc5ac9f6a83dfc1d))
+
 ## [1.46.0](https://github.com/studiographene/pulse-data-integration/compare/v1.45.0...v1.46.0) (2025-06-02)
 
 
