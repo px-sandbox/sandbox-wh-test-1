@@ -2,9 +2,9 @@ import { retryProcess } from './retry-process';
 
 export type CommitedFiles = {
   filename: string;
-  additions: string;
-  deletions: string;
-  changes: string;
+  additions: number;
+  deletions: number;
+  changes: number;
   status: string;
 };
 
