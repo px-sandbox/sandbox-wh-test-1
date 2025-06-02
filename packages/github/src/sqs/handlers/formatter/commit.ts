@@ -1,4 +1,4 @@
-import { OctokitResponse } from '@octokit/types';
+import { OctokitResponse, RequestInterface } from '@octokit/types';
 import async, { ErrorCallback } from 'async';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logger } from 'core';
@@ -86,7 +86,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       const files = await processFileChanges(
         responseData.data.files,
         filesLink,
-        octokitRequestWithTimeout,
+        octokitRequestWithTimeout as RequestInterface<{ headers: { Authorization: string } }>,
         { requestId, resourceId }
       );
       responseData.data.files = files;
@@ -141,17 +141,17 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
         files: [
           {
             filename: responseData.data.files[0].filename,
-            additions: String(responseData.data.files[0].additions),
-            deletions: String(responseData.data.files[0].deletions),
-            changes: String(responseData.data.files[0].changes),
+            additions: responseData.data.files[0].additions,
+            deletions: responseData.data.files[0].deletions,
+            changes: responseData.data.files[0].changes,
             status: responseData.data.files[0].status,
           },
         ] as [
           {
             filename: string;
-            additions: string;
-            deletions: string;
-            changes: string;
+            additions: number;
+            deletions: number;
+            changes: number;
             status: string;
           }
         ],

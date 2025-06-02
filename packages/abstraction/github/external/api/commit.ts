@@ -25,9 +25,9 @@ export type Commit = {
   files: [
     {
       filename: string;
-      additions: string;
-      deletions: string;
-      changes: string;
+      additions: number;
+      deletions: number;
+      changes: number;
       status: string;
     }
   ];
