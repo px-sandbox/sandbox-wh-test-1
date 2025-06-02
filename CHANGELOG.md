@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.46.0](https://github.com/studiographene/pulse-data-integration/compare/v1.45.0...v1.46.0) (2025-06-02)
+
+
+### Features
+
+* **PX-2700:** fixed test cases ([69b66db](https://github.com/studiographene/pulse-data-integration/commit/69b66dbb1a11f564e354f9102c7692d84192f796))
+* **PX-2700:** fixed test cases ([9ccef13](https://github.com/studiographene/pulse-data-integration/commit/9ccef139dc1b20c40ea58cd28772ef2156c29aa7))
+* **PX-2700:** fixed test cases ([#1267](https://github.com/studiographene/pulse-data-integration/issues/1267)) ([90f4a33](https://github.com/studiographene/pulse-data-integration/commit/90f4a33ea36804bd853f4ed5c175442171b2275b))
+
+
+### Bug Fixes
+
+* **PX-0000:** failed review request bypass save function ([97881f3](https://github.com/studiographene/pulse-data-integration/commit/97881f36b49c56a421a8971784154fe2898e1534))
+* **PX-0000:** failed review request bypass save function ([#1266](https://github.com/studiographene/pulse-data-integration/issues/1266)) ([23e23a4](https://github.com/studiographene/pulse-data-integration/commit/23e23a4867e24a0fd44938d34efc3d8fda25e998))
+* **PX-00111:** line of code formatter ([d4539b6](https://github.com/studiographene/pulse-data-integration/commit/d4539b617671c9963db8bebf01845133cc58c38f))
+* **PX-00111:** line of code formatter ([#1269](https://github.com/studiographene/pulse-data-integration/issues/1269)) ([515572e](https://github.com/studiographene/pulse-data-integration/commit/515572e54d3da2e301b3fe6a1796df670a8bc0cc))
+
 ## [1.45.0](https://github.com/studiographene/pulse-data-integration/compare/v1.44.2...v1.45.0) (2025-05-30)
 
 
