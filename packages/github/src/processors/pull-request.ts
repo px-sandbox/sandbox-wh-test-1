@@ -79,7 +79,7 @@ export class PRProcessor extends DataProcessor<
     state: string
   ): Promise<{ approvedAt: string | null; reviewedAt: string | null; reviewSeconds: number }> {
     let { approvedAt, reviewedAt, reviewSeconds } = pullData;
-    
+
     // Skip review time calculations if PR is in draft
     if (this.ghApiData.draft) {
       return { approvedAt, reviewedAt, reviewSeconds };
@@ -109,11 +109,7 @@ export class PRProcessor extends DataProcessor<
 
       // Calculate review seconds only if we have valid start and end times
       if (startTime && reviewedAt) {
-        reviewSeconds = getWorkingTime(
-          moment(startTime),
-          moment(reviewedAt),
-          createdTimezone
-        );
+        reviewSeconds = getWorkingTime(moment(startTime), moment(reviewedAt), createdTimezone);
       }
     }
 
@@ -196,35 +192,37 @@ export class PRProcessor extends DataProcessor<
 
     // Handle reviewStartedAt based on PR actions and cases
     let reviewStartedAt = null;
-    
+
     switch (this.ghApiData.action) {
       case Github.Enums.PullRequest.Opened:
         // Case 1: PR created - set reviewStartedAt to creation time
         reviewStartedAt = this.ghApiData.created_at;
         break;
-        
+
       case Github.Enums.PullRequest.ConvertedToDraft:
         // Case 2 & 3: PR converted to draft - set reviewStartedAt to null
         reviewStartedAt = null;
+        this.ghApiData.review_seconds = 0;
+        this.ghApiData.reviewed_at = null;
         break;
-        
+
       case Github.Enums.PullRequest.ReadyForReview:
         // Case 2 & 3: PR ready for review - set reviewStartedAt to current time
         reviewStartedAt = this.ghApiData.updated_at;
         break;
-        
+
       case Github.Enums.PullRequest.ReviewRequested:
       case Github.Enums.PullRequest.ReviewSubmitted:
         // For review actions, maintain existing reviewStartedAt if set
         // Otherwise use creation time for Case 1, or current time for Case 2 & 3
-        reviewStartedAt = pullData?.reviewStartedAt || 
-          (this.ghApiData.draft ? null : this.ghApiData.created_at);
+        reviewStartedAt =
+          pullData?.reviewStartedAt || (this.ghApiData.draft ? null : this.ghApiData.created_at);
         break;
-        
+
       default:
         // For other actions, maintain existing reviewStartedAt
-        reviewStartedAt = pullData?.reviewStartedAt || 
-          (this.ghApiData.draft ? null : this.ghApiData.created_at);
+        reviewStartedAt =
+          pullData?.reviewStartedAt || (this.ghApiData.draft ? null : this.ghApiData.created_at);
     }
 
     this.formattedData = {
