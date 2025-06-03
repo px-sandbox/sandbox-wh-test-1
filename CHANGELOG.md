@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.46.3](https://github.com/studiographene/pulse-data-integration/compare/v1.46.2...v1.46.3) (2025-06-03)
+
+
+### Bug Fixes
+
+* **PX-2819:** set review details to null if pr is converted to draft ([c463232](https://github.com/studiographene/pulse-data-integration/commit/c463232a2aedd4c0117c0d79b2e4c46cf47e0d14))
+* **PX-2819:** set review details to null if pr is converted to draft ([#1274](https://github.com/studiographene/pulse-data-integration/issues/1274)) ([59fac98](https://github.com/studiographene/pulse-data-integration/commit/59fac9852a1a5a8317c6443ea51ecfa7cd2ddd22))
+
 ## [1.46.2](https://github.com/studiographene/pulse-data-integration/compare/v1.46.1...v1.46.2) (2025-06-03)
 
 
