@@ -191,10 +191,7 @@ export const handler = async function cycleTimeFormattedDataReciever(
         );
         if (dataFromEsb.length > 0) {
           const ticketData = dataFromEsb[0];
-          mainTicketData = {
-            ...formattedData,
-            ...ticketData.body,
-          };
+          mainTicketData = ticketData;
         } else {
           mainTicketData = formattedData;
         }
