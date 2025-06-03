@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.47.0](https://github.com/studiographene/pulse-data-integration/compare/v1.46.3...v1.47.0) (2025-06-03)
+
+
+### Features
+
+* **PX-2944:** removed date range from active branch api ([#1265](https://github.com/studiographene/pulse-data-integration/issues/1265)) ([0c2135d](https://github.com/studiographene/pulse-data-integration/commit/0c2135db213bc8a290c15516d0cebfe3393af4f3))
+
 ## [1.46.3](https://github.com/studiographene/pulse-data-integration/compare/v1.46.2...v1.46.3) (2025-06-03)
 
 
