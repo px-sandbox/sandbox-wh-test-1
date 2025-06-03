@@ -1,5 +1,23 @@
-import{describe,it,expect} from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { formatIssue } from "../issue-helper";
+
+// Mock the dependencies
+vi.mock('@pulse/elasticsearch', () => ({
+  ElasticSearchClient: {
+    getInstance: vi.fn(() => ({
+      search: vi.fn(),
+    })),
+  },
+}));
+
+vi.mock('@pulse/dynamodb', () => ({
+  DynamoDbDocClient: {
+    getInstance: vi.fn(() => ({
+      find: vi.fn(),
+      put: vi.fn(),
+    })),
+  },
+}));
 
 describe('formatIssue', () => {
   it('should format the issue data correctly', () => {

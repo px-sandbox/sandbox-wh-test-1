@@ -4,11 +4,21 @@ import { logger } from 'core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { UserProcessor } from '../user';
+import { ElasticSearchClient } from '@pulse/elasticsearch';
 
 vi.mock('../../repository/organization/get-organization');
 vi.mock('../../lib/jira-client');
+vi.mock('@pulse/elasticsearch');
+vi.mock('sst/node/config', () => ({
+  Config: {
+    ELASTICSEARCH_URL: 'http://localhost:9200',
+    ELASTICSEARCH_USERNAME: 'test',
+    ELASTICSEARCH_PASSWORD: 'test',
+  },
+}));
 
 const mockGetOrganization = vi.mocked(getOrganization);
+const mockElasticSearchClient = vi.mocked(ElasticSearchClient);
 
 describe('UserProcessor', () => {
   let userProcessor: UserProcessor;

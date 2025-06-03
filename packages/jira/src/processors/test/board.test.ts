@@ -1,22 +1,28 @@
-import { beforeEach, afterEach, expect, it, describe, vi } from 'vitest';
+import { beforeEach, afterEach, expect, it, describe, vi, Mock } from 'vitest';
 import { Jira } from 'abstraction';
 import { logger } from 'core';
 import { JiraClient } from '../../lib/jira-client';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { BoardProcessor } from '../board';
 
+vi.mock('../../repository/organization/get-organization', () => ({
+    getOrganization: vi.fn()
+}));
+
+vi.mock('@pulse/elasticsearch', () => ({
+    ElasticSearchClient: {
+        getInstance: vi.fn()
+    }
+}));
+
 // eslint-disable-next-line max-lines-per-function
 describe('BoardProcessor', () => {
     let boardProcessor: BoardProcessor;
     let jiraClient: JiraClient;
     let apiData: Jira.Mapper.Board;
-    // let getOrganization: any;
+    let requestId: string;
+    let resourceId: string;
 
-    // adding requestId and
-    let requestId :string;
-    let resourceId :string;
-
-    vi.mock('../../repository/organization/get-organization');
     beforeEach(() => {
         apiData = {
             id: 123,
@@ -33,18 +39,15 @@ describe('BoardProcessor', () => {
         };
 
         requestId = "this_is_requestId1";
-
         resourceId = "this is responseId1";
         boardProcessor = new BoardProcessor(apiData, requestId, resourceId);
-
 
         jiraClient = {
             getBoard: vi.fn(),
         } as unknown as JiraClient;
         JiraClient.getClient = vi.fn().mockResolvedValue(jiraClient);
         const mockOrgData = { orgId: 'org123', id: 'jira_org_org123' };
-        getOrganization.mockResolvedValue(mockOrgData);
-        // getOrganization = vi.fn().mockResolvedValue([{ orgId: 'org123', id: 'jira_org_org123' }]);
+        (getOrganization as Mock).mockResolvedValue(mockOrgData);
         boardProcessor.getParentId = vi.fn().mockResolvedValue('f2fd8d13-8bde-4ec0-bf87-4376fc2c8672');
     });
 
@@ -55,12 +58,12 @@ describe('BoardProcessor', () => {
     describe('constructor', () => {
         it('should create a new instance of Board with the given properties', () => {
             const constructBoardProcessor = new BoardProcessor(apiData, requestId, resourceId);
-            expect(constructBoardProcessor).toEqual({ apiData });
+            expect(constructBoardProcessor).toBeInstanceOf(BoardProcessor);
+            expect(constructBoardProcessor.formattedData).toEqual({});
         });
     });
-    // eslint-disable-next-line max-lines-per-function
-    describe('processor', () => {
-        // eslint-disable-next-line max-lines-per-function
+
+    describe('process', () => {
         it('should return a board object', async () => {
             jiraClient.getBoard = vi.fn().mockResolvedValueOnce({
                 location: {
@@ -72,10 +75,10 @@ describe('BoardProcessor', () => {
                     rankCustomFieldId: 456,
                 },
             });
-            (getOrganization as vi.Mock).mockResolvedValueOnce({ orgId: 'org123', id: 'jira_org_org123' });
-            const result = await boardProcessor.processor();
+            (getOrganization as Mock).mockResolvedValueOnce({ orgId: 'org123', id: 'jira_org_org123' });
+            await boardProcessor.process();
             expect(getOrganization).toHaveBeenCalledWith('org 123');
-            expect(result).toEqual({
+            expect(boardProcessor.formattedData).toEqual({
                 id: 'f2fd8d13-8bde-4ec0-bf87-4376fc2c8672',
                 body: {
                     id: 'jira_board_123',
@@ -97,13 +100,16 @@ describe('BoardProcessor', () => {
                 },
             });
         });
+
         it('should throw an error if organization is not found', async () => {
             const mockLoggerError = vi.spyOn(logger, 'error');
-            (getOrganization as vi.Mock).mockResolvedValueOnce(undefined);
-            // getOrganizationData = vi.fn().mockReturnValueOnce(undefined);
-            // expect(getOrganization).toHaveBeenCalledWith('org 100');
-            await expect(boardProcessor.processor()).rejects.toThrow('Organization org 123 not found');
-            expect(mockLoggerError).toHaveBeenCalledWith('Organization org 123 not found');
+            (getOrganization as Mock).mockResolvedValueOnce(undefined);
+            await expect(boardProcessor.process()).rejects.toThrow('Organization org 123 not found');
+            expect(mockLoggerError).toHaveBeenCalledWith({
+                requestId,
+                resourceId,
+                message: 'Organization org 123 not found'
+            });
         });
 
         it(`should return a board object with null filter and columnConfig
@@ -120,8 +126,8 @@ describe('BoardProcessor', () => {
                     rankCustomFieldId: 456,
                 },
             });
-            const result = await boardProcessor.processor();
-            expect(result).toEqual({
+            await boardProcessor.process();
+            expect(boardProcessor.formattedData).toEqual({
                 id: 'f2fd8d13-8bde-4ec0-bf87-4376fc2c8672',
                 body: {
                     id: 'jira_board_123',
@@ -153,8 +159,8 @@ describe('BoardProcessor', () => {
                 },
                 type: Jira.Enums.BoardType.Scrum,
             });
-            const result = await boardProcessor.processor();
-            expect(result).toEqual({
+            await boardProcessor.process();
+            expect(boardProcessor.formattedData).toEqual({
                 id: 'f2fd8d13-8bde-4ec0-bf87-4376fc2c8672',
                 body: {
                     id: 'jira_board_123',
@@ -174,6 +180,5 @@ describe('BoardProcessor', () => {
                 },
             });
         });
-
     });
 });

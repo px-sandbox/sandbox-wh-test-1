@@ -4,6 +4,36 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getOrganization } from '../../repository/organization/get-organization'; // Adjust the path
 import { SprintProcessor } from '../sprint'; // Adjust the path to the actual file
 
+// Mock SST Config
+vi.mock('sst/node/config', () => ({
+  Config: {
+    OPENSEARCH_NODE: 'mock-node',
+    OPENSEARCH_USERNAME: 'mock-username',
+    OPENSEARCH_PASSWORD: 'mock-password',
+    REQUEST_TIMEOUT: 30000,
+  },
+}));
+
+// Mock ElasticSearchClient
+vi.mock('@pulse/elasticsearch', () => ({
+  ElasticSearchClient: {
+    getInstance: vi.fn().mockReturnValue({
+      search: vi.fn(),
+      queryAggs: vi.fn(),
+      putDocument: vi.fn(),
+      updateDocument: vi.fn(),
+      deleteByQuery: vi.fn(),
+      updateByQuery: vi.fn(),
+      paginateSearch: vi.fn(),
+      bulkInsert: vi.fn(),
+      bulkUpdate: vi.fn(),
+      isIndexExists: vi.fn(),
+      updateIndex: vi.fn(),
+      createIndex: vi.fn(),
+    }),
+  },
+}));
+
 // Mocking external dependencies
 vi.mock('../../repository/organization/get-organization'); // Mocking getOrganization
 vi.mock('../lib/jira-client'); // Mocking JiraClient

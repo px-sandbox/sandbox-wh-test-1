@@ -4,6 +4,27 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getOrganization } from '../../repository/organization/get-organization';
 import { ReopenRateProcessor } from '../reopen-rate';
 
+// Mock SST Config
+vi.mock('sst/node/config', () => ({
+  Config: {
+    OPENSEARCH_NODE: 'test-node',
+    OPENSEARCH_USERNAME: 'test-username',
+    OPENSEARCH_PASSWORD: 'test-password',
+  },
+}));
+
+// Mock ElasticSearchClient
+vi.mock('@pulse/elasticsearch', () => ({
+  ElasticSearchClient: {
+    getInstance: vi.fn().mockReturnValue({
+      search: vi.fn(),
+      putDocument: vi.fn(),
+      updateDocument: vi.fn(),
+      updateByQuery: vi.fn(),
+    }),
+  },
+}));
+
 vi.mock('../../repository/organization/get-organization');
 const mockGetOrganization = vi.mocked(getOrganization);
 
@@ -17,28 +38,17 @@ describe('ReopenRateProcessor', () => {
   beforeEach(() => {
     apiData = {
       _id: '123',
-      issue: {
-        id: 'issue-123',
-        self: 'https://jira.com/issue/123',
-        key: 'PROJ-1',
-        fields: {
-          project: {
-            self: 'https://jira.com/project/PROJ',
-            id: 'project-123',
-            key: 'PROJ',
-            name: 'Project 123',
-          },
-          created: '2024-01-01',
-        },
-      },
-      changelog: {
-        id: 'changelog-123',
-        items: [],
-      },
+      id: 'issue-123',
+      self: 'https://jira.com/issue/123',
+      key: 'PROJ-1',
+      issueId: 'issue-123',
+      projectKey: 'PROJ',
       organization: 'org-123',
+      organizationId: 'org-123',
+      sprintId: 'sprint-1',
+      boardId: 'board-1',
       reOpenCount: 2,
       isReopen: true,
-      sprintId: 'sprint-1',
     };
 
     requestId = 'test-request-id';
@@ -74,13 +84,14 @@ describe('ReopenRateProcessor', () => {
         body: {
           id: 'jira_reopen_rate_issue-123_jira_sprint_sprint-1',
           sprintId: 'jira_sprint_sprint-1',
-          projectId: 'jira_project_project-123',
+          projectId: 'jira_project_issue-123',
           projectKey: 'PROJ',
           issueId: 'jira_issue_issue-123',
           issueKey: 'PROJ-1',
           reOpenCount: 2,
           isReopen: true,
           organizationId: 'jira_org_org123',
+          boardId: 'jira_board_board-1',
           isDeleted: false,
           deletedAt: null,
         },

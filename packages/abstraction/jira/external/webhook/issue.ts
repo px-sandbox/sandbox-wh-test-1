@@ -11,6 +11,11 @@ export type ChangelogItem = {
   toString: string;
 };
 
+export type ChangelogWebhook = {
+  id: string;
+  items: ChangelogItem[];
+};
+
 export type Subtask = {
   id: string;
   key: string;

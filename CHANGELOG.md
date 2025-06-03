@@ -1,5 +1,46 @@
 # Changelog
 
+## [1.46.3](https://github.com/studiographene/pulse-data-integration/compare/v1.46.2...v1.46.3) (2025-06-03)
+
+
+### Bug Fixes
+
+* **PX-2819:** set review details to null if pr is converted to draft ([c463232](https://github.com/studiographene/pulse-data-integration/commit/c463232a2aedd4c0117c0d79b2e4c46cf47e0d14))
+* **PX-2819:** set review details to null if pr is converted to draft ([#1274](https://github.com/studiographene/pulse-data-integration/issues/1274)) ([59fac98](https://github.com/studiographene/pulse-data-integration/commit/59fac9852a1a5a8317c6443ea51ecfa7cd2ddd22))
+
+## [1.46.2](https://github.com/studiographene/pulse-data-integration/compare/v1.46.1...v1.46.2) (2025-06-03)
+
+
+### Bug Fixes
+
+* **PX-09999:** cycle time fix ([3f9b400](https://github.com/studiographene/pulse-data-integration/commit/3f9b40081d46702ac7752c440977d67ad184f1ac))
+* **PX-09999:** cycle time fix ([#1272](https://github.com/studiographene/pulse-data-integration/issues/1272)) ([41c4e64](https://github.com/studiographene/pulse-data-integration/commit/41c4e6417f8fbed36c682a53fb5d7b0482e5bafa))
+
+## [1.46.1](https://github.com/studiographene/pulse-data-integration/compare/v1.46.0...v1.46.1) (2025-06-02)
+
+
+### Bug Fixes
+
+* **PX-00111:** cyclet time changelog ([5027cbd](https://github.com/studiographene/pulse-data-integration/commit/5027cbd3ec797dd2ba53f037d851d9923b7daa6e))
+* **PX-00111:** cyclet time changelog ([#1270](https://github.com/studiographene/pulse-data-integration/issues/1270)) ([efb31b0](https://github.com/studiographene/pulse-data-integration/commit/efb31b09bf93afbdd2dbc55adc5ac9f6a83dfc1d))
+
+## [1.46.0](https://github.com/studiographene/pulse-data-integration/compare/v1.45.0...v1.46.0) (2025-06-02)
+
+
+### Features
+
+* **PX-2700:** fixed test cases ([69b66db](https://github.com/studiographene/pulse-data-integration/commit/69b66dbb1a11f564e354f9102c7692d84192f796))
+* **PX-2700:** fixed test cases ([9ccef13](https://github.com/studiographene/pulse-data-integration/commit/9ccef139dc1b20c40ea58cd28772ef2156c29aa7))
+* **PX-2700:** fixed test cases ([#1267](https://github.com/studiographene/pulse-data-integration/issues/1267)) ([90f4a33](https://github.com/studiographene/pulse-data-integration/commit/90f4a33ea36804bd853f4ed5c175442171b2275b))
+
+
+### Bug Fixes
+
+* **PX-0000:** failed review request bypass save function ([97881f3](https://github.com/studiographene/pulse-data-integration/commit/97881f36b49c56a421a8971784154fe2898e1534))
+* **PX-0000:** failed review request bypass save function ([#1266](https://github.com/studiographene/pulse-data-integration/issues/1266)) ([23e23a4](https://github.com/studiographene/pulse-data-integration/commit/23e23a4867e24a0fd44938d34efc3d8fda25e998))
+* **PX-00111:** line of code formatter ([d4539b6](https://github.com/studiographene/pulse-data-integration/commit/d4539b617671c9963db8bebf01845133cc58c38f))
+* **PX-00111:** line of code formatter ([#1269](https://github.com/studiographene/pulse-data-integration/issues/1269)) ([515572e](https://github.com/studiographene/pulse-data-integration/commit/515572e54d3da2e301b3fe6a1796df670a8bc0cc))
+
 ## [1.45.0](https://github.com/studiographene/pulse-data-integration/compare/v1.44.2...v1.45.0) (2025-05-30)
 
 
