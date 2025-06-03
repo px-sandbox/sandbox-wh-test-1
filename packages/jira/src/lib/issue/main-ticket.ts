@@ -199,19 +199,15 @@ export class MainTicket {
     isAllSubtaskDeleted: boolean
   ): void {
     if (
-      String(items.to) === String(this.StatusMapping[this.Status.Done].id) &&
+      items.to === this.StatusMapping[this.Status.Done].id &&
       changelogs.issuetype !== IssuesTypes.SUBTASK
     ) {
       this.statusTransition(items.to, changelogs.timestamp);
-    } else if (
-      this.subtasks.length > 0 &&
-      statuses.includes(Number(items.to)) &&
-      !isAllSubtaskDeleted
-    ) {
+    } else if (this.subtasks.length > 0 && statuses.includes(items.to) && !isAllSubtaskDeleted) {
       const toStatus = this.StatusMapping[items.to].label;
       this.updateHistory(toStatus, changelogs.timestamp);
     } else if (
-      String(items.to) === String(this.StatusMapping[this.Status.Ready_For_QA].id) &&
+      items.to === this.StatusMapping[this.Status.Ready_For_QA].id &&
       this.subtasks.length > 0
     ) {
       const toStatus = this.StatusMapping[items.to].label;
