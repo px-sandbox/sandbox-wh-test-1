@@ -89,15 +89,13 @@ export const prWaitTimeBreakdownSchema = {
     queryStringParameters: {
       type: 'object',
       properties: {
-        startDate: { type: 'string' },
-        endDate: { type: 'string' },
         repoIds: { type: 'string' },
         page: { type: 'number' },
         limit: { type: 'number' },
         sortKey: { type: 'string' },
         sortOrder: { type: 'string' },
       },
-      required: ['startDate', 'endDate', 'repoIds'],
+      required: ['repoIds'],
     },
   },
 };
