@@ -193,6 +193,88 @@ export async function versionHitsResponse(
   };
 }
 
+async function getStoriesAndTasksWithEstimates(
+  sprintId: string,
+  versionIds: string,
+  reqCtx: Other.Type.RequestCtx,
+  type: Jira.Enums.JiraFilterType
+): Promise<string[]> {
+  const query = esb
+    .requestBodySearch()
+    .size(1000)
+    .query(
+      esb
+        .boolQuery()
+        .must([
+          type === Jira.Enums.JiraFilterType.SPRINT
+            ? esb.termQuery('body.sprintId', sprintId)
+            : esb.termsQuery('body.fixVersion', versionIds),
+          esb.termQuery('body.isDeleted', false),
+        ])
+        .should([
+          esb.termQuery('body.issueType', IssuesTypes.STORY),
+          esb.termQuery('body.issueType', IssuesTypes.TASK),
+          esb.termQuery('body.issueType', IssuesTypes.SUBTASK),
+          esb.termQuery('body.issueType', IssuesTypes.BUG),
+        ])
+        .minimumShouldMatch(1)
+    )
+    .toJSON();
+  logger.info({ ...reqCtx, message: 'stories_tasks_query', data: { query } });
+
+  const res = await esClientObj.search(Jira.Enums.IndexName.Issue, query);
+  const issueData = await searchedDataFormator(res);
+
+  // Create mapping for task and its subtask using parent key in subtask
+  const taskSubtaskMapping: Record<string, TaskItem> = {};
+  (issueData as unknown as TaskItem[]).forEach((item) => {
+    if ([IssuesTypes.TASK, IssuesTypes.STORY].includes(item.issueType as IssuesTypes)) {
+      taskSubtaskMapping[item.issueKey] = item;
+    }
+  });
+
+  // Add subtask to task with parent mapping
+  (issueData as unknown as TaskItem[]).forEach((item) => {
+    const parentKey = item.parent?.key;
+    if (item.issueType === IssuesTypes.SUBTASK && parentKey && taskSubtaskMapping[parentKey]) {
+      const parentTask = taskSubtaskMapping[parentKey];
+      if (!parentTask.embeddedSubtasks) {
+        parentTask.embeddedSubtasks = [];
+      }
+      parentTask.embeddedSubtasks.push(item);
+    }
+  });
+
+  // Get valid story and task keys
+  const validStoryTaskKeys = Object.values(taskSubtaskMapping)
+    .filter(
+      (task) =>
+        (task.timeTracker?.estimate ?? 0) > 0 ||
+        (task.embeddedSubtasks &&
+          task.embeddedSubtasks.some((subtask) => (subtask.timeTracker?.estimate ?? 0) > 0))
+    )
+    .map((item) => item.issueKey);
+
+  // Get valid subtask keys (only those with estimates > 0)
+  const validSubtaskKeys = (issueData as unknown as TaskItem[])
+    .filter(
+      (item) => item.issueType === IssuesTypes.SUBTASK && (item.timeTracker?.estimate ?? 0) > 0
+    )
+    .map((item) => item.issueKey);
+
+  // Get valid bug keys (bugs without issue links and with estimates > 0)
+  const validBugKeys = (issueData as unknown as TaskItem[])
+    .filter(
+      (item) =>
+        item.issueType === IssuesTypes.BUG &&
+        !item.issueLinks?.length &&
+        (item.timeTracker?.estimate ?? 0) > 0
+    )
+    .map((item) => item.issueKey);
+
+  return [...validStoryTaskKeys, ...validSubtaskKeys, ...validBugKeys];
+}
+
 async function estimateActualGraphResponse(
   sortKey: Jira.Enums.IssueTimeTracker,
   sortOrder: 'desc' | 'asc',
@@ -204,6 +286,12 @@ async function estimateActualGraphResponse(
   sprint_aggregation: { buckets: BucketItem[] };
   version_aggregation: { buckets: BucketItem[] };
 }> {
+  // Get all valid story and task keys that have estimates
+  const validIssueKeys = await Promise.all(
+    type === Jira.Enums.JiraFilterType.SPRINT
+      ? sprintIds.map((sprintId) => getStoriesAndTasksWithEstimates(sprintId, '', reqCtx, type))
+      : versionIds.map((versionId) => getStoriesAndTasksWithEstimates('', versionId, reqCtx, type))
+  );
   const query = esb
     .requestBodySearch()
     .size(0)
@@ -234,18 +322,8 @@ async function estimateActualGraphResponse(
             ? esb.termsQuery('body.sprintId', sprintIds)
             : esb.termsQuery('body.fixVersion', versionIds),
           esb.termQuery('body.isDeleted', false),
+          esb.termsQuery('body.issueKey', validIssueKeys.flat()),
         ])
-        .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
-        .should([
-          esb.termQuery('body.issueType', IssuesTypes.STORY),
-          esb.termQuery('body.issueType', IssuesTypes.TASK),
-          esb.termQuery('body.issueType', IssuesTypes.SUBTASK),
-          esb
-            .boolQuery()
-            .must(esb.termQuery('body.issueType', IssuesTypes.BUG))
-            .mustNot(esb.existsQuery('body.issueLinks')),
-        ])
-        .minimumShouldMatch(1)
     )
     .toJSON() as { query: object };
   logger.info({ ...reqCtx, message: 'issue_sprint_query', data: { query } });
@@ -269,19 +347,37 @@ async function getWorkItemsData(
     }>;
   };
 }> {
+  // First get all valid issue keys using the same logic as getStoriesAndTasksWithEstimates
+  const validIssueKeys = await Promise.all(
+    type === Jira.Enums.JiraFilterType.SPRINT
+      ? sprintIds.map((sprintId) => getStoriesAndTasksWithEstimates(sprintId, '', reqCtx, type))
+      : versionIds?.map((versionId) =>
+          getStoriesAndTasksWithEstimates('', versionId, reqCtx, type)
+        ) ?? []
+  );
+
   const query = esb
     .requestBodySearch()
     .size(0)
     .query(
-      esb
-        .boolQuery()
-        .must([
-          esb.termsQuery('body.issueType', [IssuesTypes.TASK, IssuesTypes.STORY, IssuesTypes.BUG]),
-          esb.termQuery('body.isDeleted', false),
-          type === Jira.Enums.JiraFilterType.SPRINT
-            ? esb.termsQuery('body.sprintId', sprintIds)
-            : esb.termsQuery('body.fixVersion', versionIds),
-        ])
+      esb.boolQuery().must([
+        esb.termsQuery('body.issueType', [IssuesTypes.TASK, IssuesTypes.STORY, IssuesTypes.BUG]),
+        esb.termQuery('body.isDeleted', false),
+        type === Jira.Enums.JiraFilterType.SPRINT
+          ? esb.termsQuery('body.sprintId', sprintIds)
+          : esb.termsQuery('body.fixVersion', versionIds),
+        esb.termsQuery('body.issueKey', validIssueKeys.flat()),
+        esb
+          .boolQuery()
+          .should([
+            esb.termsQuery('body.issueType', [IssuesTypes.TASK, IssuesTypes.STORY]),
+            esb
+              .boolQuery()
+              .must(esb.termQuery('body.issueType', IssuesTypes.BUG))
+              .mustNot(esb.existsQuery('body.issueLinks')),
+          ])
+          .minimumShouldMatch(1),
+      ])
     )
     .agg(
       type === Jira.Enums.JiraFilterType.SPRINT
@@ -1097,7 +1193,7 @@ async function estimateAvgResponse(
             : esb.termsQuery('body.fixVersion', ids),
           esb.termQuery('body.isDeleted', false),
         ])
-        .filter(esb.rangeQuery('body.timeTracker.estimate').gt(0))
+        .filter(esb.rangeQuery('body.timeTracker.estimate').gte(0))
         .should([
           esb.termQuery('body.issueType', IssuesTypes.STORY),
           esb.termQuery('body.issueType', IssuesTypes.TASK),
