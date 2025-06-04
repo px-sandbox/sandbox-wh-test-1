@@ -344,13 +344,15 @@ export const estimatesVsActualsBreakdownV2 = async (
             (((overallActual - overallEstimate) / overallEstimate) * 100).toFixed(2)
           ),
           hasSubtasks: subtasksArr.length > 0,
-          totalVariance: (estimate === 0 ? 0 : ((totalTime - estimate) * 100) / estimate).toFixed(
-            2
+          totalVariance: parseFloat(
+            (estimate === 0 ? 0 : ((totalTime - estimate) * 100) / estimate).toFixed(2)
           ),
-          overallTotalVariance: (overallEstimate === 0
-            ? 0
-            : ((totalTime - overallEstimate) * 100) / overallEstimate
-          ).toFixed(2),
+          overallTotalVariance: parseFloat(
+            (overallEstimate === 0
+              ? 0
+              : ((totalTime - overallEstimate) * 100) / overallEstimate
+            ).toFixed(2)
+          ),
         };
       })
     );

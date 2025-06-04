@@ -490,7 +490,7 @@ function calculateTimeAndVariance(
   time: { estimate: number; actual: number };
   variance: number;
   totalTime: number;
-  totalVariance: string;
+  totalVariance: number;
 } {
   const totalTime = (bugTime?.bugInfo.value ?? 0) + (item.actual.value ?? 0);
   return {
@@ -505,10 +505,12 @@ function calculateTimeAndVariance(
       ).toFixed(2)
     ),
     totalTime,
-    totalVariance: (item.estimate.value === 0
-      ? 0
-      : ((totalTime - item.estimate.value) * 100) / item.estimate.value
-    ).toFixed(2),
+    totalVariance: parseFloat(
+      (item.estimate.value === 0
+        ? 0
+        : ((totalTime - item.estimate.value) * 100) / item.estimate.value
+      ).toFixed(2)
+    ),
   };
 }
 
