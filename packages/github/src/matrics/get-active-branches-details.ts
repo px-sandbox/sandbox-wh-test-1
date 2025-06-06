@@ -157,7 +157,7 @@ export const activeBranchDetailsGraphData = async (
           .boolQuery()
           .must([esb.termsQuery('body.repoId', repoIds), esb.termQuery('body.isDeleted', false)])
       )
-      .sort(esb.sort('body.createdAt', 'asc'))
+      .sort(esb.sort('body.createdAt', 'desc'))
       .toJSON();
 
     logger.info({
