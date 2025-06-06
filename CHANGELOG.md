@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.48.2](https://github.com/studiographene/pulse-data-integration/compare/v1.48.1...v1.48.2) (2025-06-04)
+
+
+### Bug Fixes
+
+* **PX-2890:** header calculation for development time and workItem count ([3ae60db](https://github.com/studiographene/pulse-data-integration/commit/3ae60db145e46f59a20bfbb60c9fe812da700bd2))
+* **PX-2890:** header calculation for development time and workItem count ([#1281](https://github.com/studiographene/pulse-data-integration/issues/1281)) ([0e5a1a2](https://github.com/studiographene/pulse-data-integration/commit/0e5a1a2d360b7f930ed5a7c8a9bf9ca8ee1dff2d))
+
+## [1.48.1](https://github.com/studiographene/pulse-data-integration/compare/v1.48.0...v1.48.1) (2025-06-04)
+
+
+### Bug Fixes
+
+* **PX-2948:** floating values decimal tofixed 2 places ([53006f0](https://github.com/studiographene/pulse-data-integration/commit/53006f03a7248c87831f6af194b05198e9a358aa))
+* **PX-2948:** floating values decimal tofixed 2 places ([#1279](https://github.com/studiographene/pulse-data-integration/issues/1279)) ([c840df7](https://github.com/studiographene/pulse-data-integration/commit/c840df7c46e6b1bb6df1642a19603bb6eafdcef9))
+
 ## [1.48.0](https://github.com/studiographene/pulse-data-integration/compare/v1.47.0...v1.48.0) (2025-06-04)
 
 
