@@ -41,7 +41,7 @@ export class BranchProcessor extends DataProcessor<
         organizationId: `${mappingPrefixes.organization}_${this.ghApiData.orgId}`,
         repoId: `${mappingPrefixes.repo}_${this.ghApiData.repo_id}`,
         authorId: `${mappingPrefixes.user}_${this.ghApiData.authorId}`,
-        createdAt: this.ghApiData.created_at ?? new Date(),
+        createdAt: moment(this.ghApiData.created_at ?? new Date()).toISOString(),
         pushedAt: this.ghApiData?.pushed_at,
         updatedAt: this.ghApiData?.updated_at,
         deletedAt: isDeleted ? new Date().toISOString() : null,
