@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.48.3](https://github.com/studiographene/pulse-data-integration/compare/v1.48.2...v1.48.3) (2025-06-06)
+
+
+### Bug Fixes
+
+* **PX-2954:** branch created_at formatting ([2068c0f](https://github.com/studiographene/pulse-data-integration/commit/2068c0f56b8d5d4efb4c47573f756ab38052ed12))
+* **PX-2954:** branch created_at formatting ([#1283](https://github.com/studiographene/pulse-data-integration/issues/1283)) ([2fefc1f](https://github.com/studiographene/pulse-data-integration/commit/2fefc1fcd2f4b67a63418a7b1c86746ed7117cb4))
+
 ## [1.48.2](https://github.com/studiographene/pulse-data-integration/compare/v1.48.1...v1.48.2) (2025-06-04)
 
 
