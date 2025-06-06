@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.49.0](https://github.com/studiographene/pulse-data-integration/compare/v1.48.3...v1.49.0) (2025-06-06)
+
+
+### Features
+
+* **PX-2960:** sorting active branch fix ([d740a4d](https://github.com/studiographene/pulse-data-integration/commit/d740a4d9b76ed80eb54d4d7099f558a4ac9924c5))
+
 ## [1.48.3](https://github.com/studiographene/pulse-data-integration/compare/v1.48.2...v1.48.3) (2025-06-06)
 
 
