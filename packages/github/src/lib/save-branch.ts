@@ -19,8 +19,11 @@ export async function saveBranchDetails(
       .requestBodySearch()
       .query(esb.matchQuery('body.id', data.body.id))
       .toJSON();
-    const userData = await esClientObj.search(Github.Enums.IndexName.GitBranch, matchQry);
-    const [formattedData] = await searchedDataFormator(userData);
+    const branch = (await esClientObj.search(
+      Github.Enums.IndexName.GitBranch,
+      matchQry
+    )) as Other.Type.ElasticSearchResponse;
+    const [formattedData] = await searchedDataFormator(branch);
     if (formattedData) {
       logger.info({
         message: 'saveBranchDetails.info LAST_ACTIONS_PERFORMED',
@@ -28,8 +31,11 @@ export async function saveBranchDetails(
         requestId,
         resourceId,
       });
-      updatedData.body.action = [...formattedData.action, ...data.body.action];
-      updatedData.body.createdAt = formattedData.createdAt;
+      updatedData.body.action = [
+        ...(formattedData.action as Github.Type.actions),
+        ...data.body.action,
+      ];
+      updatedData.body.createdAt = formattedData.createdAt as string;
     }
     await esClientObj.putDocument(Github.Enums.IndexName.GitBranch, updatedData);
     logger.info({ message: 'saveBranchDetails.successful', requestId, resourceId });
