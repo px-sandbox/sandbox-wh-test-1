@@ -1,6 +1,7 @@
 import { ElasticSearchClient } from '@pulse/elasticsearch';
-import { Jira } from 'abstraction';
+import { Jira, Other } from 'abstraction';
 import { logger } from 'core';
+import { deleteProcessfromDdb } from 'rp';
 
 /**
  * Saves the details of a Jira worklog to DynamoDB and Elasticsearch.
@@ -12,13 +13,17 @@ import { logger } from 'core';
 const esClientObj = ElasticSearchClient.getInstance();
 
 export async function saveWorklogDetails(
-    data: Jira.Type.Worklog,
+  data: Jira.Type.Worklog,
+  reqCtx: Other.Type.RequestCtx,
+  processId?: string
 ): Promise<void> {
-    try {
-        await esClientObj.putDocument(Jira.Enums.IndexName.Worklog, data);
-        logger.info({ data, message: 'saveWorklogDetails.successful' });
-    } catch (error: unknown) {
-        logger.error({ data, message: 'saveWorklogDetails.error', error });
-        throw error;
-    }
+  const { requestId, resourceId } = reqCtx;
+  try {
+    await esClientObj.putDocument(Jira.Enums.IndexName.Worklog, data);
+    logger.info({ requestId, resourceId, message: 'saveWorklogDetails.successful' });
+    await deleteProcessfromDdb(processId, reqCtx);
+  } catch (error: unknown) {
+    logger.error({ data, message: 'saveWorklogDetails.error', error });
+    throw error;
+  }
 }
