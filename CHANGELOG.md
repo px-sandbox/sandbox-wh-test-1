@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.49.1](https://github.com/studiographene/pulse-data-integration/compare/v1.49.0...v1.49.1) (2025-06-10)
+
+
+### Bug Fixes
+
+* **PX-2888-v2:** deletefrom DDB ([1324e4b](https://github.com/studiographene/pulse-data-integration/commit/1324e4b9386969a1efbabb26d07564d2ee660cf1))
+* **PX-2888-v2:** deletefrom DDB ([#1288](https://github.com/studiographene/pulse-data-integration/issues/1288)) ([1e56a2f](https://github.com/studiographene/pulse-data-integration/commit/1e56a2fd3ca087be9d2551c044a8e230b0f0aaa9))
+* **PX-2956:** bugs subtask estimates wont be considered ([bba8284](https://github.com/studiographene/pulse-data-integration/commit/bba8284d53f924e513015ded733718e5a2bf9c67))
+* **PX-2956:** bugs subtask estimates wont be considered ([#1287](https://github.com/studiographene/pulse-data-integration/issues/1287)) ([d7dfea2](https://github.com/studiographene/pulse-data-integration/commit/d7dfea2c26b558012517a27a506c5837642fbf61))
+
 ## [1.49.0](https://github.com/studiographene/pulse-data-integration/compare/v1.48.3...v1.49.0) (2025-06-06)
 
 
