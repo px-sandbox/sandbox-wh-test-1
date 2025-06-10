@@ -255,10 +255,14 @@ async function getStoriesAndTasksWithEstimates(
     )
     .map((item) => item.issueKey);
 
-  // Get valid subtask keys (only those with estimates > 0)
+  // Get valid subtask keys (only those with estimates > 0 and whose parent is in validStoryTaskKeys)
   const validSubtaskKeys = (issueData as unknown as TaskItem[])
     .filter(
-      (item) => item.issueType === IssuesTypes.SUBTASK && (item.timeTracker?.estimate ?? 0) > 0
+      (item) =>
+        item.issueType === IssuesTypes.SUBTASK &&
+        (item.timeTracker?.estimate ?? 0) > 0 &&
+        item.parent?.key &&
+        validStoryTaskKeys.includes(item.parent.key)
     )
     .map((item) => item.issueKey);
 
@@ -294,13 +298,13 @@ async function estimateActualGraphResponse(
   );
   const query = esb
     .requestBodySearch()
-    .size(0)
+    .size(sprintIds.length + versionIds.length)
     .agg(
       type === Jira.Enums.JiraFilterType.SPRINT
         ? esb
             .termsAggregation('sprint_aggregation', 'body.sprintId')
             .order(sortKey, sortOrder)
-            .size(10)
+            .size(sprintIds.length)
             .aggs([
               esb.sumAggregation('estimate', 'body.timeTracker.estimate'),
               esb.sumAggregation('actual', 'body.timeTracker.actual'),
@@ -308,7 +312,7 @@ async function estimateActualGraphResponse(
         : esb
             .termsAggregation('version_aggregation', 'body.fixVersion')
             .order(sortKey, sortOrder)
-            .size(10)
+            .size(versionIds.length)
             .aggs([
               esb.sumAggregation('estimate', 'body.timeTracker.estimate'),
               esb.sumAggregation('actual', 'body.timeTracker.actual'),
@@ -318,9 +322,6 @@ async function estimateActualGraphResponse(
       esb
         .boolQuery()
         .must([
-          type === Jira.Enums.JiraFilterType.SPRINT
-            ? esb.termsQuery('body.sprintId', sprintIds)
-            : esb.termsQuery('body.fixVersion', versionIds),
           esb.termQuery('body.isDeleted', false),
           esb.termsQuery('body.issueKey', validIssueKeys.flat()),
         ])
