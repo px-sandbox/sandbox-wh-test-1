@@ -1,15 +1,18 @@
 import axios from 'axios';
 const AdmZip = require('adm-zip');
 import { logger } from 'core';
+import { getInstallationAccessToken } from './installation-access-token';
 
-async function fetchArtifacts(token: string, artifactDownloadUrl: string): Promise<any> {
+async function fetchArtifacts(orgName: string, artifactDownloadUrl: string): Promise<any> {
   try {
+    const installationAccessToken = await getInstallationAccessToken(orgName);
+
     // Download the zip file with timeout
     const response = await axios.get<Buffer>(artifactDownloadUrl, {
       responseType: 'arraybuffer',
       headers: {
         Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${installationAccessToken.body.token}`,
         'X-GitHub-Api-Version': '2022-11-28',
       },
     });
