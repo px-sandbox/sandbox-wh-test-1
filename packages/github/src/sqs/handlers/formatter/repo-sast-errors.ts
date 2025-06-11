@@ -8,11 +8,11 @@ import { SastCompositeKeys } from 'abstraction/github/type/repo-sast-errors';
 import moment from 'moment';
 import { mappingPrefixes } from '../../../constant/config';
 import {
-  fetchDataFromS3,
   getSastDataFromES,
   repoSastErrorsFormatter,
   storeSastErrorReportToES,
 } from '../../../processors/repo-sast-errors';
+import { fetchArtifacts } from '../../../util/fetch-artifacts';
 
 const compareAndUpdateData = async (
   apiData: Github.Type.RepoSastErrors[],
@@ -89,16 +89,21 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId,
     });
-    const { s3Obj, repoId, branch, orgId } = messageBody;
-    const bucketName = `${process.env.SST_STAGE}-sast-errors`;
-    const data: Github.ExternalType.Api.RepoSastErrors = await fetchDataFromS3(
-      s3Obj.key,
-      bucketName,
-      { requestId, resourceId }
+    const { repoId, branch, organizationId } = messageBody;
+    // const bucketName = `${process.env.SST_STAGE}-sast-errors`;
+    // const data: Github.ExternalType.Api.RepoSastErrors = await fetchDataFromS3(
+    //   s3Obj.key,
+    //   bucketName,
+    //   { requestId, resourceId }
+    // );
+
+    const data: Github.ExternalType.Api.RepoSastErrors = await fetchArtifacts(
+      messageBody.orgName,
+      messageBody.artifactDownloadUrl
     );
 
     const sastErrorFormattedData = await repoSastErrorsFormatter(data);
-    const sastDataFromES = await getSastDataFromES(repoId, orgId);
+    const sastDataFromES = await getSastDataFromES(repoId, organizationId);
     const dataForUpdate = await compareAndUpdateData(
       sastErrorFormattedData,
       sastDataFromES,
@@ -107,11 +112,11 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
     // error counting format
     const date = moment(data.createdAt).format('YYYY-MM-DD');
     const errorCountData: Github.Type.RepoSastErrorCount = {
-      id: `${mappingPrefixes.sast_errors}_${branch}_${repoId}_${orgId}_${date}`,
+      id: `${mappingPrefixes.sast_errors}_${branch}_${repoId}_${organizationId}_${date}`,
       body: {
         repoId: `${mappingPrefixes.repo}_${repoId}`,
         branch,
-        organizationId: `${mappingPrefixes.organization}_${orgId}`,
+        organizationId: `${mappingPrefixes.organization}_${organizationId}`,
         count: sastErrorFormattedData.length,
         date,
       },
