@@ -2,6 +2,7 @@ import axios from 'axios';
 const AdmZip = require('adm-zip');
 import { logger } from 'core';
 import { getInstallationAccessToken } from './installation-access-token';
+import { ZipEntry } from 'abstraction/github/type/aggregations/artifact';
 
 async function fetchArtifacts(orgName: string, artifactDownloadUrl: string): Promise<any> {
   try {
