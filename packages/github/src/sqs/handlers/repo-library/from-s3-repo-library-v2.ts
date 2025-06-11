@@ -5,6 +5,7 @@ import { Queue } from 'sst/node/queue';
 import { logProcessToRetry } from 'rp';
 import { fetchDataFromS3 } from '../../../processors/repo-sast-errors';
 import { repoLibHelper } from '../../../service/repo-library/repo-library-helper';
+import { fetchArtifacts } from '../../../util/fetch-artifacts';
 
 export const handler = async function repoLibS3(event: SQSEvent): Promise<void> {
   logger.info({ message: 'Records Length', data: JSON.stringify(event.Records.length) });
@@ -15,7 +16,7 @@ export const handler = async function repoLibS3(event: SQSEvent): Promise<void> 
         message: messageBody,
       } = JSON.parse(record.body);
       try {
-        const data =  // TODO: Implement the logic to fetch the artifact
+        const data = await fetchArtifacts(messageBody.orgName, messageBody.artifactDownloadUrl);
 
         if (data) {
           await repoLibHelper(
