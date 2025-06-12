@@ -18,7 +18,6 @@ import { initializeIndexerQueue } from './indexer';
 import { createGhTestCoverageQueue } from './test-coverage';
 import { createGhDeploymentQueue } from './github-deployment';
 import { initializeWorkbreakdownQueue } from './workbreakdown';
-import { createGhWorkflowQueue } from './workflow';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeQueue(
@@ -76,12 +75,7 @@ export function initializeQueue(
   const [testCoverageQueue] = createGhTestCoverageQueue(stack, buckets.testCoverageReportsBucket);
   const [githubDeploymentFrequencyQueue] = createGhDeploymentQueue(stack);
   const workbreakdownQueue = initializeWorkbreakdownQueue(stack, githubDDb);
-  const [
-    pulseVersionUpgradesReportQueue,
-    pulseSecurityErrorsReportQueue,
-    pulseTestCaseCoverageReportQueue,
-    pulseWorkBreakdownReportQueue,
-  ] = createGhWorkflowQueue(stack);
+
   // Bindings for indexerQueue
   indexerQueue.bind([afterRepoSaveQueue]);
 
@@ -115,9 +109,5 @@ export function initializeQueue(
     testCoverageQueue,
     githubDeploymentFrequencyQueue,
     workbreakdownQueue,
-    pulseVersionUpgradesReportQueue,
-    pulseSecurityErrorsReportQueue,
-    pulseTestCaseCoverageReportQueue,
-    pulseWorkBreakdownReportQueue,
   };
 }

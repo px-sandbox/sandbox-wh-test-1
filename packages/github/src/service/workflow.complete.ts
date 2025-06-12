@@ -30,11 +30,13 @@ export async function completedWorkflowHandler(
     const [prInfo] = await getPullRequestById(prId);
     if (prInfo && prInfo.merged) {
       // Get the info of the workflow run and update the prData
-      const workflowRunId = workflowRunData.workflow_run.id;
-      const repoOwner = workflowRunData.organization.login;
-      const repoName = workflowRunData.repository.name;
+      const {
+        organization: { id: organizationId, login: orgName },
+        repository: { id: repoId, name: repoName },
+        workflow_run: { id: workflowRunId },
+      } = workflowRunData;
 
-      const installationAccessToken = await getInstallationAccessToken(repoOwner);
+      const installationAccessToken = await getInstallationAccessToken(orgName);
       const octokit = ghRequest.request.defaults({
         headers: {
           Authorization: `Bearer ${installationAccessToken.body.token}`,
@@ -43,7 +45,7 @@ export async function completedWorkflowHandler(
       const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
 
       const artifactsResponse = (await octokitRequestWithTimeout(
-        `GET /repos/${repoOwner}/${repoName}/actions/runs/${workflowRunId}/artifacts`
+        `GET /repos/${orgName}/${repoName}/actions/runs/${workflowRunId}/artifacts`
       )) as OctokitResponse<{ artifacts: WorkflowArtifact[] }>;
 
       logger.info({
@@ -59,9 +61,9 @@ export async function completedWorkflowHandler(
               // call the queue to process the artifact
               await sqsClient.sendMessage(
                 {
-                  organizationId: workflowRunData.organization.id,
-                  orgName: workflowRunData.organization.login,
-                  repoId: workflowRunData.repository.id,
+                  organizationId,
+                  orgName,
+                  repoId,
                   branch: workflowRunData.pull_request.head.ref,
                   artifactDownloadUrl: artifact.archive_download_url,
                 },
@@ -72,9 +74,9 @@ export async function completedWorkflowHandler(
             case Github.Enums.WorkflowAction.PulseSecurityErrorsReport:
               await sqsClient.sendMessage(
                 {
-                  organizationId: workflowRunData.organization.id,
-                  orgName: workflowRunData.organization.login,
-                  repoId: workflowRunData.repository.id,
+                  organizationId,
+                  orgName,
+                  repoId,
                   branch: workflowRunData.pull_request.head.ref,
                   artifactDownloadUrl: artifact.archive_download_url,
                 },
@@ -85,8 +87,8 @@ export async function completedWorkflowHandler(
             case Github.Enums.WorkflowAction.PulseTestCaseCoverageReport:
               await sqsClient.sendMessage(
                 {
-                  organizationId: workflowRunData.organization.id,
-                  repoId: workflowRunData.repository.id,
+                  organizationId,
+                  repoId,
                   createdAt: artifact.created_at,
                   artifactDownloadUrl: artifact.archive_download_url,
                 },
@@ -97,8 +99,8 @@ export async function completedWorkflowHandler(
             case Github.Enums.WorkflowAction.PulseWorkBreakdownReport:
               await sqsClient.sendMessage(
                 {
-                  organizationId: workflowRunData.organization.id,
-                  repoId: workflowRunData.repository.id,
+                  organizationId,
+                  repoId,
                   createdAt: artifact.created_at,
                   artifactDownloadUrl: artifact.archive_download_url,
                 },
