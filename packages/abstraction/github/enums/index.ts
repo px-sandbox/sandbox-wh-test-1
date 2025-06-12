@@ -14,6 +14,7 @@ import { SearchKey } from './search-keys';
 import { ReviewState } from './review-state';
 import { UserType } from './user-type';
 import { OrgConst } from './organization';
+import { WorkflowAction } from './workflow';
 
 export {
   IndexName,
@@ -32,4 +33,5 @@ export {
   PrDetailsSortKey,
   OrgInstallation,
   PRReviewComment,
+  WorkflowAction,
 };

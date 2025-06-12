@@ -15,15 +15,19 @@ import { initializeRepoLibraryQueue } from './repo-library';
 import { initializeRepoSastErrorQueue } from './repo-sast-errors';
 import { initializeSecurityScanQueue } from './update-security-scan';
 import { initializeIndexerQueue } from './indexer';
-import { createGhTestCoverageQueue } from "./test-coverage";
-import {createGhDeploymentQueue} from "./github-deployment"
+import { createGhTestCoverageQueue } from './test-coverage';
+import { createGhDeploymentQueue } from './github-deployment';
 import { initializeWorkbreakdownQueue } from './workbreakdown';
 
 // eslint-disable-next-line max-lines-per-function,
 export function initializeQueue(
   stack: Stack,
   githubDDb: GithubTables,
-  buckets: { sastErrorsBucket: Bucket; versionUpgradeBucket: Bucket, testCoverageReportsBucket: Bucket }
+  buckets: {
+    sastErrorsBucket: Bucket;
+    versionUpgradeBucket: Bucket;
+    testCoverageReportsBucket: Bucket;
+  }
 ): { [key: string]: Queue } {
   const indexerQueue = initializeIndexerQueue(stack, githubDDb);
   const [commitFormatDataQueue, commitFileChanges, updateMergeCommit] = initializeCommitQueue(
@@ -69,7 +73,7 @@ export function initializeQueue(
   const repoSastErrors = initializeRepoSastErrorQueue(stack, buckets.sastErrorsBucket, githubDDb);
   const [scansSaveQueue] = initializeSecurityScanQueue(stack, githubDDb);
   const [testCoverageQueue] = createGhTestCoverageQueue(stack, buckets.testCoverageReportsBucket);
-  const [githubDeploymentFrequencyQueue]=createGhDeploymentQueue(stack);
+  const [githubDeploymentFrequencyQueue] = createGhDeploymentQueue(stack);
   const workbreakdownQueue = initializeWorkbreakdownQueue(stack, githubDDb);
 
   // Bindings for indexerQueue

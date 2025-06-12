@@ -10,4 +10,5 @@ export enum Event {
   Copilot = 'copilot',
   ActiveBranches = 'active_branches',
   Installation = 'installation',
+  WorkflowRunCompleted = 'workflow_run',
 }

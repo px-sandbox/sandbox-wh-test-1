@@ -11,6 +11,7 @@ import { getCommits } from '../lib/git-commit-list';
 import { pRReviewCommentOnQueue } from '../lib/pr-review-comment-queue';
 import { pRReviewOnQueue } from '../lib/pr-review-queue';
 import { pROnQueue } from '../lib/pull-request-queue';
+import { completedWorkflowHandler } from './workflow.complete';
 
 const sqsClient = SQSClient.getInstance();
 interface ReviewCommentProcessType {
@@ -184,6 +185,16 @@ async function processWebhookEvent(
       break;
     case Github.Enums.Event.Installation:
       await orgInstallation(data, requestId);
+      break;
+    case Github.Enums.Event.WorkflowRunCompleted:
+      if (data.action === 'completed') {
+        await completedWorkflowHandler(data, requestId);
+      }
+      logger.info({
+        message: 'processWebhookEvent.info: Workflow_run event',
+        data: { action: data.action },
+        requestId,
+      });
       break;
     default:
       logger.info({
