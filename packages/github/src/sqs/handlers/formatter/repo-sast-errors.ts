@@ -89,17 +89,10 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       requestId,
       resourceId,
     });
-    const { repoId, branch, organizationId } = messageBody;
-    // const bucketName = `${process.env.SST_STAGE}-sast-errors`;
-    // const data: Github.ExternalType.Api.RepoSastErrors = await fetchDataFromS3(
-    //   s3Obj.key,
-    //   bucketName,
-    //   { requestId, resourceId }
-    // );
-
+    const { repoId, branch, organizationId, orgName, artifactDownloadUrl } = messageBody;
     const data: Github.ExternalType.Api.RepoSastErrors = await fetchArtifacts(
-      messageBody.orgName,
-      messageBody.artifactDownloadUrl
+      orgName,
+      artifactDownloadUrl
     );
 
     const sastErrorFormattedData = await repoSastErrorsFormatter(data);
