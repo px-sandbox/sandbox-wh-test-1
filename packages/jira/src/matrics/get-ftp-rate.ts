@@ -18,15 +18,15 @@ const esClientObj = ElasticSearchClient.getInstance();
 function getJiraLink(orgName: string, projectKey: string, sprintId: number): string {
   return encodeURI(
     `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=project =
-     "${projectKey}" and sprint = ${sprintId} and labels in (FTP, FTF) ORDER BY created DESC`
+     "${projectKey}" and type in (Story, Task) and sprint = ${sprintId} and labels in (FTP, FTF) ORDER BY created DESC`
   );
 }
 
 function getJiraLinkForVersion(orgName: string, projectKey: string, versionId: number): string {
   return encodeURI(
     `https://${orgName}.atlassian.net/jira/software/c/projects/${projectKey}/issues/?jql=project =
-     "${projectKey}" and fixVersion = ${versionId} and labels in (FTF, FTP) 
-     AND type IN (Story, Task) ORDER BY created DESC`
+     "${projectKey}" and type in (Story, Task) and fixVersion = ${versionId} and labels in (FTF, FTP) 
+     ORDER BY created DESC`
   );
 }
 
