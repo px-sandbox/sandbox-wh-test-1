@@ -76,7 +76,11 @@ export function initializeQueue(
     buckets.versionUpgradeBucket
   );
 
-  const repoSastErrors = initializeRepoSastErrorQueue(stack, buckets.sastErrorsBucket, githubDDb);
+  const [repoSastErrors, repoSastErrorsV2] = initializeRepoSastErrorQueue(
+    stack,
+    buckets.sastErrorsBucket,
+    githubDDb
+  );
   const [scansSaveQueue] = initializeSecurityScanQueue(stack, githubDDb);
   const [testCoverageQueue] = createGhTestCoverageQueue(stack, buckets.testCoverageReportsBucket);
   const [githubDeploymentFrequencyQueue] = createGhDeploymentQueue(stack);
@@ -107,6 +111,7 @@ export function initializeQueue(
     prReviewFormatDataQueue,
     masterLibraryQueue,
     repoSastErrors,
+    repoSastErrorsV2,
     scansSaveQueue,
     repoLibS3Queue,
     updateMergeCommit,

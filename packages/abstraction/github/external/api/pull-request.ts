@@ -40,5 +40,6 @@ export type PullRequest = {
   additions: number;
   deletions: number;
   changed_files: number;
+  merged: boolean;
   action?: string;
 };
