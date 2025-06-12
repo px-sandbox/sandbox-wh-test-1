@@ -73,7 +73,8 @@ export function initializeQueue(
   const [masterLibraryQueueV2, repoLibS3QueueV2] = initializeRepoLibraryQueueV2(
     stack,
     githubDDb,
-    buckets.versionUpgradeBucket
+    buckets.versionUpgradeBucket,
+    masterLibraryQueue
   );
 
   const [repoSastErrors, repoSastErrorsV2] = initializeRepoSastErrorQueue(

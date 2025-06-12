@@ -8,7 +8,8 @@ import { getDeadLetterQ } from '../../common/dead-letter-queue';
 export function initializeRepoLibraryQueueV2(
   stack: Stack,
   githubDDb: GithubTables,
-  versionUpgradeBucket: Bucket
+  versionUpgradeBucket: Bucket,
+  existingMasterLibraryQueue: Queue
 ): Queue[] {
   const {
     GIT_ORGANIZATION_ID,
@@ -17,27 +18,11 @@ export function initializeRepoLibraryQueueV2(
     OPENSEARCH_PASSWORD,
     OPENSEARCH_USERNAME,
     NODE_VERSION,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID,
   } = use(commonConfig);
   const { retryProcessTable, libMasterTable, githubMappingTable } = githubDDb;
-  const masterLibraryQueue = new Queue(stack, 'qMasterLibInfoV2', {
-    cdk: {
-      queue: {
-        deadLetterQueue: getDeadLetterQ(stack, 'qMasterLibInfoV2'),
-      },
-    },
-  });
-  masterLibraryQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnMasterLibraryV2', {
-      handler: 'packages/github/src/sqs/handlers/repo-library/master-library.handler',
-      bind: [masterLibraryQueue],
-      runtime: NODE_VERSION,
-    }),
-    cdk: {
-      eventSource: {
-        batchSize: 5,
-      },
-    },
-  });
 
   const repoLibS3Queue = new Queue(stack, 'qRepoLibS3V2', {
     cdk: {
@@ -50,7 +35,12 @@ export function initializeRepoLibraryQueueV2(
   repoLibS3Queue.addConsumer(stack, {
     function: new Function(stack, 'fnRepoLibS3V2', {
       handler: 'packages/github/src/sqs/handlers/repo-library/from-s3-repo-library-v2.handler',
-      bind: [repoLibS3Queue],
+      bind: [
+        repoLibS3Queue,
+        GITHUB_APP_PRIVATE_KEY_PEM,
+        GITHUB_APP_ID,
+        GITHUB_SG_INSTALLATION_ID
+      ],
       runtime: NODE_VERSION,
       timeout: '60 seconds',
     }),
@@ -70,8 +60,11 @@ export function initializeRepoLibraryQueueV2(
     retryProcessTable,
     GIT_ORGANIZATION_ID,
     libMasterTable,
+    GITHUB_APP_PRIVATE_KEY_PEM,
+    GITHUB_APP_ID,
+    GITHUB_SG_INSTALLATION_ID
   ]);
-  masterLibraryQueue.bind([
+  existingMasterLibraryQueue.bind([
     retryProcessTable,
     OPENSEARCH_NODE,
     REQUEST_TIMEOUT,
@@ -81,5 +74,5 @@ export function initializeRepoLibraryQueueV2(
     libMasterTable,
   ]);
 
-  return [masterLibraryQueue, repoLibS3Queue];
+  return [existingMasterLibraryQueue, repoLibS3Queue];
 }

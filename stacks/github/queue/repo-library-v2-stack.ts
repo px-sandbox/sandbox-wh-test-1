@@ -11,7 +11,8 @@ export function initializeRepoLibraryV2Stack(
   const [masterLibraryQueueV2, repoLibS3QueueV2] = initializeRepoLibraryQueueV2(
     stack,
     githubDDb,
-    versionUpgradeBucket
+    versionUpgradeBucket,
+    existingMasterLibraryQueue
   );
 
   return {
