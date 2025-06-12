@@ -20,6 +20,80 @@ interface WorkflowArtifact {
   expires_at: string;
 }
 const sqsClient = SQSClient.getInstance();
+
+async function processArtifact(
+  workflowRunData: Github.ExternalType.Webhook.WorkflowRunCompleted,
+  artifacts: WorkflowArtifact[],
+  requestId: string
+): Promise<void> {
+  const {
+    organization: { id: organizationId, login: orgName },
+    repository: { id: repoId },
+  } = workflowRunData;
+  await Promise.all(
+    artifacts.map(async (artifact) => {
+      // switch case for the workflowActionName
+      const { name, archive_download_url: artifactDownloadUrl, created_at: createdAt } = artifact;
+      switch (name) {
+        case Github.Enums.WorkflowAction.PulseVersionUpgradesReport:
+          // call the queue to process the artifact
+          await sqsClient.sendMessage(
+            {
+              organizationId,
+              orgName,
+              repoId,
+              branch: workflowRunData.pull_request.head.ref,
+              artifactDownloadUrl,
+            },
+            Queue.qRepoLibS3V2.queueUrl,
+            { requestId }
+          );
+          break;
+        case Github.Enums.WorkflowAction.PulseSecurityErrorsReport:
+          await sqsClient.sendMessage(
+            {
+              organizationId,
+              orgName,
+              repoId,
+              branch: workflowRunData.pull_request.head.ref,
+              artifactDownloadUrl,
+            },
+            Queue.qGhRepoSastErrorV2.queueUrl,
+            { requestId }
+          );
+          break;
+        case Github.Enums.WorkflowAction.PulseTestCaseCoverageReport:
+          await sqsClient.sendMessage(
+            {
+              organizationId,
+              repoId,
+              orgName,
+              createdAt,
+              artifactDownloadUrl,
+            },
+            Queue.qGhTestCoverageV2.queueUrl,
+            { requestId }
+          );
+          break;
+        case Github.Enums.WorkflowAction.PulseWorkBreakdownReport:
+          await sqsClient.sendMessage(
+            {
+              organizationId,
+              repoId,
+              orgName,
+              createdAt,
+              artifactDownloadUrl,
+            },
+            Queue.qGhWorkbreakdownV2.queueUrl,
+            { requestId }
+          );
+          break;
+        default:
+          break;
+      }
+    })
+  );
+}
 export async function completedWorkflowHandler(
   workflowRunData: Github.ExternalType.Webhook.WorkflowRunCompleted,
   requestId: string
@@ -31,11 +105,10 @@ export async function completedWorkflowHandler(
     if (prInfo && prInfo.merged) {
       // Get the info of the workflow run and update the prData
       const {
-        organization: { id: organizationId, login: orgName },
-        repository: { id: repoId, name: repoName },
+        organization: { login: orgName },
+        repository: { name: repoName },
         workflow_run: { id: workflowRunId },
       } = workflowRunData;
-
       const installationAccessToken = await getInstallationAccessToken(orgName);
       const octokit = ghRequest.request.defaults({
         headers: {
@@ -53,66 +126,7 @@ export async function completedWorkflowHandler(
         message: 'Workflow artifacts fetched successfully',
         data: { artifacts: artifactsResponse.data.artifacts.length },
       });
-      await Promise.all(
-        artifactsResponse.data.artifacts.map(async (artifact) => {
-          // switch case for the workflowActionName
-          switch (artifact.name) {
-            case Github.Enums.WorkflowAction.PulseVersionUpgradesReport:
-              // call the queue to process the artifact
-              await sqsClient.sendMessage(
-                {
-                  organizationId,
-                  orgName,
-                  repoId,
-                  branch: workflowRunData.pull_request.head.ref,
-                  artifactDownloadUrl: artifact.archive_download_url,
-                },
-                Queue.qRepoLibS3V2.queueUrl,
-                { requestId }
-              );
-              break;
-            case Github.Enums.WorkflowAction.PulseSecurityErrorsReport:
-              await sqsClient.sendMessage(
-                {
-                  organizationId,
-                  orgName,
-                  repoId,
-                  branch: workflowRunData.pull_request.head.ref,
-                  artifactDownloadUrl: artifact.archive_download_url,
-                },
-                Queue.qGhRepoSastErrorV2.queueUrl,
-                { requestId }
-              );
-              break;
-            case Github.Enums.WorkflowAction.PulseTestCaseCoverageReport:
-              await sqsClient.sendMessage(
-                {
-                  organizationId,
-                  repoId,
-                  createdAt: artifact.created_at,
-                  artifactDownloadUrl: artifact.archive_download_url,
-                },
-                Queue.qGhTestCoverageV2.queueUrl,
-                { requestId }
-              );
-              break;
-            case Github.Enums.WorkflowAction.PulseWorkBreakdownReport:
-              await sqsClient.sendMessage(
-                {
-                  organizationId,
-                  repoId,
-                  createdAt: artifact.created_at,
-                  artifactDownloadUrl: artifact.archive_download_url,
-                },
-                Queue.qGhWorkbreakdownV2.queueUrl,
-                { requestId }
-              );
-              break;
-            default:
-              break;
-          }
-        })
-      );
+      await processArtifact(workflowRunData, artifactsResponse.data.artifacts, requestId);
     } else {
       logger.error({
         requestId,
