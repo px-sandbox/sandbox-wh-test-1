@@ -19,15 +19,15 @@ export function initializeRepoLibraryQueueV2(
     NODE_VERSION,
   } = use(commonConfig);
   const { retryProcessTable, libMasterTable, githubMappingTable } = githubDDb;
-  const masterLibraryQueue = new Queue(stack, 'qMasterLibInfo', {
+  const masterLibraryQueue = new Queue(stack, 'qMasterLibInfoV2', {
     cdk: {
       queue: {
-        deadLetterQueue: getDeadLetterQ(stack, 'qMasterLibInfo'),
+        deadLetterQueue: getDeadLetterQ(stack, 'qMasterLibInfoV2'),
       },
     },
   });
   masterLibraryQueue.addConsumer(stack, {
-    function: new Function(stack, 'fnMasterLibrary', {
+    function: new Function(stack, 'fnMasterLibraryV2', {
       handler: 'packages/github/src/sqs/handlers/repo-library/master-library.handler',
       bind: [masterLibraryQueue],
       runtime: NODE_VERSION,
@@ -48,7 +48,7 @@ export function initializeRepoLibraryQueueV2(
     },
   });
   repoLibS3Queue.addConsumer(stack, {
-    function: new Function(stack, 'fnRepoLibS3', {
+    function: new Function(stack, 'fnRepoLibS3V2', {
       handler: 'packages/github/src/sqs/handlers/repo-library/from-s3-repo-library-v2.handler',
       bind: [repoLibS3Queue],
       runtime: NODE_VERSION,

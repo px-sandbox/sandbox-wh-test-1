@@ -70,11 +70,6 @@ export function initializeQueue(
     githubDDb,
     buckets.versionUpgradeBucket
   );
-  const [masterLibraryQueueV2, repoLibS3QueueV2] = initializeRepoLibraryQueueV2(
-    stack,
-    githubDDb,
-    buckets.versionUpgradeBucket
-  );
 
   const repoSastErrors = initializeRepoSastErrorQueue(stack, buckets.sastErrorsBucket, githubDDb);
   const [scansSaveQueue] = initializeSecurityScanQueue(stack, githubDDb);
@@ -115,7 +110,5 @@ export function initializeQueue(
     testCoverageQueue,
     githubDeploymentFrequencyQueue,
     workbreakdownQueue,
-    masterLibraryQueueV2,
-    repoLibS3QueueV2,
   };
 }
