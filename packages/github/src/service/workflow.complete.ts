@@ -3,7 +3,7 @@ import { Github } from 'abstraction';
 import { logger } from 'core';
 import { Queue } from 'sst/node/queue';
 import { SQSClient } from '@pulse/event-handler';
-import { getPullRequestById } from '../lib/get-pull-request';
+import { getOctokitResp } from '../util/octokit-response';
 import { getInstallationAccessToken } from '../util/installation-access-token';
 import { ghRequest } from '../lib/request-default';
 import { getOctokitTimeoutReqFn } from '../util/octokit-timeout-fn';
@@ -20,7 +20,24 @@ interface WorkflowArtifact {
   expires_at: string;
 }
 const sqsClient = SQSClient.getInstance();
-
+async function callGithubPullApi(
+  orgName: string,
+  repoName: string,
+  prNumber: number
+): Promise<Github.ExternalType.Api.PullRequest> {
+  const installationAccessToken = await getInstallationAccessToken(orgName);
+  const octokit = ghRequest.request.defaults({
+    headers: {
+      Authorization: `Bearer ${installationAccessToken.body.token}`,
+    },
+  });
+  const octokitRequestWithTimeout = await getOctokitTimeoutReqFn(octokit);
+  const dataOnPr = await octokitRequestWithTimeout(
+    `GET /repos/${orgName}/${repoName}/pulls/${prNumber}`
+  );
+  const octokitRespData = getOctokitResp(dataOnPr) as Github.ExternalType.Api.PullRequest;
+  return octokitRespData;
+}
 async function processArtifact(
   workflowRunData: Github.ExternalType.Webhook.WorkflowRunCompleted,
   artifacts: WorkflowArtifact[],
@@ -100,15 +117,15 @@ export async function completedWorkflowHandler(
 ): Promise<void> {
   try {
     const prId = Number(workflowRunData.pull_request.number);
+    const {
+      organization: { login: orgName },
+      repository: { name: repoName },
+      workflow_run: { id: workflowRunId },
+    } = workflowRunData;
     // Get the info of PR and check if it is merged
-    const [prInfo] = await getPullRequestById(prId);
+    const prInfo = await callGithubPullApi(orgName, repoName, prId);
     if (prInfo && prInfo.merged) {
       // Get the info of the workflow run and update the prData
-      const {
-        organization: { login: orgName },
-        repository: { name: repoName },
-        workflow_run: { id: workflowRunId },
-      } = workflowRunData;
       const installationAccessToken = await getInstallationAccessToken(orgName);
       const octokit = ghRequest.request.defaults({
         headers: {
@@ -131,7 +148,7 @@ export async function completedWorkflowHandler(
       logger.error({
         requestId,
         message: 'completedWorkflowHandler.error',
-        data: { isMerged: prInfo?.merged, workflowRunData },
+        data: { isMerged: prInfo?.merged, pullNumber: workflowRunData.pull_request.number },
       });
     }
   } catch (error) {
