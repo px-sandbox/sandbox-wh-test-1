@@ -283,6 +283,9 @@ importers:
       abstraction:
         specifier: workspace:^1.0.0
         version: link:../abstraction
+      adm-zip:
+        specifier: ^0.5.16
+        version: 0.5.16
       async:
         specifier: 3.2.6
         version: 3.2.6
