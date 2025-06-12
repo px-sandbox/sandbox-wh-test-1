@@ -19,10 +19,10 @@ export function initializeRepoLibraryQueueV2(
     NODE_VERSION,
   } = use(commonConfig);
   const { retryProcessTable, libMasterTable, githubMappingTable } = githubDDb;
-  const masterLibraryQueue = new Queue(stack, 'qMasterLibInfo', {
+  const masterLibraryQueue = new Queue(stack, 'qMasterLibInfoV2', {
     cdk: {
       queue: {
-        deadLetterQueue: getDeadLetterQ(stack, 'qMasterLibInfo'),
+        deadLetterQueue: getDeadLetterQ(stack, 'qMasterLibInfoV2'),
       },
     },
   });
