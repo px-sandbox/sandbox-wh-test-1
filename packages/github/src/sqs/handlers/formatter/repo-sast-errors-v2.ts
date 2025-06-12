@@ -120,7 +120,7 @@ async function processAndStoreSQSRecord(record: SQSRecord): Promise<void> {
       resourceId,
     });
   } catch (error) {
-    await logProcessToRetry(record, Queue.qGhRepoSastError.queueUrl, error as Error);
+    await logProcessToRetry(record, Queue.qGhRepoSastErrorV2.queueUrl, error as Error);
     logger.error({
       message: 'repoSastScanFormattedDataReceiver.error',
       error: `${error}`,
