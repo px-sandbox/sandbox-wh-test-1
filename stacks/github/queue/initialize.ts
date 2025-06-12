@@ -12,6 +12,7 @@ import { initializePrReviewAndCommentsQueue } from './review';
 import { initializeUserQueue } from './user';
 import { initializeBranchCounterQueue } from './branch-counter';
 import { initializeRepoLibraryQueue } from './repo-library';
+import { initializeRepoLibraryQueueV2 } from './repo-library-v2';
 import { initializeRepoSastErrorQueue } from './repo-sast-errors';
 import { initializeSecurityScanQueue } from './update-security-scan';
 import { initializeIndexerQueue } from './indexer';
@@ -69,6 +70,12 @@ export function initializeQueue(
     githubDDb,
     buckets.versionUpgradeBucket
   );
+  const [masterLibraryQueueV2, repoLibS3QueueV2] = initializeRepoLibraryQueueV2(
+    stack,
+    githubDDb,
+    buckets.versionUpgradeBucket,
+    masterLibraryQueue
+  );
 
   const [repoSastErrors, repoSastErrorsV2] = initializeRepoSastErrorQueue(
     stack,
@@ -114,5 +121,7 @@ export function initializeQueue(
     testCoverageQueue,
     githubDeploymentFrequencyQueue,
     workbreakdownQueue,
+    masterLibraryQueueV2,
+    repoLibS3QueueV2,
   };
 }
