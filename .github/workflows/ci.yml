@@ -8,7 +8,8 @@ on:
 
 jobs:
   call-workflow:
-    uses: studiographene/github-action-workflows/.github/workflows/nodejs-ci.yml@feature/PX-2965 # if you want alternatively pin to tag version version
+    # uses: studiographene/github-action-workflows/.github/workflows/nodejs-ci.yml@feature/PX-2965 # if you want alternatively pin to tag version version
+    uses: studiographene/github-action-workflows/.github/workflows/nodejs-ci.yml@feature/PX-2965-do-not-use
     secrets: inherit
     permissions:
       discussions: write
