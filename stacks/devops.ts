@@ -10,3 +10,20 @@ export function devops({ stack }: StackContext): void | Promise<void> {
     value: ghAPI.httpApiId,
   });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
